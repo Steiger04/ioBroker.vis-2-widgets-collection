@@ -25,7 +25,7 @@ import {
     SwitchRow,
 } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
-import { issueCountsByTab, type ValidationIssue } from '../validation';
+import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import ColorField, { ColorListField } from '../colorFields';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';

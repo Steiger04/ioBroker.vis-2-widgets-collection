@@ -41,7 +41,7 @@ import {
     SwitchRow,
 } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
-import { issueCountsByTab, type ValidationIssue } from '../validation';
+import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import type { EditorState, SetEditor } from '../editorState';
 import type {
     EchartsBarInterval,

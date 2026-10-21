@@ -22,6 +22,10 @@ vi.hoisted(() => {
 });
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
 vi.mock('../OidPicker', () => ({ default: () => null }));
+// Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &
+// Zoom → MarkCard) reaches the adapter-react barrel (FileBrowser → icons): stubbed, the
+// focusTabs precedent.
+vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
 /** The scenario schema — swapped per test; the hook reads `current`. */
 type Scenario = {

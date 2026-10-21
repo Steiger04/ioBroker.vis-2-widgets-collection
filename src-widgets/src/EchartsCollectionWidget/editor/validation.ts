@@ -9,63 +9,43 @@
  * it warns, it does not patronise. Anything that must be enforced belongs in `saveEditorState`
  * (normalisation), not here.
  */
-import { FAMILY_CORES } from '../families/cores';
+import { coreOf } from '../families/cores';
 import { familyOf } from '../families/kernel';
+import { editorialOf, type FAMILY_EDITORIAL } from '../families/editorial';
 import type { FamilyBoundaryLoss } from '../families/types';
 import { pruneSnippetIds } from './snippetComposition';
 import { SERIES_TEMPLATES, seriesSlotOf, type SeriesTemplateSlot } from './seriesTemplates';
 import type { EditorState } from './editorState';
 
-/** The section keys of the v3 rail (family-aware inventory is computed in EchartsEditorSections). */
-export type SectionKey =
+/** The rail's family-agnostic base section keys — hand-written, every family carries them. */
+export type BaseSectionKey =
     | 'series'
     | 'dataSource'
     | 'title'
     | 'legend'
     | 'tooltip'
-    | 'axesZoom'
-    | 'family'
     | 'colors'
     | 'behavior'
     | 'toolbox';
 
-/** One validation finding: an i18n key plus optional `%s` interpolation args. */
-export interface ValidationIssue {
-    key: string;
-    args?: string[];
-}
+/**
+ * The family share of the section keys — DERIVED from the editorial record (ADR-0083): each
+ * family's rail-slot keys. A type-only import (the runtime graph stays acyclic); a third
+ * family's slots join the union automatically.
+ */
+export type FamilySectionKey = (typeof FAMILY_EDITORIAL)[keyof typeof FAMILY_EDITORIAL]['railSlots'][number]['key'];
+
+/** The section keys of the v3 rail (family-aware inventory is computed in EchartsEditorSections). */
+export type SectionKey = BaseSectionKey | FamilySectionKey;
 
 /** Validation findings grouped by the section they surface in. */
 export type SectionIssues = Partial<Record<SectionKey, ValidationIssue[]>>;
 
-/**
- * The SECTION TAB an issue's field lives on (ADR-0073 tab addressing) — derived purely from
- * the field placement, nothing persisted. `undefined` = not tab-placeable: the Series body is
- * the tab-less card list, and issues inside a CARD (the Y-axis Werte tab) address the card's
- * host tab (Achsen) — the section-level jump lands the user beside the card.
- */
-export const tabOfIssue = (issue: ValidationIssue): string | undefined => {
-    switch (issue.key) {
-        case 'echarts_val_yminmax':
-            return 'axes'; // inside the Y-axis cards on the Achsen tab
-        case 'echarts_val_vmap_range':
-            return 'scale'; // the Farbskala tab (Colours)
-        default:
-            return undefined;
-    }
-};
-
-/** Issue counts per section-tab key — the ⚠ dot feed (ADR-0073; the header rollup stays). */
-export const issueCountsByTab = (issues: readonly ValidationIssue[] | undefined): Record<string, number> => {
-    const out: Record<string, number> = {};
-    for (const issue of issues ?? []) {
-        const tab = tabOfIssue(issue);
-        if (tab !== undefined) {
-            out[tab] = (out[tab] ?? 0) + 1;
-        }
-    }
-    return out;
-};
+// The ADR-0073 tab addressing lives in the ./issueTabs leaf (the sections' import — keeps the
+// family-profile module graph acyclic, ADR-0083); re-exported here so import sites stay stable.
+export { tabOfIssue, issueCountsByTab } from './issueTabs';
+export type { ValidationIssue } from './issueTabs';
+import { tabOfIssue, type ValidationIssue } from './issueTabs';
 
 /**
  * The section's FIRST issue's tab (ADR-0073) — the Problems button / preview placeholder glue:
@@ -101,7 +81,6 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
     const push = (section: SectionKey, key: string, ...args: string[]): void => {
         (issues[section] ??= []).push({ key, args: args.length ? args : undefined });
     };
-    const family = familyOf(state.chartType);
     // The tabellarische family binds yPath columns, not OIDs (`oid` stays '') — the OID check
     // is serien-förmig/Verlauf-only, the drift checks below are its table twin (decision 9).
     const isTable = state.mode === 'json' && state.jsonKind === 'table';
@@ -132,25 +111,17 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
         });
     }
 
-    if (family === 'cartesian') {
-        // Stale series→axis binding (Q6): a stored `yAxisIndex` beyond the axis array (reachable
-        // via hand-edit blobs or an axis-delete race) silently renders on axis 1 — the builder
-        // clamps `yi >= total` to 0, and the card's dropdown display clamps the same way. The
-        // warning says WHY the dropdown disagrees with the stored value. Deliberately NO warning
-        // in the 0-axes state: deleting every axis is legal, the builder's empty-fallback catches
-        // it, and a chorus of per-series warnings would drown the real cases.
-        if (state.yAxes.length) {
-            state.series.forEach((s, i) => {
-                if (typeof s.yAxisIndex === 'number' && s.yAxisIndex >= state.yAxes.length) {
-                    push('series', 'echarts_val_stale_yaxis', s.name || `${i + 1}`);
-                }
-            });
-        }
-        if (state.yAxes.some(ax => typeof ax.min === 'number' && typeof ax.max === 'number' && ax.min >= ax.max)) {
-            push('axesZoom', 'echarts_val_yminmax');
-        }
-        if (state.visualMap.enabled && state.visualMap.min >= state.visualMap.max) {
-            push('colors', 'echarts_val_vmap_range');
+    // The family branch is the profile's (ADR-0083): the cartesian editorial owns the stale
+    // series→axis binding, Y min≥max and visualMap range checks (it may address base sections
+    // — series and colours — beside its own slot). The profile's issues APPEND to the base
+    // findings in profile order, so each section's list stays byte-identical.
+    const familyIssues = editorialOf(state.chartType).validate?.(state, table);
+    if (familyIssues) {
+        for (const [section, list] of Object.entries(familyIssues) as [
+            SectionKey,
+            NonNullable<SectionIssues[SectionKey]>,
+        ][]) {
+            (issues[section] ??= []).push(...list);
         }
     }
 
@@ -173,8 +144,7 @@ export type BoundaryLoss = FamilyBoundaryLoss;
  * keeping the series as slices — is pensioned with it); line↔bar↔scatter cross nothing and
  * never ask. Zero across the board loses nothing — no chip.
  */
-export const familyBoundaryLoss = (state: EditorState): BoundaryLoss =>
-    FAMILY_CORES[familyOf(state.chartType)].dataPath.loss(state);
+export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => coreOf(state.chartType).dataPath.loss(state);
 
 /** How many names survive the deny-list — the VISIBLE payload series count both chips share. */
 const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
@@ -190,7 +160,7 @@ const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
  */
 export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
     // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
-    const marks = FAMILY_CORES[familyOf(state.chartType)].dataPath.marksOf(state);
+    const marks = coreOf(state.chartType).dataPath.marksOf(state);
     const dataPoint = !!state.jsonOid;
     if (state.mode === 'json') {
         // A live payload preview is authoritative (ALL visible names counted — zero when every
@@ -212,7 +182,7 @@ export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly s
  */
 export const jsonKindBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
     // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
-    const marks = FAMILY_CORES[familyOf(state.chartType)].dataPath.marksOf(state);
+    const marks = coreOf(state.chartType).dataPath.marksOf(state);
     if (state.jsonKind === 'table') {
         return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint: false };
     }

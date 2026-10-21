@@ -15,7 +15,7 @@ import { Box } from '@mui/material';
 import Generic from '../../../Generic';
 import { FieldGrid, InfoBox, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
-import { issueCountsByTab, type ValidationIssue } from '../validation';
+import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import type { EditorState, SetEditor } from '../editorState';
 import { SeriesRawOverride } from './series/shared';
 import { snippetPatch } from '../snippetComposition';

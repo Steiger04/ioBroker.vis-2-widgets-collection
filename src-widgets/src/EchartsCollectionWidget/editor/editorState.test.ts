@@ -8,7 +8,20 @@
  * array → `[]`). This test round-trips the full editor state so any future break in the encode/decode
  * symmetry surfaces immediately.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// DOM pool since ADR-0083: this suite transitively loads the family profiles' section
+// modules — they extend Generic (→ window.visRxWidget, undefined outside the vis-2 host;
+// the axesZoomSection.test precedent) and pull the adapter-react barrel (FileBrowser →
+// icons — the focusTabs stub).
+vi.hoisted(() => {
+    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
+        static t(key: string): string {
+            return key;
+        }
+    };
+});
+vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
 import { encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';

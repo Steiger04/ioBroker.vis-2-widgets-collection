@@ -14,14 +14,12 @@ import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { Alert, Box } from '@mui/material';
 
 import Generic from '../../Generic';
-import { familyOf } from '../optionBuilder';
+import { editorialOf, FAMILY_EDITORIAL, type RailSlotProps } from '../families/editorial';
 import SectionCard from '../../components/SectionCard';
 import { ChartTypePicker, JsonKindSelect, ModeSelect } from './controls';
-import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
 import ColorsSection from './sections/ColorsSection';
 import DataSourceSection from './sections/DataSourceSection';
-import { PieOptionsSection } from './sections/FamilySections';
 import SeriesSection from './sections/SeriesSection';
 import TitleSection from './sections/TitleSection';
 import LegendSection from './sections/LegendSection';
@@ -34,6 +32,7 @@ import {
     familySwitchSnippetLoss,
     jsonBoundaryLoss,
     jsonKindBoundaryLoss,
+    type BaseSectionKey,
     type SectionIssues,
     type SectionKey,
 } from './validation';
@@ -89,46 +88,52 @@ interface EchartsEditorSectionsProps {
  * The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021; Toolbox replaces the
  * retired chart-level Advanced JSON, ADR-0045).
  *
- * Order (top → bottom): data source → behavior → title → series → (axes or family
- * options) → legend → tooltip → colors → toolbox. `family` (the pie options) takes the
- * slot cartesian reserves for axes — both are the per-family layout block sitting right
- * after the series.
+ * Order (top → bottom): data source → behavior → title → series → the family's rail slots
+ * (cartesian: axes & zoom · pie: pie options, ADR-0083) → legend → tooltip → colors →
+ * toolbox — the family slots take exactly the block right after the series.
  *
  * Exported because the modal's footer problems button needs the same order to find the
  * FIRST section carrying issues (the scroll target matches what the user sees on screen).
  */
-export const sectionInventory = (chartType: EditorState['chartType']): SectionKey[] => {
-    const family = familyOf(chartType);
-    if (family === 'cartesian') {
-        return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'toolbox'];
-    }
-    // pie
-    return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
+export const sectionInventory = (chartType: EditorState['chartType']): SectionKey[] => [
+    'dataSource',
+    'behavior',
+    'title',
+    'series',
+    ...editorialOf(chartType).railSlots.map(slot => slot.key),
+    'legend',
+    'tooltip',
+    'colors',
+    'toolbox',
+];
+
+/** The base sections' i18n title keys — the family slots title via their profile's titleKey. */
+const BASE_SECTION_TITLES: Record<BaseSectionKey, string> = {
+    series: 'echarts_series',
+    dataSource: 'echarts_data_source',
+    title: 'echarts_sec_title',
+    legend: 'echarts_sec_legend',
+    tooltip: 'echarts_appearance_tooltip',
+    colors: 'echarts_sec_colors',
+    behavior: 'echarts_sec_behavior',
+    toolbox: 'echarts_sec_toolbox',
 };
 
+/** Every rail slot's titleKey, keyed by its section key (slot keys are disjoint across families). */
+const SLOT_TITLE_KEYS: Partial<Record<SectionKey, string>> = Object.fromEntries(
+    Object.values(FAMILY_EDITORIAL).flatMap(editorial => editorial.railSlots.map(slot => [slot.key, slot.titleKey])),
+);
+
+/** Every rail slot's renderer, keyed by its section key — the render dispatch (ADR-0083). */
+const SLOT_RENDERERS: Partial<Record<SectionKey, FC<RailSlotProps>>> = Object.fromEntries(
+    Object.values(FAMILY_EDITORIAL).flatMap(editorial => editorial.railSlots.map(slot => [slot.key, slot.render])),
+);
+
 const sectionTitle = (key: SectionKey): string => {
-    switch (key) {
-        case 'series':
-            return Generic.t('echarts_series');
-        case 'dataSource':
-            return Generic.t('echarts_data_source');
-        case 'title':
-            return Generic.t('echarts_sec_title');
-        case 'legend':
-            return Generic.t('echarts_sec_legend');
-        case 'tooltip':
-            return Generic.t('echarts_appearance_tooltip');
-        case 'axesZoom':
-            return Generic.t('echarts_sec_axes_zoom');
-        case 'family':
-            return Generic.t('echarts_sec_pie_options');
-        case 'colors':
-            return Generic.t('echarts_sec_colors');
-        case 'behavior':
-            return Generic.t('echarts_sec_behavior');
-        case 'toolbox':
-            return Generic.t('echarts_sec_toolbox');
-    }
+    const slotTitleKey = SLOT_TITLE_KEYS[key];
+    // A slot key always carries its profile's titleKey; every other key is a base section
+    // (the cast is that documented invariant, not an escape hatch).
+    return slotTitleKey !== undefined ? Generic.t(slotTitleKey) : Generic.t(BASE_SECTION_TITLES[key as BaseSectionKey]);
 };
 
 /**
@@ -206,6 +211,22 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                 ? { key: focusSection.tab, token: focusSection.token }
                 : undefined;
         const sectionIssues = issues[key];
+        // The family slots render via their profile's renderer (ADR-0083) — the fat slot
+        // props bundle is the same object for every slot; each section picks its fields.
+        const SlotRenderer = SLOT_RENDERERS[key];
+        if (SlotRenderer) {
+            return (
+                <SlotRenderer
+                    state={state}
+                    set={set}
+                    pickerCtx={pickerCtx}
+                    focusTab={focusTab}
+                    issues={sectionIssues}
+                    jsonSeriesNames={jsonSeriesNames}
+                    xIsCategory={xIsCategory}
+                />
+            );
+        }
         switch (key) {
             case 'series':
                 return (
@@ -262,27 +283,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         issues={sectionIssues}
                     />
                 );
-            case 'axesZoom':
-                return (
-                    <AxesZoomSection
-                        state={state}
-                        set={set}
-                        pickerCtx={pickerCtx}
-                        jsonSeriesNames={jsonSeriesNames}
-                        xIsCategory={xIsCategory}
-                        focusTab={focusTab}
-                        issues={sectionIssues}
-                    />
-                );
-            case 'family':
-                return (
-                    <PieOptionsSection
-                        state={state}
-                        set={set}
-                        focusTab={focusTab}
-                        issues={sectionIssues}
-                    />
-                );
             case 'colors':
                 return (
                     <ColorsSection
@@ -312,6 +312,10 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         issues={sectionIssues}
                     />
                 );
+            default:
+                // Slot keys never reach the switch — every family slot renders via its
+                // profile's renderer above; the arm only satisfies the compiler.
+                return <></>;
         }
     };
 

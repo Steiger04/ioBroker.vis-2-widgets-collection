@@ -11,7 +11,10 @@
  * editor modules, so the editor→runtime import direction (and with it the node/dom test
  * split) stays intact.
  */
+import type { EChartsOption } from 'echarts';
+
 import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
+import type { GeneratedInput } from '../optionBuilders/types';
 
 /** The families the registry knows — re-exported so record consumers name one source. */
 export type { EchartsChartFamily };
@@ -76,11 +79,15 @@ export interface FamilyDataPath {
 }
 
 /**
- * Runtime core of a family profile (ADR-0083). Stage 1 (ticket 01) carries the data-path
- * slice alone; the option-builder dispatch (`buildOption`) and the echarts registration
- * (`echartsUse`) join in ticket 02, the presentation fragment (`presentationFragment`) in
- * ticket 03. No editor imports — the cores are consumed by runtime modules.
+ * Runtime core of a family profile (ADR-0083). Tickets 01/02 delivered the data-path slice,
+ * the G-side option build (replacing the orchestrator switch) and the family's echarts
+ * registration; the presentation fragment (`presentationFragment`) joins in ticket 03. No
+ * editor imports — the cores are consumed by runtime modules.
  */
 export interface FamilyCore {
     dataPath: FamilyDataPath;
+    /** The G-side family builder — the generated option's family dispatch (ADR-0083 ticket 02). */
+    buildOption: (input: GeneratedInput) => EChartsOption;
+    /** Registers the family's echarts charts/components (the basis set stays outside, ADR-0083). */
+    echartsUse: () => void;
 }

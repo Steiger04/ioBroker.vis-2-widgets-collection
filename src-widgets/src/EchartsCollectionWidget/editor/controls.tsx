@@ -9,11 +9,11 @@
  * decorative disabled toggle); `ModeSelect` keeps the global data-mode toggle.
  */
 import type { FC } from 'react';
-import type React from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
 import { FieldLabel, InfoBox } from '../../components/controls';
+import { chartTypePickerEntries } from '../families/editorial';
 import {
     crossesFamilyBoundary,
     crossesJsonBoundary,
@@ -26,105 +26,13 @@ import type { EchartsChartType, EchartsJsonKind, EchartsMode } from '../../types
 
 // ── master selectors (top row) ────────────────────────────────────
 
-// The primary chart-type selector is a 5-icon grid of the concrete chart types (ADR-0008 r4:
+// The primary chart-type selector is a 4-type grid of the concrete chart types (ADR-0008 r4:
 // 'area' removed — area is a per-series fill mode, not a chart type). It is the single,
 // authoritative type choice: it sets the family (derived) and the type every non-overridden
-// series inherits. The glyphs are hand-drawn monochrome SVG at currentColor so they theme with
-// the editor and stay quiet (the one signature element).
-const Glyph: FC<{ children: React.ReactNode }> = ({ children }) => (
-    <svg
-        viewBox="0 0 24 24"
-        width={22}
-        height={22}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-    >
-        {children}
-    </svg>
-);
-const LineGlyph: FC = () => (
-    <Glyph>
-        <polyline points="3,17 9,11 13,14 21,6" />
-    </Glyph>
-);
-const BarGlyph: FC = () => (
-    <Glyph>
-        <line
-            x1="6"
-            y1="20"
-            x2="6"
-            y2="11"
-        />
-        <line
-            x1="12"
-            y1="20"
-            x2="12"
-            y2="5"
-        />
-        <line
-            x1="18"
-            y1="20"
-            x2="18"
-            y2="14"
-        />
-    </Glyph>
-);
-const ScatterGlyph: FC = () => (
-    <Glyph>
-        <circle
-            cx="5"
-            cy="16"
-            r="1.4"
-        />
-        <circle
-            cx="11"
-            cy="8"
-            r="1.4"
-        />
-        <circle
-            cx="16"
-            cy="13"
-            r="1.4"
-        />
-        <circle
-            cx="20"
-            cy="5"
-            r="1.4"
-        />
-    </Glyph>
-);
-const PieGlyph: FC = () => (
-    <Glyph>
-        <circle
-            cx="12"
-            cy="12"
-            r="8"
-        />
-        <line
-            x1="12"
-            y1="12"
-            x2="12"
-            y2="4"
-        />
-        <line
-            x1="12"
-            y1="12"
-            x2="18.5"
-            y2="15"
-        />
-    </Glyph>
-);
-
-const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon: React.ReactNode }> = [
-    { value: 'line', label: 'echarts_type_line', icon: <LineGlyph /> },
-    { value: 'bar', label: 'echarts_type_bar', icon: <BarGlyph /> },
-    { value: 'scatter', label: 'echarts_type_scatter', icon: <ScatterGlyph /> },
-    { value: 'pie', label: 'echarts_type_pie', icon: <PieGlyph /> },
-];
+// series inherits. Since ADR-0083 the entries come from the family profiles' picker lists
+// (concatenated in registry order); the glyphs are hand-drawn monochrome SVG at currentColor
+// so they theme with the editor and stay quiet (the one signature element).
+const CHART_TYPES = chartTypePickerEntries();
 
 /** The chart-type glyph outside the picker (e.g. the modal title) — quiet, at currentColor. */
 export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType }) => (
@@ -137,9 +45,9 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
 );
 
 /**
- * The primary selector — a grid of the six concrete chart types. The value is the concrete
+ * The primary selector — a grid of the four concrete chart types. The value is the concrete
  * `chartType` (the editor normalises a legacy `'cartesian'` or `'area'` to a concrete type on
- * load, so one of the five is always highlighted).
+ * load, so one of the four is always highlighted).
  */
 /**
  * The chart-type picker's field ownership (ADR-0049 slice) — the pinned rail selector AND the

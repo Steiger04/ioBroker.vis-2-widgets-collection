@@ -9,7 +9,8 @@
  * themselves import no editor modules. Ticket 01 fills the data-path slice; `buildOption`
  * and `echartsUse` join in ticket 02, `presentationFragment` in ticket 03.
  */
-import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
+import type { EchartsChartFamily, LegacyChartType } from '../../types/field-definitions/echarts-fields';
+import { familyOf } from './kernel';
 import { CARTESIAN_CORE } from './cartesian/core';
 import { PIE_CORE } from './pie/core';
 import type { FamilyCore } from './types';
@@ -19,3 +20,10 @@ export const FAMILY_CORES: Record<EchartsChartFamily, FamilyCore> = {
     cartesian: CARTESIAN_CORE,
     pie: PIE_CORE,
 };
+
+/**
+ * The runtime core of the family a chart type belongs to — the one accessor every consumer
+ * dispatches through (boundary losses, option build, registration), so no site copies the
+ * `FAMILY_CORES[familyOf(...)]` navigation.
+ */
+export const coreOf = (chartType: LegacyChartType): FamilyCore => FAMILY_CORES[familyOf(chartType)];

@@ -18,7 +18,7 @@
  * pie blob deliberately rides across family switches ("switching away and back preserves it",
  * ADR-0044/0045).
  */
-import { familyOf } from '../optionBuilder';
+import { familyOf } from '../families/kernel';
 import { AXIS_TEMPLATES } from './axisTemplates';
 import { LEGEND_TEMPLATES } from './legendTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';

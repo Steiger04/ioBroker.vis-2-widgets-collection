@@ -8,8 +8,8 @@
  * and truncated with ellipsis. A section that cannot say anything useful collapsed does not
  * deserve to be a section.
  */
-import { familyOf } from '../optionBuilder';
 import { hasAggregateOverride } from '../seriesDataOverrides';
+import { editorialOf } from '../families/editorial';
 import type { EditorState } from './editorState';
 import type { SectionKey } from './validation';
 
@@ -32,7 +32,6 @@ const joinNames = (names: (string | undefined)[], max = 2): string => {
  * @returns Map of section key → summary text (empty string = nothing useful to say).
  */
 export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<SectionKey, string>> => {
-    const family = familyOf(state.chartType);
     const out: Partial<Record<SectionKey, string>> = {};
 
     // series
@@ -75,20 +74,10 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
             ? t('echarts_sum_off')
             : `${t(`echarts_tooltip_${state.tooltipTrigger}`)}${state.tooltipUnits ? ` · ${state.tooltipUnits}` : ''}`;
 
-    // axes & zoom (cartesian only)
-    const ax0 = state.yAxes[0];
-    const yBounds = ax0 ? `${ax0.min ?? 'auto'}–${ax0.max ?? 'auto'}` : 'auto–auto';
-    const axesN = state.yAxes.length > 1 ? ` · ${t('echarts_summary_axes', String(state.yAxes.length))}` : '';
-    const zoom = [state.dataZoomSlider ? 'slider' : '', state.dataZoomInside ? 'inside' : ''].filter(Boolean).join('+');
-    out.axesZoom = yBounds + axesN + (zoom ? ` · ${zoom}` : '');
-
-    // family options
-    if (family === 'pie') {
-        out.family = state.pie.innerRadius
-            ? t('echarts_summary_donut', `${Math.round((state.pie.innerRadius ?? 0) * 100)}%`)
-            : state.pie.rose !== 'none'
-              ? `rose · ${state.pie.rose}`
-              : '';
+    // family slots (ADR-0083): the profile owns its rail slots' summary lines — the former
+    // axes & zoom (cartesian) and family options (pie) branches.
+    for (const slot of editorialOf(state.chartType).railSlots) {
+        out[slot.key] = slot.summarize(state, t);
     }
 
     // colours

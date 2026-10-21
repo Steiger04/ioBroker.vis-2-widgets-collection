@@ -91,7 +91,7 @@ The data-mode decision tree from acquisition to option — ONE implementation (`
 _Avoid_: preview pipeline (there is only one), data source (that is the Data mode), renderer (that is EChart)
 
 **Section**:
-One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, `Axes & Zoom` (or the family options section in that slot), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; pie gets its own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling). Since ADR-0073 every section body bundles its fields into **Sektions-Tabs**; the Series body (a card list) is the one tab-less body.
+One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, the family's Rail-Slot (from the Familien-Profil, ADR-0083: cartesian hosts `Axes & Zoom`, pie the Torten-Optionen), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling). Since ADR-0073 every section body bundles its fields into **Sektions-Tabs**; the Series body (a card list) is the one tab-less body.
 _Avoid_: page, panel, SectionCard (that's the shell component, not the concept), Tab without prefix (the v2 top-level Tab is dead — say Sektions-Tab or Karten-Tab)
 
 **Sektions-Tab**:
@@ -332,7 +332,7 @@ The ONE chartType → family table (`families/kernel.ts`): `FAMILY_CHART_TYPES` 
 _Avoid_: family check (a copied `=== 'cartesian'` comparison — exactly the pattern the kernel replaces)
 
 **Rail-Slot**:
-One family-owned section slot of the Rail directly after the Series section (ADR-0083; n per profile — cartesian hosts Achsen & Zoom, pie the Torten-Optionen). Key, i18n title, renderer and Summary line come from the profile; slot keys are pure runtime addressing (open state, focus, issue grouping), never persisted. Realized with ticket 02; the pie slot's addressing key is `pieOptions`, not `family` — "family" belongs to the profile concept.
+One family-owned section slot of the Rail directly after the Series section (ADR-0083; n per profile — cartesian hosts Achsen & Zoom, pie the Torten-Optionen). Key, i18n title, renderer and Summary line come from the Familien-Profil's editorial record; slot keys are pure runtime addressing (open state, focus requests, issue grouping), never persisted. The pie slot's addressing key is `pieOptions` (renamed from `family` with ADR-0083 — "family" belongs to the profile concept).
 _Avoid_: family section (the pre-registry wording of the slot), family tab
 
 **Data-path-Anteil**:

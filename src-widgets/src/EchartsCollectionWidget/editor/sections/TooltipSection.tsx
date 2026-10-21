@@ -29,8 +29,8 @@ import {
     TextField2,
 } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
-import { issueCountsByTab, type ValidationIssue } from '../validation';
-import { familyOf } from '../../optionBuilder';
+import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
+import { familyOf } from '../../families/kernel';
 import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/tooltip';
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
 import { TOOLTIP_CATALOG } from '../tooltipTemplates';

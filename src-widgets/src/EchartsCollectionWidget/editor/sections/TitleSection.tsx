@@ -21,7 +21,7 @@ import {
     TextField2,
 } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
-import { issueCountsByTab, type ValidationIssue } from '../validation';
+import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import ColorField from '../colorFields';
 import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
 import { parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';

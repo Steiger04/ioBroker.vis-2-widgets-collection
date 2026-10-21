@@ -15,7 +15,9 @@
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
-import { familyOf, parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
+import { parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
+import { familyOf } from '../families/kernel';
+import { editorialOf } from '../families/editorial';
 import {
     decodeAxes,
     decodeChartConfig,
@@ -393,22 +395,18 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         meta = [];
     }
 
-    // Normalize legacy chartType values (ADR-0008 r4 + ADR-0071): the family-only 'cartesian'
-    // derives its concrete type from the first series (default line); the removed 'area' type
-    // maps to 'line' (area is a per-series fill mode now); the removed gauge/radar families
-    // (ADR-0071) heal to 'line' — their oidN series (the gauge's scalar OID, the radar's
-    // indicator OIDs) become ordinary cartesian line series in the branch below. In-memory
-    // only — rewritten to a concrete type on save.
+    // Normalize legacy chartType values (ADR-0008 r4 + ADR-0071): the heal is the family
+    // profile's (ADR-0083) — cartesian derives the family-only 'cartesian' from the first
+    // series and heals 'area'/'gauge'/'radar' to line; pie carries no heal (identity). The
+    // healed gauge/radar oidN series (the gauge's scalar OID, the radar's indicator OIDs)
+    // become ordinary cartesian line series in the branch below. In-memory only — rewritten
+    // to a concrete type on save.
+    const firstSeriesType: EchartsCartesianType | undefined =
+        meta[0]?.type === 'bar' || meta[0]?.type === 'scatter' ? meta[0].type : undefined;
     const chartType: EchartsChartType =
-        chartTypeRaw === 'cartesian'
-            ? meta[0]?.type === 'bar'
-                ? 'bar'
-                : meta[0]?.type === 'scatter'
-                  ? 'scatter'
-                  : 'line'
-            : chartTypeRaw === 'area' || chartTypeRaw === 'gauge' || chartTypeRaw === 'radar'
-              ? 'line'
-              : chartTypeRaw;
+        // A family without a heal is one whose kernel row holds concrete types only — the raw
+        // value IS the concrete type there (the kernel invariant behind the cast).
+        editorialOf(chartTypeRaw).healChartType?.(chartTypeRaw, firstSeriesType) ?? (chartTypeRaw as EchartsChartType);
     const family = familyOf(chartType);
 
     const chartConfig = decodeChartConfig(data.chartConfig as string);

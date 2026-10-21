@@ -25,9 +25,8 @@ import {
     type SeriesValueMap,
 } from './historyLogic';
 
-import { buildCartesianOption } from './optionBuilders/cartesian';
-import { buildPieOption } from './optionBuilders/pie';
 import { buildToolbox } from './optionBuilders/toolbox';
+import { FAMILY_CORES } from './families/cores';
 import type { ChartSeries, GeneratedInput, PresentationConfig } from './optionBuilders/types';
 
 // Re-export the shared builder types so existing imports (`SeriesMeta`, `ChartSeries`) keep working.
@@ -38,8 +37,8 @@ export type { EchartsChartFamily, EchartsChartType } from '../types/field-defini
 
 /**
  * Compat re-export: `familyOf` (ADR-0008 addendum r4) lives in the Membership-Kernel since
- * ADR-0083 and is re-exported here so the existing consumers (raw-level type derivation,
- * pipeline, validation, editor heal) keep their stable import site.
+ * ADR-0083 and is re-exported here for import stability — production sites read the kernel
+ * directly; this seam keeps older import paths working.
  */
 export { familyOf } from './families/kernel';
 
@@ -211,22 +210,14 @@ export const parseJsonHidden = (raw: string | undefined | null): string[] => {
 };
 
 /**
- * G — build the generated option by dispatching to the active family builder.
+ * G — build the generated option by dispatching to the active family core (ADR-0083: the
+ * registry replaces the orchestrator switch).
  *
  * @param input - Discriminated by family; carries the resolved data + meta + presentation.
  * @returns The G fragment (data + GUI-owned presentation), pre-merge.
  */
 export const buildGeneratedOption = (input: GeneratedInput): EChartsOption => {
-    let base: Record<string, unknown>;
-    switch (input.family) {
-        case 'pie':
-            base = buildPieOption(input.series, input.meta, input.p) as Record<string, unknown>;
-            break;
-        case 'cartesian':
-        default:
-            base = buildCartesianOption(input.series, input.meta, input.p) as Record<string, unknown>;
-            break;
-    }
+    const base = FAMILY_CORES[input.family].buildOption(input) as Record<string, unknown>;
     // The toolbox block is chart-wide (every family hosts it, ADR-0045) — layered on here at the
     // orchestrator seam rather than duplicated into each family builder. Sparse: absent when the
     // master switch is off, so the replaceMerge rebuild removes the component.
