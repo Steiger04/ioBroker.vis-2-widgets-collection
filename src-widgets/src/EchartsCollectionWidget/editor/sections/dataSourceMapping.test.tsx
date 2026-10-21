@@ -256,11 +256,14 @@ describe('Datenabruf preset hint (ADR-0082 ticket 03 — the pie variant names t
         const root: Root = createRoot(container);
         act(() => {
             root.render(
-                createElement(DataSourceSection as never, {
-                    state: state({ mode: 'history', ...over }),
-                    set,
-                    pickerCtx: {},
-                } as never),
+                createElement(
+                    DataSourceSection as never,
+                    {
+                        state: state({ mode: 'history', ...over }),
+                        set,
+                        pickerCtx: {},
+                    } as never,
+                ),
             );
         });
         act(() => {
