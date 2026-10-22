@@ -531,6 +531,7 @@
     "echarts_stack_percent_info": "Negative values can leave a share at 0 (the group’s sum decides), and absolute series on the same axis read the 0-to-100 % scale.",
     "echarts_stack_quickfix": "Set bar interval",
     "echarts_stack_sum": "Sum over stack",
+    "echarts_stackstrategy_hint": "stackStrategy (template) only takes effect with an active stack — without a stack the entry does nothing.",
     "echarts_step_end": "Step (end)",
     "echarts_step_middle": "Step (middle)",
     "echarts_step_none": "None",

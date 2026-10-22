@@ -531,6 +531,7 @@
     "echarts_stack_percent_info": "Bei negativen Werten kann ein Anteil 0 bleiben (die Summe der Stapelgruppe entscheidet). Absolute Serien auf derselben Achse lesen die Skala von 0 bis 100 % mit.",
     "echarts_stack_quickfix": "Balken-Intervall setzen",
     "echarts_stack_sum": "Summe über Stapel",
+    "echarts_stackstrategy_hint": "stackStrategy (Vorlage) wirkt nur mit wirksamer Stapelung — ohne Stapel hat der Eintrag keine Wirkung.",
     "echarts_step_end": "Stufe (Ende)",
     "echarts_step_middle": "Stufe (Mitte)",
     "echarts_step_none": "Keine",

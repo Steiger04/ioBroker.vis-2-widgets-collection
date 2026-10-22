@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Przy wartościach ujemnych udział może pozostać 0 (decyduje suma grupy). Serie bezwzględne na tej samej osi odczytują skalę od 0 do 100 %.",
     "echarts_stack_quickfix": "Ustaw interwał słupków",
     "echarts_stack_sum": "Suma nad stosem",
+    "echarts_stackstrategy_hint": "stackStrategy (szablon) działa tylko przy aktywnym stosie — bez stosu wpis nie ma efektu.",
     "echarts_step_end": "Krok (koniec)",
     "echarts_step_middle": "Krok (środek)",
     "echarts_step_none": "Brak",

@@ -1264,6 +1264,14 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                             onChange={v => onUpdate(i, { raw: v || undefined })}
                             snippets={s.snippets}
                             onCommit={r => onUpdate(i, snippetPatch(r))}
+                            // stackStrategy's condition (ADR-0084 decision 7): the bar
+                            // catalog's power lever only bites with a stack in effect — say so
+                            // at the place it is authored.
+                            hint={
+                                s.type === 'bar' || (s.type === undefined && defaultType === 'bar')
+                                    ? Generic.t('echarts_stackstrategy_hint')
+                                    : undefined
+                            }
                         />
                     </SectionTabs>
                 </EditorCard>

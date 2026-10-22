@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Bij negatieve waarden kan een aandeel op 0 blijven (dat bepaalt de som van de groep). Absolute reeksen op dezelfde as lezen de schaal van 0 tot 100 %.",
     "echarts_stack_quickfix": "Balkinterval instellen",
     "echarts_stack_sum": "Som over stapel",
+    "echarts_stackstrategy_hint": "stackStrategy (sjabloon) werkt alleen met een actieve stapel — zonder stapel doet de entry niets.",
     "echarts_step_end": "Stap (einde)",
     "echarts_step_middle": "Stap (midden)",
     "echarts_step_none": "Geen",

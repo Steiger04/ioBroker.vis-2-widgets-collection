@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "存在负值时，占比可能保持为 0（由分组的总和决定）。同一轴上的绝对值系列会读取 0 到 100 % 的刻度。",
     "echarts_stack_quickfix": "设置柱状间隔",
     "echarts_stack_sum": "堆叠总和",
+    "echarts_stackstrategy_hint": "stackStrategy（模板）仅在堆叠生效时起作用——没有堆叠时该条目不起任何作用。",
     "echarts_step_end": "阶梯（终点）",
     "echarts_step_middle": "阶梯（中点）",
     "echarts_step_none": "无",

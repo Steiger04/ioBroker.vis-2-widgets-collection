@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Con valores negativos, una proporción puede quedar en 0 (lo decide la suma del grupo). Las series absolutas en el mismo eje leen la escala de 0 a 100 %.",
     "echarts_stack_quickfix": "Establecer intervalo de barras",
     "echarts_stack_sum": "Suma sobre la pila",
+    "echarts_stackstrategy_hint": "stackStrategy (plantilla) solo surte efecto con un apilamiento activo — sin pila, la entrada no hace nada.",
     "echarts_step_end": "Escalonado (final)",
     "echarts_step_middle": "Escalonado (medio)",
     "echarts_step_none": "Ninguno",

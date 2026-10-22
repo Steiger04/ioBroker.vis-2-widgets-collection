@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "При від’ємних значеннях частка може залишитися 0 (вирішує сума групи). Абсолютні ряди на тій самій осі читають шкалу від 0 до 100 %.",
     "echarts_stack_quickfix": "Задати інтервал стовпчиків",
     "echarts_stack_sum": "Сума над стеком",
+    "echarts_stackstrategy_hint": "stackStrategy (шаблон) діє лише за активного стеку — без стеку запис нічого не змінює.",
     "echarts_step_end": "Крок (кінець)",
     "echarts_step_middle": "Крок (середина)",
     "echarts_step_none": "Немає",

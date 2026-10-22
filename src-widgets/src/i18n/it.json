@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Con valori negativi una quota può restare 0 (decide la somma del gruppo). Le serie assolute sullo stesso asse leggono la scala da 0 a 100 %.",
     "echarts_stack_quickfix": "Imposta intervallo barre",
     "echarts_stack_sum": "Somma sulla pila",
+    "echarts_stackstrategy_hint": "stackStrategy (modello) ha effetto solo con un impilamento attivo — senza pila la voce non fa nulla.",
     "echarts_step_end": "Step (fine)",
     "echarts_step_middle": "Step (medio)",
     "echarts_step_none": "Nessuno",

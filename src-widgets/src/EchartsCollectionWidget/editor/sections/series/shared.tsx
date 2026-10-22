@@ -171,7 +171,13 @@ export const SeriesRawOverride: FC<{
      * valid text edits. Without it (or on invalid text) edits fall back to {@link onChange}.
      */
     onCommit?: (result: { text: string; ids: string[] }) => void;
-}> = ({ raw, onChange, slot, snippets, onCommit }) => {
+    /**
+     * Slot-specific condition hint (ADR-0084 decision 7 — e.g. stackStrategy only bites with a
+     * stack in effect): rendered as an InfoBox under the editor, beside the generic note.
+     * Absent = nothing extra (the shared component stays slot-agnostic).
+     */
+    hint?: string;
+}> = ({ raw, onChange, slot, snippets, onCommit, hint }) => {
     const [open, setOpen] = useState(false);
     const trimmed = (raw ?? '').trim();
     let parsed: Record<string, unknown> | null = null;
@@ -247,6 +253,7 @@ export const SeriesRawOverride: FC<{
                 >
                     {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_series_raw_invalid')}`}
                 </Typography>
+                {hint && <InfoBox text={hint} />}
                 <InfoBox text={Generic.t('echarts_editor_advanced_note')} />
             </Collapse>
         </Box>

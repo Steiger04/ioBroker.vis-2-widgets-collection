@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Avec des valeurs négatives, une part peut rester à 0 (la somme du groupe décide). Les séries absolues sur le même axe lisent l’échelle de 0 à 100 %.",
     "echarts_stack_quickfix": "Définir l’intervalle de barres",
     "echarts_stack_sum": "Somme de la pile",
+    "echarts_stackstrategy_hint": "stackStrategy (modèle) ne prend effet qu’avec un empilement actif — sans pile, l’entrée ne fait rien.",
     "echarts_step_end": "Pas (fin)",
     "echarts_step_middle": "Pas (milieu)",
     "echarts_step_none": "Aucun",

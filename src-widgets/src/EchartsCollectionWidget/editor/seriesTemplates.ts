@@ -563,11 +563,33 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
         label: 'barMinHeight',
         json: '{ "barMinHeight": 2 }',
     },
+    // stackStrategy (ADR-0084 decision 7): the sign-mode lever, GUI-uncovered by design — one
+    // solo per value, samesign explicitly marked as the echarts DEFAULT. Only relevant with a
+    // stack actually in effect (the card's raw hint says so — unstacking kills the entry's
+    // effect entirely).
     {
         id: 'bar-stackstrategy',
         category: 'behaviour',
-        label: 'stackStrategy',
+        label: 'stackStrategy · samesign (Standard)',
         json: '{ "stackStrategy": "samesign" }',
+    },
+    {
+        id: 'bar-stackstrategy-all',
+        category: 'behaviour',
+        label: 'stackStrategy · all',
+        json: '{ "stackStrategy": "all" }',
+    },
+    {
+        id: 'bar-stackstrategy-positive',
+        category: 'behaviour',
+        label: 'stackStrategy · positive',
+        json: '{ "stackStrategy": "positive" }',
+    },
+    {
+        id: 'bar-stackstrategy-negative',
+        category: 'behaviour',
+        label: 'stackStrategy · negative',
+        json: '{ "stackStrategy": "negative" }',
     },
     {
         id: 'bar-realtimesort',

@@ -523,6 +523,7 @@
     "echarts_stack_percent_info": "Com valores negativos, uma fração pode ficar em 0 (a soma do grupo decide). Séries absolutas no mesmo eixo leem a escala de 0 a 100 %.",
     "echarts_stack_quickfix": "Definir intervalo de barras",
     "echarts_stack_sum": "Soma sobre a pilha",
+    "echarts_stackstrategy_hint": "stackStrategy (modelo) só tem efeito com um empilhamento ativo — sem pilha, a entrada não faz nada.",
     "echarts_step_end": "Passo (fim)",
     "echarts_step_middle": "Passo (meio)",
     "echarts_step_none": "Nenhum",
