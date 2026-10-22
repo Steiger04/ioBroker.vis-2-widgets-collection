@@ -70,6 +70,8 @@ export type DataSourceSlice = Pick<
     | 'integralInterpolation'
     | 'barInterval'
     | 'barDiff'
+    | 'stackMode'
+    | 'stackSum'
     | 'aggregate'
     | 'count'
     | 'refreshMs'
@@ -418,7 +420,9 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                             </FieldGrid>
                             {/* Category bars (ADR-0065): an explicit interval buckets an effective BAR
                          chart onto calendar categories (auto = the time axis, unchanged). The
-                         option list follows the adapter's range filtering. */}
+                         option list follows the adapter's range filtering. Beside it the
+                         Balken-Stapelmodus (ADR-0084 decision 1) — a bar Darstellungsmodus,
+                         chart-level like barInterval; per-series groups override on the cards. */}
                             {state.chartType === 'bar' && (
                                 <>
                                     <FieldGrid sx={{ mt: 0.5 }}>
@@ -442,6 +446,16 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                                       ]
                                             }
                                         />
+                                        <LabeledSelect
+                                            label={Generic.t('echarts_stack_mode')}
+                                            value={state.stackMode}
+                                            onChange={v => set({ stackMode: v as DataSourceSlice['stackMode'] })}
+                                            options={[
+                                                ['none', Generic.t('echarts_stack_mode_none')],
+                                                ['stack', Generic.t('echarts_stack_mode_stack')],
+                                                ['percent', Generic.t('echarts_stack_mode_percent')],
+                                            ]}
+                                        />
                                     </FieldGrid>
                                     {state.barInterval !== 'auto' && (
                                         <SwitchList sx={{ mt: 1 }}>
@@ -451,6 +465,21 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                                 onChange={v => set({ barDiff: v })}
                                             />
                                         </SwitchList>
+                                    )}
+                                    {/* Summen-Anker (ADR-0084 decision 5): only meaningful under
+                                       Gestapelt — at percent the sum is a constant 100 %, so the
+                                       switch is verdeckt (not merely disabled: no dead control). */}
+                                    {state.stackMode === 'stack' && (
+                                        <SwitchList sx={{ mt: 1 }}>
+                                            <SwitchRow
+                                                label={Generic.t('echarts_stack_sum')}
+                                                checked={state.stackSum}
+                                                onChange={v => set({ stackSum: v })}
+                                            />
+                                        </SwitchList>
+                                    )}
+                                    {state.stackMode === 'percent' && (
+                                        <InfoBox text={Generic.t('echarts_stack_percent_info')} />
                                     )}
                                 </>
                             )}

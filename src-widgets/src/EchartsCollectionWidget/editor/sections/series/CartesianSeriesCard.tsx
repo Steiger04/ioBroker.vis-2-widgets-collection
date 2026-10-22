@@ -36,6 +36,7 @@ import type {
     EchartsCartesianType,
     EchartsOffsetKey,
     EchartsSeriesMeta,
+    EchartsStackMode,
 } from '../../../../types/field-definitions/echarts-fields';
 import {
     AGGREGATE_VALUES,
@@ -88,6 +89,7 @@ export type CartesianSeriesListSlice = Pick<
     | 'integralUnit'
     | 'integralInterpolation'
     | 'ignoreNull'
+    | 'stackMode'
 >;
 
 /** The X-offset calendar keys (ADR-0072) — the adapter's offset union minus its numeric members. */
@@ -809,7 +811,13 @@ export const CartesianSeriesKnobs: FC<{
     colorFallback: string;
     /** Theme text-primary — the BAR label colour's inherit preview (ADR-0027 one-hook rule). */
     labelColorFallback: string;
-}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, labelColorFallback }) => {
+    /**
+     * The chart-level Stapelmodus (ADR-0084) — the BAR select's inherit entry names its
+     * resolution (erben (→ Gestapelt)); absent = none (the JSON families carry the blob field
+     * unevaluated — inherit honestly resolves to „Kein Stapel" there).
+     */
+    stackMode?: EchartsStackMode;
+}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, labelColorFallback, stackMode }) => {
     // The builder's own type resolution (ADR-0008 r3 + ADR-0060): an explicit bar/scatter/line
     // override wins, else the chart's default — so a scatter override hides the line/area/bar
     // groups exactly like the builder emits nothing for them.
@@ -891,12 +899,13 @@ export const CartesianSeriesKnobs: FC<{
                             />
                             <LabeledSelect
                                 label={Generic.t('echarts_series_stack')}
-                                value={meta.stack ?? ''}
-                                // ADR-0084 kernel: the '' sentinel no longer persists — cleared
-                                // maps to undefined (erben; for a line that IS no stack).
-                                onChange={v => onPatch({ stack: v === '' ? undefined : (v as 'A' | 'B' | 'C') })}
+                                // LINES never inherit (ADR-0084 decision 2): hand-set groups
+                                // only — „Kein Stapel" stays SPARSE (undefined; a bar→line type
+                                // flip may leave a stored 'none', which shows and means the same).
+                                value={meta.stack ?? 'none'}
+                                onChange={v => onPatch({ stack: v === 'none' ? undefined : (v as 'A' | 'B' | 'C') })}
                                 options={[
-                                    ['', Generic.t('echarts_stack_none')],
+                                    ['none', Generic.t('echarts_stack_opt_out')],
                                     ['A', Generic.t('echarts_stack_group_a')],
                                     ['B', Generic.t('echarts_stack_group_b')],
                                     ['C', Generic.t('echarts_stack_group_c')],
@@ -1025,14 +1034,32 @@ export const CartesianSeriesKnobs: FC<{
                             max={30}
                             onChange={v => onPatch({ cornerRadius: v })}
                         />
+                        {/* Stapelgruppe, three-valued since ADR-0084 (decision 2, the Erben
+                            idiom): the inherit entry NAMES its resolution — at mode none that
+                            is honestly „Kein Stapel". Groups are mode-independent. */}
                         <LabeledSelect
                             label={Generic.t('echarts_series_stack')}
                             value={meta.stack ?? ''}
-                            // ADR-0084 kernel: the '' sentinel no longer persists — cleared maps
-                            // to undefined (= erben; ticket 04 makes the select say so).
-                            onChange={v => onPatch({ stack: v === '' ? undefined : (v as 'A' | 'B' | 'C') })}
+                            onChange={v =>
+                                onPatch({
+                                    stack: v === '' ? undefined : (v as 'none' | 'A' | 'B' | 'C'),
+                                })
+                            }
                             options={[
-                                ['', Generic.t('echarts_stack_none')],
+                                [
+                                    '',
+                                    Generic.t(
+                                        'echarts_stack_inherit',
+                                        Generic.t(
+                                            stackMode === 'stack'
+                                                ? 'echarts_stack_mode_stack'
+                                                : stackMode === 'percent'
+                                                  ? 'echarts_stack_mode_percent'
+                                                  : 'echarts_stack_opt_out',
+                                        ),
+                                    ),
+                                ],
+                                ['none', Generic.t('echarts_stack_opt_out')],
                                 ['A', Generic.t('echarts_stack_group_a')],
                                 ['B', Generic.t('echarts_stack_group_b')],
                                 ['C', Generic.t('echarts_stack_group_c')],
@@ -1225,6 +1252,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                             pickerCtx={pickerCtx}
                             colorFallback={slot(i)}
                             labelColorFallback={labelColorFallback}
+                            stackMode={state.stackMode}
                         />
                         <SeriesValueFormatFields
                             meta={s}

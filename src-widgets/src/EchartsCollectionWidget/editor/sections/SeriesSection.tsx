@@ -84,6 +84,8 @@ export type SeriesSlice = Pick<
     | 'integralInterpolation'
     // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
     | 'ignoreNull'
+    // ADR-0084: the Stapelmodus rides down for the bar card's inherit entry (what erben resolves).
+    | 'stackMode'
 >;
 
 interface SeriesSectionProps {

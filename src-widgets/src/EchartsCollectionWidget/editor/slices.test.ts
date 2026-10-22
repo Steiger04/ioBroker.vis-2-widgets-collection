@@ -135,6 +135,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'integralInterpolation'
                 | 'barInterval'
                 | 'barDiff'
+                | 'stackMode'
+                | 'stackSum'
                 | 'aggregate'
                 | 'count'
                 | 'refreshMs'
@@ -208,6 +210,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'integralInterpolation'
                 // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
                 | 'ignoreNull'
+                // ADR-0084: the bar card's inherit entry names the Stapelmodus resolution.
+                | 'stackMode'
             >
         >();
     });
@@ -233,6 +237,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'integralInterpolation'
                 // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
                 | 'ignoreNull'
+                // ADR-0084: the bar card's inherit entry names the Stapelmodus resolution.
+                | 'stackMode'
             >
         >();
     });
