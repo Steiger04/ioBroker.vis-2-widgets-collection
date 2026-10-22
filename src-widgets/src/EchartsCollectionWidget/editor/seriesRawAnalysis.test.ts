@@ -141,7 +141,7 @@ describe('classifySeriesKeys — cartesian bar / pie / radar / gauge', () => {
     it('stackStrategy stays FREE even on a stacked card (ADR-0084 decision 7 — the solo is legal)', () => {
         // The builder never emits stackStrategy and the managed sets do not own it — an
         // authorized value is always ✓ effective, stack on the card or not.
-        const stackedBar = { slot: 'cartesian-bar' as const, meta: { stack: 'A' } };
+        const stackedBar = { slot: 'cartesian-bar' as const, meta: { stack: 'A' as const } };
         expect(chipOf({ stackStrategy: 'all' }, stackedBar, 'stackStrategy')?.cls).toBe('effective');
         expect(chipOf({ stackStrategy: 'samesign' }, { slot: 'cartesian-bar' as const }, 'stackStrategy')?.cls).toBe(
             'effective',
