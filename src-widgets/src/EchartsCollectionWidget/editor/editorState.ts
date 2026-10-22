@@ -15,6 +15,7 @@
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
+import { normalizeStackMode } from '../stackMode';
 import { parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
 import { familyOf } from '../families/kernel';
 import { editorialOf } from '../families/editorial';
@@ -547,9 +548,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
                 : 'auto',
         barDiff: boolOr(data.barDiff, false),
         // Balken-Stapelmodus (ADR-0084) — decode-and-tolerate like barInterval: unknown/absent
-        // heals to 'none' in memory (the blob itself is only rewritten on save, sparsely).
-        stackMode:
-            chartConfig.stackMode === 'stack' || chartConfig.stackMode === 'percent' ? chartConfig.stackMode : 'none',
+        // heals to 'none' in memory (the blob itself is only rewritten on save, sparsely). The
+        // SHARED tolerant read — the same resolver the runtime sides use (one truth, ADR-0084).
+        stackMode: normalizeStackMode(chartConfig.stackMode),
         stackSum: chartConfig.stackSum === true,
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),

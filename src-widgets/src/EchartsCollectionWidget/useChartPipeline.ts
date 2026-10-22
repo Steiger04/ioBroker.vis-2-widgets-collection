@@ -40,6 +40,7 @@ import { coreOf } from './families/cores';
 import { familyOf } from './families/kernel';
 import {
     buildTitleOption,
+    legendActiveOf,
     markBoundOids,
     resolveMarkLines,
     toPresentationBase,
@@ -58,7 +59,7 @@ import {
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
-import { effectiveStackName, normalizeStackMode } from './stackMode';
+import { datumValueSlot, effectiveCartesianType, effectiveStackName, normalizeStackMode } from './stackMode';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -503,31 +504,30 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     // ABSOLUTE values ride `percentAbsolute` for the tooltip (share AND absolute, decision 4).
     // Verlauf only — the JSON families are Folgevorhaben (decision 8: they carry the blob field
     // unevaluated). Opted-out ('none') and non-bar series keep their absolute values; a lone
-    // group in percent mode is always 100 % (the example IS the one-group special case).
+    // group in percent mode is always 100 % (the example IS the one-group special case). Like
+    // the sum anchor (Addendum 1 item 3), the denominator counts the VISIBLE stack only —
+    // deselected members leave it (Legenden-Folge honesty; the assembly re-runs on every
+    // legend click, so a re-selected member renormalizes).
     if (
         family === 'cartesian' &&
         mode === 'history' &&
         normalizeStackMode(companions.chartConfig.stackMode) === 'percent'
     ) {
         const cart = presentation as PresentationBase & CartesianFragment;
-        const total = cart.yAxes.length ? cart.yAxes.length : 1;
-        const valueSlotOf = (d: unknown): number | null =>
-            Array.isArray(d)
-                ? typeof d[1] === 'number' && Number.isFinite(d[1])
-                    ? d[1]
-                    : null
-                : typeof d === 'number' && Number.isFinite(d)
-                  ? d
-                  : null;
+        const axisCount = cart.yAxes.length ? cart.yAxes.length : 1;
         const groups = new Map<string, number[]>();
         meta.forEach((m, i) => {
-            const t =
-                m?.type === 'bar' || m?.type === 'scatter' ? m.type : m?.type === 'line' ? 'line' : cart.cartesianType;
-            if (t !== 'bar') {
+            if (effectiveCartesianType(m?.type, cart.cartesianType) !== 'bar') {
                 return;
             }
+            const name = bucketed[i]?.name;
+            const active =
+                typeof name === 'string' ? legendActiveOf(input.legendSelection, name, m?.legendOnly === true) : true;
+            if (!active) {
+                return; // invisible — keeps its absolute data, contributes to no denominator
+            }
             const yi = typeof m?.yAxisIndex === 'number' ? m.yAxisIndex : 0;
-            const stack = effectiveStackName(m?.stack, 'percent', yi >= total ? 0 : yi);
+            const stack = effectiveStackName(m?.stack, 'percent', yi >= axisCount ? 0 : yi);
             if (!stack) {
                 return; // opted out — absolute values stay
             }
@@ -545,7 +545,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             for (let c = 0; c < length; c++) {
                 let sum: number | null = null;
                 for (const i of members) {
-                    const v = valueSlotOf(bucketed[i]?.data[c]);
+                    const v = datumValueSlot(bucketed[i]?.data[c]);
                     if (v !== null) {
                         sum = (sum ?? 0) + v;
                     }
@@ -554,13 +554,13 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             }
             for (const i of members) {
                 const s = bucketed[i];
-                absolutes[s.name] = s.data.map(d => valueSlotOf(d));
+                absolutes[s.name] = s.data.map(d => datumValueSlot(d));
                 // Narrowed from the ChartSeries union: a series' data is homogeneous by
                 // construction (points OR plain values — the map preserves whichever it finds).
                 bucketed[i] = {
                     name: s.name,
                     data: s.data.map((d, c): SeriesPoint | number | null => {
-                        const share = valueSlotOf(d);
+                        const share = datumValueSlot(d);
                         if (share === null) {
                             return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
                         }
@@ -572,6 +572,12 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         }
         if (Object.keys(absolutes).length) {
             presentationFinal = { ...presentationFinal, percentAbsolute: absolutes };
+            // Legend values over the NORMALIZED buckets on EVERY path (review catch: the
+            // bucket-path resolver above ran pre-normalization, and the generic block below is
+            // !barCategories-guarded — the legend lied `A [1000 %]` instead of `A [25 %]`).
+            if (presentation.legendShowValues) {
+                presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(bucketed) };
+            }
         }
     }
     // Legend values (ticket 04 Pflicht-Entscheidung, the Empfehlung taken): ONE value, ONE

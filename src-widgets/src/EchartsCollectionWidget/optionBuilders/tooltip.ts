@@ -168,6 +168,13 @@ export interface TooltipRowFilters {
 }
 
 /**
+ * Sum anchors (ADR-0084) never list a row — dropped BEFORE the null/interpolate filters so an
+ * anchor cannot shadow a real series' row position. One filter, both formatter shapes.
+ */
+const dropExcludedRows = (list: TooltipParam[], excludeNames?: ReadonlySet<string>): TooltipParam[] =>
+    excludeNames?.size ? list.filter(p => !excludeNames.has(p.seriesName ?? '')) : list;
+
+/**
  * Percent tooltip context (ADR-0084 decision 4): rows of percent-stacked series show the share
  * AND the absolute value — `25 % (10 W)`. The absolutes are the pipeline-kept PRE-normalization
  * values (index-aligned with the emitted data); the caller passes the series' RAW facts (no
@@ -243,11 +250,7 @@ const makeTemplateTooltipFormatter =
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
-        const list = filterTooltipRows(
-            excludeNames?.size ? raw.filter(p => !excludeNames.has(p.seriesName ?? '')) : raw,
-            paramTs(raw[0]),
-            filters ?? {},
-        );
+        const list = filterTooltipRows(dropExcludedRows(raw, excludeNames), paramTs(raw[0]), filters ?? {});
         return list
             .map(p => {
                 // Percent rows (ADR-0084): {c} becomes the share+absolute text — prebuilt, so
@@ -304,8 +307,7 @@ const makeMomentTooltipFormatter =
               : '';
         // Sum anchors (ADR-0084) never list a row — dropped BEFORE the null/interpolate filters
         // so an anchor cannot shadow a real series' row position.
-        const rows = excludeNames?.size ? raw.filter(p => !excludeNames.has(p.seriesName ?? '')) : raw;
-        const list = filterTooltipRows(rows, ts, filters ?? {});
+        const list = filterTooltipRows(dropExcludedRows(raw, excludeNames), ts, filters ?? {});
         return (
             header +
             list

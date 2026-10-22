@@ -51,7 +51,7 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import { effectiveStackName, normalizeStackMode } from '../stackMode';
+import { datumValueSlot, effectiveCartesianType, effectiveStackName, normalizeStackMode } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 
@@ -175,9 +175,7 @@ const buildCartesianSeriesEntry = (
     // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
     // Legacy `type:'area'` (ADR-0008 r4 removed it) matches no concrete type → falls through to
     // `defaultType`, which a legacy 'area' chart normalises to 'line' upstream.
-    const rawType = m?.type;
-    const type: EchartsCartesianType =
-        rawType === 'bar' || rawType === 'scatter' ? rawType : rawType === 'line' ? 'line' : defaultType;
+    const type: EchartsCartesianType = effectiveCartesianType(m?.type, defaultType);
     const color = m?.color ?? fallbackColor;
     const areaMode = normalizeAreaMode(m);
     const name = m?.name || s.name || `Series ${index + 1}`;
@@ -881,8 +879,9 @@ export const buildCartesianOption = (
     const facts: SeriesFactsByName = {};
     const rawFacts: SeriesFactsByName = {};
     for (let i = 0; i < entries.length; i++) {
-        rawFacts[names[i]] = factsOfMeta(meta[i]);
-        facts[names[i]] = percentNames.has(names[i]) ? { ...factsOfMeta(meta[i]), percent: true } : rawFacts[names[i]];
+        const base = factsOfMeta(meta[i]);
+        rawFacts[names[i]] = base;
+        facts[names[i]] = percentNames.has(names[i]) ? { ...base, percent: true } : base;
     }
     /** The value-format facts of every series BOUND to an axis (the shared axis-inheritance base). */
     const boundFacts = (axisIndex: number): SeriesValueFacts[] => {
@@ -1050,13 +1049,8 @@ export const buildCartesianOption = (
             }
         });
         // The value slot of one datum (points `[ts, v]` and plain buckets alike); null = no
-        // contribution (a gap never counts as 0 — the adapter's own rule).
-        const valueOf = (d: unknown): number | null => {
-            if (Array.isArray(d)) {
-                return typeof d[1] === 'number' && Number.isFinite(d[1]) ? d[1] : null;
-            }
-            return typeof d === 'number' && Number.isFinite(d) ? d : null;
-        };
+        // contribution (a gap never counts as 0 — the adapter's own rule). datumValueSlot is
+        // the SHARED extractor — the percent normalizer reads the same slots.
         for (const [stackName, members] of byStack) {
             if (members.length < 2) {
                 continue; // a one-series stack would only repeat the value its bar already shows
@@ -1077,7 +1071,7 @@ export const buildCartesianOption = (
                             ts = d[0]; // the time path's anchor point rides the first member's ts
                         }
                     }
-                    const v = valueOf(d);
+                    const v = datumValueSlot(d);
                     if (v !== null) {
                         sum = (sum ?? 0) + v;
                     }

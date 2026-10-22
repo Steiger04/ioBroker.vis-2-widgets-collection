@@ -1338,6 +1338,50 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
         expect((legendFmt as (name: string) => string)('A')).toContain('25 %');
     });
 
+    it('BUCKET path too: the legend value shows the share, never the absolute-as-percent (review catch)', () => {
+        // The bucket-path legend resolver runs PRE-normalization and the generic post-block is
+        // !barCategories-guarded — without the percent-block recompute the legend lied
+        // `A [1000 %]` (the absolute 10 read as a fraction through the percent facts).
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [[1, 10], [2, 8]] },
+                { name: 'B', data: [[1, 30], [2, 8]] },
+            ] as never,
+            [{}, {}],
+            {
+                src: { chartType: 'bar', legendShowValues: true },
+                barCategories: [1, 2],
+                barWindowEnd: 3,
+            },
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series[0].data[0]).toBeCloseTo(0.25); // normalized on the bucket path too
+        const legendFmt = (option.legend as { formatter: (name: string) => string }).formatter;
+        // The legend reads the LAST bucket's share (8/(8+8) = 50 %) — the pre-fix lie was the
+        // ABSOLUTE 8 rendered as a fraction ('800 %').
+        expect(legendFmt('A')).toContain('50 %');
+        expect(legendFmt('A')).not.toContain('800');
+        expect(legendFmt('A')).not.toContain('1000');
+    });
+
+    it('deselected members leave the PERCENT DENOMINATOR too (Legenden-Folge, like the anchor)', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10] },
+                { name: 'B', data: [20] },
+                { name: 'C', data: [30] },
+            ],
+            [{}, {}, {}],
+            { legendSelection: { C: false } },
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        // The VISIBLE stack (A+B) sums to 100 %…
+        expect(series[0].data[0]).toBeCloseTo(10 / 30);
+        expect(series[1].data[0]).toBeCloseTo(20 / 30);
+        // …the deselected member keeps its absolute data (invisible; renormalizes on re-select).
+        expect(series[2].data[0]).toBe(30);
+    });
+
     it('JSON families carry the blob field unevaluated — no normalization (Folgevorhaben, decision 8)', () => {
         const { option } = assemblePipelineResult(
             makeInput('cartesian', 'json', {

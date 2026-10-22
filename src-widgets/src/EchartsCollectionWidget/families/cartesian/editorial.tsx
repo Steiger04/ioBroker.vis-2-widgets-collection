@@ -17,7 +17,7 @@ import type {
     LegacyChartType,
 } from '../../../types/field-definitions/echarts-fields';
 import AxesZoomSection from '../../editor/sections/AxesZoomSection';
-import { effectiveStackName } from '../../stackMode';
+import { effectiveCartesianType, effectiveStackName } from '../../stackMode';
 import type { EditorState } from '../../editor/editorState';
 import type { IssueMap } from '../../editor/issueTabs';
 import type { TFunc } from '../../editor/summaries';
@@ -130,10 +130,11 @@ const validateCartesian = (state: EditorState): IssueMap => {
         state.chartType === 'bar' &&
         state.stackMode !== 'none' &&
         state.barInterval === 'auto' &&
-        state.series.some(s => {
-            const type = s.type === 'bar' || s.type === 'scatter' ? s.type : s.type === 'line' ? 'line' : 'bar';
-            return type === 'bar' && effectiveStackName(s.stack, state.stackMode, 0) !== undefined;
-        })
+        state.series.some(
+            s =>
+                effectiveCartesianType(s.type, 'bar') === 'bar' &&
+                effectiveStackName(s.stack, state.stackMode, 0) !== undefined,
+        )
     ) {
         push('dataSource', 'echarts_val_stack_timeaxis');
     }
