@@ -161,9 +161,10 @@ const presentationFor = (
     family: 'cartesian' | 'pie',
     src: Record<string, unknown> = {},
     markLines: Parameters<ReturnType<typeof coreOf>['presentationFragment']>[0]['markLines'] = [],
+    chartConfig: Record<string, unknown> = {},
 ): AssemblePipelineInput['presentation'] => ({
     ...toPresentationBase({ src, palette: ['#111'], family, themeTokens: tokens, themeDark: false }),
-    ...coreOf(family).presentationFragment({ src, chartConfig: {}, markLines }),
+    ...coreOf(family).presentationFragment({ src, chartConfig, markLines }),
 });
 
 const makeInput = (
@@ -1195,5 +1196,170 @@ describe('assemblePipelineResult — family × mode × jsonKind option-path pari
         const rings = option.series as { type?: string; data: unknown[] }[];
         expect(rings).toHaveLength(2);
         expect(rings.every(r => r.type === 'pie')).toBe(true);
+    });
+});
+
+describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision 4)', () => {
+    /** A percent-mode bar chart: chartType bar, blob stackMode percent, history series. */
+    const percentCase = (
+        hist: { name: string; data: (number | null)[] }[],
+        metas: Record<string, unknown>[],
+        extra: Partial<AssemblePipelineInput> = {},
+    ): ReturnType<typeof assemblePipelineResult> => {
+        // The src the presentation is built from must see the extra's src keys too
+        // (legendShowValues & co. ride the base, not the fragment).
+        const srcFull = { chartType: 'bar', ...((extra.src as Record<string, unknown>) ?? {}) };
+        const { src: _drop, ...rest } = extra;
+        return assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })) as never[],
+                history: { series: hist as never, loading: false, error: null },
+                src: srcFull,
+                companions: {
+                    chartConfig: { stackMode: 'percent' },
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })) as never[],
+                },
+                presentation: presentationFor('cartesian', srcFull, [], { stackMode: 'percent' }),
+                ...rest,
+            }),
+        );
+    };
+
+    it('10/20/10 on one category normalize to 25 %/50 %/25 % (the acceptance case)', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10] },
+                { name: 'B', data: [20] },
+                { name: 'C', data: [10] },
+            ],
+            [{}, {}, {}],
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series.map(s => s.data[0])).toEqual([0.25, 0.5, 0.25]);
+    });
+
+    it('normalization is per GROUP × category — mixed groups never share a sum', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10, 8] },
+                { name: 'B', data: [20, 8] },
+                { name: 'C', data: [30, 4] }, // group B — own sums
+            ],
+            [{ stack: 'A' }, { stack: 'A' }, { stack: 'B' }],
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series[0].data[0]).toBeCloseTo(10 / 30);
+        expect(series[2].data[0]).toBe(1); // alone in its group → always 100 %
+        expect(series[0].data[1]).toBe(0.5); // category 2: 8/(8+8)
+        expect(series[2].data[1]).toBe(1);
+    });
+
+    it('sum ≤ 0 → 0 share (the example formula is defensive); a null gap stays null', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [-5, 10, null] },
+                { name: 'B', data: [-5, 30, 40] },
+            ],
+            [{}, {}],
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series[0].data[0]).toBe(0); // sum -10 ≤ 0 — both shares 0, no negative lie
+        expect(series[1].data[0]).toBe(0);
+        expect(series[0].data[2]).toBeNull(); // a gap is a gap — never 0 %
+        expect(series[1].data[2]).toBe(1); // B alone contributes in category 3
+    });
+
+    it('opted-out bars and lines keep their ABSOLUTE values; mode stack never normalizes', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10] },
+                { name: 'Out', data: [99] },
+            ],
+            [{}, { stack: 'none' }],
+        );
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series[0].data[0]).toBe(1); // alone in the mode stack → 100 %
+        expect(series[1].data[0]).toBe(99); // opted out — absolute stays
+
+        const stacked = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'o0', name: 'A' },
+                    { oid: 'o1', name: 'B' },
+                ] as never[],
+                history: {
+                    series: [
+                        { name: 'A', data: [10] },
+                        { name: 'B', data: [20] },
+                    ] as never,
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar' },
+                companions: {
+                    chartConfig: { stackMode: 'stack' },
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: [
+                        { oid: 'o0', name: 'A' },
+                        { oid: 'o1', name: 'B' },
+                    ] as never[],
+                },
+                presentation: presentationFor('cartesian', { chartType: 'bar' }, [], { stackMode: 'stack' }),
+            }),
+        );
+        expect((stacked.option.series as { data: (number | null)[] }[]).map(s => s.data[0])).toEqual([10, 20]);
+    });
+
+    it('the absolute values ride percentAbsolute for the tooltip; legend values read the SHARES', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10] },
+                { name: 'B', data: [30] },
+            ],
+            [{ unit: 'W' }, { unit: 'W' }],
+            { src: { chartType: 'bar', legendShowValues: true } },
+        );
+        // The emitted data are shares…
+        const series = option.series as { name: string; data: (number | null)[] }[];
+        expect(series[0].data[0]).toBeCloseTo(0.25);
+        // …the tooltip is the custom formatter (the percent ctx rides it — its TEXT is pinned in
+        // the optionBuilder suite, which runs under jsdom where the moment header can resolve)…
+        expect((option.tooltip as { formatter?: unknown }).formatter).toBeTypeOf('function');
+        // …and the legend's value is the share (one value, one truth — the final series).
+        const legendFmt = (option.legend as { formatter?: (name: string) => string }).formatter;
+        expect(legendFmt).toBeTypeOf('function');
+        expect((legendFmt as (name: string) => string)('A')).toContain('25 %');
+    });
+
+    it('JSON families carry the blob field unevaluated — no normalization (Folgevorhaben, decision 8)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonParsed: {
+                    series: [
+                        { name: 'A', data: [[1, 10]] },
+                        { name: 'B', data: [[1, 30]] },
+                    ],
+                },
+                src: { chartType: 'bar' },
+                companions: {
+                    chartConfig: { stackMode: 'percent' },
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: [],
+                },
+                presentation: presentationFor('cartesian', { chartType: 'bar' }, [], { stackMode: 'percent' }),
+            }),
+        );
+        const series = option.series as { name: string; data: [number, number][] }[];
+        expect(series[0].data[0][1]).toBe(10); // untouched
     });
 });

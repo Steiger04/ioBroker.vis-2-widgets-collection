@@ -42,6 +42,7 @@ import {
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
+    formatPercentValue,
     formatSeriesValue,
     hasSeriesValueFormat,
     textFactsActive,
@@ -461,6 +462,12 @@ const buildYAxisEntry = (
     comma?: boolean,
     /** The value-format facts every bound series shares (ADR-0057 unit + ADR-0058 texts). */
     seriesFacts?: SeriesValueFacts,
+    /**
+     * Percent axis (ADR-0084 decision 4): the axis carries percent-stacked bars — labels render
+     * `0–100 %` over the 0..1 share scale and the unit inheritance RESTS (a share is unitless);
+     * authored min/max still win (the InfoBox documents the absolute-lines limit).
+     */
+    percent?: boolean,
 ): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: a.log ? 'log' : 'value',
@@ -506,6 +513,15 @@ const buildYAxisEntry = (
     if (a.max !== undefined) {
         entry.max = a.max;
     }
+    if (percent) {
+        // The share scale's honest bounds (ADR-0084): 0..1 unless the author pinned their own.
+        if (a.min === undefined) {
+            entry.min = 0;
+        }
+        if (a.max === undefined) {
+            entry.max = 1;
+        }
+    }
     if (a.scale) {
         entry.scale = true;
     }
@@ -533,6 +549,10 @@ const buildYAxisEntry = (
     }
     if (a.format) {
         axisLabel.formatter = a.format;
+    } else if (percent) {
+        // Percent ticks (ADR-0084): the 0..1 share scale labels as `0–100 %` — no unit
+        // inheritance (a share is unitless), one decimal by the example rule.
+        axisLabel.formatter = (v: number): string => formatPercentValue(v, comma);
     } else if (textFactsActive(seriesFacts) || seriesFacts?.unit || comma) {
         // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. ADR-0057: the axis
         // inherits the unit every bound series shares — appended to the default numeric labels,
@@ -826,6 +846,11 @@ export const buildCartesianOption = (
     // collision; where the mode resolves NO stack (opted out, or mode off) a raw-authored stack
     // stays effective — the escape hatch keeps its key.
     const stackMode = normalizeStackMode(p.stackMode);
+    // Percent surfaces (decision 4): which names/axes render SHARES — the pipeline already
+    // normalized their data (same resolver, ADR-0084 one-truth); everything formatting a value
+    // of these series switches to the percent display.
+    const percentNames = new Set<string>();
+    const percentAxes = new Set<number>();
     entries.forEach((e, i) => {
         if (e.type !== 'bar') {
             return;
@@ -833,16 +858,31 @@ export const buildCartesianOption = (
         const stack = effectiveStackName(meta[i]?.stack, stackMode, e.yAxisIndex as number);
         if (stack) {
             e.stack = stack;
+            if (stackMode === 'percent') {
+                percentNames.add(e.name as string);
+                percentAxes.add(e.yAxisIndex as number);
+                // The segment label shows the SHARE — the Wert-Formatter's value display is
+                // replaced (a share's unit would lie; facts like bool texts never apply to a
+                // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
+                const label = e.label as Record<string, unknown> | undefined;
+                if (label) {
+                    label.formatter = (v: unknown): string => formatPercentValue(v, p.decimalComma);
+                }
+            }
         }
     });
 
     const names = entries.map(e => e.name as string);
     // The per-series Wert-Formatter facts, keyed by EFFECTIVE series name (ADR-0057) — the same
     // names the legend lists and the tooltip rows carry, so every surface resolves its row's
-    // facts by the name it already knows.
+    // facts by the name it already knows. Percent-stacked bars carry the percent flag (ADR-0084):
+    // the legend's value then renders the share (`x,x %`); the TOOLTIP reads the raw facts below
+    // (it shows share AND absolute — the percent flag would format the absolute as a share).
     const facts: SeriesFactsByName = {};
+    const rawFacts: SeriesFactsByName = {};
     for (let i = 0; i < entries.length; i++) {
-        facts[names[i]] = factsOfMeta(meta[i]);
+        rawFacts[names[i]] = factsOfMeta(meta[i]);
+        facts[names[i]] = percentNames.has(names[i]) ? { ...factsOfMeta(meta[i]), percent: true } : rawFacts[names[i]];
     }
     /** The value-format facts of every series BOUND to an axis (the shared axis-inheritance base). */
     const boundFacts = (axisIndex: number): SeriesValueFacts[] => {
@@ -972,7 +1012,19 @@ export const buildCartesianOption = (
               const seriesFacts: SeriesValueFacts | undefined =
                   unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
               axisFacts[i] = seriesFacts;
-              return buildYAxisEntry(a, i, divider, xOnEdge, seriesColor, seriesName, p.decimalComma, seriesFacts);
+              // Percent axes (ADR-0084): no unit/text inheritance — the share scale labels as
+              // percent; the anchor does not exist at percent, `axisFacts` keeps the real facts.
+              return buildYAxisEntry(
+                  a,
+                  i,
+                  divider,
+                  xOnEdge,
+                  seriesColor,
+                  seriesName,
+                  p.decimalComma,
+                  percentAxes.has(i) ? undefined : seriesFacts,
+                  percentAxes.has(i),
+              );
           });
     // Summen-Anker (ADR-0084 decision 5, adapter getSumSeries parity): one transparent, silent
     // bar series per stack (≥ 2 ACTIVE members) stacked obenauf — data all 0 (nothing to see,
@@ -1137,11 +1189,21 @@ export const buildCartesianOption = (
         ),
         // The tooltip's time header follows the same Time format (ADR-0052) — one format, two
         // surfaces; an authored tooltipTemplate still wins inside buildTooltip. The per-series
-        // facts (ADR-0057) ride along for the row formatting. STRING categories (ADR-0075) take
-        // the category-name header instead — a moment header would render nothing (no ts).
-        // The sum anchors' rows are EXCLUDED here (ADR-0084 — the anchor carries no data truth,
-        // only the label anchor; silent alone does not stop the axis tooltip from listing it).
-        tooltip: buildTooltip(p, { format: p.xAxis.format, category: !!p.xCategories?.length }, facts, anchorNames),
+        // facts (ADR-0057) ride along for the row formatting — the RAW facts (no percent flag):
+        // a percent row's ABSOLUTE part must keep its unit, not render as a share. STRING
+        // categories (ADR-0075) take the category-name header instead — a moment header would
+        // render nothing (no ts). The sum anchors' rows are EXCLUDED here (ADR-0084 — the anchor
+        // carries no data truth, only the label anchor; silent alone does not stop the axis
+        // tooltip from listing it).
+        tooltip: buildTooltip(
+            p,
+            { format: p.xAxis.format, category: !!p.xCategories?.length },
+            rawFacts,
+            anchorNames,
+            percentNames.size
+                ? { names: percentNames, absolute: p.percentAbsolute ?? {}, comma: p.decimalComma }
+                : undefined,
+        ),
         grid: {
             left: gridInset,
             right: gridInset,

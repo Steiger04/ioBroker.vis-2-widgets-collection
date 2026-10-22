@@ -10,10 +10,43 @@ import { describe, expect, it } from 'vitest';
 import {
     factsOfMeta,
     formatChartValue,
+    formatPercentValue,
     formatSeriesValue,
     hasSeriesValueFormat,
     resolveValueFacts,
 } from './valueFormat';
+
+describe('formatPercentValue (ADR-0084 percent shares)', () => {
+    it("renders the example rule Math.round(v·1000)/10 + ' %' — integers stay decimal-free", () => {
+        expect(formatPercentValue(0.25)).toBe('25 %');
+        expect(formatPercentValue(0.5)).toBe('50 %');
+        expect(formatPercentValue(0.255)).toBe('25.5 %'); // one decimal, no padding
+        expect(formatPercentValue(0.256)).toBe('25.6 %'); // rounds
+        expect(formatPercentValue(1)).toBe('100 %');
+        expect(formatPercentValue(0)).toBe('0 %');
+    });
+
+    it('honours the comma switch; non-numeric stringifies through', () => {
+        expect(formatPercentValue(0.255, true)).toBe('25,5 %');
+        expect(formatPercentValue('x')).toBe('x %');
+    });
+});
+
+describe('percent facts (ADR-0084: a share is a share — unit/texts never apply)', () => {
+    it('formatSeriesValue renders the share and suppresses unit, decimals and bool texts', () => {
+        expect(formatSeriesValue(0.25, { percent: true, unit: 'W' }, { comma: false })).toBe('25 %');
+        expect(formatSeriesValue(0.255, { percent: true }, { comma: true })).toBe('25,5 %');
+        expect(formatSeriesValue(0.25, { percent: true, decimals: 2 })).toBe('25 %');
+        expect(formatSeriesValue(0.25, { percent: true, trueText: 'AN', falseText: 'AUS' })).toBe('25 %');
+    });
+
+    it('the percent flag activates the emission gate (a formatter WILL be emitted)', () => {
+        expect(hasSeriesValueFormat({ percent: true })).toBe(true);
+        expect(hasSeriesValueFormat({})).toBe(false);
+        expect(resolveValueFacts({ percent: true }).percent).toBe(true);
+        expect(resolveValueFacts({}).percent).toBeUndefined();
+    });
+});
 
 describe('formatChartValue (ADR-0054 comma base mechanic)', () => {
     it('stringifies numbers unchanged without decimals/comma', () => {

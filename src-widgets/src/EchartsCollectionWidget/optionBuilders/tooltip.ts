@@ -17,6 +17,7 @@
 import { formatTooltipHeader, resolveHostLang } from '../timeFormat';
 import {
     formatChartValue,
+    formatPercentValue,
     formatSeriesValue,
     hasSeriesValueFormat,
     type ChartValueFormat,
@@ -85,6 +86,8 @@ type TooltipParam = {
     /** The category label on a category axis (empty on time axes — ADR-0052 footnote). */
     name?: string;
     value?: unknown;
+    /** The datum's index — the percent rows' absolute lookup (ADR-0084). */
+    dataIndex?: number;
 };
 
 /**
@@ -164,6 +167,39 @@ export interface TooltipRowFilters {
     noInterpolate?: boolean;
 }
 
+/**
+ * Percent tooltip context (ADR-0084 decision 4): rows of percent-stacked series show the share
+ * AND the absolute value — `25 % (10 W)`. The absolutes are the pipeline-kept PRE-normalization
+ * values (index-aligned with the emitted data); the caller passes the series' RAW facts (no
+ * percent flag — that would format the absolute as a share too).
+ */
+export interface TooltipPercentContext {
+    /** Series names whose rows render `x,x % (absolute)`. */
+    names: ReadonlySet<string>;
+    /** The pre-normalization ABSOLUTE value slots per name. */
+    absolute: Record<string, (number | null)[]>;
+    /** The chart-wide comma switch — the percent text's decimal separator. */
+    comma?: boolean;
+}
+
+/**
+ * The percent row's value text — `x,x % (absolute)` — or `null` when the row is no percent row.
+ * The share comes from the normalized point; the absolute formats through the series' raw facts.
+ */
+const percentValueText = (
+    p: TooltipParam,
+    percent: TooltipPercentContext | undefined,
+    valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
+): string | null => {
+    const name = p.seriesName;
+    if (!percent || name === undefined || !percent.names.has(name)) {
+        return null;
+    }
+    const abs = percent.absolute[name]?.[p.dataIndex ?? 0];
+    const absText = abs === null || abs === undefined ? '-' : (valueFmtFor?.(name)?.(abs) ?? String(abs));
+    return `${formatPercentValue(paramValue(p), percent.comma)} (${absText})`;
+};
+
 /** Apply the row filters to one tooltip param list (no-ops when both flags are off). */
 const filterTooltipRows = (
     list: TooltipParam[],
@@ -203,6 +239,7 @@ const makeTemplateTooltipFormatter =
         valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
         excludeNames?: ReadonlySet<string>,
+        percent?: TooltipPercentContext,
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
@@ -212,21 +249,27 @@ const makeTemplateTooltipFormatter =
             filters ?? {},
         );
         return list
-            .map(
-                p =>
-                    `${markerPrefix(p)}${resolveTooltipTokens(
-                        template,
-                        {
-                            seriesName: p.seriesName,
-                            ts: paramTs(p),
-                            value: paramValue(p),
-                            // The category dimension (ADR-0075): {b} is the NAME on string
-                            // categories, the time everywhere else — resolved here, one dialect.
-                            name: ctx.category ? p.name : undefined,
-                        },
-                        { format: ctx.format, lang: resolveHostLang(), valueFmt: valueFmtFor?.(p.seriesName) },
-                    )}`,
-            )
+            .map(p => {
+                // Percent rows (ADR-0084): {c} becomes the share+absolute text — prebuilt, so
+                // the token resolution must not re-format it through the row formatter.
+                const pct = percentValueText(p, percent, valueFmtFor);
+                return `${markerPrefix(p)}${resolveTooltipTokens(
+                    template,
+                    {
+                        seriesName: p.seriesName,
+                        ts: paramTs(p),
+                        value: pct ?? paramValue(p),
+                        // The category dimension (ADR-0075): {b} is the NAME on string
+                        // categories, the time everywhere else — resolved here, one dialect.
+                        name: ctx.category ? p.name : undefined,
+                    },
+                    {
+                        format: ctx.format,
+                        lang: resolveHostLang(),
+                        valueFmt: pct === null ? valueFmtFor?.(p.seriesName) : undefined,
+                    },
+                )}`;
+            })
             .join('<br/>');
     };
 
@@ -243,6 +286,7 @@ const makeMomentTooltipFormatter =
         valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
         excludeNames?: ReadonlySet<string>,
+        percent?: TooltipPercentContext,
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
@@ -265,13 +309,11 @@ const makeMomentTooltipFormatter =
         return (
             header +
             list
-                .map(
-                    p =>
-                        `${markerPrefix(p)}${p.seriesName ?? ''}: ${readableValue(
-                            paramValue(p),
-                            valueFmtFor?.(p.seriesName),
-                        )}`,
-                )
+                .map(p => {
+                    // Percent rows (ADR-0084): share AND absolute in one line.
+                    const pct = percentValueText(p, percent, valueFmtFor);
+                    return `${markerPrefix(p)}${p.seriesName ?? ''}: ${pct ?? readableValue(paramValue(p), valueFmtFor?.(p.seriesName))}`;
+                })
                 .join('<br/>')
         );
     };
@@ -288,6 +330,7 @@ const makeMomentTooltipFormatter =
  * per-series context).
  * @param excludeNames - Series names that never list a tooltip row (ADR-0084: the sum anchors —
  * `silent` alone does not stop the axis tooltip from listing a series).
+ * @param percent - The percent-stacked rows' context (ADR-0084): share AND absolute per row.
  * @returns `'none'` → `{ show: false }`; otherwise trigger + template / moment-header formatter +
  * values. The Tooltip section's raw escape hatch (ADR-0044) is folded UNDER the built entry — the
  * GUI wins every collision; free keys (frame, behaviour, axisPointer) merge through.
@@ -297,6 +340,7 @@ export const buildTooltip = (
     time?: TooltipTimeContext,
     seriesFacts?: SeriesFactsByName,
     excludeNames?: ReadonlySet<string>,
+    percent?: TooltipPercentContext,
 ): Record<string, unknown> => {
     let entry: Record<string, unknown>;
     if (p.tooltipTrigger === 'none') {
@@ -324,7 +368,14 @@ export const buildTooltip = (
             entry = time
                 ? {
                       trigger: p.tooltipTrigger,
-                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, rowFmt, filters, excludeNames),
+                      formatter: makeTemplateTooltipFormatter(
+                          p.tooltipTemplate,
+                          time,
+                          rowFmt,
+                          filters,
+                          excludeNames,
+                          percent,
+                      ),
                   }
                 : {
                       trigger: p.tooltipTrigger,
@@ -335,7 +386,7 @@ export const buildTooltip = (
             // A custom callback bypasses echarts' valueFormatter application — fold it in.
             entry = {
                 trigger: p.tooltipTrigger,
-                formatter: makeMomentTooltipFormatter(time, rowFmt, filters, excludeNames),
+                formatter: makeMomentTooltipFormatter(time, rowFmt, filters, excludeNames, percent),
             };
         } else {
             entry = { trigger: p.tooltipTrigger, ...(valueFmt ? { valueFormatter: valueFmt } : {}) };

@@ -56,6 +56,13 @@ export interface SeriesValueFacts {
     falseText?: string;
     /** Enum state names keyed by value (adapter `states`); prefilled from `common.states`. */
     states?: Record<string, string>;
+    /**
+     * Percent share rendering (ADR-0084 decision 4): the value is a 0..1 FRACTION rendered as
+     * `x,x %` — one decimal by the example's `Math.round(v·1000)/10` rule, comma per the chart
+     * switch. Stamped by the cartesian builder onto percent-stacked bars (label/legend); the
+     * tooltip additionally shows the ABSOLUTE value beside the share.
+     */
+    percent?: boolean;
 }
 
 /**
@@ -121,7 +128,20 @@ export const resolveValueFacts = (series?: SeriesValueFacts, chart?: ChartValueF
     trueText: cleanUnit(series?.trueText),
     falseText: cleanUnit(series?.falseText),
     states: cleanStates(series?.states),
+    ...(series?.percent ? { percent: true } : {}),
 });
+
+/**
+ * One percent share as display text (ADR-0084): the value is a 0..1 fraction; the example's
+ * `Math.round(v·1000)/10` rule renders integers without a decimal (`25 %`, not `25,0 %`) and
+ * halves/tenths with one, comma per the chart switch. `null`/non-numeric numbers stringify
+ * through `String` (the label never fires on null data — echarts skips gaps).
+ */
+export const formatPercentValue = (v: unknown, comma?: boolean): string => {
+    const n = typeof v === 'number' ? v : Number(v);
+    const txt = String(Number.isFinite(n) ? Math.round(n * 1000) / 10 : (v as number)) + ' %';
+    return comma ? txt.replace('.', ',') : txt;
+};
 
 /**
  * The emission gate every formatting surface shares: would {@link formatSeriesValue} differ from
@@ -131,7 +151,15 @@ export const resolveValueFacts = (series?: SeriesValueFacts, chart?: ChartValueF
  */
 export const hasSeriesValueFormat = (series?: SeriesValueFacts, chart?: ChartValueFormat): boolean => {
     const f = resolveValueFacts(series, chart);
-    return !!f.unit || f.decimals !== undefined || !!f.states || !!f.trueText || !!f.falseText || chart?.comma === true;
+    return (
+        !!f.unit ||
+        f.decimals !== undefined ||
+        !!f.states ||
+        !!f.trueText ||
+        !!f.falseText ||
+        f.percent === true ||
+        chart?.comma === true
+    );
 };
 
 /** True when enum/bool texts are authored on the RESOLVED facts (issue 06). */
@@ -211,6 +239,11 @@ export const formatSeriesValue = (
     mode: SeriesValueTextMode = 'exact',
 ): string => {
     const f = resolveValueFacts(series, chart);
+    // Percent shares come FIRST (ADR-0084): a share has no states/bool texts — an enum series'
+    // stacked share is still a share, the unit of a share is %.
+    if (f.percent) {
+        return formatPercentValue(v, chart?.comma);
+    }
     const text = textForValue(v, f, mode);
     if (text !== null) {
         return text;

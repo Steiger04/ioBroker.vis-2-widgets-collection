@@ -58,6 +58,7 @@ import {
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
+import { effectiveStackName, normalizeStackMode } from './stackMode';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -494,10 +495,90 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     if (table && jsonTable.xKind !== 'time') {
         presentationFinal = { ...presentationFinal, xCategories: jsonTable.categories ?? [] };
     }
+    // Balken-Stapelmodus 100 % (ADR-0084 decision 4): the value chain's LAST stone — after every
+    // transform, right before the builder and the legend read the series. Each effective stack
+    // group (the SHARED stackMode resolver — same names the builder stamps) normalizes per
+    // category: share = value / group sum, sum ≤ 0 → 0 (the example's defensive formula —
+    // negative totals are the documented fragility, the InfoBox says it), gaps stay gaps. The
+    // ABSOLUTE values ride `percentAbsolute` for the tooltip (share AND absolute, decision 4).
+    // Verlauf only — the JSON families are Folgevorhaben (decision 8: they carry the blob field
+    // unevaluated). Opted-out ('none') and non-bar series keep their absolute values; a lone
+    // group in percent mode is always 100 % (the example IS the one-group special case).
+    if (
+        family === 'cartesian' &&
+        mode === 'history' &&
+        normalizeStackMode(companions.chartConfig.stackMode) === 'percent'
+    ) {
+        const cart = presentation as PresentationBase & CartesianFragment;
+        const total = cart.yAxes.length ? cart.yAxes.length : 1;
+        const valueSlotOf = (d: unknown): number | null =>
+            Array.isArray(d)
+                ? typeof d[1] === 'number' && Number.isFinite(d[1])
+                    ? d[1]
+                    : null
+                : typeof d === 'number' && Number.isFinite(d)
+                  ? d
+                  : null;
+        const groups = new Map<string, number[]>();
+        meta.forEach((m, i) => {
+            const t =
+                m?.type === 'bar' || m?.type === 'scatter' ? m.type : m?.type === 'line' ? 'line' : cart.cartesianType;
+            if (t !== 'bar') {
+                return;
+            }
+            const yi = typeof m?.yAxisIndex === 'number' ? m.yAxisIndex : 0;
+            const stack = effectiveStackName(m?.stack, 'percent', yi >= total ? 0 : yi);
+            if (!stack) {
+                return; // opted out — absolute values stay
+            }
+            const list = groups.get(stack);
+            if (list) {
+                list.push(i);
+            } else {
+                groups.set(stack, [i]);
+            }
+        });
+        const absolutes: Record<string, (number | null)[]> = {};
+        for (const members of groups.values()) {
+            const length = members.reduce((max, i) => Math.max(max, bucketed[i]?.data.length ?? 0), 0);
+            const sums: number[] = [];
+            for (let c = 0; c < length; c++) {
+                let sum: number | null = null;
+                for (const i of members) {
+                    const v = valueSlotOf(bucketed[i]?.data[c]);
+                    if (v !== null) {
+                        sum = (sum ?? 0) + v;
+                    }
+                }
+                sums.push(sum ?? 0);
+            }
+            for (const i of members) {
+                const s = bucketed[i];
+                absolutes[s.name] = s.data.map(d => valueSlotOf(d));
+                // Narrowed from the ChartSeries union: a series' data is homogeneous by
+                // construction (points OR plain values — the map preserves whichever it finds).
+                bucketed[i] = {
+                    name: s.name,
+                    data: s.data.map((d, c): SeriesPoint | number | null => {
+                        const share = valueSlotOf(d);
+                        if (share === null) {
+                            return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
+                        }
+                        const value = sums[c] > 0 ? share / sums[c] : 0; // sum ≤ 0 → 0 (defensive)
+                        return Array.isArray(d) ? [d[0], value] : value;
+                    }) as SeriesPoint[] | (number | null)[],
+                };
+            }
+        }
+        if (Object.keys(absolutes).length) {
+            presentationFinal = { ...presentationFinal, percentAbsolute: absolutes };
+        }
+    }
     // Legend values (ticket 04 Pflicht-Entscheidung, the Empfehlung taken): ONE value, ONE
     // truth — the legend reads the SAME final series the axis sees. The former pre-transform
     // read is retired CONSCIOUSLY: a formula series' legend value changes with this (it now
-    // shows f(val + yOffset), formerly the raw val).
+    // shows f(val + yOffset), formerly the raw val). At percent (ADR-0084) the final value IS
+    // the share — the legend renders it as `x,x %` through the percent-marked facts.
     if (presentation.legendShowValues && !barCategories?.length && !pieTableSlices) {
         presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(bucketed) };
     }

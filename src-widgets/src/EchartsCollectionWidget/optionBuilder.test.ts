@@ -3302,4 +3302,101 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
             [WED + 60_000, 0],
         ]);
     });
+
+    it('percent axis: labels render 0–100 %, the share bounds 0..1 apply, unit inheritance rests', () => {
+        const option = buildBars(
+            [
+                { name: 'A', unit: 'W' },
+                { name: 'B', unit: 'W' },
+            ],
+            [
+                [1, 2],
+                [3, 4],
+            ],
+            { stackMode: 'percent' },
+        );
+        const yAxis = (option.yAxis as Record<string, unknown>[])[0];
+        expect(yAxis.min).toBe(0);
+        expect(yAxis.max).toBe(1);
+        const fmt = (yAxis.axisLabel as { formatter: (v: number) => string }).formatter;
+        expect(fmt(0.25)).toBe('25 %');
+        expect(fmt(1)).toBe('100 %');
+        // A unit every bound series shares still NEVER lands on a percent axis (shares are
+        // unitless, decision 4) — the formatter is the percent one, not the unit one.
+        expect(fmt(0.5)).toBe('50 %');
+        // An axis WITHOUT percent stacks keeps the absolute scale (mixed-chart honesty).
+        const lineOption = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[WED, 1]] }],
+            meta: [{ name: 'A', type: 'line' }],
+            p: { ...P, cartesianType: 'bar', stackMode: 'percent' },
+        }) as Record<string, unknown>;
+        const lineAxis = (lineOption.yAxis as Record<string, unknown>[])[0];
+        expect(lineAxis.max).toBeUndefined();
+        expect((lineAxis.axisLabel as Record<string, unknown> | undefined)?.formatter).toBeUndefined();
+    });
+
+    it('percent axis: authored min/max win over the share bounds', () => {
+        const option = buildBars(
+            [{ name: 'A' }, { name: 'B' }],
+            [
+                [1, 2],
+                [3, 4],
+            ],
+            { stackMode: 'percent', yAxes: [{ min: -1, max: 2 }] },
+        );
+        const yAxis = (option.yAxis as Record<string, unknown>[])[0];
+        expect(yAxis.min).toBe(-1);
+        expect(yAxis.max).toBe(2);
+    });
+
+    it('percent segment labels show the share — the Wert-Formatter value display is replaced', () => {
+        const option = buildBars(
+            [
+                { name: 'A', label: true, unit: 'W' },
+                { name: 'B', label: true },
+            ],
+            [
+                [1, 2],
+                [3, 4],
+            ],
+            { stackMode: 'percent' },
+        );
+        const label = (option.series as Record<string, unknown>[])[0].label as Record<string, unknown> as {
+            formatter: (v: unknown) => string;
+        };
+        expect(label.formatter(0.25)).toBe('25 %');
+        expect(label.formatter(0.3334)).toBe('33.3 %');
+    });
+
+    it('percent tooltip rows show share AND absolute; the legend value renders the share', () => {
+        const option = buildBars(
+            [
+                { name: 'A', unit: 'W' },
+                { name: 'B', unit: 'W' },
+            ],
+            [
+                [1, 2],
+                [3, 4],
+            ],
+            {
+                stackMode: 'percent',
+                // The pipeline-kept absolutes (index-aligned value slots) + the resolved share
+                // values the legend formatter reads.
+                percentAbsolute: { A: [10, 8], B: [30, 8] },
+                legendShowValues: true,
+                legendValues: { A: 0.25, B: 0.75 },
+            },
+        );
+        const tooltipFmt = (option.tooltip as { formatter: (params: unknown) => string }).formatter;
+        const html = tooltipFmt([
+            { seriesName: 'A', value: 0.25, dataIndex: 0, marker: '', axisValue: WED },
+            { seriesName: 'B', value: 0.75, dataIndex: 0, marker: '' },
+        ]);
+        expect(html).toContain('A: 25 % (10 W)');
+        expect(html).toContain('B: 75 % (30 W)');
+        const legendFmt = (option.legend as { formatter?: (name: string) => string }).formatter;
+        expect(legendFmt).toBeTypeOf('function');
+        expect((legendFmt as (name: string) => string)('A')).toBe('A [25 %]');
+    });
 });

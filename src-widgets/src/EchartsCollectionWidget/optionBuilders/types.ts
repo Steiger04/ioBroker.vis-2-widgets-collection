@@ -160,6 +160,13 @@ export interface CartesianFragment {
      * `stackMode: 'stack'` (at percent the sum is a constant 100 %, verdeckt). Sparse blob side.
      */
     stackSum?: boolean;
+    /**
+     * The ABSOLUTE (pre-normalization) values per series NAME (ADR-0084 decision 4) — injected
+     * by the pipeline's percent step so the tooltip can show the share AND the absolute value.
+     * Present only under `stackMode: 'percent'` with stacked bars; value slots only (no
+     * timestamps), aligned with the emitted data by index.
+     */
+    percentAbsolute?: Record<string, (number | null)[]>;
     visualMap?: EchartsVisualMapConfig;
 }
 
