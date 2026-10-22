@@ -864,7 +864,7 @@
     "json_table_image_show_broken": "Show placeholder for broken images",
     "json_table_image_size": "Image size",
     "json_table_image_tint": "Tint",
-    "json_table_image_tint_hint": "Tints the image via a colour mask.",
+    "json_table_image_tint_hint": "Tints the image via a color mask.",
     "json_table_image_tooltip": "Show value as tooltip",
     "json_table_image_variant": "Shape",
     "json_table_image_variant_circular": "Circular",
