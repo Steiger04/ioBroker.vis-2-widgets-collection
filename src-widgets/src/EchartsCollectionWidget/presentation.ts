@@ -20,6 +20,7 @@ import type {
     EchartsMarkLabelPosition,
     EchartsMarkLine,
     EchartsPieConfig,
+    EchartsStackMode,
     EchartsTitlePos,
     EchartsToolboxConfig,
     EchartsTooltipTrigger,
@@ -191,6 +192,17 @@ export interface ChartConfigBlob {
     legendSnippets?: string[];
     tooltipRaw?: string;
     tooltipSnippets?: string[];
+    /**
+     * The chart-level bar stacking mode (ADR-0084) — stored mode-agnostically (JSON families
+     * carry it without evaluating it yet). Sparse: absent = `'none'`. Unknown values heal on the
+     * EDITOR load; the runtime tolerates them as none.
+     */
+    stackMode?: EchartsStackMode;
+    /**
+     * „Summe über Stapel" (ADR-0084): the transparent sum anchor atop each mode stack — only
+     * read under `stackMode: 'stack'`. Sparse: absent = off.
+     */
+    stackSum?: boolean;
 }
 
 /** Decode the base64 family-config blob into its pie part (+ section raws). */

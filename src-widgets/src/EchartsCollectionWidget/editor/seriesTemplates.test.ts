@@ -32,7 +32,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
         slot: 'cartesian-line',
         meta: {
             label: true,
-            stack: 's',
+            stack: 'A',
             symbolSize: 6,
             step: 'end',
             cornerRadius: 4,
@@ -49,7 +49,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             labelPosition: 'inside',
             labelFontSize: 14,
             labelColor: '#abc',
-            stack: 's',
+            stack: 'A',
             cornerRadius: 4,
             barGap: 0.2,
             barCategoryGap: 0.3,

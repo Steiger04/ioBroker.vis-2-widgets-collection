@@ -108,6 +108,15 @@ export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
  */
 export type EchartsBarInterval = 'auto' | '15m' | '1h' | '1d' | '30d';
 
+/**
+ * The chart-level bar stacking mode (ADR-0084): `'none'` = no mode stack (per-series groups still
+ * work), `'stack'` = inherited bars stack absolutely (adapter `total${axis}` pattern), `'percent'`
+ * = stacked as 100 % shares (client-side normalization — echarts has no `stackStrategy:
+ * 'percentage'`). Acts on BAR series only; lines keep hand-set groups. Mode-agnostic in the blob
+ * (JSON families store it without evaluating it yet — Folgevorhaben).
+ */
+export type EchartsStackMode = 'none' | 'stack' | 'percent';
+
 /** How each bound OID collapses to a single pie-slice value. */
 export type EchartsPieAggregate = 'latest' | 'sum' | 'avg' | 'min' | 'max';
 /** Pie label content. */
@@ -314,8 +323,14 @@ export interface EchartsSeriesMeta {
     areaGradient?: string;
     /** Area fill opacity (0–1) when {@link area} is `flat` or `gradient`. @default 0.15 (flat) / 0.8 (gradient) */
     areaOpacity?: number;
-    /** Stack group; truthy string stacks series that share it. */
-    stack?: string;
+    /**
+     * Stapelgruppe, three-valued since ADR-0084 (the Erben-Override idiom): `undefined`/absent =
+     * ERBT the chart-level stack mode (bars only — a line without a group never stacks),
+     * `'none'` = opted out of every stack, `'A'|'B'|'C'` = own group (mode-independent). The
+     * legacy `''` sentinel („Keine") heals to `undefined` on editor load — no Bestandsschutz; the
+     * builder tolerates it as inherit so unhealed bodies render identically (mode default none).
+     */
+    stack?: 'none' | 'A' | 'B' | 'C';
     /** Step rendering. @default 'none' */
     step?: EchartsStep;
     /** Show data-point symbols. @default false */

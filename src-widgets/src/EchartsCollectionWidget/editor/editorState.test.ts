@@ -23,7 +23,7 @@ vi.hoisted(() => {
 });
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
-import { encodeBlob } from '../../lib/encoding';
+import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
 import { composeActiveSnippets } from './snippetComposition';
 import { SERIES_TEMPLATES } from './seriesTemplates';
@@ -143,6 +143,57 @@ describe('editorState — Apply round-trip (save → load)', () => {
             barInterval: null,
             barDiff: null,
         });
+    });
+
+    it('stackMode/stackSum round-trip sparse in the chartConfig blob (ADR-0084: none/off write no key)', () => {
+        const state: EditorState = { ...baseState(), stackMode: 'percent', stackSum: true };
+        const re = loadEditorState(saveEditorState(state, 0));
+        expect(re.stackMode).toBe('percent');
+        expect(re.stackSum).toBe(true);
+        // Blob-lean sparse: the default writes NO key (the whole blob is rewritten on Apply, so
+        // there is no null-deletes contract here — absent IS cleared).
+        const defaultBlob = JSON.parse(
+            decodeBlob(saveEditorState({ ...baseState() }, 0).chartConfig as string),
+        ) as Record<string, unknown>;
+        expect('stackMode' in defaultBlob).toBe(false);
+        expect('stackSum' in defaultBlob).toBe(false);
+        const clearedBlob = JSON.parse(
+            decodeBlob(saveEditorState({ ...state, stackMode: 'none', stackSum: false }, 0).chartConfig as string),
+        ) as Record<string, unknown>;
+        expect('stackMode' in clearedBlob).toBe(false);
+        expect('stackSum' in clearedBlob).toBe(false);
+    });
+
+    it('stackMode heals decode-and-tolerate: unknown/absent → none; stackSum absent → off (ADR-0084)', () => {
+        const bogus = {
+            ...baseState(),
+            chartConfig: encodeBlob(JSON.stringify({ stackMode: 'bogus', stackSum: 'yes' })),
+        };
+        expect(loadEditorState(bogus).stackMode).toBe('none');
+        expect(loadEditorState(bogus).stackSum).toBe(false);
+        expect(loadEditorState({ ...baseState() }).stackMode).toBe('none');
+        expect(loadEditorState({ ...baseState() }).stackSum).toBe(false);
+    });
+
+    it('per-series stack heal: the legacy "" sentinel and garbage fall to undefined (erben, ADR-0084)', () => {
+        const data = {
+            ...baseState(),
+            mode: 'history',
+            chartType: 'bar',
+            series_count: 4,
+            oid1: 'a.0',
+            oid2: 'b.0',
+            oid3: 'c.0',
+            oid4: 'd.0',
+            seriesConfig: encodeBlob(
+                JSON.stringify([{ stack: '' }, { stack: 'bogus' }, { stack: 'none' }, { stack: 'A' }]),
+            ),
+        };
+        const re = loadEditorState(data);
+        expect(re.series.map(s => s.stack)).toEqual([undefined, undefined, 'none', 'A']);
+        // A widget without the new fields starts honest: none / off.
+        expect(re.stackMode).toBe('none');
+        expect(re.stackSum).toBe(false);
     });
 
     it('clearing a previously stored sparse field sends null — vis-2 deletes the key (K1)', () => {

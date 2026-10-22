@@ -55,6 +55,7 @@ import type {
     EchartsPaletteSource,
     EchartsPieConfig,
     EchartsRenderer,
+    EchartsStackMode,
     EchartsRelativeEnd,
     EchartsTimeRange,
     EchartsTimeType,
@@ -127,6 +128,13 @@ export interface EditorState {
     barInterval: EchartsBarInterval;
     /** Bar diff post-processing on the buckets (ADR-0065) — drops the first category. */
     barDiff: boolean;
+    /**
+     * Balken-Stapelmodus (ADR-0084): chart-level bar stacking — none | stack | percent. Rides
+     * the chartConfig blob sparse (default writes no key); JSON families carry it unevaluated.
+     */
+    stackMode: EchartsStackMode;
+    /** „Summe über Stapel" (ADR-0084) — the sum anchor, only read under stackMode 'stack'. */
+    stackSum: boolean;
     aggregate: Aggregate;
     count: number;
     refreshMs: number;
@@ -265,6 +273,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     integralInterpolation: undefined,
     barInterval: 'auto',
     barDiff: false,
+    stackMode: 'none',
+    stackSum: false,
     aggregate: 'average',
     count: 500,
     refreshMs: 60_000,
@@ -420,8 +430,14 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // (type undefined → follows the top selector); one that differs stays an explicit override.
     // Legacy `type:'area'` (ADR-0008 r4 removed it) is treated as inherit (line) + flat area.
     // A healed legacy gauge/radar lands here too (ADR-0071): its oidN entries become line series.
+    // Stapelgruppe heal (ADR-0084): the legacy `''` sentinel and any foreign value fall to
+    // `undefined` = ERBT — no Bestandsschutz (the widget is not productive); the runtime's own
+    // decode (parseSeriesConfig) does NOT heal, but the builder tolerates `''` as inherit, so an
+    // unopened widget renders identically (mode default none ⇒ erben ≙ kein Stapel).
     const inheritType: EchartsCartesianType | undefined =
         family === 'cartesian' ? (chartType as EchartsCartesianType) : undefined;
+    const healedStack = (raw: unknown): SeriesMeta['stack'] =>
+        raw === 'none' || raw === 'A' || raw === 'B' || raw === 'C' ? raw : undefined;
     let series: EditorSeries[] = [];
     for (let i = 0; i < seriesCount; i++) {
         const m = meta[i] ?? {};
@@ -430,6 +446,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
             oid: oidAt(i),
             ...m,
             type: t && inheritType && t !== inheritType ? t : undefined,
+            stack: healedStack(m.stack),
             area: normalizeArea(m.area, isLegacyAreaType(m)),
         });
     }
@@ -529,6 +546,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
                 ? data.barInterval
                 : 'auto',
         barDiff: boolOr(data.barDiff, false),
+        // Balken-Stapelmodus (ADR-0084) — decode-and-tolerate like barInterval: unknown/absent
+        // heals to 'none' in memory (the blob itself is only rewritten on save, sparsely).
+        stackMode:
+            chartConfig.stackMode === 'stack' || chartConfig.stackMode === 'percent' ? chartConfig.stackMode : 'none',
+        stackSum: chartConfig.stackSum === true,
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
@@ -652,6 +674,15 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
     // (the stranded keys render nothing — verified against echarts), the actual prune rides
     // Apply, mirroring the bound-OID drop.
     const chartConfigDraft: Record<string, unknown> = {};
+    // Balken-Stapelmodus (ADR-0084): sparse in the chartConfig blob — the default ('none' /
+    // switch off) writes NO key. Unlike the flat rxData scalars there is no null-deletes
+    // contract here: the whole blob is rewritten on Apply, so blob-lean IS the sparse form.
+    if (state.stackMode !== 'none') {
+        chartConfigDraft.stackMode = state.stackMode;
+    }
+    if (state.stackSum) {
+        chartConfigDraft.stackSum = true;
+    }
     const yAxesHealed = state.yAxes.map(a => ({ ...a }));
     const xAxisDraft = { ...state.xAxis };
     const jsonSeriesStyle = Object.fromEntries(

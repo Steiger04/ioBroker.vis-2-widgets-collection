@@ -892,7 +892,9 @@ export const CartesianSeriesKnobs: FC<{
                             <LabeledSelect
                                 label={Generic.t('echarts_series_stack')}
                                 value={meta.stack ?? ''}
-                                onChange={v => onPatch({ stack: v })}
+                                // ADR-0084 kernel: the '' sentinel no longer persists — cleared
+                                // maps to undefined (erben; for a line that IS no stack).
+                                onChange={v => onPatch({ stack: v === '' ? undefined : (v as 'A' | 'B' | 'C') })}
                                 options={[
                                     ['', Generic.t('echarts_stack_none')],
                                     ['A', Generic.t('echarts_stack_group_a')],
@@ -1026,7 +1028,9 @@ export const CartesianSeriesKnobs: FC<{
                         <LabeledSelect
                             label={Generic.t('echarts_series_stack')}
                             value={meta.stack ?? ''}
-                            onChange={v => onPatch({ stack: v })}
+                            // ADR-0084 kernel: the '' sentinel no longer persists — cleared maps
+                            // to undefined (= erben; ticket 04 makes the select say so).
+                            onChange={v => onPatch({ stack: v === '' ? undefined : (v as 'A' | 'B' | 'C') })}
                             options={[
                                 ['', Generic.t('echarts_stack_none')],
                                 ['A', Generic.t('echarts_stack_group_a')],
