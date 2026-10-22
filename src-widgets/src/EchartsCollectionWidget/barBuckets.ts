@@ -51,6 +51,22 @@ export const resolveBarIntervalMinutes = (interval: string, spanMs: number): num
     return 60;
 };
 
+/**
+ * The QUICKFIX key for the Stapelmodus Zeitachsen-issue (ADR-0084 decision 6): the span rules
+ * (`resolveBarIntervalMinutes` over the resolved window span) mapped onto the nearest
+ * `EchartsBarInterval` union key — ≤ 12 h → `'15m'`, > 3 d → `'1d'`, ≥ 60 d → `'30d'`, else
+ * `'1h'`. One click, one undo step: the editor writes exactly this key into `barInterval`.
+ */
+export const barIntervalForSpan = (spanMs: number): EchartsBarInterval => {
+    const minutes = resolveBarIntervalMinutes('auto', spanMs);
+    for (const [key, m] of Object.entries(INTERVAL_MINUTES) as [EchartsBarInterval, number][]) {
+        if (m === minutes) {
+            return key;
+        }
+    }
+    return '1h'; // unreachable — every rule minute is a table key (defensive, never NaN)
+};
+
 const zeroTime = (d: Date): void => {
     d.setHours(0, 0, 0, 0);
 };

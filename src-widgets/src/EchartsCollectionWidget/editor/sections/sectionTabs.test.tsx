@@ -331,3 +331,51 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         expect(all).toContain('echarts_series_raw');
     });
 });
+
+describe('Data source — Stapelmodus Zeitachsen quickfix (ADR-0084 decision 6)', () => {
+    it('the alert offers the fix; one click writes the span-rule interval key via set', () => {
+        const sets: unknown[] = [];
+        const el = mount(DataSourceSection, {
+            state: state({
+                chartType: 'bar',
+                stackMode: 'stack',
+                barInterval: 'auto',
+                series: [
+                    { oid: 'a.0', name: 'A' },
+                    { oid: 'b.0', name: 'B' },
+                ],
+            }),
+            set: (patch: unknown) => sets.push(patch),
+            pickerCtx: {},
+            issues: [{ key: 'echarts_val_stack_timeaxis' }],
+        });
+        // The bar cluster lives on the Datenabruf tab — select it first.
+        const fetchTab = Array.from(el.querySelectorAll('[role="tab"]')).find(t =>
+            (t.textContent ?? '').includes('data_fetch'),
+        );
+        expect(fetchTab).toBeTruthy();
+        act(() => {
+            fetchTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        expect(el.textContent).toContain('echarts_val_stack_timeaxis');
+        const btn = Array.from(el.querySelectorAll('button')).find(b =>
+            (b.textContent ?? '').includes('echarts_stack_quickfix'),
+        );
+        expect(btn).toBeTruthy();
+        act(() => {
+            btn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        expect(sets).toHaveLength(1);
+        // Default window 1d · relativeEnd now → span exactly 1 day → the hour band.
+        expect(sets[0]).toEqual({ barInterval: '1h' });
+    });
+
+    it('without the issue the alert stays away (no unsolicited advice)', () => {
+        const el = mount(DataSourceSection, {
+            state: state({ chartType: 'bar', stackMode: 'stack', barInterval: '1h' }),
+            set: () => undefined,
+            pickerCtx: {},
+        });
+        expect(el.textContent).not.toContain('echarts_val_stack_timeaxis');
+    });
+});

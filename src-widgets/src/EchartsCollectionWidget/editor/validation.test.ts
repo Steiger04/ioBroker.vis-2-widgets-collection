@@ -290,6 +290,7 @@ describe('tab addressing (ADR-0073) — issue → section tab, purely from field
     it('tabOfIssue maps the placed issues; everything else addresses no tab', () => {
         expect(tabOfIssue({ key: 'echarts_val_yminmax' })).toBe('axes');
         expect(tabOfIssue({ key: 'echarts_val_vmap_range' })).toBe('scale');
+        expect(tabOfIssue({ key: 'echarts_val_stack_timeaxis' })).toBe('fetch');
         expect(tabOfIssue({ key: 'echarts_val_oid_missing' })).toBeUndefined();
         expect(tabOfIssue({ key: 'echarts_val_stale_yaxis' })).toBeUndefined();
     });
@@ -477,5 +478,51 @@ describe('boundary-loss state matrix — the family-profile goldmaster (ADR-0083
         expect(familyBoundaryLoss(state)).toEqual(expected.familyBoundaryLoss);
         expect(jsonBoundaryLoss(state, names)).toEqual(expected.jsonBoundaryLoss);
         expect(jsonKindBoundaryLoss(state, names)).toEqual(expected.jsonKindBoundaryLoss);
+    });
+});
+
+describe('validateEditor — Stapelmodus Zeitachsen-issue (ADR-0084 decision 6)', () => {
+    // The dangerous combination only: Verlauf · effective bar chart · stackMode ≠ none ·
+    // barInterval auto · at least one EFFECTIVELY stacking bar series. Everything else —
+    // an interval set, mode none, no stacking series (all opted out / line-typed) — stays quiet.
+    const bars = (series: Partial<EditorState['series'][number]>[]): EditorState['series'] =>
+        series.map(s => ({ oid: 'a.0', name: 'S', ...s }));
+
+    it('fires exactly in the dangerous combination (both stack and percent)', () => {
+        for (const stackMode of ['stack', 'percent'] as const) {
+            const issues = validateEditor(
+                st({ mode: 'history', chartType: 'bar', stackMode, barInterval: 'auto', series: bars([{}, {}]) }),
+            );
+            expect(issues.dataSource).toEqual([{ key: 'echarts_val_stack_timeaxis' }]);
+        }
+    });
+
+    it('mode none · interval set · no stacking series · json mode → NO issue (the matrix)', () => {
+        const base = { mode: 'history', chartType: 'bar' } as const;
+        expect(validateEditor(st({ ...base, stackMode: 'none', series: bars([{}, {}]) })).dataSource).toBeUndefined();
+        expect(
+            validateEditor(st({ ...base, stackMode: 'stack', barInterval: '1h', series: bars([{}, {}]) })).dataSource,
+        ).toBeUndefined();
+        expect(
+            validateEditor(st({ ...base, stackMode: 'stack', series: bars([{ stack: 'none' }, { stack: 'none' }]) }))
+                .dataSource,
+        ).toBeUndefined();
+        // A line-typed series in the bar chart does not stack — no effective stacking bar.
+        expect(
+            validateEditor(st({ ...base, stackMode: 'stack', series: bars([{ type: 'line' }, { type: 'line' }]) }))
+                .dataSource,
+        ).toBeUndefined();
+        // JSON carries the blob field unevaluated — no Verlauf fetch, no issue.
+        expect(
+            validateEditor(st({ mode: 'json', chartType: 'bar', stackMode: 'stack', series: bars([{}, {}]) }))
+                .dataSource,
+        ).toBeUndefined();
+        // Documented scope limit (the ticket's literal condition): mode none stays quiet even
+        // with hand-set groups — they stack mode-independently, but the issue is scoped to the
+        // MODE's dangerous constellation; the hand-set path is the pre-0084 status quo.
+        expect(
+            validateEditor(st({ ...base, stackMode: 'none', series: bars([{ stack: 'A' }, { stack: 'A' }]) }))
+                .dataSource,
+        ).toBeUndefined();
     });
 });

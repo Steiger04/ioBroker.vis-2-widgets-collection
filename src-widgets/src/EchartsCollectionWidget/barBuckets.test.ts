@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
     applyBarDiff,
     barBucketCategories,
+    barIntervalForSpan,
     bucketizeSeries,
     makeBarPlan,
     resolveBarIntervalMinutes,
@@ -176,5 +177,19 @@ describe('makeBarPlan — per-entry aggregate composition (ADR-0072 bar mode)', 
         expect(override.count).toBe(5); // the plan's resolution survives the per-entry spread
         expect(override.start).toBe(inherit.start); // same widened window
         expect(override.aggregate).toBe('max'); // only the series' OWN keys diverge
+    });
+});
+
+describe('barIntervalForSpan (ADR-0084 decision 6 — the quickfix key)', () => {
+    // The span rules mapped onto the union keys: ≤ 12 h → 15m, > 3 d → 1d, ≥ 60 d → 30d,
+    // else 1h (the four bands the issue/quickfix matrix walks).
+    it('maps the four span bands onto their interval keys', () => {
+        expect(barIntervalForSpan(60_000)).toBe('15m');
+        expect(barIntervalForSpan(12 * 3_600_000)).toBe('15m'); // band edge inclusive
+        expect(barIntervalForSpan(12 * 3_600_000 + 1)).toBe('1h');
+        expect(barIntervalForSpan(3 * 86_400_000)).toBe('1h'); // > 3 d is strict
+        expect(barIntervalForSpan(3 * 86_400_000 + 1)).toBe('1d');
+        expect(barIntervalForSpan(60 * 86_400_000)).toBe('30d'); // ≥ 60 d inclusive
+        expect(barIntervalForSpan(120 * 86_400_000)).toBe('30d');
     });
 });

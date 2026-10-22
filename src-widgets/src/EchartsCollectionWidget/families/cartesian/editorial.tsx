@@ -17,6 +17,7 @@ import type {
     LegacyChartType,
 } from '../../../types/field-definitions/echarts-fields';
 import AxesZoomSection from '../../editor/sections/AxesZoomSection';
+import { effectiveStackName } from '../../stackMode';
 import type { EditorState } from '../../editor/editorState';
 import type { IssueMap } from '../../editor/issueTabs';
 import type { TFunc } from '../../editor/summaries';
@@ -115,6 +116,26 @@ const validateCartesian = (state: EditorState): IssueMap => {
     }
     if (state.visualMap.enabled && state.visualMap.min >= state.visualMap.max) {
         push('colors', 'echarts_val_vmap_range');
+    }
+    // Balken-Stapelmodus Zeitachsen-Fall (ADR-0084 decision 6): ECharts staples by DATA INDEX as
+    // soon as the base axis carries no category measure — on our time-axis path
+    // (barInterval 'auto', raw [ts, value] pairs) series with diverging timestamps can draw
+    // misaligned stacks, silently. NO hard lock (the alignment can be wanted) and no silent
+    // rewrite: ONE advisory issue with the Ein-Klick-Fix „Balken-Intervall setzen" (the Data
+    // source section owns the button — it dies with the issue once an interval or none is set).
+    // Scoped like the bar cluster itself (Verlauf, effective bar chart); the effective-stacking
+    // check mirrors the builder's resolution via the SHARED stackMode resolver.
+    if (
+        state.mode === 'history' &&
+        state.chartType === 'bar' &&
+        state.stackMode !== 'none' &&
+        state.barInterval === 'auto' &&
+        state.series.some(s => {
+            const type = s.type === 'bar' || s.type === 'scatter' ? s.type : s.type === 'line' ? 'line' : 'bar';
+            return type === 'bar' && effectiveStackName(s.stack, state.stackMode, 0) !== undefined;
+        })
+    ) {
+        push('dataSource', 'echarts_val_stack_timeaxis');
     }
     return issues;
 };

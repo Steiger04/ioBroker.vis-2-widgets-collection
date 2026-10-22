@@ -11,7 +11,7 @@
  * per-series history instance (ADR-0039) — lives in the Series section.
  */
 import type { FC } from 'react';
-import { Box, Chip, ListSubheader, MenuItem, TextField } from '@mui/material';
+import { Alert, Box, Button, Chip, ListSubheader, MenuItem, TextField } from '@mui/material';
 import { ErrorOutline } from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -26,8 +26,9 @@ import ColumnAutocomplete from '../ColumnAutocomplete';
 import { suggestedRowPath, useJsonTableSchema, type JsonTableSchema } from '../useJsonTableSchema';
 import { xSampleLine } from '../xSampleValues';
 import { resolveHostLang } from '../../timeFormat';
-import { RANGE_MINUTES } from '../../timeWindow';
+import { RANGE_MINUTES, resolveTimeWindow } from '../../timeWindow';
 import { AGGREGATE_VALUES } from '../../seriesDataOverrides';
+import { barIntervalForSpan } from '../../barBuckets';
 import {
     FieldGrid,
     FieldLabel,
@@ -480,6 +481,56 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                     )}
                                     {state.stackMode === 'percent' && (
                                         <InfoBox text={Generic.t('echarts_stack_percent_info')} />
+                                    )}
+                                    {/* Zeitachsen-Fall (ADR-0084 decision 6): stacking without a
+                                        bar interval aligns by data index — the advisory issue's
+                                        surface WITH its Ein-Klick-Fix. The fix writes the span
+                                        rule's key (barIntervalForSpan over the resolved window) —
+                                        one click, one undo step, no dialog; the issue (and with
+                                        it this alert) dies as soon as an interval is set. */}
+                                    {issues?.some(i => i.key === 'echarts_val_stack_timeaxis') && (
+                                        <Alert
+                                            severity="warning"
+                                            variant="outlined"
+                                            sx={{ py: 0, mt: 1 }}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    flexWrap: 'wrap',
+                                                }}
+                                            >
+                                                <Box component="span">{Generic.t('echarts_val_stack_timeaxis')}</Box>
+                                                <Button
+                                                    size="small"
+                                                    color="warning"
+                                                    sx={{ textTransform: 'none' }}
+                                                    onClick={() =>
+                                                        set({
+                                                            barInterval: barIntervalForSpan(
+                                                                (() => {
+                                                                    const w = resolveTimeWindow(
+                                                                        {
+                                                                            timeType: state.timeType,
+                                                                            timeRange: state.timeRange,
+                                                                            relativeEnd: state.relativeEnd,
+                                                                            staticStart: state.staticStart,
+                                                                            staticEnd: state.staticEnd,
+                                                                        },
+                                                                        Date.now(),
+                                                                    );
+                                                                    return w.end - w.start;
+                                                                })(),
+                                                            ),
+                                                        })
+                                                    }
+                                                >
+                                                    {Generic.t('echarts_stack_quickfix')}
+                                                </Button>
+                                            </Box>
+                                        </Alert>
                                     )}
                                 </>
                             )}
