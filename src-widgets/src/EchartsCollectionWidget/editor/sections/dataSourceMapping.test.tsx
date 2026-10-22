@@ -288,3 +288,37 @@ describe('Datenabruf preset hint (ADR-0082 ticket 03 — the pie variant names t
         expect(el.textContent).toContain('echarts_datasource_preset_hint_pie');
     });
 });
+
+describe('Zuordnung — the pie reading (ADR-0075 decision 5: X names segments, no axis to promise)', () => {
+    /** A schema with a date column selected as X — the Zeitachse badge's trigger. */
+    const SCHEMA_DATE: Scenario = {
+        arrayPaths: [{ path: '', length: 2 }],
+        columns: [
+            {
+                path: 'tag',
+                type: 'date',
+                nullable: false,
+                typeCounts: { date: 2 },
+                nullCount: 0,
+                distinctCount: 2,
+                confidence: 1,
+                samples: ['2026-01-01T00:00:00.000Z', '2026-01-02T00:00:00.000Z'],
+            },
+        ],
+    };
+
+    it('cartesian keeps the axis promise — hint and Zeitachse badge on a selected date column', () => {
+        const [el] = mount(SCHEMA_DATE, { chartType: 'line', jsonXPath: 'tag' });
+        expect(el.textContent).toContain('echarts_mapping_hint');
+        expect(el.textContent).not.toContain('echarts_mapping_hint_pie');
+        expect(el.textContent).toContain('echarts_mapping_time_axis');
+    });
+
+    it('pie names segments instead — the pie hint owns the InfoBox, only the axis promise goes quiet', () => {
+        const [el] = mount(SCHEMA_DATE, { chartType: 'pie', jsonXPath: 'tag' });
+        expect(el.textContent).toContain('echarts_mapping_hint_pie');
+        // the honest type badge stays — suppressing the promise must not hide the type
+        expect(el.textContent).toContain('echarts_col_type_date');
+        expect(el.textContent).not.toContain('echarts_mapping_time_axis');
+    });
+});

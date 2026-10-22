@@ -236,6 +236,8 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
     // series-shaped Leerfall keeps its chrome-less single field (the ADR-0073 exception).
     const isJsonTable = isJson && state.jsonKind === 'table';
     const isStatic = state.timeType === 'static';
+    // The pie reading: hint wording, Zeitachse badge and the preset hint all branch on it.
+    const isPie = state.chartType === 'pie';
     const staticStart = state.staticStart ? new Date(state.staticStart) : null;
     const staticEnd = state.staticEnd ? new Date(state.staticEnd) : null;
     const staticInvalid = isStatic && staticStart && staticEnd ? staticStart.getTime() >= staticEnd.getTime() : false;
@@ -335,9 +337,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                              to preset — the honest pie wording names the point shaping instead. */}
                             <InfoBox
                                 text={Generic.t(
-                                    state.chartType === 'pie'
-                                        ? 'echarts_datasource_preset_hint_pie'
-                                        : 'echarts_datasource_preset_hint',
+                                    isPie ? 'echarts_datasource_preset_hint_pie' : 'echarts_datasource_preset_hint',
                                 )}
                             />
                             <FieldGrid>
@@ -492,7 +492,13 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         <InfoBox text={Generic.t('echarts_editor_info_json')} />
                     </Box>
                     <Box>
-                        <InfoBox text={Generic.t('echarts_mapping_hint')} />
+                        <InfoBox
+                            text={Generic.t(
+                                // Pie (ADR-0075 decision 5): the X column names the slices —
+                                // a pie has no axis to promise.
+                                isPie ? 'echarts_mapping_hint_pie' : 'echarts_mapping_hint',
+                            )}
+                        />
                         {tableSchema.error ? (
                             <InfoBox text={tableSchema.error} />
                         ) : (
@@ -592,7 +598,9 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                 columns={tableSchema.columns}
                                 onChange={v => set({ jsonXPath: v })}
                                 emptyLabel={Generic.t('echarts_mapping_row_index')}
-                                dateHint
+                                // No "Zeitachse" promise on a pie — a date X column only
+                                // supplies slice names there, never a time axis.
+                                dateHint={!isPie}
                                 disabled={!tableSchema.columns.length}
                                 sampleLine={
                                     xLine ? `${Generic.t('echarts_mapping_samples_prefix')} ${xLine}` : undefined
