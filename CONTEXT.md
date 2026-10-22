@@ -340,8 +340,18 @@ The family-varied share of the boundary machinery a profile carries (`dataPath`)
 _Avoid_: reset scope, boundary config
 
 **Presentation-Fragment**:
-The per-family slice of the presentation configuration (ADR-0083 ticket 03): `PresentationConfig` splits into a chart-wide base (assembled in the body, including the blob decode) and a discriminated fragment per family (cartesian: cartesianType, Y-axes, X-Karte, zoom, markings, colour scale · pie: the pie knobs) assembled by the profile. The optional `pie?` field on the flat configuration dies; each option-builder arm carries base & fragment typed, so the cartesian builder can never see pie fields (and vice versa).
+The per-family slice of the presentation configuration (ADR-0083 ticket 03): `PresentationConfig` splits into a chart-wide base (assembled in the body, including the blob decode) and a discriminated fragment per family (cartesian: cartesianType, Y-axes, X-Karte, zoom, markings, color scale · pie: the pie knobs) assembled by the profile. The optional `pie?` field on the flat configuration dies; each option-builder arm carries base & fragment typed, so the cartesian builder can never see pie fields (and vice versa).
 _Avoid_: pie field (the retired flat optional), family branch (the dispatch the fragment replaces)
+
+**UI-Sprache (register & terminology)**:
+The rules every configurator text follows — pinned by the 2026-10-22 text audit (commits c6d788b/afcf87b/3815961) and binding collection-wide, not just ECharts: impersonal register (no du/Sie addressing; full sentences live in InfoBoxes only), established technical terms stay untranslated (Serie, Achse, Legende, Tooltip, Versatz, Bucket, Easing), the English source is American spelling (color/behavior/center — ioBroker convention). Pie slices are **Segment** (never „Scheibe“); font weight is **Schriftstärke** (never „Schriftschnitt“ — that umbrella covers style, width AND weight); the colours section's plot-surface tab is **Zeichenfläche**. When a text and the code disagree, the text is corrected to tell the behaviour and the conflict is reported as a suspected bug — wording never promises what the code does not do.
+_Avoid_: du-addressed hints, machine-translation artifacts („kollabiert“, „das Total“, „numerischer Intake“), BrE spellings
+
+**relend-Rasterfamilie (adapter parity)**:
+The relative-end grid labels („Ende von 10 Minuten“, „Stundenende“, „Minutenende“) mirror ioBroker.echarts' German verbatim — parity beats elegance, do not polish them. The calendar anchors deviate deliberately: the window ENDS at the boundary (`roundEnd` rolls to the 1st of the next period), so they read „Monatsende“/„Jahresende“/„Ende der Woche (So)/(Sa)“ — the adapter itself writes „Wochenssende“ there, a typo this collection does not inherit.
+_Avoid_: renaming the grid labels, „dieser Monat“ (an end-anchor phrased as a range)
+
+
 
 # Theme Studio
 
