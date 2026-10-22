@@ -18,6 +18,7 @@ import type {
     EchartsMarkLine,
     EchartsPieConfig,
     EchartsSeriesMeta,
+    EchartsStackMode,
     EchartsTooltipTrigger,
     EchartsToolboxConfig,
     EchartsVisualMapConfig,
@@ -148,6 +149,17 @@ export interface CartesianFragment {
      * plain per-row value array. Absent ⇒ the time axis, exactly as before.
      */
     xCategories?: string[];
+    /**
+     * Balken-Stapelmodus (ADR-0084), the cartesian share: absent/`'none'` = no mode stack —
+     * per-series groups keep working; `'stack'`/`'percent'` = inheriting bars stack (percent
+     * normalizes in the pipeline, ticket 03). Read from the chartConfig blob, mode-agnostic.
+     */
+    stackMode?: EchartsStackMode;
+    /**
+     * „Summe über Stapel" (ADR-0084): the transparent sum anchor per stack — only read under
+     * `stackMode: 'stack'` (at percent the sum is a constant 100 %, verdeckt). Sparse blob side.
+     */
+    stackSum?: boolean;
     visualMap?: EchartsVisualMapConfig;
 }
 

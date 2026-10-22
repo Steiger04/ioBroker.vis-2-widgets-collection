@@ -81,6 +81,10 @@ export function usePreviewOption(
                 titleRaw: state.titleRaw || undefined,
                 legendRaw: state.legendRaw || undefined,
                 tooltipRaw: state.tooltipRaw || undefined,
+                // Balken-Stapelmodus (ADR-0084): the preview reads the same blob fields the
+                // body decodes — sparsely, like the save side writes them.
+                ...(state.stackMode !== 'none' ? { stackMode: state.stackMode } : {}),
+                ...(state.stackSum ? { stackSum: true } : {}),
             },
             yAxes: state.yAxes,
             markLines: state.markLines,

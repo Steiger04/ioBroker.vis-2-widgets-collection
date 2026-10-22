@@ -13,6 +13,7 @@
  */
 import type { EchartsAxisConfig, EchartsCartesianType } from '../../../types/field-definitions/echarts-fields';
 import { bool, num, parseColorScale, legacyAxis, decodeXAxisWithLegacy } from '../../presentation';
+import { normalizeStackMode } from '../../stackMode';
 import type { CartesianFragment } from '../../optionBuilders/types';
 import type { PresentationCompanions } from '../types';
 
@@ -48,6 +49,10 @@ export const cartesianPresentationFragment = (companions: PresentationCompanions
         dataZoomSlider: bool(s.dataZoomSlider, false),
         dataZoomInside: bool(s.dataZoomInside, false),
         markLines: companions.markLines,
+        // Balken-Stapelmodus (ADR-0084): the blob side is mode-agnostic and tolerant — only the
+        // two real modes pass; the builder resolves the rest as none (the editor load heals).
+        stackMode: normalizeStackMode(companions.chartConfig.stackMode),
+        ...(companions.chartConfig.stackSum === true ? { stackSum: true } : {}),
         visualMap: visualMapEnabled
             ? {
                   enabled: true,

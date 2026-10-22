@@ -50,6 +50,7 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
+import { effectiveStackName, normalizeStackMode } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 
@@ -222,7 +223,11 @@ const buildCartesianSeriesEntry = (
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   };
     }
-    if (m?.stack && type !== 'scatter') {
+    if (m?.stack && m.stack !== 'none' && type === 'line') {
+        // Hand-set LINE group (ADR-0084 decision 2: lines never inherit the mode — the plain
+        // group name keeps the pre-0084 semantics, no axis coupling). Bars resolve through the
+        // mode resolver in buildCartesianOption (the axis-coupled name, stamped AFTER the raw
+        // fold so the GUI wins a raw collision); scatter never stacks.
         entry.stack = m.stack;
     }
 
@@ -814,6 +819,23 @@ export const buildCartesianOption = (
         e.yAxisIndex = axisRemap.get(e.yAxisIndex as number) ?? 0;
     }
 
+    // Balken-Stapelmodus (ADR-0084): bars resolve their stack HERE — after the axis remap, so
+    // the coupled name carries the EMITTED axis index (decision 3: a stack can never span
+    // foreign scales, not even with explicit groups; the name is builder-internal, never
+    // persisted). Stamped AFTER the raw fold: the GUI-authored resolution wins a raw `stack`
+    // collision; where the mode resolves NO stack (opted out, or mode off) a raw-authored stack
+    // stays effective — the escape hatch keeps its key.
+    const stackMode = normalizeStackMode(p.stackMode);
+    entries.forEach((e, i) => {
+        if (e.type !== 'bar') {
+            return;
+        }
+        const stack = effectiveStackName(meta[i]?.stack, stackMode, e.yAxisIndex as number);
+        if (stack) {
+            e.stack = stack;
+        }
+    });
+
     const names = entries.map(e => e.name as string);
     // The per-series Wert-Formatter facts, keyed by EFFECTIVE series name (ADR-0057) — the same
     // names the legend lists and the tooltip rows carry, so every surface resolves its row's
@@ -924,6 +946,10 @@ export const buildCartesianOption = (
     // matches by meta id in history/live, by payload name in JSON); the axis LABELS inherit the
     // bound series' shared unit (ADR-0057) and the shared text facts (ADR-0058) — decimals
     // deliberately NOT inherited (whose would a shared axis clamp to?).
+    // Per-EMITTED-axis value-format facts (the shared unit + text facts, ADR-0057/0058) —
+    // captured beside the entry build so the sum anchors below format through the SAME facts
+    // the axis labels do (adapter parity: the sum wears the axis' format).
+    const axisFacts: (SeriesValueFacts | undefined)[] = [];
     const yAxisEntries: Record<string, unknown>[] = allInactive
         ? [silentYAxis()]
         : displayAxes.map((a, i) => {
@@ -945,8 +971,108 @@ export const buildCartesianOption = (
               const texts = axisTextFacts(boundFactsList);
               const seriesFacts: SeriesValueFacts | undefined =
                   unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
+              axisFacts[i] = seriesFacts;
               return buildYAxisEntry(a, i, divider, xOnEdge, seriesColor, seriesName, p.decimalComma, seriesFacts);
           });
+    // Summen-Anker (ADR-0084 decision 5, adapter getSumSeries parity): one transparent, silent
+    // bar series per stack (≥ 2 ACTIVE members) stacked obenauf — data all 0 (nothing to see,
+    // the segment is only the label's anchor), the label carrying the per-category sum of the
+    // members' ABSOLUTE values in the axis' own format. Gaps like the adapter: a category no
+    // member contributes to stays null and renders no label. Only under stackMode 'stack' with
+    // the switch on — at percent the sum is a constant 100 % (verdeckt); deselected members
+    // leave the stack (Legenden-Folge honesty: the anchor labels what is visible). Appended
+    // AFTER `names`/`facts` were taken above — legend.data never lists it (the adapter's own
+    // exclusion mechanism) and the tooltip's exclude filter drops its rows.
+    const anchors: Record<string, unknown>[] = [];
+    if (stackMode === 'stack' && p.stackSum) {
+        const byStack = new Map<string, number[]>();
+        entries.forEach((e, i) => {
+            if (e.type !== 'bar' || typeof e.stack !== 'string' || !active(i)) {
+                return;
+            }
+            const list = byStack.get(e.stack);
+            if (list) {
+                list.push(i);
+            } else {
+                byStack.set(e.stack, [i]);
+            }
+        });
+        // The value slot of one datum (points `[ts, v]` and plain buckets alike); null = no
+        // contribution (a gap never counts as 0 — the adapter's own rule).
+        const valueOf = (d: unknown): number | null => {
+            if (Array.isArray(d)) {
+                return typeof d[1] === 'number' && Number.isFinite(d[1]) ? d[1] : null;
+            }
+            return typeof d === 'number' && Number.isFinite(d) ? d : null;
+        };
+        for (const [stackName, members] of byStack) {
+            if (members.length < 2) {
+                continue; // a one-series stack would only repeat the value its bar already shows
+            }
+            const axisIdx = entries[members[0]].yAxisIndex as number;
+            const length = members.reduce((max, i) => Math.max(max, series[i]?.data.length ?? 0), 0);
+            const sums: (number | null)[] = [];
+            const tss: (number | null)[] = [];
+            let pointShaped = false;
+            for (let c = 0; c < length; c++) {
+                let sum: number | null = null;
+                let ts: number | null = null;
+                for (const i of members) {
+                    const d = series[i]?.data[c];
+                    if (Array.isArray(d)) {
+                        pointShaped = true;
+                        if (ts === null && typeof d[0] === 'number') {
+                            ts = d[0]; // the time path's anchor point rides the first member's ts
+                        }
+                    }
+                    const v = valueOf(d);
+                    if (v !== null) {
+                        sum = (sum ?? 0) + v;
+                    }
+                }
+                sums.push(sum);
+                tss.push(ts);
+            }
+            const anchorData = sums.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
+            // Label size/shift follow the TOPMOST member (its own top label would collide —
+            // the adapter's `topover` shift moves the sum one line up out of the way).
+            const topMeta = meta[members[members.length - 1]];
+            const fontSize = topMeta?.labelFontSize ?? 12;
+            const topLabelAtTop = !!topMeta?.label && (topMeta.labelPosition ?? 'top') === 'top';
+            const barWidth = parseBarWidth(meta[members[0]]?.barWidth);
+            const facts = axisFacts[axisIdx];
+            const anchorName = `stackSum#${stackName}`;
+            anchors.push({
+                id: anchorName,
+                name: anchorName,
+                type: 'bar',
+                stack: stackName,
+                yAxisIndex: axisIdx,
+                silent: true,
+                // Deliberately false — the ONE per-series animation exception (the entry
+                // builder's comment explains why real series never set it): the 0-height anchor
+                // must not animate, or every data tick would wiggle the sum labels.
+                animation: false,
+                legendHoverLink: false,
+                ...(barWidth !== undefined ? { barWidth } : {}),
+                itemStyle: { color: 'transparent', borderWidth: 0 },
+                data: anchorData,
+                label: {
+                    show: true,
+                    position: 'top',
+                    ...(topLabelAtTop ? { offset: [0, -(fontSize + 2)] } : {}),
+                    formatter: (params: { dataIndex: number }): string => {
+                        const sum = sums[params.dataIndex];
+                        return sum === null ? '' : formatSeriesValue(sum, facts, chartFmt);
+                    },
+                    fontSize,
+                    color: p.themeTokens.textPrimary,
+                },
+            });
+        }
+    }
+    const anchorNames = new Set(anchors.map(a => a.name as string));
+
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
     // `containLabel:true` (which maps to `'axisLabel'` and reserves tick labels + offset-axis labels
@@ -1013,7 +1139,9 @@ export const buildCartesianOption = (
         // surfaces; an authored tooltipTemplate still wins inside buildTooltip. The per-series
         // facts (ADR-0057) ride along for the row formatting. STRING categories (ADR-0075) take
         // the category-name header instead — a moment header would render nothing (no ts).
-        tooltip: buildTooltip(p, { format: p.xAxis.format, category: !!p.xCategories?.length }, facts),
+        // The sum anchors' rows are EXCLUDED here (ADR-0084 — the anchor carries no data truth,
+        // only the label anchor; silent alone does not stop the axis tooltip from listing it).
+        tooltip: buildTooltip(p, { format: p.xAxis.format, category: !!p.xCategories?.length }, facts, anchorNames),
         grid: {
             left: gridInset,
             right: gridInset,
@@ -1028,7 +1156,10 @@ export const buildCartesianOption = (
         // floor's object merge survives naturally, no stamping needed).
         xAxis: xAxisEntry,
         yAxis: yAxisEntries,
-        series: entries,
+        // The sum anchors ride AFTER the real series (ADR-0084): echarts stacks same-name series
+        // in array order — appended last, the 0-height anchor sits obenauf. With no anchor the
+        // entries array passes by reference, exactly as before.
+        series: anchors.length ? [...entries, ...anchors] : entries,
         animation: p.animation,
         // Slider + easing drive BOTH the enter animation (animationDuration/Easing) AND the
         // data-update animation (animationDurationUpdate/EasingUpdate) — one honest knob, so a live

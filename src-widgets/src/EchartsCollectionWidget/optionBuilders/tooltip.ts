@@ -202,10 +202,15 @@ const makeTemplateTooltipFormatter =
         ctx: TooltipTimeContext,
         valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
+        excludeNames?: ReadonlySet<string>,
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
-        const list = filterTooltipRows(raw, paramTs(raw[0]), filters ?? {});
+        const list = filterTooltipRows(
+            excludeNames?.size ? raw.filter(p => !excludeNames.has(p.seriesName ?? '')) : raw,
+            paramTs(raw[0]),
+            filters ?? {},
+        );
         return list
             .map(
                 p =>
@@ -237,6 +242,7 @@ const makeMomentTooltipFormatter =
         ctx: TooltipTimeContext,
         valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
+        excludeNames?: ReadonlySet<string>,
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
@@ -252,7 +258,10 @@ const makeMomentTooltipFormatter =
             : ts !== null
               ? `<b>${formatTooltipHeader(ctx.format, ts, resolveHostLang())}</b><br/>`
               : '';
-        const list = filterTooltipRows(raw, ts, filters ?? {});
+        // Sum anchors (ADR-0084) never list a row — dropped BEFORE the null/interpolate filters
+        // so an anchor cannot shadow a real series' row position.
+        const rows = excludeNames?.size ? raw.filter(p => !excludeNames.has(p.seriesName ?? '')) : raw;
+        const list = filterTooltipRows(rows, ts, filters ?? {});
         return (
             header +
             list
@@ -277,6 +286,8 @@ const makeMomentTooltipFormatter =
  * cartesian only): each ROW formats through its own series facts, the chart-level cluster as the
  * per-fact fallback. Ignored on the non-cartesian paths (echarts' `valueFormatter` has no
  * per-series context).
+ * @param excludeNames - Series names that never list a tooltip row (ADR-0084: the sum anchors —
+ * `silent` alone does not stop the axis tooltip from listing a series).
  * @returns `'none'` → `{ show: false }`; otherwise trigger + template / moment-header formatter +
  * values. The Tooltip section's raw escape hatch (ADR-0044) is folded UNDER the built entry — the
  * GUI wins every collision; free keys (frame, behaviour, axisPointer) merge through.
@@ -285,6 +296,7 @@ export const buildTooltip = (
     p: PresentationBase,
     time?: TooltipTimeContext,
     seriesFacts?: SeriesFactsByName,
+    excludeNames?: ReadonlySet<string>,
 ): Record<string, unknown> => {
     let entry: Record<string, unknown>;
     if (p.tooltipTrigger === 'none') {
@@ -312,7 +324,7 @@ export const buildTooltip = (
             entry = time
                 ? {
                       trigger: p.tooltipTrigger,
-                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, rowFmt, filters),
+                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, rowFmt, filters, excludeNames),
                   }
                 : {
                       trigger: p.tooltipTrigger,
@@ -323,7 +335,7 @@ export const buildTooltip = (
             // A custom callback bypasses echarts' valueFormatter application — fold it in.
             entry = {
                 trigger: p.tooltipTrigger,
-                formatter: makeMomentTooltipFormatter(time, rowFmt, filters),
+                formatter: makeMomentTooltipFormatter(time, rowFmt, filters, excludeNames),
             };
         } else {
             entry = { trigger: p.tooltipTrigger, ...(valueFmt ? { valueFormatter: valueFmt } : {}) };

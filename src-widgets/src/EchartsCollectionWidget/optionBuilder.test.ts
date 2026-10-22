@@ -3072,3 +3072,234 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
         expect(data[0].itemStyle.color).toBe('#0af'); // meta.color DOES paint aggregate slices
     });
 });
+
+describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kopplung, Anker)', () => {
+    const WED = SAMPLE_TS;
+    /** Bars over the bucket grid (plain arrays + barCategories riding the fragment). */
+    const buildBars = (
+        metas: EchartsSeriesMeta[],
+        data: (number | null)[][],
+        over: Partial<PresentationBase & CartesianFragment> = {},
+    ): Record<string, unknown> =>
+        buildGeneratedOption({
+            family: 'cartesian',
+            series: metas.map((m, i) => ({ name: m.name ?? `S${i}`, data: data[i] })),
+            meta: metas,
+            p: {
+                ...P,
+                cartesianType: 'bar',
+                barCategories: [WED, WED + 3_600_000, WED + 7_200_000],
+                ...over,
+            },
+        }) as Record<string, unknown>;
+
+    const stackOf = (option: Record<string, unknown>, i: number): string | undefined =>
+        (option.series as Record<string, unknown>[])[i].stack as string | undefined;
+
+    it('mode none: inheriting bars emit NO stack key (sparse); explicit groups still work', () => {
+        const option = buildBars(
+            [{ name: 'A' }, { name: 'B' }, { name: 'C', stack: 'A' }, { name: 'D', stack: 'A' }],
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [1, 1, 1],
+            ],
+        );
+        expect(stackOf(option, 0)).toBeUndefined();
+        expect(stackOf(option, 1)).toBeUndefined();
+        // Groups are mode-INDEPENDENT (decision 2) — and axis-coupled (decision 3).
+        expect(stackOf(option, 2)).toBe('A#0');
+        expect(stackOf(option, 3)).toBe('A#0');
+    });
+
+    it('mode stack: inheriting bars join the mode stack; an opted-out series stays out', () => {
+        const option = buildBars(
+            [{ name: 'A' }, { name: 'B' }, { name: 'C', stack: 'none' }],
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ],
+            { stackMode: 'stack' },
+        );
+        expect(stackOf(option, 0)).toBe('total#0');
+        expect(stackOf(option, 1)).toBe('total#0');
+        expect(stackOf(option, 2)).toBeUndefined();
+    });
+
+    it('axis coupling: two Y-axes → separate mode stacks even with the same group', () => {
+        const option = buildBars(
+            [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 0 },
+                { name: 'C', yAxisIndex: 1, stack: 'A' },
+                { name: 'D', yAxisIndex: 0, stack: 'A' },
+            ],
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [1, 1, 1],
+            ],
+            { stackMode: 'stack', yAxes: [{}, { position: 'right' }] },
+        );
+        expect(stackOf(option, 0)).toBe('total#0');
+        expect(stackOf(option, 1)).toBe('total#0');
+        expect(stackOf(option, 2)).toBe('A#1'); // never a stack across foreign scales
+        expect(stackOf(option, 3)).toBe('A#0');
+    });
+
+    it('lines keep hand-set groups VERBATIM (no inherit, no coupling); a groupless line never stacks', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'L1', data: [[WED, 1]] },
+                { name: 'L2', data: [[WED, 2]] },
+            ],
+            meta: [
+                { name: 'L1', type: 'line', stack: 'A' },
+                { name: 'L2', type: 'line' },
+            ],
+            p: { ...P, cartesianType: 'bar', stackMode: 'stack' },
+        }) as Record<string, unknown>;
+        const series = option.series as Record<string, unknown>[];
+        expect(series[0].stack).toBe('A'); // plain name — the pre-0084 line semantics
+        expect(series[1].stack).toBeUndefined(); // lines never inherit the mode
+    });
+
+    it('sum anchor: transparent, silent, atop the stack, out of legend.data and tooltip rows', () => {
+        const option = buildBars(
+            [
+                { name: 'A', unit: 'W' },
+                { name: 'B', unit: 'W' },
+            ],
+            [
+                [10, null, 30],
+                [20, 5, null],
+            ],
+            { stackMode: 'stack', stackSum: true },
+        );
+        const series = option.series as Record<string, unknown>[];
+        expect(series).toHaveLength(3); // two bars + the anchor
+        const anchor = series[2];
+        expect(anchor.id).toBe('stackSum#total#0');
+        expect(anchor.silent).toBe(true);
+        expect(anchor.animation).toBe(false);
+        expect(anchor.stack).toBe('total#0');
+        expect(anchor.data).toEqual([
+            0, // 10 + 20
+            0, // only B contributes (5) — a gap never zeroes the sum
+            0, // only A contributes (30)
+        ]);
+        expect((anchor.itemStyle as Record<string, unknown>).color).toBe('transparent');
+        // The label carries the SUM in the axis' format (both series share the unit → 'W').
+        const fmt = (anchor.label as { formatter: (p: { dataIndex: number }) => string }).formatter;
+        expect(fmt({ dataIndex: 0 })).toBe('30 W');
+        expect(fmt({ dataIndex: 1 })).toBe('5 W');
+        expect(fmt({ dataIndex: 2 })).toBe('30 W');
+        // Legend.data lists only the real series (the adapter's own exclusion mechanism).
+        expect(option.legend).toMatchObject({ data: ['A', 'B'] });
+        // The tooltip rows drop the anchor even though echarts hands its param to the formatter.
+        const tooltip = (option.tooltip as { formatter: (params: unknown) => string }).formatter;
+        const html = tooltip([
+            { seriesName: 'A', value: 10, marker: '', axisValue: WED },
+            { seriesName: 'B', value: 20, marker: '' },
+            { seriesName: 'stackSum#total#0', value: 0, marker: '' },
+        ]);
+        expect(html).toContain('A:');
+        expect(html).toContain('B:');
+        expect(html).not.toContain('stackSum');
+    });
+
+    it('an ALL-NULL category renders no anchor label (the honest gap)', () => {
+        const option = buildBars(
+            [{ name: 'A' }, { name: 'B' }],
+            [
+                [10, null],
+                [20, null],
+            ],
+            { stackMode: 'stack', stackSum: true, barCategories: [WED, WED + 3_600_000] },
+        );
+        const anchor = (option.series as Record<string, unknown>[])[2];
+        expect(anchor.data).toEqual([0, null]); // nothing contributes in category 2
+        const fmt = (anchor.label as { formatter: (p: { dataIndex: number }) => string }).formatter;
+        expect(fmt({ dataIndex: 1 })).toBe('');
+    });
+
+    it('no anchor: switch off, one-series stacks, mode none/percent, deselected members', () => {
+        const twoBars = [{ name: 'A' }, { name: 'B' }] as EchartsSeriesMeta[];
+        const twoData = [
+            [1, 2],
+            [3, 4],
+        ];
+        expect((buildBars(twoBars, twoData, { stackMode: 'stack' }).series as unknown[]).length).toBe(2); // stackSum off
+        expect((buildBars(twoBars, twoData, { stackSum: true }).series as unknown[]).length).toBe(2); // mode none
+        expect((buildBars(twoBars, twoData, { stackMode: 'percent', stackSum: true }).series as unknown[]).length).toBe(
+            2,
+        ); // percent verdeckt
+        expect(
+            (
+                buildBars([{ name: 'A' }, { name: 'B', stack: 'none' }], twoData, {
+                    stackMode: 'stack',
+                    stackSum: true,
+                }).series as unknown[]
+            ).length,
+        ).toBe(2); // no stack with ≥ 2 members
+        expect(
+            (
+                buildBars(twoBars, twoData, { stackMode: 'stack', stackSum: true, legendSelection: { B: false } })
+                    .series as unknown[]
+            ).length,
+        ).toBe(2); // the active stack has one member — the anchor follows the visible truth
+    });
+
+    it('two stacks on one axis get one anchor EACH (≥ 2 members is per stack, not per axis)', () => {
+        const option = buildBars(
+            [
+                { name: 'A', stack: 'A' },
+                { name: 'B', stack: 'A' },
+                { name: 'C', stack: 'B' },
+                { name: 'D', stack: 'B' },
+            ],
+            [
+                [1, 2],
+                [3, 4],
+                [5, 6],
+                [7, 8],
+            ],
+            { stackMode: 'stack', stackSum: true, barCategories: [WED, WED + 3_600_000] },
+        );
+        const names = (option.series as Record<string, unknown>[]).map(s => s.id ?? s.name);
+        expect(names).toEqual(['A', 'B', 'C', 'D', 'stackSum#A#0', 'stackSum#B#0']);
+    });
+
+    it('time-axis path: the anchor rides [ts, 0] points aligned by data index', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [WED, 10],
+                        [WED + 60_000, 20],
+                    ],
+                },
+                {
+                    name: 'B',
+                    data: [
+                        [WED, 30],
+                        [WED + 60_000, 40],
+                    ],
+                },
+            ],
+            meta: [{ name: 'A' }, { name: 'B' }],
+            p: { ...P, cartesianType: 'bar', stackMode: 'stack', stackSum: true },
+        }) as Record<string, unknown>;
+        const anchor = (option.series as Record<string, unknown>[])[2];
+        expect(anchor.data).toEqual([
+            [WED, 0],
+            [WED + 60_000, 0],
+        ]);
+    });
+});
