@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "将每条序列获取到的数据点收敛为一个切片值——数据获取“总计”+“最新”得到最后一个区间的总计；要整个时间窗口的总计请在此选“求和”。",
     "echarts_pie_inner_radius": "环形图内半径（0–1）",
     "echarts_pie_label": "扇区标签",
+    "echarts_pie_label_color": "标签颜色",
     "echarts_pie_rose": "玫瑰图模式",
     "echarts_pos_bottom": "底部",
     "echarts_pos_bottom_center": "底部居中",

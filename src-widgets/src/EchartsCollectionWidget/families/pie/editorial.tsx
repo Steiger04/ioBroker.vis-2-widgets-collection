@@ -10,8 +10,9 @@
  */
 import type { FC } from 'react';
 
-import type { FamilyEditorial } from '../editorial';
+import type { FamilyEditorial, RailSlotProps } from '../editorial';
 import { PieOptionsSection } from '../../editor/sections/FamilySections';
+import { useEditorTheme } from '../../editor/useEditorTheme';
 import type { EditorState } from '../../editor/editorState';
 import type { TFunc } from '../../editor/summaries';
 
@@ -62,20 +63,30 @@ const summarizePieOptions = (state: EditorState, t: TFunc): string =>
           ? `rose · ${state.pie.rose}`
           : '';
 
+/** The pie options rail slot — resolves the label colour's „Erbt" token for the section. */
+const PieOptionsSlot: FC<RailSlotProps> = ({ state, set, pickerCtx, focusTab, issues }) => {
+    // ADR-0080 addendum: the swatch's „Erbt" fallback must be the SAME token the builder
+    // resolves — the slot is the section's token boundary (the MarkCard textSecondary idiom).
+    const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
+    return (
+        <PieOptionsSection
+            state={state}
+            set={set}
+            focusTab={focusTab}
+            issues={issues}
+            pickerCtx={pickerCtx}
+            textPrimary={themeTokens.textPrimary}
+        />
+    );
+};
+
 /** The pie family's editorial half. */
 export const PIE_EDITORIAL: FamilyEditorial<'pieOptions'> = {
     railSlots: [
         {
             key: 'pieOptions',
             titleKey: 'echarts_sec_pie_options',
-            render: ({ state, set, focusTab, issues }) => (
-                <PieOptionsSection
-                    state={state}
-                    set={set}
-                    focusTab={focusTab}
-                    issues={issues}
-                />
-            ),
+            render: PieOptionsSlot,
             summarize: summarizePieOptions,
         },
     ],

@@ -375,6 +375,7 @@
     "echarts_pie_aggregate_hint": "Collapses each series' fetched points into one slice value — data fetch 'Total' + 'Latest value' yields the last interval's total; for the whole-window total pick 'Sum' here.",
     "echarts_pie_inner_radius": "Donut inner radius (0–1)",
     "echarts_pie_label": "Slice label",
+    "echarts_pie_label_color": "Label color",
     "echarts_pie_rose": "Rose mode",
     "echarts_pos_bottom": "Bottom",
     "echarts_pos_bottom_center": "Bottom center",

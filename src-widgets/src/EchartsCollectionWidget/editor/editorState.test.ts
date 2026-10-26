@@ -669,6 +669,28 @@ describe('editorState — ADR-0042 snippet activations', () => {
         expect(reloaded.pie.raw).toBe(raw);
     });
 
+    it('pie labelColor round-trips sparse in the chartConfig blob (ADR-0080 addendum)', () => {
+        const authored = {
+            ...baseState(),
+            chartType: 'pie' as const,
+            pie: {
+                aggregate: 'latest',
+                innerRadius: 0,
+                rose: 'none',
+                label: 'namePercent',
+                labelColor: '#f00',
+            } as EchartsPieConfig,
+        };
+        const blob = JSON.parse(decodeBlob(saveEditorState(authored, 0).chartConfig as string)) as {
+            pie?: { labelColor?: string };
+        };
+        expect(blob.pie?.labelColor).toBe('#f00'); // authored rides
+        expect(loadEditorState(saveEditorState(authored, 0)).pie.labelColor).toBe('#f00');
+        // Erbt (unset) stays blob-lean — the whole pie object spreads, JSON drops undefined.
+        const erbt = loadEditorState(saveEditorState({ ...baseState(), chartType: 'pie' as const }, 0));
+        expect(erbt.pie.labelColor).toBeUndefined();
+    });
+
     it('the load heal drops activations whose template has no leaf path left in the text (ADR-0042 addendum)', () => {
         // A widget saved before the addendum: the user deleted the template content inside the
         // editor, the ids stayed — the badge lied. Loading heals keep-only.

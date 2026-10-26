@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Colapsa los puntos obtenidos de cada serie en un valor de porción — obtención 'total' + 'último' da el total del último intervalo; para el total de toda la ventana elige aquí 'suma'.",
     "echarts_pie_inner_radius": "Radio interior del donut (0–1)",
     "echarts_pie_label": "Etiqueta de porción",
+    "echarts_pie_label_color": "Color de la etiqueta",
     "echarts_pie_rose": "Modo rosa",
     "echarts_pos_bottom": "Abajo",
     "echarts_pos_bottom_center": "Inferior centro",

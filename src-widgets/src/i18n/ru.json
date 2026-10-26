@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Сворачивает полученные точки каждой серии в одно значение среза — выборка «сумма» + «последнее» даёт сумму последнего интервала; для суммы за всё окно выберите здесь «сумму».",
     "echarts_pie_inner_radius": "Внутренний радиус кольца (0–1)",
     "echarts_pie_label": "Метка сектора",
+    "echarts_pie_label_color": "Цвет подписи",
     "echarts_pie_rose": "Режим розы",
     "echarts_pos_bottom": "Снизу",
     "echarts_pos_bottom_center": "Снизу по центру",

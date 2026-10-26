@@ -301,7 +301,12 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
     });
 
     it('Pie options: Form | Werte | Erweitert (ADR-0082 — the whole-pie raw lives here, mode-uniform)', () => {
-        const el = mount(PieOptionsSection, { state: state({ chartType: 'pie' }), set: () => undefined });
+        const el = mount(PieOptionsSection, {
+            state: state({ chartType: 'pie' }),
+            set: () => undefined,
+            pickerCtx: {},
+            textPrimary: '#1',
+        });
         expect(tabLabels(el)).toEqual(['echarts_tab_shape', 'echarts_tab_values', 'echarts_tab_advanced']);
         const all = allTabsText(el);
         for (const key of [
@@ -311,6 +316,7 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
             // ADR-0082 ticket 03: the aggregate InfoBox names the collapse composition
             'echarts_pie_aggregate_hint',
             'echarts_pie_label',
+            'echarts_pie_label_color', // ADR-0080 addendum: the label colour rides the Werte tab
             'echarts_series_raw', // the Erweitert tab hosts the whole-pie raw (ADR-0082 decision 3)
         ]) {
             expect(all).toContain(key);
@@ -321,14 +327,32 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         const el = mount(PieOptionsSection, {
             state: state({ chartType: 'pie', mode: 'json', jsonKind: 'table' }),
             set: () => undefined,
+            pickerCtx: {},
+            textPrimary: '#1',
         });
         const all = allTabsText(el);
         expect(all).not.toContain('echarts_pie_aggregate'); // every row IS the value
-        for (const key of ['echarts_pie_inner_radius', 'echarts_pie_rose', 'echarts_pie_label']) {
+        for (const key of [
+            'echarts_pie_inner_radius',
+            'echarts_pie_rose',
+            'echarts_pie_label',
+            'echarts_pie_label_color',
+        ]) {
             expect(all).toContain(key); // donut/rose/label stay
         }
         // ADR-0082 decision 3: the whole-pie raw is mode-uniform — tabellarisch reaches it too
         expect(all).toContain('echarts_series_raw');
+    });
+
+    it('Pie options: the label colour rests while the label mode is none (ADR-0080 addendum)', () => {
+        const el = mount(PieOptionsSection, {
+            state: state({ chartType: 'pie', pie: { ...DEFAULT_EDITOR_STATE.pie, label: 'none' } }),
+            set: () => undefined,
+            pickerCtx: {},
+            textPrimary: '#1',
+        });
+        const all = allTabsText(el);
+        expect(all).not.toContain('echarts_pie_label_color'); // nothing to colour — the field rests
     });
 });
 

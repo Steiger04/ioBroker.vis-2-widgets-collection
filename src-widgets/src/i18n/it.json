@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Riduce i punti recuperati di ogni serie in un valore di fetta — recupero 'totale' + 'ultimo' dà il totale dell'ultimo intervallo; per il totale dell'intera finestra scegli qui 'somma'.",
     "echarts_pie_inner_radius": "Raggio interno ciambella (0–1)",
     "echarts_pie_label": "Etichetta fetta",
+    "echarts_pie_label_color": "Colore dell’etichetta",
     "echarts_pie_rose": "Modalità rosa",
     "echarts_pos_bottom": "In basso",
     "echarts_pos_bottom_center": "Basso centro",

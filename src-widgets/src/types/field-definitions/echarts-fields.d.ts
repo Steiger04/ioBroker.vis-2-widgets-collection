@@ -511,6 +511,14 @@ export interface EchartsPieConfig {
     rose?: EchartsPieRose;
     label?: EchartsPieLabel;
     /**
+     * Slice label colour (ADR-0080 addendum): unset = „Erbt" — the builder resolves
+     * `labelColor ?? themeTokens.textPrimary` and ALWAYS emits it explicitly, so a colourless
+     * outside label can never fall to echarts' auto contrast (the `#333` + white-halo „white
+     * box" on a transparent canvas). GUI-wins over the whole-pie raw's `label.color`; a
+     * per-slice raw stays the escape (data-level label merges over series-level in echarts).
+     */
+    labelColor?: string;
+    /**
      * Whole-pie series raw echarts JSON override (ADR-0017): parsed and deep-merged UNDER the
      * GUI-authored pie series (GUI wins on collision; data is force-set). The pie is one echarts
      * series with N slices, so this targets series-level keys the GUI does not expose

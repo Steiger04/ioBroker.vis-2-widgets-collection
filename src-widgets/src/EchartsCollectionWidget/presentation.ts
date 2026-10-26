@@ -277,6 +277,17 @@ export const markLabelColorOf = (ml: EchartsMarkLine, edge: EchartsMarkEdge, tex
     (edge === 'upper' ? ml.labelUpperColor : ml.labelLowerColor) ?? ml.color ?? textSecondary;
 
 /**
+ * Resolve a pie's slice label colour (ADR-0080 addendum): ALWAYS explicit — the authored colour
+ * wins, „Erbt" takes the dark-mode-aware PRIMARY text token (adapter parity: the adapter's
+ * `#FFF`/`#000` by theme type is full contrast, and the slice label is the pie's main reading
+ * surface, not furniture — unlike a marking there is no object colour to inherit: an outside
+ * label sits on the canvas). The builder and the Werte-tab swatch read through this ONE
+ * resolver so the inherit preview cannot drift from what the chart draws.
+ */
+export const pieLabelColorOf = (pie: EchartsPieConfig | undefined, textPrimary: string): string =>
+    pie?.labelColor ?? textPrimary;
+
+/**
  * Normalize an authored marking bound (ADR-0062): a pure-numeric string becomes the NUMBER
  * (the adapter's `parseFloat` semantics — a typed "20" is a number, not an OID), any other
  * non-empty string stays an OID string, everything else is unset.

@@ -5,18 +5,21 @@
  * @module EchartsCollectionWidget/editor/sections/FamilySections
  * @remarks
  * Pie: slice aggregation (exposes the previously state-only `pie.aggregate` knob), donut inner
- * radius, slice label mode, rose mode. (The gauge and radar sections died with their families,
- * ADR-0071.)
+ * radius, slice label mode + colour (ADR-0080 addendum), rose mode. (The gauge and radar
+ * sections died with their families, ADR-0071.)
  */
 import type { FC } from 'react';
 
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { FieldGrid, InfoBox, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
+import { FieldGrid, FieldLabel, InfoBox, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
+import ColorField from '../colorFields';
+import { pieLabelColorOf } from '../../presentation';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import type { EditorState, SetEditor } from '../editorState';
+import type { OidPickerCtx } from '../OidPicker';
 import { SeriesRawOverride } from './series/shared';
 import { snippetPatch } from '../snippetComposition';
 
@@ -34,9 +37,23 @@ interface PieOptionsSectionProps {
     issues?: ValidationIssue[];
     state: PieOptionsSlice;
     set: SetEditor<PieOptionsSlice>;
+    /** Editor context (socket + theme) — drilled to the label colour's picker. */
+    pickerCtx: OidPickerCtx;
+    /**
+     * The primary text token — the label colour's „Erbt" resolution (ADR-0080 addendum). Resolved
+     * by the rail slot (the section is the token boundary, like MarkCard's textSecondary).
+     */
+    textPrimary: string;
 }
 
-export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues, state, set }) => {
+export const PieOptionsSection: FC<PieOptionsSectionProps> = ({
+    focusTab,
+    issues,
+    state,
+    set,
+    pickerCtx,
+    textPrimary,
+}) => {
     const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
     // Tabellarisch (ADR-0075 decision 5): the aggregates are meaningless — each row IS the
     // value, nothing collapses; the cluster hides (innerRadius/rose/label stay).
@@ -107,6 +124,20 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues
                             ['namePercent', Generic.t('echarts_label_name_percent')],
                         ]}
                     />
+                    {/* ADR-0080 addendum: the slice label colour, „Erbt" = the primary text token
+                        (the ONE resolver the builder emits — the swatch never lies). Rests while
+                        the label mode is none (nothing to colour, the aggregate-rest idiom). */}
+                    {(state.pie.label ?? 'namePercent') !== 'none' && (
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_pie_label_color')}</FieldLabel>
+                            <ColorField
+                                value={state.pie.labelColor}
+                                fallback={pieLabelColorOf(state.pie, textPrimary)}
+                                onChange={v => setPie({ labelColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                    )}
                 </FieldGrid>
             </Box>
             <SeriesRawOverride

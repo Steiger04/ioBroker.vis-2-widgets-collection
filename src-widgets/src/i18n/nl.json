@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Vouwt de opgehaalde punten van elke reeks samen tot één segmentwaarde — ophalen 'totaal' + 'laatste' geeft het totaal van het laatste interval; voor het totaal over het hele tijdvenster kies hier 'som'.",
     "echarts_pie_inner_radius": "Donut binnenradius (0–1)",
     "echarts_pie_label": "Segmentlabel",
+    "echarts_pie_label_color": "Labelkleur",
     "echarts_pie_rose": "Rose modus",
     "echarts_pos_bottom": "Onder",
     "echarts_pos_bottom_center": "Midden onder",

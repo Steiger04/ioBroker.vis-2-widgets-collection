@@ -1614,6 +1614,105 @@ describe('buildGeneratedOption — pie', () => {
         expect(s.data[0].itemStyle.borderRadius).toBe(6);
         expect(s.data[0].selected).toBe(true);
     });
+
+    describe('pie label colour — always explicit (ADR-0080 addendum)', () => {
+        it('Erbt resolves the primary text token; an authored labelColor wins (point reading)', () => {
+            const erbt = buildGeneratedOption({
+                family: 'pie',
+                series: [{ name: 'A', data: [[1, 10]] }],
+                meta: [],
+                p: { ...PIE_P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+            });
+            expect((erbt.series as unknown as { label?: { color?: string } }[])[0].label?.color).toBe('#tp');
+            const authored = buildGeneratedOption({
+                family: 'pie',
+                series: [{ name: 'A', data: [[1, 10]] }],
+                meta: [],
+                p: {
+                    ...PIE_P,
+                    pie: {
+                        aggregate: 'latest',
+                        innerRadius: 0,
+                        rose: 'none',
+                        label: 'namePercent',
+                        labelColor: '#f00',
+                    },
+                },
+            });
+            expect((authored.series as unknown as { label?: { color?: string } }[])[0].label?.color).toBe('#f00');
+        });
+
+        it('ring labels carry the same explicit resolution (tabellarisch reading)', () => {
+            const option = buildGeneratedOption({
+                family: 'pie',
+                series: [
+                    {
+                        name: 'R',
+                        data: [
+                            { name: 'a', value: 1 },
+                            { name: 'b', value: 2 },
+                        ],
+                    },
+                ],
+                meta: [{ name: 'R' }],
+                p: {
+                    ...PIE_P,
+                    pie: {
+                        aggregate: 'latest',
+                        innerRadius: 0,
+                        rose: 'none',
+                        label: 'namePercent',
+                        labelColor: '#0f0',
+                    },
+                },
+            });
+            const rings = option.series as unknown as { label?: { color?: string } }[];
+            expect(rings).toHaveLength(1);
+            expect(rings[0].label?.color).toBe('#0f0');
+
+            // Erbt on the ring path too — one shared pieLabel block, both readings resolve alike.
+            const erbt = buildGeneratedOption({
+                family: 'pie',
+                series: [{ name: 'R', data: [{ name: 'a', value: 1 }] }],
+                meta: [{ name: 'R' }],
+                p: { ...PIE_P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+            });
+            expect((erbt.series as unknown as { label?: { color?: string } }[])[0].label?.color).toBe('#tp');
+        });
+
+        it('the GUI resolution wins over the whole-pie raw label colour (GUI-wins seam)', () => {
+            const option = buildGeneratedOption({
+                family: 'pie',
+                series: [{ name: 'A', data: [[1, 10]] }],
+                meta: [],
+                p: {
+                    ...PIE_P,
+                    pie: {
+                        aggregate: 'latest',
+                        innerRadius: 0,
+                        rose: 'none',
+                        label: 'namePercent',
+                        raw: '{ "label": { "color": "#raw" } }',
+                    },
+                },
+            });
+            // Documented ADR-0080-addendum deviation: label.color joins the GUI cluster
+            // (show/formatter) — the per-slice raw stays the colour escape (data-level label
+            // merges over series-level in echarts).
+            expect((option.series as unknown as { label?: { color?: string } }[])[0].label?.color).toBe('#tp');
+        });
+
+        it('a per-slice raw label colour still wins (data-level escape)', () => {
+            const option = buildGeneratedOption({
+                family: 'pie',
+                series: [{ name: 'A', data: [[1, 10]] }],
+                meta: [{ raw: '{ "label": { "color": "#slice" } }' }],
+                p: { ...PIE_P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+            });
+            const s = (option.series as unknown as { data: { label?: { color?: string } }[] }[])[0];
+            expect(s.data[0].label?.color).toBe('#slice');
+        });
+    });
 });
 
 describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', () => {

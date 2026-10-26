@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Згортає отримані точки кожної серії в одне значення зрізу — вибірка «сума» + «останнє» дає суму останнього інтервалу; для суми за все вікно оберіть тут «суму».",
     "echarts_pie_inner_radius": "Внутрішній радіус кільця (0–1)",
     "echarts_pie_label": "Мітка сектора",
+    "echarts_pie_label_color": "Колір підпису",
     "echarts_pie_rose": "Режим троянди",
     "echarts_pos_bottom": "Внизу",
     "echarts_pos_bottom_center": "Внизу по центру",

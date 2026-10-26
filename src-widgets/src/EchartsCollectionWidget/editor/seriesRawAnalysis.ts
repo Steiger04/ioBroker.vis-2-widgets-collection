@@ -243,6 +243,11 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         paths.add('radius');
         paths.add('label.show');
         paths.add('label.formatter');
+        // ADR-0080 addendum: a pie label is NEVER emitted colourless (pie.ts resolves
+        // `labelColor ?? textPrimary` — the colourless label falls to echarts' auto contrast,
+        // the white halo against the transparent canvas). A whole-pie raw label.color loses to
+        // the GUI; the per-slice raw stays the escape (pie-slice leaves, below).
+        paths.add('label.color');
         paths.add('data');
         if (ctx.slot === 'pie-ring') {
             paths.add('name'); // the ring identity (m?.name || s.name)

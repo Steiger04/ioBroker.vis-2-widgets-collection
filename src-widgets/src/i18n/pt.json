@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Colapsa os pontos obtidos de cada série num valor de fatia — obtenção 'total' + 'último' dá o total do último intervalo; para o total de toda a janela escolha aqui 'soma'.",
     "echarts_pie_inner_radius": "Raio interior do anel (0–1)",
     "echarts_pie_label": "Etiqueta de fatia",
+    "echarts_pie_label_color": "Cor do rótulo",
     "echarts_pie_rose": "Modo Rosa",
     "echarts_pos_bottom": "Inferior",
     "echarts_pos_bottom_center": "Centro inferior",

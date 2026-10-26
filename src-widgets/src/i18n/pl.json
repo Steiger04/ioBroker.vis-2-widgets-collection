@@ -366,6 +366,7 @@
     "echarts_pie_aggregate_hint": "Zwija pobrane punkty każdej serii w jedną wartość wycinka — pobieranie „całkowita” + „ostatnia” daje sumę ostatniego interwału; dla sumy z całego okna wybierz tu „sumę”.",
     "echarts_pie_inner_radius": "Wewnętrzny promień pierścienia (0–1)",
     "echarts_pie_label": "Etykieta wycinka",
+    "echarts_pie_label_color": "Kolor etykiety",
     "echarts_pie_rose": "Tryb róży",
     "echarts_pos_bottom": "Dół",
     "echarts_pos_bottom_center": "Dolny środek",

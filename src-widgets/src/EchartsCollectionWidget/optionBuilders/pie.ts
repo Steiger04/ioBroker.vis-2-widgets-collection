@@ -13,14 +13,16 @@
  *    (index by first occurrence); `meta.color` never paints slices (no per-slice override in
  *    v1 — the retired name-keyed identity model).
  * Donut (innerRadius), rose mode and label content are chart-wide in both readings; legend +
- * tooltip are chart-wide. No cartesian axes.
+ * tooltip are chart-wide. No cartesian axes — and since the ADR-0007 addendum the merge seam
+ * enforces it on the canvas too: the theme base's axis style floor applies only to axes G
+ * emits, so a pie can never grow phantom axes.
  */
 import type { EChartsOption } from 'echarts';
 
 import type { EchartsPieAggregate } from '../../types/field-definitions/echarts-fields';
 import type { ChartSeries, EchartsSeriesMeta, PieFragment, PieSliceDatum, PresentationBase } from './types';
 import { buildTooltip } from './tooltip';
-import { buildLegend } from '../presentation';
+import { buildLegend, pieLabelColorOf } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
 
 /** The outer pie edge — the ring bands share the space between the donut hole and it. */
@@ -56,6 +58,20 @@ const isSliceShaped = (series: readonly ChartSeries[]): boolean =>
     !!series[0].data.length &&
     typeof series[0].data[0] === 'object' &&
     !Array.isArray(series[0].data[0]);
+
+/**
+ * The slice label block, shared by both readings — the colour is ALWAYS explicit (ADR-0080
+ * addendum): „Erbt" resolves the primary text token (adapter parity: full contrast — the
+ * slice label is the pie's main reading surface, not furniture). A colourless outside label
+ * falls to echarts' auto contrast: dark fill + 2px white halo against the transparent canvas,
+ * the „white box" bug. GUI-wins over the whole-pie raw's label.color; a per-slice raw stays
+ * the escape (data-level label merges over series-level).
+ */
+const pieLabel = (p: PresentationBase & PieFragment, show: boolean, formatter: string): Record<string, unknown> => ({
+    show,
+    formatter,
+    color: pieLabelColorOf(p.pie, p.themeTokens.textPrimary),
+});
 
 /** Slice-shaped rings (ADR-0075): one echarts pie series per yPath series, series 0 OUTERMOST. */
 const buildRingSeries = (
@@ -95,7 +111,7 @@ const buildRingSeries = (
                         `${Math.round(innerPct + (S - i) * band)}%`,
                     ],
                     ...(rose !== 'none' ? { roseType: rose } : {}),
-                    label: { show: labelShow, formatter: labelFormatter },
+                    label: pieLabel(p, labelShow, labelFormatter),
                     data: (s.data as PieSliceDatum[]).map(d => ({
                         name: d.name,
                         value: d.value,
@@ -177,7 +193,7 @@ export const buildPieOption = (
                     type: 'pie',
                     radius: [`${Math.round(inner * 100)}%`, `${OUTER_RADIUS_PCT}%`],
                     ...(rose !== 'none' ? { roseType: rose } : {}),
-                    label: { show: labelShow, formatter: labelFormatter },
+                    label: pieLabel(p, labelShow, labelFormatter),
                     data,
                     animation: p.animation,
                     // Slider + easing drive BOTH enter and update (one honest knob; a live tick

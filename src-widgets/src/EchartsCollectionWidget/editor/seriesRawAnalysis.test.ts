@@ -162,6 +162,16 @@ describe('classifySeriesKeys — cartesian bar / pie / radar / gauge', () => {
         );
     });
 
+    it('pie whole-series: a raw label.color is ignored — the builder always emits the GUI resolution (ADR-0080 addendum)', () => {
+        expect(chipOf({ label: { color: '#f00' } }, { slot: 'pie' as const }, 'label')?.cls).toBe('ignored');
+        expect(chipOf({ label: { color: '#f00', position: 'inside' } }, { slot: 'pie' as const }, 'label')?.cls).toBe(
+            'partial',
+        );
+        expect(
+            chipOf({ label: { color: '#f00', position: 'inside' } }, { slot: 'pie' as const }, 'label')?.managed,
+        ).toEqual(['label.color']);
+    });
+
     it('pie-slice: only name/value/itemStyle.color are managed — label/borderRadius are free', () => {
         const ctx = { slot: 'pie-slice' as const };
         expect(chipOf({ selected: true }, ctx, 'selected')?.cls).toBe('effective');

@@ -375,6 +375,7 @@
     "echarts_pie_aggregate_hint": "Verdichtet die abgerufenen Punkte je Serie zu einem Segmentwert — Datenabruf „Summe“ + „Letzter Wert“ ergibt den Gesamtwert des letzten Intervalls; für den Gesamtwert über das Zeitfenster hier „Summe“ wählen.",
     "echarts_pie_inner_radius": "Donut-Innenradius (0–1)",
     "echarts_pie_label": "Segment-Beschriftung",
+    "echarts_pie_label_color": "Beschriftungsfarbe",
     "echarts_pie_rose": "Rose-Modus",
     "echarts_pos_bottom": "Unten",
     "echarts_pos_bottom_center": "Unten mittig",
