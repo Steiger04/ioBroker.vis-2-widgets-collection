@@ -139,7 +139,7 @@ export const resolveValueFacts = (series?: SeriesValueFacts, chart?: ChartValueF
  */
 export const formatPercentValue = (v: unknown, comma?: boolean): string => {
     const n = typeof v === 'number' ? v : Number(v);
-    const txt = String(Number.isFinite(n) ? Math.round(n * 1000) / 10 : (v as number)) + ' %';
+    const txt = `${String(Number.isFinite(n) ? Math.round(n * 1000) / 10 : (v as number))} %`;
     return comma ? txt.replace('.', ',') : txt;
 };
 
