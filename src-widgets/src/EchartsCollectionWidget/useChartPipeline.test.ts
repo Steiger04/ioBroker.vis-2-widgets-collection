@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { EChartsOption } from 'echarts';
+import type { Theme } from '@mui/material/styles';
 
 import { toPresentationBase } from './presentation';
 import { coreOf } from './families/cores';
-import type { ThemeTokens } from './echartsTheme';
+import { buildEchartsTheme, type ThemeTokens } from './echartsTheme';
 import {
     BODY_MAX_HISTORY_POINTS,
     DEFAULT_HISTORY_COUNT,
@@ -16,6 +17,22 @@ import {
     type AssemblePipelineInput,
     type ChartPipelineSeries,
 } from './useChartPipeline';
+
+/** A minimal MUI theme stub — everything buildEchartsTheme/effectiveTextTokens read. */
+const THEME = {
+    palette: {
+        mode: 'light',
+        primary: { main: '#p' },
+        secondary: { main: '#s' },
+        warning: { main: '#w' },
+        success: { main: '#su' },
+        info: { main: '#i' },
+        error: { main: '#e' },
+        text: { primary: '#tp', secondary: '#ts' },
+        divider: '#div',
+    },
+    typography: { fontFamily: 'sans' },
+} as unknown as Theme;
 
 const series = (...oids: string[]): ChartPipelineSeries[] => oids.map(oid => ({ oid, name: oid }));
 
@@ -1164,6 +1181,67 @@ describe('assemblePipelineResult — family × mode × jsonKind option-path pari
         expect((option as { xAxis?: unknown }).xAxis).toBeUndefined();
     });
 
+    // The REAL theme base carries xAxis/yAxis style objects (the cartesian floor); the tests
+    // above inject `themeBase: {}`, so only this regression pins the production seam: a pie's
+    // merged option must carry NO axes — an option xAxis object is a real axis component
+    // (ADR-0007 addendum: component keys floor only when G emits them).
+    it('pie over the REAL theme base: the axis floor never materializes phantom axes (ADR-0007 addendum)', () => {
+        const themeBase = buildEchartsTheme(THEME);
+        expect((themeBase as unknown as Record<string, unknown>).xAxis).toBeDefined(); // the floor exists
+        const { option } = assemblePipelineResult(
+            makeInput('pie', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 5],
+                                [2, 7],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                themeBase,
+            }),
+        );
+        expect((option as { xAxis?: unknown }).xAxis).toBeUndefined();
+        expect((option as { yAxis?: unknown }).yAxis).toBeUndefined();
+        // the style floors G relies on keep flowing
+        expect((option as unknown as Record<string, unknown>).textStyle).toEqual({ color: '#tp', fontFamily: 'sans' });
+    });
+
+    it('cartesian over the REAL theme base: the axes G emits survive the addendum unchanged', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 5],
+                                [2, 7],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                themeBase: buildEchartsTheme(THEME),
+            }),
+        );
+        // Cartesian G is axis-complete on its own (the X line carries the primary stamp,
+        // ADR-0055 addendum 3; the Y array always emits its splitLine divider) — the addendum's
+        // component rule must not touch either: presence + G styling stay exactly as before.
+        const x = (option as { xAxis?: { axisLine?: { lineStyle?: { color?: string } } } }).xAxis;
+        expect(x?.axisLine?.lineStyle?.color).toBe('#1'); // G's primary stamp (tokens.primary)
+        const y = (option as { yAxis?: { splitLine?: { lineStyle?: { color?: string } } }[] }).yAxis;
+        expect(y?.[0]?.splitLine?.lineStyle?.color).toBe('#7'); // G's divider (tokens.divider)
+    });
+
     it('pie · json-series: the payload series become slices', () => {
         const { option } = assemblePipelineResult(
             makeInput('pie', 'json', {
@@ -1344,8 +1422,20 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
         // `A [1000 %]` (the absolute 10 read as a fraction through the percent facts).
         const { option } = percentCase(
             [
-                { name: 'A', data: [[1, 10], [2, 8]] },
-                { name: 'B', data: [[1, 30], [2, 8]] },
+                {
+                    name: 'A',
+                    data: [
+                        [1, 10],
+                        [2, 8],
+                    ],
+                },
+                {
+                    name: 'B',
+                    data: [
+                        [1, 30],
+                        [2, 8],
+                    ],
+                },
             ] as never,
             [{}, {}],
             {

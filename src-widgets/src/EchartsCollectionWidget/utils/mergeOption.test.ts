@@ -62,4 +62,26 @@ describe('mergeGeneratedOverTheme — layering (ADR-0007/0045)', () => {
         const merged = mergeGeneratedOverTheme(G(), THEME_BASE);
         expect('toolbox' in (merged as Record<string, unknown>)).toBe(false);
     });
+
+    it('the theme axis floor never materializes axes G does not emit (ADR-0007 addendum)', () => {
+        // A pie-like G (no axes — buildPieOption emits none) over the REAL theme base shape
+        // (buildEchartsTheme carries xAxis/yAxis style objects): an option `xAxis` object is a
+        // real axis COMPONENT, not a style default — surviving the merge, echarts draws faint
+        // phantom axes around the pie. The component keys floor ONLY when G emits them.
+        const pieLike = {
+            legend: { data: ['A'] },
+            series: [{ name: 'A', type: 'pie', data: [{ name: 'a', value: 1 }] }],
+            tooltip: { trigger: 'item' },
+        } as unknown as EChartsOption;
+        const base = {
+            color: ['#111', '#222'],
+            textStyle: { color: '#text' },
+            xAxis: { axisLine: { lineStyle: { color: '#theme' } } },
+            yAxis: { axisLine: { lineStyle: { color: '#theme' } } },
+        } as unknown as EChartsOption;
+        const merged = mergeGeneratedOverTheme(pieLike, base) as Record<string, unknown>;
+        expect('xAxis' in merged).toBe(false);
+        expect('yAxis' in merged).toBe(false);
+        expect(merged.textStyle).toEqual({ color: '#text' }); // style keys keep flooring
+    });
 });

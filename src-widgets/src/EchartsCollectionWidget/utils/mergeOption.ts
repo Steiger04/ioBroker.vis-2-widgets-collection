@@ -44,16 +44,37 @@ export const deepMerge = (
 };
 
 /**
+ * Component-type option keys the theme base carries as STYLE floors. An option `xAxis` object is
+ * a real axis COMPONENT, not a per-type style default — surviving the merge under a G that emits
+ * no axes, echarts materializes faint phantom axes around e.g. the pie (ADR-0007 addendum: the
+ * adapter deletes them at its pie site; we heal the seam — component PRESENCE is G-owned). These
+ * keys floor ONLY when G emits them; style-only keys (color/textStyle/…) stay unconditional
+ * floors. Kept to the keys the base actually carries: `legend`/`title` are safe because both
+ * families' builders always emit them (`buildLegend` sends `show` + `data`).
+ */
+const COMPONENT_KEYS_FLOORED_ONLY_WHEN_GENERATED = ['xAxis', 'yAxis'] as const;
+
+/**
  * Layer the theme base UNDER the generated option (ADR-0007): G wins every collision, the theme
- * only floors the keys G does not emit. `title.text` is injected from the live `titleText` field
- * by the body after this merge.
+ * only floors the keys G does not emit — EXCEPT component-type keys (axes), which the base may
+ * floor only when G emits the component (ADR-0007 addendum — a floor must not create a
+ * component). `title.text` is injected from the live `titleText` field by the body after this
+ * merge.
  *
  * @param generated - G: data-driven option + GUI-authored presentation (family builder output).
  * @param themeBase - MUI-derived presentation base from buildEchartsTheme.
  * @returns The final merged echarts option.
  */
-export const mergeGeneratedOverTheme = (generated: EChartsOption, themeBase: EChartsOption): EChartsOption =>
-    deepMerge(themeBase as Record<string, unknown>, generated as Record<string, unknown>) as EChartsOption;
+export const mergeGeneratedOverTheme = (generated: EChartsOption, themeBase: EChartsOption): EChartsOption => {
+    const base = { ...(themeBase as Record<string, unknown>) };
+    const g = generated as Record<string, unknown>;
+    for (const key of COMPONENT_KEYS_FLOORED_ONLY_WHEN_GENERATED) {
+        if (g[key] === undefined) {
+            delete base[key];
+        }
+    }
+    return deepMerge(base, g) as EChartsOption;
+};
 
 /**
  * Apply a per-series raw echarts JSON override (ADR-0015): parse `raw`, deep-merge it UNDER the
