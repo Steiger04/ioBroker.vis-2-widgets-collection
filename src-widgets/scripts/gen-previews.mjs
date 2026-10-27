@@ -83,7 +83,7 @@ function attachConsole(page, label) {
 
 async function discoverSlugs(page) {
     await page.goto(PREVIEW_HTML, { waitUntil: 'domcontentloaded' });
-    return page.waitForFunction(() => window.__scenes, { timeout: COLD_TIMEOUT }).then(r => r.jsonValue());
+    return page.waitForFunction(() => window.__scenes, undefined, { timeout: COLD_TIMEOUT }).then(r => r.jsonValue());
 }
 
 async function renderScene(page, slug) {
@@ -94,7 +94,14 @@ async function renderScene(page, slug) {
 
     const modeQuery = mode ? `&mode=${mode}` : '';
     await page.goto(`${PREVIEW_HTML}?scene=${encodeURIComponent(slug)}${modeQuery}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.__previewReady === true, { timeout: COLD_TIMEOUT });
+    await page.waitForFunction(() => window.__previewReady === true, undefined, { timeout: COLD_TIMEOUT });
+
+    // Let entrance animations finish before the shot. `__previewReady` fires after
+    // fonts + two frames — mid-flight for an animated chart (echarts' default
+    // 600 ms line growth photographs as curves crammed into the left edge).
+    // Scenes SHOULD still set `animation: false` in their fixture for
+    // determinism; this settle wait is the driver-level belt-and-braces.
+    await page.waitForTimeout(750);
 
     if (errors.length) {
         throw new Error(`Scene "${slug}" errored:\n  ${errors.join('\n  ')}`);
@@ -116,6 +123,7 @@ async function scaffold(page, widgetName) {
     const target = await page
         .waitForFunction(
             () => (window.__scaffoldSource ? { slug: window.__scaffoldSlug, source: window.__scaffoldSource } : false),
+            undefined,
             {
                 timeout: COLD_TIMEOUT,
             },

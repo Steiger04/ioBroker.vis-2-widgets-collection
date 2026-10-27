@@ -49,7 +49,10 @@ function SceneView({ scene, mode }: { scene: PreviewScene; mode?: 'light' | 'dar
                 id="scene"
                 style={{ width: scene.size.width, height: scene.size.height, background: canvasBg }}
             >
-                <div style={{ width: '100%', height: '100%', padding: 24, boxSizing: 'border-box' }}>
+                {/* Inner padding (per scene, default 24) gives carded bodies margin so
+                    their elevation shadow isn't clipped at the edge — full-bleed scenes
+                    (echarts) pass 0 so the plot owns the whole image. */}
+                <div style={{ width: '100%', height: '100%', padding: scene.padding ?? 24, boxSizing: 'border-box' }}>
                     <Body />
                 </div>
             </div>

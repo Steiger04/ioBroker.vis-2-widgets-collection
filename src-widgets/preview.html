@@ -23,9 +23,16 @@
         <script>
             // Minimal stub so widget *class* modules (which declare
             // `extends window.visRxWidget`) can be imported for reading their
-            // static getWidgetInfo() during `--new` scaffolding. Phase-1
-            // rendering only imports the body FC, so this is unused then.
-            window.visRxWidget = class VisRxWidgetStub {};
+            // static getWidgetInfo() during `--new` scaffolding. Bodies may also
+            // CALL inherited statics unconditionally (echarts resolves its
+            // placeholder text on every render, not only in the empty state), so
+            // `t` passes the key through — scenes render with data and never
+            // show the placeholder, and a passthrough keeps the stub honest.
+            window.visRxWidget = class VisRxWidgetStub {
+                static t(key) {
+                    return key;
+                }
+            };
         </script>
     </head>
     <body>

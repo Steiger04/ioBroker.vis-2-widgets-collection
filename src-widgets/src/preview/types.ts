@@ -33,6 +33,13 @@ export interface PreviewScene {
     component: FC;
     /** Screenshot size in CSS pixels (rendered at deviceScaleFactor 2). */
     size: { width: number; height: number };
+    /**
+     * Padding INSIDE `#scene`, in px (default 24). The carded sibling previews
+     * need clearance so their elevation shadow is not clipped at the edge;
+     * full-bleed scenes (charts that own their whole surface, e.g. echarts)
+     * set 0 so the plot reaches the image border.
+     */
+    padding?: number;
     /** Demo context (partial; host completes it). */
     context: PreviewSceneContext;
 }
