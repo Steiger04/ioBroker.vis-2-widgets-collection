@@ -113,15 +113,15 @@ function DateInputField({ label, value, onChange, inputType }: DateInputFieldPro
                     },
                 }),
             }}
-            // FIX: Force label shrink for date/number inputs (MUI limitation)
-            InputLabelProps={inputType === 'date' || inputType === 'number' ? { shrink: true } : undefined}
-            slotProps={
-                inputType === 'number'
+            slotProps={{
+                // FIX: Force label shrink for date/number inputs (MUI limitation)
+                ...(inputType === 'date' || inputType === 'number' ? { inputLabel: { shrink: true } } : {}),
+                ...(inputType === 'number'
                     ? { htmlInput: { step: 'any' } }
                     : inputType === 'date'
                       ? { htmlInput: { placeholder: 'YYYY-MM-DD' } }
-                      : undefined
-            }
+                      : {}),
+            }}
         />
     );
 }

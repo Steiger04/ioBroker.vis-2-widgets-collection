@@ -173,6 +173,11 @@
     },
     "restartAdapters": [
       "vis-2"
+    ],
+    "dependencies": [
+      {
+        "vis-2": ">=2.20.0"
+      }
     ]
   },
   "native": {},

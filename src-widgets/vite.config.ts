@@ -1,7 +1,6 @@
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import commonjs from 'vite-plugin-commonjs';
-import vitetsConfigPaths from 'vite-tsconfig-paths';
 import { federation } from '@module-federation/vite';
 import { moduleFederationShared } from '@iobroker/types-vis-2/modulefederation.vis.config';
 import { readFileSync } from 'node:fs';
@@ -19,6 +18,7 @@ const config = {
             exposes: buildExposes(),
             remotes: {},
             shared: moduleFederationShared(pack),
+            dts: false,
         }),
         topLevelAwait({
             // The export name of top-level await promise for each chunk module
@@ -30,7 +30,6 @@ const config = {
         svgr({
             include: ['**/*.svg?react'], // Include SVG files for SVGR processing
         }),
-        vitetsConfigPaths(),
         commonjs(),
     ],
     server: {
@@ -48,6 +47,10 @@ const config = {
         },
     },
     base: './',
+    resolve: {
+        tsconfigPaths: true,
+        dedupe: ['react', 'react-dom', '@emotion/react', '@mui/material', '@mui/system', '@mui/icons-material'],
+    },
     build: {
         target: 'chrome89',
         outDir: './build',

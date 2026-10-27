@@ -12,7 +12,7 @@
 
 import { useEffect, useState, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Theme } from '@iobroker/adapter-react-v5';
+import { Theme } from '@iobroker/gui-components';
 
 import CollectionProvider from '../components/CollectionProvider';
 import { buildPreviewContext } from './mockContext';

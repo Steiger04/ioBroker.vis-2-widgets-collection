@@ -217,7 +217,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                             onClick={createListItemClickHandler(key)}
                         >
                             <ListItemText
-                                primaryTypographyProps={{ variant: 'body2' }}
+                                slotProps={{ primary: { variant: 'body2' } }}
                                 primary={String(value)}
                             />
                         </ListItemButton>
@@ -241,10 +241,12 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
             onClose={handleClose}
             maxWidth="xs"
             fullWidth
-            PaperProps={{
-                sx: {
-                    bgcolor: data.backgroundColor,
-                    color: data.textColor,
+            slotProps={{
+                paper: {
+                    sx: {
+                        bgcolor: data.backgroundColor,
+                        color: data.textColor,
+                    },
                 },
             }}
         >

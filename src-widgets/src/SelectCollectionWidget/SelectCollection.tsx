@@ -126,7 +126,8 @@ function SelectCollection(): React.ReactElement {
                     value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
                     MenuProps={{
-                        PaperProps: {
+                        slotProps: {
+                            paper: {
                             sx: {
                                 overflow: 'hidden',
                                 '& .MuiMenu-list': {
@@ -141,8 +142,7 @@ function SelectCollection(): React.ReactElement {
                                 background: data.frameBackground || (widget.data.noCard ? 'transparent' : undefined),
                                 ...cleanSx(borderStyles),
                             },
-                        },
-                        slotProps: {
+                            },
                             backdrop: {
                                 style: { backgroundColor: 'transparent !important' },
                             },

@@ -16,7 +16,7 @@ function clean() {
 }
 
 function copyAllFiles() {
-    copyFiles([`${SRC}build/customWidgets.js`], `widgets/${adapterName}`);
+    copyFiles([`${SRC}build/customWidgets.js`, `${SRC}build/mf-manifest.json`], `widgets/${adapterName}`);
     copyFiles([`${SRC}build/assets/*.*`], `widgets/${adapterName}/assets`);
     copyFiles([`${SRC}build/img/*`], `widgets/${adapterName}/img`);
 }

@@ -35,7 +35,7 @@ export interface UsePopoverPositioningResult {
     /** Callback ref — attach to the inner content `<Box>` inside the Popover */
     setContentRef: (element: HTMLElement | null) => void;
     /** Pass to Popover `action` prop */
-    popoverActionRef: React.RefObject<PopoverActions>;
+    popoverActionRef: React.RefObject<PopoverActions | null>;
 }
 
 /** Calculates available space above and below an anchor element. */

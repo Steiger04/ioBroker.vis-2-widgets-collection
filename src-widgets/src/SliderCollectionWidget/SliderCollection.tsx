@@ -18,8 +18,9 @@ import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
-import { type Mark } from '@mui/material/Slider/useSlider.types';
 import SafeImg from '../components/SafeImg';
+
+type Mark = Exclude<NonNullable<SliderProps['marks']>, boolean>[number];
 
 type CollectionSliderProps = SliderProps & {
     thumbColor?: string;

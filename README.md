@@ -69,6 +69,10 @@
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+
+- Migrated to React 19, MUI 9 and Vite 8 (vis-2 >= 2.20.0 is required now)
+
 ### 2.6.0 (2026-07-24)
 
 - (steiger04) Input widget added (text/number input with inline editing)

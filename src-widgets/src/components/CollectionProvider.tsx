@@ -23,6 +23,7 @@ import '../lib/theme/fontCatalogue';
 import type { AllCollectionContextProps } from '../types';
 import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';
+import type { JSX } from 'react';
 
 /**
  * Runtime context used by all Collection widgets.
