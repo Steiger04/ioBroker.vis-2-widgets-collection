@@ -9,10 +9,10 @@ import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
+import useOptimisticNumber from './useOptimisticNumber';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -115,10 +115,10 @@ const SliderCollection: FC = () => {
     } = context;
     const { data, states, minValue, maxValue, activeIndex, resolveStyleData } = useData('oid');
 
-    const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
-    const [sliderValue, setSliderValue] = useState<number | undefined>(
-        typeof oidValue === 'number' ? oidValue : undefined,
-    );
+    // One optimistic truth for the controlled slider: local copy + debounced
+    // backend write behind one interface (init/echo/non-numeric documented on
+    // the hook).
+    const { backendValue: oidValue, value: sliderValue, setValue: commitSliderValue } = useOptimisticNumber('oid');
 
     // Refs used for dynamic track positioning.
     const sliderContainerRef = useRef<HTMLDivElement>(null);
@@ -199,20 +199,6 @@ const SliderCollection: FC = () => {
         const index = sliderMarks.findIndex(mark => String(mark.value) === String(oidValue));
         return index !== -1 ? index : null;
     }, [oidValue, sliderMarks]);
-
-    useEffect(() => {
-        if (sliderValue === undefined && typeof oidValue === 'number') {
-            setSliderValue(oidValue);
-        }
-    }, [oidValue, sliderValue]);
-
-    useEffect(() => {
-        if (!oidValueChanged) {
-            return;
-        }
-
-        setSliderValue(typeof oidValue === 'number' ? oidValue : undefined);
-    }, [oidValueChanged, oidValue]);
 
     // Calculates the relative offset from the container center to the slider rail center.
     const calculateTrackOffset = (): void => {
@@ -380,8 +366,7 @@ const SliderCollection: FC = () => {
                                 value={sliderValue}
                                 onChange={(_, newValue: number | number[]) => {
                                     if (typeof newValue === 'number') {
-                                        setSliderValue(newValue);
-                                        setOidValueState(newValue);
+                                        commitSliderValue(newValue);
                                     }
                                 }}
                                 sx={{
