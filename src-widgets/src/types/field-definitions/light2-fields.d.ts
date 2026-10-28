@@ -159,11 +159,4 @@ export interface Light2FieldsRxData {
      * Object ID for brightness or dimmer state (expects 0-100 values).
      */
     colorLightBrightnessOid?: string;
-
-    /**
-     * Philips Hue gamut type. Reserved for compatibility with Hue devices.
-     *
-     * @default 'default'
-     */
-    colorLightGamut?: 'default' | 'A' | 'B' | 'C';
 }

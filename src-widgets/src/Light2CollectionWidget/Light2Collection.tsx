@@ -9,10 +9,9 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { Light2CollectionContextProps } from '../types';
-import withButtonModal from '../components/withButtonModal';
+import type { Light2CollectionContextProps, OidObjectMeta } from '../types';
+import withButtonModal from './withButtonModal';
 import useData from '../hooks/useData';
-// import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
@@ -20,7 +19,9 @@ import { getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
 import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
+import CctWhiteSvg from '../img/cctWhite.svg?react';
 import { initializeColorFromStates, initializeKelvin, initializeBrightness } from './initHandlers';
+import { isHueScale, toHueScale } from './hueScale';
 
 // Changes type used for H/S/V change information.
 type ColorChanges = {
@@ -81,93 +82,10 @@ const ColorWheelIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => 
 
 const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     <SvgIcon
+        component={CctWhiteSvg}
         viewBox="0 0 512 512"
         {...props}
-    >
-        <defs>
-            <linearGradient
-                id="cctGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-            >
-                <stop
-                    offset="0%"
-                    stopColor="#1E90FF"
-                />
-                <stop
-                    offset="100%"
-                    stopColor="#FF8C00"
-                />
-            </linearGradient>
-
-            {/* Optional drop-shadow filter for depth. */}
-            <filter
-                id="insetShadow"
-                x="-50%"
-                y="-50%"
-                width="200%"
-                height="200%"
-            >
-                <feOffset
-                    dx="0"
-                    dy="2"
-                />
-                <feGaussianBlur
-                    stdDeviation="4"
-                    result="offset-blur"
-                />
-                <feComposite
-                    operator="out"
-                    in="SourceGraphic"
-                    in2="offset-blur"
-                    result="inverse"
-                />
-                <feFlood
-                    floodColor="#FFF176"
-                    floodOpacity="0.4"
-                />
-                <feComposite
-                    in2="inverse"
-                    operator="in"
-                    result="shadow"
-                />
-                <feComposite
-                    in="shadow"
-                    in2="SourceGraphic"
-                    operator="over"
-                />
-            </filter>
-        </defs>
-
-        {/* Thick outer ring. */}
-        <circle
-            cx="256"
-            cy="256"
-            r="252"
-            fill="#FFF176"
-        />
-
-        {/* Inner circle with gradient + shadow effect. */}
-        <circle
-            cx="256"
-            cy="256"
-            r="240"
-            fill="url(#cctGradient)"
-            filter="url(#insetShadow)"
-        />
-
-        {/* Enlarged lamp symbol. */}
-        <g transform="translate(256 280) scale(1.2) translate(-256 -256)">
-            <path
-                d="M192 200c0-35 29-64 64-64s64 29 64 64c0 23.1-12.2 43.5-30.6 55.3V288c0 8.8-7.2 16-16 16h-35c-8.8 0-16-7.2-16-16v-32.7C204.2 243.5 192 223.1 192 200zm56 136h16c4.4 0 8 3.6 8 8v16h-32v-16c0-4.4 3.6-8 8-8z"
-                fill="#FFF176"
-                stroke="#000000"
-                strokeWidth="4"
-            />
-        </g>
-    </SvgIcon>
+    />
 );
 
 function Light2CollectionContent(): React.ReactElement {
@@ -182,9 +100,11 @@ function Light2CollectionContent(): React.ReactElement {
 
     const { data } = useData('');
 
-    const boxRef = useRef<HTMLDivElement>(null);
-    const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);
-    const kelvinPickerRef = useRef<iro.ColorPicker | null>(null);
+    // Callback-ref-as-state: useElementDimensions re-runs when the element mounts.
+    // (A plain useRef would leave the hook memoizing the null of the first render.)
+    const [boxElement, setBoxElement] = useState<HTMLDivElement | null>(null);
+    const dimensions = useElementDimensions(boxElement, (rxData.colorLightSliderWidth || 1) * 28);
+    const mainPickerRef = useRef<iro.ColorPicker | null>(null);
     const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
     const prevCctLightRef = useRef(cctLight);
     const widgetDataRef = useRef(widget.data);
@@ -238,19 +158,11 @@ function Light2CollectionContent(): React.ReactElement {
         initializeColorFromStates(color, effectiveColorLightType, getPropertyValue, widget.data, cctComponentNumber);
     };
 
-    // Helper for value normalization (Hue-compatible values with maxValue 254).
+    // Helper for value normalization (Hue-compatible 0-254 channels; see hueScale.ts).
     const normalizeValue = useMemo(
         () =>
-            (value: number, oidObject: { maxValue?: number | null } | undefined): number => {
-                const isHueCompatible = oidObject?.maxValue === 254;
-                const roundedValue = Math.round(value);
-
-                if (isHueCompatible) {
-                    return Math.round((value / 100) * 254);
-                }
-
-                return roundedValue;
-            },
+            (value: number, oidObject: OidObjectMeta | undefined): number =>
+                isHueScale(oidObject?.maxValue) ? toHueScale(value) : Math.round(value),
         [],
     );
 
@@ -409,7 +321,7 @@ function Light2CollectionContent(): React.ReactElement {
 
                         // Ensure the OID object exists.
                         const oidObjectKey = `${oidField}Object` as keyof typeof widget.data;
-                        const oidObject = widget.data[oidObjectKey] as { maxValue?: number | null } | undefined;
+                        const oidObject = widget.data[oidObjectKey] as OidObjectMeta | undefined;
 
                         if (!oidObject) {
                             return;
@@ -462,7 +374,6 @@ function Light2CollectionContent(): React.ReactElement {
     const commonLightPickerProps = useMemo(
         () => ({
             dimensions,
-            colorLightGamut: rxData.colorLightGamut,
             colorWheelLightness: rxData.colorWheelLightness,
             colorLightUIComponent: rxData.colorLightUIComponent,
             colorLightSliderWidth: rxData.colorLightSliderWidth,
@@ -474,7 +385,6 @@ function Light2CollectionContent(): React.ReactElement {
         }),
         [
             dimensions,
-            rxData.colorLightGamut,
             rxData.colorWheelLightness,
             rxData.colorLightUIComponent,
             rxData.colorLightSliderWidth,
@@ -494,11 +404,11 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+        if (!mainPickerRef.current || !brightnessPickerRef.current) {
             return;
         }
 
-        const kelvinColor = kelvinPickerRef.current.color;
+        const kelvinColor = mainPickerRef.current.color;
         const brightnessColor = brightnessPickerRef.current.color;
 
         if (kelvinChanged) {
@@ -519,7 +429,7 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+        if (!mainPickerRef.current || !brightnessPickerRef.current) {
             return;
         }
 
@@ -527,7 +437,7 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        const kelvinColor = kelvinPickerRef.current.color;
+        const kelvinColor = mainPickerRef.current.color;
         const brightnessColor = brightnessPickerRef.current.color;
 
         if (temperatureValue === undefined || temperatureValue === null) {
@@ -565,14 +475,14 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!rgbHexChanged || !kelvinPickerRef.current) {
+        if (!rgbHexChanged || !mainPickerRef.current) {
             return;
         }
 
         isSyncingRef.current = true;
         try {
             initializeColorFromStates(
-                kelvinPickerRef.current.color,
+                mainPickerRef.current.color,
                 effectiveColorLightType,
                 getPropertyValue,
                 widget.data,
@@ -587,14 +497,14 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if ((!redChanged && !greenChanged && !blueChanged) || !kelvinPickerRef.current) {
+        if ((!redChanged && !greenChanged && !blueChanged) || !mainPickerRef.current) {
             return;
         }
 
         isSyncingRef.current = true;
         try {
             initializeColorFromStates(
-                kelvinPickerRef.current.color,
+                mainPickerRef.current.color,
                 effectiveColorLightType,
                 getPropertyValue,
                 widget.data,
@@ -609,14 +519,14 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if ((!hueChanged && !saturationChanged && !brightnessChanged) || !kelvinPickerRef.current) {
+        if ((!hueChanged && !saturationChanged && !brightnessChanged) || !mainPickerRef.current) {
             return;
         }
 
         isSyncingRef.current = true;
         try {
             initializeColorFromStates(
-                kelvinPickerRef.current.color,
+                mainPickerRef.current.color,
                 effectiveColorLightType,
                 getPropertyValue,
                 widget.data,
@@ -642,11 +552,11 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+        if (!mainPickerRef.current || !brightnessPickerRef.current) {
             return;
         }
 
-        const kelvinColor = kelvinPickerRef.current.color;
+        const kelvinColor = mainPickerRef.current.color;
         const brightnessColor = brightnessPickerRef.current.color;
 
         isSyncingRef.current = true;
@@ -670,22 +580,22 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!kelvinPickerRef.current) {
+        if (!mainPickerRef.current) {
             return;
         }
 
-        initializeBrightness(kelvinPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
+        initializeBrightness(mainPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
     }, [cctLight, isCctLight]);
 
     useEffect(() => {
-        if (prevCctLightRef.current !== true || cctLight || !isCctLight || !kelvinPickerRef.current) {
+        if (prevCctLightRef.current !== true || cctLight || !isCctLight || !mainPickerRef.current) {
             return;
         }
 
         isSyncingRef.current = true;
         try {
             initializeColorFromStates(
-                kelvinPickerRef.current.color,
+                mainPickerRef.current.color,
                 effectiveColorLightType,
                 getPropertyValueRef.current,
                 widgetDataRef.current,
@@ -703,7 +613,6 @@ function Light2CollectionContent(): React.ReactElement {
         <CollectionBase
             isValidType={isValidType}
             data={data}
-            // oidValue={oidValue}
         >
             <CollectionBaseImage
                 data={data}
@@ -787,7 +696,7 @@ function Light2CollectionContent(): React.ReactElement {
             />
 
             <Box
-                ref={boxRef}
+                ref={setBoxElement}
                 sx={{
                     minWidth: 0,
                     width: '100%',
@@ -804,7 +713,7 @@ function Light2CollectionContent(): React.ReactElement {
                         <>
                             <LightPicker
                                 cctComponentNumber={1} // kelvin
-                                ref={kelvinPickerRef}
+                                ref={mainPickerRef}
                                 onColorInit={initHandler}
                                 onInputChange={(color, changes) => handleColorChange(color, 1, changes)}
                                 {...commonLightPickerProps}

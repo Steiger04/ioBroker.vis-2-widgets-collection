@@ -76,12 +76,6 @@ The widget-specific settings override the more general settings.
 | ------------------- | ---- | ------- | ------------------------------- | --------- |
 | colorLightSwitchOid | id   | -       | OID for on/off switch (boolean) | -         |
 
-### Color Space
-
-| Field Name      | Type   | Default | Description                                    | Condition |
-| --------------- | ------ | ------- | ---------------------------------------------- | --------- |
-| colorLightGamut | select | -       | Color space (default, A, B, C for Philips Hue) | -         |
-
 ### Auto-Detection
 
 The Light widget can automatically detect related color control states when you select a switch OID. If the selected object is part of a device channel, the widget will scan for related states (RGB, CCT, brightness, etc.) based on ioBroker state roles and pre-fill the corresponding OID fields.

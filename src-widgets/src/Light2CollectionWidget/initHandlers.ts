@@ -9,6 +9,7 @@
 import type iro from '@jaames/iro';
 import type { VisRxData } from '@iobroker/types-vis-2';
 import type { Light2FieldsRxData, CommonObjectFieldsRxData, CommonFieldsRxData, DelayFieldsRxData } from '../types';
+import { fromHueScale, isHueScale } from './hueScale';
 
 export type Light2WidgetData = VisRxData &
     Light2FieldsRxData &
@@ -44,11 +45,7 @@ const normalizePercentValue = (value: number | undefined, maxValue?: number | nu
         return undefined;
     }
 
-    if (typeof maxValue === 'number' && maxValue === 254) {
-        return Math.round((value / 254) * 100);
-    }
-
-    return Math.round(value);
+    return isHueScale(maxValue) ? fromHueScale(value) : Math.round(value);
 };
 
 const readNormalizedPercentValue = (

@@ -16,6 +16,56 @@
 export type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
 
 /**
+ * Metadata the editor stores for every `${string}Object` widget-data property.
+ *
+ * @remarks
+ * Written by `oidChangeHandlerAsync` when an OID is selected; consumed by the
+ * shared hooks (useValueState, useData) and by widgets that need `minValue` /
+ * `maxValue` for scale normalization (e.g. Light2's Hue-compatible channels).
+ * @example
+ * ```typescript
+ * const meta: OidObjectMeta = {
+ *     _id: 'hue.0.lamp.brightness',
+ *     name: 'Brightness',
+ *     type: 'number',
+ *     unit: '',
+ *     maxValue: 254
+ * };
+ * ```
+ */
+export interface OidObjectMeta {
+    /** State ID from ioBroker */
+    _id: string;
+
+    /** Human-readable name */
+    name: string;
+
+    /** Data type of the state */
+    type: AllowedType;
+
+    /** Possible values for enum/list types */
+    commonStates?: ioBroker.StateCommon['states'];
+
+    /** Unit of measurement */
+    unit: string;
+
+    /** Icon identifier */
+    icon?: string | null;
+
+    /** Write permission */
+    write?: boolean;
+
+    /** Display-only mode */
+    onlyDisplay?: boolean;
+
+    /** Minimum value */
+    minValue?: number;
+
+    /** Maximum value */
+    maxValue?: number;
+}
+
+/**
  * Common object field definitions for vis-2 Collection widgets.
  *
  * @remarks
@@ -295,39 +345,7 @@ export interface CommonObjectFieldsRxData {
      * }
      * ```
      */
-    [key: `${string}Object`]:
-        | {
-              /** State ID from ioBroker */
-              _id: string;
-
-              /** Human-readable name */
-              name: string;
-
-              /** Data type of the state */
-              type: AllowedType;
-
-              /** Possible values for enum/list types */
-              commonStates?: ioBroker.StateCommon['states'];
-
-              /** Unit of measurement */
-              unit: string;
-
-              /** Icon identifier */
-              icon?: string | null;
-
-              /** Write permission */
-              write?: boolean;
-
-              /** Display-only mode */
-              onlyDisplay?: boolean;
-
-              /** Minimum value */
-              minValue?: number;
-
-              /** Maximum value */
-              maxValue?: number;
-          }
-        | undefined;
+    [key: `${string}Object`]: OidObjectMeta | undefined;
 
     /**
      * Alias names for values.

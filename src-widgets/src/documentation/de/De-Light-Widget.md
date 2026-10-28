@@ -76,12 +76,6 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | ------------------- | --- | -------- | ---------------------------------- | --------- |
 | colorLightSwitchOid | id  | -        | OID für Ein/Aus-Schalter (boolean) | -         |
 
-### Farbraum
-
-| Feldname        | Typ    | Standard | Beschreibung                                | Bedingung |
-| --------------- | ------ | -------- | ------------------------------------------- | --------- |
-| colorLightGamut | select | -        | Farbraum (default, A, B, C für Philips Hue) | -         |
-
 ### Automatische Erkennung
 
 Das Light-Widget kann automatisch zugehörige Farbsteuerungs-Zustände erkennen, wenn Sie eine Schalter-OID auswählen. Wenn das ausgewählte Objekt Teil eines Gerätekanals ist, durchsucht das Widget verwandte Zustände (RGB, CCT, Helligkeit usw.) basierend auf ioBroker-Zustandsrollen und füllt die entsprechenden OID-Felder automatisch aus.

@@ -1,24 +1,27 @@
 /**
  * Higher-order component that adds Light2 “button mode” behavior.
  *
- * @module components/withButtonModal
+ * @module Light2CollectionWidget/withButtonModal
  * @remarks
  * In Light2 button mode, the wrapped widget toggles a boolean on click and opens a modal on long press.
  * For non-Light2 widgets (or when button mode is disabled), this HOC is a no-op and simply renders the
  * original component.
+ *
+ * This HOC is Light2-specific by design (it consumes `colorLight*` fields) and therefore lives next to
+ * the widget instead of in the shared `components/` layer.
  */
 
 import { Box, Button, Modal } from '@mui/material';
 import React, { useContext, useState } from 'react';
-import CollectionBase from './CollectionBase';
-import CollectionBaseImage from './CollectionBaseImage';
-import { CollectionContext } from './CollectionProvider';
+import CollectionBase from '../components/CollectionBase';
+import CollectionBaseImage from '../components/CollectionBaseImage';
+import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
 import type { Light2FieldsRxData } from '../types/field-definitions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import SafeImg from './SafeImg';
+import SafeImg from '../components/SafeImg';
 
 type WithButtonModalProps<P> = P;
 
@@ -40,7 +43,7 @@ function hasLight2Fields(data: unknown): data is Light2FieldsRxData {
  * @returns A component with optional Light2 modal behavior.
  * @example
  * ```tsx
- * export default withButtonModal(Light2CollectionWidget);
+ * export default withButtonModal(Light2CollectionContent);
  * ```
  */
 function withButtonModal<P extends object>(Component: React.ComponentType<P>): React.ComponentType<P> {
@@ -75,6 +78,8 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
             isLight2ButtonMode &&
             typeof widgetData.colorLightModalWidth === 'number' &&
             widgetData.colorLightModalWidth > 0;
+        // Auto width: the picker draws its main element from the modal HEIGHT (square-ish), so the
+        // optimum width derives from height + slider + margins (see color_light_modal_width_tooltip).
         const modalWidth = hasModalWidth
             ? widgetData.colorLightModalWidth!
             : (isLight2ButtonMode ? widgetData.colorLightModalHeight || 300 : 300) + 40 + 12 + sliderSize;

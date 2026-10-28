@@ -58,7 +58,6 @@ interface ExtendedWidgetData extends WidgetData {
     colorLightHueOid?: string;
     colorLightSaturationOid?: string;
     colorLightBrightnessOid?: string;
-    colorLightGamut?: 'default' | 'A' | 'B' | 'C';
 }
 
 /**

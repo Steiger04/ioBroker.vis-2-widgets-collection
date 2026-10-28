@@ -43,7 +43,6 @@ interface LightPickerProps {
     colorLightType: Light2FieldsRxData['colorLightType'];
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
-    colorLightGamut: Light2FieldsRxData['colorLightGamut'];
     /** 1 = CCT kelvin picker, 2 = CCT brightness picker (only relevant for CCT mode). */
     cctComponentNumber: number;
     /** Called on user interaction (includes granular change info where available). */
@@ -64,7 +63,6 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
             colorLightType,
             colorLightCtMin,
             colorLightCtMax,
-            colorLightGamut: _colorLightGamut,
             cctComponentNumber,
             onInputChange,
             onColorInit,
