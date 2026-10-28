@@ -20,7 +20,9 @@ documentation/
 │   ├── De-Dialog-Widget.md
 │   ├── De-Gauge-Widget.md
 │   ├── De-Light-Widget.md
-│   └── De-JsonTable-Widget.md
+│   ├── De-JsonTable-Widget.md
+│   ├── De-Echarts-Widget.md
+│   └── De-Echarts-JSON-Formate.md
 ├── en/              # English documentation
 │   ├── En-Home.md
 │   ├── En-State-Widget.md
@@ -34,7 +36,9 @@ documentation/
 │   ├── En-Dialog-Widget.md
 │   ├── En-Gauge-Widget.md
 │   ├── En-Light-Widget.md
-│   └── En-JsonTable-Widget.md
+│   ├── En-JsonTable-Widget.md
+│   ├── En-Echarts-Widget.md
+│   └── En-Echarts-JSON-Formats.md
 └── img/             # Images shared by all languages
     ├── collection-state.png
     ├── collection-switch.png

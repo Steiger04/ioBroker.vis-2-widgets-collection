@@ -246,3 +246,5 @@ Die Widget Collection umfasst folgende Widgets:
 - [Gauge Widget](De-Gauge-Widget.md) - Gauge zur Anzeige numerischer Werte (Linear/Radial)
 - [Light Widget](De-Light-Widget.md) - Lichtsteuerung mit Farbauswahl
 - [JSON Table Widget](De-JsonTable-Widget.md) - Tabellen-Widget für JSON-Daten mit Sortierung, Filterung und Paginierung
+- [ECharts Widget](De-Echarts-Widget.md) - Diagramme (Linie, Balken, Punktwolke, Torte) mit vollem Konfigurator — History-Adapter oder JSON-Datenpunkt
+- [ECharts JSON-Formate](De-Echarts-JSON-Formate.md) - Die JSON-Payload-Formate des ECharts-Widgets mit Beispielen

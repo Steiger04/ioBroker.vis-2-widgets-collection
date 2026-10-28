@@ -19,6 +19,8 @@
 - [Gauge Widget](De-Gauge-Widget.md)
 - [Light Widget](De-Light-Widget.md)
 - [JSON Table Widget](De-JsonTable-Widget.md)
+- [ECharts Widget](De-Echarts-Widget.md)
+- [ECharts JSON-Formate](De-Echarts-JSON-Formate.md)
 
 ---
 
@@ -36,3 +38,5 @@
 - [Gauge Widget](En-Gauge-Widget.md)
 - [Light Widget](En-Light-Widget.md)
 - [JSON Table Widget](En-JsonTable-Widget.md)
+- [ECharts Widget](En-Echarts-Widget.md)
+- [ECharts JSON Formats](En-Echarts-JSON-Formats.md)
