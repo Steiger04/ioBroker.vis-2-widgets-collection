@@ -13,7 +13,6 @@
 import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
-import useData from './useData/useData';
 import useDebounce from './useDebounce';
 import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../types';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';
@@ -137,7 +136,6 @@ interface UseValueStateReturn {
  */
 const useValueState = (idName: string): UseValueStateReturn => {
     const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
-    const { data } = useData('oid');
 
     const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
 
@@ -148,8 +146,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
     }>({ lc: undefined, value: undefined });
     const ignoreUntilRef = useRef<number>(0);
 
-    const delay =
-        Number((data as Partial<DelayFieldsRxData>).delay ?? (widget.data as Partial<DelayFieldsRxData>).delay) || 300;
+    const delay = Number((widget.data as Partial<DelayFieldsRxData>).delay) || 300;
 
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;
