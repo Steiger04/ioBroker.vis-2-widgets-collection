@@ -90,6 +90,15 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
+        // Set wrappedCollectionContent BEFORE building the context so the context
+        // carries the current value (not the previous render's). wrapContent reads
+        // it at render time too.
+        if (props.widget.data.noCard || props.widget.usedInWidget) {
+            this.wrappedCollectionContent = false;
+        } else {
+            this.wrappedCollectionContent = true;
+        }
+
         const collectionContext: CheckboxCollectionContextProps = {
             id: props.id,
             refService: props.refService,
@@ -109,12 +118,6 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
 
             wrappedContent: this.wrappedCollectionContent,
         } as const;
-
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
 
         return withCollectionProvider(this.wrapContent(<CheckboxCollection />), collectionContext);
     }
