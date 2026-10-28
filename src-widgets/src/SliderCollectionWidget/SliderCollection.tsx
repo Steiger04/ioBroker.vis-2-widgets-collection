@@ -12,10 +12,10 @@ import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import { buildSliderMarks } from './marks';
+import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
@@ -24,8 +24,8 @@ import { type Mark } from '@mui/material/Slider/useSlider.types';
 import SafeImg from '../components/SafeImg';
 
 type CollectionSliderProps = SliderProps & {
-    thumbColor?: string;
     data?: SliderCollectionContextProps['widget']['data'];
+    chrome: SliderChromeStyles;
     slots: {
         markLabel: typeof CollectionMark;
     };
@@ -35,41 +35,32 @@ type CollectionSliderProps = SliderProps & {
 };
 
 const CollectionSlider = styled(Slider, {
-    shouldForwardProp: prop => prop !== 'data',
-})<CollectionSliderProps>(({ theme, data }) => {
-    const extractedColor = extractColorFromValue(data?.thumbColor || data?.sliderColor || theme.palette.primary.main);
-
-    const shadowBase = extractedColor || theme.palette.primary.main;
-
-    // Calculate border width and color with fallback chain
+    shouldForwardProp: prop => prop !== 'data' && prop !== 'chrome',
+})<CollectionSliderProps>(({ data, chrome }) => {
+    // Calculate border width with fallback chain
     const borderWidth = data?.thumbBorderWidth ?? 0;
-    const borderColor = extractColorFromValue(
-        data?.thumbBorderColor || data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
-    );
 
     return {
         '& .MuiSlider-thumb': {
             width: `${data?.thumbWidth ?? 20}px`,
             height: `${data?.thumbHeight ?? 20}px`,
-            background: data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
+            background: chrome.thumbBackground,
             // Apply border only when borderWidth > 0
             ...(borderWidth > 0 && {
-                border: `${borderWidth}px solid ${borderColor || theme.palette.primary.main}`,
+                border: `${borderWidth}px solid ${chrome.thumbBorder}`,
             }),
             '&:hover': {
-                boxShadow: `0px 0px 0px 8px ${alpha(shadowBase, 0.32)}`,
+                boxShadow: `0px 0px 0px 8px ${alpha(chrome.thumbShadowBase, 0.32)}`,
             },
             '&:active': {
-                boxShadow: `0px 0px 0px 14px ${alpha(shadowBase, 0.32)}`,
+                boxShadow: `0px 0px 0px 14px ${alpha(chrome.thumbShadowBase, 0.32)}`,
             },
         },
         '& .MuiSlider-track': {
             height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
             width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
-            borderColor: extractColorFromValue(
-                data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
-            ),
-            background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+            borderColor: chrome.trackBorder,
+            background: chrome.trackBackground,
 
             borderWidth: data?.trackBorderWidth ? `${data.trackBorderWidth}px` : '0px',
             borderStyle: 'solid',
@@ -77,30 +68,30 @@ const CollectionSlider = styled(Slider, {
         '& .MuiSlider-rail': {
             height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
             width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
-            background: data?.railBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+            background: chrome.railBackground,
 
             borderWidth: data?.railBorderWidth ? `${data.railBorderWidth}px` : '0px',
             borderStyle: 'solid',
-            borderColor: extractColorFromValue(
-                data?.railBorderColor || data?.sliderColor || theme.palette.primary.main,
-            ),
+            borderColor: chrome.railBorder,
         },
         '& .MuiSlider-mark': {
             width:
                 data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
             height:
                 data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-            background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+            background: chrome.markBackground,
         },
+        // Single styling source for the active mark (the legacy double layer —
+        // styled cascade + sx bgcolor — collapsed into this one; the sx
+        // brightness filter lives on here).
         '& .MuiSlider-markActive': {
             width:
                 data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
             height:
                 data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-            backgroundColor: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-            '&.MuiSlider-markActive': {
-                background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-            },
+            backgroundColor: chrome.markBackground,
+            background: chrome.markBackground,
+            filter: 'brightness(2.5)',
         },
     };
 });
@@ -134,6 +125,10 @@ const SliderCollection: FC = () => {
     const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
     const isHorizontal = widget.data.sliderOrientation === 'horizontal';
+
+    // Chrome-Farbvertrag: the color cascade of thumb/track/rail/mark comes from
+    // the field contracts (sliderColorContracts), resolved in one place.
+    const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
 
     const markLabelFallbackColor = resolveStyleData('', false).textColor || theme.palette.text.primary;
 
@@ -355,6 +350,7 @@ const SliderCollection: FC = () => {
                         {typeof sliderValue === 'number' && (
                             <CollectionSlider
                                 data={widget.data}
+                                chrome={chrome}
                                 slots={{
                                     markLabel: CollectionMark,
                                 }}
@@ -391,22 +387,6 @@ const SliderCollection: FC = () => {
                                 sx={{
                                     mb: widget.data.marks && isHorizontal ? '20px' : '0px',
                                     mr: widget.data.marks && !isHorizontal ? '44px' : '0px',
-                                    '& .MuiSlider-thumb': {
-                                        color: widget.data.sliderColor,
-                                    },
-                                    '& .MuiSlider-rail': {
-                                        color: widget.data.sliderColor || 'primary.main',
-                                    },
-                                    '& .MuiSlider-track': {
-                                        color: widget.data.sliderColor || 'primary.main',
-                                    },
-                                    '& .MuiSlider-mark': {
-                                        color: widget.data.sliderColor || 'primary.main',
-                                    },
-                                    '& .MuiSlider-markActive': {
-                                        bgcolor: widget.data.sliderColor || 'primary.main',
-                                        filter: 'brightness(2.5)',
-                                    },
                                     '& .MuiSlider-valueLabel': {
                                         fontSize:
                                             formatSizeRem(widget.data.valueSizeActive) ||

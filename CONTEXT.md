@@ -426,3 +426,13 @@ _Avoid_: Fit-to-content, dynamic height
 **Geometry**:
 The Studio panel's persisted window rectangle — position, width, and height-or-Auto in a single localStorage entry. Stored as the user's intent; the applied rectangle is clamped to the viewport (width 320…viewport−48, height 240…viewport−48) live during drags and on browser-window resize, so a shrunken window never strands the panel and a re-grown window restores the intended size.
 _Avoid_: Position+width (the retired two-key form), size
+
+# Slider Collection Widget
+
+The dimmer/value slider of the collection (thumb, track, rail, marks, min/max icons). This glossary pins down its color-model language.
+
+## Language
+
+**Chrome-Farbvertrag**:
+The color cascade of the slider's chrome parts (thumb, track, rail, marks) — DECLARED by the field definitions (`sliderFields` → `sliderColorContracts`: `fallbackFields` + terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`) and RESOLVED in exactly one runtime place (`buildSliderChromeStyles` via `resolveEffectiveColor`, ADR-0004). Background slots keep their raw value (gradients allowed); border/shadow slots go solid via `extractColorFromValue`. Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine.
+_Avoid_: Slider-Farbregeln, Farbkaskade (unsaid WHICH contract), mixing chrome slots with label/state colors

@@ -9,6 +9,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createSliderColorField } from './fieldFactories';
+import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -344,5 +345,25 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: '!data.iconMax && !data.iconSmallMax',
     }),
 ];
+
+/**
+ * Color contracts derived from the slider field list above — ONE declaration
+ * site: the fields declare their cascade (`fallbackFields`, `terminal`), this
+ * map only collects it for the runtime (`buildSliderChromeStyles`) and any
+ * other contract consumer. See ADR 0004.
+ */
+export const sliderColorContracts: Record<string, ColorFieldContract> = Object.fromEntries(
+    sliderFields()
+        .filter((field): field is ExtendedField => (field as ExtendedField).terminal !== undefined)
+        .map(field => [
+            field.name as string,
+            {
+                name: field.name,
+                fallbackFields: field.fallbackFields,
+                terminal: field.terminal,
+                inheritTextStyle: field.inheritTextStyle,
+            },
+        ]),
+);
 
 export default sliderFields;
