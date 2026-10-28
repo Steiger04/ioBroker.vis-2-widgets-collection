@@ -4,9 +4,8 @@
  * @module widgets/EchartsCollectionWidget
  */
 
-import type { EchartsCollectionContextProps, WidgetRegistry } from '../types';
+import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
-import withCollectionProvider from '../components/withCollectionProvider';
 
 import commonFields from '../lib/commonFields';
 import echartsFields from '../lib/echartsFields';
@@ -89,34 +88,7 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
-        // Set wrappedCollectionContent BEFORE building the context so the context carries the
-        // current value (not the previous render's). wrapContent reads it at render time too.
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
-
-        const collectionContext = {
-            id: props.id,
-            refService: props.refService,
-            style: props.style,
-            widget: {
-                data: this.state.rxData,
-                style: this.state.rxStyle,
-            },
-            setValue: this.setValue,
-            setState: this.setState.bind(this),
-            values: this.state.values,
-            isSignalVisible: this.isSignalVisible.bind(this),
-            getPropertyValue: this.getPropertyValue.bind(this),
-            mode: this.props.context.themeType,
-            socket: this.props.context.socket,
-            theme: this.props.context.theme,
-            wrappedContent: this.wrappedCollectionContent,
-        } as EchartsCollectionContextProps;
-
-        return withCollectionProvider(this.wrapContent(<EchartsCollection />), collectionContext);
+        return this.renderWithProvider(<EchartsCollection />, props);
     }
 }
 

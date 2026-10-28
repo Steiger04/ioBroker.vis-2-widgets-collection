@@ -5,9 +5,8 @@
  */
 
 import React from 'react';
-import type { Light2CollectionContextProps, WidgetRegistry } from '../types';
+import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
-import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields from '../lib/commonFields';
 import delayFields from '../lib/delayFields';
 import light2Fields from '../lib/light2Fields';
@@ -90,30 +89,7 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
-        const wrapped = !(props.widget.data.noCard || props.widget.usedInWidget);
-        this.wrappedCollectionContent = wrapped;
-
-        const collectionContext = {
-            id: props.id,
-            refService: props.refService,
-            style: props.style,
-            widget: {
-                data: this.state.rxData,
-                style: this.state.rxStyle,
-            },
-            setValue: this.setValue,
-            setState: this.setState.bind(this),
-            values: this.state.values,
-            isSignalVisible: this.isSignalVisible.bind(this),
-            getPropertyValue: this.getPropertyValue.bind(this),
-            mode: this.props.context.themeType,
-            socket: this.props.context.socket,
-            theme: this.props.context.theme,
-
-            wrappedContent: wrapped,
-        } as Light2CollectionContextProps;
-
-        return withCollectionProvider(this.wrapContent(<Light2Collection />), collectionContext);
+        return this.renderWithProvider(<Light2Collection />, props);
     }
 }
 

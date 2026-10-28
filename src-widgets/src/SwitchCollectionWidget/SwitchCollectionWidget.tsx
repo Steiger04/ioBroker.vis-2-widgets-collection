@@ -6,7 +6,6 @@
 
 import React from 'react';
 import Generic from '../Generic';
-import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
@@ -14,7 +13,7 @@ import switchFields from '../lib/switchFields';
 import SwitchCollection from './SwitchCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-import type { SwitchCollectionContextProps, WidgetRegistry } from '../types';
+import type { WidgetRegistry } from '../types';
 
 class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
@@ -90,36 +89,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
-        // Set wrappedCollectionContent BEFORE building the context so the context
-        // carries the current value (not the previous render's). wrapContent reads
-        // it at render time too.
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
-
-        const collectionContext = {
-            id: props.id,
-            refService: props.refService,
-            style: props.style,
-            widget: {
-                data: this.state.rxData,
-                style: this.state.rxStyle,
-            },
-            setValue: this.setValue,
-            setState: this.setState.bind(this),
-            values: this.state.values,
-            isSignalVisible: this.isSignalVisible.bind(this),
-            getPropertyValue: this.getPropertyValue.bind(this),
-            mode: this.props.context.themeType,
-            socket: this.props.context.socket,
-            theme: this.props.context.theme,
-
-            wrappedContent: this.wrappedCollectionContent,
-        } as SwitchCollectionContextProps;
-
-        return withCollectionProvider(this.wrapContent(<SwitchCollection />), collectionContext);
+        return this.renderWithProvider(<SwitchCollection />, props);
     }
 }
 

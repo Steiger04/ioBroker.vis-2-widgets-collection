@@ -12,8 +12,11 @@
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
 
-import type { VisRxWidgetState } from '@iobroker/types-vis-2';
+import type { VisRxWidgetState, RxRenderWidgetProps } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
+import withCollectionProvider from './components/withCollectionProvider';
+
+import type { CollectionContextProps } from './types';
 
 /**
  * Base class for all Collection widgets.
@@ -59,6 +62,56 @@ class Generic<
 
         this.props.context.socket.setState(id, value, ack).catch(e => console.error(`Cannot set state ${id}: ${e}`));
     };
+
+    /**
+     * Builds the collection context, tracks `wrappedCollectionContent` and wraps
+     * the widget body in the CollectionProvider — the shared tail of every
+     * widget's `renderWidgetBody`.
+     *
+     * @remarks
+     * `wrappedCollectionContent` is assigned BEFORE the context is built so the
+     * context carries the current render's value (not the previous one);
+     * `wrapContent` reads it at render time too. The internal cast mirrors what
+     * every widget class used to spell out as `as XxxCollectionContextProps`.
+     * @param component - The widget's React body.
+     * @param props - The render props vis-2 passed to `renderWidgetBody`.
+     * @param extraContext - Optional per-widget context additions (e.g. Dialog's
+     *   `getWidgetView`), merged over the base context.
+     * @returns The provider-wrapped content.
+     */
+    protected renderWithProvider(
+        component: JSX.Element | JSX.Element[],
+        props: RxRenderWidgetProps,
+        extraContext?: Partial<CollectionContextProps<RxData>>,
+    ): JSX.Element {
+        if (props.widget.data.noCard || props.widget.usedInWidget) {
+            this.wrappedCollectionContent = false;
+        } else {
+            this.wrappedCollectionContent = true;
+        }
+
+        const collectionContext = {
+            id: props.id,
+            refService: props.refService,
+            style: props.style,
+            widget: {
+                data: this.state.rxData,
+                style: this.state.rxStyle,
+            },
+            setValue: this.setValue,
+            setState: this.setState.bind(this),
+            values: this.state.values,
+            isSignalVisible: this.isSignalVisible.bind(this),
+            getPropertyValue: this.getPropertyValue.bind(this),
+            mode: this.props.context.themeType,
+            socket: this.props.context.socket,
+            theme: this.props.context.theme,
+            wrappedContent: this.wrappedCollectionContent,
+            ...extraContext,
+        } as CollectionContextProps<RxData>;
+
+        return withCollectionProvider(this.wrapContent(component), collectionContext);
+    }
 
     wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {
         return (

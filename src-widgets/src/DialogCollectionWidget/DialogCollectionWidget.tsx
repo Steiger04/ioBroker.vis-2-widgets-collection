@@ -5,9 +5,8 @@
  */
 
 import React from 'react';
-import type { DialogCollectionContextProps, WidgetRegistry } from '../types';
+import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
-import withCollectionProvider from '../components/withCollectionProvider';
 
 import commonFields from '../lib/commonFields';
 import dialogFields from '../lib/dialogFields';
@@ -87,37 +86,9 @@ class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollection
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element {
         super.renderWidgetBody(props);
 
-        // Set wrappedCollectionContent BEFORE building the context so the context
-        // carries the current value (not the previous render's). wrapContent reads
-        // it at render time too.
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
-
-        const collectionContext = {
-            id: props.id,
-            refService: props.refService,
-            style: props.style,
-            widget: {
-                data: this.state.rxData,
-                style: this.state.rxStyle,
-            },
-            setValue: this.setValue,
-            setState: this.setState.bind(this),
-            values: this.state.values,
-            isSignalVisible: this.isSignalVisible.bind(this),
-            getPropertyValue: this.getPropertyValue.bind(this),
-            mode: this.props.context.themeType,
-            socket: this.props.context.socket,
-            theme: this.props.context.theme,
+        return this.renderWithProvider(<DialogCollection />, props, {
             getWidgetView: this.getWidgetView.bind(this),
-
-            wrappedContent: this.wrappedCollectionContent,
-        } as DialogCollectionContextProps;
-
-        return withCollectionProvider(this.wrapContent(<DialogCollection />), collectionContext);
+        });
     }
 }
 
