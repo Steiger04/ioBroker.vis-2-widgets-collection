@@ -133,10 +133,14 @@ describe('buildSliderMarks — step division', () => {
         expect(valuesOf(marks)).toEqual([0, 1, 2, 3]);
     });
 
-    // Negative steps are NOT covered by the fallback (`Number(-2) || 1` keeps
-    // -2) and the legacy `i += step` loop would diverge for min < max. That is
-    // the original behavior — preserved verbatim, and untestable here without
-    // hanging the runner.
+    // A negative step used to survive the `Number(x) || 1` fallback (truthy)
+    // and made the `i += step` loop diverge for min < max — an endless loop
+    // that froze the tab. It is now clamped to its absolute value.
+    it('treats a negative markStep as its absolute value', () => {
+        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 4, markStep: -2 }));
+
+        expect(valuesOf(marks)).toEqual([0, 2, 4]);
+    });
 
     it('accumulates i += step, keeping the float drift', () => {
         const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 1, markStep: 0.2 }));

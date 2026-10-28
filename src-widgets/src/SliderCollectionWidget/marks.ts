@@ -33,7 +33,7 @@ export interface BuildSliderMarksParams {
     minValue: number | null;
     /** Slider maximum or `null` when unbounded. */
     maxValue: number | null;
-    /** Step between generated marks; falls back to 1 via `Number(x) || 1`. */
+    /** Step between generated marks; `Math.abs(x) || 1` (negative → distance, else fallback 1). */
     markStep?: number;
     /** When truthy, only state marks are used (no min/max/step injection). */
     onlyStates?: boolean;
@@ -121,9 +121,12 @@ export function buildSliderMarks(params: BuildSliderMarksParams): SliderMark[] {
         });
     }
 
-    // Add step divisions
+    // Add step divisions. |markStep| guards the loop: a negative step is kept
+    // truthy by the plain `Number(x) || 1` fallback and would make `i += step`
+    // diverge for min < max (endless loop). Interpreting it as its absolute
+    // value matches the field's intent (a distance between marks).
     if (minValue !== null && maxValue !== null) {
-        const step = Number(markStep) || 1;
+        const step = Math.abs(Number(markStep)) || 1;
         for (let i = minValue + step; i < maxValue; i += step) {
             if (!marks.some(m => m.value === i)) {
                 marks.push({ ...getGeneratedMarkStyle(i), value: i, label: `${i}${unit || ''}` });
