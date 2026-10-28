@@ -21,6 +21,7 @@
 - [JSON Table Widget](De-JsonTable-Widget.md)
 - [ECharts Widget](De-Echarts-Widget.md)
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md)
+- [Theme Studio](De-Theme-Studio.md)
 
 ---
 
@@ -40,3 +41,4 @@
 - [JSON Table Widget](En-JsonTable-Widget.md)
 - [ECharts Widget](En-Echarts-Widget.md)
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md)
+- [Theme Studio](En-Theme-Studio.md)

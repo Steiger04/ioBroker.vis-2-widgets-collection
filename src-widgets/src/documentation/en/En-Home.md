@@ -248,3 +248,4 @@ The Widget Collection includes the following widgets:
 - [JSON Table Widget](En-JsonTable-Widget.md) - Table widget for JSON data with sorting, filtering, and pagination
 - [ECharts Widget](En-Echarts-Widget.md) - Charts (line, bar, scatter, pie) with a full configurator — history adapter or JSON datapoint
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md) - The JSON payload formats of the ECharts widget, with examples
+- [Theme Studio](En-Theme-Studio.md) - Collection-wide theme editor (colors, typography, shape) for all widgets of the collection

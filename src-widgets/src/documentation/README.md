@@ -22,7 +22,8 @@ documentation/
 │   ├── De-Light-Widget.md
 │   ├── De-JsonTable-Widget.md
 │   ├── De-Echarts-Widget.md
-│   └── De-Echarts-JSON-Formate.md
+│   ├── De-Echarts-JSON-Formate.md
+│   └── De-Theme-Studio.md
 ├── en/              # English documentation
 │   ├── En-Home.md
 │   ├── En-State-Widget.md
@@ -38,7 +39,8 @@ documentation/
 │   ├── En-Light-Widget.md
 │   ├── En-JsonTable-Widget.md
 │   ├── En-Echarts-Widget.md
-│   └── En-Echarts-JSON-Formats.md
+│   ├── En-Echarts-JSON-Formats.md
+│   └── En-Theme-Studio.md
 └── img/             # Images shared by all languages
     ├── collection-state.png
     ├── collection-switch.png
