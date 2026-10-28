@@ -11,6 +11,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
+import { buildSliderMarks } from './marks';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -168,82 +169,32 @@ const SliderCollection: FC = () => {
         [widget.data.onlyStates, widget.data.maxValue, maxValue],
     );
 
-    const sliderMarks = useMemo(() => {
-        const defaultMarkStyle = resolveStyleData('', false);
-        const activeMarkStyle = resolveStyleData('', true);
-
-        const getGeneratedMarkStyle = (value: number): ReturnType<typeof resolveStyleData> => {
-            if (String(value) !== String(oidValue)) {
-                return defaultMarkStyle;
-            }
-
-            return {
-                ...defaultMarkStyle,
-                ...(widget.data.iconSizeActive !== undefined && { iconSize: activeMarkStyle.iconSize }),
-                ...(widget.data.iconColorActive && { iconColor: activeMarkStyle.iconColor }),
-                ...(widget.data.enableIconColorMaskActive !== undefined && {
-                    forceColorMask: activeMarkStyle.forceColorMask,
-                }),
-            };
-        };
-
-        // Type guard to ensure we only work with numeric values
-        const numericStates = states.filter(
-            (state): state is typeof state & { value: number } => typeof state.value === 'number',
-        );
-
-        const marks = numericStates.filter(
-            state =>
-                (sliderMinValue === null || state.value >= sliderMinValue) &&
-                (sliderMaxValue === null || state.value <= sliderMaxValue),
-        );
-
-        if (widget.data.onlyStates) {
-            return marks.sort((a, b) => a.value - b.value);
-        }
-
-        // Ensure minimum value is included
-        if (sliderMinValue !== null && !marks.some(m => m.value === sliderMinValue)) {
-            marks.push({
-                ...getGeneratedMarkStyle(sliderMinValue),
-                value: sliderMinValue,
-                label: `${sliderMinValue}${oidObject?.unit || ''}`,
-            });
-        }
-
-        // Ensure maximum value is included
-        if (sliderMaxValue !== null && !marks.some(m => m.value === sliderMaxValue)) {
-            marks.push({
-                ...getGeneratedMarkStyle(sliderMaxValue),
-                value: sliderMaxValue,
-                label: `${sliderMaxValue}${oidObject?.unit || ''}`,
-            });
-        }
-
-        // Add step divisions
-        if (sliderMinValue !== null && sliderMaxValue !== null) {
-            const step = Number(widget.data.markStep) || 1;
-            for (let i = sliderMinValue + step; i < sliderMaxValue; i += step) {
-                if (!marks.some(m => m.value === i)) {
-                    marks.push({ ...getGeneratedMarkStyle(i), value: i, label: `${i}${oidObject?.unit || ''}` });
-                }
-            }
-        }
-
-        return marks.sort((a, b) => a.value - b.value);
-    }, [
-        states,
-        widget.data.onlyStates,
-        widget.data.markStep,
-        sliderMinValue,
-        sliderMaxValue,
-        oidObject?.unit,
-        oidValue,
-        resolveStyleData,
-        widget.data.enableIconColorMaskActive,
-        widget.data.iconColorActive,
-        widget.data.iconSizeActive,
-    ]);
+    const sliderMarks = useMemo(
+        () =>
+            buildSliderMarks({
+                states,
+                minValue: sliderMinValue,
+                maxValue: sliderMaxValue,
+                markStep: widget.data.markStep,
+                onlyStates: widget.data.onlyStates,
+                unit: oidObject?.unit,
+                oidValue,
+                baseStyle: resolveStyleData('', false),
+                activeStyle: resolveStyleData('', true),
+                iconColorActive: widget.data.iconColorActive,
+            }),
+        [
+            states,
+            widget.data.onlyStates,
+            widget.data.markStep,
+            sliderMinValue,
+            sliderMaxValue,
+            oidObject?.unit,
+            oidValue,
+            resolveStyleData,
+            widget.data.iconColorActive,
+        ],
+    );
     // Derive the index of the mark corresponding to the current oidValue
     const sliderMarksIndex = useMemo(() => {
         if (oidValue === undefined) {
