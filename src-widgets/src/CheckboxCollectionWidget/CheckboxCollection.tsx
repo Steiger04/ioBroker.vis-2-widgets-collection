@@ -99,6 +99,12 @@ function CheckboxCollection(): React.JSX.Element {
             >
                 {oidValue !== undefined && (
                     <FormControlLabel
+                        // MUI wraps non-Typography label elements in an extra
+                        // body1 span (FormControlLabel: label.type !== Typography)
+                        // — that span has no flexGrow and squeezes the label out
+                        // of the root's flex row. disableTypography keeps the
+                        // label element as the direct flex child, as it always was.
+                        disableTypography
                         labelPlacement={widget.data.checkboxLabelPlacement}
                         sx={{
                             width: '100%',
