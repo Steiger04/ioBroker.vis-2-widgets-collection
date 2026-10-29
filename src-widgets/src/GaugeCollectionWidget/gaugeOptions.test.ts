@@ -1,0 +1,183 @@
+/**
+ * Table tests for the Options-Builder coercion policy and special cases.
+ *
+ * @module GaugeCollectionWidget/gaugeOptions.test
+ * @remarks
+ * Runs in the node project with SYNTHETIC field arrays (the builder takes its
+ * fields by injection — that is what keeps it testable here without importing
+ * editor modules). The real `gaugeFields()` coverage is pinned separately in
+ * `gaugeFields.parity.test.ts`.
+ */
+
+import { describe, it, expect } from 'vitest';
+
+import type { GaugeOptions } from 'canvas-gauges';
+
+import { buildGaugeOptions, resolveGaugeRange, type GaugeOptionsContext } from './gaugeOptions';
+
+/** One field per branch of the builder's type switch + all special fields. */
+const FIELDS = [
+    { name: 'gaugeType', type: 'select', default: 'linear' },
+    { name: 'gaugeBarWidth', type: 'number', default: 20 },
+    { name: 'gaugeNeedleStart', type: 'number', default: 5 },
+    { name: 'gaugeBarBeginCircle', type: 'number', default: 30 },
+    { name: 'gaugeColorPlate', type: 'color', default: 'rgba(0,0,0,0)' },
+    { name: 'gaugeNeedle', type: 'checkbox', default: true },
+    { name: 'gaugeAnimation', type: 'checkbox', default: true },
+    { name: 'gaugeFontValue', type: 'fontname', default: 'Arial, sans-serif' },
+    { name: 'gaugeValueText', type: 'text', default: '' },
+    { name: 'gaugeAnimationRule', type: 'select', default: 'cycle' },
+    // Specials (prefix-strip does not apply)
+    { name: 'gaugeIconFit', type: 'select', default: 'contain' },
+    { name: 'gaugePadding', type: 'number', default: 8 },
+    { name: 'gaugeMinValue', type: 'number' },
+    { name: 'gaugeMaxValue', type: 'number' },
+    { name: 'gaugeMajorTicks', type: 'number', default: 10 },
+    // Editor-only custom field (divider) — must not become an option
+    { name: 'allFieldsDivider', type: 'custom' },
+];
+
+const CTX: GaugeOptionsContext = {
+    width: 300,
+    height: 150,
+    value: 42,
+    unit: '°C',
+    header: 'Title',
+    highlights: [],
+};
+
+const build = (data: Record<string, unknown>, ctx = CTX): GaugeOptions => buildGaugeOptions(FIELDS, data, ctx);
+
+describe('buildGaugeOptions — numeric coercion (schema-default policy)', () => {
+    it('falls back to the schema default for unset, empty and non-finite values', () => {
+        const options = build({});
+        expect(options.barWidth).toBe(20);
+        expect(options.needleStart).toBe(5);
+    });
+
+    it("treats an empty string as unset, never as 0 (retired Number('') === 0 bug)", () => {
+        const options = build({ gaugeNeedleStart: '', gaugeBarWidth: '' });
+        expect(options.needleStart).toBe(5);
+        expect(options.barWidth).toBe(20);
+    });
+
+    it('parses numeric strings and passes numbers through', () => {
+        const options = build({ gaugeNeedleStart: '42', gaugeBarWidth: 30 });
+        expect(options.needleStart).toBe(42);
+        expect(options.barWidth).toBe(30);
+    });
+
+    it('falls back to the default for non-numeric strings', () => {
+        const options = build({ gaugeNeedleStart: 'abc' });
+        expect(options.needleStart).toBe(5);
+    });
+
+    it('keeps an explicit 0 (no silent remap — the retired barBeginCircle <12 → 30 rule)', () => {
+        const options = build({ gaugeBarBeginCircle: 0 });
+        expect(options.barBeginCircle).toBe(0);
+    });
+});
+
+describe('buildGaugeOptions — string and boolean coercion', () => {
+    it('resolves color fields with their schema default', () => {
+        expect(build({}).colorPlate).toBe('rgba(0,0,0,0)');
+        expect(build({ gaugeColorPlate: '#ff0000' }).colorPlate).toBe('#ff0000');
+        expect(build({ gaugeColorPlate: '' }).colorPlate).toBe('rgba(0,0,0,0)');
+    });
+
+    it('keeps an explicit false checkbox and defaults only genuinely unset ones', () => {
+        expect(build({ gaugeAnimation: false }).animation).toBe(false);
+        expect(build({}).needle).toBe(true);
+    });
+
+    it('resolves select/fontname fields to their default when unset', () => {
+        expect(build({}).animationRule).toBe('cycle');
+        expect(build({ gaugeAnimationRule: '' }).animationRule).toBe('cycle');
+        expect(build({ gaugeAnimationRule: 'elastic' }).animationRule).toBe('elastic');
+        expect(build({}).fontValue).toBe('Arial, sans-serif');
+    });
+
+    it('keeps an empty text default as empty string', () => {
+        expect(build({}).valueText).toBe('');
+        expect(build({ gaugeValueText: 'ON' }).valueText).toBe('ON');
+    });
+});
+
+describe('buildGaugeOptions — prefix strip and specials', () => {
+    it('maps gaugeX → x and skips editor-only custom fields', () => {
+        const options = build({}) as Record<string, unknown>;
+        expect(Object.keys(options)).toContain('colorPlate');
+        expect(Object.keys(options)).toContain('animationRule');
+        expect(Object.keys(options)).not.toContain('allFieldsDivider');
+        expect(Object.keys(options)).not.toContain('iconFit');
+        expect(Object.keys(options)).not.toContain('padding');
+    });
+
+    it('normalizes gaugeType into the options object', () => {
+        expect(build({}).gaugeType).toBe('linear');
+        expect(build({ gaugeType: 'radial' }).gaugeType).toBe('radial');
+        expect(build({ gaugeType: 'bogus' }).gaugeType).toBe('linear');
+    });
+
+    it('subtracts the padding from the measured dimensions (schema default when unset)', () => {
+        expect(build({})).toMatchObject({ width: 292, height: 142 });
+        expect(build({ gaugePadding: 0 })).toMatchObject({ width: 300, height: 150 });
+        expect(build({ gaugePadding: '' })).toMatchObject({ width: 292, height: 142 });
+        expect(build({}, { ...CTX, width: 0, height: 0 })).toMatchObject({ width: -8, height: -8 });
+    });
+
+    it('clamps barWidth to 50 (schema max is editor-side only)', () => {
+        expect(build({ gaugeBarWidth: 80 }).barWidth).toBe(50);
+        expect(build({ gaugeBarWidth: 30 }).barWidth).toBe(30);
+    });
+
+    it('normalizes the value (0 stays 0, non-finite becomes 0)', () => {
+        expect(build({}, { ...CTX, value: 0 }).value).toBe(0);
+        expect(build({}, { ...CTX, value: '37.4' }).value).toBe(37.4);
+        expect(build({}, { ...CTX, value: undefined }).value).toBe(0);
+    });
+
+    it('passes unit, header and highlights through', () => {
+        const highlights = [{ from: 0, to: 10, color: '#0f0' }];
+        const options = build({}, { ...CTX, highlights });
+        expect(options.units).toBe('°C');
+        expect(options.title).toBe('Title');
+        expect(options.highlights).toBe(highlights);
+    });
+});
+
+describe('buildGaugeOptions — major ticks', () => {
+    it('spreads the configured count across the effective range', () => {
+        const options = build({ gaugeMajorTicks: 2 });
+        expect(options.majorTicks).toEqual([0, 50, 100]);
+    });
+
+    it('uses the schema default count when unset', () => {
+        const options = build({});
+        expect(options.majorTicks).toHaveLength(11);
+        expect(options.majorTicks![0]).toBe(0);
+        expect(options.majorTicks![10]).toBe(100);
+    });
+
+    it('falls back to step 1 on a degenerate range', () => {
+        const options = build({ gaugeMinValue: 5, gaugeMaxValue: 5, gaugeMajorTicks: 2 });
+        expect(options.majorTicks).toEqual([5, 6, 7]);
+    });
+});
+
+describe('resolveGaugeRange', () => {
+    it('defaults to 0..100', () => {
+        expect(resolveGaugeRange({})).toEqual({ minValue: 0, maxValue: 100 });
+    });
+
+    it('falls back to the bound object min/max', () => {
+        expect(resolveGaugeRange({ minValue: 7, maxValue: 77 })).toEqual({ minValue: 7, maxValue: 77 });
+    });
+
+    it('lets an explicit gauge field win over the object values', () => {
+        expect(resolveGaugeRange({ gaugeMinValue: -10, minValue: 7, gaugeMaxValue: '', maxValue: 77 })).toEqual({
+            minValue: -10,
+            maxValue: 77,
+        });
+    });
+});

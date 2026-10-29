@@ -2,6 +2,12 @@
  * Gauge collection renderer.
  *
  * @module widgets/GaugeCollection
+ * @remarks
+ * Owns everything the Options-Builder cannot know: the measured dimensions,
+ * the current value, the Highlight-Zones derived from the state rows (K3 will
+ * extract that segment model) and the segment-driven frame styling. The
+ * canvas-gauges option object itself comes from
+ * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}.
  */
 
 import { Box } from '@mui/material';
@@ -14,7 +20,11 @@ import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
+import SafeImg from '../components/SafeImg';
+import gaugeFields from '../lib/gaugeFields';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
 
 /**
  * Highlight segment for the gauge (range + styling overrides).
@@ -55,22 +65,6 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
 };
 
 /**
- * Resolves a numeric widget field, falling back to the given default when the field is unset (undefined, null,
- * empty string or not a finite number).
- *
- * @remarks
- * Used so an explicitly configured gauge min/max value always wins, while an untouched field falls back to the
- * value auto-detected from the bound object (e.g. `common.min`/`common.max`), and finally to a hardcoded default.
- */
-const resolveNumericOverride = (value: unknown, fallback: number): number => {
-    if (value === undefined || value === null || value === '') {
-        return fallback;
-    }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-/**
  * Renders a canvas-gauges based gauge and updates frame/background based on the active segment.
  */
 function GaugeCollection(): React.JSX.Element {
@@ -94,37 +88,23 @@ function GaugeCollection(): React.JSX.Element {
 
     const isValidType = oidType === 'number';
 
-    // Resolve effective min/max: an explicitly configured gaugeMinValue/gaugeMaxValue always wins, otherwise fall
-    // back to the min/max auto-detected from the bound object (widget.data.minValue/maxValue, set by
-    // oidChangeHandlerAsync from common.min/common.max), and finally to a hardcoded default.
-    const effectiveMinValue = useMemo(
-        () => resolveNumericOverride(widget.data.gaugeMinValue, widget.data.minValue ?? 0),
-        [widget.data.gaugeMinValue, widget.data.minValue],
+    // Field definitions are the Options-Builder's contract — created once per widget.
+    const fields = useMemo(() => gaugeFields(), []);
+
+    // Resolve effective min/max: an explicitly configured gaugeMinValue/gaugeMaxValue always
+    // wins, otherwise fall back to the min/max auto-detected from the bound object
+    // (widget.data.minValue/maxValue, set by oidChangeHandlerAsync from common.min/common.max).
+    // (minValue feeds the Options-Builder internally; the Highlight-Zones need the max.)
+    const { gaugeMinValue, minValue, gaugeMaxValue, maxValue } = widget.data;
+    const { maxValue: effectiveMaxValue } = useMemo(
+        () => resolveGaugeRange({ gaugeMinValue, minValue, gaugeMaxValue, maxValue }),
+        [gaugeMinValue, minValue, gaugeMaxValue, maxValue],
     );
-    const effectiveMaxValue = useMemo(
-        () => resolveNumericOverride(widget.data.gaugeMaxValue, widget.data.maxValue ?? 100),
-        [widget.data.gaugeMaxValue, widget.data.maxValue],
-    );
-
-    const majorTicks = useMemo(() => {
-        const _majorTicks: number[] = [];
-
-        if (widget.data.gaugeMajorTicks && Number(widget.data.gaugeMajorTicks > 0)) {
-            for (let i = 0; i <= Number(widget.data.gaugeMajorTicks); i++) {
-                const value =
-                    effectiveMinValue +
-                    ((effectiveMaxValue - effectiveMinValue) / Number(widget.data.gaugeMajorTicks) || 1) * i;
-                // Two decimal places.
-                _majorTicks.push(Math.round(value * 100) / 100);
-            }
-        }
-
-        return _majorTicks;
-    }, [effectiveMinValue, effectiveMaxValue, widget.data.gaugeMajorTicks]);
 
     const highlights = useMemo(() => {
         const _highlights = states.map((state, index) => {
-            const nextValue = states[index + 1]?.value || effectiveMaxValue;
+            // `??` (not `||`): a next boundary of exactly 0 is a real limit, not "unset".
+            const nextValue = states[index + 1]?.value ?? effectiveMaxValue;
 
             return {
                 from: Number(state.value),
@@ -145,6 +125,28 @@ function GaugeCollection(): React.JSX.Element {
     const segment = useMemo(
         () => findSegment(highlights, Number(oidValue) || 0, effectiveMaxValue),
         [highlights, oidValue, effectiveMaxValue],
+    );
+
+    // Complete canvas-gauges option set — coercion, defaults and computed options
+    // (min/max, major ticks, dimensions minus padding, value/unit/title) live behind this seam.
+    const gaugeOptions = useMemo(
+        () =>
+            buildGaugeOptions(fields, widget.data, {
+                width: gaugeWidth || 0,
+                height: gaugeHeight || 0,
+                value: oidValue,
+                unit: oidObject?.unit,
+                header: data.header,
+                highlights,
+            }),
+        [fields, widget.data, gaugeWidth, gaugeHeight, oidValue, oidObject?.unit, data.header, highlights],
+    );
+
+    // Segment icon overlay (rendered above the canvas, positioned per state row).
+    const iconColorStyles = getIconColorStyles(
+        segment?.state.icon,
+        segment?.state.iconColor,
+        segment?.state.forceColorMask ?? false,
     );
 
     const paper0 = baseRef.current?.paper0;
@@ -227,279 +229,25 @@ function GaugeCollection(): React.JSX.Element {
                     alignItems: 'center',
                 }}
             >
-                <Gauge
-                    gaugeWidgetData={widget.data}
-                    gaugeSegment={segment}
-                    gaugeType={widget.data.gaugeType!}
-                    // Basic Options
-                    width={(gaugeWidth || 0) - Number(widget.data.gaugePadding || 0)}
-                    height={(gaugeHeight || 0) - Number(widget.data.gaugePadding || 0)}
-                    minValue={effectiveMinValue}
-                    maxValue={effectiveMaxValue}
-                    value={Number(oidValue) || 0}
-                    units={oidObject?.unit}
-                    title={data.header}
-                    // Ticks Bar Options
-                    exactTicks={widget.data.gaugeExactTicks} // boolean
-                    majorTicks={majorTicks}
-                    minorTicks={
-                        typeof widget.data.gaugeMinorTicks === 'number'
-                            ? widget.data.gaugeMinorTicks
-                            : Number(widget.data.gaugeMinorTicks)
-                    }
-                    strokeTicks={widget.data.gaugeStrokeTicks} // boolean
-                    majorTicksInt={
-                        typeof widget.data.gaugeMajorTicksInt === 'number'
-                            ? widget.data.gaugeMajorTicksInt
-                            : Number(widget.data.gaugeMajorTicksInt)
-                    }
-                    majorTicksDec={
-                        typeof widget.data.gaugeMajorTicksDec === 'number'
-                            ? widget.data.gaugeMajorTicksDec
-                            : Number(widget.data.gaugeMajorTicksDec)
-                    }
-                    highlights={highlights}
-                    highlightsWidth={
-                        typeof widget.data.gaugeHighlightsWidth === 'number'
-                            ? widget.data.gaugeHighlightsWidth
-                            : Number(widget.data.gaugeHighlightsWidth)
-                    }
-                    numbersMargin={
-                        typeof widget.data.gaugeNumbersMargin === 'number'
-                            ? widget.data.gaugeNumbersMargin
-                            : Number(widget.data.gaugeNumbersMargin)
-                    }
-                    // Progress Bar Options
-                    barWidth={
-                        typeof widget.data.gaugeBarWidth === 'number' && widget.data.gaugeBarWidth <= 50
-                            ? widget.data.gaugeBarWidth
-                            : Number(widget.data.gaugeBarWidth) <= 50
-                              ? Number(widget.data.gaugeBarWidth)
-                              : 50
-                    }
-                    barStrokeWidth={
-                        typeof widget.data.gaugeBarStrokeWidth === 'number'
-                            ? widget.data.gaugeBarStrokeWidth
-                            : Number(widget.data.gaugeBarStrokeWidth)
-                    }
-                    barProgress={widget.data.gaugeBarProgress} // boolean
-                    barShadow={
-                        typeof widget.data.gaugeBarShadow === 'number'
-                            ? widget.data.gaugeBarShadow
-                            : Number(widget.data.gaugeBarShadow)
-                    }
-                    // Animation Options
-                    animation={widget.data.gaugeAnimation} // boolean
-                    animationDuration={
-                        typeof widget.data.gaugeAnimationDuration === 'number'
-                            ? widget.data.gaugeAnimationDuration
-                            : Number(widget.data.gaugeAnimationDuration)
-                    }
-                    animationRule={widget.data.gaugeAnimationRule || 'cycle'}
-                    animatedValue={widget.data.gaugeAnimatedValue} // boolean
-                    animateOnInit={widget.data.gaugeAnimateOnInit} // boolean
-                    // Color Options
-                    colorPlate={widget.data.gaugeColorPlate || 'rgba(0,0,0,0)'}
-                    colorPlateEnd={widget.data.gaugeColorPlateEnd || 'rgba(0,0,0,0)'}
-                    colorMajorTicks={widget.data.gaugeColorMajorTicks || '#444'}
-                    colorMinorTicks={widget.data.gaugeColorMinorTicks || '#666'}
-                    colorStrokeTicks={widget.data.gaugeColorStrokeTicks || '#444'}
-                    colorTitle={widget.data.gaugeColorTitle || '#888'}
-                    colorUnits={widget.data.gaugeColorUnits || '#888'}
-                    colorNumbers={widget.data.gaugeColorNumbers || '#444'}
-                    colorNeedle={widget.data.gaugeColorNeedle || 'rgba(240,128,128,1)'}
-                    colorNeedleEnd={widget.data.gaugeColorNeedleEnd || 'rgba(255,160,122,.9)'}
-                    colorValueText={widget.data.gaugeColorValueText || '#444'}
-                    colorValueTextShadow={widget.data.gaugeColorValueTextShadow || 'rgba(0,0,0,0.3)'}
-                    colorBorderShadow={widget.data.gaugeColorBorderShadow || 'rgba(0,0,0,0.5)'}
-                    colorBorderOuter={widget.data.gaugeColorBorderOuter || '#ddd'}
-                    colorBorderOuterEnd={widget.data.gaugeColorBorderOuterEnd || '#aaa'}
-                    colorBorderMiddle={widget.data.gaugeColorBorderMiddle || '#eee'}
-                    colorBorderMiddleEnd={widget.data.gaugeColorBorderMiddleEnd || '#f0f0f0'}
-                    colorBorderInner={widget.data.gaugeColorBorderInner || '#fafafa'}
-                    colorBorderInnerEnd={widget.data.gaugeColorBorderInnerEnd || '#ccc'}
-                    colorValueBoxRect={widget.data.gaugeColorValueBoxRect || '#888'}
-                    colorValueBoxRectEnd={widget.data.gaugeColorValueBoxRectEnd || '#666'}
-                    colorValueBoxBackground={widget.data.gaugeColorValueBoxBackground || '#babab2'}
-                    colorValueBoxShadow={widget.data.gaugeColorValueBoxShadow || 'rgba(0,0,0,1)'}
-                    colorNeedleShadowUp={widget.data.gaugeColorNeedleShadowUp || 'rgba(2,255,255,0.2)'}
-                    colorNeedleShadowDown={widget.data.gaugeColorNeedleShadowDown || 'rgba(188,143,143,0.45)'}
-                    colorBarStroke={widget.data.gaugeColorBarStroke || '#222'}
-                    colorBar={widget.data.gaugeColorBar || '#ccc'}
-                    colorBarProgress={widget.data.gaugeColorBarProgress || '#888'}
-                    highlightsLineCap={widget.data.gaugeHighlightsLineCap || 'butt'}
-                    // Needle Configuration Options
-                    needle={widget.data.gaugeNeedle} // boolean
-                    needleShadow={widget.data.gaugeNeedleShadow} // boolean
-                    needleType={widget.data.gaugeNeedleType || 'arrow'}
-                    needleStart={
-                        typeof widget.data.gaugeNeedleStart === 'number'
-                            ? widget.data.gaugeNeedleStart
-                            : Number(widget.data.gaugeNeedleStart)
-                    }
-                    needleEnd={
-                        typeof widget.data.gaugeNeedleEnd === 'number'
-                            ? widget.data.gaugeNeedleEnd
-                            : Number(widget.data.gaugeNeedleEnd)
-                    }
-                    needleWidth={
-                        typeof widget.data.gaugeNeedleWidth === 'number'
-                            ? widget.data.gaugeNeedleWidth
-                            : Number(widget.data.gaugeNeedleWidth)
-                    }
-                    // Borders Options
-                    borders={widget.data.gaugeBorders} // boolean
-                    borderOuterWidth={
-                        typeof widget.data.gaugeBorderOuterWidth === 'number'
-                            ? widget.data.gaugeBorderOuterWidth
-                            : Number(widget.data.gaugeBorderOuterWidth)
-                    }
-                    borderMiddleWidth={
-                        typeof widget.data.gaugeBorderMiddleWidth === 'number'
-                            ? widget.data.gaugeBorderMiddleWidth
-                            : Number(widget.data.gaugeBorderMiddleWidth)
-                    }
-                    borderInnerWidth={
-                        typeof widget.data.gaugeBorderInnerWidth === 'number'
-                            ? widget.data.gaugeBorderInnerWidth
-                            : Number(widget.data.gaugeBorderInnerWidth)
-                    }
-                    borderShadowWidth={
-                        typeof widget.data.gaugeBorderShadowWidth === 'number'
-                            ? widget.data.gaugeBorderShadowWidth
-                            : Number(widget.data.gaugeBorderShadowWidth)
-                    }
-                    // Value Box Options
-                    valueBox={widget.data.gaugeValueBox} // boolean
-                    valueBoxStroke={
-                        typeof widget.data.gaugeValueBoxStroke === 'number'
-                            ? widget.data.gaugeValueBoxStroke
-                            : Number(widget.data.gaugeValueBoxStroke)
-                    }
-                    valueBoxWidth={
-                        typeof widget.data.gaugeValueBoxWidth === 'number'
-                            ? widget.data.gaugeValueBoxWidth
-                            : Number(widget.data.gaugeValueBoxWidth)
-                    }
-                    valueText={widget.data.gaugeValueText || ''}
-                    valueTextShadow={widget.data.gaugeValueTextShadow} // boolean
-                    valueBoxBorderRadius={
-                        typeof widget.data.gaugeValueBoxBorderRadius === 'number'
-                            ? widget.data.gaugeValueBoxBorderRadius
-                            : Number(widget.data.gaugeValueBoxBorderRadius)
-                    }
-                    valueInt={
-                        typeof widget.data.gaugeValueInt === 'number'
-                            ? widget.data.gaugeValueInt
-                            : Number(widget.data.gaugeValueInt)
-                    }
-                    valueDec={
-                        typeof widget.data.gaugeValueDec === 'number'
-                            ? widget.data.gaugeValueDec
-                            : Number(widget.data.gaugeValueDec)
-                    }
-                    // Fonts Customization Options
-                    fontNumbers={widget.data.gaugeFontNumbers || 'Arial, Helvetica, sans-serif'}
-                    fontTitle={widget.data.gaugeFontTitle || 'Arial, Helvetica, sans-serif'}
-                    fontUnits={widget.data.gaugeFontUnits || 'Arial, Helvetica, sans-serif'}
-                    fontValue={widget.data.gaugeFontValue || 'Arial, Helvetica, sans-serif'}
-                    fontNumbersSize={
-                        typeof widget.data.gaugeFontNumbersSize === 'number'
-                            ? widget.data.gaugeFontNumbersSize
-                            : Number(widget.data.gaugeFontNumbersSize)
-                    }
-                    fontTitleSize={
-                        typeof widget.data.gaugeFontTitleSize === 'number'
-                            ? widget.data.gaugeFontTitleSize
-                            : Number(widget.data.gaugeFontTitleSize)
-                    }
-                    fontUnitsSize={
-                        typeof widget.data.gaugeFontUnitsSize === 'number'
-                            ? widget.data.gaugeFontUnitsSize
-                            : Number(widget.data.gaugeFontUnitsSize)
-                    }
-                    fontValueSize={
-                        typeof widget.data.gaugeFontValueSize === 'number'
-                            ? widget.data.gaugeFontValueSize
-                            : Number(widget.data.gaugeFontValueSize)
-                    }
-                    fontNumbersStyle={widget.data.gaugeFontNumbersStyle || 'normal'}
-                    fontTitleStyle={widget.data.gaugeFontTitleStyle || 'normal'}
-                    fontUnitsStyle={widget.data.gaugeFontUnitsStyle || 'normal'}
-                    fontValueStyle={widget.data.gaugeFontValueStyle || 'normal'}
-                    fontNumbersWeight={widget.data.gaugeFontNumbersWeight || 'normal'}
-                    fontTitleWeight={widget.data.gaugeFontTitleWeight || 'normal'}
-                    fontUnitsWeight={widget.data.gaugeFontUnitsWeight || 'normal'}
-                    fontValueWeight={widget.data.gaugeFontValueWeight || 'normal'}
-                    // Linear Borders Options
-                    borderRadius={
-                        typeof widget.data.gaugeBorderRadius === 'number'
-                            ? widget.data.gaugeBorderRadius
-                            : Number(widget.data.gaugeBorderRadius)
-                    }
-                    // Linear Progress Bar Options
-                    barBeginCircle={
-                        typeof widget.data.gaugeBarBeginCircle === 'number' && widget.data.gaugeBarBeginCircle < 12
-                            ? 30
-                            : Number(widget.data.gaugeBarBeginCircle)
-                    }
-                    barLength={
-                        typeof widget.data.gaugeBarLength === 'number'
-                            ? widget.data.gaugeBarLength
-                            : Number(widget.data.gaugeBarLength)
-                    }
-                    // Linear Coloring Options
-                    colorBarEnd={widget.data.gaugeColorBarEnd || ''}
-                    colorBarProgressEnd={widget.data.gaugeColorBarProgressEnd || ''}
-                    // Linear Element Positioning Options
-                    tickSide={widget.data.gaugeTickSide || 'both'}
-                    needleSide={widget.data.gaugeNeedleSide || 'both'}
-                    numberSide={widget.data.gaugeNumberSide || 'both'}
-                    // Linear Ticks Bar Options
-                    ticksWidth={
-                        typeof widget.data.gaugeTicksWidth === 'number'
-                            ? widget.data.gaugeTicksWidth
-                            : Number(widget.data.gaugeTicksWidth)
-                    }
-                    ticksWidthMinor={
-                        typeof widget.data.gaugeTicksWidthMinor === 'number'
-                            ? widget.data.gaugeTicksWidthMinor
-                            : Number(widget.data.gaugeTicksWidthMinor)
-                    }
-                    ticksPadding={
-                        typeof widget.data.gaugeTicksPadding === 'number'
-                            ? widget.data.gaugeTicksPadding
-                            : Number(widget.data.gaugeTicksPadding)
-                    }
-                    // Radial Ticks Bar Options
-                    ticksAngle={
-                        typeof widget.data.gaugeTicksAngle === 'number'
-                            ? widget.data.gaugeTicksAngle
-                            : Number(widget.data.gaugeTicksAngle)
-                    }
-                    startAngle={
-                        typeof widget.data.gaugeStartAngle === 'number'
-                            ? widget.data.gaugeStartAngle
-                            : Number(widget.data.gaugeStartAngle)
-                    }
-                    // Radial Coloring Options
-                    colorNeedleCircleOuter={widget.data.gaugeColorNeedleCircleOuter || '#f0f0f0'}
-                    colorNeedleCircleOuterEnd={widget.data.gaugeColorNeedleCircleOuterEnd || '#ccc'}
-                    colorNeedleCircleInner={widget.data.gaugeColorNeedleCircleInner || '#e8e8e8'}
-                    colorNeedleCircleInnerEnd={widget.data.gaugeColorNeedleCircleInnerEnd || '#f5f5f5'}
-                    colorNeedleCircleShadowUp={widget.data.gaugeColorNeedleCircleShadowUp || 'rgba(2,255,255,0.2)'}
-                    // Radial Needle Options
-                    needleCircleSize={
-                        typeof widget.data.gaugeNeedleCircleSize === 'number'
-                            ? widget.data.gaugeNeedleCircleSize
-                            : Number(widget.data.gaugeNeedleCircleSize)
-                    }
-                    needleCircleInner={widget.data.gaugeNeedleCircleInner} // boolean
-                    needleCircleOuter={widget.data.gaugeNeedleCircleOuter} // boolean
-                    // Radial Animation Options
-                    animationTarget={widget.data.gaugeAnimationTarget || 'needle'}
-                    useMinPath={widget.data.gaugeUseMinPath} // boolean
+                <SafeImg
+                    alt=""
+                    src={segment?.state.icon}
+                    style={{
+                        position: 'relative',
+
+                        width: segment?.state.iconSizeOnly,
+                        height: segment?.state.iconSizeOnly,
+
+                        boxSizing: 'border-box',
+                        objectFit: widget.data.gaugeIconFit,
+
+                        top: `calc(0px - ${segment?.state.iconYOffset})`,
+                        left: `calc(0px + ${segment?.state.iconXOffset})`,
+
+                        ...iconColorStyles,
+                    }}
                 />
+                <Gauge options={gaugeOptions} />
             </Box>
         </CollectionBase>
     );
