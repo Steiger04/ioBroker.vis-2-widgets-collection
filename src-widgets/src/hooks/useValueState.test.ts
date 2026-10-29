@@ -1,0 +1,141 @@
+/**
+ * Pure transitions of useValueState — the write path's decision logic.
+ *
+ * @module hooks/useValueState.test
+ * @remarks
+ * Pins the echo/significance contract WITHOUT React: type conversion, the
+ * significance heuristic and the window/sentinel precedence of
+ * {@link decideBackendChange}. The string cases document the STATUS QUO
+ * (purely non-numeric changes are never significant because `Number()` yields
+ * `NaN`); the follow-up fix commit flips exactly those expectations.
+ */
+import { describe, expect, it } from 'vitest';
+
+import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import { convertToOidType, decideBackendChange, isSignificantBackendChange } from './useValueState';
+
+describe('convertToOidType', () => {
+    it('stringifies for string OIDs', () => {
+        expect(convertToOidType(42, 'string')).toBe('42');
+        expect(convertToOidType(true, 'string')).toBe('true');
+    });
+
+    it('converts numeric input for number OIDs', () => {
+        expect(convertToOidType('42', 'number')).toBe(42);
+        expect(convertToOidType('3.5', 'number')).toBe(3.5);
+        expect(convertToOidType(7, 'number')).toBe(7);
+    });
+
+    it('rejects non-numeric and blank input for number OIDs', () => {
+        expect(convertToOidType('abc', 'number')).toBeUndefined();
+        expect(convertToOidType('', 'number')).toBeUndefined();
+    });
+
+    it('mixed tries boolean before number before string', () => {
+        expect(convertToOidType('true', 'mixed')).toBe(true);
+        expect(convertToOidType('FALSE', 'mixed')).toBe(false);
+        expect(convertToOidType('42', 'mixed')).toBe(42);
+        expect(convertToOidType('42x', 'mixed')).toBe('42x');
+        expect(convertToOidType(true, 'mixed')).toBe(true);
+    });
+
+    it('boolean only accepts the string "true" (case-insensitive)', () => {
+        expect(convertToOidType('true', 'boolean')).toBe(true);
+        expect(convertToOidType('TRUE', 'boolean')).toBe(true);
+        expect(convertToOidType(true, 'boolean')).toBe(true);
+        // Everything else — including "1" and "yes" — becomes false.
+        expect(convertToOidType('1', 'boolean')).toBe(false);
+        expect(convertToOidType('yes', 'boolean')).toBe(false);
+        expect(convertToOidType(false, 'boolean')).toBe(false);
+    });
+
+    it('passes the value through for an unknown OID type', () => {
+        expect(convertToOidType('42', undefined)).toBe('42');
+    });
+});
+
+describe('isSignificantBackendChange', () => {
+    it('treats equal values as insignificant', () => {
+        expect(isSignificantBackendChange('on', 'on')).toBe(false);
+        expect(isSignificantBackendChange(5, 5)).toBe(false);
+        expect(isSignificantBackendChange(undefined, null)).toBe(false);
+    });
+
+    it('treats numeric deltas of at least 1 as significant', () => {
+        expect(isSignificantBackendChange(5, 10)).toBe(true);
+        expect(isSignificantBackendChange('5', '10')).toBe(true);
+        expect(isSignificantBackendChange(true, false)).toBe(true); // 1 vs 0
+    });
+
+    it('treats numeric deltas below 1 as insignificant (jitter filter)', () => {
+        expect(isSignificantBackendChange('21.5', '21.9')).toBe(false);
+        expect(isSignificantBackendChange(100, 100.4)).toBe(false);
+    });
+
+    it('STATUS QUO: purely non-numeric string changes are never significant', () => {
+        // Number('#ff0000') is NaN → Math.abs(NaN) >= 1 is false. This is the
+        // documented gap the follow-up fix commit flips (Input error marking and
+        // Light2 rgb-hex sync depend on it).
+        expect(isSignificantBackendChange('#ff0000', '#00ff00')).toBe(false);
+        expect(isSignificantBackendChange('an', 'aus')).toBe(false);
+        expect(isSignificantBackendChange('x', '')).toBe(false);
+    });
+
+    it('treats numeric-to-blank changes as significant (Number("") is 0)', () => {
+        expect(isSignificantBackendChange('5', '')).toBe(true);
+        expect(isSignificantBackendChange(undefined, 5)).toBe(true); // 0 vs 5
+    });
+});
+
+describe('decideBackendChange', () => {
+    it('never flags own optimistic writes (lc sentinel)', () => {
+        const decision = decideBackendChange(
+            { lc: 1000, value: 'old' },
+            { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: 'mine' },
+            0,
+            5000,
+        );
+
+        expect(decision.significant).toBe(false);
+        expect(decision.next).toEqual({ lc: VALUE_NOT_CHANGED_TIMESTAMP, value: 'mine' });
+    });
+
+    it('absorbs changes inside the ignore window (own write echo)', () => {
+        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, 10_000, 5000);
+
+        expect(decision.significant).toBe(false);
+        expect(decision.next).toEqual({ lc: 2000, value: 42 });
+    });
+
+    it('does not flag the first observation (initialisation)', () => {
+        const decision = decideBackendChange({ lc: undefined, value: undefined }, { lc: 2000, value: 42 }, 0, 5000);
+
+        expect(decision.significant).toBe(false);
+        expect(decision.next).toEqual({ lc: 2000, value: 42 });
+    });
+
+    it('requires an lc change even when the value changed', () => {
+        const decision = decideBackendChange({ lc: 2000, value: 5 }, { lc: 2000, value: 42 }, 0, 5000);
+
+        expect(decision.significant).toBe(false);
+    });
+
+    it('flags significant foreign changes outside the window', () => {
+        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, 0, 5000);
+
+        expect(decision.significant).toBe(true);
+        expect(decision.next).toEqual({ lc: 2000, value: 42 });
+    });
+
+    it('keeps numeric jitter outside the window insignificant', () => {
+        const decision = decideBackendChange({ lc: 1000, value: 100 }, { lc: 2000, value: 100.4 }, 0, 5000);
+
+        expect(decision.significant).toBe(false);
+    });
+
+    it('STATUS QUO: a foreign string change stays insignificant (NaN heuristic)', () => {
+        const decision = decideBackendChange({ lc: 1000, value: '#ff0000' }, { lc: 2000, value: '#00ff00' }, 0, 5000);
+
+        expect(decision.significant).toBe(false);
+    });
+});

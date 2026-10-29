@@ -8,6 +8,12 @@
  * - type-aware conversion via the configured `OidObject.type`
  * - throttled/debounced writes via {@link module:hooks/useDebounce}
  * - a short “ignore window” to avoid immediately re-applying backend echoes while the user is interacting
+ *
+ * The decision logic is exported as pure transitions ({@link convertToOidType},
+ * {@link isSignificantBackendChange}, {@link decideBackendChange} — the useOptimisticNumber /
+ * useEditorHistory pattern) so the echo/significance contract is testable without React.
+ * The hook itself is a thin shell: context reads, the ref carrying the last decision's
+ * `next` state, and the debounced write wiring.
  */
 
 import { useCallback, useContext, useMemo, useRef } from 'react';
@@ -31,7 +37,7 @@ import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
  * - `boolean`: only the string `"true"` (case-insensitive) becomes `true`
  * - `mixed`: attempts boolean → number → string
  */
-function convertToOidType(
+export function convertToOidType(
     value: string | number | boolean,
     oidType: OidType | undefined,
 ): string | number | boolean | undefined {
@@ -77,7 +83,7 @@ function convertToOidType(
  * This is only evaluated when the backend "last change" timestamp has changed.
  * For numeric-like values, a delta of at least 1 is treated as significant.
  */
-function isSignificantBackendChange(
+export function isSignificantBackendChange(
     prevValue: string | number | boolean | undefined | null,
     currentValue: string | number | boolean | undefined | null,
 ): boolean {
@@ -94,10 +100,67 @@ function isSignificantBackendChange(
     return Math.abs(prevNum - currNum) >= 1;
 }
 
+/** Observed backend snapshot the significance decision runs over. */
+export interface BackendChangeState {
+    /** Last observed `lc` of the bound state (`undefined` until the first observation). */
+    lc: number | undefined;
+    /** Last observed raw value. */
+    value: string | number | boolean | undefined | null;
+}
+
+/** Result of {@link decideBackendChange}: the flag plus the state to carry forward. */
+export interface BackendChangeDecision {
+    /** Whether this observation counts as a significant foreign backend change. */
+    significant: boolean;
+    /** State to remember for the next decision. */
+    next: BackendChangeState;
+}
+
+/**
+ * Pure significance decision over one observed backend snapshot.
+ *
+ * @param prev - Previously observed state (the last decision's `next`).
+ * @param current - The observation landing this render (`lc` + raw value).
+ * @param current.lc - Last-change timestamp of the observed state.
+ * @param current.value - Raw value of the observed state.
+ * @param ignoreUntil - Timestamp (ms) until which changes are absorbed as own-write echoes.
+ * @param now - Current time (ms); injected so tests control the clock.
+ * @returns The decision plus the state to remember.
+ * @remarks
+ * Precedence (first match wins):
+ * 1. own optimistic write (`lc` = the {@link VALUE_NOT_CHANGED_TIMESTAMP} sentinel) → never significant
+ * 2. inside the ignore window → not significant (the own write's backend echo)
+ * 3. first observation (`prev.lc === undefined`) → not significant (initialisation)
+ * 4. otherwise significant iff `lc` changed AND the value change is significant
+ *    ({@link isSignificantBackendChange})
+ */
+export function decideBackendChange(
+    prev: BackendChangeState,
+    current: { lc: number | undefined; value: string | number | boolean | undefined | null },
+    ignoreUntil: number,
+    now: number,
+): BackendChangeDecision {
+    if (current.lc === VALUE_NOT_CHANGED_TIMESTAMP) {
+        return { significant: false, next: { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: current.value } };
+    }
+
+    const next: BackendChangeState = { lc: current.lc, value: current.value };
+
+    if (now < ignoreUntil) {
+        return { significant: false, next };
+    }
+
+    if (prev.lc === undefined) {
+        return { significant: false, next };
+    }
+
+    return { significant: prev.lc !== current.lc && isSignificantBackendChange(prev.value, current.value), next };
+}
+
 /**
  * Return type for {@link module:hooks/useValueState.default}.
  */
-interface UseValueStateReturn {
+export interface UseValueStateReturn {
     /** Current (optimistic) value for the configured OID. */
     value: string | number | boolean | undefined | null;
 
@@ -156,27 +219,16 @@ const useValueState = (idName: string): UseValueStateReturn => {
             return false;
         }
 
-        if (currentLc === VALUE_NOT_CHANGED_TIMESTAMP) {
-            prevStateRef.current = { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: currentValue };
-            return false;
-        }
+        const decision = decideBackendChange(
+            prevStateRef.current,
+            { lc: currentLc, value: currentValue },
+            ignoreUntilRef.current,
+            Date.now(),
+        );
 
-        if (Date.now() < ignoreUntilRef.current) {
-            prevStateRef.current = { lc: currentLc, value: currentValue };
-            return false;
-        }
+        prevStateRef.current = decision.next;
 
-        if (prevStateRef.current.lc === undefined) {
-            prevStateRef.current = { lc: currentLc, value: currentValue };
-            return false;
-        }
-
-        const lcChanged = prevStateRef.current.lc !== currentLc;
-        const significantChange = isSignificantBackendChange(prevStateRef.current.value, currentValue);
-
-        prevStateRef.current = { lc: currentLc, value: currentValue };
-
-        return lcChanged && significantChange;
+        return decision.significant;
     }, [oidObject?._id, currentLc, currentValue]);
 
     const debounce = useDebounce({
