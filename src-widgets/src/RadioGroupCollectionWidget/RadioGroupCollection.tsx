@@ -11,7 +11,7 @@ import { useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useData, { sameStateValue } from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
@@ -216,7 +216,7 @@ function RadioGroupCollection(): React.ReactElement {
                                             maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
                                         },
                                     }}
-                                    checked={String(state.value) === String(oidValue)}
+                                    checked={sameStateValue(state.value, oidValue)}
                                     onChange={handleChange}
                                     value={state.value}
                                 />

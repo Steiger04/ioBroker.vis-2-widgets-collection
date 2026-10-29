@@ -10,7 +10,7 @@ import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useData, { sameStateValue } from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useElementDimensions from '../hooks/useElementDimensions';
@@ -74,8 +74,7 @@ function SelectCollection(): React.ReactElement {
         if (oidValue === null || oidValue === undefined) {
             return -1;
         }
-        const needle = String(oidValue);
-        return states.findIndex(state => String(state.value) === needle);
+        return states.findIndex(state => sameStateValue(state.value, oidValue));
     }, [states, oidValue]);
 
     const changeHandler = useCallback(

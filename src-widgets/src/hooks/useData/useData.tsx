@@ -6,6 +6,7 @@ import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import { createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
+import { sameStateValue } from './stateValueEquality';
 
 import type { OidObject } from '../../types/utility-types';
 import type { UseDataResult, SliderProperties, StyleData, StateStyleData } from './types';
@@ -124,8 +125,8 @@ function useData(_oid: string): UseDataResult {
                       ? Number(_value)
                       : _value;
 
-                // Calculate isActive for this state
-                const isActive = String(oidValue) === String(convertedValue);
+                // Calculate isActive for this state (named equality contract)
+                const isActive = sameStateValue(oidValue, convertedValue);
 
                 // Get style data via resolveStyleData
                 const styleData = resolveStyleData(i, isActive);
@@ -172,11 +173,11 @@ function useData(_oid: string): UseDataResult {
         return { states, widgetStates, minValue, maxValue };
     }, [oidObject?.type, oidObject?.commonStates, oidObject?.unit, rxData, getDataValue, oidValue, resolveStyleData]);
 
-    // `data` and `activeIndex` are both pure functions of the current OID value
-    // and resolved states, so they are derived together here — no setState side
-    // effect during render (the previous setActiveIndex-in-useMemo was a React
-    // anti-pattern and could leave activeIndex stale relative to `data`).
-    const { data, activeIndex } = useMemo(() => {
+    // `data` and `activeFieldNumber` are both pure functions of the current OID
+    // value and resolved states, so they are derived together here — no setState
+    // side effect during render (the previous setActiveIndex-in-useMemo was a
+    // React anti-pattern and could leave it stale relative to `data`).
+    const { data, activeFieldNumber } = useMemo(() => {
         const oidType = oidObject?.type;
 
         switch (oidType) {
@@ -184,18 +185,19 @@ function useData(_oid: string): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                const idx = states.findIndex(state => String(state.value) === String(oidValue));
+                const idx = states.findIndex(state => sameStateValue(state.value, oidValue));
 
                 if (idx !== -1) {
                     // Apply state-specific styles with active properties.
-                    return { data: resolveStyleData(idx + 1, true), activeIndex: idx + 1 };
+                    // idx is the 0-based array position; the state field suffix is 1-based.
+                    return { data: resolveStyleData(idx + 1, true), activeFieldNumber: idx + 1 };
                 }
 
                 // Default to base state properties with active properties included.
-                return { data: resolveStyleData('', true), activeIndex: undefined };
+                return { data: resolveStyleData('', true), activeFieldNumber: undefined };
             }
             default:
-                return { data: resolveStyleData('', true), activeIndex: undefined };
+                return { data: resolveStyleData('', true), activeFieldNumber: undefined };
         }
     }, [oidObject, oidValue, states, resolveStyleData]);
 
@@ -204,7 +206,7 @@ function useData(_oid: string): UseDataResult {
         minValue,
         maxValue,
         data,
-        activeIndex,
+        activeFieldNumber,
         oidValue,
         states,
         resolveStyleData,

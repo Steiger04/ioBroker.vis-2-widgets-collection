@@ -8,7 +8,7 @@ import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useData, { sameStateValue } from '../hooks/useData';
 import CollectionMark from './CollectionMark';
 import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
@@ -113,7 +113,7 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, states, minValue, maxValue, activeIndex, resolveStyleData } = useData('oid');
+    const { data, states, minValue, maxValue, activeFieldNumber, resolveStyleData } = useData('oid');
 
     // One optimistic truth for the controlled slider: local copy + debounced
     // backend write behind one interface (init/echo/non-numeric documented on
@@ -196,7 +196,7 @@ const SliderCollection: FC = () => {
             return null;
         }
 
-        const index = sliderMarks.findIndex(mark => String(mark.value) === String(oidValue));
+        const index = sliderMarks.findIndex(mark => sameStateValue(mark.value, oidValue));
         return index !== -1 ? index : null;
     }, [oidValue, sliderMarks]);
 
@@ -380,7 +380,9 @@ const SliderCollection: FC = () => {
                                         color:
                                             widget.data.textColorActive ||
                                             data.textColorActive ||
-                                            (activeIndex && widget.data.markerTextColor) ||
+                                            // activeFieldNumber is 1-based, so truthiness is safe
+                                            // here — never rebase it to 0-based.
+                                            (activeFieldNumber && widget.data.markerTextColor) ||
                                             data.textColor ||
                                             theme.palette.text.primary,
                                         bgcolor: 'transparent',
