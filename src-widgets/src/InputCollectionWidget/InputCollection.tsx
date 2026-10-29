@@ -5,16 +5,16 @@
  */
 
 import { Avatar, Box, Button, InputAdornment, TextField, Typography } from '@mui/material';
-import { useContext, useEffect, useRef, useState, type FC } from 'react';
+import { useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
-import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
+import useInlineEdit from './useInlineEdit';
 
 import type { InputCollectionContextProps } from '../types';
 
@@ -26,7 +26,9 @@ const VALID_TYPES = new Set(['string', 'number', 'mixed']);
  *
  * @remarks
  * Whatever is present (icon, value, or both) is shown centered as one group. A click
- * switches inline to a TextField (the icon is hidden while editing):
+ * switches inline to a TextField (the icon is hidden while editing); the session
+ * rules (draft sync, live vs. OK-button commit) live in
+ * {@link module:widgets/InputCollectionWidget/useInlineEdit}:
  * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
  *
@@ -44,7 +46,18 @@ const InputCollection: FC = () => {
     } = context;
 
     const { data } = useData('oid');
-    const { value: oidValue, updateValue, hasBackendChange } = useValueState('oid');
+    const showOkButton = Boolean(widget.data.showOkButton);
+    const {
+        value: oidValue,
+        hasBackendChange,
+        editing,
+        draft,
+        enterEdit,
+        handleChange,
+        handleBlur,
+        handleKeyDown,
+        commit,
+    } = useInlineEdit('oid', { showOkButton });
 
     // Formatted display value (alias → value → oidValue+unit, may contain HTML).
     const htmlValue = useHtmlValue(oidValue, widget, data);
@@ -54,7 +67,6 @@ const InputCollection: FC = () => {
     const isValidType = oidType !== undefined && VALID_TYPES.has(oidType);
     const isNumber = oidType === 'number';
     const isReadOnly = isOidReadOnly(widget.data);
-    const showOkButton = Boolean(widget.data.showOkButton);
     const editable = !isReadOnly;
 
     const textColor = data.textColor;
@@ -68,19 +80,7 @@ const InputCollection: FC = () => {
     const maxValue = widget.data.maxValue !== undefined ? Number(widget.data.maxValue) : undefined;
     const step = widget.data.step !== undefined ? Number(widget.data.step) : undefined;
 
-    // Raw OID value as plain string for the editable TextField.
-    const rawValue = oidValue === undefined || oidValue === null ? '' : String(oidValue);
-
-    const [localValue, setLocalValue] = useState(rawValue);
-    const [editing, setEditing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // Keep the draft in sync with the backend value while not editing.
-    useEffect(() => {
-        if (!editing) {
-            setLocalValue(rawValue);
-        }
-    }, [rawValue, editing]);
 
     // Auto-focus the field when entering edit mode.
     useEffect(() => {
@@ -89,16 +89,7 @@ const InputCollection: FC = () => {
         }
     }, [editing]);
 
-    const enterEdit = (): void => {
-        if (editable) {
-            setEditing(true);
-        }
-    };
-
-    const commit = (): void => {
-        setEditing(false);
-        updateValue(localValue);
-    };
+    const enter = (): void => enterEdit(editable);
 
     const showIcon = !widget.data.noIcon && Boolean(iconSrc);
 
@@ -129,27 +120,11 @@ const InputCollection: FC = () => {
                             size="small"
                             variant={inputVariant}
                             type={isNumber ? 'number' : 'text'}
-                            value={localValue}
+                            value={draft}
                             error={hasBackendChange}
-                            onChange={e => {
-                                setLocalValue(e.target.value);
-                                // Live mode writes per keystroke; OK mode writes only on commit.
-                                if (!showOkButton) {
-                                    updateValue(e.target.value);
-                                }
-                            }}
-                            onBlur={() => {
-                                if (showOkButton) {
-                                    commit();
-                                } else {
-                                    setEditing(false);
-                                }
-                            }}
-                            onKeyDown={e => {
-                                if (e.key === 'Enter') {
-                                    (e.target as HTMLElement).blur();
-                                }
-                            }}
+                            onChange={e => handleChange(e.target.value)}
+                            onBlur={handleBlur}
+                            onKeyDown={e => handleKeyDown(e.key)}
                             slotProps={{
                                 input: {
                                     endAdornment: oidObject?.unit ? (
@@ -177,7 +152,7 @@ const InputCollection: FC = () => {
                     </Box>
                 ) : (
                     <Box
-                        onClick={enterEdit}
+                        onClick={enter}
                         sx={{
                             width: '100%',
                             height: '100%',
