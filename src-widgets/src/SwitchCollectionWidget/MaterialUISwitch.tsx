@@ -1,6 +1,7 @@
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { THUMB_SIZE_DEFAULT } from '../lib/switchFields';
 import { resolveCheckedInputLeft, resolveThumbTravel } from './geometry';
 import type { SwitchCollectionContextProps } from '../types';
 import type { StyleData } from '../hooks/useData';
@@ -18,6 +19,19 @@ interface MaterialUISwitchProps {
 }
 
 /**
+ * Callback-only props that must never reach the DOM.
+ *
+ * @remarks
+ * MUI v6 does not filter custom props anymore: `rootShouldForwardProp` only
+ * strips `ownerState/theme/sx/as/classes` (`@emotion/is-prop-valid` is gone),
+ * so without this filter `maxHeight` leaks onto the root span with a React
+ * dev warning and the `data`/`widget` objects serialize as
+ * `[object Object]` attributes. The filter controls DOM forwarding only —
+ * the styled callback still receives all four props.
+ */
+const CALLBACK_ONLY_PROPS = new Set<PropertyKey>(['width', 'maxHeight', 'data', 'widget']);
+
+/**
  * Switch thumb styling: pure mapping over the measured geometry.
  *
  * @remarks
@@ -27,9 +41,11 @@ interface MaterialUISwitchProps {
  * back to the MUI Switch defaults (checked thumb is primary.main anyway), the
  * icon overlay differs between the states only in its fallback colour.
  */
-const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxHeight, data, widget, theme }) => {
-    // Mirrors the editor field default in lib/switchFields.tsx
-    const thumbSize = widget.data.thumbSize ?? 62;
+const MaterialUISwitch = styled(Switch, {
+    shouldForwardProp: prop => !CALLBACK_ONLY_PROPS.has(prop),
+})<MaterialUISwitchProps>(({ width, maxHeight, data, widget, theme }) => {
+    // Single source: the schema default in lib/switchFields.tsx
+    const thumbSize = widget.data.thumbSize ?? THUMB_SIZE_DEFAULT;
     const travel = resolveThumbTravel(thumbSize, maxHeight);
     const inputWidth = width || 0;
 
