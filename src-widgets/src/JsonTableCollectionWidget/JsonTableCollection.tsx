@@ -54,6 +54,7 @@ import useData from '../hooks/useData';
 import { useJsonTableAnalysis } from '../hooks/useJsonTableAnalysis';
 import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
+import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
@@ -139,7 +140,7 @@ const JsonTableCollection: FC = () => {
     const theme = useTheme();
 
     const oidType = oidObject?.type as string | undefined;
-    const isValidType = oidType === 'string' || oidType === 'mixed' || oidType === 'json';
+    const isValidType = isAllowedOidType(JSON_TABLE_TYPES, oidType);
 
     // Parse JSON from state value
     const jsonData = useMemo<unknown[]>(() => {

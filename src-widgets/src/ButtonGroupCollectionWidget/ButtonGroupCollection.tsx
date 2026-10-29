@@ -12,6 +12,7 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import SafeImg from '../components/SafeImg';
 import useData from '../hooks/useData';
+import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -54,7 +55,7 @@ function ButtonGroupCollection(): React.JSX.Element {
     const buttonGroupVariant = widget.data.buttonGroupVariant;
     const buttonGroupOrientation = widget.data.buttonGroupOrientation;
     const oidType = oidObject?.type;
-    const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
+    const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
     const isVertical = buttonGroupOrientation === 'vertical';
     const isOutlined = buttonGroupVariant === 'outlined';
 

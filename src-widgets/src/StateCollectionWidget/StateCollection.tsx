@@ -7,6 +7,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
+import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
@@ -214,7 +215,7 @@ function StateCollection(): React.ReactElement {
         </Button>
     );
 
-    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType ?? '');
+    const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
 
     return (
         <>

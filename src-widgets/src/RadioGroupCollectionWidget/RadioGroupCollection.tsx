@@ -12,6 +12,7 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
+import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -36,7 +37,7 @@ function RadioGroupCollection(): React.ReactElement {
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
-    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType ?? '');
+    const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
 
     // Extract orientation-dependent values for clarity
     const isHorizontal = widget.data.radioOrientation === 'horizontal';

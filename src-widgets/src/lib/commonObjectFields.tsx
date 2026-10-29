@@ -11,11 +11,9 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 
+import type { AllowedType } from './allowedOidTypes';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-
-/** Supported value type hints used by `oidChangeHandlerAsync()`. */
-type AllowedType = 'boolean' | 'number' | 'string' | 'mixed' | 'json';
 
 const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');
@@ -126,7 +124,7 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
  * @param oid The name of the data property that stores the selected object id.
  */
 export const oidChangeHandlerAsync =
-    (allowedTypes: AllowedType[], oid = 'oid') =>
+    (allowedTypes: readonly AllowedType[], oid = 'oid') =>
     async (
         _field: RxWidgetInfoAttributesField,
         data: WidgetData,
@@ -231,18 +229,21 @@ interface CommonObjectFieldsOptions {
 }
 
 const commonObjectFields = (
-    allowedTypes: AllowedType[],
+    allowedTypes: readonly AllowedType[],
     { unit = true, valueGroups = true }: CommonObjectFieldsOptions = {},
 ): RxWidgetInfoAttributesField[] => {
     // The OID picker is always present; the unit and value-group sections are optional
     // and each carries its own leading divider so toggling them leaves no orphan dividers.
+    // `allowedTypes` is an introspectable mirror of the onChange filter — the
+    // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
     const fields: RxWidgetInfoAttributesField[] = [
         {
             name: 'oid',
             type: 'id',
             label: 'oid',
             onChange: oidChangeHandlerAsync(allowedTypes),
-        },
+            allowedTypes,
+        } as RxWidgetInfoAttributesField,
     ];
 
     if (unit) {

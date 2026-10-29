@@ -11,15 +11,13 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
+import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import useInlineEdit from './useInlineEdit';
 
 import type { InputCollectionContextProps } from '../types';
-
-// OID types this widget can bind to.
-const VALID_TYPES = new Set(['string', 'number', 'mixed']);
 
 /**
  * Renders a text/number value bound to a single OID as display-first inline-edit.
@@ -64,7 +62,7 @@ const InputCollection: FC = () => {
     const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
 
     const oidType = oidObject?.type;
-    const isValidType = oidType !== undefined && VALID_TYPES.has(oidType);
+    const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidType);
     const isNumber = oidType === 'number';
     const isReadOnly = isOidReadOnly(widget.data);
     const editable = !isReadOnly;

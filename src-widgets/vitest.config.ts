@@ -27,6 +27,7 @@ const DOM_TS_TESTS = [
     'src/hooks/useFloatingPanel.test.ts',
     'src/hooks/useValueState.hook.test.ts',
     'src/InputCollectionWidget/useInlineEdit.hook.test.ts',
+    'src/lib/allowedOidTypes.parity.test.ts',
     // Since ADR-0083 these load the editorial record (rail slots/summaries/heal read the
     // family profiles, which import the section modules) — DOM territory now. The chain
     // reaches them via editorState's heal dispatch and summaries' slot dispatch.

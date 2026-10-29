@@ -13,6 +13,7 @@ import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import inputFields from '../lib/inputFields';
 import stateFields from '../lib/stateFields';
+import { INPUT_ENTRY_TYPES } from '../lib/allowedOidTypes';
 import InputCollection from './InputCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -36,7 +37,7 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
                     name: 'input', // group name
                     label: 'group_input',
                     fields: [
-                        ...commonObjectFields(['string', 'number', 'mixed']),
+                        ...commonObjectFields(INPUT_ENTRY_TYPES),
                         ...delayFields(),
                         ...inputFields(),
                         ...stateFields({ onlyStates: false }),

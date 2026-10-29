@@ -10,6 +10,7 @@ import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import selectFields from '../lib/selectFields';
+import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import SelectCollection from './SelectCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -33,7 +34,7 @@ class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollection
                     name: 'select_collection', // group name
                     label: 'group_select_collection',
                     fields: [
-                        ...commonObjectFields(['boolean', 'number', 'string', 'mixed']),
+                        ...commonObjectFields(ANY_VALUE_TYPES),
                         ...delayFields(),
                         ...selectFields(),
                     ] as RxWidgetInfoAttributesField[],

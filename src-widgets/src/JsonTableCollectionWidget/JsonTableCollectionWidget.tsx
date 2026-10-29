@@ -14,6 +14,7 @@ import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import jsonTableFields from '../lib/jsonTableFields';
+import { JSON_TABLE_TYPES } from '../lib/allowedOidTypes';
 import JsonTableCollection from './JsonTableCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -78,7 +79,7 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
     private static createObjectFields(): RxWidgetInfoAttributesField[] {
         // JSON table renders columns from the JSON data (useJsonTableAnalysis), not from
         // common.states value groups, and has no use for a unit override — drop both sections.
-        const fields = commonObjectFields(['string', 'mixed', 'json'], { unit: false, valueGroups: false });
+        const fields = commonObjectFields(JSON_TABLE_TYPES, { unit: false, valueGroups: false });
         const oidField = fields.find(f => f.name === 'oid');
 
         if (oidField) {

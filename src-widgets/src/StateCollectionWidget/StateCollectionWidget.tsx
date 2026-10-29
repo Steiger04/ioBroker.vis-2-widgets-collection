@@ -11,6 +11,7 @@ import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import stateFields from '../lib/stateFields';
+import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import StateCollection from './StateCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -34,7 +35,7 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
                     name: 'button', // group name
                     label: 'group_button',
                     fields: [
-                        ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
+                        ...commonObjectFields(ANY_VALUE_TYPES),
                         ...delayFields(),
                         ...stateFields(),
                     ] as RxWidgetInfoAttributesField[],

@@ -10,6 +10,7 @@ import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import radioGroupFields from '../lib/radioGroupFields';
+import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import RadioGroupCollection from './RadioGroupCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -40,7 +41,7 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
                     name: 'radioGroup', // group name
                     label: 'radio_group',
                     fields: [
-                        ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
+                        ...commonObjectFields(ANY_VALUE_TYPES),
                         ...delayFields(),
                         ...radioGroupFields(),
                     ] as RxWidgetInfoAttributesField[],

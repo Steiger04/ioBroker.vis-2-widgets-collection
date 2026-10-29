@@ -12,6 +12,7 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
+import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
@@ -66,7 +67,7 @@ function SelectCollection(): React.ReactElement {
 
     const oidType = oidObject?.type;
 
-    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType || '');
+    const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
 
     const valueIndex = useMemo(() => {
         if (oidValue === null || oidValue === undefined) {

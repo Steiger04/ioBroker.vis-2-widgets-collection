@@ -10,6 +10,7 @@ import buttonGroupFields from '../lib/buttonGroupFields';
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
 import type { RxRenderWidgetProps, RxWidgetInfo, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -33,7 +34,7 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
                     name: 'buttonGroup',
                     label: 'button_group',
                     fields: [
-                        ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
+                        ...commonObjectFields(ANY_VALUE_TYPES),
                         ...delayFields(),
                         ...buttonGroupFields(),
                     ] as RxWidgetInfoAttributesField[],
