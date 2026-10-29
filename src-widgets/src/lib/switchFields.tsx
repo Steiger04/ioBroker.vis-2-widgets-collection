@@ -45,7 +45,9 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'trackSize',
         label: 'track_size',
         type: 'slider',
-        min: 0,
+        // 0 would be an invisible widget (0 px track row) and is silently
+        // coerced to the 10% default by the renderer's falsy fallback
+        min: 1,
         max: 100,
         default: 10,
         step: 1,
