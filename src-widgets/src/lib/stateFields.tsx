@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/state-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { createOnlyDisplayField } from './fieldFactories';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -70,14 +71,7 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
             type: 'custom',
             component: () => <CollectionDivider />,
         },
-        {
-            name: 'onlyDisplay',
-            type: 'checkbox',
-            label: 'only_display',
-            disabled: (data, _i) => data.write === false,
-            default: false,
-            hidden: (data, _i) => data.write === false,
-        },
+        createOnlyDisplayField(),
         {
             name: 'noIcon',
             type: 'checkbox',

@@ -9,6 +9,7 @@ vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import {
     createDivider,
+    createOnlyDisplayField,
     hiddenIf,
     hiddenUnless,
     hiddenWhenFalsy,
@@ -81,6 +82,40 @@ describe('createDivider', () => {
     it('omits hidden when not given', () => {
         const field = createDivider('gauge_basic_options');
         expect((field as { hidden?: unknown }).hidden).toBeUndefined();
+    });
+});
+
+describe('createOnlyDisplayField', () => {
+    it('builds the display-only toggle with its write-gate predicates', () => {
+        const field = createOnlyDisplayField() as {
+            name: string;
+            type: string;
+            label: string;
+            default: boolean;
+            disabled: (data: { write?: boolean }) => boolean;
+            hidden: (data: { write?: boolean }) => boolean;
+        };
+        expect(field.name).toBe('onlyDisplay');
+        expect(field.type).toBe('checkbox');
+        expect(field.label).toBe('only_display');
+        expect(field.default).toBe(false);
+    });
+
+    it('hides and disables only for an explicit write === false', () => {
+        const { disabled, hidden } = createOnlyDisplayField() as {
+            disabled: (data: { write?: boolean }) => boolean;
+            hidden: (data: { write?: boolean }) => boolean;
+        };
+        // Missing write stays writable (the isOidReadOnly convention)
+        expect(disabled({})).toBe(false);
+        expect(hidden({})).toBe(false);
+        expect(disabled({ write: true })).toBe(false);
+        expect(disabled({ write: false })).toBe(true);
+        expect(hidden({ write: false })).toBe(true);
+    });
+
+    it('returns a fresh object per call (field lists never share an instance)', () => {
+        expect(createOnlyDisplayField()).not.toBe(createOnlyDisplayField());
     });
 });
 

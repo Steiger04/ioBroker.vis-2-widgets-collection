@@ -8,7 +8,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/switch-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField } from './fieldFactories';
+import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -17,14 +17,7 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    {
-        name: 'onlyDisplay',
-        type: 'checkbox',
-        label: 'only_display',
-        disabled: (data, _i) => data.write === false,
-        default: false,
-        hidden: (data, _i) => data.write === false,
-    },
+    createOnlyDisplayField(),
     {
         name: 'thumbSize',
         label: 'thumb_size',

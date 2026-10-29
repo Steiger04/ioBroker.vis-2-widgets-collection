@@ -14,7 +14,9 @@
  * keys through is a shallow rename (deleting it just moves the keys inline —
  * complexity does not concentrate). Those fields stay as raw object literals
  * with a `hidden` clause; the depth lives here, in the predicates, option
- * constants, and dividers.
+ * constants, and dividers. The one exception is a FIXED field duplicated
+ * verbatim across field lists (`createOnlyDisplayField`): seven hand-synced
+ * copies are drift, not depth.
  * @example
  * // Single color field
  * const sliderColorField = createColorField({
@@ -39,7 +41,11 @@
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 import CollectionDivider from '../components/CollectionDivider';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
-import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
+import type {
+    RxWidgetInfoAttributesField,
+    RxWidgetInfoCustomComponentProperties,
+    WidgetData,
+} from '@iobroker/types-vis-2';
 import type React from 'react';
 
 /**
@@ -304,4 +310,37 @@ export function createDivider(dividerText: string, options?: DividerOptions): Ex
     }
 
     return field;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// onlyDisplay field builder
+//
+// The literal recurred verbatim in seven field lists (buttonGroup, checkbox,
+// radioGroup, select, slider, state, switch) — a label or predicate edit would
+// have to be hand-synced seven times. One builder, seven consumers; the editor
+// flag pairs with the renderer-side write guard `isOidReadOnly`
+// (onlyDisplay || write === false).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Builds the shared `onlyDisplay` field: the display-only toggle of every
+ * interactive widget.
+ *
+ * @returns A fresh field definition per call, so field lists never share one
+ *   object instance with the vis-2 editor.
+ * @remarks
+ * Hidden and disabled while the bound OID is explicitly non-writable
+ * (`write === false`); a missing `write` stays writable by convention — see
+ * {@link module:lib/helper/isOidReadOnly}.
+ * @example createOnlyDisplayField()
+ */
+export function createOnlyDisplayField(): RxWidgetInfoAttributesField {
+    return {
+        name: 'onlyDisplay',
+        type: 'checkbox',
+        label: 'only_display',
+        disabled: (data: WidgetData) => data.write === false,
+        default: false,
+        hidden: (data: WidgetData) => data.write === false,
+    };
 }

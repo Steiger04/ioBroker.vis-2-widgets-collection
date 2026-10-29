@@ -9,8 +9,9 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/checkbox-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { createOnlyDisplayField } from './fieldFactories';
 
-import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 const checkboxFields = (): RxWidgetInfoAttributesField[] => [
     {
@@ -40,14 +41,7 @@ const checkboxFields = (): RxWidgetInfoAttributesField[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    {
-        name: 'onlyDisplay',
-        type: 'checkbox',
-        label: 'only_display',
-        disabled: (data: WidgetData) => data.write === false,
-        default: false,
-        hidden: (data: WidgetData) => data.write === false,
-    },
+    createOnlyDisplayField(),
 ];
 
 export default checkboxFields;

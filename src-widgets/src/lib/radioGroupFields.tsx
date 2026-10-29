@@ -9,7 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/radio-group-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField } from './fieldFactories';
+import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -65,14 +65,7 @@ const radioGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => 
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    {
-        name: 'onlyDisplay',
-        type: 'checkbox',
-        label: 'only_display',
-        disabled: (data: WidgetData, _i) => data.write === false,
-        default: false,
-        hidden: (data: WidgetData, _i) => data.write === false,
-    },
+    createOnlyDisplayField(),
 ];
 
 export default radioGroupFields;

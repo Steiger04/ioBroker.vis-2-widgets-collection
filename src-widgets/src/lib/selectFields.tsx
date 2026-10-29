@@ -9,7 +9,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
-import { createColorField } from './fieldFactories';
+import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -18,14 +18,7 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="selection" />,
     },
-    {
-        name: 'onlyDisplay',
-        type: 'checkbox',
-        label: 'only_display',
-        disabled: (data, _i) => data.write === false,
-        default: false,
-        hidden: (data, _i) => data.write === false,
-    },
+    createOnlyDisplayField(),
     {
         name: 'cid',
         type: 'id',
