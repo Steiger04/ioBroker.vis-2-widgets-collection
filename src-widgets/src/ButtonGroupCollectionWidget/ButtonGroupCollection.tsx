@@ -14,7 +14,7 @@ import useData from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 
@@ -79,8 +79,6 @@ function ButtonGroupCollection(): React.JSX.Element {
                         // activeFieldNumber is the 1-based state field suffix
                         // (value1, value2, …); undefined = no matching state.
                         const isActive = activeFieldNumber === index + 1;
-
-                        const textGradient = gradientColor(state.textColor);
 
                         // String(value!) coerces for MUI's strict === selection,
                         // applying the sameStateValue contract (see group value above).
@@ -151,10 +149,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                 sx={{
                                                     textTransform: 'none',
                                                     fontSize: state.valueSize,
-                                                    background: textGradient,
-                                                    WebkitBackgroundClip: 'text',
-                                                    backgroundClip: 'text',
-                                                    color: textGradient ? 'transparent' : state.textColor,
+                                                    ...gradientTextSx(state.textColor),
                                                 }}
                                             />
                                         </Box>

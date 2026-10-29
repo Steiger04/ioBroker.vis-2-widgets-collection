@@ -16,7 +16,7 @@ import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { RadioGroupCollectionContextProps } from '../types';
 import type { StateStyleData, StyleData } from '../hooks/useData/types';
@@ -236,10 +236,7 @@ function RadioGroupCollection(): React.ReactElement {
                                             wordBreak: 'break-word',
                                             fontSize: state.valueSize,
                                             textAlign: 'left',
-                                            background: gradientColor(state.textColor),
-                                            WebkitBackgroundClip: 'text',
-                                            backgroundClip: 'text',
-                                            color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
+                                            ...gradientTextSx(state.textColor),
                                         }}
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
