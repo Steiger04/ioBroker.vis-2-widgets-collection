@@ -452,8 +452,8 @@ _Avoid_: Prop-Mapping, GaugeProps (retired — the option surface existed in fou
 _Avoid_: Gauge-Wrapper, Gauge-Komponente (when the adapter role is meant)
 
 **Highlight-Zone**:
-A range segment derived from the widget's value rows (`states[i].value … states[i+1].value`, last zone stretched to the effective max): canvas highlight arc + the styling overrides of the active zone (frame/background/icon). Half-open intervals, closed only at the absolute max (`findSegment`); a boundary of exactly 0 is a real limit (`??`, not `||`). Still computed inline in GaugeCollection — extracting it into its own module is the K3 candidate (together with replacing the imperative paper0/paper1 styling with a declarative channel through CollectionBase).
-_Avoid_: Highlight-Bereich, Farbsegment (unsaid that it is range- AND style-bearing)
+A range segment derived from the widget's value rows (`states[i].value … states[i+1].value`, last zone stretched to the effective max): canvas highlight arc + the styling overrides of the active zone (frame/background/icon). Half-open intervals, closed only at the absolute max (`findSegment`); a boundary of exactly 0 is a real limit (`??`, not `||`). Owns its pure module (`gaugeSegments.ts`: findSegment, buildHighlights, resolveSegmentFrame/Background — K3). The active zone's styling flows DECLARATIVELY: GaugeCollection pre-composes the resolved segment colors into the `data` CollectionBase renders (`baseData`); the retired path wrote inline styles through the imperative `paper0`/`paper1` handle (getters removed). Without an active zone the base data passes through unchanged — the gauge renders exactly like every other Collection widget (gradient frames included).
+_Avoid_: Highlight-Bereich, Farbsegment (unsaid that it is range- AND style-bearing), paper0/paper1-Übergriff (retired)
 
 **Klassenwahl**:
 `gaugeType` — 'linear' | 'radial'. Not a display option but the choice of the canvas-gauges class; carried in the option object so class switches are detected on the adapter seam and the editor hides type-specific fields (`hiddenUnless('gaugeType', …)`).

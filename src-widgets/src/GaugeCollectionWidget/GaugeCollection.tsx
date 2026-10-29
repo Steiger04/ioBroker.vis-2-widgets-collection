@@ -4,18 +4,20 @@
  * @module widgets/GaugeCollection
  * @remarks
  * Owns everything the Options-Builder cannot know: the measured dimensions,
- * the current value, the Highlight-Zones derived from the state rows (K3 will
- * extract that segment model) and the segment-driven frame styling. The
- * canvas-gauges option object itself comes from
- * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}.
+ * the current value and the Highlight-Zones derived from the state rows
+ * ({@link module:GaugeCollectionWidget/gaugeSegments}). The canvas-gauges
+ * option object comes from
+ * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}; the
+ * active zone's styling is pre-composed into the `data` CollectionBase
+ * renders — no imperative DOM writes (K3).
  */
 
 import { Box } from '@mui/material';
-import React, { useContext, useRef, useMemo, useEffect, useState } from 'react';
-import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
+import React, { useContext, useMemo, useState } from 'react';
+import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
-import useData, { type StyleData } from '../hooks/useData';
+import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
@@ -23,59 +25,20 @@ import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
 import gaugeFields from '../lib/gaugeFields';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
+import { buildHighlights, findSegment, resolveSegmentBackground, resolveSegmentFrame } from './gaugeSegments';
 
 /**
- * Highlight segment for the gauge (range + styling overrides).
- */
-export interface Highlight {
-    from: number;
-    to: number;
-    color: string;
-    state: Pick<
-        StyleData,
-        | 'textColor'
-        | 'icon'
-        | 'iconColor'
-        | 'forceColorMask'
-        | 'iconSize'
-        | 'iconSizeOnly'
-        | 'iconXOffset'
-        | 'iconYOffset'
-        | 'frameBackgroundColor'
-        | 'frameBackgroundColorActive'
-        | 'backgroundColor'
-        | 'backgroundColorActive'
-        | 'background'
-        | 'backgroundActive'
-        | 'frameBackground'
-        | 'frameBackgroundActive'
-    >;
-}
-
-/**
- * Returns the highlight segment for a given value.
- */
-const findSegment = (highlights: Highlight[], value: number, maxValue: number): Highlight | null => {
-    const segment = highlights.find(highlight => {
-        return value >= highlight.from && (value < highlight.to || (value === highlight.to && value === maxValue));
-    });
-    return segment || null;
-};
-
-/**
- * Renders a canvas-gauges based gauge and updates frame/background based on the active segment.
+ * Renders a canvas-gauges based gauge; the active Highlight-Zone restyles
+ * frame and content through the pre-composed style data.
  */
 function GaugeCollection(): React.JSX.Element {
-    const baseRef = useRef<CollectionBaseHandle>(null);
     const [gaugeElement, setGaugeElement] = useState<HTMLDivElement | null>(null);
     const { width: gaugeWidth, height: gaugeHeight } = useElementDimensions(gaugeElement);
 
     const context = useContext(CollectionContext) as GaugeCollectionContextProps;
     const {
-        wrappedContent,
         theme,
         widget: {
             data: { oidObject },
@@ -104,31 +67,28 @@ function GaugeCollection(): React.JSX.Element {
         [gaugeMinValue, minValue, gaugeMaxValue, maxValue],
     );
 
-    const highlights = useMemo(() => {
-        const _highlights = states.map((state, index) => {
-            // `??` (not `||`): a next boundary of exactly 0 is a real limit, not "unset".
-            const nextValue = states[index + 1]?.value ?? effectiveMaxValue;
-
-            return {
-                from: Number(state.value),
-                to: Number(nextValue),
-                color: extractColorFromValue(state.textColor) || 'transparent',
-                state: { ...state },
-            };
-        });
-
-        // Set the last highlight to maxValue if the last state value is less than maxValue
-        if (states.length > 0 && Number(states[states.length - 1].value) < effectiveMaxValue) {
-            _highlights[_highlights.length - 1].to = effectiveMaxValue;
-        }
-
-        return _highlights;
-    }, [states, effectiveMaxValue]);
+    const highlights = useMemo(() => buildHighlights(states, effectiveMaxValue), [states, effectiveMaxValue]);
 
     const segment = useMemo(
         () => findSegment(highlights, Number(oidValue) || 0, effectiveMaxValue),
         [highlights, oidValue, effectiveMaxValue],
     );
+
+    // Active-zone styling, declaratively: the resolved segment colors are composed INTO
+    // the style data CollectionBase renders through its sx cascade — the replacement for
+    // the retired paper0/paper1 imperative handle writes. Without an active zone (or when
+    // the zone sets nothing) the base data passes through unchanged, exactly like every
+    // other Collection widget.
+    const baseData = useMemo(() => {
+        if (!segment) {
+            return data;
+        }
+        return {
+            ...data,
+            frameBackground: resolveSegmentFrame(segment) ?? data.frameBackground,
+            background: resolveSegmentBackground(segment) ?? data.background,
+        };
+    }, [data, segment]);
 
     // Complete canvas-gauges option set — coercion, defaults, the color contract
     // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
@@ -166,64 +126,10 @@ function GaugeCollection(): React.JSX.Element {
         segment?.state.forceColorMask ?? false,
     );
 
-    const paper0 = baseRef.current?.paper0;
-    const paper1 = baseRef.current?.paper1;
-
-    useEffect(() => {
-        if (paper0 && paper1) {
-            if (segment) {
-                paper0.style.borderColor =
-                    (!wrappedContent &&
-                        (segment?.state.frameBackgroundColorActive || segment?.state.frameBackgroundColor || null)) ||
-                    '';
-
-                paper0.style.background =
-                    segment?.state.frameBackgroundColorActive ||
-                    segment?.state.frameBackgroundColor ||
-                    segment?.state.frameBackgroundActive ||
-                    segment?.state.frameBackground ||
-                    null ||
-                    '';
-                // ----------------------------------------------------------
-                paper1.style.borderColor =
-                    (!wrappedContent &&
-                        (segment?.state.backgroundColorActive || segment?.state.backgroundColor || null)) ||
-                    '';
-
-                paper1.style.background =
-                    segment?.state.backgroundColorActive ||
-                    segment?.state.backgroundColor ||
-                    segment?.state.backgroundActive ||
-                    segment?.state.background ||
-                    null ||
-                    '';
-            } else {
-                paper0.style.borderColor = '';
-
-                paper0.style.background = data.frameBackgroundColor || data.frameBackground || null || '';
-                // ----------------------------------------------------------
-                paper1.style.borderColor = '';
-
-                paper1.style.background = data.backgroundColor || data.background || null || '';
-            }
-        }
-    }, [
-        paper0,
-        paper1,
-        wrappedContent,
-        segment,
-        widget.data,
-        data.frameBackgroundColor,
-        data.frameBackground,
-        data.backgroundColor,
-        data.background,
-    ]);
-
     return (
         <CollectionBase
-            ref={baseRef}
             isValidType={isValidType}
-            data={data}
+            data={baseData}
             oidValue={oidValue}
         >
             <CollectionBaseImage

@@ -42,10 +42,13 @@ interface CollectionBaseProps {
 
 /**
  * Imperative handle for accessing key DOM nodes.
+ *
+ * @remarks
+ * The paper0/paper1 getters were retired with the Gauge Highlight-Zone
+ * rework (K3): the active-zone styling flows declaratively through the
+ * pre-composed `data`, so no widget reaches into the papers' DOM anymore.
  */
 export interface CollectionBaseHandle {
-    paper0: HTMLDivElement | null;
-    paper1: HTMLDivElement | null;
     header: HTMLSpanElement | null;
 }
 
@@ -59,8 +62,6 @@ export interface CollectionBaseHandle {
 const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
     ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
         // Consolidated refs
-        const paper0Ref = useRef<HTMLDivElement>(null);
-        const paper1Ref = useRef<HTMLDivElement>(null);
         // const containerRef = useRef<HTMLDivElement>(null);
         const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
         const headerRef = useRef<HTMLSpanElement>(null);
@@ -180,12 +181,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         }, [footerValue, widget.data.noFooter]);
 
         useImperativeHandle(baseRef, () => ({
-            get paper0() {
-                return paper0Ref?.current ?? null;
-            },
-            get paper1() {
-                return paper1Ref?.current ?? null;
-            },
             get header() {
                 return headerRef?.current ?? null;
             },
@@ -193,7 +188,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
 
         return (
             <Paper
-                ref={paper0Ref}
                 className="BASE-PAPER-0"
                 square={widget.data.squaredCorner}
                 variant={widget.data.outlinedFrame ? 'outlined' : 'elevation'}
@@ -237,7 +231,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             }}
                         >
                             <Paper
-                                ref={paper1Ref}
                                 className="BASE-PAPER-1"
                                 elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
                                 square={!widget.data.basePadding || widget.data.squaredCorner}
