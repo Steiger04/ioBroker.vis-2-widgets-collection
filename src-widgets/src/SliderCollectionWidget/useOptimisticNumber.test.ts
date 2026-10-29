@@ -5,7 +5,8 @@ import { adoptBackendValue, initLocalValue } from './useOptimisticNumber';
 // The pure transitions pin the three documented sync cases (the hook itself is
 // a thin React shell around them — useEditorHistory pattern):
 // - Init: adopt a backend number only while nothing local exists.
-// - Echo: covered by useValueState's ignore window (not re-tested here).
+// - Echo: covered by useValueState's ignore window (useValueState.test.ts /
+//   useValueState.hook.test.ts pin the decideBackendChange precedence).
 // - Non-numeric: a significant backend change dismantles the slider.
 
 describe('initLocalValue', () => {

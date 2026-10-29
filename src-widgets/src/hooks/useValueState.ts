@@ -81,7 +81,11 @@ export function convertToOidType(
  * @returns `true` if the change is considered significant.
  * @remarks
  * This is only evaluated when the backend "last change" timestamp has changed.
- * For numeric-like values, a delta of at least 1 is treated as significant.
+ * Type-aware (ADR-0087): while both sides coerce to finite numbers, a delta of
+ * at least 1 is significant (the numeric jitter filter); as soon as one side
+ * does not coerce (pure strings like `"#ff0000"` or `"an"`/`"aus"`), ANY change
+ * is significant — the former `NaN >= 1` comparison silently swallowed those
+ * forever.
  */
 export function isSignificantBackendChange(
     prevValue: string | number | boolean | undefined | null,
@@ -96,6 +100,10 @@ export function isSignificantBackendChange(
 
     const prevNum = Number(prevValue ?? 0);
     const currNum = Number(currentValue ?? 0);
+
+    if (!Number.isFinite(prevNum) || !Number.isFinite(currNum)) {
+        return true;
+    }
 
     return Math.abs(prevNum - currNum) >= 1;
 }

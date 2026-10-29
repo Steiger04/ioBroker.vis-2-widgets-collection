@@ -6,9 +6,9 @@
  * Pins what the hook adds AROUND {@link module:hooks/useValueState.test} (the pure
  * decision logic): the `updateValue` guards (no OID, read-only, rejected
  * conversion), the optimistic `setState` shape (`.val` + `.lc` sentinel) and the
- * ignore-window echo absorption end-to-end. The pure transitions' semantics —
- * including the string-significance status quo — are pinned in the node-project
- * suite; the string case here mirrors it once for the composed path.
+ * ignore-window echo absorption end-to-end. The pure transitions' semantics
+ * (ADR-0087) are pinned in the node-project suite; the string case here
+ * mirrors it once for the composed path.
  */
 import { act } from 'react';
 import { createElement, type FC } from 'react';
@@ -222,7 +222,7 @@ describe('useValueState hook', () => {
         unmount();
     });
 
-    it('STATUS QUO: a foreign string change past the window stays unflagged', async () => {
+    it('flags a foreign string change past the window (ADR-0087)', async () => {
         const box = makeBox(stringOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 'an' });
         const { captured, rerender, unmount } = mount(box);
 
@@ -231,8 +231,8 @@ describe('useValueState hook', () => {
         await flushWrites(2000);
         rerender();
 
-        // NaN heuristic — flips together with the pure suite in the fix commit.
-        expect(captured.current?.hasBackendChange).toBe(false);
+        // One non-coercing side ('an'/'aus') → any change is significant.
+        expect(captured.current?.hasBackendChange).toBe(true);
         unmount();
     });
 });

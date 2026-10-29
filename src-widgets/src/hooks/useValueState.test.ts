@@ -5,9 +5,9 @@
  * @remarks
  * Pins the echo/significance contract WITHOUT React: type conversion, the
  * significance heuristic and the window/sentinel precedence of
- * {@link decideBackendChange}. The string cases document the STATUS QUO
- * (purely non-numeric changes are never significant because `Number()` yields
- * `NaN`); the follow-up fix commit flips exactly those expectations.
+ * {@link decideBackendChange}. Since ADR-0087 significance is type-aware:
+ * numeric-like pairs keep the delta ≥ 1 jitter filter, any pair with a
+ * non-coercing side (pure strings) counts every change.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -72,13 +72,12 @@ describe('isSignificantBackendChange', () => {
         expect(isSignificantBackendChange(100, 100.4)).toBe(false);
     });
 
-    it('STATUS QUO: purely non-numeric string changes are never significant', () => {
-        // Number('#ff0000') is NaN → Math.abs(NaN) >= 1 is false. This is the
-        // documented gap the follow-up fix commit flips (Input error marking and
-        // Light2 rgb-hex sync depend on it).
-        expect(isSignificantBackendChange('#ff0000', '#00ff00')).toBe(false);
-        expect(isSignificantBackendChange('an', 'aus')).toBe(false);
-        expect(isSignificantBackendChange('x', '')).toBe(false);
+    it('treats purely non-numeric string changes as always significant (ADR-0087)', () => {
+        // Number('#ff0000') is NaN — one non-coercing side makes ANY change
+        // significant (the former NaN >= 1 comparison swallowed these forever).
+        expect(isSignificantBackendChange('#ff0000', '#00ff00')).toBe(true);
+        expect(isSignificantBackendChange('an', 'aus')).toBe(true);
+        expect(isSignificantBackendChange('x', '')).toBe(true);
     });
 
     it('treats numeric-to-blank changes as significant (Number("") is 0)', () => {
@@ -133,9 +132,9 @@ describe('decideBackendChange', () => {
         expect(decision.significant).toBe(false);
     });
 
-    it('STATUS QUO: a foreign string change stays insignificant (NaN heuristic)', () => {
+    it('flags a foreign string change outside the window (ADR-0087)', () => {
         const decision = decideBackendChange({ lc: 1000, value: '#ff0000' }, { lc: 2000, value: '#00ff00' }, 0, 5000);
 
-        expect(decision.significant).toBe(false);
+        expect(decision.significant).toBe(true);
     });
 });
