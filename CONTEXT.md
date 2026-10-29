@@ -436,3 +436,29 @@ The dimmer/value slider of the collection (thumb, track, rail, marks, min/max ic
 **Chrome-Farbvertrag**:
 The color cascade of the slider's chrome parts (thumb, track, rail, marks) — DECLARED by the field definitions (`sliderFields` → `sliderColorContracts`: `fallbackFields` + terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`) and RESOLVED in exactly one runtime place (`buildSliderChromeStyles` via `resolveEffectiveColor`, ADR-0004). Background slots keep their raw value (gradients allowed); border/shadow slots go solid via `extractColorFromValue`. Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine.
 _Avoid_: Slider-Farbregeln, Farbkaskade (unsaid WHICH contract), mixing chrome slots with label/state colors
+
+# Gauge Collection Widget
+
+The canvas-gauge of the collection (linear or radial instrument on a canvas, driven by a numeric OID). This glossary pins down the seam language introduced with the Options-Builder.
+
+## Language
+
+**Options-Builder**:
+`buildGaugeOptions(fields, rxData, ctx)` in `GaugeCollectionWidget/gaugeOptions.ts` — the ONE seam between the field definitions (`lib/gaugeFields.tsx`) and the canvas-gauges instance. Maps fields by the `gaugeX → x` prefix convention, coerces unset/''/NaN to the SCHEMA DEFAULT (never `Number('') === 0`, never a hidden library default), computes the specials (min/max with object fallback, major tick array, dimensions minus padding, value/unit/title/highlights) and resolves contract colors (ADR-0004, introspected by `terminal`). The fields are INJECTED — that is what keeps the builder testable in the node env; the parity invariant (`gaugeFields.parity.test.ts`) pins that every field maps or is a known special.
+_Avoid_: Prop-Mapping, GaugeProps (retired — the option surface existed in four hand-synchronised copies), option list
+
+**Canvas-Adapter**:
+`Gauge.tsx` — the pure adapter at the canvas-gauges seam: mounts the class selected by `gaugeType` (which travels INSIDE the option object so `update()` keeps it stable), applies content-keyed option changes, recreates on a class switch, destroys on unmount. Owns no widget logic; its interface is a single `options` prop.
+_Avoid_: Gauge-Wrapper, Gauge-Komponente (when the adapter role is meant)
+
+**Highlight-Zone**:
+A range segment derived from the widget's value rows (`states[i].value … states[i+1].value`, last zone stretched to the effective max): canvas highlight arc + the styling overrides of the active zone (frame/background/icon). Half-open intervals, closed only at the absolute max (`findSegment`); a boundary of exactly 0 is a real limit (`??`, not `||`). Still computed inline in GaugeCollection — extracting it into its own module is the K3 candidate (together with replacing the imperative paper0/paper1 styling with a declarative channel through CollectionBase).
+_Avoid_: Highlight-Bereich, Farbsegment (unsaid that it is range- AND style-bearing)
+
+**Klassenwahl**:
+`gaugeType` — 'linear' | 'radial'. Not a display option but the choice of the canvas-gauges class; carried in the option object so class switches are detected on the adapter seam and the editor hides type-specific fields (`hiddenUnless('gaugeType', …)`).
+_Avoid_: Gauge-Typ (when the class-switch semantics are meant)
+
+**Farb-Klassen A/B/C**:
+The gauge's color fields split by contract (ADR-0004): A = text-bearing (title, units, numbers, value text, ticks) → terminal `text` + `inheritTextStyle`; B = accent (needle, needle end, bar progress) → terminal `primary`; C = surfaces/shading (plate, borders, value box, shadows, needle circles, bar strokes) → plain schema-default hex fields, deliberately WITHOUT terminal (works on both themes; a terminal can be added per field without touching the builder).
+_Avoid_: Theme-Farben (unsaid which class), mixing C fields into the contract without deciding their terminal
