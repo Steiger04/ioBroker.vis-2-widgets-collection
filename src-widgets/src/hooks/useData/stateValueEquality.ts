@@ -2,7 +2,6 @@
  * State value equality contract.
  *
  * @module hooks/useData/stateValueEquality
- * @since 2.6.1
  */
 
 /**
@@ -10,12 +9,12 @@
  * OID value describe the same state.
  *
  * Two values count as "the same state" exactly when their string coercions are
- * equal (`String(a) === String(b)`). ioBroker delivers the same logical value
- * as `1` or `'1'` depending on source and state type, so every activity check
- * — the state loop and index search inside `useData`, the button-group value
- * matching, the radio `checked` comparison — must go through this function
- * instead of a type-strict comparison. A strict `===` would mark `1` and `'1'`
- * as different states.
+ * equal (`String(configured) === String(backend)`). ioBroker delivers the
+ * same logical value as `1` or `'1'` depending on source and state type, so
+ * every activity check — the state loop and index search inside `useData`,
+ * the button-group value matching, the radio `checked` comparison — must go
+ * through this function instead of a type-strict comparison. A strict `===`
+ * would mark `1` and `'1'` as different states.
  *
  * **Edge cases** (frozen legacy behavior, characterized in
  * `stateValueEquality.test.ts`):
@@ -28,16 +27,15 @@
  *   `NaN` special-casing, so a backend value whose string form is literally
  *   `'NaN'` would match. This quirk is deliberately not "fixed".
  *
- * @param a - First value (e.g. the configured state value)
- * @param b - Second value (e.g. the current backend OID value)
+ * @param configured - The configured state value (e.g. a button's value)
+ * @param backend - The current backend OID value
  * @returns true when both values share the same string coercion
- * @since 2.6.1
  * @example
  * ```typescript
  * sameStateValue(1, '1'); // true — number state matches string backend value
  * sameStateValue(null, undefined); // false — 'null' vs 'undefined'
  * ```
  */
-export function sameStateValue(a: unknown, b: unknown): boolean {
-    return String(a) === String(b);
+export function sameStateValue(configured: unknown, backend: unknown): boolean {
+    return String(configured) === String(backend);
 }

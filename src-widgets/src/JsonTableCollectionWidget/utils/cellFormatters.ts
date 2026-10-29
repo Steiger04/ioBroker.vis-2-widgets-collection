@@ -196,10 +196,12 @@ export function applyConditionalStyle(
                 }
             }
             if (rule.textColor && !('color' in textSx) && !('background' in textSx)) {
-                // frozen JSON-table shape: only the gradient branch carries
-                // the clip incantation, a solid colour paints the text alone
-                if (gradientColor(rule.textColor)) {
-                    Object.assign(textSx, gradientTextSx(rule.textColor));
+                // frozen JSON-table shape: only the gradient fragment —
+                // recognized by its truthy background — carries the clip
+                // incantation, a solid colour paints the text alone
+                const textFrag = gradientTextSx(rule.textColor);
+                if (textFrag.background) {
+                    Object.assign(textSx, textFrag);
                 } else {
                     textSx.color = rule.textColor;
                 }

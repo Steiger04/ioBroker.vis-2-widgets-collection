@@ -187,6 +187,9 @@ function ConditionalStyleEditor({
                 const ruleCount = (cellStyle || []).length;
                 // Pre-compute the background gradient to avoid repeated calls in JSX
                 const bgGradient = rule.backgroundColor ? gradientColor(rule.backgroundColor) : undefined;
+                // Pre-compute the text fragment; its background is truthy exactly for
+                // gradient input, so the preview below branches on the fragment itself
+                const textFrag = gradientTextSx(rule.textColor);
 
                 return (
                     <Paper
@@ -340,12 +343,13 @@ function ConditionalStyleEditor({
                                         variant="body2"
                                         sx={{
                                             // frozen JSON-table shape: only the
-                                            // gradient branch carries the clip
-                                            // incantation, a solid colour paints
-                                            // the text alone, no colour inherits
+                                            // gradient fragment (truthy background)
+                                            // carries the clip incantation, a solid
+                                            // colour paints the text alone, no
+                                            // colour inherits
                                             ...(rule.textColor
-                                                ? gradientColor(rule.textColor)
-                                                    ? gradientTextSx(rule.textColor)
+                                                ? textFrag.background
+                                                    ? textFrag
                                                     : { color: rule.textColor }
                                                 : { color: 'inherit' }),
                                         }}
