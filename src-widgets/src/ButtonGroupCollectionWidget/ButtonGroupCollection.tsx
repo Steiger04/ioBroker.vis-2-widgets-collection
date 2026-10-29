@@ -45,8 +45,11 @@ function getButtonColorStyles(bgColor: string | null | undefined): {
 }
 
 function ButtonGroupCollection(): React.JSX.Element {
-    const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
-    const { widget, theme } = context;
+    const context = useContext(CollectionContext);
+    if (!context) {
+        throw new Error('ButtonGroupCollection must be used within a CollectionProvider');
+    }
+    const { widget, theme } = context as ButtonGroupCollectionContextProps;
 
     const oidObject = widget.data.oidObject;
     const { data: styleData, states: buttonStates, activeIndex } = useData('oid');
