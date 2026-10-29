@@ -28,7 +28,7 @@ function ButtonGroupCollection(): React.JSX.Element {
     const { widget, theme } = context as ButtonGroupCollectionContextProps;
 
     const oidObject = widget.data.oidObject;
-    const { data: styleData, states: buttonStates, activeIndex } = useData('oid');
+    const { data: styleData, states: buttonStates, activeFieldNumber } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
@@ -56,6 +56,10 @@ function ButtonGroupCollection(): React.JSX.Element {
             />
 
             <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
+                {/* MUI compares the group value against each button value with strict
+                    === internally. Coercing both sides to string applies the
+                    sameStateValue contract (hooks/useData) through that strict equality —
+                    keep the coercion, it is not redundant. */}
                 <ToggleButtonGroup
                     exclusive
                     value={String(oidValue)}
@@ -72,11 +76,14 @@ function ButtonGroupCollection(): React.JSX.Element {
                     })}
                 >
                     {buttonStates.map(({ value, ...state }, index) => {
-                        // activeIndex is 1-based (0 / undefined = no selection)
-                        const isActive = activeIndex === index + 1;
+                        // activeFieldNumber is the 1-based state field suffix
+                        // (value1, value2, …); undefined = no matching state.
+                        const isActive = activeFieldNumber === index + 1;
 
                         const textGradient = gradientColor(state.textColor);
 
+                        // String(value!) coerces for MUI's strict === selection,
+                        // applying the sameStateValue contract (see group value above).
                         return (
                             <ToggleButton
                                 value={String(value!)}

@@ -367,8 +367,19 @@ export interface UseDataResult {
     /** Resolved style/presentation data for current state */
     data: StyleData;
 
-    /** Currently active state index (1-based) or undefined */
-    activeIndex: number | undefined;
+    /**
+     * Field-suffix number of the currently active state, or undefined when no
+     * state matches the current OID value.
+     *
+     * @remarks
+     * State fields are numbered from 1 (`value1`, `value2`, …) and the same
+     * number is the suffix of the state-specific style resolution
+     * (`resolveStyleData(1)`, `resolveStyleData(2)`, …). This is NOT a 0-based
+     * array index: `states[i]` belongs to field number `i + 1`. Deliberately
+     * not rebased to 0-based — the slider consumer relies on truthiness, and
+     * field number 1 (the first state) must stay truthy.
+     */
+    activeFieldNumber: number | undefined;
 
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;

@@ -5,7 +5,7 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useData, { sameStateValue } from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
@@ -60,7 +60,7 @@ function StateCollection(): React.ReactElement {
                 break;
             case 2:
                 if (widget.data.value1 !== undefined && widget.data.value2 !== undefined) {
-                    !widget.data.statePushButton && String(oidValue) === String(widget.data.value1)
+                    !widget.data.statePushButton && sameStateValue(oidValue, widget.data.value1)
                         ? setOidValueState(widget.data.value2)
                         : setOidValueState(widget.data.value1);
                 }

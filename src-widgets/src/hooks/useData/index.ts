@@ -33,7 +33,7 @@
  * import { useData } from '../hooks/useData';
  *
  * function MyWidget() {
- *   const { states, data, activeIndex } = useData('oid');
+ *   const { states, data, activeFieldNumber } = useData('oid');
  *
  *   return (
  *     <div>
@@ -43,7 +43,7 @@
  *           key={index}
  *           style={{
  *             backgroundColor:
- *               activeIndex === index + 1
+ *               activeFieldNumber === index + 1
  *                 ? state.backgroundActive
  *                 : state.backgroundColor
  *           }}
@@ -55,6 +55,13 @@
  *   );
  * }
  * ```
+ *
+ * **`activeFieldNumber`** is the 1-based state field suffix, not a 0-based array
+ * index: state fields are numbered (`value1`, `value2`, …) and the same number
+ * keys the state-specific style resolution (`resolveStyleData(1)`, …).
+ * `states[i]` belongs to field number `i + 1`; `undefined` means no state
+ * matches the current OID value. State equality itself goes through
+ * `sameStateValue` (string-coercion contract), also exported below.
  * @example
  * Advanced usage with slider properties:
  * ```typescript
@@ -97,3 +104,4 @@ export type { PriorityOption, SliderProperties } from './types';
 export { resolvePriority } from './priorityResolver';
 export { createSliderResolver, createDefaultResolver } from './widgetResolvers';
 export { getStyleData } from './styleDataResolver';
+export { sameStateValue } from './stateValueEquality';
