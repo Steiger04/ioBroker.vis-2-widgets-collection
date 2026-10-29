@@ -9,7 +9,14 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/gauge-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createDivider, hiddenUnless, fontStyleOptions, fontWeightOptions, sideOptions } from './fieldFactories';
+import {
+    createColorField,
+    createDivider,
+    hiddenUnless,
+    fontStyleOptions,
+    fontWeightOptions,
+    sideOptions,
+} from './fieldFactories';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -399,54 +406,63 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         label: 'gauge_color_plate_end',
         default: 'rgba(0,0,0,0)',
     },
-    {
+    // Text-bearing colors (class A of the gauge color contract, ADR-0004): inherit the
+    // vis-2 widget text color when set, theme text color otherwise — readable on dark themes.
+    createColorField({
         name: 'gaugeColorMajorTicks',
-        type: 'color',
         label: 'gauge_color_major_ticks',
-        default: '#444',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    createColorField({
         name: 'gaugeColorMinorTicks',
-        type: 'color',
         label: 'gauge_color_minor_ticks',
-        default: '#666',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    createColorField({
         name: 'gaugeColorStrokeTicks',
-        type: 'color',
         label: 'gauge_color_stroke_ticks',
-        default: '#444',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    createColorField({
         name: 'gaugeColorTitle',
-        type: 'color',
         label: 'gauge_color_title',
-        default: '#888',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    createColorField({
         name: 'gaugeColorUnits',
-        type: 'color',
         label: 'gauge_color_units',
-        default: '#888',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    createColorField({
         name: 'gaugeColorNumbers',
-        type: 'color',
         label: 'gauge_color_numbers',
-        default: '#444',
-    },
-    {
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
+    // Accent colors (class B): theme primary is the default.
+    createColorField({
         name: 'gaugeColorNeedle',
-        type: 'color',
         label: 'gauge_color_needle',
-        default: 'rgba(240,128,128,1)',
-    },
-    {
+        noGradient: true,
+        terminal: 'primary',
+    }),
+    createColorField({
         name: 'gaugeColorNeedleEnd',
-        type: 'color',
         label: 'gauge_color_needle_end',
-        default: 'rgba(255,160,122,.9)',
-    },
+        noGradient: true,
+        terminal: 'primary',
+    }),
     {
         name: 'gaugeColorValueText',
         type: 'color',
@@ -549,12 +565,12 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         label: 'gauge_color_bar',
         default: '#ccc',
     },
-    {
+    createColorField({
         name: 'gaugeColorBarProgress',
-        type: 'color',
         label: 'gauge_color_bar_progress',
-        default: '#888',
-    },
+        noGradient: true,
+        terminal: 'primary',
+    }),
     {
         name: 'gaugeHighlightsLineCap',
         type: 'select',

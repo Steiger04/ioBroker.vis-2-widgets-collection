@@ -11,6 +11,12 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
+import type { Theme } from '@mui/material';
+
+/** Minimal fake theme for the color-contract terminals. */
+const theme = {
+    palette: { primary: { main: '#1976d2' }, text: { primary: 'rgba(0,0,0,0.87)' }, background: { paper: '#fff' } },
+} as unknown as Theme;
 
 // gaugeFields pulls fieldFactories → CollectionGradientColorPicker/CollectionDivider,
 // which pull Generic, which extends window.visRxWidget — undefined outside the vis-2
@@ -86,6 +92,8 @@ function buildFullyPopulated(): Record<string, unknown> {
         unit: '°C',
         header: 'Title',
         highlights: [],
+        theme,
+        textStyles: undefined,
     }) as Record<string, unknown>;
 }
 

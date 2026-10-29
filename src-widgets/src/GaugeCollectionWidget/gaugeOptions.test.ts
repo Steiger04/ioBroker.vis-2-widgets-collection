@@ -12,11 +12,21 @@
 import { describe, it, expect } from 'vitest';
 
 import type { GaugeOptions } from 'canvas-gauges';
+import type { Theme } from '@mui/material';
 
-import { buildGaugeOptions, resolveGaugeRange, type GaugeOptionsContext } from './gaugeOptions';
+import { buildGaugeOptions, resolveGaugeRange, type BuilderField, type GaugeOptionsContext } from './gaugeOptions';
+
+/** Minimal fake theme (same pattern as SliderCollectionWidget/chrome.test.ts). */
+const theme = {
+    palette: {
+        primary: { main: '#1976d2' },
+        text: { primary: 'rgba(0,0,0,0.87)' },
+        background: { paper: '#ffffff' },
+    },
+} as unknown as Theme;
 
 /** One field per branch of the builder's type switch + all special fields. */
-const FIELDS = [
+const FIELDS: BuilderField[] = [
     { name: 'gaugeType', type: 'select', default: 'linear' },
     { name: 'gaugeBarWidth', type: 'number', default: 20 },
     { name: 'gaugeNeedleStart', type: 'number', default: 5 },
@@ -35,6 +45,14 @@ const FIELDS = [
     { name: 'gaugeMajorTicks', type: 'number', default: 10 },
     // Editor-only custom field (divider) — must not become an option
     { name: 'allFieldsDivider', type: 'custom' },
+    // Color-contract fields (createColorField products, ADR-0004)
+    {
+        name: 'gaugeColorTitle',
+        type: 'custom',
+        terminal: 'text',
+        inheritTextStyle: true,
+    },
+    { name: 'gaugeColorNeedle', type: 'custom', terminal: 'primary' },
 ];
 
 const CTX: GaugeOptionsContext = {
@@ -44,6 +62,8 @@ const CTX: GaugeOptionsContext = {
     unit: '°C',
     header: 'Title',
     highlights: [],
+    theme,
+    textStyles: undefined,
 };
 
 const build = (data: Record<string, unknown>, ctx = CTX): GaugeOptions => buildGaugeOptions(FIELDS, data, ctx);
@@ -100,6 +120,29 @@ describe('buildGaugeOptions — string and boolean coercion', () => {
     it('keeps an empty text default as empty string', () => {
         expect(build({}).valueText).toBe('');
         expect(build({ gaugeValueText: 'ON' }).valueText).toBe('ON');
+    });
+});
+
+describe('buildGaugeOptions — color contract fields (ADR-0004)', () => {
+    it('lets an explicit valid color win', () => {
+        expect(build({ gaugeColorTitle: '#ff0000' }).colorTitle).toBe('#ff0000');
+        expect(build({ gaugeColorNeedle: 'rgba(240,128,128,1)' }).colorNeedle).toBe('rgba(240,128,128,1)');
+    });
+
+    it('resolves unset contract fields to their terminal color (dark-theme fix)', () => {
+        expect(build({}).colorTitle).toBe('rgba(0,0,0,0.87)');
+        expect(build({}).colorNeedle).toBe('#1976d2');
+    });
+
+    it('inherits the vis-2 widget text color before the terminal', () => {
+        const options = build({}, { ...CTX, textStyles: { color: '#00ff00' } });
+        expect(options.colorTitle).toBe('#00ff00');
+        // Without inheritTextStyle the widget color is NOT picked up:
+        expect(options.colorNeedle).toBe('#1976d2');
+    });
+
+    it('falls through an invalid explicit value to the cascade', () => {
+        expect(build({ gaugeColorTitle: 'not-a-color' }).colorTitle).toBe('rgba(0,0,0,0.87)');
     });
 });
 

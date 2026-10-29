@@ -20,6 +20,9 @@
  */
 
 import type { GaugeOptions } from 'canvas-gauges';
+import type { Theme } from '@mui/material';
+
+import { resolveEffectiveColor, type ColorFieldContract, type StyleColor } from '../lib/helper/resolveEffectiveColor';
 
 /**
  * Field slice the builder reads. Structurally satisfied by both plain schema
@@ -33,6 +36,8 @@ export interface BuilderField {
     default?: unknown;
     /** Color-contract marker (set by `createColorField`); absent on plain fields. */
     terminal?: ColorTerminal | undefined;
+    fallbackFields?: string[] | undefined;
+    inheritTextStyle?: boolean | undefined;
 }
 
 // Re-declared locally to keep the builder free of editor imports in the node test env.
@@ -52,6 +57,10 @@ export interface GaugeOptionsContext {
     header?: string;
     /** Pre-built highlight zones from the widget's state rows. */
     highlights: GaugeOptions['highlights'];
+    /** Effective MUI theme (terminal defaults of the color contract). */
+    theme: Theme;
+    /** vis-2 widget style fragment (cascade level 3: inherit the widget text color). */
+    textStyles: StyleColor;
 }
 
 /** Effective value range (explicit gauge fields win over the bound object's min/max). */
@@ -183,6 +192,20 @@ export function buildGaugeOptions(
         }
 
         const key = stripGaugePrefix(field.name);
+
+        // Color-contract fields (createColorField, ADR-0004): explicit override →
+        // fallbackFields → widget text color (when inheritTextStyle) → terminal.
+        if (field.terminal !== undefined) {
+            const contract: ColorFieldContract = {
+                name: field.name,
+                fallbackFields: field.fallbackFields,
+                terminal: field.terminal,
+                inheritTextStyle: field.inheritTextStyle,
+            };
+            options[key] = resolveEffectiveColor(contract, data, ctx.theme, ctx.textStyles);
+            continue;
+        }
+
         switch (field.type) {
             case 'number':
                 options[key] = resolveNumeric(data[field.name], Number(field.default ?? 0));

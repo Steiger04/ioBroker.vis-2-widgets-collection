@@ -18,6 +18,7 @@ import type { GaugeCollectionContextProps } from '../types';
 import useData, { type StyleData } from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
+import useStyles from '../hooks/useStyles';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
@@ -75,6 +76,7 @@ function GaugeCollection(): React.JSX.Element {
     const context = useContext(CollectionContext) as GaugeCollectionContextProps;
     const {
         wrappedContent,
+        theme,
         widget: {
             data: { oidObject },
         },
@@ -83,6 +85,7 @@ function GaugeCollection(): React.JSX.Element {
 
     const { data, states } = useData('oid');
     const oidValue = useOidValue('oid');
+    const { textStyles } = useStyles(widget.style);
 
     const oidType = oidObject?.type;
 
@@ -127,8 +130,9 @@ function GaugeCollection(): React.JSX.Element {
         [highlights, oidValue, effectiveMaxValue],
     );
 
-    // Complete canvas-gauges option set — coercion, defaults and computed options
-    // (min/max, major ticks, dimensions minus padding, value/unit/title) live behind this seam.
+    // Complete canvas-gauges option set — coercion, defaults, the color contract
+    // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
+    // padding, value/unit/title) live behind this seam.
     const gaugeOptions = useMemo(
         () =>
             buildGaugeOptions(fields, widget.data, {
@@ -138,8 +142,21 @@ function GaugeCollection(): React.JSX.Element {
                 unit: oidObject?.unit,
                 header: data.header,
                 highlights,
+                theme,
+                textStyles,
             }),
-        [fields, widget.data, gaugeWidth, gaugeHeight, oidValue, oidObject?.unit, data.header, highlights],
+        [
+            fields,
+            widget.data,
+            gaugeWidth,
+            gaugeHeight,
+            oidValue,
+            oidObject?.unit,
+            data.header,
+            highlights,
+            theme,
+            textStyles,
+        ],
     );
 
     // Segment icon overlay (rendered above the canvas, positioned per state row).
