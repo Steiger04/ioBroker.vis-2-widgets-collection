@@ -12,12 +12,12 @@
  * clickable Box/Button.
  */
 
-import { Avatar, Box, Typography } from '@mui/material';
+import { Avatar, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type { JSX } from 'react';
 
+import CollectionValueText from './CollectionValueText';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { StyleData } from '../hooks/useData/types';
 
@@ -108,41 +108,10 @@ const CollectionValueDisplay = ({
                         height: '100%',
                     }}
                 >
-                    <Typography
-                        component={Box}
-                        variant="body2"
-                        sx={{
-                            fontSize: data.valueSize,
-                            textAlign: 'center', // For HTML content with tags
-                            bgcolor: 'transparent',
-
-                            background: gradientColor(textColor),
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                            color: gradientColor(textColor) ? 'transparent' : textColor,
-
-                            textTransform: 'none',
-                            px: 1,
-                            pl: 0,
-                            pr: 1,
-                            width: '100%',
-                            height: '100%',
-                            flexGrow: 1,
-                            display: 'flex',
-                            alignItems: 'center', // Vertical centering
-                            justifyContent: 'center', // Horizontal centering of text block
-                            overflowWrap: 'break-word', // Modern CSS property for word wrapping
-                            wordBreak: 'break-word', // Additional protection for long words
-                            whiteSpace: 'normal', // Allows line breaks
-                            hyphens: 'auto', // Automatic hyphenation when supported
-                            '& > div': {
-                                textAlign: 'left', // Left-aligned lines for breaks in HTML
-                                display: 'inline-block',
-                            },
-                        }}
-                        dangerouslySetInnerHTML={{
-                            __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
-                        }}
+                    <CollectionValueText
+                        valueSize={data.valueSize}
+                        textColor={textColor}
+                        contentValue={contentValue}
                     />
                 </Box>
             )}

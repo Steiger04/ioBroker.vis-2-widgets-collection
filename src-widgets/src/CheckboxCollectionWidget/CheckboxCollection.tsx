@@ -4,16 +4,16 @@
  * @module widgets/CheckboxCollection
  */
 
-import { Box, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { Box, Checkbox, FormControlLabel } from '@mui/material';
 import React, { useContext, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
+import CollectionValueText from '../components/CollectionValueText';
 import useData from '../hooks/useData/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import SafeImg from '../components/SafeImg';
 
@@ -25,25 +25,6 @@ const defaultIconTrue =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==';
 const defaultIconFalse =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==';
-
-/**
- * Helper function to get gradient text styles.
- */
-function getGradientTextStyle(textColor: string | undefined): CSSProperties {
-    if (!textColor) {
-        return { color: undefined };
-    }
-    const gradient = gradientColor(textColor);
-    if (gradient) {
-        return {
-            background: gradient,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-        };
-    }
-    return { color: textColor };
-}
 
 /**
  * Helper function to render checkbox icon with consistent styling.
@@ -77,6 +58,10 @@ function CheckboxCollection(): React.JSX.Element {
     const isValidType = oidType === 'boolean';
 
     const contentValue = useHtmlValue(oidValue, widget, data);
+    // Frozen label collapse: the legacy template dropped falsy values
+    // (`${v || ''}`) — a raw `false` renders an empty label, unlike the
+    // null-only collapse State/Input apply for their centered values.
+    const labelValue = String(contentValue || '');
 
     // Memoize icon styles to prevent recreation on every render
     const iconStyle = useMemo((): CSSProperties => {
@@ -91,9 +76,6 @@ function CheckboxCollection(): React.JSX.Element {
             ),
         };
     }, [data.iconSize, data.icon, data.iconColor, data.forceColorMask, theme.palette.primary.main]);
-
-    // Memoize gradient text styles
-    const gradientTextStyle = useMemo(() => getGradientTextStyle(data.textColor), [data.textColor]);
 
     return (
         <CollectionBase
@@ -149,35 +131,13 @@ function CheckboxCollection(): React.JSX.Element {
                         }
                         label={
                             !widget.data.withoutLabel && (
-                                <Typography
-                                    component="div"
-                                    variant="body2"
+                                <CollectionValueText
+                                    valueSize={data.valueSize}
+                                    textColor={data.textColor}
+                                    contentValue={labelValue}
                                     sx={{
-                                        fontSize: data.valueSize,
-                                        textAlign: 'center',
-                                        bgcolor: 'transparent',
-                                        ...gradientTextStyle,
-                                        textTransform: 'none',
-                                        px: 1,
-                                        pl: 0,
-                                        pr: 2,
-                                        width: '100%',
-                                        height: '100%',
-                                        flexGrow: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
                                         justifyContent: 'flex-start',
-                                        overflowWrap: 'break-word',
-                                        wordBreak: 'break-word',
-                                        whiteSpace: 'normal',
-                                        hyphens: 'auto',
-                                        '& > div': {
-                                            textAlign: 'left',
-                                            display: 'inline-block',
-                                        },
-                                    }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: `<div style="text-align: left; display: inline-block; width: 100%;">${contentValue || ''}</div>`,
+                                        pr: 2,
                                     }}
                                 />
                             )
