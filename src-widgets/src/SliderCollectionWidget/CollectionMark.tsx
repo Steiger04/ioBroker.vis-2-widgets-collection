@@ -8,7 +8,7 @@ import { SliderMarkLabel, Box, Typography } from '@mui/material';
 import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react';
 
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import { type StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
@@ -78,10 +78,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
 
                         fontSize: mark.valueSize,
 
-                        background: gradientColor(mark.textColor),
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        color: gradientColor(mark.textColor) ? 'transparent' : mark.textColor,
+                        ...gradientTextSx(mark.textColor),
                     }}
                 />
                 <Box

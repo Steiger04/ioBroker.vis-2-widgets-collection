@@ -14,7 +14,7 @@ import useData from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 
@@ -74,8 +74,6 @@ function ButtonGroupCollection(): React.JSX.Element {
                     {buttonStates.map(({ value, ...state }, index) => {
                         // activeIndex is 1-based (0 / undefined = no selection)
                         const isActive = activeIndex === index + 1;
-
-                        const textGradient = gradientColor(state.textColor);
 
                         return (
                             <ToggleButton
@@ -144,10 +142,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                 sx={{
                                                     textTransform: 'none',
                                                     fontSize: state.valueSize,
-                                                    background: textGradient,
-                                                    WebkitBackgroundClip: 'text',
-                                                    backgroundClip: 'text',
-                                                    color: textGradient ? 'transparent' : state.textColor,
+                                                    ...gradientTextSx(state.textColor),
                                                 }}
                                             />
                                         </Box>

@@ -9,7 +9,7 @@ import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import type { StyleData } from '../hooks/useData/types';
 import type { DialogCollectionContextProps } from '../types';
@@ -129,10 +129,7 @@ export default function ViewDialog({
                                     fontSize: data.headerSize,
                                     px: widget.data.dialogCloseButtonTop ? 4 : 0,
 
-                                    background: gradientColor(data.textColor),
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
+                                    ...gradientTextSx(data.textColor),
                                 }}
                             />
                         </Box>

@@ -17,7 +17,7 @@ import { Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 import type { JSX } from 'react';
 
-import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import type { StyleData } from '../hooks/useData/types';
 
@@ -68,10 +68,7 @@ const CollectionValueText = ({
             textAlign: 'center',
             bgcolor: 'transparent',
 
-            background: gradientColor(textColor),
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: gradientColor(textColor) ? 'transparent' : textColor,
+            ...gradientTextSx(textColor),
 
             textTransform: 'none',
             px: 1,

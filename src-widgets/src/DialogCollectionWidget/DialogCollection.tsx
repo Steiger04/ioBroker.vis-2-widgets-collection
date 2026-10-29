@@ -13,6 +13,7 @@ import useData from '../hooks/useData/useData';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
 
@@ -213,10 +214,11 @@ function DialogCollection(): React.ReactElement {
             alignItems: 'center',
             fontSize: data.valueSize,
             textTransform: 'none' as const,
+            ...gradientTextSx(data.textColor),
+            // frozen local deviation: the background resolves through the
+            // active-fallback colour, the text colour only through the plain
+            // one (legacy split, kept verbatim)
             background: gradientColor(data.textColorActive || data.textColor),
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
         }),
         [data.valueSize, data.textColorActive, data.textColor],
     );
