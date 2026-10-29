@@ -463,9 +463,13 @@ _Avoid_: Gauge-Typ (when the class-switch semantics are meant)
 The gauge's color fields split by contract (ADR-0004): A = text-bearing (title, units, numbers, value text, ticks) → terminal `text` + `inheritTextStyle`; B = accent (needle, needle end, bar progress) → terminal `primary`; C = surfaces/shading (plate, borders, value box, shadows, needle circles, bar strokes) → plain schema-default hex fields, deliberately WITHOUT terminal (works on both themes; a terminal can be added per field without touching the builder).
 _Avoid_: Theme-Farben (unsaid which class), mixing C fields into the contract without deciding their terminal
 
-# Collection-Kern (geteilte Hooks)
+# Collection-Kern (geteilte Bausteine)
 
 ## Language
+
+**Wert-Anzeige**:
+The shared icon + value display cluster (`components/CollectionValueDisplay.tsx`) every display-first Collection widget renders inside its own interaction wrapper — State cycles/clicks around it, Input switches it to the inline-edit TextField. Pure rendering over the ALREADY-RESOLVED presentation data (`StyleData` from useData): icon Box (Avatar, square, objectFit contain, iconSizeOnly + calc-offsets) and value Typography (gradient-text clip, break/hyphen rules, HTML passthrough via the left-aligned inline-block wrapper), each gated by its `noIcon`/`noValue` flag. Colour RESOLUTION stays at the field/resolver (ADR-0004) — the cluster draws what it is handed; it owns no context, no socket, no interaction.
+_Avoid_: Anzeige-Cluster (that described the two copies before K3), Icon-Wert-Gruppe (that is the DOM shape, not the module), Wert-Rendering (that is any value on screen, incl. headers/footers — those belong to CollectionBase)
 
 **Signifikante Backend-Änderung**:
 The ONE rule deciding when an observed value change counts as a FOREIGN change worth surfacing — `hasBackendChange` from `useValueState` (ADR-0087), consumed by Input (red field while editing), Light2 (picker re-init gates) and Slider (via `useOptimisticNumber`). The decision is pure and exported (`decideBackendChange`); its precedence: own optimistic writes (`.lc` = the `VALUE_NOT_CHANGED_TIMESTAMP` sentinel) never count, changes inside the ignore window (effective delay `Number(delay) || 300` — a configured `0` still yields 300 — plus 1500 ms) are absorbed as the own write's echo, the first observation initialises, otherwise the change counts iff `lc` changed AND the value change is significant. Significance is TYPE-AWARE: while both sides coerce to finite numbers the jitter filter applies (delta ≥ 1); once one side does not coerce (pure strings like `#ff0000`), ANY change counts.

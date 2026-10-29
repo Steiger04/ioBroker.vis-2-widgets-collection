@@ -1,15 +1,14 @@
-import { Avatar, Box, Button, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import React, { useCallback, useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionChangeDialog from '../components/CollectionChangeDialog';
+import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
-import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { StateCollectionContextProps } from '../types';
 
@@ -20,7 +19,7 @@ import type { StateCollectionContextProps } from '../types';
  */
 function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
-    const { widget, theme } = context;
+    const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { data, widgetStates, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
@@ -115,102 +114,12 @@ function StateCollection(): React.ReactElement {
                     alignItems: 'center',
                 }}
             >
-                {!widget.data.noIcon &&
-                    data.icon &&
-                    (() => {
-                        // Pre-calculate icon styles
-                        const iconSrc = data.icon;
-                        const iconColor = data.iconColor || theme.palette.primary.main;
-                        const forceMask = data.forceColorMask;
-                        const iconStyles = getIconColorStyles(iconSrc, iconColor, forceMask);
-
-                        return (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    flexGrow: 1,
-
-                                    width: '100%',
-                                    height: '100%',
-                                }}
-                            >
-                                <Avatar
-                                    variant="square"
-                                    src={iconSrc || undefined}
-                                    slotProps={{
-                                        img: {
-                                            style: {
-                                                objectFit: 'contain',
-                                                ...iconStyles,
-                                            },
-                                        },
-                                    }}
-                                    sx={{
-                                        overflow: 'visible',
-
-                                        width: data.iconSizeOnly,
-                                        height: data.iconSizeOnly,
-
-                                        left: `calc(0px + ${data.iconXOffset})`,
-                                        top: `calc(0px - ${data.iconYOffset})`,
-                                    }}
-                                />
-                            </Box>
-                        );
-                    })()}
-
-                {!widget.data.noValue && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexGrow: 1,
-
-                            width: '100%',
-                            height: '100%',
-                        }}
-                    >
-                        <Typography
-                            component={Box}
-                            variant="body2"
-                            sx={{
-                                fontSize: data.valueSize,
-                                textAlign: 'center', // For HTML content with tags
-                                bgcolor: 'transparent',
-
-                                background: gradientColor(data.textColor),
-                                WebkitBackgroundClip: 'text',
-                                backgroundClip: 'text',
-                                color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
-
-                                textTransform: 'none',
-                                px: 1,
-                                pl: 0,
-                                pr: 1,
-                                width: '100%',
-                                height: '100%',
-                                flexGrow: 1,
-                                display: 'flex',
-                                alignItems: 'center', // Vertical centering
-                                justifyContent: 'center', // Horizontal centering of text block
-                                overflowWrap: 'break-word', // Modern CSS property for word wrapping
-                                wordBreak: 'break-word', // Additional protection for long words
-                                whiteSpace: 'normal', // Allows line breaks
-                                hyphens: 'auto', // Automatic hyphenation when supported
-                                '& > div': {
-                                    textAlign: 'left', // Left-aligned lines for breaks in HTML
-                                    display: 'inline-block',
-                                },
-                            }}
-                            dangerouslySetInnerHTML={{
-                                __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
-                            }}
-                        />
-                    </Box>
-                )}
+                <CollectionValueDisplay
+                    data={data}
+                    contentValue={contentValue}
+                    noIcon={widget.data.noIcon}
+                    noValue={widget.data.noValue}
+                />
             </Box>
         </Button>
     );
