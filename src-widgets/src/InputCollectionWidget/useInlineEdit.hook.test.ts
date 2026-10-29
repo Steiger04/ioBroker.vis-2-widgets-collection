@@ -6,7 +6,7 @@
  * Pins the composition of the edit session over useValueState: draft adoption,
  * the enter guard, live-vs-OK write behaviour and the Enter/Escape key paths.
  * The session rules themselves are pinned in the node-project suite
- * (useInlineEdit.test.ts); the Escape case here mirrors the status quo once.
+ * (useInlineEdit.test.ts); the Escape case here pins the composed discard path.
  */
 import { act } from 'react';
 import { createElement, type FC } from 'react';
@@ -218,22 +218,25 @@ describe('useInlineEdit hook', () => {
         unmount();
     });
 
-    it('STATUS QUO: Escape does nothing', () => {
+    it('Escape leaves without committing: OK-mode draft is discarded, the backend value returns', () => {
         const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
-        const { captured, unmount } = mount(box, { showOkButton: true });
+        const { captured, rerender, unmount } = mount(box, { showOkButton: true });
 
         act(() => {
             captured.current?.enterEdit(true);
         });
         act(() => {
-            captured.current?.handleChange('neu');
+            captured.current?.handleChange('vergessen');
         });
         act(() => {
             captured.current?.handleKeyDown('Escape');
         });
 
-        expect(captured.current?.editing).toBe(true); // still editing
+        expect(captured.current?.editing).toBe(false);
         expect(box.setState).not.toHaveBeenCalled(); // nothing committed
+
+        rerender();
+        expect(captured.current?.draft).toBe('alt'); // discarded draft, backend value back
         unmount();
     });
 

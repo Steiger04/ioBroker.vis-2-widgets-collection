@@ -40,14 +40,20 @@ export function blurAction(showOkButton: boolean): 'commit' | 'leave' {
  * Key decision for the edit session.
  *
  * @param key - The pressed key.
- * @returns `'commit'` for Enter (runs the blur path), `'none'` otherwise.
+ * @returns `'commit'` for Enter (runs the blur path), `'cancel'` for Escape
+ * (leaves without committing), `'none'` otherwise.
  * @remarks
- * STATUS QUO (pinned): Escape does nothing yet — the follow-up feat commit turns
- * it into `'cancel'` (leave without committing; the draft then resyncs from the
- * backend value via {@link syncDraft}).
+ * Escape semantics: in OK-button mode the buffered draft is DISCARDED (nothing
+ * was written); in live mode it equals blur — already-written keystrokes remain,
+ * because they are already on their way through the debounce. After leaving, the
+ * draft resyncs from the backend value via {@link syncDraft}.
  */
-export function keyAction(key: string): 'commit' | 'none' {
-    return key === 'Enter' ? 'commit' : 'none';
+export function keyAction(key: string): 'commit' | 'cancel' | 'none' {
+    if (key === 'Enter') {
+        return 'commit';
+    }
+
+    return key === 'Escape' ? 'cancel' : 'none';
 }
 
 /** Options controlling the session mode. */
@@ -72,7 +78,7 @@ export interface UseInlineEditReturn {
     handleChange: (value: string) => void;
     /** Blur path: OK mode commits, live mode just leaves. */
     handleBlur: () => void;
-    /** Key path: Enter runs the blur path. */
+    /** Key path: Enter runs the blur path; Escape cancels (leave without commit). */
     handleKeyDown: (key: string) => void;
     /** Explicit commit (the OK button). */
     commit: () => void;
@@ -140,13 +146,23 @@ const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInline
         }
     }, [commit, options.showOkButton]);
 
+    // Leaves without committing: the draft resyncs from the backend value via
+    // the syncDraft gate once editing is false.
+    const cancel = useCallback((): void => {
+        setEditing(false);
+    }, []);
+
     const handleKeyDown = useCallback(
         (key: string): void => {
-            if (keyAction(key) === 'commit') {
+            const action = keyAction(key);
+
+            if (action === 'commit') {
                 handleBlur();
+            } else if (action === 'cancel') {
+                cancel();
             }
         },
-        [handleBlur],
+        [cancel, handleBlur],
     );
 
     return {

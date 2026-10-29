@@ -5,9 +5,8 @@
  * @remarks
  * Pins the session semantics WITHOUT React: draft sync (backend adoption only
  * while not editing), the blur mode decision (OK commits, live leaves) and the
- * key decision. The key cases document the STATUS QUO (Escape does nothing);
- * the follow-up feat commit turns Escape into a cancel that leaves the session
- * without committing.
+ * key decision (Enter commits via the blur path, Escape cancels — leave without
+ * committing).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -38,8 +37,8 @@ describe('keyAction', () => {
         expect(keyAction('Enter')).toBe('commit');
     });
 
-    it('STATUS QUO: ignores Escape (no cancel path yet)', () => {
-        expect(keyAction('Escape')).toBe('none');
+    it('cancels the session for Escape', () => {
+        expect(keyAction('Escape')).toBe('cancel');
     });
 
     it('ignores every other key', () => {
