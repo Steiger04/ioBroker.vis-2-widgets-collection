@@ -5,7 +5,6 @@
  */
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { alpha, lighten } from '@mui/material/styles';
 import React, { useCallback, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
@@ -14,35 +13,12 @@ import SafeImg from '../components/SafeImg';
 import useData from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
+import { buildButtonChrome, buildGroupChrome } from './chrome';
 
 import type { ButtonGroupCollectionContextProps } from '../types';
-
-/**
- * Computes color-related styles for a single toggle button.
- *
- * Centralises the gradient/lighten logic that would otherwise be
- * duplicated across hover, selected and base states.
- */
-function getButtonColorStyles(bgColor: string | null | undefined): {
-    hasGradient: boolean;
-    hasColor: string | null;
-    hoverBackground: string | undefined;
-    selectedBackground: string | undefined;
-} {
-    const gradient = gradientColor(bgColor);
-    const color = extractColorFromValue(bgColor);
-
-    return {
-        hasGradient: !!gradient,
-        hasColor: color,
-        hoverBackground: gradient ? undefined : color && bgColor ? lighten(bgColor, 0.5) : undefined,
-        selectedBackground: gradient ? undefined : color && bgColor ? lighten(bgColor, 0.3) : undefined,
-    };
-}
 
 function ButtonGroupCollection(): React.JSX.Element {
     const context = useContext(CollectionContext);
@@ -59,14 +35,6 @@ function ButtonGroupCollection(): React.JSX.Element {
     const buttonGroupOrientation = widget.data.buttonGroupOrientation;
     const oidType = oidObject?.type;
     const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
-    const isVertical = buttonGroupOrientation === 'vertical';
-    const isOutlined = buttonGroupVariant === 'outlined';
-
-    // Separator color used for inset box-shadow dividers (text variant)
-    // and border color (outlined variant).
-    const separatorColor = widget.data.buttonGroupColor
-        ? alpha(widget.data.buttonGroupColor, 0.6)
-        : alpha(theme.palette.text.primary, 0.6);
 
     const handleButtonClick = useCallback(
         (selectedValue: string | number | boolean) => {
@@ -94,71 +62,19 @@ function ButtonGroupCollection(): React.JSX.Element {
                     disabled={!isValidType || isOidReadOnly(widget.data)}
                     fullWidth
                     orientation={buttonGroupOrientation}
-                    sx={{
-                        display: 'flex',
-                        flexDirection: isVertical ? 'column' : 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        height: isVertical ? '100%' : 'auto',
-                        maxHeight: isVertical ? '100%' : 'none',
-
-                        ...(isVertical && {
-                            '& .MuiToggleButton-root': {
-                                flex: '1 1 0',
-                                minHeight: 0,
-                                maxHeight: `calc(100% / ${buttonStates.length})`,
-                            },
-                        }),
-
-                        // Border styles differ between outlined and borderless variants.
-                        // For non-outlined (text) mode, borders are fully removed and
-                        // inset box-shadows are used for separator lines so they stay
-                        // visible even when buttons have a background colour.
-                        '& .MuiToggleButtonGroup-firstButton': {
-                            ...(!isOutlined && {
-                                border: 'none',
-                            }),
-                            ...(isOutlined && {
-                                borderColor: separatorColor,
-                            }),
-                            borderRadius: !widget.data.basePadding ? 0 : undefined,
-                        },
-                        '& .MuiToggleButtonGroup-middleButton': {
-                            ...(!isOutlined && {
-                                border: 'none',
-                                marginLeft: isVertical ? undefined : 0,
-                                marginTop: isVertical ? 0 : undefined,
-                                boxShadow: isVertical
-                                    ? `inset 0 1px 0 0 ${separatorColor}`
-                                    : `inset 1px 0 0 0 ${separatorColor}`,
-                            }),
-                            ...(isOutlined && {
-                                borderColor: separatorColor,
-                            }),
-                        },
-                        '& .MuiToggleButtonGroup-lastButton': {
-                            ...(!isOutlined && {
-                                border: 'none',
-                                marginLeft: isVertical ? undefined : 0,
-                                marginTop: isVertical ? 0 : undefined,
-                                boxShadow: isVertical
-                                    ? `inset 0 1px 0 0 ${separatorColor}`
-                                    : `inset 1px 0 0 0 ${separatorColor}`,
-                            }),
-                            ...(isOutlined && {
-                                borderColor: separatorColor,
-                            }),
-                            borderRadius: !widget.data.basePadding ? 0 : undefined,
-                        },
-                    }}
+                    sx={buildGroupChrome({
+                        variant: buttonGroupVariant,
+                        orientation: buttonGroupOrientation,
+                        buttonGroupColor: widget.data.buttonGroupColor,
+                        basePadding: widget.data.basePadding,
+                        count: buttonStates.length,
+                        theme,
+                    })}
                 >
                     {buttonStates.map(({ value, ...state }, index) => {
                         // activeIndex is 1-based (0 / undefined = no selection)
                         const isActive = activeIndex === index + 1;
 
-                        const { hasGradient, hoverBackground, selectedBackground } = getButtonColorStyles(
-                            state.background,
-                        );
                         const textGradient = gradientColor(state.textColor);
 
                         return (
@@ -166,28 +82,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                 value={String(value!)}
                                 onClick={() => handleButtonClick(value!)}
                                 key={`${String(value)}-${index}`}
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    p: 0,
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-
-                                    '&.MuiToggleButton-root': {
-                                        filter: isActive && hasGradient ? 'opacity(80%)' : undefined,
-                                        background: state.background,
-
-                                        '&:hover': {
-                                            filter: hasGradient ? 'opacity(80%)' : undefined,
-                                            background: hoverBackground,
-                                        },
-
-                                        '&.Mui-selected': {
-                                            background: selectedBackground,
-                                        },
-                                    },
-                                }}
+                                sx={buildButtonChrome({ background: state.background, isActive })}
                             >
                                 <Box
                                     sx={{

@@ -490,3 +490,11 @@ _Avoid_: Write-Pipeline (that suggests fetch/transform machinery), Setter (that 
 **Inline-Edit-Sitzung**:
 The display-first edit session of the Input widget (`useInlineEdit`, widget-local over the **Schreibkette**'s `useValueState` binding): a click switches to a TextField, the icon hides while editing, the autofocus effect stays in the component. Two modes — live (default): every keystroke writes through the optimistic binding; OK-button mode: the draft buffers and commits exactly once on blur/Enter/OK click. Draft sync adopts the backend value only while NOT editing — a foreign change DURING the session surfaces as `hasBackendChange` (red field, the **Signifikante Backend-Änderung**) instead of clobbering the draft. Keys: Enter runs the blur path; **Escape beendet die Bearbeitung ohne Commit** — in OK mode the buffered draft is DISCARDED (nothing was written), in live mode it equals blur because already-written keystrokes are on their way through the debounce (a "discard" there would be a lie).
 _Avoid_: Draft-Modus (that is only the buffering half of OK mode), Cancel (that is the Escape action, not the session), Editier-Modus (that is just the editing flag)
+
+# Button-Group Collection Widget
+
+## Language
+
+**Button-Group-Chrome**:
+The presentation shell of the toggle group — everything the renderer draws AROUND the per-state content: the variant chrome (outlined borders vs borderless text mode with inset box-shadow separators), the orientation layout (horizontal row vs vertical stack with equal-height caps), the rounded/squared group ends, and the per-button hover/selected treatment (solid colours lighten; gradients dim via opacity instead). Resolved in exactly one widget-local place from raw widget data plus the theme (including the separator alpha and its `buttonGroupColor → primary text` fallback). Deliberately NOT a colour contract: unlike the Slider's **Chrome-Farbvertrag**, nothing here is declared by field definitions — the rules are the frozen legacy presentation, pinned by tests. The icon/text content boxes are not chrome; they stay in the renderer.
+_Avoid_: Button-Styles (unsaid WHICH shell), mixing chrome rules with the value/label content layout, treating the separator alpha as a configurable knob (it is frozen)

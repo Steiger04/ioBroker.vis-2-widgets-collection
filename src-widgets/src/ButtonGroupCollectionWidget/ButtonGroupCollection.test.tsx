@@ -1,0 +1,106 @@
+/**
+ * ButtonGroupCollection — the wiring, rendered.
+ *
+ * @module widgets/ButtonGroupCollection.test
+ * @remarks
+ * DOM contract of the renderer on the preview context (the Checkbox pattern):
+ * one toggle button per resolved state, the state matching the OID value
+ * selected, a click writing the optimistic patch through setState, and the
+ * read-only guard disabling the group. The presentation chrome itself is
+ * pinned in chrome.test.ts as pure data — these tests only cover the wiring.
+ */
+import { describe, expect, it, vi } from 'vitest';
+import { createElement, act } from 'react';
+import { createRoot } from 'react-dom/client';
+
+import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
+import CollectionProvider from '../components/CollectionProvider';
+import { buildPreviewContext } from '../preview/mockContext';
+import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import ButtonGroupCollection from './ButtonGroupCollection';
+import type { AllCollectionContextProps } from '../types';
+import type { PreviewScene } from '../preview/types';
+
+const OID = 'demo.0.mode';
+
+const scene = (data: Record<string, unknown> = {}): PreviewScene =>
+    ({
+        slug: 'button-group-test',
+        size: { width: 480, height: 120 },
+        context: {
+            widget: {
+                data: {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    values_count: 2,
+                    value1: '0',
+                    alias1: 'OFF',
+                    value2: '1',
+                    alias2: 'ON',
+                    ...data,
+                },
+                style: {},
+            },
+            values: { [`${OID}.val`]: 1 },
+            mode: 'light',
+            wrappedContent: true,
+        },
+    }) as unknown as PreviewScene;
+
+const mountGroup = (currentScene: PreviewScene, setState = vi.fn()): HTMLDivElement => {
+    const context = {
+        ...buildPreviewContext(currentScene),
+        setState,
+    } as unknown as AllCollectionContextProps;
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+        root.render(createElement(CollectionProvider, { context } as never, createElement(ButtonGroupCollection)));
+    });
+    return container;
+};
+
+describe('ButtonGroupCollection wiring', () => {
+    it('renders one toggle button per state, labelled by the alias', () => {
+        const container = mountGroup(scene());
+
+        const buttons = container.querySelectorAll('.MuiToggleButton-root');
+        expect(buttons.length).toBe(2);
+        expect(container.textContent).toContain('OFF');
+        expect(container.textContent).toContain('ON');
+    });
+
+    it('selects the state matching the OID value', () => {
+        const container = mountGroup(scene());
+
+        const selected = container.querySelector('.MuiToggleButton-root.Mui-selected');
+        expect(selected?.textContent).toContain('ON');
+    });
+
+    it('writes the clicked state value as the optimistic patch (val + lc sentinel)', () => {
+        const setState = vi.fn();
+        const container = mountGroup(scene(), setState);
+
+        const [offButton] = container.querySelectorAll('.MuiToggleButton-root');
+        act(() => {
+            offButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        expect(setState).toHaveBeenCalledTimes(1);
+        const updater = setState.mock.calls[0][0] as (prev: { values: Record<string, unknown> }) => {
+            values: Record<string, unknown>;
+        };
+        const next = updater({ values: {} });
+        expect(next.values[`${OID}.val`]).toBe(0);
+        expect(next.values[`${OID}.lc`]).toBe(VALUE_NOT_CHANGED_TIMESTAMP);
+    });
+
+    it('disables the buttons for a read-only state (write === false)', () => {
+        const container = mountGroup(scene({ write: false }));
+
+        // MUI disables the toggle buttons via context; the group root div carries no class.
+        expect(container.querySelector('.MuiToggleButton-root.Mui-disabled')).not.toBeNull();
+    });
+});
