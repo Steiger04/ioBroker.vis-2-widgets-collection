@@ -19,19 +19,82 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { RadioGroupCollectionContextProps } from '../types';
+import type { StateStyleData, StyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
+
+/**
+ * Renders the checked radio icon: the custom state image layered over the
+ * unchecked dot when one is configured, otherwise the plain MUI checked dot.
+ */
+function renderCheckedIcon(state: StateStyleData, data: StyleData): React.JSX.Element {
+    return state.icon ? (
+        <Box
+            sx={{
+                overflow: 'hidden',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <RadioButtonUncheckedIcon
+                sx={{
+                    color: state.iconColor,
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                }}
+            />
+            <Box
+                sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <SafeImg
+                    alt=""
+                    src={state.icon}
+                    style={{
+                        position: 'relative',
+                        left: `calc(0px + ${state.iconXOffset})`,
+                        top: `calc(0px - ${state.iconYOffset})`,
+                        width: `calc(${data.iconSizeOnly} * 0.5)`, // TODO: switch to state.iconSizeOnly (per-value icon size)
+                        ...getIconColorStyles(state.icon, state.iconColor, state.forceColorMask),
+                    }}
+                />
+            </Box>
+        </Box>
+    ) : (
+        <RadioButtonCheckedIcon
+            sx={{
+                color: state.iconColor,
+                width: '100%',
+                height: '100%',
+            }}
+        />
+    );
+}
 
 function RadioGroupCollection(): React.ReactElement {
     const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
     const { height: radioGroupHeight } = useElementDimensions(stackRef);
 
-    const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
+    const context = useContext(CollectionContext);
+    if (!context) {
+        throw new Error('RadioGroupCollection must be used within a CollectionProvider');
+    }
     const {
         widget: {
             data: { oidObject },
         },
         widget,
-    } = context;
+    } = context as RadioGroupCollectionContextProps;
     const { data, states } = useData('oid');
 
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
@@ -72,7 +135,7 @@ function RadioGroupCollection(): React.ReactElement {
                 {states.map((state, index) => {
                     return (
                         <FormControlLabel
-                            key={index}
+                            key={`${String(state.value)}-${index}`}
                             labelPlacement={widget.data.labelPlacement}
                             sx={{
                                 m: 0,
@@ -127,64 +190,7 @@ function RadioGroupCollection(): React.ReactElement {
                             control={
                                 <Radio
                                     disabled={isOidReadOnly(widget.data)}
-                                    checkedIcon={
-                                        state.icon ? (
-                                            <Box
-                                                sx={{
-                                                    overflow: 'hidden',
-                                                    position: 'relative',
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                }}
-                                            >
-                                                <RadioButtonUncheckedIcon
-                                                    sx={{
-                                                        color: state.iconColor,
-                                                        position: 'relative',
-                                                        width: '100%',
-                                                        height: '100%',
-                                                    }}
-                                                />
-                                                <Box
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                    }}
-                                                >
-                                                    <SafeImg
-                                                        alt=""
-                                                        src={state.icon}
-                                                        style={{
-                                                            position: 'relative',
-                                                            left: `calc(0px + ${state.iconXOffset})`,
-                                                            top: `calc(0px - ${state.iconYOffset})`,
-                                                            width: `calc(${data.iconSizeOnly} * 0.5)`, // noch aud state.iconSizeOnly umstellen
-                                                            ...getIconColorStyles(
-                                                                state.icon,
-                                                                state.iconColor,
-                                                                state.forceColorMask,
-                                                            ),
-                                                        }}
-                                                    />
-                                                </Box>
-                                            </Box>
-                                        ) : (
-                                            <RadioButtonCheckedIcon
-                                                sx={{
-                                                    color: state.iconColor,
-                                                    width: '100%',
-                                                    height: '100%',
-                                                }}
-                                            />
-                                        )
-                                    }
+                                    checkedIcon={renderCheckedIcon(state, data)}
                                     icon={
                                         <RadioButtonUncheckedIcon
                                             sx={{
