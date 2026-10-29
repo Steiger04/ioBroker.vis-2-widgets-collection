@@ -135,6 +135,7 @@ function CheckboxCollection(): React.JSX.Element {
                                     valueSize={data.valueSize}
                                     textColor={data.textColor}
                                     contentValue={labelValue}
+                                    wrapperFullWidth
                                     sx={{
                                         justifyContent: 'flex-start',
                                         pr: 2,

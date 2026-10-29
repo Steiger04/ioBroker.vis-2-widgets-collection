@@ -35,14 +35,24 @@ describe('CollectionValueText', () => {
         unmount();
     });
 
-    it('wraps HTML content in the left-aligned inline-block div (frozen wrapper)', () => {
+    it('wraps HTML content in the left-aligned inline-block div (frozen cluster wrapper)', () => {
         const { container, unmount } = mount({ contentValue: '<b>fett</b>' });
 
         const wrapper = container.querySelector('div[style*="inline-block"]');
         expect(wrapper?.innerHTML).toContain('<b>fett</b>');
-        // The frozen cluster variant carries no inline width.
-        expect(wrapper?.getAttribute('style')).not.toContain('width');
-        expect(wrapper?.getAttribute('style')).toContain('text-align: left');
+        // Byte-exact cluster variant — no inline width.
+        expect(wrapper?.getAttribute('style')).toBe('text-align: left; display: inline-block;');
+        unmount();
+    });
+
+    it('stretches the wrapper to full width in the label variant (frozen checkbox wrapper)', () => {
+        const { container, unmount } = mount({ contentValue: '<b>fett</b>', wrapperFullWidth: true });
+
+        const wrapper = container.querySelector('div[style*="inline-block"]');
+        // Byte-exact label variant — the alias HTML (block elements, images)
+        // lays out over the full width, as the checkbox label always did.
+        expect(wrapper?.getAttribute('style')).toBe('text-align: left; display: inline-block; width: 100%;');
+        expect(wrapper?.innerHTML).toContain('<b>fett</b>');
         unmount();
     });
 

@@ -31,6 +31,13 @@ export interface CollectionValueTextProps {
     textColor: StyleData['textColor'];
     /** Formatted display value (may contain HTML). */
     contentValue: string;
+    /**
+     * Stretch the HTML wrapper to the full width — the label variant. A
+     * shrink-to-fit inline-block lays out block/inline HTML from an alias
+     * differently than a full-width one; the Checkbox label has always
+     * rendered the full-width wrapper, the centered cluster the shrink one.
+     */
+    wrapperFullWidth?: boolean;
     /** Consumer deltas layered over the frozen base (alignment, padding). */
     sx?: SxProps<Theme>;
 }
@@ -42,10 +49,17 @@ export interface CollectionValueTextProps {
  * @param props.valueSize - Resolved font size (StyleData.valueSize).
  * @param props.textColor - Resolved text colour — gradient strings clip.
  * @param props.contentValue - Formatted display value (may contain HTML).
+ * @param props.wrapperFullWidth - Stretch the HTML wrapper to the full width.
  * @param props.sx - Consumer deltas layered over the frozen base.
  * @returns The typography with the HTML content wrapped left-aligned.
  */
-const CollectionValueText = ({ valueSize, textColor, contentValue, sx }: CollectionValueTextProps): JSX.Element => (
+const CollectionValueText = ({
+    valueSize,
+    textColor,
+    contentValue,
+    wrapperFullWidth = false,
+    sx,
+}: CollectionValueTextProps): JSX.Element => (
     <Typography
         component="div"
         variant="body2"
@@ -81,7 +95,7 @@ const CollectionValueText = ({ valueSize, textColor, contentValue, sx }: Collect
             ...sx,
         }}
         dangerouslySetInnerHTML={{
-            __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
+            __html: `<div style="text-align: left; display: inline-block;${wrapperFullWidth ? ' width: 100%;' : ''}">${contentValue || ''}</div>`,
         }}
     />
 );
