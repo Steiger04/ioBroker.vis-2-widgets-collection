@@ -69,7 +69,7 @@ function SwitchCollection(): React.JSX.Element {
                         <MaterialUISwitch
                             disabled={oidType !== 'boolean' || isOidReadOnly(widget.data)}
                             width={ref.current?.clientWidth}
-                            maxheight={ref.current?.parentElement?.parentElement?.clientHeight}
+                            maxHeight={ref.current?.parentElement?.parentElement?.clientHeight}
                             data={data}
                             widget={widget}
                             checked={Boolean(oidValue)}
