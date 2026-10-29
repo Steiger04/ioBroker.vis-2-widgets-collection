@@ -12,6 +12,12 @@ import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
+/** Default thumb size (px) — the single source; the renderer fallback reads it. */
+export const THUMB_SIZE_DEFAULT = 62;
+
+/** Default track row height (%) — the single source; the renderer fallback reads it. */
+export const TRACK_SIZE_DEFAULT = 10;
+
 const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -24,7 +30,7 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'slider',
         min: 0,
         max: 500,
-        default: 62,
+        default: THUMB_SIZE_DEFAULT,
         step: 1,
     },
     // Thumb colors (no fallback to disable theme primary color)
@@ -39,10 +45,10 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'track_size',
         type: 'slider',
         // 0 would be an invisible widget (0 px track row) and is silently
-        // coerced to the 10% default by the renderer's falsy fallback
+        // coerced to the TRACK_SIZE_DEFAULT by the renderer's falsy fallback
         min: 1,
         max: 100,
-        default: 10,
+        default: TRACK_SIZE_DEFAULT,
         step: 1,
     },
     // Track color (no fallback to disable theme primary color)

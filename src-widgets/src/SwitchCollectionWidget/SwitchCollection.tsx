@@ -14,6 +14,7 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
+import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
 function SwitchCollection(): React.JSX.Element {
@@ -71,7 +72,7 @@ function SwitchCollection(): React.JSX.Element {
                     position: 'relative',
 
                     width: '100%',
-                    height: (widget.data.trackSize && `${widget.data.trackSize}%`) || '10%',
+                    height: (widget.data.trackSize && `${widget.data.trackSize}%`) || `${TRACK_SIZE_DEFAULT}%`,
                 }}
             >
                 <Box
