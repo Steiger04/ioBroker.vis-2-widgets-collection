@@ -18,6 +18,7 @@ import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
@@ -202,10 +203,7 @@ function SelectCollection(): React.ReactElement {
                                         whiteSpace: 'pre-wrap',
                                         fontSize: state.valueSize,
                                         textAlign: 'left',
-                                        background: gradientColor(state.textColor),
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
+                                        ...gradientTextSx(state.textColor),
                                         textTransform: 'none',
                                         width: '100%',
                                         height: '100%',

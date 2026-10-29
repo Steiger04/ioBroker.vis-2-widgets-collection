@@ -24,6 +24,7 @@ import {
 } from './formatters';
 import { evaluateLogic } from './jsonLogicEngine';
 import { gradientColor } from '../../lib/helper/gradientColor';
+import { gradientTextSx } from '../../lib/helper/gradientTextSx';
 import { isRenderableAsImage } from '../../lib/helper/isImageReference';
 import { IMAGE_FORMAT_DEFAULTS } from './columnConfig';
 
@@ -195,12 +196,10 @@ export function applyConditionalStyle(
                 }
             }
             if (rule.textColor && !('color' in textSx) && !('background' in textSx)) {
-                const textGradient = gradientColor(rule.textColor);
-                if (textGradient) {
-                    textSx.background = textGradient;
-                    textSx.backgroundClip = 'text';
-                    textSx.WebkitBackgroundClip = 'text';
-                    textSx.color = 'transparent';
+                // frozen JSON-table shape: only the gradient branch carries
+                // the clip incantation, a solid colour paints the text alone
+                if (gradientColor(rule.textColor)) {
+                    Object.assign(textSx, gradientTextSx(rule.textColor));
                 } else {
                     textSx.color = rule.textColor;
                 }

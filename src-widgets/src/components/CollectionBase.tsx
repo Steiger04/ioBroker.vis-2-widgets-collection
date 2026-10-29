@@ -20,6 +20,7 @@ import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
@@ -209,10 +210,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.headerSize,
-                                    background: gradientColor(data.textColorCm),
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: gradientColor(data.textColorCm) ? 'transparent' : data.textColorCm,
+                                    ...gradientTextSx(data.textColorCm),
                                 }}
                             />
                         </Box>
@@ -255,10 +253,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.footerSize,
-                                    background: gradientColor(data.textColorCm),
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: gradientColor(data.textColorCm) ? 'transparent' : data.textColorCm,
+                                    ...gradientTextSx(data.textColorCm),
                                 }}
                             />
                         </Box>

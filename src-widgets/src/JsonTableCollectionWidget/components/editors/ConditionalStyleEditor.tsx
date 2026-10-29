@@ -34,6 +34,7 @@ import { useCallback } from 'react';
 import Generic from '../../../Generic';
 import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
+import { gradientTextSx } from '../../../lib/helper/gradientTextSx';
 import type { ColumnStyleRule } from '../../types';
 import ConditionRuleBuilder from '../ConditionRuleBuilder';
 import type { JsonLogicRule } from '../../utils/jsonLogicEngine';
@@ -184,9 +185,8 @@ function ConditionalStyleEditor({
             {/* Rule cards */}
             {(cellStyle || []).map((rule, idx) => {
                 const ruleCount = (cellStyle || []).length;
-                // Pre-compute gradient results to avoid repeated calls in JSX
+                // Pre-compute the background gradient to avoid repeated calls in JSX
                 const bgGradient = rule.backgroundColor ? gradientColor(rule.backgroundColor) : undefined;
-                const textGradient = rule.textColor ? gradientColor(rule.textColor) : undefined;
 
                 return (
                     <Paper
@@ -339,14 +339,13 @@ function ConditionalStyleEditor({
                                     <Typography
                                         variant="body2"
                                         sx={{
+                                            // frozen JSON-table shape: only the
+                                            // gradient branch carries the clip
+                                            // incantation, a solid colour paints
+                                            // the text alone, no colour inherits
                                             ...(rule.textColor
-                                                ? textGradient
-                                                    ? {
-                                                          background: textGradient,
-                                                          backgroundClip: 'text',
-                                                          WebkitBackgroundClip: 'text',
-                                                          color: 'transparent',
-                                                      }
+                                                ? gradientColor(rule.textColor)
+                                                    ? gradientTextSx(rule.textColor)
                                                     : { color: rule.textColor }
                                                 : { color: 'inherit' }),
                                         }}
