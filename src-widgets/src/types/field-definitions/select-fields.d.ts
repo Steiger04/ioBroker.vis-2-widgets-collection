@@ -1,6 +1,6 @@
 /**
  * Select field definitions for vis-2 Collection widgets.
- * Controls dropdown affordance styling and the control object used for selection.
+ * Controls dropdown affordance styling and the control ID a selection writes.
  */
 export interface SelectFieldsRxData {
     /**
@@ -18,16 +18,22 @@ export interface SelectFieldsRxData {
     arrowColor?: string;
 
     /**
-     * Control object ID (OID) that stores the selected option value.
+     * Control ID ("Steuer ID"): the state a selection is written to when set.
      *
      * @example
      * ```typescript
      * const data: SelectFieldsRxData = {
-     *     cid: 'javascript.0.dropdown.value'
+     *     oid: 'zigbee.0.lamp.mode_status', // status — the display follows it
+     *     cid: 'zigbee.0.lamp.mode_set' // command — the only state written
      * };
      * ```
      * @remarks
-     * Use when the select should write to a dedicated control state instead of the primary oid.
+     * The sole write target when set (ADR-0090, CONTEXT "Schreibziel"): a selection is written
+     * only to this state — never also to the primary `oid` — and the display keeps following the
+     * primary `oid`'s status, so the Select switches over once the status echo arrives (no
+     * optimistic patch). Writability follows this state too: a read-only status `oid` does not
+     * lock the Select while a writable control ID is set. Its metadata lives in `cidObject`;
+     * picking it leaves the root `icon`/`write`/`minValue`/`maxValue` of the primary `oid` untouched.
      */
     cid?: string;
 }
