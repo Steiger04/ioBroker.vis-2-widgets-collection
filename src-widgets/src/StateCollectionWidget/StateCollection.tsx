@@ -5,16 +5,23 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData, { sameStateValue } from '../hooks/useData';
+import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
+import { decideTriggerAction, type TriggerEvent } from './stateTrigger';
 import type { StateCollectionContextProps } from '../types';
 
 /**
- * State widget body.
+ * State widget body — pure wiring over the Zustands-Auslöser (stateTrigger).
  *
+ * @remarks
+ * Every event unconditionally becomes a `fire(<event>)` call; the decision (including
+ * the push-button click suppression, ADR-0089) lives in {@link
+ * module:widgets/StateCollectionWidget/stateTrigger.decideTriggerAction} over the
+ * RESOLVED `states[]` from useData. Writes therefore happen synchronously — no
+ * `setTimeout` race between press, release and the trailing click.
  * @returns Widget body element.
  */
 function StateCollection(): React.ReactElement {
@@ -32,62 +39,36 @@ function StateCollection(): React.ReactElement {
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
 
-    const downHandler = (): void => {
-        const value1 = widget.data.value1;
-        if (onlyStates && states.length === 2 && widget.data.statePushButton && value1 !== undefined) {
-            setTimeout(() => setOidValueState(value1), 0);
-        }
-    };
+    const fire = useCallback(
+        (event: TriggerEvent): void => {
+            const action = decideTriggerAction(
+                event,
+                {
+                    states,
+                    onlyStates,
+                    statePushButton: widget.data.statePushButton,
+                },
+                oidValue,
+            );
 
-    const upHandler = (): void => {
-        const value2 = widget.data.value2;
-        if (onlyStates && states.length === 2 && widget.data.statePushButton && value2 !== undefined) {
-            setTimeout(() => setOidValueState(value2), 0);
-        }
-    };
-
-    const clickHandler = useCallback(() => {
-        if (!onlyStates) {
-            setOpen(true);
-            return;
-        }
-
-        switch (states.length) {
-            case 1:
-                if (widget.data.value1 !== undefined) {
-                    setOidValueState(widget.data.value1);
-                }
-                break;
-            case 2:
-                if (widget.data.value1 !== undefined && widget.data.value2 !== undefined) {
-                    !widget.data.statePushButton && sameStateValue(oidValue, widget.data.value1)
-                        ? setOidValueState(widget.data.value2)
-                        : setOidValueState(widget.data.value1);
-                }
-                break;
-            default:
+            if (action.type === 'write') {
+                setOidValueState(action.value);
+            } else if (action.type === 'open-dialog') {
                 setOpen(true);
-                break;
-        }
-    }, [
-        oidValue,
-        onlyStates,
-        states.length,
-        widget.data.statePushButton,
-        widget.data.value1,
-        widget.data.value2,
-        setOidValueState,
-    ]);
+            }
+        },
+        [states, onlyStates, widget.data.statePushButton, oidValue, setOidValueState],
+    );
 
     const StateButton = (
         <Button
             disabled={isOidReadOnly(widget.data)}
-            onClick={clickHandler}
-            onMouseDown={downHandler}
-            onMouseUp={upHandler}
-            onMouseOut={upHandler}
-            onTouchStart={downHandler}
-            onTouchEnd={upHandler}
+            onClick={(): void => fire('click')}
+            onMouseDown={(): void => fire('press')}
+            onMouseUp={(): void => fire('release')}
+            onMouseOut={(): void => fire('release')}
+            onTouchStart={(): void => fire('press')}
+            onTouchEnd={(): void => fire('release')}
             sx={{
                 width: '100%',
                 height: '100%',
