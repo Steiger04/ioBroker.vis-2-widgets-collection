@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/state-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import effectiveStateCount from './effectiveStateCount';
 import { createOnlyDisplayField } from './fieldFactories';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -51,18 +52,24 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
                       label: 'only_states',
                       default: false,
                       hidden: (data, _i) =>
-                          !data.values_count && !Object.keys(data.oidObject?.commonStates || {}).length,
+                          effectiveStateCount({
+                              valuesCount: data.values_count,
+                              commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
+                              ignoreCommonStates: data.ignoreCommonStates,
+                          }) === 0,
                   },
                   {
                       name: 'statePushButton',
                       type: 'checkbox',
                       label: 'state_push_button',
                       default: false,
-                      hidden: (data, _i) => {
-                          const effectiveCount =
-                              data.values_count || Object.keys(data.oidObject?.commonStates || {}).length;
-                          return !data.onlyStates || effectiveCount !== 2;
-                      },
+                      hidden: (data, _i) =>
+                          !data.onlyStates ||
+                          effectiveStateCount({
+                              valuesCount: data.values_count,
+                              commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
+                              ignoreCommonStates: data.ignoreCommonStates,
+                          }) !== 2,
                       tooltip: 'state_push_button_tooltip',
                   },
               ] as RxWidgetInfoAttributesField[])

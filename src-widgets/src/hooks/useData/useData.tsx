@@ -3,6 +3,7 @@ import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
 import { getDynamicProperty, isSliderFieldsRxData } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
+import effectiveStateCount from '../../lib/effectiveStateCount';
 import { createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
@@ -95,15 +96,12 @@ function useData(_oid: string): UseDataResult {
         const commonStatesEntries = Object.entries(commonStates);
 
         if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
-            // When ignoreCommonStates is active, values_count is 0 but data fields are still populated.
-            // Use commonStates length as the effective count to ensure proper state resolution.
-            // Fallback to values_count if commonStates is empty (e.g., for boolean OIDs without commonStates).
-            const effectiveCount =
-                rxData.ignoreCommonStates === false
-                    ? rxData.values_count
-                    : commonStatesEntries.length > 0
-                      ? commonStatesEntries.length
-                      : rxData.values_count;
+            // The ONE rule (Zustandsmenge): authored rows vs. commonStates vs. boolean fallback.
+            const effectiveCount = effectiveStateCount({
+                valuesCount: rxData.values_count,
+                commonStatesCount: commonStatesEntries.length,
+                ignoreCommonStates: rxData.ignoreCommonStates,
+            });
 
             for (let i = 1; i <= effectiveCount; i++) {
                 const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
