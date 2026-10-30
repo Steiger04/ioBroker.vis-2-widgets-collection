@@ -13,7 +13,10 @@ export interface SelectFieldsRxData {
      * };
      * ```
      * @remarks
-     * Align this color with the surrounding input or app bar for consistency.
+     * Align this color with the surrounding input or app bar for consistency. Unset, the arrow
+     * takes the active state's text colour (CONTEXT "Select-Chrome"); the editor swatch shows the
+     * text colour's base cascade — `textColor`, else the vis-2 CSS `color`, else the theme text
+     * colour (ADR-0004). Solid colours only: a gradient is reduced to its 50 % colour.
      */
     arrowColor?: string;
 

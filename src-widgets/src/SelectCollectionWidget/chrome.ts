@@ -9,8 +9,10 @@
  * popup surface, the per-entry hover/selected treatment, the arrow colour and
  * the width bound from the measured content box — the CONTEXT.md term
  * "Select-Chrome". Behaviour is frozen: every rule reproduces the legacy
- * inline computation verbatim; the tests pin the results. The icon/label
- * content of a state is not chrome and stays in the renderer.
+ * inline computation verbatim; the tests pin the results. Like the
+ * Button-Group-Chrome it is NOT a colour contract — except the arrow, whose
+ * fallback the `arrowColor` field declares (ADR-0004). The icon/label content
+ * of a state is not chrome and stays in the renderer.
  */
 
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
@@ -52,7 +54,9 @@ export interface SelectChromeInput {
  * Builds the sx for the select field itself: it fills its box, bounded by the
  * measured content width minus 10 %, and colours the arrow with `arrowColor`,
  * else with the active state's text colour — a gradient yields its 50 %
- * colour, an unparsable value leaves the arrow to the MUI default.
+ * colour, an unparsable value leaves the arrow to the MUI default. The editor
+ * swatch shows the same fallback's base cascade: the `arrowColor` field
+ * declares `textColor` as its fallback, terminal `text` (ADR-0004).
  *
  * @param input - Measured width, the explicit arrow colour and the active text colour.
  * @returns The field's sx; pass it as `<Select sx={…}>`.
