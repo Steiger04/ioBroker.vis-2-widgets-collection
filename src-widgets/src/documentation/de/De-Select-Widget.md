@@ -14,12 +14,23 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## Widget-spezifische Einstellungen
 
-| Feldname    | Typ      | Standard                         | Beschreibung                              | Bedingung           |
-| ----------- | -------- | -------------------------------- | ----------------------------------------- | ------------------- |
-| arrowColor  | color    | Textfarbe des ausgewählten Werts | Farbe des Dropdown-Pfeils                 | -                   |
-| onlyDisplay | checkbox | false                            | Nur Anzeige (keine Schreibrechte auf OID) | Nur wenn write=true |
+| Feldname    | Typ      | Standard                         | Beschreibung                                                                                                | Bedingung                                          |
+| ----------- | -------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| onlyDisplay | checkbox | false                            | Nur Anzeige (Auswahl gesperrt, es wird nichts geschrieben)                                                  | Ausgeblendet, wenn das Schreibziel write=false hat |
+| cid         | id       | -                                | Steuer ID: optionale zweite OID, an die die Auswahl geschrieben wird (Typen boolean, number, string, mixed) | -                                                  |
+| arrowColor  | color    | Textfarbe des ausgewählten Werts | Farbe des Dropdown-Pfeils                                                                                   | -                                                  |
 
-**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an das Schreibziel geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
+### Steuer ID (Status und Befehl getrennt)
+
+Viele Geräte trennen den Status (z. B. `…mode`) vom Befehl (z. B. `…setMode`). Dafür hat das Select Widget die **Steuer ID**:
+
+- **Anzeige**: Das Select zeigt immer den Wert der OID (Status).
+- **Schreiben**: Ist eine Steuer ID gesetzt, geht jede Auswahl ausschließlich an die Steuer ID — die OID wird nicht beschrieben. Ohne Steuer ID wird wie gewohnt die OID beschrieben.
+- **Schreibziel**: Die OID, an die geschrieben wird, heißt Schreibziel — also die Steuer ID, wenn gesetzt, sonst die OID.
+- **Sperre**: Die Auswahl ist gesperrt, wenn **Nur Anzeige** aktiv ist oder das Schreibziel `write=false` hat. Eine schreibgeschützte Status-OID sperrt das Select also nicht, solange eine beschreibbare Steuer ID gesetzt ist. Hat das Schreibziel `write=false`, wird **Nur Anzeige** ausgeblendet, weil die Auswahl ohnehin gesperrt ist.
+- **Werte**: Die Optionen werden nur einmal definiert. Die gewählte Option schreibt ihren Wert unverändert an die Steuer ID — sie muss also dieselben Werte verstehen, die der Status meldet.
 
 ## Datentypen
 

@@ -14,12 +14,23 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name  | Type     | Default                          | Description                                | Condition            |
-| ----------- | -------- | -------------------------------- | ------------------------------------------ | -------------------- |
-| arrowColor  | color    | Text color of the selected value | Color of the dropdown arrow                | -                    |
-| onlyDisplay | checkbox | false                            | Display only (no write permissions on OID) | Only when write=true |
+| Field Name  | Type     | Default                          | Description                                                                                        | Condition                                    |
+| ----------- | -------- | -------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| onlyDisplay | checkbox | false                            | Display only (selection locked, nothing is written)                                                | Hidden when the write target has write=false |
+| cid         | id       | -                                | Control ID: optional second OID the selection is written to (types boolean, number, string, mixed) | -                                            |
+| arrowColor  | color    | Text color of the selected value | Color of the dropdown arrow                                                                        | -                                            |
 
-**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the write target. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
+### Control ID (separate status and command)
+
+Many devices separate the status (e.g. `…mode`) from the command (e.g. `…setMode`). For this, the Select Widget has the **Control ID**:
+
+- **Display**: The Select always shows the value of the OID (status).
+- **Writing**: When a Control ID is set, every selection is written to the Control ID only — the OID is not written. Without a Control ID, the OID is written as usual.
+- **Write target**: The OID that is written to is called the write target — the Control ID when set, otherwise the OID.
+- **Lock**: The selection is locked when **Only display** is active or the write target has `write=false`. A read-only status OID therefore does not lock the Select as long as a writable Control ID is set. When the write target has `write=false`, **Only display** is hidden, because the selection is locked anyway.
+- **Values**: The options are defined only once. The selected option writes its value unchanged to the Control ID — so it must understand the same values the status reports.
 
 ## Data Types
 
