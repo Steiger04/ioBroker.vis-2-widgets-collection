@@ -6,11 +6,11 @@
 
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useCallback, useContext, useMemo, useRef } from 'react';
+import React, { useCallback, useContext, useRef } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData, { sameStateValue } from '../hooks/useData';
+import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useElementDimensions from '../hooks/useElementDimensions';
@@ -60,8 +60,9 @@ function SelectCollection(): React.ReactElement {
     const { widget } = context;
     const { borderStyles } = useStyles(widget.style);
     const oidObject = widget.data.oidObject;
-    // The display follows the main OID's status alone (oidValue).
-    const { data, states, oidValue } = useData('oid');
+    // The display follows the main OID's status alone: activeFieldNumber is the 1-based
+    // state field suffix (value1, value2, …) matching it; undefined = no matching state.
+    const { data, states, oidValue, activeFieldNumber } = useData('oid');
 
     // Schreibziel (ADR-0090): the control ID when set, else the main OID — written alone,
     // no optimistic patch of the main OID; the lock follows the same target.
@@ -72,12 +73,8 @@ function SelectCollection(): React.ReactElement {
 
     const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
 
-    const valueIndex = useMemo(() => {
-        if (oidValue === null || oidValue === undefined) {
-            return -1;
-        }
-        return states.findIndex(state => sameStateValue(state.value, oidValue));
-    }, [states, oidValue]);
+    // MUI's value is the 0-based entry index; '' is its "nothing selected".
+    const activeIndex = activeFieldNumber === undefined ? '' : activeFieldNumber - 1;
 
     const changeHandler = useCallback(
         (event: SelectChangeEvent<string | number>): void => {
@@ -121,7 +118,7 @@ function SelectCollection(): React.ReactElement {
                 <Select
                     variant="standard"
                     disableUnderline
-                    value={valueIndex !== -1 ? valueIndex : ''}
+                    value={activeIndex}
                     onChange={changeHandler}
                     disabled={readOnly}
                     MenuProps={{
@@ -167,10 +164,10 @@ function SelectCollection(): React.ReactElement {
                         },
                     }}
                 >
-                    {states.map((state, idx) => (
+                    {states.map((state, index) => (
                         <MenuItem
-                            key={String(state.value)}
-                            value={idx}
+                            key={`${String(state.value)}-${index}`}
+                            value={index}
                             sx={getMenuItemColorStyles(state.background)}
                         >
                             <Stack

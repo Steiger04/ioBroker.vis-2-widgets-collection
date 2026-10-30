@@ -5,11 +5,11 @@
  * @remarks
  * DOM contract of the body on the preview context (the ButtonGroup/State pattern):
  * the closed select shows the entry matching the main OID's status (none without a
- * match), a selection writes the chosen state value — to the main OID, or with a
- * control ID set to the control ID ALONE: exactly one backend write and no
- * optimistic patch of the main OID (Schreibziel, ADR-0090) — and the lock follows
- * the write target. The decision table itself is pinned in lib/writeTarget.test.ts
- * as pure data.
+ * match), states sharing a value list as separate entries, a selection writes the
+ * chosen state value — to the main OID, or with a control ID set to the control ID
+ * ALONE: exactly one backend write and no optimistic patch of the main OID
+ * (Schreibziel, ADR-0090) — and the lock follows the write target. The decision
+ * table itself is pinned in lib/writeTarget.test.ts as pure data.
  *
  * Selections are driven through the real UI: a primary-button mousedown on the
  * combobox opens the menu (MUI renders it in a portal on document.body), a click
@@ -177,6 +177,18 @@ describe('SelectCollection wiring', () => {
             expect(combobox(container).textContent).not.toMatch(/Eco|Comfort|Boost/);
             // The empty selection is MUI's '' — never an out-of-range value.
             expect(warn.mock.calls.flat().join('\n')).not.toMatch(/out-of-range/);
+        });
+    });
+
+    describe('entries', () => {
+        it('lists states sharing a value as separate entries without a React key clash', () => {
+            const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+            const { container } = mountSelect(scene({ value3: '1', alias3: 'Comfort+' }));
+
+            openMenu(container);
+
+            expect(options().map(option => option.textContent)).toEqual(['Eco', 'Comfort', 'Comfort+']);
+            expect(error.mock.calls.flat().join('\n')).not.toMatch(/same key/);
         });
     });
 
