@@ -5,7 +5,7 @@
  */
 
 import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
-import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
+import { useMemo, useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData, { sameStateValue } from '../hooks/useData';
@@ -13,6 +13,7 @@ import CollectionMark from './CollectionMark';
 import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import useOptimisticNumber from './useOptimisticNumber';
+import { MARK_LABEL_SPACE, railOffset } from './railOffset';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -120,11 +121,10 @@ const SliderCollection: FC = () => {
     // the hook).
     const { backendValue: oidValue, value: sliderValue, setValue: commitSliderValue } = useOptimisticNumber('oid');
 
-    // Refs used for dynamic track positioning.
-    const sliderContainerRef = useRef<HTMLDivElement>(null);
-    const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
-
     const isHorizontal = widget.data.sliderOrientation === 'horizontal';
+
+    // The end icons follow the rail axis, which the mark-label space shifts off center.
+    const trackOffset = railOffset(!!widget.data.marks, isHorizontal ? 'horizontal' : 'vertical');
 
     // Chrome-Farbvertrag: the color cascade of thumb/track/rail/mark comes from
     // the field contracts (sliderColorContracts), resolved in one place.
@@ -200,75 +200,6 @@ const SliderCollection: FC = () => {
         return index !== -1 ? index : null;
     }, [oidValue, sliderMarks]);
 
-    // Calculates the relative offset from the container center to the slider rail center.
-    const calculateTrackOffset = (): void => {
-        if (!sliderContainerRef.current) {
-            return;
-        }
-
-        // Find the slider rail within the container.
-        const sliderElement = sliderContainerRef.current.querySelector('.MuiSlider-root');
-        const railElement = sliderContainerRef.current.querySelector('.MuiSlider-rail');
-
-        if (sliderElement && railElement) {
-            const containerRect = sliderContainerRef.current.getBoundingClientRect();
-            const railRect = railElement.getBoundingClientRect();
-
-            // Compute the rail center relative to the container.
-            const railCenterX = railRect.left - containerRect.left + railRect.width / 2;
-            const railCenterY = railRect.top - containerRect.top + railRect.height / 2;
-
-            // Compute container center.
-            const containerCenterX = containerRect.width / 2;
-            const containerCenterY = containerRect.height / 2;
-
-            // Offset is the difference between rail center and container center.
-            setTrackOffset({
-                x: railCenterX - containerCenterX,
-                y: railCenterY - containerCenterY,
-            });
-        }
-    };
-
-    // Recalculate track offset on both layout changes and resize events.
-    // Uses debouncing to avoid excessive calculations during slider drag operations.
-    useEffect(() => {
-        if (!sliderContainerRef.current) {
-            return;
-        }
-
-        // Ref to track pending timeout for debouncing
-        let offsetTimeoutId: NodeJS.Timeout | null = null;
-
-        // Debounced calculation triggered by both prop changes and resize events
-        const calculateWithDebounce = (): void => {
-            if (offsetTimeoutId) {
-                clearTimeout(offsetTimeoutId);
-            }
-            offsetTimeoutId = setTimeout(calculateTrackOffset, 100);
-        };
-
-        // Setup ResizeObserver
-        const resizeObserver = new ResizeObserver(calculateWithDebounce);
-        resizeObserver.observe(sliderContainerRef.current);
-
-        // Trigger initial calculation on prop changes
-        calculateWithDebounce();
-
-        return () => {
-            resizeObserver.disconnect();
-            if (offsetTimeoutId) {
-                clearTimeout(offsetTimeoutId);
-            }
-        };
-    }, [
-        widget.data.marks,
-        widget.data.sliderOrientation,
-        widget.data.iconSizeStart,
-        widget.data.iconSizeEnd,
-        sliderValue,
-    ]);
-
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -284,7 +215,6 @@ const SliderCollection: FC = () => {
             />
             {isValidType ? (
                 <Box
-                    ref={sliderContainerRef}
                     sx={{
                         gap: Number(widget.data.sliderGap) || 0,
                         display: 'flex',
@@ -370,8 +300,8 @@ const SliderCollection: FC = () => {
                                     }
                                 }}
                                 sx={{
-                                    mb: widget.data.marks && isHorizontal ? '20px' : '0px',
-                                    mr: widget.data.marks && !isHorizontal ? '44px' : '0px',
+                                    mb: widget.data.marks && isHorizontal ? `${MARK_LABEL_SPACE.horizontal}px` : '0px',
+                                    mr: widget.data.marks && !isHorizontal ? `${MARK_LABEL_SPACE.vertical}px` : '0px',
                                     '& .MuiSlider-valueLabel': {
                                         fontSize:
                                             formatSizeRem(widget.data.valueSizeActive) ||
