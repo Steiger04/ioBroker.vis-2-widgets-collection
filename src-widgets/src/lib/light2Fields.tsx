@@ -285,7 +285,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'select',
         label: 'color_light_type',
         options: [
-            { value: 'none', label: 'nothing_selected' },
+            { value: 'none', label: 'none' },
             { value: 'cct', label: 'cct' },
             { value: 'rgb', label: 'rgb' },
             { value: 'rgbcct', label: 'rgb & cct' },
