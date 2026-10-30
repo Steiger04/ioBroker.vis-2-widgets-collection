@@ -4,18 +4,20 @@
  * @module widgets/RadioGroupCollection.test
  * @remarks
  * DOM contract of the renderer on the preview context (the Checkbox/ButtonGroup pattern):
- * every checked icon sized by its OWN state, and the ripple in the checked icon's colour.
+ * every checked icon sized by its OWN state, the ripple in the checked icon's colour, a
+ * selection writing through the Schreibkette, and the read-only guard locking the group.
  * MUI draws the `checkedIcon` on checked radios only, so two checked icons coexist only
  * when two states share the OID value — that render is where the per-state icon size
  * becomes observable.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createElement, act } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
 import CollectionProvider from '../components/CollectionProvider';
 import { buildPreviewContext } from '../preview/mockContext';
+import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import RadioGroupCollection from './RadioGroupCollection';
 import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from '../preview/types';
@@ -33,7 +35,7 @@ if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === 'unde
 const OID = 'demo.0.mode';
 const ICON = '/vis.0/main/img/mode.png';
 
-const scene = (data: Record<string, unknown> = {}, value: unknown = 1): PreviewScene =>
+const scene = (data: Record<string, unknown> = {}): PreviewScene =>
     ({
         slug: 'radio-group-test',
         size: { width: 480, height: 120 },
@@ -54,7 +56,7 @@ const scene = (data: Record<string, unknown> = {}, value: unknown = 1): PreviewS
                 },
                 style: {},
             },
-            values: { [`${OID}.val`]: value },
+            values: { [`${OID}.val`]: 1 },
             mode: 'light',
             wrappedContent: true,
         },
@@ -63,13 +65,16 @@ const scene = (data: Record<string, unknown> = {}, value: unknown = 1): PreviewS
 interface MountedRadioGroup {
     container: HTMLDivElement;
     setState: ReturnType<typeof vi.fn>;
+    setValue: ReturnType<typeof vi.fn>;
 }
 
 const mountRadioGroup = (currentScene: PreviewScene): MountedRadioGroup => {
     const setState = vi.fn();
+    const setValue = vi.fn();
     const context = {
         ...buildPreviewContext(currentScene),
         setState,
+        setValue,
     } as unknown as AllCollectionContextProps;
 
     const container = document.createElement('div');
@@ -78,10 +83,18 @@ const mountRadioGroup = (currentScene: PreviewScene): MountedRadioGroup => {
     act(() => {
         root.render(createElement(CollectionProvider, { context } as never, createElement(RadioGroupCollection)));
     });
-    return { container, setState };
+    return { container, setState, setValue };
 };
 
+/** The radio input of the state with the given value. */
+const radioInput = (container: HTMLElement, value: string): HTMLInputElement =>
+    container.querySelector<HTMLInputElement>(`input[type="radio"][value="${value}"]`) as HTMLInputElement;
+
 describe('RadioGroupCollection wiring', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it("sizes every checked icon by its own state's icon size, not by the first matching state", () => {
         const { container } = mountRadioGroup(
             scene({ value1: '1', alias1: 'A', value2: '1', alias2: 'B', icon: ICON, iconSize1: 40, iconSize2: 80 }),
@@ -115,5 +128,44 @@ describe('RadioGroupCollection wiring', () => {
         // Guards against a vacuous match should happy-dom stop resolving the Emotion rules.
         expect(iconColor).not.toBe('');
         expect(getComputedStyle(ripple).color).toBe(iconColor);
+    });
+
+    it("writes the selected state's value through the Schreibkette (optimistic patch, then the backend write)", async () => {
+        const { container, setState, setValue } = mountRadioGroup(scene({ delay: 0 }));
+        vi.useFakeTimers();
+
+        act(() => {
+            radioInput(container, '0').click();
+        });
+
+        // Optimistic patch: the value converted to the OID's number type, plus the own-write sentinel.
+        expect(setState).toHaveBeenCalledTimes(1);
+        const updater = setState.mock.calls[0][0] as (prev: { values: Record<string, unknown> }) => {
+            values: Record<string, unknown>;
+        };
+        expect(updater({ values: {} }).values).toEqual({
+            [`${OID}.val`]: 0,
+            [`${OID}.lc`]: VALUE_NOT_CHANGED_TIMESTAMP,
+        });
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+        expect(setValue.mock.calls).toEqual([[OID, 0]]);
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['a read-only state (write === false)', { write: false }],
+    ])('locks every radio for %s: disabled, and a click writes nothing', (_case, data) => {
+        const { container, setState } = mountRadioGroup(scene(data));
+
+        const inputs = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+        expect(inputs.map(input => input.disabled)).toEqual([true, true]);
+
+        act(() => {
+            radioInput(container, '0').click();
+        });
+        expect(setState).not.toHaveBeenCalled();
     });
 });
