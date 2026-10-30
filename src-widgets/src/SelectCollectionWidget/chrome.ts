@@ -9,19 +9,25 @@
  * popup surface, the per-entry hover/selected treatment, the arrow colour and
  * the width bound from the measured content box — the CONTEXT.md term
  * "Select-Chrome". Behaviour is frozen: every rule reproduces the legacy
- * inline computation verbatim; the tests pin the results. Like the
- * Button-Group-Chrome it is NOT a colour contract — except the arrow, whose
- * fallback the `arrowColor` field declares (ADR-0004). The icon/label content
- * of a state is not chrome and stays in the renderer.
+ * inline computation verbatim, with two exceptions — an invalid arrow colour
+ * falls back along the arrow contract instead of to the MUI default, and a
+ * state background MUI cannot parse tints nothing on hover instead of
+ * throwing; the tests pin the results. Like the Button-Group-Chrome it is NOT
+ * a colour contract — except the arrow, which resolves the one arrow contract
+ * the `arrowColor` field declares too (`lib/selectColorContract`, ADR-0004).
+ * The icon/label content of a state is not chrome and stays in the renderer.
  */
 
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
+import type { Theme } from '@mui/material';
 import type { MenuProps } from '@mui/material/Menu';
 import { alpha } from '@mui/material/styles';
 
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { resolveEffectiveColor, type StyleColor } from '../lib/helper/resolveEffectiveColor';
 import { cleanSx } from '../lib/helper/sxUtils';
+import { arrowColorContract } from '../lib/selectColorContract';
 
 /**
  * A plain sx object. Loosely typed on purpose: frozen legacy values include
@@ -40,29 +46,36 @@ const boundWidth = (width: number | undefined): number => width ?? UNMEASURED_WI
 export interface SelectChromeInput {
     /** Measured content-box width in px (useElementDimensions) — `undefined` until the first measurement. */
     width: number | undefined;
-    /** rxData.arrowColor — the explicit arrow colour. */
+    /** rxData.arrowColor — the explicit arrow colour; an invalid one counts as unset. */
     arrowColor: string | null | undefined;
     /**
-     * The ACTIVE state's resolved text colour (useData `data.textColor`) — the arrow's
-     * fallback. The resolver ends on the theme text colour (terminal `text`), so at
-     * runtime it is never empty.
+     * The ACTIVE state's resolved text colour (useData `data.textColor`) — the value the
+     * arrow contract's `textColor` fallback reads. The resolver ends on the theme text
+     * colour (terminal `text`), so at runtime it is never empty.
      */
     textColor: string | null | undefined;
+    /** The widget's vis-2 text styles (useStyles `textStyles`) — the contract's CSS colour step. */
+    textStyles: StyleColor;
+    /** The effective MUI theme — the contract's terminal (theme text). */
+    theme: Theme;
 }
 
 /**
  * Builds the sx for the select field itself: it fills its box, bounded by the
- * measured content width minus 10 %, and colours the arrow with `arrowColor`,
- * else with the active state's text colour — a gradient yields its 50 %
- * colour, an unparsable value leaves the arrow to the MUI default. The editor
- * swatch shows the same fallback's base cascade: the `arrowColor` field
- * declares `textColor` as its fallback, terminal `text` (ADR-0004).
+ * measured content width minus 10 %, and colours the arrow through the arrow
+ * contract (`arrowColorContract`, ADR-0004) — `arrowColor`, else the active
+ * state's text colour, else the vis-2 CSS colour, else the theme text colour;
+ * an invalid colour counts as unset. A gradient yields its 50 % colour; a value
+ * without a hex/rgb colour (a vis-2 CSS colour by name) leaves the arrow to the
+ * MUI default. The editor swatch resolves the same contract over the base
+ * fields instead of the active text colour.
  *
- * @param input - Measured width, the explicit arrow colour and the active text colour.
+ * @param input - Measured width, the explicit arrow colour, the active text colour, text styles and theme.
  * @returns The field's sx; pass it as `<Select sx={…}>`.
  */
 export function buildSelectChrome(input: SelectChromeInput): SxObject {
-    const { width, arrowColor, textColor } = input;
+    const { width, arrowColor, textColor, textStyles, theme } = input;
+    const arrow = resolveEffectiveColor(arrowColorContract, { arrowColor, textColor }, theme, textStyles);
 
     return {
         width: '100%',
@@ -70,7 +83,7 @@ export function buildSelectChrome(input: SelectChromeInput): SxObject {
         maxWidth: `calc(${boundWidth(width)}px - 10%)`,
 
         '& .MuiSelect-icon': {
-            color: extractColorFromValue(arrowColor || textColor),
+            color: extractColorFromValue(arrow),
         },
     };
 }

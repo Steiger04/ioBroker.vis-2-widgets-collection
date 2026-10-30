@@ -12,6 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
 import { createIdField } from './commonObjectFields';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
+import { arrowColorContract } from './selectColorContract';
 import { CONTROL_ID_FIELD, writeTargetDeniesWrite } from './writeTarget';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -31,16 +32,14 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="arrow" />,
     },
-    // Arrow color with noGradient (only solid colors for icons). Unset, the arrow takes the
-    // active state's text colour (Select-Chrome), so the swatch shows the text colour's base
-    // cascade: textColor → vis-2 CSS colour → theme text (ADR-0004).
+    // Arrow color with noGradient (only solid colors for icons). Its cascade is the one arrow
+    // contract the Select-Chrome resolves at runtime (ADR-0004): the swatch resolves it over
+    // the base fields — textColor → vis-2 CSS colour → theme text —, the runtime over the
+    // active state's text colour.
     createColorField({
-        name: 'arrowColor',
+        ...arrowColorContract,
         label: 'arrow_color',
-        fallbackFields: ['textColor'],
         noGradient: true,
-        terminal: 'text',
-        inheritTextStyle: true,
     }),
 ];
 

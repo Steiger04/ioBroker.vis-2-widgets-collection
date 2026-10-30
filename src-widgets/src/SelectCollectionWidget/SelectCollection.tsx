@@ -30,8 +30,8 @@ function SelectCollection(): React.ReactElement {
     const { width } = useElementDimensions(contentRef);
 
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
-    const { widget } = context;
-    const { borderStyles } = useStyles(widget.style);
+    const { widget, theme } = context;
+    const { borderStyles, textStyles } = useStyles(widget.style);
     const oidObject = widget.data.oidObject;
     // The display follows the main OID's status alone: activePosition is the 0-based
     // position in `states` of the state matching it (NOT its Feldnummer — blank value
@@ -105,6 +105,8 @@ function SelectCollection(): React.ReactElement {
                         width,
                         arrowColor: widget.data.arrowColor,
                         textColor: data.textColor,
+                        textStyles,
+                        theme,
                     })}
                 >
                     {states.map((state, index) => (

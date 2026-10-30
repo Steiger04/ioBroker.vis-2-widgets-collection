@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrome';
 import type { MenuChromeInput, SelectChromeInput } from './chrome';
+import type { Theme } from '@mui/material';
 
 const menuChrome = (overrides: Partial<MenuChromeInput> = {}): ReturnType<typeof buildMenuChrome> =>
     buildMenuChrome({
@@ -93,11 +94,17 @@ describe('buildMenuChrome — the popup width bound', () => {
 });
 
 describe('buildSelectChrome', () => {
+    /** The theme text colour — the arrow contract's terminal. */
+    const THEME_TEXT = 'rgba(0, 0, 0, 0.87)';
+    const THEME = { palette: { text: { primary: THEME_TEXT } } } as unknown as Theme;
+
     const selectSx = (overrides: Partial<SelectChromeInput> = {}): Record<string, any> =>
         buildSelectChrome({
             width: undefined,
             arrowColor: undefined,
             textColor: '#00aa00',
+            textStyles: undefined,
+            theme: THEME,
             ...overrides,
         });
 
@@ -133,8 +140,17 @@ describe('buildSelectChrome', () => {
         expect(arrowColour({ arrowColor: undefined, textColor: gradient })).toBe('rgb(128, 0, 128)');
     });
 
-    it('consults nothing beyond the two — without both the arrow keeps the MUI default', () => {
-        expect(arrowColour({ arrowColor: undefined, textColor: undefined })).toBeNull();
+    it('falls back to the active text colour for an invalid arrowColor — not to the MUI default', () => {
+        expect(arrowColour({ arrowColor: 'not-a-colour', textColor: '#00aa00' })).toBe('#00aa00');
+        // Valid CSS but outside the colour contract (hex, rgb(a), gradients).
+        expect(arrowColour({ arrowColor: 'red', textColor: '#00aa00' })).toBe('#00aa00');
+    });
+
+    it('follows the arrow contract past an empty or invalid text colour: vis-2 CSS colour, else theme text', () => {
+        // Unreachable with the textColor resolver (it ends on the theme text colour) — the contract's end.
+        expect(arrowColour({ textColor: undefined, textStyles: { color: '#0000aa' } })).toBe('#0000aa');
+        expect(arrowColour({ textColor: 'not-a-colour', textStyles: { color: '#0000aa' } })).toBe('#0000aa');
+        expect(arrowColour({ textColor: undefined })).toBe(THEME_TEXT);
     });
 });
 
