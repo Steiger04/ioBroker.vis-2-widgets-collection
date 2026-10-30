@@ -245,6 +245,28 @@ export const oidChangeHandlerAsync =
         }
     };
 
+/**
+ * Builds an OID picker field: a vis-2 `id` field labelled by its data property (the i18n
+ * key), whose pick runs {@link oidChangeHandlerAsync} for that same property.
+ *
+ * @param name - Data property the picked id is stored in — the main `'oid'`, the Select's
+ *   control ID (`CONTROL_ID_FIELD`).
+ * @param allowedTypes - Allowed JS types for the picked state.
+ * @returns The field definition.
+ * @remarks
+ * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
+ * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
+ * @example createIdField('oid', ANY_VALUE_TYPES)
+ */
+export const createIdField = (name: string, allowedTypes: readonly AllowedType[]): RxWidgetInfoAttributesField =>
+    ({
+        name,
+        type: 'id',
+        label: name,
+        onChange: oidChangeHandlerAsync(allowedTypes, name),
+        allowedTypes,
+    }) as RxWidgetInfoAttributesField;
+
 /** Options to toggle optional sections emitted by {@link commonObjectFields}. */
 interface CommonObjectFieldsOptions {
     /** Include the unit override field (default: true). */
@@ -259,17 +281,7 @@ const commonObjectFields = (
 ): RxWidgetInfoAttributesField[] => {
     // The OID picker is always present; the unit and value-group sections are optional
     // and each carries its own leading divider so toggling them leaves no orphan dividers.
-    // `allowedTypes` is an introspectable mirror of the onChange filter — the
-    // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
-    const fields: RxWidgetInfoAttributesField[] = [
-        {
-            name: 'oid',
-            type: 'id',
-            label: 'oid',
-            onChange: oidChangeHandlerAsync(allowedTypes),
-            allowedTypes,
-        } as RxWidgetInfoAttributesField,
-    ];
+    const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes)];
 
     if (unit) {
         fields.push(

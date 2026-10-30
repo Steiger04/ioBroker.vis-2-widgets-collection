@@ -10,7 +10,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
-import { oidChangeHandlerAsync } from './commonObjectFields';
+import { createIdField } from './commonObjectFields';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import { CONTROL_ID_FIELD, writeTargetDeniesWrite } from './writeTarget';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
@@ -21,24 +21,12 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="selection" />,
     },
-    {
-        ...createOnlyDisplayField(),
-        // The toggle is moot exactly when the WRITE TARGET is read-only (ADR-0090) —
-        // not the root `write`, which belongs to the main OID: a writable control ID
-        // keeps it available over a read-only status OID.
-        disabled: writeTargetDeniesWrite,
-        hidden: writeTargetDeniesWrite,
-    },
+    // The toggle is moot exactly when the WRITE TARGET denies writes (ADR-0090) — not
+    // the root `write`, which belongs to the main OID: a writable control ID keeps it
+    // available over a read-only status OID.
+    createOnlyDisplayField(writeTargetDeniesWrite),
     // The control ID — the Select's sole write target when set (Schreibziel, ADR-0090).
-    // `allowedTypes` is an introspectable mirror of the onChange filter — the
-    // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
-    {
-        name: CONTROL_ID_FIELD,
-        type: 'id',
-        label: 'cid',
-        onChange: oidChangeHandlerAsync(ANY_VALUE_TYPES, CONTROL_ID_FIELD),
-        allowedTypes: ANY_VALUE_TYPES,
-    } as RxWidgetInfoAttributesField,
+    createIdField(CONTROL_ID_FIELD, ANY_VALUE_TYPES),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="arrow" />,

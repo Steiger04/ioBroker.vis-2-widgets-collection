@@ -326,21 +326,27 @@ export function createDivider(dividerText: string, options?: DividerOptions): Ex
  * Builds the shared `onlyDisplay` field: the display-only toggle of every
  * interactive widget.
  *
+ * @param isLocked - When the toggle is moot: it is hidden and disabled while
+ *   this holds. Default: the bound OID is explicitly non-writable
+ *   (`write === false`); a missing `write` stays writable by convention — see
+ *   {@link module:lib/helper/isOidReadOnly}.
  * @returns A fresh field definition per call, so field lists never share one
  *   object instance with the vis-2 editor.
  * @remarks
- * Hidden and disabled while the bound OID is explicitly non-writable
- * (`write === false`); a missing `write` stays writable by convention — see
- * {@link module:lib/helper/isOidReadOnly}.
+ * A widget whose writes do not go to the root `write`'s OID passes its own lock —
+ * the Select passes `writeTargetDeniesWrite` (its write target, ADR-0090).
  * @example createOnlyDisplayField()
+ * @example createOnlyDisplayField(writeTargetDeniesWrite)
  */
-export function createOnlyDisplayField(): RxWidgetInfoAttributesField {
+export function createOnlyDisplayField(
+    isLocked: (data: WidgetData) => boolean = (data: WidgetData) => data.write === false,
+): RxWidgetInfoAttributesField {
     return {
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: (data: WidgetData) => data.write === false,
+        disabled: isLocked,
         default: false,
-        hidden: (data: WidgetData) => data.write === false,
+        hidden: isLocked,
     };
 }
