@@ -40,6 +40,16 @@ describe('resolveWriteTarget — the lock follows the write target', () => {
             readOnly: true,
         },
         {
+            row: 'main write missing + onlyDisplay',
+            data: { onlyDisplay: true, oidObject: { _id: STATUS } },
+            readOnly: true,
+        },
+        {
+            row: 'main read-only + onlyDisplay',
+            data: { onlyDisplay: true, oidObject: { _id: STATUS, write: false } },
+            readOnly: true,
+        },
+        {
             row: 'main read-only + onlyDisplay off',
             data: { onlyDisplay: false, oidObject: { _id: STATUS, write: false } },
             readOnly: true,
@@ -63,6 +73,16 @@ describe('resolveWriteTarget — the lock follows the write target', () => {
         {
             row: 'writable control ID + onlyDisplay',
             data: { onlyDisplay: true, oidObject: { _id: STATUS }, cidObject: { _id: COMMAND, write: true } },
+            readOnly: true,
+        },
+        {
+            row: 'control ID write missing + onlyDisplay',
+            data: { onlyDisplay: true, oidObject: { _id: STATUS }, cidObject: { _id: COMMAND } },
+            readOnly: true,
+        },
+        {
+            row: 'read-only control ID + onlyDisplay',
+            data: { onlyDisplay: true, oidObject: { _id: STATUS }, cidObject: { _id: COMMAND, write: false } },
             readOnly: true,
         },
         // Nothing bound yet: only onlyDisplay can lock.
