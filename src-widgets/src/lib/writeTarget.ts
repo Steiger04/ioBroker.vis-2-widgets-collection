@@ -46,8 +46,24 @@ export interface WriteTargetData {
     [field: string]: any;
 }
 
+/**
+ * Data property name of the control ID (Steuer ID): the Select's command target, whose
+ * metadata lives in `cidObject` (ADR-0090).
+ */
+export const CONTROL_ID_FIELD = 'cid';
+
+/**
+ * Whether an id field's data property is the control ID ({@link CONTROL_ID_FIELD}).
+ *
+ * @param name - Data property of an id field (`oid`, `cid`, Dialog's `dialogId` …).
+ * @returns `true` for the control ID only.
+ */
+export function isControlIdField(name: string): boolean {
+    return name === CONTROL_ID_FIELD;
+}
+
 /** Data property name of the OID a selection writes. */
-export type WriteTargetIdName = 'oid' | 'cid';
+export type WriteTargetIdName = 'oid' | typeof CONTROL_ID_FIELD;
 
 /** Result of {@link resolveWriteTarget}. */
 export interface WriteTarget {
@@ -61,7 +77,9 @@ export interface WriteTarget {
 const targetOf = (
     data: WriteTargetData,
 ): { idName: WriteTargetIdName; object: WriteTargetObject | null | undefined } =>
-    data.cidObject?._id ? { idName: 'cid', object: data.cidObject } : { idName: 'oid', object: data.oidObject };
+    data.cidObject?._id
+        ? { idName: CONTROL_ID_FIELD, object: data.cidObject }
+        : { idName: 'oid', object: data.oidObject };
 
 /**
  * Resolves the write target of a selection.

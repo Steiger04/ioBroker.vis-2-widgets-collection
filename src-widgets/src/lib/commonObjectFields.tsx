@@ -11,7 +11,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { writeTargetDeniesWrite } from './writeTarget';
+import { isControlIdField, writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
 import type { Connection } from '@iobroker/adapter-react-v5';
@@ -43,7 +43,7 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
     });
 
-    if (oid === 'cid') {
+    if (isControlIdField(oid)) {
         // The control ID is gone: the write target falls back to the main OID (ADR-0090).
         data.onlyDisplay = writeTargetDeniesWrite(data);
     }
@@ -134,8 +134,9 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
  * - `'oid'` (main OID): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
  *   `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
  *   control ID keeps its suggestion, whatever the picking order.
- * - `'cid'` (the Select's control ID, ADR-0090): only `cidObject` and the `onlyDisplay`
- *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
+ * - the control ID (`isControlIdField`, the Select's Steuer ID, ADR-0090): only `cidObject` and
+ *   the `onlyDisplay` suggestion; clearing it (or losing its object) re-derives the suggestion
+ *   from the main OID.
  * - any other id (Dialog's `dialogId`, Light2's channel IDs): root fields and the suggestion from
  *   the picked object, as before.
  */
@@ -181,7 +182,7 @@ export const oidChangeHandlerAsync =
 
             data[`${oid}Object`] = objectData;
 
-            if (oid === 'cid') {
+            if (isControlIdField(oid)) {
                 // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
                 // suggestion — the root fields belong to the main OID.
                 data.onlyDisplay = writeTargetDeniesWrite(data);

@@ -12,7 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
-import { writeTargetDeniesWrite } from './writeTarget';
+import { CONTROL_ID_FIELD, writeTargetDeniesWrite } from './writeTarget';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -33,10 +33,10 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // `allowedTypes` is an introspectable mirror of the onChange filter — the
     // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
     {
-        name: 'cid',
+        name: CONTROL_ID_FIELD,
         type: 'id',
         label: 'cid',
-        onChange: oidChangeHandlerAsync(ANY_VALUE_TYPES, 'cid'),
+        onChange: oidChangeHandlerAsync(ANY_VALUE_TYPES, CONTROL_ID_FIELD),
         allowedTypes: ANY_VALUE_TYPES,
     } as RxWidgetInfoAttributesField,
     {
