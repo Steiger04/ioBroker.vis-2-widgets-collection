@@ -22,6 +22,7 @@ import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
 import { initializeColorFromStates, initializeKelvin, initializeBrightness } from './initHandlers';
 import { isHueScale, toHueScale } from './hueScale';
+import { backendSyncKey } from './backendSyncKey';
 
 // Changes type used for H/S/V change information.
 type ColorChanges = {
@@ -133,21 +134,47 @@ function Light2CollectionContent(): React.ReactElement {
     } = useValueState('colorLightTemperatureOid');
 
     // Brightness
-    const { updateValue: setBrightnessValueState, hasBackendChange: brightnessChanged } =
-        useValueState('colorLightBrightnessOid');
+    const {
+        value: brightnessValue,
+        updateValue: setBrightnessValueState,
+        hasBackendChange: brightnessChanged,
+    } = useValueState('colorLightBrightnessOid');
 
     // RGB Hex
-    const { updateValue: setRgbHexValueState, hasBackendChange: rgbHexChanged } = useValueState('colorLightRgbHexOid');
+    const {
+        value: rgbHexValue,
+        updateValue: setRgbHexValueState,
+        hasBackendChange: rgbHexChanged,
+    } = useValueState('colorLightRgbHexOid');
 
-    // R/G/B einzeln
-    const { updateValue: setRedValueState, hasBackendChange: redChanged } = useValueState('colorLightRedOid');
-    const { updateValue: setGreenValueState, hasBackendChange: greenChanged } = useValueState('colorLightGreenOid');
-    const { updateValue: setBlueValueState, hasBackendChange: blueChanged } = useValueState('colorLightBlueOid');
+    // Single R/G/B channels
+    const {
+        value: redValue,
+        updateValue: setRedValueState,
+        hasBackendChange: redChanged,
+    } = useValueState('colorLightRedOid');
+    const {
+        value: greenValue,
+        updateValue: setGreenValueState,
+        hasBackendChange: greenChanged,
+    } = useValueState('colorLightGreenOid');
+    const {
+        value: blueValue,
+        updateValue: setBlueValueState,
+        hasBackendChange: blueChanged,
+    } = useValueState('colorLightBlueOid');
 
     // H/S/V
-    const { updateValue: setHueValueState, hasBackendChange: hueChanged } = useValueState('colorLightHueOid');
-    const { updateValue: setSaturationValueState, hasBackendChange: saturationChanged } =
-        useValueState('colorLightSaturationOid');
+    const {
+        value: hueValue,
+        updateValue: setHueValueState,
+        hasBackendChange: hueChanged,
+    } = useValueState('colorLightHueOid');
+    const {
+        value: saturationValue,
+        updateValue: setSaturationValueState,
+        hasBackendChange: saturationChanged,
+    } = useValueState('colorLightSaturationOid');
 
     // Type-safe access to the OID object.
     const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
@@ -422,10 +449,35 @@ function Light2CollectionContent(): React.ReactElement {
     }, [effectiveColorLightType, kelvinChanged]);
 
     /*
+     * Foreign backend changes → picker sync. Each effect keys on a backendSyncKey
+     * (not on the hasBackendChange flags): the flag stays true across consecutive
+     * foreign changes, the key changes with each of them.
+     */
+    const temperatureSyncKey = backendSyncKey([{ changed: temperatureChanged, value: temperatureValue }]);
+    const brightnessSyncKey = backendSyncKey([{ changed: brightnessChanged, value: brightnessValue }]);
+    const mainColorSyncKey = backendSyncKey(
+        ['rgb', 'rgbcct'].includes(effectiveColorLightType || '')
+            ? [{ changed: rgbHexChanged, value: rgbHexValue }]
+            : ['r/g/b', 'r/g/b/cct'].includes(effectiveColorLightType || '')
+              ? [
+                    { changed: redChanged, value: redValue },
+                    { changed: greenChanged, value: greenValue },
+                    { changed: blueChanged, value: blueValue },
+                ]
+              : ['h/s/v', 'h/s/v/cct'].includes(effectiveColorLightType || '')
+                ? [
+                      { changed: hueChanged, value: hueValue },
+                      { changed: saturationChanged, value: saturationValue },
+                      { changed: brightnessChanged, value: brightnessValue },
+                  ]
+                : [],
+    );
+
+    /*
      * Sync backend temperature updates into both Kelvin and brightness pickers.
      */
     useEffect(() => {
-        if (effectiveColorLightType !== 'cct') {
+        if (effectiveColorLightType !== 'cct' || temperatureSyncKey === null) {
             return;
         }
 
@@ -433,16 +485,12 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        if (!temperatureChanged) {
+        if (temperatureValue === undefined || temperatureValue === null) {
             return;
         }
 
         const kelvinColor = mainPickerRef.current.color;
         const brightnessColor = brightnessPickerRef.current.color;
-
-        if (temperatureValue === undefined || temperatureValue === null) {
-            return;
-        }
 
         isSyncingRef.current = true;
         try {
@@ -451,14 +499,17 @@ function Light2CollectionContent(): React.ReactElement {
         } finally {
             isSyncingRef.current = false;
         }
-    }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
+    }, [effectiveColorLightType, temperatureSyncKey, temperatureValue]);
 
+    /*
+     * Sync backend brightness updates into the CCT brightness picker.
+     */
     useEffect(() => {
-        if (!cctLight || effectiveColorLightType !== 'cct') {
+        if (!cctLight || effectiveColorLightType !== 'cct' || brightnessSyncKey === null) {
             return;
         }
 
-        if (!brightnessChanged || !brightnessPickerRef.current) {
+        if (!brightnessPickerRef.current) {
             return;
         }
 
@@ -468,14 +519,13 @@ function Light2CollectionContent(): React.ReactElement {
         } finally {
             isSyncingRef.current = false;
         }
-    }, [cctLight, effectiveColorLightType, brightnessChanged]);
+    }, [cctLight, effectiveColorLightType, brightnessSyncKey]);
 
+    /*
+     * Sync backend color updates (rgb hex, r/g/b or h/s/v channels) into the main picker.
+     */
     useEffect(() => {
-        if (cctLight || !['rgb', 'rgbcct'].includes(effectiveColorLightType || '')) {
-            return;
-        }
-
-        if (!rgbHexChanged || !mainPickerRef.current) {
+        if (cctLight || mainColorSyncKey === null || !mainPickerRef.current) {
             return;
         }
 
@@ -484,65 +534,13 @@ function Light2CollectionContent(): React.ReactElement {
             initializeColorFromStates(
                 mainPickerRef.current.color,
                 effectiveColorLightType,
-                getPropertyValue,
-                widget.data,
+                getPropertyValueRef.current,
+                widgetDataRef.current,
             );
         } finally {
             isSyncingRef.current = false;
         }
-    }, [cctLight, effectiveColorLightType, rgbHexChanged, getPropertyValue, widget.data]);
-
-    useEffect(() => {
-        if (cctLight || !['r/g/b', 'r/g/b/cct'].includes(effectiveColorLightType || '')) {
-            return;
-        }
-
-        if ((!redChanged && !greenChanged && !blueChanged) || !mainPickerRef.current) {
-            return;
-        }
-
-        isSyncingRef.current = true;
-        try {
-            initializeColorFromStates(
-                mainPickerRef.current.color,
-                effectiveColorLightType,
-                getPropertyValue,
-                widget.data,
-            );
-        } finally {
-            isSyncingRef.current = false;
-        }
-    }, [cctLight, effectiveColorLightType, redChanged, greenChanged, blueChanged, getPropertyValue, widget.data]);
-
-    useEffect(() => {
-        if (cctLight || !['h/s/v', 'h/s/v/cct'].includes(effectiveColorLightType || '')) {
-            return;
-        }
-
-        if ((!hueChanged && !saturationChanged && !brightnessChanged) || !mainPickerRef.current) {
-            return;
-        }
-
-        isSyncingRef.current = true;
-        try {
-            initializeColorFromStates(
-                mainPickerRef.current.color,
-                effectiveColorLightType,
-                getPropertyValue,
-                widget.data,
-            );
-        } finally {
-            isSyncingRef.current = false;
-        }
-    }, [
-        cctLight,
-        effectiveColorLightType,
-        hueChanged,
-        saturationChanged,
-        brightnessChanged,
-        getPropertyValue,
-        widget.data,
-    ]);
+    }, [cctLight, effectiveColorLightType, mainColorSyncKey]);
 
     /*
      * When switching to the Kelvin part of a CCT light, initialize both pickers in sync.

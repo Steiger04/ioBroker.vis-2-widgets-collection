@@ -235,6 +235,26 @@ describe('useValueState hook', () => {
         expect(captured.current?.hasBackendChange).toBe(true);
         unmount();
     });
+
+    it('stays true across two consecutive foreign changes — a state, not an event', async () => {
+        const box = makeBox(numberOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 10 });
+        const { captured, rerender, unmount } = mount(box);
+
+        rerender(); // first observation
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 20 };
+        await flushWrites(2000);
+        rerender();
+        expect(captured.current?.hasBackendChange).toBe(true);
+
+        // The second foreign change does NOT toggle the flag: a consumer effect
+        // keyed on the flag alone never re-runs — it must key on the value too.
+        box.values = { ...box.values, [`${OID}.lc`]: 3000, [`${OID}.val`]: 30 };
+        await flushWrites(2000);
+        rerender();
+        expect(captured.current?.hasBackendChange).toBe(true);
+        expect(captured.current?.value).toBe(30);
+        unmount();
+    });
 });
 
 describe('useValueState hook — write interval (delayFields defaults)', () => {
