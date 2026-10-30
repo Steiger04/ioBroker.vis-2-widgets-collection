@@ -304,12 +304,14 @@ function readJsonFile(filePath) {
 }
 
 /**
- * Write JSON file with proper formatting
+ * Write JSON file with proper formatting.
+ * Keeps the existing key order (new keys are appended) — the language files are
+ * hand-ordered, so sorting here would rewrite every file on each run.
  * @param {string} filePath
  * @param {Object} data
  */
 function writeJsonFile(filePath, data) {
-    const content = JSON.stringify(data, Object.keys(data).sort(), 4) + '\n';
+    const content = JSON.stringify(data, null, 4) + '\n';
     fs.writeFileSync(filePath, content, 'utf-8');
 }
 
