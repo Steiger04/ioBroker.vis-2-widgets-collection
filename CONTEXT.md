@@ -512,3 +512,17 @@ The collection's state display/toggle button (icon + Wert-Anzeige cluster, click
 **Zustands-Auslöser**:
 The State widget's ONE trigger decision (`StateCollectionWidget/stateTrigger.ts`, pure): what a press / release / click does — write (single state), toggle between two states (via the `sameStateValue` contract), open the change dialog (more than two states, or `onlyStates` off), or nothing. The push-button click write is SUPPRESSED, not outrun: press/release write synchronously, so the former `setTimeout(0)` race is gone, and a keyboard click in push-button mode is an honest no-op instead of latching the press value. The React body is wiring — three unconditional `fire()` adapters over the RESOLVED `states[]` from useData (never raw `value1`/`value2`); the change dialog is an internal implementation behind it: props-driven, no context of its own, writing through the body's one **Schreibkette**.
 _Avoid_: Klick-Logik (that is the wiring), Trigger-Handler (that is the adapter side), Taster-Trick/Timer-Rennen (retired with the race)
+
+# Select Collection Widget
+
+The collection's dropdown selection over the resolved states of one OID, with an optional control ID as separate command target. This glossary pins down its write and chrome language.
+
+## Language
+
+**Schreibziel**:
+The ONE rule for which OID a selection writes and whose writability locks the control (`lib/writeTarget.ts`, pure, ADR-0090): the control ID (`cid`, "Steuer ID") when set, otherwise the main OID. Only the write target is written to the backend — the display follows the main OID's status alone, so after a selection with a control ID the Select snaps over when the status echo arrives (no optimistic main-OID patch). The control is read-only iff `onlyDisplay` is set or the write target's object carries `write === false`. Consumed by BOTH the editor (`oidChangeHandlerAsync` derives the `onlyDisplay` suggestion from the write target, regardless of picking order; clearing the control ID re-derives it from the main OID) and the runtime (Select) — the Zustandsmenge pattern. The control-ID handler owns only `cidObject` and `onlyDisplay`; root `icon`/`write`/`minValue`/`maxValue` belong to the main OID.
+_Avoid_: Doppel-Write (the retired write to both OIDs), Ziel-OID (unsaid which rule), Status-OID as write target when a control ID is set
+
+**Select-Chrome**:
+The presentation shell of the Select — everything the renderer draws AROUND the per-state content (`SelectCollectionWidget/chrome.ts`): the menu paper (follows the EXPLICIT `noCard` only, not `wrappedContent` — the menu is portaled to the body, so an embedded Select keeps its own surface; `noCard` without `frameBackground` stays transparent and shadowless, frozen), the per-entry hover/selected treatment (hover turns into the 50 %-alpha of the state background — for gradients of its extracted colour), the arrow colour and the root width bound from the measured content box. Like **Button-Group-Chrome** NOT a colour contract — except the arrow: `arrowColor`, else the ACTIVE state's text colour, declared on the field as `textColor` fallback with terminal `text` (ADR-0004) so the editor swatch shows the base cascade. The icon/label content of a state is not chrome; it stays in the renderer (ADR-0091).
+_Avoid_: Menü-Styles (unsaid WHICH shell), mixing chrome with the per-state content layout, deriving the menu surface from `wrappedContent`
