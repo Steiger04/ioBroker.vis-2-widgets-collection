@@ -19,14 +19,14 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { RadioGroupCollectionContextProps } from '../types';
-import type { StateStyleData, StyleData } from '../hooks/useData/types';
+import type { StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
 
 /**
  * Renders the checked radio icon: the custom state image layered over the
  * unchecked dot when one is configured, otherwise the plain MUI checked dot.
  */
-function renderCheckedIcon(state: StateStyleData, data: StyleData): React.JSX.Element {
+function renderCheckedIcon(state: StateStyleData): React.JSX.Element {
     return state.icon ? (
         <Box
             sx={{
@@ -64,7 +64,7 @@ function renderCheckedIcon(state: StateStyleData, data: StyleData): React.JSX.El
                         position: 'relative',
                         left: `calc(0px + ${state.iconXOffset})`,
                         top: `calc(0px - ${state.iconYOffset})`,
-                        width: `calc(${data.iconSizeOnly} * 0.5)`, // TODO: switch to state.iconSizeOnly (per-value icon size)
+                        width: `calc(${state.iconSizeOnly} * 0.5)`,
                         ...getIconColorStyles(state.icon, state.iconColor, state.forceColorMask),
                     }}
                 />
@@ -190,7 +190,7 @@ function RadioGroupCollection(): React.ReactElement {
                             control={
                                 <Radio
                                     disabled={isOidReadOnly(widget.data)}
-                                    checkedIcon={renderCheckedIcon(state, data)}
+                                    checkedIcon={renderCheckedIcon(state)}
                                     icon={
                                         <RadioButtonUncheckedIcon
                                             sx={{
@@ -205,10 +205,7 @@ function RadioGroupCollection(): React.ReactElement {
                                         height: '100%',
                                         maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
                                         '& .MuiTouchRipple-root': {
-                                            color:
-                                                widget.data[`iconColor${index + 1}`] ||
-                                                widget.data.iconColor ||
-                                                data.textColor,
+                                            color: state.iconColor,
                                         },
                                         '& .MuiSvgIcon-root': {
                                             width: '100%',
