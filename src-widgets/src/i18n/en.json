@@ -1181,6 +1181,7 @@
     "small_icon": "Small icon",
     "square": "Square",
     "squared_corner": "Squared corner",
+    "state_change_dialog_title": "Change value",
     "state_collection_widget": "State (boolean, number, string, mixed)",
     "state_push_button": "Push button",
     "state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2].",

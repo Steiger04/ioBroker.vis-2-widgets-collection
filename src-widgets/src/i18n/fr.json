@@ -1181,6 +1181,7 @@
     "small_icon": "Petite icône",
     "square": "Bouton carré",
     "squared_corner": "Coin carré",
+    "state_change_dialog_title": "Modifier la valeur",
     "state_collection_widget": "État (booléen, nombre, chaîne)",
     "state_push_button": "Bouton poussoir",
     "state_push_button_tooltip": "Lorsque le bouton est enfoncé, la valeur[1] est définie, et lorsqu'il est relâché, la valeur[2] est définie.",

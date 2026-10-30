@@ -2,15 +2,16 @@ import { Box, Button } from '@mui/material';
 import React, { useCallback, useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
-import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
+import Generic from '../Generic';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { decideTriggerAction, type TriggerEvent } from './stateTrigger';
+import StateChangeDialog from './StateChangeDialog';
 import type { StateCollectionContextProps } from '../types';
 
 /**
@@ -35,6 +36,16 @@ function StateCollection(): React.ReactElement {
     const oidType = oidObject?.type;
 
     const onlyStates = widget.data.onlyStates;
+
+    // Slider gate (ticket 03): a number OID outside "only states" with defined
+    // bounds earns the dialog a range slider — the dialog renders, the body decides.
+    const sliderBounds =
+        oidType === 'number' && !onlyStates && oidObject?.minValue !== undefined && oidObject?.maxValue !== undefined
+            ? { min: oidObject.minValue, max: oidObject.maxValue }
+            : undefined;
+
+    // Title fallback chain: configured header, then the OID's name, then i18n.
+    const dialogTitle = data.header || oidObject?.name || Generic.t('state_change_dialog_title');
 
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
@@ -110,11 +121,16 @@ function StateCollection(): React.ReactElement {
     return (
         <>
             {open && (
-                <CollectionChangeDialog
-                    data={{ sampleInterval: false, sampleIntervalValue: 200, delay: 100 }}
+                <StateChangeDialog
                     widgetStates={widgetStates}
                     open={open}
                     closeHandler={() => setOpen(false)}
+                    title={dialogTitle}
+                    backgroundColor={data.backgroundColor}
+                    textColor={data.textColor}
+                    currentValue={oidValue}
+                    onCommit={setOidValueState}
+                    slider={sliderBounds}
                 />
             )}
             <CollectionBase

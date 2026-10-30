@@ -1181,6 +1181,7 @@
     "small_icon": "Kleines Icon",
     "square": "Quadrat",
     "squared_corner": "Ecken",
+    "state_change_dialog_title": "Wert ändern",
     "state_collection_widget": "Zustand (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
     "state_push_button": "Taster",
     "state_push_button_tooltip": "Mit Drücken des Tasters wird Wert[1] und nach dem Loslassen Wert[2] gesetzt.",

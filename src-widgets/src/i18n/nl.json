@@ -1181,6 +1181,7 @@
     "small_icon": "Klein icoontje",
     "square": "Vierkante knop",
     "squared_corner": "Vierkante hoek",
+    "state_change_dialog_title": "Waarde wijzigen",
     "state_collection_widget": "Staat (Boolean, getal, tekenreeks)",
     "state_push_button": "Drukknop",
     "state_push_button_tooltip": "Wanneer de knop wordt ingedrukt, wordt waarde[1] ingesteld, en wanneer deze wordt losgelaten, wordt waarde[2] ingesteld.",
