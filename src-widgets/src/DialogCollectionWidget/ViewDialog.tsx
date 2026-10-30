@@ -68,7 +68,7 @@ export default function ViewDialog({
                 color: theme =>
                     widget.data.dialogCloseButtonColor || data.frameBackgroundColor || theme.palette.background.default,
             }}
-            aria-label="delete"
+            aria-label="close"
             onClick={handleClose}
         >
             <CloseIcon />
