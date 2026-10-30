@@ -104,24 +104,13 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
         [onCommit],
     );
 
-    const handleClose = useCallback(
-        (_event?: object, reason?: 'backdropClick' | 'escapeKeyDown') => {
-            if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-                closeHandler();
-            }
-        },
-        [closeHandler],
-    );
-
-    const handleExternalClose = useCallback(() => {
-        closeHandler();
-    }, [closeHandler]);
-
     const createListItemClickHandler = useCallback(
         (key: string) => (event: MouseEvent<HTMLDivElement>) => {
             event.preventDefault();
             const numericValue = Number(key);
-            if (!isNaN(numericValue)) {
+            // Number('') and Number('  ') are 0, not NaN — a blank key must not
+            // drag the slider to 0; real numeric keys still seed the position.
+            if (key.trim() !== '' && !isNaN(numericValue)) {
                 setSliderValue(numericValue);
             }
             onCommit(key);
@@ -189,7 +178,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     return (
         <Dialog
             open={open}
-            onClose={handleClose}
+            onClose={closeHandler}
             maxWidth="xs"
             fullWidth
             PaperProps={{
@@ -207,7 +196,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
             </DialogTitle>
             <IconButton
                 aria-label="close"
-                onClick={handleExternalClose}
+                onClick={closeHandler}
                 sx={theme => ({
                     position: 'absolute',
                     right: 8,

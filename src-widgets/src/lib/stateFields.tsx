@@ -12,7 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import effectiveStateCount from './effectiveStateCount';
 import { createOnlyDisplayField } from './fieldFactories';
 
-import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 /**
  * Options controlling which state fields are generated.
@@ -38,6 +38,15 @@ type StateFieldsSettings = {
 const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesField[] => {
     const { onlyStates = true } = settings || {};
 
+    // Both hidden closures below ask the same question — the effective state count
+    // of the widget's editor data — so they share this one reading of the formula.
+    const countOf = (data: WidgetData): number =>
+        effectiveStateCount({
+            valuesCount: data.values_count,
+            commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
+            ignoreCommonStates: data.ignoreCommonStates,
+        });
+
     return [
         // Discrete-state selection block — only for widgets that cycle/pick states directly.
         ...(onlyStates
@@ -51,25 +60,14 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
                       type: 'checkbox',
                       label: 'only_states',
                       default: false,
-                      hidden: (data, _i) =>
-                          effectiveStateCount({
-                              valuesCount: data.values_count,
-                              commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
-                              ignoreCommonStates: data.ignoreCommonStates,
-                          }) === 0,
+                      hidden: (data, _i) => countOf(data) === 0,
                   },
                   {
                       name: 'statePushButton',
                       type: 'checkbox',
                       label: 'state_push_button',
                       default: false,
-                      hidden: (data, _i) =>
-                          !data.onlyStates ||
-                          effectiveStateCount({
-                              valuesCount: data.values_count,
-                              commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
-                              ignoreCommonStates: data.ignoreCommonStates,
-                          }) !== 2,
+                      hidden: (data, _i) => !data.onlyStates || countOf(data) !== 2,
                       tooltip: 'state_push_button_tooltip',
                   },
               ] as RxWidgetInfoAttributesField[])
