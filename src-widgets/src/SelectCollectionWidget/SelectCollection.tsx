@@ -20,7 +20,7 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
+import { resolveWriteTarget } from '../lib/writeTarget';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
@@ -59,12 +59,14 @@ function SelectCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget } = context;
     const { borderStyles } = useStyles(widget.style);
-    const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
-    const { data, states } = useData('oid');
+    // The display follows the main OID's status alone (oidValue).
+    const { data, states, oidValue } = useData('oid');
 
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
-    const { updateValue: setCidValueState } = useValueState('cid');
+    // Schreibziel (ADR-0090): the control ID when set, else the main OID — written alone,
+    // no optimistic patch of the main OID; the lock follows the same target.
+    const { idName, readOnly } = resolveWriteTarget(widget.data);
+    const { updateValue } = useValueState(idName);
 
     const oidType = oidObject?.type;
 
@@ -90,15 +92,9 @@ function SelectCollection(): React.ReactElement {
                 return;
             }
 
-            const { value } = selectedState;
-
-            if (cidObject) {
-                setCidValueState(value);
-            }
-
-            setOidValueState(value);
+            updateValue(selectedState.value);
         },
-        [states, cidObject, setCidValueState, setOidValueState],
+        [states, updateValue],
     );
 
     return (
@@ -127,7 +123,7 @@ function SelectCollection(): React.ReactElement {
                     disableUnderline
                     value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
-                    disabled={isOidReadOnly(widget.data)}
+                    disabled={readOnly}
                     MenuProps={{
                         PaperProps: {
                             sx: {

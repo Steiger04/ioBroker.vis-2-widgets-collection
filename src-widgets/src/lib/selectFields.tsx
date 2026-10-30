@@ -3,13 +3,16 @@
  *
  * @module lib/selectFields
  * @remarks
- * Provides additional fields used by the Select collection widget (e.g. content OID and arrow styling).
+ * Provides additional fields used by the Select collection widget (display-only toggle, control ID and
+ * arrow styling).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/select-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { ANY_VALUE_TYPES } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
+import { defaultOnlyDisplay } from './writeTarget';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -18,13 +21,24 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="selection" />,
     },
-    createOnlyDisplayField(),
+    {
+        ...createOnlyDisplayField(),
+        // The toggle is moot exactly when the WRITE TARGET is read-only (ADR-0090) —
+        // not the root `write`, which belongs to the main OID: a writable control ID
+        // keeps it available over a read-only status OID.
+        disabled: defaultOnlyDisplay,
+        hidden: defaultOnlyDisplay,
+    },
+    // The control ID — the Select's sole write target when set (Schreibziel, ADR-0090).
+    // `allowedTypes` is an introspectable mirror of the onChange filter — the
+    // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
     {
         name: 'cid',
         type: 'id',
         label: 'cid',
-        onChange: oidChangeHandlerAsync(['boolean', 'number', 'string', 'mixed'], 'cid'),
-    },
+        onChange: oidChangeHandlerAsync(ANY_VALUE_TYPES, 'cid'),
+        allowedTypes: ANY_VALUE_TYPES,
+    } as RxWidgetInfoAttributesField,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="arrow" />,

@@ -5,15 +5,21 @@
  * @remarks
  * The main export in this module is `oidChangeHandlerAsync()`, an `onChange` handler factory used by several
  * widgets. It resolves the selected object and populates common widget fields (icons, labels, min/max, etc.)
- * based on object metadata.
+ * based on object metadata — except for the Select's control ID, which owns only `cidObject` and the
+ * `onlyDisplay` suggestion (Schreibziel, ADR-0090).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { defaultOnlyDisplay } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
+import type { WriteTargetData } from './writeTarget';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+/** The write target's onlyDisplay suggestion (ADR-0090) over the editor's untyped widget data. */
+const suggestOnlyDisplay = (data: WidgetData): boolean => defaultOnlyDisplay(data as WriteTargetData);
 
 const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');
@@ -40,6 +46,11 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
             delete data[key];
         }
     });
+
+    if (oid === 'cid') {
+        // The control ID is gone: the write target falls back to the main OID (ADR-0090).
+        data.onlyDisplay = suggestOnlyDisplay(data);
+    }
 
     const keys = [
         'iconSmall',
@@ -122,6 +133,15 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
  *
  * @param allowedTypes Allowed JS types for the selected state/object.
  * @param oid The name of the data property that stores the selected object id.
+ * @remarks
+ * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role decides:
+ * - `'oid'` (main OID): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
+ *   `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
+ *   control ID keeps its suggestion, whatever the picking order.
+ * - `'cid'` (the Select's control ID, ADR-0090): only `cidObject` and the `onlyDisplay`
+ *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
+ * - any other id (Dialog's `dialogId`, Light2's channel IDs): root fields and the suggestion from
+ *   the picked object, as before.
  */
 export const oidChangeHandlerAsync =
     (allowedTypes: readonly AllowedType[], oid = 'oid') =>
@@ -165,12 +185,20 @@ export const oidChangeHandlerAsync =
 
             data[`${oid}Object`] = objectData;
 
-            // Set root level properties (required for compatibility)
-            data.icon = objectData.icon;
-            data.write = objectData.write;
-            data.onlyDisplay = objectData.onlyDisplay;
-            data.minValue = objectData.minValue;
-            data.maxValue = objectData.maxValue;
+            if (oid === 'cid') {
+                // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
+                // suggestion — the root fields belong to the main OID.
+                data.onlyDisplay = suggestOnlyDisplay(data);
+            } else {
+                // Set root level properties (required for compatibility)
+                data.icon = objectData.icon;
+                data.write = objectData.write;
+                // The main OID's suggestion yields to a resolved control ID (the write target);
+                // other auxiliary IDs (Dialog, Light2 channels) keep their own suggestion.
+                data.onlyDisplay = oid === 'oid' ? suggestOnlyDisplay(data) : objectData.onlyDisplay;
+                data.minValue = objectData.minValue;
+                data.maxValue = objectData.maxValue;
+            }
 
             // Handle states configuration
             if (object.common.states) {
