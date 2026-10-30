@@ -17,7 +17,23 @@ const paper = (overrides: Partial<MenuChromeInput> = {}): Record<string, any> =>
     menuChrome(overrides).PaperProps?.sx as Record<string, any>;
 
 describe('buildMenuChrome — the popup surface', () => {
-    it('flattens the popup for noCard: no shadow, no overlay, transparent without a frame background (frozen)', () => {
+    it('flattens the noCard popup — no shadow, no overlay — and keeps it opaque in the paper-coloured frame background', () => {
+        // The runtime path: an unset frame background resolves to the theme paper (terminal `paper`).
+        expect(paper({ noCard: true, frameBackground: '#fff' })).toEqual({
+            overflow: 'hidden',
+            '& .MuiMenu-list': {
+                maxHeight: '100vh',
+                overflowY: 'auto',
+            },
+            '--Paper-overlay': 'none !important',
+            '--Paper-shadow': 'none !important',
+            boxShadow: 'none !important',
+            background: '#fff',
+        });
+    });
+
+    it('leaves a noCard popup transparent only for an empty resolved frame background (defensive)', () => {
+        // Unreachable through the frame background resolver, which ends on the theme paper.
         expect(paper({ noCard: true })).toEqual({
             overflow: 'hidden',
             '& .MuiMenu-list': {
@@ -29,6 +45,7 @@ describe('buildMenuChrome — the popup surface', () => {
             boxShadow: 'none !important',
             background: 'transparent',
         });
+        expect(paper({ noCard: true, frameBackground: '' }).background).toBe('transparent');
     });
 
     it('paints the frame background, with or without noCard — gradients included', () => {
