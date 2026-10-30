@@ -136,7 +136,7 @@ describe('StateChangeDialog', () => {
         });
 
         const sliderValue = (): string | null =>
-            document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow');
+            document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow') ?? null;
         expect(sliderValue()).toBe('55');
 
         const blankItem = Array.from(document.querySelectorAll('.MuiListItemButton-root')).find(
