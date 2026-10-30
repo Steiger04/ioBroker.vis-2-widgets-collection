@@ -27,7 +27,8 @@ export interface SelectFieldsRxData {
      *
      * @example
      * ```typescript
-     * const data: SelectFieldsRxData = {
+     * // `oid` belongs to CommonObjectFieldsRxData, not to the Select fields.
+     * const data: SelectFieldsRxData & Pick<CommonObjectFieldsRxData, 'oid'> = {
      *     oid: 'zigbee.0.lamp.mode_status', // status — the display follows it
      *     cid: 'zigbee.0.lamp.mode_set' // command — the only state written
      * };
