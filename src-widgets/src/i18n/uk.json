@@ -1181,6 +1181,7 @@
     "small_icon": "Маленький значок",
     "square": "Квадратна кнопка",
     "squared_corner": "Спрямований кут",
+    "state_change_dialog_title": "Змінити значення",
     "state_collection_widget": "Стан (логічне значення, число, рядок)",
     "state_push_button": "Кнопка",
     "state_push_button_tooltip": "При натисканні кнопки встановлюється значення[1], а при відпусканні - значення[2].",

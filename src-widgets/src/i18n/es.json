@@ -1181,6 +1181,7 @@
     "small_icon": "Icono pequeño",
     "square": "Botón cuadrado",
     "squared_corner": "Esquina cuadrada",
+    "state_change_dialog_title": "Cambiar valor",
     "state_collection_widget": "Estado (booleano, número, cadena)",
     "state_push_button": "Botón pulsador",
     "state_push_button_tooltip": "Al presionar el botón se establece el valor[1] y al soltarlo se establece el valor[2].",

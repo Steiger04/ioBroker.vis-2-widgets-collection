@@ -1181,6 +1181,7 @@
     "small_icon": "小图标",
     "square": "方形按钮",
     "squared_corner": "方角",
+    "state_change_dialog_title": "更改值",
     "state_collection_widget": "状态（布尔值、数字、字符串）",
     "state_push_button": "按钮",
     "state_push_button_tooltip": "按下按钮时设置值[1]，释放时设置值[2]。",
