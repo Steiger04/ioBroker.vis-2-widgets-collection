@@ -22,7 +22,7 @@ import isNumber from '../lib/helper/isNumber';
 import useDebounce from './useDebounce';
 import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../types';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';
-import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import { DEFAULT_WRITE_DELAY_MS, VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 
 /**
  * Converts a primitive value to the configured ioBroker OID type.
@@ -202,8 +202,10 @@ export interface UseValueStateReturn {
  * );
  * ```
  * @remarks
- * Delay configuration is read from `DelayFieldsRxData` when available.
- * Widgets that don't expose delay fields effectively fall back to a default delay of 300ms.
+ * Delay configuration is read from `DelayFieldsRxData` when available. A missing or non-numeric
+ * delay/interval writes with the field defaults — 300 ms debounce, 200 ms throttle (see
+ * {@link module:hooks/useDebounce}); an explicit `0` writes at once. The echo-ignore window
+ * spans `Number(delay) || 300` (a configured `0` still yields 300) plus 1500 ms.
  */
 const useValueState = (idName: string): UseValueStateReturn => {
     const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
@@ -217,7 +219,8 @@ const useValueState = (idName: string): UseValueStateReturn => {
     }>({ lc: undefined, value: undefined });
     const ignoreUntilRef = useRef<number>(0);
 
-    const delay = Number((widget.data as Partial<DelayFieldsRxData>).delay) || 300;
+    // Echo-ignore window only — the write itself debounces in useDebounce.
+    const delay = Number((widget.data as Partial<DelayFieldsRxData>).delay) || DEFAULT_WRITE_DELAY_MS;
 
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;

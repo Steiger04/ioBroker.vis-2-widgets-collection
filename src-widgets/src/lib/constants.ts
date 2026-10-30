@@ -14,6 +14,24 @@
 export const VALUE_NOT_CHANGED_TIMESTAMP = 1111111111111;
 
 /**
+ * Default debounce delay of a write in ms — the `delay` field's default.
+ *
+ * @remarks
+ * One value for the field ({@link module:lib/delayFields}) and the write path: a missing or
+ * non-numeric configured delay debounces with it ({@link module:hooks/useDebounce}).
+ */
+export const DEFAULT_WRITE_DELAY_MS = 300;
+
+/**
+ * Default throttle interval of a write in ms — the `sampleIntervalValue` field's default.
+ *
+ * @remarks
+ * One value for the field ({@link module:lib/delayFields}) and the write path: in sampling mode a
+ * missing or non-numeric configured interval throttles with it ({@link module:hooks/useDebounce}).
+ */
+export const DEFAULT_SAMPLE_INTERVAL_MS = 200;
+
+/**
  * ioBroker state id that stores the user-supplied MUI theme JSON.
  *
  * @remarks

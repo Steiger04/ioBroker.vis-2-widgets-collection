@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/delay-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { DEFAULT_SAMPLE_INTERVAL_MS, DEFAULT_WRITE_DELAY_MS } from './constants';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -28,7 +29,8 @@ const delayFields = (): RxWidgetInfoAttributesField[] => [
         name: 'sampleIntervalValue',
         type: 'number',
         label: 'sample_interval_value',
-        default: 200,
+        // Also the write path's fallback for a missing or non-numeric interval (useDebounce).
+        default: DEFAULT_SAMPLE_INTERVAL_MS,
         min: 0,
         max: 10000,
         step: 1,
@@ -38,7 +40,8 @@ const delayFields = (): RxWidgetInfoAttributesField[] => [
         name: 'delay',
         type: 'number',
         label: 'delay',
-        default: 300,
+        // Also the write path's fallback for a missing or non-numeric delay (useDebounce).
+        default: DEFAULT_WRITE_DELAY_MS,
         min: 0,
         max: 10000,
         step: 1,

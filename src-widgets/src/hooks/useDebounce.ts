@@ -8,12 +8,29 @@
  * delay mode changes and cleans up on unmount. If `oid` becomes missing/falsy, no
  * new subscription is created, but an existing subscription is left intact until
  * the component unmounts or you clean it up manually.
+ *
+ * The interval falls back to the delay fields' defaults (lib/delayFields) when the configured
+ * value is missing, blank or not a number — 300 ms debounce, 200 ms throttle; an explicit `0`
+ * stays `0` (the fields allow `min: 0`). Without the fallback, `Number(undefined)` would hand
+ * `NaN` to RxJS and the write would fire after about 1 ms.
  */
 
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import { Subject, debounceTime, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
+import { DEFAULT_SAMPLE_INTERVAL_MS, DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
+import isNumber from '../lib/helper/isNumber';
 import type { DelayFieldsRxData, OidObject } from '../types';
+
+/**
+ * A configured interval in ms, or the field default when the value is missing, blank or not a
+ * finite number. An explicit `0` is kept.
+ */
+const intervalOr = (value: unknown, fieldDefault: number): number => {
+    const ms = Number(value);
+
+    return isNumber(value) && Number.isFinite(ms) ? ms : fieldDefault;
+};
 
 /**
  * Parameters for {@link module:hooks/useDebounce.default}.
@@ -40,8 +57,8 @@ export interface UseDebounceReturn {
  * @param params.oidObject - Selected OID object (must contain `_id`).
  * @param params.data - Delay configuration.
  * @param params.data.sampleInterval - Debounce/throttle mode.
- * @param params.data.sampleIntervalValue - Interval value in milliseconds.
- * @param params.data.delay - Additional delay before writing.
+ * @param params.data.sampleIntervalValue - Throttle interval in milliseconds (default 200).
+ * @param params.data.delay - Debounce delay before writing in milliseconds (default 300).
  * @returns A writer with `next()`, or `null` if no OID is selected.
  * @example
  * ```ts
@@ -61,11 +78,13 @@ function useDebounce({
     setValueRef.current = setValue;
     const oid = oidObject?._id;
 
-    const _delay = useMemo(() => {
-        const intervalValue = Number(sampleIntervalValue);
-        const delayValue = Number(delay);
-        return sampleInterval ? intervalValue : delayValue;
-    }, [sampleInterval, sampleIntervalValue, delay]);
+    const _delay = useMemo(
+        () =>
+            sampleInterval
+                ? intervalOr(sampleIntervalValue, DEFAULT_SAMPLE_INTERVAL_MS)
+                : intervalOr(delay, DEFAULT_WRITE_DELAY_MS),
+        [sampleInterval, sampleIntervalValue, delay],
+    );
 
     useEffect(() => {
         if (!subjectRef.current) {

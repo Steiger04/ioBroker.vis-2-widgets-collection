@@ -67,7 +67,7 @@ const scene = (data: Record<string, unknown> = {}, status: unknown = 1): Preview
                     alias2: 'Comfort',
                     value3: '2',
                     alias3: 'Boost',
-                    // Explicit write delay: a missing one debounces with NaN (see useDebounce).
+                    // Write at once: a missing delay debounces with the 300 ms field default.
                     delay: 0,
                     noHeader: true,
                     noFooter: true,

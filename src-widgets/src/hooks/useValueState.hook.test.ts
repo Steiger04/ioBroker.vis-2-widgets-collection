@@ -208,7 +208,7 @@ describe('useValueState hook', () => {
         // Echo inside the ignore window: absorbed. NOTE the window quirk this pins:
         // delay 0 is falsy, so `Number(delay) || 300` makes the effective delay 300
         // → the window is 300 + 1500 = 1800 ms (the write itself still debounces
-        // with 0 — useDebounce reads the raw field).
+        // with 0 — useDebounce keeps an explicit 0).
         box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 6 };
         await flushWrites(100);
         rerender();
@@ -234,5 +234,64 @@ describe('useValueState hook', () => {
         // One non-coercing side ('an'/'aus') → any change is significant.
         expect(captured.current?.hasBackendChange).toBe(true);
         unmount();
+    });
+});
+
+describe('useValueState hook — write interval (delayFields defaults)', () => {
+    /** A writable string OID with the given write-interval configuration — and nothing else. */
+    const stringOidWith = (writeInterval: Record<string, unknown>): Record<string, unknown> => ({
+        oid: OID,
+        oidObject: { _id: OID, type: 'string', write: true },
+        ...writeInterval,
+    });
+
+    /** Writes 'neu', then takes the backend writes made so far at each elapsed time (ms, ascending). */
+    const writesAt = async (data: Record<string, unknown>, checkpoints: number[]): Promise<unknown[][][]> => {
+        const box = makeBox(data);
+        const { captured, unmount } = mount(box);
+
+        act(() => {
+            captured.current?.updateValue('neu');
+        });
+
+        const snapshots: unknown[][][] = [];
+        let elapsed = 0;
+        for (const checkpoint of checkpoints) {
+            await flushWrites(checkpoint - elapsed);
+            elapsed = checkpoint;
+            snapshots.push([...box.setValue.mock.calls]);
+        }
+        unmount();
+
+        return snapshots;
+    };
+
+    /** The one backend write of 'neu'. */
+    const WRITTEN = [[OID, 'neu']];
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it.each([
+        ['missing', {}],
+        ['blank', { delay: '' }],
+        ['not a number', { delay: 'soon' }],
+    ])('debounces with the 300 ms field default when the delay is %s', async (_case, writeInterval) => {
+        // Nothing written at 299 ms, the write at 300 ms.
+        expect(await writesAt(stringOidWith(writeInterval), [299, 300])).toEqual([[], WRITTEN]);
+    });
+
+    it('keeps an explicit delay of 0: the write goes out at once', async () => {
+        expect(await writesAt(stringOidWith({ delay: 0 }), [1])).toEqual([WRITTEN]);
+    });
+
+    it('throttles with the 200 ms field default when sampling without an interval', async () => {
+        // Trailing throttle: nothing written at 199 ms, the write at 200 ms.
+        expect(await writesAt(stringOidWith({ sampleInterval: true }), [199, 200])).toEqual([[], WRITTEN]);
     });
 });
