@@ -96,4 +96,78 @@ describe('StateChangeDialog', () => {
         expect(closeHandler).toHaveBeenCalledTimes(1);
         handle.unmount();
     });
+
+    it('closes when the backdrop is clicked', () => {
+        const closeHandler = vi.fn();
+        const handle = mount({ closeHandler });
+
+        act(() => {
+            // The backdrop carries MUI's own onClick (target === currentTarget check),
+            // so the click must land on the backdrop element itself.
+            document.querySelector('.MuiBackdrop-root')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        expect(closeHandler).toHaveBeenCalledTimes(1);
+        handle.unmount();
+    });
+
+    it('closes when Escape is pressed', () => {
+        const closeHandler = vi.fn();
+        const handle = mount({ closeHandler });
+
+        act(() => {
+            // MUI's keydown handler sits on the modal root; a bubbling Escape
+            // from inside the dialog reaches it.
+            document
+                .querySelector('.MuiDialogTitle-root')
+                ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        });
+
+        expect(closeHandler).toHaveBeenCalledTimes(1);
+        handle.unmount();
+    });
+
+    it('does not seed the slider from an empty state key', () => {
+        // Number('') is 0, not NaN — a blank key must not drag the slider to 0.
+        const handle = mount({
+            widgetStates: { '': 'Blank' },
+            slider: { min: 0, max: 100 },
+            currentValue: 55,
+        });
+
+        const sliderValue = (): string | null =>
+            document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow');
+        expect(sliderValue()).toBe('55');
+
+        const blankItem = Array.from(document.querySelectorAll('.MuiListItemButton-root')).find(
+            item => item.textContent === 'Blank',
+        );
+        act(() => {
+            blankItem?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        expect(sliderValue()).toBe('55');
+        handle.unmount();
+    });
+
+    it('seeds the slider with a clicked numeric state key', () => {
+        const onCommit = vi.fn();
+        const handle = mount({
+            widgetStates: { 80: 'Dim 80%' },
+            slider: { min: 0, max: 100 },
+            currentValue: 55,
+            onCommit,
+        });
+
+        const dimItem = Array.from(document.querySelectorAll('.MuiListItemButton-root')).find(
+            item => item.textContent === 'Dim 80%',
+        );
+        act(() => {
+            dimItem?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        expect(document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow')).toBe('80');
+        expect(onCommit).toHaveBeenCalledWith('80');
+        handle.unmount();
+    });
 });
