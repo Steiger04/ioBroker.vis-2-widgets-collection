@@ -187,4 +187,48 @@ describe('buildMenuItemChrome', () => {
         expect(sx['&:hover']).toEqual({ background: undefined, bgcolor: undefined });
         expect(sx['&.Mui-selected:hover']).toEqual({ background: undefined, bgcolor: undefined });
     });
+
+    it.each([
+        ['a named colour', 'red'],
+        ['a CSS variable', 'var(--accent)'],
+    ])('paints %s MUI cannot parse but tints nothing on hover — without throwing', (_case, bgColor) => {
+        expect(buildMenuItemChrome(bgColor)).toEqual({
+            background: null,
+            bgcolor: bgColor,
+            '&.Mui-selected': {
+                background: null,
+                bgcolor: bgColor,
+            },
+            '&.Mui-selected:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+            '&:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+        });
+    });
+
+    it('paints a gradient without an extractable colour but tints nothing on hover — without throwing', () => {
+        // Named stops: extractColorFromValue reads hex/rgb stops only, and MUI cannot parse a gradient.
+        const gradient = 'linear-gradient(90deg, red 0%, blue 100%)';
+
+        expect(buildMenuItemChrome(gradient)).toEqual({
+            background: gradient,
+            bgcolor: 'transparent',
+            '&.Mui-selected': {
+                background: gradient,
+                bgcolor: undefined,
+            },
+            '&.Mui-selected:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+            '&:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+        });
+    });
 });

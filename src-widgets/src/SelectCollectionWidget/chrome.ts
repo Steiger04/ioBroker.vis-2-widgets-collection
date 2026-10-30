@@ -144,10 +144,24 @@ export function buildMenuChrome(input: MenuChromeInput): Partial<MenuProps> {
 }
 
 /**
+ * The 50 % alpha of a colour, or `undefined` when MUI cannot parse it: `alpha()`
+ * throws on named colours, CSS variables and gradients ("MUI: Unsupported … color").
+ */
+const halfAlphaOf = (color: string): string | undefined => {
+    try {
+        return alpha(color, 0.5);
+    } catch {
+        return undefined;
+    }
+};
+
+/**
  * Builds the sx for one menu entry from its state background: a solid colour
  * paints the entry (selected or not) and hovers in its 50 % alpha; a gradient
  * paints over a transparent base and hovers in the 50 % alpha of its extracted
- * colour; without a background nothing is tinted.
+ * colour; without a background nothing is tinted. A background MUI cannot parse
+ * (a named colour, a CSS variable, a gradient without hex/rgb stops) still paints
+ * the entry but tints nothing on hover — it never throws.
  *
  * @param bgColor - The state's resolved background — a solid colour, a gradient or nothing.
  * @returns The entry's sx; pass it as `<MenuItem sx={…}>`.
@@ -155,7 +169,7 @@ export function buildMenuChrome(input: MenuChromeInput): Partial<MenuProps> {
 export function buildMenuItemChrome(bgColor: string | null | undefined): SxObject {
     const gradient = gradientColor(bgColor);
     const extractedColor = gradient ? extractColorFromValue(bgColor) : undefined;
-    const hoverBg = extractedColor ? alpha(extractedColor, 0.5) : bgColor ? alpha(bgColor, 0.5) : undefined;
+    const hoverBg = extractedColor ? halfAlphaOf(extractedColor) : bgColor ? halfAlphaOf(bgColor) : undefined;
 
     return {
         background: gradient,
