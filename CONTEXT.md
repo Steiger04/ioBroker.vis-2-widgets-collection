@@ -487,6 +487,10 @@ _Avoid_: Write-Pipeline (that suggests fetch/transform machinery), Setter (that 
 The ONE pure rule for how many discrete states a widget effectively has (`lib/effectiveStateCount.ts`): `ignoreCommonStates === false` → the authored rows (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to `values_count` when absent (e.g. boolean OIDs without commonStates). Consumed by BOTH the editor's field visibility (stateFields' hidden closures) and the runtime state resolution (useData) — visibility never promises behaviour the runtime does not deliver. The OID-change heal in commonObjectFields remains the PRODUCER of `values_count`, deliberately outside this seam.
 _Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formula (mechanism, not the seam), effektive Anzahl without the one-rule meaning
 
+**Feldnummer**:
+The 1-based suffix of a state's field row (`value{i}`, `alias{i}`, `textColor{i}` …) — the key of the per-state style resolution (`resolveStyleData(i)`). useData carries it on every resolved state (`fieldNumber`) and resolves the active state by it (`activeFieldNumber` and the active style data `data`). It is NOT the state's position in the resolved state list: blank value rows are skipped, so after a gap the two diverge (blank `value2` → the state of `value3` sits at list position 1). Consumers that index the list — the Select's entry, the Button-Group's active button — take the 0-based `activePosition` instead.
+_Avoid_: Index without saying whether Feldnummer or list position, `index + 1` as a Feldnummer (holds only without gaps), activeIndex (the former name of the 1-based number)
+
 # Input Collection Widget
 
 ## Language

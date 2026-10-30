@@ -131,6 +131,8 @@ function useData(_oid: string): UseDataResult {
 
                 // Map to StateItem interface
                 states.push({
+                    // The field row's own number — after a skipped blank row it is NOT position + 1.
+                    fieldNumber: i,
                     value: convertedValue,
                     label: styleData.alias || String(styleData.value),
                     alias: styleData.alias,
@@ -171,11 +173,11 @@ function useData(_oid: string): UseDataResult {
         return { states, widgetStates, minValue, maxValue };
     }, [oidObject?.type, oidObject?.commonStates, oidObject?.unit, rxData, getDataValue, oidValue, resolveStyleData]);
 
-    // `data` and `activeFieldNumber` are both pure functions of the current OID
-    // value and resolved states, so they are derived together here — no setState
-    // side effect during render (the previous setActiveIndex-in-useMemo was a
-    // React anti-pattern and could leave it stale relative to `data`).
-    const { data, activeFieldNumber } = useMemo(() => {
+    // `data`, `activeFieldNumber` and `activePosition` are pure functions of the
+    // current OID value and resolved states, so they are derived together here — no
+    // setState side effect during render (the previous setActiveIndex-in-useMemo was
+    // a React anti-pattern and could leave it stale relative to `data`).
+    const { data, activeFieldNumber, activePosition } = useMemo(() => {
         const oidType = oidObject?.type;
 
         switch (oidType) {
@@ -183,19 +185,25 @@ function useData(_oid: string): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                const idx = states.findIndex(state => sameStateValue(state.value, oidValue));
+                // First match wins (duplicate values → the first state).
+                const position = states.findIndex(state => sameStateValue(state.value, oidValue));
 
-                if (idx !== -1) {
-                    // Apply state-specific styles with active properties.
-                    // idx is the 0-based array position; the state field suffix is 1-based.
-                    return { data: resolveStyleData(idx + 1, true), activeFieldNumber: idx + 1 };
+                if (position !== -1) {
+                    // Apply state-specific styles with active properties — keyed by the state's
+                    // Feldnummer, never by position + 1 (blank value rows are skipped).
+                    const { fieldNumber } = states[position];
+                    return {
+                        data: resolveStyleData(fieldNumber, true),
+                        activeFieldNumber: fieldNumber,
+                        activePosition: position,
+                    };
                 }
 
                 // Default to base state properties with active properties included.
-                return { data: resolveStyleData('', true), activeFieldNumber: undefined };
+                return { data: resolveStyleData('', true), activeFieldNumber: undefined, activePosition: undefined };
             }
             default:
-                return { data: resolveStyleData('', true), activeFieldNumber: undefined };
+                return { data: resolveStyleData('', true), activeFieldNumber: undefined, activePosition: undefined };
         }
     }, [oidObject, oidValue, states, resolveStyleData]);
 
@@ -205,6 +213,7 @@ function useData(_oid: string): UseDataResult {
         maxValue,
         data,
         activeFieldNumber,
+        activePosition,
         oidValue,
         states,
         resolveStyleData,

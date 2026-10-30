@@ -33,9 +33,10 @@ function SelectCollection(): React.ReactElement {
     const { widget } = context;
     const { borderStyles } = useStyles(widget.style);
     const oidObject = widget.data.oidObject;
-    // The display follows the main OID's status alone: activeFieldNumber is the 1-based
-    // state field suffix (value1, value2, …) matching it; undefined = no matching state.
-    const { data, states, oidValue, activeFieldNumber } = useData('oid');
+    // The display follows the main OID's status alone: activePosition is the 0-based
+    // position in `states` of the state matching it (NOT its Feldnummer — blank value
+    // rows are skipped); undefined = no matching state.
+    const { data, states, oidValue, activePosition } = useData('oid');
 
     // Schreibziel (ADR-0090): the control ID when set, else the main OID — written alone,
     // no optimistic patch of the main OID; the lock follows the same target.
@@ -45,9 +46,6 @@ function SelectCollection(): React.ReactElement {
     const oidType = oidObject?.type;
 
     const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
-
-    // MUI's value is the 0-based entry index; '' is its "nothing selected".
-    const activeIndex = activeFieldNumber === undefined ? '' : activeFieldNumber - 1;
 
     const changeHandler = useCallback(
         (event: SelectChangeEvent<string | number>): void => {
@@ -91,7 +89,9 @@ function SelectCollection(): React.ReactElement {
                 <Select
                     variant="standard"
                     disableUnderline
-                    value={activeIndex}
+                    // MUI's value is the 0-based entry index = the active list position;
+                    // '' is its "nothing selected".
+                    value={activePosition ?? ''}
                     onChange={changeHandler}
                     disabled={readOnly}
                     // Select-Chrome: the popup follows the EXPLICIT noCard, never wrappedContent.
