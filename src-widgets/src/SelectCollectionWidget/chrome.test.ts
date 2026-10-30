@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrome';
 import type { MenuChromeInput, SelectChromeInput } from './chrome';
+import type { Theme } from '@mui/material';
 
 const menuChrome = (overrides: Partial<MenuChromeInput> = {}): ReturnType<typeof buildMenuChrome> =>
     buildMenuChrome({
@@ -16,7 +17,23 @@ const paper = (overrides: Partial<MenuChromeInput> = {}): Record<string, any> =>
     menuChrome(overrides).PaperProps?.sx as Record<string, any>;
 
 describe('buildMenuChrome — the popup surface', () => {
-    it('flattens the popup for noCard: no shadow, no overlay, transparent without a frame background (frozen)', () => {
+    it('flattens the noCard popup — no shadow, no overlay — and keeps it opaque in the paper-coloured frame background', () => {
+        // The runtime path: an unset frame background resolves to the theme paper (terminal `paper`).
+        expect(paper({ noCard: true, frameBackground: '#fff' })).toEqual({
+            overflow: 'hidden',
+            '& .MuiMenu-list': {
+                maxHeight: '100vh',
+                overflowY: 'auto',
+            },
+            '--Paper-overlay': 'none !important',
+            '--Paper-shadow': 'none !important',
+            boxShadow: 'none !important',
+            background: '#fff',
+        });
+    });
+
+    it('leaves a noCard popup transparent only for an empty resolved frame background (defensive)', () => {
+        // Unreachable through the frame background resolver, which ends on the theme paper.
         expect(paper({ noCard: true })).toEqual({
             overflow: 'hidden',
             '& .MuiMenu-list': {
@@ -28,6 +45,7 @@ describe('buildMenuChrome — the popup surface', () => {
             boxShadow: 'none !important',
             background: 'transparent',
         });
+        expect(paper({ noCard: true, frameBackground: '' }).background).toBe('transparent');
     });
 
     it('paints the frame background, with or without noCard — gradients included', () => {
@@ -93,11 +111,17 @@ describe('buildMenuChrome — the popup width bound', () => {
 });
 
 describe('buildSelectChrome', () => {
+    /** The theme text colour — the arrow contract's terminal. */
+    const THEME_TEXT = 'rgba(0, 0, 0, 0.87)';
+    const THEME = { palette: { text: { primary: THEME_TEXT } } } as unknown as Theme;
+
     const selectSx = (overrides: Partial<SelectChromeInput> = {}): Record<string, any> =>
         buildSelectChrome({
             width: undefined,
             arrowColor: undefined,
             textColor: '#00aa00',
+            textStyles: undefined,
+            theme: THEME,
             ...overrides,
         });
 
@@ -133,8 +157,17 @@ describe('buildSelectChrome', () => {
         expect(arrowColour({ arrowColor: undefined, textColor: gradient })).toBe('rgb(128, 0, 128)');
     });
 
-    it('consults nothing beyond the two — without both the arrow keeps the MUI default', () => {
-        expect(arrowColour({ arrowColor: undefined, textColor: undefined })).toBeNull();
+    it('falls back to the active text colour for an invalid arrowColor — not to the MUI default', () => {
+        expect(arrowColour({ arrowColor: 'not-a-colour', textColor: '#00aa00' })).toBe('#00aa00');
+        // Valid CSS but outside the colour contract (hex, rgb(a), gradients).
+        expect(arrowColour({ arrowColor: 'red', textColor: '#00aa00' })).toBe('#00aa00');
+    });
+
+    it('follows the arrow contract past an empty or invalid text colour: vis-2 CSS colour, else theme text', () => {
+        // Unreachable with the textColor resolver (it ends on the theme text colour) — the contract's end.
+        expect(arrowColour({ textColor: undefined, textStyles: { color: '#0000aa' } })).toBe('#0000aa');
+        expect(arrowColour({ textColor: 'not-a-colour', textStyles: { color: '#0000aa' } })).toBe('#0000aa');
+        expect(arrowColour({ textColor: undefined })).toBe(THEME_TEXT);
     });
 });
 
@@ -186,5 +219,49 @@ describe('buildMenuItemChrome', () => {
 
         expect(sx['&:hover']).toEqual({ background: undefined, bgcolor: undefined });
         expect(sx['&.Mui-selected:hover']).toEqual({ background: undefined, bgcolor: undefined });
+    });
+
+    it.each([
+        ['a named colour', 'red'],
+        ['a CSS variable', 'var(--accent)'],
+    ])('paints %s MUI cannot parse but tints nothing on hover — without throwing', (_case, bgColor) => {
+        expect(buildMenuItemChrome(bgColor)).toEqual({
+            background: null,
+            bgcolor: bgColor,
+            '&.Mui-selected': {
+                background: null,
+                bgcolor: bgColor,
+            },
+            '&.Mui-selected:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+            '&:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+        });
+    });
+
+    it('paints a gradient without an extractable colour but tints nothing on hover — without throwing', () => {
+        // Named stops: extractColorFromValue reads hex/rgb stops only, and MUI cannot parse a gradient.
+        const gradient = 'linear-gradient(90deg, red 0%, blue 100%)';
+
+        expect(buildMenuItemChrome(gradient)).toEqual({
+            background: gradient,
+            bgcolor: 'transparent',
+            '&.Mui-selected': {
+                background: gradient,
+                bgcolor: undefined,
+            },
+            '&.Mui-selected:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+            '&:hover': {
+                background: undefined,
+                bgcolor: undefined,
+            },
+        });
     });
 });

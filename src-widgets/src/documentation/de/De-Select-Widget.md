@@ -14,10 +14,10 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## Widget-spezifische Einstellungen
 
-| Feldname    | Typ      | Standard | Beschreibung                              | Bedingung           |
-| ----------- | -------- | -------- | ----------------------------------------- | ------------------- |
-| arrowColor  | color    | -        | Farbe des Dropdown-Pfeils                 | -                   |
-| onlyDisplay | checkbox | false    | Nur Anzeige (keine Schreibrechte auf OID) | Nur wenn write=true |
+| Feldname    | Typ      | Standard                         | Beschreibung                              | Bedingung           |
+| ----------- | -------- | -------------------------------- | ----------------------------------------- | ------------------- |
+| arrowColor  | color    | Textfarbe des ausgewählten Werts | Farbe des Dropdown-Pfeils                 | -                   |
+| onlyDisplay | checkbox | false                            | Nur Anzeige (keine Schreibrechte auf OID) | Nur wenn write=true |
 
 **Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
 
@@ -54,7 +54,7 @@ Das Select Widget unterstützt verschiedene Datentypen:
 ### Geschlossener Zustand
 
 - Zeigt den aktuell ausgewählten Wert an
-- Dropdown-Pfeil in der konfigurierten Farbe (`arrowColor`)
+- Dropdown-Pfeil in der konfigurierten Farbe (`arrowColor`), sonst in der Textfarbe des ausgewählten Werts
 - Kompakte Darstellung
 
 ### Geöffneter Zustand

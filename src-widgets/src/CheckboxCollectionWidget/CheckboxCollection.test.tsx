@@ -12,24 +12,12 @@
  * the pre-extraction DOM by an A/B mount diff, 2026-10-29).
  */
 import { describe, expect, it } from 'vitest';
-import { createElement, act } from 'react';
-import { createRoot } from 'react-dom/client';
 
-import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
-import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext } from '../preview/mockContext';
+import { installInertResizeObserver, mountCollectionBody } from '../lib/testing/collectionScene';
 import CheckboxCollection from './CheckboxCollection';
 import type { PreviewScene } from '../preview/types';
 
-if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === 'undefined') {
-    /* eslint-disable class-methods-use-this -- inert stub, nothing to use `this` for */
-    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
-        observe(): void {}
-        unobserve(): void {}
-        disconnect(): void {}
-    };
-    /* eslint-enable class-methods-use-this */
-}
+installInertResizeObserver();
 
 const OID = 'demo.0.switch';
 
@@ -62,19 +50,7 @@ const mountCheckbox = (values: Record<string, unknown>): HTMLDivElement => {
         },
     } as unknown as PreviewScene;
 
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createRoot(container);
-    act(() => {
-        root.render(
-            createElement(
-                CollectionProvider,
-                { context: buildPreviewContext(scene) } as never,
-                createElement(CheckboxCollection),
-            ),
-        );
-    });
-    return container;
+    return mountCollectionBody(CheckboxCollection, scene).container;
 };
 
 describe('CheckboxCollection label DOM contract', () => {

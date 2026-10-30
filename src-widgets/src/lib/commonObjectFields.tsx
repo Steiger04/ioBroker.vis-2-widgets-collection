@@ -11,15 +11,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { defaultOnlyDisplay } from './writeTarget';
+import { isControlIdField, writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
-import type { WriteTargetData } from './writeTarget';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-
-/** The write target's onlyDisplay suggestion (ADR-0090) over the editor's untyped widget data. */
-const suggestOnlyDisplay = (data: WidgetData): boolean => defaultOnlyDisplay(data as WriteTargetData);
 
 const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');
@@ -47,9 +43,9 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
     });
 
-    if (oid === 'cid') {
+    if (isControlIdField(oid)) {
         // The control ID is gone: the write target falls back to the main OID (ADR-0090).
-        data.onlyDisplay = suggestOnlyDisplay(data);
+        data.onlyDisplay = writeTargetDeniesWrite(data);
     }
 
     const keys = [
@@ -138,8 +134,9 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
  * - `'oid'` (main OID): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
  *   `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
  *   control ID keeps its suggestion, whatever the picking order.
- * - `'cid'` (the Select's control ID, ADR-0090): only `cidObject` and the `onlyDisplay`
- *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
+ * - the control ID (`isControlIdField`, the Select's Steuer ID, ADR-0090): only `cidObject` and
+ *   the `onlyDisplay` suggestion; clearing it (or losing its object) re-derives the suggestion
+ *   from the main OID.
  * - any other id (Dialog's `dialogId`, Light2's channel IDs): root fields and the suggestion from
  *   the picked object, as before.
  */
@@ -185,17 +182,17 @@ export const oidChangeHandlerAsync =
 
             data[`${oid}Object`] = objectData;
 
-            if (oid === 'cid') {
+            if (isControlIdField(oid)) {
                 // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
                 // suggestion — the root fields belong to the main OID.
-                data.onlyDisplay = suggestOnlyDisplay(data);
+                data.onlyDisplay = writeTargetDeniesWrite(data);
             } else {
                 // Set root level properties (required for compatibility)
                 data.icon = objectData.icon;
                 data.write = objectData.write;
                 // The main OID's suggestion yields to a resolved control ID (the write target);
                 // other auxiliary IDs (Dialog, Light2 channels) keep their own suggestion.
-                data.onlyDisplay = oid === 'oid' ? suggestOnlyDisplay(data) : objectData.onlyDisplay;
+                data.onlyDisplay = oid === 'oid' ? writeTargetDeniesWrite(data) : objectData.onlyDisplay;
                 data.minValue = objectData.minValue;
                 data.maxValue = objectData.maxValue;
             }
@@ -248,6 +245,28 @@ export const oidChangeHandlerAsync =
         }
     };
 
+/**
+ * Builds an OID picker field: a vis-2 `id` field labelled by its data property (the i18n
+ * key), whose pick runs {@link oidChangeHandlerAsync} for that same property.
+ *
+ * @param name - Data property the picked id is stored in — the main `'oid'`, the Select's
+ *   control ID (`CONTROL_ID_FIELD`).
+ * @param allowedTypes - Allowed JS types for the picked state.
+ * @returns The field definition.
+ * @remarks
+ * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
+ * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
+ * @example createIdField('oid', ANY_VALUE_TYPES)
+ */
+export const createIdField = (name: string, allowedTypes: readonly AllowedType[]): RxWidgetInfoAttributesField =>
+    ({
+        name,
+        type: 'id',
+        label: name,
+        onChange: oidChangeHandlerAsync(allowedTypes, name),
+        allowedTypes,
+    }) as RxWidgetInfoAttributesField;
+
 /** Options to toggle optional sections emitted by {@link commonObjectFields}. */
 interface CommonObjectFieldsOptions {
     /** Include the unit override field (default: true). */
@@ -262,17 +281,7 @@ const commonObjectFields = (
 ): RxWidgetInfoAttributesField[] => {
     // The OID picker is always present; the unit and value-group sections are optional
     // and each carries its own leading divider so toggling them leaves no orphan dividers.
-    // `allowedTypes` is an introspectable mirror of the onChange filter — the
-    // allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
-    const fields: RxWidgetInfoAttributesField[] = [
-        {
-            name: 'oid',
-            type: 'id',
-            label: 'oid',
-            onChange: oidChangeHandlerAsync(allowedTypes),
-            allowedTypes,
-        } as RxWidgetInfoAttributesField,
-    ];
+    const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes)];
 
     if (unit) {
         fields.push(

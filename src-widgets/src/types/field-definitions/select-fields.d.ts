@@ -13,10 +13,12 @@ export interface SelectFieldsRxData {
      * };
      * ```
      * @remarks
-     * Align this color with the surrounding input or app bar for consistency. Unset, the arrow
-     * takes the active state's text colour (CONTEXT "Select-Chrome"); the editor swatch shows the
-     * text colour's base cascade — `textColor`, else the vis-2 CSS `color`, else the theme text
-     * colour (ADR-0004). Solid colours only: a gradient is reduced to its 50 % colour.
+     * Align this color with the surrounding input or app bar for consistency. Unset or invalid,
+     * the arrow takes the active state's text colour (CONTEXT "Select-Chrome"). The field and the
+     * runtime share one contract (`arrowColorContract`, ADR-0004): `arrowColor`, else `textColor`,
+     * else the vis-2 CSS `color`, else the theme text colour — the editor swatch resolves it over
+     * the base `textColor`, the runtime over the active state's text colour. Solid colours only:
+     * a gradient is reduced to its 50 % colour.
      */
     arrowColor?: string;
 
@@ -25,7 +27,8 @@ export interface SelectFieldsRxData {
      *
      * @example
      * ```typescript
-     * const data: SelectFieldsRxData = {
+     * // `oid` belongs to CommonObjectFieldsRxData, not to the Select fields.
+     * const data: SelectFieldsRxData & Pick<CommonObjectFieldsRxData, 'oid'> = {
      *     oid: 'zigbee.0.lamp.mode_status', // status — the display follows it
      *     cid: 'zigbee.0.lamp.mode_set' // command — the only state written
      * };

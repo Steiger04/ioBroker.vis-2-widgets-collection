@@ -14,10 +14,10 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name  | Type     | Default | Description                                | Condition            |
-| ----------- | -------- | ------- | ------------------------------------------ | -------------------- |
-| arrowColor  | color    | -       | Color of the dropdown arrow                | -                    |
-| onlyDisplay | checkbox | false   | Display only (no write permissions on OID) | Only when write=true |
+| Field Name  | Type     | Default                          | Description                                | Condition            |
+| ----------- | -------- | -------------------------------- | ------------------------------------------ | -------------------- |
+| arrowColor  | color    | Text color of the selected value | Color of the dropdown arrow                | -                    |
+| onlyDisplay | checkbox | false                            | Display only (no write permissions on OID) | Only when write=true |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 
@@ -54,7 +54,7 @@ The Select Widget supports various data types:
 ### Closed State
 
 - Shows the currently selected value
-- Dropdown arrow in the configured color (`arrowColor`)
+- Dropdown arrow in the configured color (`arrowColor`), otherwise in the text color of the selected value
 - Compact display
 
 ### Open State

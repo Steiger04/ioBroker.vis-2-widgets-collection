@@ -22,77 +22,44 @@ vi.hoisted(() => {
     };
 });
 
-import { createElement, act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act } from 'react';
 
-import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
-import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext } from '../preview/mockContext';
+import {
+    collectionScene,
+    installInertResizeObserver,
+    mountCollectionBody,
+    type MountedCollectionBody,
+} from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
-import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from '../preview/types';
 
-if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === 'undefined') {
-    /* eslint-disable class-methods-use-this -- inert stub, nothing to use `this` for */
-    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
-        observe(): void {}
-        unobserve(): void {}
-        disconnect(): void {}
-    };
-    /* eslint-enable class-methods-use-this */
-}
+installInertResizeObserver();
 
 const OID = 'demo.0.state';
 
 const scene = (data: Record<string, unknown> = {}, value: unknown = 0): PreviewScene =>
-    ({
-        slug: 'state-collection-test',
-        size: { width: 480, height: 120 },
-        context: {
-            widget: {
-                data: {
-                    oid: OID,
-                    oidObject: { _id: OID, type: 'number' },
-                    onlyStates: true,
-                    values_count: 2,
-                    value1: '0',
-                    alias1: 'OFF',
-                    value2: '1',
-                    alias2: 'ON',
-                    noHeader: true,
-                    noFooter: true,
-                    noHeaderIcon: true,
-                    ...data,
-                },
-                style: {},
-            },
-            values: { [`${OID}.val`]: value },
-            mode: 'light',
-            wrappedContent: true,
+    collectionScene(
+        'state-collection-test',
+        {
+            oid: OID,
+            oidObject: { _id: OID, type: 'number' },
+            onlyStates: true,
+            values_count: 2,
+            value1: '0',
+            alias1: 'OFF',
+            value2: '1',
+            alias2: 'ON',
+            noHeader: true,
+            noFooter: true,
+            noHeaderIcon: true,
+            ...data,
         },
-    }) as unknown as PreviewScene;
+        value,
+    );
 
-interface MountedState {
-    container: HTMLDivElement;
-    setState: ReturnType<typeof vi.fn>;
-}
-
-const mountState = (currentScene: PreviewScene): MountedState => {
-    const setState = vi.fn();
-    const context = {
-        ...buildPreviewContext(currentScene),
-        setState,
-    } as unknown as AllCollectionContextProps;
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createRoot(container);
-    act(() => {
-        root.render(createElement(CollectionProvider, { context } as never, createElement(StateCollection)));
-    });
-    return { container, setState };
-};
+const mountState = (currentScene: PreviewScene): MountedCollectionBody =>
+    mountCollectionBody(StateCollection, currentScene);
 
 /** Applies the nth optimistic updater to an empty state and returns the written OID value. */
 const writtenValue = (setState: ReturnType<typeof vi.fn>, call: number): unknown =>

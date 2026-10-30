@@ -382,12 +382,11 @@ export interface UseDataResult {
      * when no state matches the current OID value.
      *
      * @remarks
-     * The 1-based suffix of the active state's field row (`value{i}`, `alias{i}`, …);
-     * the same number keys its style resolution, so `data` is
-     * `resolveStyleData(activeFieldNumber, true)`. NOT a position in `states`: blank
-     * value rows are skipped, so after a gap Feldnummer and list position diverge —
-     * index the list with {@link UseDataResult.activePosition} instead. Matching goes
-     * through `sameStateValue`; with duplicate values the first state wins.
+     * It keys the active state's style resolution, so `data` is
+     * `resolveStyleData(activeFieldNumber, true)`. NOT a position in `states` (see
+     * {@link StateStyleData.fieldNumber}) — index the list with
+     * {@link UseDataResult.activePosition} instead. Matching goes through
+     * `sameStateValue`; with duplicate values the first state wins.
      * Deliberately 1-based — the slider consumer relies on truthiness, and the first
      * field number must stay truthy.
      */

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { WidgetData } from '@iobroker/types-vis-2';
+
 // fieldFactories pulls CollectionGradientColorPicker, which pulls Generic, which
 // extends window.visRxWidget — undefined outside the vis-2 runtime. The pure
 // factory logic (predicates, options, createDivider shape) is independent of
@@ -116,6 +118,20 @@ describe('createOnlyDisplayField', () => {
 
     it('returns a fresh object per call (field lists never share an instance)', () => {
         expect(createOnlyDisplayField()).not.toBe(createOnlyDisplayField());
+    });
+
+    it('takes the lock as a parameter: hidden and disabled follow it instead of write === false', () => {
+        const { disabled, hidden } = createOnlyDisplayField((data: WidgetData) => data.locked === true) as {
+            disabled: (data: WidgetData) => boolean;
+            hidden: (data: WidgetData) => boolean;
+        };
+
+        // A read-only root write no longer locks the toggle …
+        expect(disabled({ write: false })).toBe(false);
+        expect(hidden({ write: false })).toBe(false);
+        // … the given lock does.
+        expect(disabled({ write: true, locked: true })).toBe(true);
+        expect(hidden({ write: true, locked: true })).toBe(true);
     });
 });
 

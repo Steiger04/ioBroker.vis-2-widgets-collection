@@ -10,6 +10,7 @@ import type { Theme } from '@mui/material';
 import type { WidgetData } from '@iobroker/types-vis-2';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { resolveEffectiveColor } from './helper/resolveEffectiveColor';
+import { arrowColorContract } from './selectColorContract';
 
 // The field list renders CollectionDivider / CollectionGradientColorPicker, which pull
 // Generic (extends window.visRxWidget, absent outside vis-2). The predicates never render.
@@ -99,5 +100,17 @@ describe('selectFields — the arrow colour swatch shows what the arrow falls ba
 
     it('stays solid-only', () => {
         expect(arrowColorField.noGradient).toBe(true);
+    });
+
+    it('declares the one arrow contract the runtime resolves', () => {
+        const { name, fallbackFields, terminal, inheritTextStyle } = arrowColorField;
+
+        expect({ name, fallbackFields, terminal, inheritTextStyle }).toEqual(arrowColorContract);
+        expect(arrowColorContract).toEqual({
+            name: 'arrowColor',
+            fallbackFields: ['textColor'],
+            terminal: 'text',
+            inheritTextStyle: true,
+        });
     });
 });
