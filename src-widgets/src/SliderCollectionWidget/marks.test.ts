@@ -21,6 +21,8 @@ const activeStyle = (overrides: Partial<StyleData> = {}): StyleData => ({
 });
 
 const state = (value: number, overrides: Partial<StateStyleData> = {}): StateStyleData => ({
+    // The marks never read the Feldnummer — any valid one will do.
+    fieldNumber: 1,
     value,
     label: String(value),
     ...overrides,

@@ -340,6 +340,16 @@ export type StateStyleData = Pick<
     | 'frameBackgroundColor'
     | 'frameBackgroundColorActive'
 > & {
+    /**
+     * Feldnummer: the 1-based suffix of this state's field row (`value{i}`, `alias{i}`,
+     * `textColor{i}` …) — the key it was style-resolved with (`resolveStyleData(i)`).
+     *
+     * @remarks
+     * NOT the state's position in `states`: blank value rows are skipped, so after a gap
+     * the two diverge (blank `value2` → the state of `value3` sits at position 1).
+     */
+    fieldNumber: number;
+
     label?: string;
     fontSize?: string | null;
 
@@ -368,18 +378,32 @@ export interface UseDataResult {
     data: StyleData;
 
     /**
-     * Field-suffix number of the currently active state, or undefined when no
-     * state matches the current OID value.
+     * Feldnummer of the currently active state (its `fieldNumber`), or undefined
+     * when no state matches the current OID value.
      *
      * @remarks
-     * State fields are numbered from 1 (`value1`, `value2`, …) and the same
-     * number is the suffix of the state-specific style resolution
-     * (`resolveStyleData(1)`, `resolveStyleData(2)`, …). This is NOT a 0-based
-     * array index: `states[i]` belongs to field number `i + 1`. Deliberately
-     * not rebased to 0-based — the slider consumer relies on truthiness, and
-     * field number 1 (the first state) must stay truthy.
+     * The 1-based suffix of the active state's field row (`value{i}`, `alias{i}`, …);
+     * the same number keys its style resolution, so `data` is
+     * `resolveStyleData(activeFieldNumber, true)`. NOT a position in `states`: blank
+     * value rows are skipped, so after a gap Feldnummer and list position diverge —
+     * index the list with {@link UseDataResult.activePosition} instead. Matching goes
+     * through `sameStateValue`; with duplicate values the first state wins.
+     * Deliberately 1-based — the slider consumer relies on truthiness, and the first
+     * field number must stay truthy.
      */
     activeFieldNumber: number | undefined;
+
+    /**
+     * 0-based position of the currently active state in `states`, or undefined
+     * when no state matches the current OID value.
+     *
+     * @remarks
+     * For consumers that index the state list (the Select's entry, the Button-Group's
+     * active button): `states[activePosition]` is the active state. Not a Feldnummer —
+     * see {@link UseDataResult.activeFieldNumber}. Deliberately not named `activeIndex`:
+     * that name used to denote the 1-based field number.
+     */
+    activePosition: number | undefined;
 
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;
