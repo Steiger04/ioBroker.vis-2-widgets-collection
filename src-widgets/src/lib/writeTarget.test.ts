@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { defaultOnlyDisplay, resolveWriteTarget } from './writeTarget';
+import { resolveWriteTarget, writeTargetDeniesWrite } from './writeTarget';
 
 // Typical control-ID setup: a read-only status OID plus a writable command state.
 const STATUS_READ_ONLY = { _id: 'zigbee.0.lamp.mode_status', write: false };
@@ -79,7 +79,7 @@ describe('resolveWriteTarget — the lock follows the write target', () => {
     });
 });
 
-describe('defaultOnlyDisplay — the editor suggestion follows the write target', () => {
+describe('writeTargetDeniesWrite — the editor suggestion and toggle lock follow the write target', () => {
     const STATUS = 'zigbee.0.lamp.mode_status';
     const COMMAND = 'zigbee.0.lamp.mode_set';
 
@@ -109,10 +109,10 @@ describe('defaultOnlyDisplay — the editor suggestion follows the write target'
         },
         { row: 'nothing bound', data: {}, suggestion: false },
     ])('$row → $suggestion', ({ data, suggestion }) => {
-        expect(defaultOnlyDisplay(data)).toBe(suggestion);
+        expect(writeTargetDeniesWrite(data)).toBe(suggestion);
     });
 
     it('derives the suggestion from writability alone, not from the current onlyDisplay', () => {
-        expect(defaultOnlyDisplay({ onlyDisplay: true, oidObject: { _id: STATUS, write: true } })).toBe(false);
+        expect(writeTargetDeniesWrite({ onlyDisplay: true, oidObject: { _id: STATUS, write: true } })).toBe(false);
     });
 });

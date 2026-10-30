@@ -12,7 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
-import { defaultOnlyDisplay } from './writeTarget';
+import { writeTargetDeniesWrite } from './writeTarget';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -26,8 +26,8 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         // The toggle is moot exactly when the WRITE TARGET is read-only (ADR-0090) —
         // not the root `write`, which belongs to the main OID: a writable control ID
         // keeps it available over a read-only status OID.
-        disabled: defaultOnlyDisplay,
-        hidden: defaultOnlyDisplay,
+        disabled: writeTargetDeniesWrite,
+        hidden: writeTargetDeniesWrite,
     },
     // The control ID — the Select's sole write target when set (Schreibziel, ADR-0090).
     // `allowedTypes` is an introspectable mirror of the onChange filter — the

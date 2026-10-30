@@ -11,15 +11,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { defaultOnlyDisplay } from './writeTarget';
+import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
-import type { WriteTargetData } from './writeTarget';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-
-/** The write target's onlyDisplay suggestion (ADR-0090) over the editor's untyped widget data. */
-const suggestOnlyDisplay = (data: WidgetData): boolean => defaultOnlyDisplay(data as WriteTargetData);
 
 const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');
@@ -49,7 +45,7 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
 
     if (oid === 'cid') {
         // The control ID is gone: the write target falls back to the main OID (ADR-0090).
-        data.onlyDisplay = suggestOnlyDisplay(data);
+        data.onlyDisplay = writeTargetDeniesWrite(data);
     }
 
     const keys = [
@@ -188,14 +184,14 @@ export const oidChangeHandlerAsync =
             if (oid === 'cid') {
                 // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
                 // suggestion — the root fields belong to the main OID.
-                data.onlyDisplay = suggestOnlyDisplay(data);
+                data.onlyDisplay = writeTargetDeniesWrite(data);
             } else {
                 // Set root level properties (required for compatibility)
                 data.icon = objectData.icon;
                 data.write = objectData.write;
                 // The main OID's suggestion yields to a resolved control ID (the write target);
                 // other auxiliary IDs (Dialog, Light2 channels) keep their own suggestion.
-                data.onlyDisplay = oid === 'oid' ? suggestOnlyDisplay(data) : objectData.onlyDisplay;
+                data.onlyDisplay = oid === 'oid' ? writeTargetDeniesWrite(data) : objectData.onlyDisplay;
                 data.minValue = objectData.minValue;
                 data.maxValue = objectData.maxValue;
             }

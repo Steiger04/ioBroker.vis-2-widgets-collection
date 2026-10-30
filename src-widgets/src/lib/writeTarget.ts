@@ -24,7 +24,17 @@ export interface WriteTargetObject {
     write?: boolean;
 }
 
-/** Minimal slice of widget data the rule consumes (`widget.data` at runtime, `data` in the editor). */
+/**
+ * The widget data the rule consumes (`widget.data` at runtime, `data` in the editor).
+ *
+ * @remarks
+ * Only the three named fields are read; their reads stay typed. The open `any` index
+ * signature admits the rest of the widget data, like vis-2's own `WidgetData`, so both
+ * the editor's `WidgetData` and the runtime's typed RxData pass without a cast. Without it
+ * the all-optional interface is a weak type that `WidgetData` shares no property with;
+ * an `unknown` index signature would in turn refuse the RxData interfaces, which carry
+ * no index signature.
+ */
 export interface WriteTargetData {
     /** User-forced display-only flag. */
     onlyDisplay?: boolean;
@@ -32,6 +42,8 @@ export interface WriteTargetData {
     oidObject?: WriteTargetObject | null;
     /** Control-ID metadata — the command target when resolved. */
     cidObject?: WriteTargetObject | null;
+    /** Any other widget data — not read. */
+    [field: string]: any;
 }
 
 /** Data property name of the OID a selection writes. */
@@ -64,11 +76,16 @@ export function resolveWriteTarget(data: WriteTargetData): WriteTarget {
 }
 
 /**
- * The editor's `onlyDisplay` suggestion on OID pick.
+ * Whether the write target's OBJECT explicitly denies writes (`write === false`).
  *
  * @param data - Widget data slice with the OID metadata objects.
- * @returns `true` when the write target is explicitly read-only (`write === false`).
+ * @returns `true` iff the write target's object carries `write === false`; a missing `write`
+ *   counts as writable.
+ * @remarks
+ * Not {@link WriteTarget.readOnly}: the user's `onlyDisplay` plays no part here. That is what
+ * lets the editor use it twice without feeding back on itself — as the `onlyDisplay`
+ * suggestion on OID pick, and as the lock that hides and disables the display-only toggle.
  */
-export function defaultOnlyDisplay(data: WriteTargetData): boolean {
+export function writeTargetDeniesWrite(data: WriteTargetData): boolean {
     return targetOf(data).object?.write === false;
 }
