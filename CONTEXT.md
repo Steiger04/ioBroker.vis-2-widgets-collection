@@ -483,6 +483,10 @@ _Avoid_: Echo (that is the absorbed own write, not the foreign change), Wert-Än
 The optimistic write path every interactive Collection widget shares: keystroke/control → `updateValue` (guards: no OID, `write === false`, failed type conversion; then optimistic `values[oid.val]` + `.lc` sentinel via `setState`) → `useDebounce` (debounce or throttle, per `sampleInterval`) → `context.setValue` → socket; the backend echo returns through `values` and is absorbed by the ignore window of the **Signifikante Backend-Änderung**. Type conversion (`convertToOidType`) is part of the chain: string/number/boolean/mixed each with their own acceptance rules (`"true"`-only booleans, mixed tries boolean → number → string).
 _Avoid_: Write-Pipeline (that suggests fetch/transform machinery), Setter (that is one function in it)
 
+**Zustandsmenge**:
+The ONE pure rule for how many discrete states a widget effectively has (`lib/effectiveStateCount.ts`): `ignoreCommonStates === false` → the authored rows (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to `values_count` when absent (e.g. boolean OIDs without commonStates). Consumed by BOTH the editor's field visibility (stateFields' hidden closures) and the runtime state resolution (useData) — visibility never promises behaviour the runtime does not deliver. The OID-change heal in commonObjectFields remains the PRODUCER of `values_count`, deliberately outside this seam.
+_Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formula (mechanism, not the seam), effektive Anzahl without the one-rule meaning
+
 # Input Collection Widget
 
 ## Language
@@ -498,3 +502,13 @@ _Avoid_: Draft-Modus (that is only the buffering half of OK mode), Cancel (that 
 **Button-Group-Chrome**:
 The presentation shell of the toggle group — everything the renderer draws AROUND the per-state content: the variant chrome (outlined borders vs borderless text mode with inset box-shadow separators), the orientation layout (horizontal row vs vertical stack with equal-height caps), the rounded/squared group ends, and the per-button hover/selected treatment (solid colours lighten; gradients dim via opacity instead). Resolved in exactly one widget-local place from raw widget data plus the theme (including the separator alpha and its `buttonGroupColor → primary text` fallback). Deliberately NOT a colour contract: unlike the Slider's **Chrome-Farbvertrag**, nothing here is declared by field definitions — the rules are the frozen legacy presentation, pinned by tests. The icon/text content boxes are not chrome; they stay in the renderer.
 _Avoid_: Button-Styles (unsaid WHICH shell), mixing chrome rules with the value/label content layout, treating the separator alpha as a configurable knob (it is frozen)
+
+# State Collection Widget
+
+The collection's state display/toggle button (icon + Wert-Anzeige cluster, click/toggle/push-button, change dialog beyond two states). This glossary pins down its trigger language.
+
+## Language
+
+**Zustands-Auslöser**:
+The State widget's ONE trigger decision (`StateCollectionWidget/stateTrigger.ts`, pure): what a press / release / click does — write (single state), toggle between two states (via the `sameStateValue` contract), open the change dialog (more than two states, or `onlyStates` off), or nothing. The push-button click write is SUPPRESSED, not outrun: press/release write synchronously, so the former `setTimeout(0)` race is gone, and a keyboard click in push-button mode is an honest no-op instead of latching the press value. The React body is wiring — three unconditional `fire()` adapters over the RESOLVED `states[]` from useData (never raw `value1`/`value2`); the change dialog is an internal implementation behind it: props-driven, no context of its own, writing through the body's one **Schreibkette**.
+_Avoid_: Klick-Logik (that is the wiring), Trigger-Handler (that is the adapter side), Taster-Trick/Timer-Rennen (retired with the race)
