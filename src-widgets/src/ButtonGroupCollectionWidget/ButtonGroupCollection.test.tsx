@@ -5,9 +5,11 @@
  * @remarks
  * DOM contract of the renderer on the preview context (the Checkbox pattern):
  * one toggle button per resolved state, the state matching the OID value
- * selected, a click writing the optimistic patch through setState, and the
- * read-only guard disabling the group. The presentation chrome itself is
- * pinned in chrome.test.ts as pure data — these tests only cover the wiring.
+ * selected (and given the active treatment — also across a blank state row,
+ * where a state's Feldnummer and its list position diverge), a click writing
+ * the optimistic patch through setState, and the read-only guard disabling the
+ * group. The presentation chrome itself is pinned in chrome.test.ts as pure
+ * data — these tests only cover the wiring.
  */
 import { describe, expect, it, vi } from 'vitest';
 import { createElement, act } from 'react';
@@ -23,7 +25,7 @@ import type { PreviewScene } from '../preview/types';
 
 const OID = 'demo.0.mode';
 
-const scene = (data: Record<string, unknown> = {}): PreviewScene =>
+const scene = (data: Record<string, unknown> = {}, status: unknown = 1): PreviewScene =>
     ({
         slug: 'button-group-test',
         size: { width: 480, height: 120 },
@@ -41,7 +43,7 @@ const scene = (data: Record<string, unknown> = {}): PreviewScene =>
                 },
                 style: {},
             },
-            values: { [`${OID}.val`]: 1 },
+            values: { [`${OID}.val`]: status },
             mode: 'light',
             wrappedContent: true,
         },
@@ -77,6 +79,31 @@ describe('ButtonGroupCollection wiring', () => {
 
         const selected = container.querySelector('.MuiToggleButton-root.Mui-selected');
         expect(selected?.textContent).toContain('ON');
+    });
+
+    it('gives the active treatment to the button of the matching state across a blank state row', () => {
+        // value2 blank: the buttons are OFF (field 1) and BOOST (field 3) — BOOST sits at
+        // list position 1. Value 2 matches BOOST.
+        const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+        const container = mountGroup(
+            scene(
+                {
+                    values_count: 3,
+                    value2: '',
+                    value3: '2',
+                    alias3: 'BOOST',
+                    background1: gradient,
+                    background3: gradient,
+                },
+                2,
+            ),
+        );
+
+        // A gradient button's active treatment is the opacity dim (Button-Group-Chrome).
+        const dimmed = Array.from(container.querySelectorAll<HTMLElement>('.MuiToggleButton-root'))
+            .filter(button => getComputedStyle(button).filter === 'opacity(80%)')
+            .map(button => button.textContent);
+        expect(dimmed).toEqual(['BOOST']);
     });
 
     it('writes the clicked state value as the optimistic patch (val + lc sentinel)', () => {

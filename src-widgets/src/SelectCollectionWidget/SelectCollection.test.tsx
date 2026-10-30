@@ -5,9 +5,10 @@
  * @remarks
  * DOM contract of the body on the preview context (the ButtonGroup/State pattern):
  * the closed select shows the entry matching the main OID's status (none without a
- * match), states sharing a value list as separate entries, a selection writes the
- * chosen state value — to the main OID, or with a control ID set to the control ID
- * ALONE: exactly one backend write and no optimistic patch of the main OID
+ * match) — also across a blank state row, where a state's Feldnummer and its list
+ * position diverge — states sharing a value list as separate entries, a selection
+ * writes the chosen state value — to the main OID, or with a control ID set to the
+ * control ID ALONE: exactly one backend write and no optimistic patch of the main OID
  * (Schreibziel, ADR-0090) — and the lock follows the write target. The decision
  * table itself is pinned in lib/writeTarget.test.ts as pure data.
  *
@@ -240,6 +241,24 @@ describe('SelectCollection wiring', () => {
             expect(combobox(container).textContent).not.toMatch(/Eco|Comfort|Boost/);
             // The empty selection is MUI's '' — never an out-of-range value.
             expect(warn.mock.calls.flat().join('\n')).not.toMatch(/out-of-range/);
+        });
+    });
+
+    describe('across a blank state row (Feldnummer ≠ list position)', () => {
+        // value2 blank: the entries are Eco (field 1) and Boost (field 3) — Boost sits at
+        // list position 1. Status 2 matches Boost.
+        const gap = { value2: '', textColor2: '#00aa00', textColor3: '#0000aa' };
+
+        it('shows the entry of the state matching the status', () => {
+            const { container } = mountSelect(scene(gap, 2));
+
+            expect(combobox(container).textContent).toBe('Boost');
+        });
+
+        it("colours the arrow with the matching state's own text colour, not the blank row's", () => {
+            const { container } = mountSelect(scene(gap, 2));
+
+            expect(getComputedStyle(arrow(container)).color).toBe('#0000aa');
         });
     });
 
