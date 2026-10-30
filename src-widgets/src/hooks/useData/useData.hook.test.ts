@@ -9,15 +9,12 @@
  * Mounted on the real CollectionProvider over a preview scene (the Select/ButtonGroup
  * DOM-test pattern), so the style resolution runs exactly as inside a widget.
  */
-import { createElement, type FC } from 'react';
+import type { FC } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import CollectionProvider from '../../components/CollectionProvider';
-import { buildPreviewContext } from '../../preview/mockContext';
-import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../../lib/testing/collectionScene';
 import useData from './useData';
 import type { UseDataResult } from './types';
-import type { AllCollectionContextProps } from '../../types';
 import type { PreviewScene } from '../../preview/types';
 
 const OID = 'demo.0.mode';
@@ -38,25 +35,9 @@ const gapRows = {
 };
 
 const scene = (data: Record<string, unknown>, status: unknown): PreviewScene =>
-    ({
-        slug: 'use-data-test',
-        size: { width: 480, height: 120 },
-        context: {
-            widget: {
-                data: {
-                    oid: OID,
-                    oidObject: { _id: OID, type: 'string' },
-                    ...data,
-                },
-                style: {},
-            },
-            values: { [`${OID}.val`]: status },
-            mode: 'light',
-            wrappedContent: true,
-        },
-    }) as unknown as PreviewScene;
+    collectionScene('use-data-test', { oid: OID, oidObject: { _id: OID, type: 'string' }, ...data }, status);
 
-const mounted: RenderComponentHandle<{ context: AllCollectionContextProps }>[] = [];
+const mounted: MountedCollectionBody[] = [];
 
 /** Mounts `useData('oid')` inside the real provider and returns its result. */
 const resolve = (data: Record<string, unknown>, status: unknown): UseDataResult => {
@@ -66,10 +47,8 @@ const resolve = (data: Record<string, unknown>, status: unknown): UseDataResult 
         captured.current = useData('oid');
         return null;
     };
-    const Host: FC<{ context: AllCollectionContextProps }> = ({ context }) =>
-        createElement(CollectionProvider, { context } as never, createElement(Probe));
 
-    mounted.push(renderComponent(Host, { context: buildPreviewContext(scene(data, status)) }));
+    mounted.push(mountCollectionBody(Probe, scene(data, status)));
 
     if (!captured.current) {
         throw new Error('useData did not render');

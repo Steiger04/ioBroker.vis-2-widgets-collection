@@ -11,80 +11,44 @@
  * becomes observable.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createElement, act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act } from 'react';
 
-import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
-import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext } from '../preview/mockContext';
+import {
+    collectionScene,
+    installInertResizeObserver,
+    mountCollectionBody,
+    type MountedCollectionBody,
+} from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import RadioGroupCollection from './RadioGroupCollection';
-import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from '../preview/types';
 
-if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === 'undefined') {
-    /* eslint-disable class-methods-use-this -- inert stub, nothing to use `this` for */
-    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
-        observe(): void {}
-        unobserve(): void {}
-        disconnect(): void {}
-    };
-    /* eslint-enable class-methods-use-this */
-}
+installInertResizeObserver();
 
 const OID = 'demo.0.mode';
 const ICON = '/vis.0/main/img/mode.png';
 
 const scene = (data: Record<string, unknown> = {}): PreviewScene =>
-    ({
-        slug: 'radio-group-test',
-        size: { width: 480, height: 120 },
-        context: {
-            widget: {
-                data: {
-                    oid: OID,
-                    oidObject: { _id: OID, type: 'number' },
-                    values_count: 2,
-                    value1: '0',
-                    alias1: 'OFF',
-                    value2: '1',
-                    alias2: 'ON',
-                    noHeader: true,
-                    noFooter: true,
-                    noHeaderIcon: true,
-                    ...data,
-                },
-                style: {},
-            },
-            values: { [`${OID}.val`]: 1 },
-            mode: 'light',
-            wrappedContent: true,
+    collectionScene(
+        'radio-group-test',
+        {
+            oid: OID,
+            oidObject: { _id: OID, type: 'number' },
+            values_count: 2,
+            value1: '0',
+            alias1: 'OFF',
+            value2: '1',
+            alias2: 'ON',
+            noHeader: true,
+            noFooter: true,
+            noHeaderIcon: true,
+            ...data,
         },
-    }) as unknown as PreviewScene;
+        1,
+    );
 
-interface MountedRadioGroup {
-    container: HTMLDivElement;
-    setState: ReturnType<typeof vi.fn>;
-    setValue: ReturnType<typeof vi.fn>;
-}
-
-const mountRadioGroup = (currentScene: PreviewScene): MountedRadioGroup => {
-    const setState = vi.fn();
-    const setValue = vi.fn();
-    const context = {
-        ...buildPreviewContext(currentScene),
-        setState,
-        setValue,
-    } as unknown as AllCollectionContextProps;
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createRoot(container);
-    act(() => {
-        root.render(createElement(CollectionProvider, { context } as never, createElement(RadioGroupCollection)));
-    });
-    return { container, setState, setValue };
-};
+const mountRadioGroup = (currentScene: PreviewScene): MountedCollectionBody =>
+    mountCollectionBody(RadioGroupCollection, currentScene);
 
 /** The radio input of the state with the given value. */
 const radioInput = (container: HTMLElement, value: string): HTMLInputElement =>

@@ -11,62 +11,38 @@
  * group. The presentation chrome itself is pinned in chrome.test.ts as pure
  * data — these tests only cover the wiring.
  */
-import { describe, expect, it, vi } from 'vitest';
-import { createElement, act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { describe, expect, it } from 'vitest';
+import { act } from 'react';
 
-import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
-import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext } from '../preview/mockContext';
+import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import ButtonGroupCollection from './ButtonGroupCollection';
-import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from '../preview/types';
 
 const OID = 'demo.0.mode';
 
 const scene = (data: Record<string, unknown> = {}, status: unknown = 1): PreviewScene =>
-    ({
-        slug: 'button-group-test',
-        size: { width: 480, height: 120 },
-        context: {
-            widget: {
-                data: {
-                    oid: OID,
-                    oidObject: { _id: OID, type: 'number' },
-                    values_count: 2,
-                    value1: '0',
-                    alias1: 'OFF',
-                    value2: '1',
-                    alias2: 'ON',
-                    ...data,
-                },
-                style: {},
-            },
-            values: { [`${OID}.val`]: status },
-            mode: 'light',
-            wrappedContent: true,
+    collectionScene(
+        'button-group-test',
+        {
+            oid: OID,
+            oidObject: { _id: OID, type: 'number' },
+            values_count: 2,
+            value1: '0',
+            alias1: 'OFF',
+            value2: '1',
+            alias2: 'ON',
+            ...data,
         },
-    }) as unknown as PreviewScene;
+        status,
+    );
 
-const mountGroup = (currentScene: PreviewScene, setState = vi.fn()): HTMLDivElement => {
-    const context = {
-        ...buildPreviewContext(currentScene),
-        setState,
-    } as unknown as AllCollectionContextProps;
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createRoot(container);
-    act(() => {
-        root.render(createElement(CollectionProvider, { context } as never, createElement(ButtonGroupCollection)));
-    });
-    return container;
-};
+const mountGroup = (currentScene: PreviewScene): MountedCollectionBody =>
+    mountCollectionBody(ButtonGroupCollection, currentScene);
 
 describe('ButtonGroupCollection wiring', () => {
     it('renders one toggle button per state, labelled by the alias', () => {
-        const container = mountGroup(scene());
+        const { container } = mountGroup(scene());
 
         const buttons = container.querySelectorAll('.MuiToggleButton-root');
         expect(buttons.length).toBe(2);
@@ -75,7 +51,7 @@ describe('ButtonGroupCollection wiring', () => {
     });
 
     it('selects the state matching the OID value', () => {
-        const container = mountGroup(scene());
+        const { container } = mountGroup(scene());
 
         const selected = container.querySelector('.MuiToggleButton-root.Mui-selected');
         expect(selected?.textContent).toContain('ON');
@@ -85,7 +61,7 @@ describe('ButtonGroupCollection wiring', () => {
         // value2 blank: the buttons are OFF (field 1) and BOOST (field 3) — BOOST sits at
         // list position 1. Value 2 matches BOOST.
         const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
-        const container = mountGroup(
+        const { container } = mountGroup(
             scene(
                 {
                     values_count: 3,
@@ -107,8 +83,7 @@ describe('ButtonGroupCollection wiring', () => {
     });
 
     it('writes the clicked state value as the optimistic patch (val + lc sentinel)', () => {
-        const setState = vi.fn();
-        const container = mountGroup(scene(), setState);
+        const { container, setState } = mountGroup(scene());
 
         const [offButton] = container.querySelectorAll('.MuiToggleButton-root');
         act(() => {
@@ -125,7 +100,7 @@ describe('ButtonGroupCollection wiring', () => {
     });
 
     it('disables the buttons for a read-only state (write === false)', () => {
-        const container = mountGroup(scene({ write: false }));
+        const { container } = mountGroup(scene({ write: false }));
 
         // MUI disables the toggle buttons via context; the group root div carries no class.
         expect(container.querySelector('.MuiToggleButton-root.Mui-disabled')).not.toBeNull();

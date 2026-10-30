@@ -25,26 +25,19 @@
  * indices.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createElement, act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { act } from 'react';
 
-import '../lib/testing/testHarness'; // sets IS_REACT_ACT_ENVIRONMENT
-import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext } from '../preview/mockContext';
+import {
+    collectionScene,
+    installInertResizeObserver,
+    mountCollectionBody,
+    type MountedCollectionBody,
+} from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import SelectCollection from './SelectCollection';
-import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from '../preview/types';
 
-if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === 'undefined') {
-    /* eslint-disable class-methods-use-this -- inert stub, nothing to use `this` for */
-    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
-        observe(): void {}
-        unobserve(): void {}
-        disconnect(): void {}
-    };
-    /* eslint-enable class-methods-use-this */
-}
+installInertResizeObserver();
 
 /** The main OID — the status the display follows. */
 const OID = 'demo.0.status';
@@ -52,61 +45,34 @@ const OID = 'demo.0.status';
 const CID = 'demo.0.command';
 
 const scene = (data: Record<string, unknown> = {}, status: unknown = 1): PreviewScene =>
-    ({
-        slug: 'select-collection-test',
-        size: { width: 480, height: 120 },
-        context: {
-            widget: {
-                data: {
-                    oid: OID,
-                    oidObject: { _id: OID, type: 'number', write: true },
-                    values_count: 3,
-                    value1: '0',
-                    alias1: 'Eco',
-                    value2: '1',
-                    alias2: 'Comfort',
-                    value3: '2',
-                    alias3: 'Boost',
-                    // Write at once: a missing delay debounces with the 300 ms field default.
-                    delay: 0,
-                    noHeader: true,
-                    noFooter: true,
-                    noHeaderIcon: true,
-                    ...data,
-                },
-                style: {},
-            },
-            values: { [`${OID}.val`]: status },
-            mode: 'light',
-            wrappedContent: true,
+    collectionScene(
+        'select-collection-test',
+        {
+            oid: OID,
+            oidObject: { _id: OID, type: 'number', write: true },
+            values_count: 3,
+            value1: '0',
+            alias1: 'Eco',
+            value2: '1',
+            alias2: 'Comfort',
+            value3: '2',
+            alias3: 'Boost',
+            // Write at once: a missing delay debounces with the 300 ms field default.
+            delay: 0,
+            noHeader: true,
+            noFooter: true,
+            noHeaderIcon: true,
+            ...data,
         },
-    }) as unknown as PreviewScene;
+        status,
+    );
 
-interface MountedSelect {
-    container: HTMLDivElement;
-    setState: ReturnType<typeof vi.fn>;
-    setValue: ReturnType<typeof vi.fn>;
-}
+const mounted: MountedCollectionBody[] = [];
 
-const mounted: { root: Root; container: HTMLDivElement }[] = [];
-
-const mountSelect = (currentScene: PreviewScene): MountedSelect => {
-    const setState = vi.fn();
-    const setValue = vi.fn();
-    const context = {
-        ...buildPreviewContext(currentScene),
-        setState,
-        setValue,
-    } as unknown as AllCollectionContextProps;
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createRoot(container);
-    act(() => {
-        root.render(createElement(CollectionProvider, { context } as never, createElement(SelectCollection)));
-    });
-    mounted.push({ root, container });
-    return { container, setState, setValue };
+const mountSelect = (currentScene: PreviewScene): MountedCollectionBody => {
+    const select = mountCollectionBody(SelectCollection, currentScene);
+    mounted.push(select);
+    return select;
 };
 
 /** The closed select — its text is the displayed entry. */
@@ -216,11 +182,8 @@ describe('SelectCollection wiring', () => {
 
     afterEach(() => {
         // Unmount so an open menu (portal on document.body) cannot leak into the next test.
-        for (const { root, container } of mounted.splice(0)) {
-            act(() => {
-                root.unmount();
-            });
-            container.remove();
+        for (const select of mounted.splice(0)) {
+            select.unmount();
         }
         vi.useRealTimers();
         vi.restoreAllMocks();
