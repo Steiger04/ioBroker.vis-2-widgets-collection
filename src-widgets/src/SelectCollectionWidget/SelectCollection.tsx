@@ -5,8 +5,7 @@
  */
 
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import React, { useCallback, useContext, useRef } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -17,44 +16,18 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { resolveWriteTarget } from '../lib/writeTarget';
+import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrome';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
-import { cleanSx } from '../lib/helper/sxUtils';
-
-/** Computes background color styles for a menu item, handling both gradient and solid backgrounds. */
-function getMenuItemColorStyles(bgColor: string | null | undefined): Record<string, unknown> {
-    const gradient = gradientColor(bgColor);
-    const extractedColor = gradient ? extractColorFromValue(bgColor) : undefined;
-    const hoverBg = extractedColor ? alpha(extractedColor, 0.5) : bgColor ? alpha(bgColor, 0.5) : undefined;
-
-    return {
-        background: gradient,
-        bgcolor: gradient ? 'transparent' : bgColor,
-
-        '&.Mui-selected': {
-            background: gradient,
-            bgcolor: gradient ? undefined : bgColor,
-        },
-
-        '&.Mui-selected:hover': {
-            background: gradient ? hoverBg : undefined,
-            bgcolor: gradient ? undefined : hoverBg,
-        },
-        '&:hover': {
-            background: gradient ? hoverBg : undefined,
-            bgcolor: gradient ? undefined : hoverBg,
-        },
-    };
-}
 
 function SelectCollection(): React.ReactElement {
-    const contentRef = useRef<HTMLDivElement>(null);
-    const { width = 300 } = useElementDimensions(contentRef.current);
+    // Callback ref: the element lands in state on mount, so the measurement starts at once
+    // instead of waiting for a later re-render to read a filled ref.
+    const [contentRef, setContentRef] = useState<HTMLDivElement | null>(null);
+    const { width } = useElementDimensions(contentRef);
 
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget } = context;
@@ -106,7 +79,7 @@ function SelectCollection(): React.ReactElement {
             />
 
             <Box
-                ref={contentRef}
+                ref={setContentRef}
                 sx={{
                     width: '100%',
                     height: '100%',
@@ -121,54 +94,24 @@ function SelectCollection(): React.ReactElement {
                     value={activeIndex}
                     onChange={changeHandler}
                     disabled={readOnly}
-                    MenuProps={{
-                        PaperProps: {
-                            sx: {
-                                overflow: 'hidden',
-                                '& .MuiMenu-list': {
-                                    maxHeight: '100vh',
-                                    overflowY: 'auto',
-                                },
-                                ...(widget.data.noCard && {
-                                    '--Paper-overlay': 'none !important',
-                                    '--Paper-shadow': 'none !important',
-                                    boxShadow: 'none !important',
-                                }),
-                                background: data.frameBackground || (widget.data.noCard ? 'transparent' : undefined),
-                                ...cleanSx(borderStyles),
-                            },
-                        },
-                        slotProps: {
-                            backdrop: {
-                                style: { backgroundColor: 'transparent !important' },
-                            },
-                            root: {
-                                sx: {
-                                    maxWidth: width,
-                                    mt: 0.5,
-
-                                    '& .MuiList-root': {
-                                        py: 0,
-                                    },
-                                },
-                            },
-                        },
-                    }}
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        maxWidth: `calc(${width}px - 10%)`,
-
-                        '& .MuiSelect-icon': {
-                            color: extractColorFromValue(widget.data.arrowColor || data.textColor || data.iconColor),
-                        },
-                    }}
+                    // Select-Chrome: the popup follows the EXPLICIT noCard, never wrappedContent.
+                    MenuProps={buildMenuChrome({
+                        width,
+                        noCard: widget.data.noCard,
+                        frameBackground: data.frameBackground,
+                        borderStyles,
+                    })}
+                    sx={buildSelectChrome({
+                        width,
+                        arrowColor: widget.data.arrowColor,
+                        textColor: data.textColor,
+                    })}
                 >
                     {states.map((state, index) => (
                         <MenuItem
                             key={`${String(state.value)}-${index}`}
                             value={index}
-                            sx={getMenuItemColorStyles(state.background)}
+                            sx={buildMenuItemChrome(state.background)}
                         >
                             <Stack
                                 direction="row"

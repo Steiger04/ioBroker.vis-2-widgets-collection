@@ -43,8 +43,17 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="arrow" />,
     },
-    // Arrow color with noGradient (only solid colors for icons)
-    createColorField({ name: 'arrowColor', label: 'arrow_color', fallbackFields: [''], noGradient: true }),
+    // Arrow color with noGradient (only solid colors for icons). Unset, the arrow takes the
+    // active state's text colour (Select-Chrome), so the swatch shows the text colour's base
+    // cascade: textColor → vis-2 CSS colour → theme text (ADR-0004).
+    createColorField({
+        name: 'arrowColor',
+        label: 'arrow_color',
+        fallbackFields: ['textColor'],
+        noGradient: true,
+        terminal: 'text',
+        inheritTextStyle: true,
+    }),
 ];
 
 export default selectFields;

@@ -11,6 +11,12 @@
  * (Schreibziel, ADR-0090) — and the lock follows the write target. The decision
  * table itself is pinned in lib/writeTarget.test.ts as pure data.
  *
+ * The Select-Chrome is pinned as rendered, too — only its wiring, i.e. which inputs
+ * the body feeds in: the arrow takes `arrowColor`, else the ACTIVE state's text
+ * colour; the popup surface follows the explicit `noCard` alone (an embedded Select
+ * keeps its elevated popup); the width bound follows the measured content box. The
+ * rules themselves are pinned as pure data in chrome.test.ts.
+ *
  * Selections are driven through the real UI: a primary-button mousedown on the
  * combobox opens the menu (MUI renders it in a portal on document.body), a click
  * on an option selects it. The rendered native input's change path cannot drive
@@ -133,6 +139,62 @@ const choose = (container: HTMLElement, label: string): void => {
     });
 };
 
+/** The select's root — it carries the width bound and the arrow rule. */
+const selectRoot = (container: HTMLElement): HTMLElement => {
+    const element = container.querySelector<HTMLElement>('.MuiInputBase-root');
+    if (!element) {
+        throw new Error('select root not rendered');
+    }
+    return element;
+};
+
+/** The dropdown arrow. */
+const arrow = (container: HTMLElement): Element => {
+    const element = container.querySelector('.MuiSelect-icon');
+    if (!element) {
+        throw new Error('select arrow not rendered');
+    }
+    return element;
+};
+
+/** A popup part — portaled to document.body like the options. */
+const popup = (selector: '.MuiMenu-root' | '.MuiMenu-paper'): HTMLElement => {
+    const element = document.querySelector<HTMLElement>(selector);
+    if (!element) {
+        throw new Error(`${selector} not rendered`);
+    }
+    return element;
+};
+
+/** The same scene, rendered embedded (inside a dialog or another widget): no wrapping card. */
+const embedded = (currentScene: PreviewScene): PreviewScene =>
+    ({
+        ...currentScene,
+        context: { ...currentScene.context, wrappedContent: false },
+    }) as PreviewScene;
+
+/** A ResizeObserver that reports every observed element at the given content width. */
+const reportingResizeObserver = (width: number): unknown =>
+    class {
+        private readonly callback: ResizeObserverCallback;
+
+        constructor(callback: ResizeObserverCallback) {
+            this.callback = callback;
+        }
+
+        observe(target: Element): void {
+            this.callback(
+                [{ target, contentRect: { width, height: 120 } } as unknown as ResizeObserverEntry],
+                this as unknown as ResizeObserver,
+            );
+        }
+
+        /* eslint-disable class-methods-use-this -- nothing to release */
+        unobserve(): void {}
+        disconnect(): void {}
+        /* eslint-enable class-methods-use-this */
+    };
+
 /** Lets the debounced backend write (`delay: 0`) fire. */
 const flushWrites = async (): Promise<void> => {
     await act(async () => {
@@ -161,6 +223,7 @@ describe('SelectCollection wiring', () => {
         }
         vi.useRealTimers();
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
     });
 
     describe('active state', () => {
@@ -243,6 +306,52 @@ describe('SelectCollection wiring', () => {
             choose(container, 'Eco');
             await flushWrites();
             expect(setValue.mock.calls).toEqual([[CID, 0]]);
+        });
+    });
+
+    describe('chrome (Select-Chrome, as rendered)', () => {
+        it("colours the arrow with arrowColor, else with the active state's text colour", () => {
+            // Status 1 → the second state ('Comfort') is the active one.
+            const own = mountSelect(scene({ arrowColor: '#aa0000', textColor2: '#00aa00' }));
+            const inherited = mountSelect(scene({ textColor2: '#00aa00' }));
+
+            expect(getComputedStyle(arrow(own.container)).color).toBe('#aa0000');
+            expect(getComputedStyle(arrow(inherited.container)).color).toBe('#00aa00');
+        });
+
+        it.each([
+            ['the explicit noCard flattens it: no shadow', scene({ noCard: true }), 'none'],
+            // Portaled to the body, the popup never sits on the host's card: embedded, it keeps its own surface.
+            ['embedded without noCard, it keeps its elevation', embedded(scene()), undefined],
+        ])('draws the popup surface from noCard alone — %s', (_case, currentScene, shadow) => {
+            const { container } = mountSelect(currentScene);
+            openMenu(container);
+
+            const { boxShadow } = getComputedStyle(popup('.MuiMenu-paper'));
+            if (shadow === undefined) {
+                expect(boxShadow).not.toBe('none');
+            } else {
+                expect(boxShadow).toBe(shadow);
+            }
+        });
+
+        it('paints the popup surface with the frame background', () => {
+            const { container } = mountSelect(scene({ frameBackground: '#123456' }));
+            openMenu(container);
+
+            expect(getComputedStyle(popup('.MuiMenu-paper')).backgroundColor).toBe('#123456');
+        });
+
+        it('bounds the select and its popup by the measured content box (300 px until measured)', () => {
+            const unmeasured = mountSelect(scene());
+            expect(getComputedStyle(selectRoot(unmeasured.container)).maxWidth).toBe('calc(300px - 10%)');
+
+            vi.stubGlobal('ResizeObserver', reportingResizeObserver(480));
+            const measured = mountSelect(scene());
+            expect(getComputedStyle(selectRoot(measured.container)).maxWidth).toBe('calc(480px - 10%)');
+
+            openMenu(measured.container);
+            expect(getComputedStyle(popup('.MuiMenu-root')).maxWidth).toBe('480px');
         });
     });
 });
