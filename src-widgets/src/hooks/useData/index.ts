@@ -56,19 +56,13 @@
  * }
  * ```
  *
- * **Feldnummer vs. list position** — two numbers name the active state, and they
- * are NOT interchangeable:
- * - **`activeFieldNumber`** is its Feldnummer: the 1-based suffix of its field row
- *   (`value1`, `value2`, …), carried by every state as `state.fieldNumber`. The same
- *   number keys the state-specific style resolution (`resolveStyleData(1)`, …).
- * - **`activePosition`** is its 0-based position in `states` — the one to index the
- *   list with.
- *
- * Blank value rows are skipped, so after a gap a state's Feldnummer is not its
- * position + 1 (blank `value2` → the state of `value3` sits at position 1). Both are
- * `undefined` when no state matches the current OID value; with duplicate values the
- * first state wins. State equality itself goes through `sameStateValue`
- * (string-coercion contract), also exported below.
+ * **Feldnummer vs. list position** — two numbers name the active state, NOT
+ * interchangeable (CONTEXT "Feldnummer", `StateStyleData.fieldNumber`):
+ * `activeFieldNumber` is its Feldnummer, `activePosition` its 0-based position in
+ * `states` — the one to index the list with. Both are `undefined` when no state
+ * matches the current OID value; with duplicate values the first state wins. State
+ * equality itself goes through `sameStateValue` (string-coercion contract), also
+ * exported below.
  * @example
  * Advanced usage with slider properties:
  * ```typescript

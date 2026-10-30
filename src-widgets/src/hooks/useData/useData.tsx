@@ -190,7 +190,7 @@ function useData(_oid: string): UseDataResult {
 
                 if (position !== -1) {
                     // Apply state-specific styles with active properties — keyed by the state's
-                    // Feldnummer, never by position + 1 (blank value rows are skipped).
+                    // Feldnummer, never by its list position.
                     const { fieldNumber } = states[position];
                     return {
                         data: resolveStyleData(fieldNumber, true),

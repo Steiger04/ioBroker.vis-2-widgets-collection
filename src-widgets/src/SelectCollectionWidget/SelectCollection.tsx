@@ -33,9 +33,8 @@ function SelectCollection(): React.ReactElement {
     const { widget, theme } = context;
     const { borderStyles, textStyles } = useStyles(widget.style);
     const oidObject = widget.data.oidObject;
-    // The display follows the main OID's status alone: activePosition is the 0-based
-    // position in `states` of the state matching it (NOT its Feldnummer — blank value
-    // rows are skipped); undefined = no matching state.
+    // The display follows the main OID's status alone: activePosition indexes `states`
+    // (not a Feldnummer); undefined = no matching state.
     const { data, states, oidValue, activePosition } = useData('oid');
 
     // Schreibziel (ADR-0090): the control ID when set, else the main OID — written alone,

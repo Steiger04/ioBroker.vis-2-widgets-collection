@@ -76,8 +76,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                     })}
                 >
                     {buttonStates.map(({ value, ...state }, index) => {
-                        // activePosition is the active state's 0-based position in the
-                        // state list (NOT its Feldnummer); undefined = no matching state.
+                        // activePosition indexes the state list (not a Feldnummer);
+                        // undefined = no matching state.
                         const isActive = activePosition === index;
 
                         // String(value!) coerces for MUI's strict === selection,

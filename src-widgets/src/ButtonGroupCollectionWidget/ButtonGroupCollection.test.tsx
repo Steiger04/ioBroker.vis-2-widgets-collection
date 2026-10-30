@@ -6,10 +6,9 @@
  * DOM contract of the renderer on the preview context (the Checkbox pattern):
  * one toggle button per resolved state, the state matching the OID value
  * selected (and given the active treatment — also across a blank state row,
- * where a state's Feldnummer and its list position diverge), a click writing
- * the optimistic patch through setState, and the read-only guard disabling the
- * group. The presentation chrome itself is pinned in chrome.test.ts as pure
- * data — these tests only cover the wiring.
+ * CONTEXT "Feldnummer"), a click writing the optimistic patch through setState,
+ * and the read-only guard disabling the group. The presentation chrome itself is
+ * pinned in chrome.test.ts as pure data — these tests only cover the wiring.
  */
 import { describe, expect, it } from 'vitest';
 import { act } from 'react';

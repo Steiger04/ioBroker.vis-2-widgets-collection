@@ -3,11 +3,10 @@
  *
  * @module hooks/useData/useData.hook.test
  * @remarks
- * Pins the state identity across a blank value row (CONTEXT.md "Feldnummer"): useData
- * skips blank `value{i}` rows, so a state's Feldnummer (the suffix of its field row,
- * which keys its style resolution) and its position in `states` diverge after a gap.
- * Mounted on the real CollectionProvider over a preview scene (the Select/ButtonGroup
- * DOM-test pattern), so the style resolution runs exactly as inside a widget.
+ * Pins the state identity across a blank value row, where a state's Feldnummer and its
+ * position in `states` diverge (CONTEXT.md "Feldnummer"). Mounted on the real
+ * CollectionProvider over a preview scene (the Select/ButtonGroup DOM-test pattern), so
+ * the style resolution runs exactly as inside a widget.
  */
 import type { FC } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';

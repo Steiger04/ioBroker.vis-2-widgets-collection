@@ -5,10 +5,10 @@
  * @remarks
  * DOM contract of the body on the preview context (the ButtonGroup/State pattern):
  * the closed select shows the entry matching the main OID's status (none without a
- * match) — also across a blank state row, where a state's Feldnummer and its list
- * position diverge — states sharing a value list as separate entries, a selection
- * writes the chosen state value — to the main OID, or with a control ID set to the
- * control ID ALONE: exactly one backend write and no optimistic patch of the main OID
+ * match) — also across a blank state row (CONTEXT "Feldnummer") — states sharing a
+ * value list as separate entries, a selection writes the chosen state value — to the
+ * main OID, or with a control ID set to the control ID ALONE: exactly one backend
+ * write and no optimistic patch of the main OID
  * (Schreibziel, ADR-0090) — and the lock follows the write target. The decision
  * table itself is pinned in lib/writeTarget.test.ts as pure data.
  *
@@ -41,7 +41,7 @@ installInertResizeObserver();
 
 /** The main OID — the status the display follows. */
 const OID = 'demo.0.status';
-/** The control ID (Steuer-ID) — the command target when set. */
+/** The control ID (Steuer ID) — the command target when set. */
 const CID = 'demo.0.command';
 
 const scene = (data: Record<string, unknown> = {}, status: unknown = 1): PreviewScene =>
