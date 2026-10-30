@@ -102,7 +102,6 @@ interface SliderMarkLabelProps {
     sliderOrientation: 'horizontal' | 'vertical';
     aliasActive?: string;
     activeMarkIndex?: number | null;
-    defaultIconColor?: string;
 }
 
 const SliderCollection: FC = () => {
@@ -276,7 +275,6 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
-                                        defaultIconColor: theme.palette.primary.main,
                                     } as SliderMarkLabelProps,
                                 }}
                                 disabled={oidType !== 'number' || isOidReadOnly(widget.data)}

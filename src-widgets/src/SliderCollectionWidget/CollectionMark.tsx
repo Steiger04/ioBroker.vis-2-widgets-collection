@@ -5,7 +5,7 @@
  */
 
 import { SliderMarkLabel, Box, Typography } from '@mui/material';
-import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react';
+import React, { type FC, type HTMLAttributes } from 'react';
 
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
@@ -19,7 +19,6 @@ export interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, '
     sliderOrientation: 'horizontal' | 'vertical';
     aliasActive?: string;
     activeMarkIndex?: number | null;
-    defaultIconColor?: string;
     'data-index': number;
     ownerState: {
         marks?: StateStyleData[];
@@ -34,11 +33,8 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     sliderOrientation,
     aliasActive,
     activeMarkIndex,
-    defaultIconColor,
     ...props
 }) => {
-    const [ref, setRef] = useState<HTMLElement | null>(null);
-
     const index = props['data-index'];
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
     const mark = props.ownerState.marks?.[index];
@@ -46,16 +42,9 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     // Check if this is exactly the current selected mark using our index
     const isCurrentSelected = activeMarkIndex === index;
 
-    useEffect(() => {
-        if (ref && mark?.label) {
-            // Use aliasActive ONLY for the currently selected mark (not all active marks)
-            if (isCurrentSelected && aliasActive) {
-                ref.innerHTML = aliasActive;
-            } else {
-                ref.innerHTML = mark.label;
-            }
-        }
-    }, [mark?.label, ref, isCurrentSelected, aliasActive, index]);
+    // Labels may carry HTML. aliasActive replaces the label ONLY for the currently
+    // selected mark (not all active marks); a mark without label stays empty.
+    const labelHtml = mark?.label ? (isCurrentSelected && aliasActive ? aliasActive : mark.label) : '';
 
     return marks && mark ? (
         <SliderMarkLabel {...props}>
@@ -69,7 +58,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
             >
                 <Typography
                     data-font="active"
-                    ref={setRef}
+                    dangerouslySetInnerHTML={{ __html: labelHtml }}
                     sx={{
                         textTransform: 'none',
                         flexGrow: 1,
