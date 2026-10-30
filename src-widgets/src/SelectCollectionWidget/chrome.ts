@@ -109,11 +109,12 @@ export interface MenuChromeInput {
 
 /**
  * Builds the MenuProps of the popup: the paper surface (noCard flattens it —
- * no shadow, no overlay, transparent without a frame background, frozen; a
- * frame background always paints it; the widget's border styles frame it; a
- * long list scrolls inside), the transparent backdrop, and the popup root
- * bounded by the measured content width, offset below the field, list
- * unpadded.
+ * no shadow, no overlay; a frame background always paints it, and since an
+ * unset one resolves to the theme paper, a noCard popup stays opaque — it is
+ * transparent only for an empty resolved value, a defensive branch; the
+ * widget's border styles frame it; a long list scrolls inside), the
+ * transparent backdrop, and the popup root bounded by the measured content
+ * width, offset below the field, list unpadded.
  *
  * @param input - Measured width, the explicit noCard flag, frame background and border styles.
  * @returns The popup's MenuProps; pass them as `<Select MenuProps={…}>`.
