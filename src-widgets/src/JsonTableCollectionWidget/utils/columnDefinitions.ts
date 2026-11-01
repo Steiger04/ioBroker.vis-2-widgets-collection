@@ -8,7 +8,7 @@
  * TanStack column definition.
  */
 
-import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
+import type { ColumnDef, SortingFn, SortingFnOption, Row } from '@tanstack/react-table';
 import { columnCapabilities, type TableCapabilities } from '../capabilities';
 import { columnFilterFn, readNumber } from '../columnFilter';
 import type { EffectiveColumn } from '../columns';
@@ -68,14 +68,18 @@ const numberSortingFn = sortingByReading(readNumber);
 
 /**
  * The sort order of a Column by its Effektiver Typ: a date chronologically by its
- * Datums-Leser, a number numerically; every other type keeps TanStack's default.
+ * Datums-Leser, a number numerically, a string in natural text order without case
+ * (TanStack's `alphanumeric`: "Raum 2" before "Raum 10") — whatever its values look like;
+ * every other type keeps TanStack's default.
  */
-function sortingFnOf(column: EffectiveColumn): SortingFn<FlatRow> | undefined {
+function sortingFnOf(column: EffectiveColumn): SortingFnOption<FlatRow> | undefined {
     switch (column.type) {
         case 'date':
             return createDateSortingFn(column.readDate);
         case 'number':
             return numberSortingFn;
+        case 'string':
+            return 'alphanumeric';
         default:
             return undefined;
     }

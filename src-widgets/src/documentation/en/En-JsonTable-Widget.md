@@ -153,7 +153,12 @@ Apply dynamic styles based on cell values:
 | tableSorting     | checkbox | true    | Enable column sorting                 | Header shown |
 | tableSortingMulti| checkbox | false   | Enable multi-column sorting (Ctrl+Click) | Sorting enabled |
 
-A column sorts by its **effective type**: dates chronologically, numbers numerically — also number values stored as text when the column's format type is `number` (values that are no number sort like 0) — everything else as text.
+A column sorts by its **effective type**:
+
+- `date` chronologically,
+- `number` numerically — also number values stored as text when the column's format type is `number` (values that are no number sort like 0),
+- `string` in natural text order without case (`Room 2` before `Room 10`) — also number values when the column's format type is `string`,
+- every other type in the default order.
 
 ### Filtering
 

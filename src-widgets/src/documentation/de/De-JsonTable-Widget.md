@@ -153,7 +153,12 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 | tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | Kopfzeile sichtbar |
 | tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv |
 
-Eine Spalte sortiert nach ihrem **effektiven Typ**: Datumswerte chronologisch, Zahlen numerisch — auch als Text gespeicherte Zahlen, wenn der Formattyp der Spalte `number` ist (Werte, die keine Zahl sind, sortieren wie 0) — alles andere als Text.
+Eine Spalte sortiert nach ihrem **effektiven Typ**:
+
+- `date` chronologisch,
+- `number` numerisch — auch als Text gespeicherte Zahlen, wenn der Formattyp der Spalte `number` ist (Werte, die keine Zahl sind, sortieren wie 0),
+- `string` in natürlicher Textreihenfolge ohne Groß-/Kleinschreibung (`Raum 2` vor `Raum 10`) — auch Zahlenwerte, wenn der Formattyp der Spalte `string` ist,
+- jeder andere Typ in der Standard-Reihenfolge.
 
 ### Filterung
 

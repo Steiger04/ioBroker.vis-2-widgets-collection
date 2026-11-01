@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ColumnDef, Row, SortingFn } from '@tanstack/react-table';
+import { sortingFns, type ColumnDef, type Row, type SortingFn } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { buildColumnDefs, createDateSortingFn } from './columnDefinitions';
 import { dateReader } from '../dateReader';
@@ -55,7 +55,7 @@ type DataDef = {
     enableSorting: boolean;
     enableColumnFilter: boolean;
     enableHiding: boolean;
-    sortingFn?: SortingFn<FlatRow>;
+    sortingFn?: SortingFn<FlatRow> | string;
     filterFn: unknown;
     cell: (context: { getValue: () => unknown }) => unknown;
     meta: Record<string, unknown>;
@@ -166,14 +166,17 @@ describe('buildColumnDefs — one definition per Column', () => {
 });
 
 describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
-    const sortOf = (values: unknown[], config?: Partial<ColumnConfigEntry>): SortingFn<FlatRow> | undefined =>
-        defOf(
+    /** The sorting TanStack runs for the Column: its own function, or the built-in it names. */
+    const sortOf = (values: unknown[], config?: Partial<ColumnConfigEntry>): SortingFn<FlatRow> | undefined => {
+        const { sortingFn } = defOf(
             defsOf(
                 values.map(v => ({ c: v })),
                 config ? [saved('c', config)] : [],
             ),
             'c',
-        ).sortingFn;
+        );
+        return typeof sortingFn === 'string' ? sortingFns[sortingFn as keyof typeof sortingFns] : sortingFn;
+    };
 
     it('a detected date Column sorts chronologically by its Datums-Leser', () => {
         const sortingFn = sortOf(['02.12.2024', '01.12.2024']);
@@ -192,8 +195,29 @@ describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
         ]);
     });
 
-    it('a detected date Column formatted as text is no date: no date sorting', () => {
-        expect(sortOf(['02.12.2024', '01.12.2024'], { format: { type: 'string' } })).toBeUndefined();
+    it('a text Column sorts in natural text order, without case', () => {
+        const sortingFn = sortOf(['Raum 10', 'raum 2']);
+        expect(sortingFn && sortAscending(['Raum 10', 'raum 2', 'Raum 1', 'Bad'], sortingFn)).toEqual([
+            'Bad',
+            'Raum 1',
+            'raum 2',
+            'Raum 10',
+        ]);
+    });
+
+    it('a detected date Column formatted as text is no date: it sorts as text', () => {
+        const sortingFn = sortOf(['02.12.2024', '01.12.2024'], { format: { type: 'string' } });
+        expect(sortingFn && sortAscending(['02.12.2024', '10.11.2024', '01.12.2024'], sortingFn)).toEqual([
+            '01.12.2024',
+            '02.12.2024',
+            '10.11.2024',
+        ]);
+    });
+
+    it('number values formatted as text sort by their text, not their value', () => {
+        // Natural text order reads digit runs: "1.5" before "1.25"
+        const sortingFn = sortOf([2, 1], { format: { type: 'string' } });
+        expect(sortingFn && sortAscending([10, 1.25, 1.5], sortingFn)).toEqual([1.5, 1.25, 10]);
     });
 
     it('a number Column sorts numerically', () => {
@@ -211,10 +235,7 @@ describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
         expect(sortingFn && sortAscending(['5', 'n/a', '-1'], sortingFn)).toEqual(['-1', 'n/a', '5']);
     });
 
-    it.each([
-        ['text', ['a', 'b']],
-        ['boolean', [true, false]],
-    ])('a %s Column keeps the table default', (_type, values) => {
-        expect(sortOf(values)).toBeUndefined();
+    it('a boolean Column keeps the table default', () => {
+        expect(sortOf([true, false])).toBeUndefined();
     });
 });
