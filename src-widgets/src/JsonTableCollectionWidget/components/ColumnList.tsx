@@ -4,8 +4,8 @@
  * @module JsonTableCollectionWidget/components/ColumnList
  * @remarks
  * Renders a searchable, scrollable list of column cards in the left panel
- * of the column editor modal. Each card shows the column path, detected type
- * badge, and a visibility checkbox. Clicking a card selects it for detail
+ * of the column editor modal. Each card shows the column path, the badge of its
+ * Effektiver Typ, and a visibility checkbox. Clicking a card selects it for detail
  * editing in the right panel.
  */
 
@@ -13,7 +13,6 @@ import {
     Box,
     Card,
     Checkbox,
-    Chip,
     Dialog,
     DialogActions,
     DialogContent,
@@ -40,9 +39,10 @@ import type React from 'react';
 
 import Generic from '../../Generic';
 import { defaultColumnConfig } from '../columns';
-import { TYPE_COLORS } from '../utils/columnConfig';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
+import TypeBadgeChip from './TypeBadgeChip';
+import { typeBadgeOf } from './typeBadge';
 
 /** Props for the ColumnList component. */
 interface ColumnListProps {
@@ -357,7 +357,7 @@ function ColumnList({
                     filteredColumns.map((col, index) => {
                         const discovered = discoveredColumns.find(d => d.path === col.path);
                         const isSelected = selectedPath === col.path;
-                        const detectedType = discovered?.type || 'string';
+                        const badge = typeBadgeOf(col.format?.type, discovered?.type);
 
                         return (
                             <Card
@@ -377,7 +377,7 @@ function ColumnList({
                                 tabIndex={0}
                                 role="button"
                                 aria-selected={isSelected}
-                                aria-label={`${col.headerName || col.path}, ${detectedType}, ${col.visible ? Generic.t('json_table_visible') : Generic.t('json_table_hidden')}`}
+                                aria-label={`${col.headerName || col.path}, ${badge.type}, ${col.visible ? Generic.t('json_table_visible') : Generic.t('json_table_hidden')}`}
                                 sx={{
                                     p: 1,
                                     cursor: isDragEnabled ? 'grab' : 'pointer',
@@ -448,19 +448,9 @@ function ColumnList({
                                             </Typography>
                                         )}
                                     </Box>
-                                    <Chip
-                                        label={detectedType}
-                                        size="small"
-                                        sx={{
-                                            backgroundColor: TYPE_COLORS[detectedType] || TYPE_COLORS.string,
-                                            color: '#fff',
-                                            fontWeight: 600,
-                                            fontSize: '0.65rem',
-                                            height: 20,
-                                            minWidth: 48,
-                                            flexShrink: 0,
-                                        }}
-                                        aria-label={`${Generic.t('json_table_type_label')}: ${detectedType}`}
+                                    <TypeBadgeChip
+                                        badge={badge}
+                                        sx={{ fontSize: '0.65rem', height: 20, minWidth: 48, flexShrink: 0 }}
                                     />
                                 </Box>
                             </Card>

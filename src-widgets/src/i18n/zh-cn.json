@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "自动（基于类型）",
     "json_table_option_off": "关",
     "json_table_option_on": "开",
-    "json_table_override_tooltip": "此设置覆盖全局小部件配置",
     "json_table_padding": "内边距",
     "json_table_page_size": "页面大小",
     "json_table_page_size_options": "页面大小选项",
@@ -1312,5 +1311,7 @@
     "without_label": "没有标签",
     "write_value": "写入值",
     "json_table_table_off_tooltip": "{feature} 已对整个表格关闭，因此此列设置不会生效",
-    "json_table_hideable": "可隐藏"
+    "json_table_hideable": "可隐藏",
+    "json_table_detected_type_hint": "检测到：{type}",
+    "json_table_override_type_default_tooltip": "此列会覆盖 {feature} 的类型默认值——但绝不超过表所允许的上限"
 }

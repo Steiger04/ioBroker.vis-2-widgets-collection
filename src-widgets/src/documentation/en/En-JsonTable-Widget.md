@@ -142,7 +142,7 @@ Apply dynamic styles based on cell values:
 
 ## Features
 
-> **Persistence:** The current table view — sorting, active filters, search term, page and rows per page, column widths, and column visibility — is preserved across page reloads (stored locally per browser). A part whose feature is switched off is parked: it is neither applied nor deleted and returns when the feature is switched on again. A chosen page size or a dragged column width applies until the configured value (`tablePageSize`, or the column's width in the editor) is changed, or the page size is no longer offered. The page stays on live data updates and returns to page 1 only when sorting, filters, the search term or the page size change.
+> **Persistence:** The current table view — sorting, active filters, search term, page and rows per page, column widths, and column visibility — is preserved across page reloads (stored locally per browser). A part whose feature is switched off is parked: it is neither applied nor deleted and returns when the feature is switched on again. The same holds for the filter of a column that cannot be filtered (its override or its type default is off). A chosen page size or a dragged column width applies until the configured value (`tablePageSize`, or the column's width in the editor) is changed, or the page size is no longer offered. The page stays on live data updates and returns to page 1 only when sorting, filters, the search term or the page size change.
 
 > **Header and column menu:** Sorting, column filtering, hiding and the column menu live in the header. With the header hidden (`tableShowHeader`) they are all off; with the column menu off, column filtering and hiding are off too (both are only reachable through the menu). The quick filter, pagination and row selection do not depend on the header.
 
@@ -153,7 +153,12 @@ Apply dynamic styles based on cell values:
 | tableSorting     | checkbox | true    | Enable column sorting                 | Header shown |
 | tableSortingMulti| checkbox | false   | Enable multi-column sorting (Ctrl+Click) | Sorting enabled |
 
-A column sorts by its **effective type**: dates chronologically, numbers numerically — also number values stored as text when the column's format type is `number` (values that are no number sort like 0) — everything else as text.
+A column sorts by its **effective type**:
+
+- `date` chronologically,
+- `number` numerically — also number values stored as text when the column's format type is `number` (values that are no number sort like 0),
+- `string` in natural text order without case (`Room 2` before `Room 10`) — also number values when the column's format type is `string`,
+- every other type in the default order.
 
 ### Filtering
 

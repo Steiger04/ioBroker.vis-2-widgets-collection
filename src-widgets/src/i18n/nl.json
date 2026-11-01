@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Auto (type-gebaseerd)",
     "json_table_option_off": "UIT",
     "json_table_option_on": "AAN",
-    "json_table_override_tooltip": "Deze instelling overschrijft de globale widgetconfiguratie",
     "json_table_padding": "Opvulling",
     "json_table_page_size": "Paginagrootte",
     "json_table_page_size_options": "Opties voor paginagrootte",
@@ -1312,5 +1311,7 @@
     "without_label": "Zonder label",
     "write_value": "Schrijf waarde",
     "json_table_table_off_tooltip": "{feature} is uitgeschakeld voor de hele tabel, dus deze kolominstelling heeft geen effect",
-    "json_table_hideable": "Verbergbaar"
+    "json_table_hideable": "Verbergbaar",
+    "json_table_detected_type_hint": "Gedetecteerd: {type}",
+    "json_table_override_type_default_tooltip": "Deze kolom overschrijft de standaardwaarde van het type voor {feature} — nooit meer dan de tabel toestaat"
 }

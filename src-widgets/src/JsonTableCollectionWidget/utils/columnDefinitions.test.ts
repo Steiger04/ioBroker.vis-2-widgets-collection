@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { ColumnDef, Row, SortingFn } from '@tanstack/react-table';
+import { sortingFns, type ColumnDef, type Row, type SortingFn } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
-import { buildColumnDefs, createDateSortingFn } from './columnDefinitions';
-import { dateReader } from '../dateReader';
+import { buildColumnDefs } from './columnDefinitions';
 import { tableCapabilities } from '../capabilities';
 import { readJsonTable, type EffectiveColumn } from '../columns';
 import type { ColumnConfigEntry } from '../types';
@@ -16,34 +15,6 @@ const sortAscending = (values: unknown[], sortingFn: SortingFn<FlatRow>): unknow
         .sort((a, b) => sortingFn(a, b, 'c'))
         .map(r => r.getValue('c'));
 
-describe("createDateSortingFn — sorts by the Column's Datums-Leser", () => {
-    it('orders the tolerant patterns and epoch strings of a manual date column chronologically', () => {
-        const at10 = String(new Date(2024, 11, 1, 10).getTime() / 1000);
-        const sorted = sortAscending(
-            ['2024-12-02 09:00', at10, '2024-12-01T09:00', '2024-12-01 11:00'],
-            createDateSortingFn(dateReader()),
-        );
-        expect(sorted).toEqual(['2024-12-01T09:00', at10, '2024-12-01 11:00', '2024-12-02 09:00']);
-    });
-
-    it('counts an unreadable value as 0, as before', () => {
-        // "Dec 1, 2024" is no date (no browser heuristic) — it sorts with the unreadable.
-        const sorted = sortAscending(
-            ['2024-12-01 10:00', 'Dec 1, 2024', '2024-11-30 10:00'],
-            createDateSortingFn(dateReader()),
-        );
-        expect(sorted).toEqual(['Dec 1, 2024', '2024-11-30 10:00', '2024-12-01 10:00']);
-    });
-
-    it('reads a detected date column strictly', () => {
-        const sorted = sortAscending(
-            ['02.12.2024', '01.12.2024 23:00', '01.12.2024'],
-            createDateSortingFn(dateReader({ type: 'date', dateFormat: 'dd.MM.yyyy' })),
-        );
-        expect(sorted).toEqual(['01.12.2024', '01.12.2024 23:00', '02.12.2024']);
-    });
-});
-
 // ── buildColumnDefs — the TanStack adapter over the merged Columns ─────────────
 
 /** The parts of a data column definition the tests read. */
@@ -55,7 +26,7 @@ type DataDef = {
     enableSorting: boolean;
     enableColumnFilter: boolean;
     enableHiding: boolean;
-    sortingFn?: SortingFn<FlatRow>;
+    sortingFn?: SortingFn<FlatRow> | string;
     filterFn: unknown;
     cell: (context: { getValue: () => unknown }) => unknown;
     meta: Record<string, unknown>;
@@ -166,14 +137,17 @@ describe('buildColumnDefs — one definition per Column', () => {
 });
 
 describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
-    const sortOf = (values: unknown[], config?: Partial<ColumnConfigEntry>): SortingFn<FlatRow> | undefined =>
-        defOf(
+    /** The sorting TanStack runs for the Column: its own function, or the built-in it names. */
+    const sortOf = (values: unknown[], config?: Partial<ColumnConfigEntry>): SortingFn<FlatRow> | undefined => {
+        const { sortingFn } = defOf(
             defsOf(
                 values.map(v => ({ c: v })),
                 config ? [saved('c', config)] : [],
             ),
             'c',
-        ).sortingFn;
+        );
+        return typeof sortingFn === 'string' ? sortingFns[sortingFn as keyof typeof sortingFns] : sortingFn;
+    };
 
     it('a detected date Column sorts chronologically by its Datums-Leser', () => {
         const sortingFn = sortOf(['02.12.2024', '01.12.2024']);
@@ -184,16 +158,56 @@ describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
         ]);
     });
 
-    it('a Column formatted as date sorts chronologically', () => {
-        const sortingFn = sortOf(['x', 'y'], { format: { type: 'date' } });
-        expect(sortingFn && sortAscending(['2024-12-02 09:00', '2024-11-30 10:00'], sortingFn)).toEqual([
-            '2024-11-30 10:00',
-            '2024-12-02 09:00',
+    it('a detected date Column reads its values strictly', () => {
+        const sortingFn = sortOf(['02.12.2024', '01.12.2024']);
+        expect(sortingFn && sortAscending(['02.12.2024', '01.12.2024 23:00', '01.12.2024'], sortingFn)).toEqual([
+            '01.12.2024',
+            '01.12.2024 23:00',
+            '02.12.2024',
         ]);
     });
 
-    it('a detected date Column formatted as text is no date: no date sorting', () => {
-        expect(sortOf(['02.12.2024', '01.12.2024'], { format: { type: 'string' } })).toBeUndefined();
+    it('a Column formatted as date orders the tolerant patterns and epoch strings chronologically', () => {
+        const at10 = String(new Date(2024, 11, 1, 10).getTime() / 1000);
+        const sortingFn = sortOf(['x', 'y'], { format: { type: 'date' } });
+        expect(
+            sortingFn && sortAscending(['2024-12-02 09:00', at10, '2024-12-01T09:00', '2024-12-01 11:00'], sortingFn),
+        ).toEqual(['2024-12-01T09:00', at10, '2024-12-01 11:00', '2024-12-02 09:00']);
+    });
+
+    it('an unreadable date counts as 0', () => {
+        // "Dec 1, 2024" is no date (no browser heuristic) — it sorts with the unreadable.
+        const sortingFn = sortOf(['x', 'y'], { format: { type: 'date' } });
+        expect(sortingFn && sortAscending(['2024-12-01 10:00', 'Dec 1, 2024', '2024-11-30 10:00'], sortingFn)).toEqual([
+            'Dec 1, 2024',
+            '2024-11-30 10:00',
+            '2024-12-01 10:00',
+        ]);
+    });
+
+    it('a text Column sorts in natural text order, without case', () => {
+        const sortingFn = sortOf(['Raum 10', 'raum 2']);
+        expect(sortingFn && sortAscending(['Raum 10', 'raum 2', 'Raum 1', 'Bad'], sortingFn)).toEqual([
+            'Bad',
+            'Raum 1',
+            'raum 2',
+            'Raum 10',
+        ]);
+    });
+
+    it('a detected date Column formatted as text is no date: it sorts as text', () => {
+        const sortingFn = sortOf(['02.12.2024', '01.12.2024'], { format: { type: 'string' } });
+        expect(sortingFn && sortAscending(['02.12.2024', '10.11.2024', '01.12.2024'], sortingFn)).toEqual([
+            '01.12.2024',
+            '02.12.2024',
+            '10.11.2024',
+        ]);
+    });
+
+    it('number values formatted as text sort by their text, not their value', () => {
+        // Natural text order reads digit runs: "1.5" before "1.25"
+        const sortingFn = sortOf([2, 1], { format: { type: 'string' } });
+        expect(sortingFn && sortAscending([10, 1.25, 1.5], sortingFn)).toEqual([1.5, 1.25, 10]);
     });
 
     it('a number Column sorts numerically', () => {
@@ -211,10 +225,7 @@ describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
         expect(sortingFn && sortAscending(['5', 'n/a', '-1'], sortingFn)).toEqual(['-1', 'n/a', '5']);
     });
 
-    it.each([
-        ['text', ['a', 'b']],
-        ['boolean', [true, false]],
-    ])('a %s Column keeps the table default', (_type, values) => {
-        expect(sortOf(values)).toBeUndefined();
+    it('a boolean Column keeps the table default', () => {
+        expect(sortOf([true, false])).toBeUndefined();
     });
 });

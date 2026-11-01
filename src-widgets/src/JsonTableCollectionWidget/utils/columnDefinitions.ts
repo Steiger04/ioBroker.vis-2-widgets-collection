@@ -8,11 +8,10 @@
  * TanStack column definition.
  */
 
-import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
+import type { ColumnDef, SortingFn, SortingFnOption, Row } from '@tanstack/react-table';
 import { columnCapabilities, type TableCapabilities } from '../capabilities';
 import { columnFilterFn, readNumber } from '../columnFilter';
 import type { EffectiveColumn } from '../columns';
-import type { DateReader } from '../dateReader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -45,22 +44,14 @@ export interface BuildColumnDefsOptions {
 
 // ── Sorting by the Effektiver Typ ──────────────────────────────────────────────
 
-/** Sorts by a reading of the values; an unreadable value counts as 0. */
+/**
+ * Sorts by a reading of the values — a date by the instant its Column's Datums-Leser reads,
+ * a number by the one number reading; an unreadable value counts as 0.
+ */
 function sortingByReading(read: (value: unknown) => number | null): SortingFn<FlatRow> {
     const sortable = (value: unknown): number => read(value) ?? 0;
     return (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string): number =>
         sortable(rowA.getValue(columnId)) - sortable(rowB.getValue(columnId));
-}
-
-/**
- * Creates a custom sorting function for date columns: chronological by the instant the
- * Column's Datums-Leser reads; an unreadable value counts as 0.
- *
- * @param read - The Column's Datums-Leser
- * @returns A TanStack Table compatible sorting function
- */
-export function createDateSortingFn(read: DateReader): SortingFn<FlatRow> {
-    return sortingByReading(read);
 }
 
 /** Numerically, by the one number reading (numeric strings included). */
@@ -68,14 +59,18 @@ const numberSortingFn = sortingByReading(readNumber);
 
 /**
  * The sort order of a Column by its Effektiver Typ: a date chronologically by its
- * Datums-Leser, a number numerically; every other type keeps TanStack's default.
+ * Datums-Leser, a number numerically, a string in natural text order without case
+ * (TanStack's `alphanumeric`: "Raum 2" before "Raum 10") — whatever its values look like;
+ * every other type keeps TanStack's default.
  */
-function sortingFnOf(column: EffectiveColumn): SortingFn<FlatRow> | undefined {
+function sortingFnOf(column: EffectiveColumn): SortingFnOption<FlatRow> | undefined {
     switch (column.type) {
         case 'date':
-            return createDateSortingFn(column.readDate);
+            return sortingByReading(column.readDate);
         case 'number':
             return numberSortingFn;
+        case 'string':
+            return 'alphanumeric';
         default:
             return undefined;
     }

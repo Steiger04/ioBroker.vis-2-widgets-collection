@@ -1,20 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { createDateAwareGlobalFilter, type DetectedColumn } from './quickFilter';
-import type { ColumnConfigEntry } from '../types';
+import { createDateAwareGlobalFilter, type QuickFilterColumn } from './quickFilter';
+import { dateReader, type DateReader } from '../dateReader';
 
-const dateCol = (path: string, dateFormat?: string): ColumnConfigEntry => ({
+/** A Column formatted as date, read by its Datums-Leser (default: no detection). */
+const dateCol = (path: string, dateFormat?: string, readDate: DateReader = dateReader()): QuickFilterColumn => ({
     path,
-    visible: true,
-    headerName: path,
-    format: { type: 'date', dateFormat },
+    config: { path, visible: true, headerName: path, format: { type: 'date', dateFormat } },
+    readDate,
 });
-const textCol = (path: string): ColumnConfigEntry => ({ path, visible: true, headerName: path });
+const textCol = (path: string): QuickFilterColumn => ({
+    path,
+    config: { path, visible: true, headerName: path },
+    readDate: dateReader(),
+});
 
 // Minimal row shape: the filter only calls row.getValue(columnId).
 type FakeRow = { getValue: (columnId: string) => unknown };
 type QuickFilter = (row: FakeRow, columnId: string, filterValue: unknown) => boolean;
-const build = (columns: ColumnConfigEntry[], detected: DetectedColumn[] = []): QuickFilter =>
-    createDateAwareGlobalFilter(columns, detected) as unknown as QuickFilter;
+const build = (columns: QuickFilterColumn[]): QuickFilter =>
+    createDateAwareGlobalFilter(columns) as unknown as QuickFilter;
 const row = (val: unknown): FakeRow => ({ getValue: () => val });
 
 describe('createDateAwareGlobalFilter', () => {
@@ -65,9 +69,14 @@ describe('createDateAwareGlobalFilter', () => {
         expect(filter(row(epochSeconds), 'd', '01.12.2024')).toBe(true);
     });
 
-    it("reads a detected date column through the Column's detection", () => {
-        const detected = build([dateCol('d', 'yyyy/MM/dd')], [{ path: 'd', type: 'date', dateFormat: 'dd.MM.yyyy' }]);
+    it("reads a detected date column through the Column's own Datums-Leser", () => {
+        const detected = build([dateCol('d', 'yyyy/MM/dd', dateReader({ type: 'date', dateFormat: 'dd.MM.yyyy' }))]);
         expect(detected(row('01.12.2024'), 'd', '2024/12/01')).toBe(true);
+    });
+
+    it('matches a Column that is no date by its raw value only', () => {
+        const detected = build([textCol('t')]);
+        expect(detected(row('2024-12-31'), 't', '31.12.2024')).toBe(false);
     });
 
     it('does not match a date the browser would have guessed', () => {

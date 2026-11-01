@@ -25,7 +25,7 @@ const OPTIONS: UseViewStateOptions = {
     pageSizeOptions: '10,25,50,100',
     autoSize: false,
     columnConfig: [],
-    columnTypes: {},
+    columns: {},
 };
 
 const mounted: RenderHookHandle<ViewState>[] = [];
@@ -119,16 +119,50 @@ describe("useViewState — a stored Spaltenfilter and its Column's Effektiver Ty
             'jtc_filters_w000001',
             JSON.stringify([{ id: 'temp', value: { operator: 'contains', value: '2' } }]),
         );
-        const handle = mount({ columnTypes: { temp: 'string' } });
+        const handle = mount({ columns: { temp: { type: 'string', filterable: true } } });
         expect(handle.result.current.state.columnFilters).toHaveLength(1);
 
         // The editor changes the Column's Format type to number
-        handle.rerender(() => useViewState({ ...OPTIONS, columnTypes: { temp: 'number', room: 'string' } }));
+        const columns = {
+            temp: { type: 'number', filterable: true },
+            room: { type: 'string', filterable: true },
+        } as const;
+        handle.rerender(() => useViewState({ ...OPTIONS, columns }));
         expect(handle.result.current.state.columnFilters).toEqual([]);
 
         const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
         act(() => handle.result.current.onColumnFiltersChange(old => [...old, room]));
         expect(JSON.parse(localStorage.getItem('jtc_filters_w000001') ?? 'null')).toEqual([room]);
+    });
+});
+
+describe('useViewState — the Spaltenfilter of a Column that is not filterable', () => {
+    it('parks it: not applied, kept in storage through other filter changes, applied again with its Column', () => {
+        const temp = { id: 'temp', value: { operator: 'greaterThan', value: 20 } };
+        const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
+        const columns = (tempFilterable: boolean): UseViewStateOptions['columns'] => ({
+            temp: { type: 'number', filterable: tempFilterable },
+            room: { type: 'string', filterable: true },
+        });
+        const storedFilters = (): unknown => JSON.parse(localStorage.getItem('jtc_filters_w000001') ?? 'null');
+        localStorage.setItem('jtc_filters_w000001', JSON.stringify([temp]));
+
+        const handle = mount({ columns: columns(true) });
+        expect(handle.result.current.state.columnFilters).toEqual([temp]);
+
+        // The editor switches the Column's filterability off
+        handle.rerender(() => useViewState({ ...OPTIONS, columns: columns(false) }));
+        expect(handle.result.current.state.columnFilters).toEqual([]);
+
+        act(() => handle.result.current.onColumnFiltersChange(old => [...old, room]));
+        expect(handle.result.current.state.columnFilters).toEqual([room]);
+        expect(storedFilters()).toEqual([room, temp]);
+
+        act(() => handle.result.current.onColumnFiltersChange([]));
+        expect(storedFilters()).toEqual([temp]);
+
+        handle.rerender(() => useViewState({ ...OPTIONS, columns: columns(true) }));
+        expect(handle.result.current.state.columnFilters).toEqual([temp]);
     });
 });
 

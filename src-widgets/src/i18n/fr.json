@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Auto (selon le type)",
     "json_table_option_off": "DÉSACTIVÉ",
     "json_table_option_on": "ACTIVÉ",
-    "json_table_override_tooltip": "Ce paramètre remplace la configuration globale du widget",
     "json_table_padding": "Marge interne",
     "json_table_page_size": "Taille de page",
     "json_table_page_size_options": "Options de taille de page",
@@ -1312,5 +1311,7 @@
     "without_label": "Sans étiquette",
     "write_value": "Écrire la valeur",
     "json_table_table_off_tooltip": "{feature} est désactivé pour l'ensemble du tableau, ce paramètre de colonne n'a donc aucun effet",
-    "json_table_hideable": "Masquable"
+    "json_table_hideable": "Masquable",
+    "json_table_detected_type_hint": "Détecté : {type}",
+    "json_table_override_type_default_tooltip": "Cette colonne remplace la valeur par défaut du type pour {feature} — jamais plus que ce que le tableau autorise"
 }

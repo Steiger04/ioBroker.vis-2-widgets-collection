@@ -53,7 +53,7 @@ The effective feature set of one table — sorting, multi-sort, column filtering
 _Avoid_: Feature flags (those are the raw settings, not the resolved set), Optionen, Features
 
 **Ansichtszustand**:
-The end user's own view of a table as it survives reloads — sorting, Spaltenfilter, quick-filter term, page and page size, column widths, column visibility — kept per widget in the browser. A part whose Tabellen-Fähigkeit is off is parked: neither applied nor deleted, it returns with the capability. The user's page size or column width wins until the editor changes the configured value; the page survives data updates and resets only when sorting, filters or page size change; a stored Spaltenfilter its Column's Effektiver Typ does not offer is discarded.
+The end user's own view of a table as it survives reloads — sorting, Spaltenfilter, quick-filter term, page and page size, column widths, column visibility — kept per widget in the browser. A part whose Tabellen-Fähigkeit is off is parked: neither applied nor deleted, it returns with the capability — so is the Spaltenfilter of a Column that is not filterable. The user's page size or column width wins until the editor changes the configured value; the page survives data updates and resets only when sorting, filters or page size change; a stored Spaltenfilter its Column's Effektiver Typ does not offer is discarded.
 _Avoid_: Table state (TanStack's term is wider and not persisted), Einstellungen (those are the widget's configuration), View settings
 
 **Spaltenfilter**:

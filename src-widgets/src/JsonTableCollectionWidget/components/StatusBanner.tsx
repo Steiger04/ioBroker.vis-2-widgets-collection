@@ -1,5 +1,5 @@
 /**
- * Status banner displaying global table feature settings.
+ * Status banner showing the table-wide Tabellen-Fähigkeiten.
  *
  * @module JsonTableCollectionWidget/components/StatusBanner
  * @remarks
@@ -20,15 +20,36 @@ interface StatusBannerProps {
     capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering' | 'hiding'>;
 }
 
+/** Props for the StatusChip component. */
+interface StatusChipProps {
+    /** The i18n key of the capability's name */
+    featureLabel: string;
+    /** Whether the capability is on */
+    on: boolean;
+}
+
+/** One capability's status: green checkmark when on, grey cross when off. */
+function StatusChip({ featureLabel, on }: StatusChipProps): React.JSX.Element {
+    return (
+        <Chip
+            size="small"
+            icon={on ? <CheckIcon /> : <CloseIcon />}
+            label={`${Generic.t(featureLabel)}: ${on ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
+            color={on ? 'success' : 'default'}
+            variant="outlined"
+            sx={{ fontSize: '0.7rem' }}
+        />
+    );
+}
+
 /**
  * Renders a compact status banner showing the table-wide capabilities.
  *
  * Displays sorting, filtering and hiding status with visual indicators:
  * - Green checkmark for enabled features
- * - Red cross for disabled features
+ * - Grey cross for disabled features
  */
 function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
-    const { sorting: globalSorting, columnFiltering: globalFiltering, hiding: globalHiding } = capabilities;
     return (
         <Box
             sx={{
@@ -47,29 +68,17 @@ function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
                 {Generic.t('json_table_global_status')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Chip
-                    size="small"
-                    icon={globalSorting ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_sorting')}: ${globalSorting ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={globalSorting ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_sorting"
+                    on={capabilities.sorting}
                 />
-                <Chip
-                    size="small"
-                    icon={globalFiltering ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_filtering')}: ${globalFiltering ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={globalFiltering ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_filtering"
+                    on={capabilities.columnFiltering}
                 />
-                <Chip
-                    size="small"
-                    icon={globalHiding ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_hiding')}: ${globalHiding ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={globalHiding ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_hiding"
+                    on={capabilities.hiding}
                 />
             </Box>
         </Box>

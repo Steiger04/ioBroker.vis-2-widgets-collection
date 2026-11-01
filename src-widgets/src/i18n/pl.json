@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Auto (według typu)",
     "json_table_option_off": "WYŁ",
     "json_table_option_on": "WŁ",
-    "json_table_override_tooltip": "To ustawienie nadpisuje globalną konfigurację widżetu",
     "json_table_padding": "Wypełnienie",
     "json_table_page_size": "Rozmiar strony",
     "json_table_page_size_options": "Opcje rozmiaru strony",
@@ -1312,5 +1311,7 @@
     "without_label": "Bez etykiety",
     "write_value": "Zapisz wartość",
     "json_table_table_off_tooltip": "{feature} jest wyłączone dla całej tabeli, więc to ustawienie kolumny nie ma żadnego efektu",
-    "json_table_hideable": "Możliwość ukrycia"
+    "json_table_hideable": "Możliwość ukrycia",
+    "json_table_detected_type_hint": "Wykryto: {type}",
+    "json_table_override_type_default_tooltip": "Ta kolumna nadpisuje domyślną wartość typu dla {feature} — nigdy więcej, niż pozwala tabela"
 }

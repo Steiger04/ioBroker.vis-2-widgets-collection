@@ -36,6 +36,14 @@ export type ViewPart = keyof TableView;
 /** What the browser keeps, per part as parsed from storage (`undefined` = nothing stored). */
 export type StoredView = Partial<Record<ViewPart, unknown>>;
 
+/** What the view needs to know of one Column to judge its stored Spaltenfilter. */
+export type ViewColumn = Readonly<{
+    /** The Column's Effektiver Typ: a stored filter whose operator it does not offer is discarded. */
+    type: EffectiveType;
+    /** Whether the Column is filterable (Tabellen-Fähigkeiten per Column): if not, its filter is parked. */
+    filterable: boolean;
+}>;
+
 /** The configuration the view is resolved against. */
 export type ViewConfig = Readonly<{
     /** The configured page size (`tablePageSize`). */
@@ -46,8 +54,8 @@ export type ViewConfig = Readonly<{
     columnWidths: Readonly<Record<string, number | undefined>>;
     /** Auto-size mode (`tableAutoSize`): widths are measured, not dragged. */
     autoSize: boolean;
-    /** The Effektiver Typ per Column id (missing = Column not known, e.g. before the data arrives). */
-    columnTypes: Readonly<Record<string, EffectiveType>>;
+    /** The Columns per id (missing = Column not known, e.g. before the data arrives). */
+    columns: Readonly<Record<string, ViewColumn>>;
 }>;
 
 /** The page sizes offered when `tablePageSizeOptions` is empty or unreadable. */
@@ -86,23 +94,40 @@ const readSorting = (stored: unknown): SortingState =>
  * Whether a stored Spaltenfilter still fits — the ONE admission rule for stored filters.
  *
  * @param entry One stored entry of the column filters.
- * @param columnTypes The Effektiver Typ per Column id.
+ * @param columns The Columns per id.
  * @returns `true` for `{id, value}` whose value is a valid filter for the Column
  *   (`filterFits`: the dialog's form `{operator, value}`, an operator the Column's
  *   Effektiver Typ offers); anything else is discarded on load.
  */
-function storedFilterFits(entry: unknown, columnTypes: ViewConfig['columnTypes']): entry is ColumnFiltersState[number] {
+function storedFilterFits(entry: unknown, columns: ViewConfig['columns']): entry is ColumnFiltersState[number] {
     if (!isRecord(entry) || typeof entry.id !== 'string') {
         return false;
     }
-    const type = Object.hasOwn(columnTypes, entry.id) ? columnTypes[entry.id] : undefined;
+    const type = Object.hasOwn(columns, entry.id) ? columns[entry.id].type : undefined;
     return filterFits(type, entry.value);
 }
 
-const readColumnFilters = (stored: unknown, config: ViewConfig): ColumnFiltersState =>
-    Array.isArray(stored)
-        ? stored.filter((entry): entry is ColumnFiltersState[number] => storedFilterFits(entry, config.columnTypes))
+/** Whether a fitting stored Spaltenfilter is parked: its Column is known but not filterable. */
+const isParkedFilter = (filter: ColumnFiltersState[number], columns: ViewConfig['columns']): boolean =>
+    Object.hasOwn(columns, filter.id) && !columns[filter.id].filterable;
+
+/**
+ * The stored Spaltenfilter that fit, split into the applied and the parked ones — the
+ * filter of a Column that is not filterable is parked, never applied (no UI shows or
+ * clears it) and never deleted (it returns with its Column's filterability).
+ */
+function readColumnFilters(
+    stored: unknown,
+    config: ViewConfig,
+): { applied: ColumnFiltersState; parked: ColumnFiltersState } {
+    const fitting = Array.isArray(stored)
+        ? stored.filter((entry): entry is ColumnFiltersState[number] => storedFilterFits(entry, config.columns))
         : [];
+    return {
+        applied: fitting.filter(filter => !isParkedFilter(filter, config.columns)),
+        parked: fitting.filter(filter => isParkedFilter(filter, config.columns)),
+    };
+}
 
 const readGlobalFilter = (stored: unknown): string => (typeof stored === 'string' ? stored : '');
 
@@ -239,7 +264,7 @@ export function resolveView(stored: StoredView, capabilities: TableCapabilities,
     const live = (part: ViewPart): unknown => (isParked(part, capabilities, config) ? undefined : stored[part]);
     return {
         sorting: readSorting(live('sorting')),
-        columnFilters: readColumnFilters(live('columnFilters'), config),
+        columnFilters: readColumnFilters(live('columnFilters'), config).applied,
         globalFilter: readGlobalFilter(live('globalFilter')),
         pagination: isParked('pagination', capabilities, config)
             ? ALL_ROWS
@@ -299,9 +324,17 @@ export function clampPage(pagination: PaginationState, rowCount: number | undefi
 
 // ── Snapshot ─────────────────────────────────────────────────────────────────
 
-/** The stored form of one part: choices carry the configured value they were made against. */
-function storedForm(part: ViewPart, view: TableView, config: ViewConfig): unknown {
+/**
+ * The stored form of one part: choices carry the configured value they were made against,
+ * the Spaltenfilter keep the parked ones.
+ */
+function storedForm(part: ViewPart, view: TableView, config: ViewConfig, stored: StoredView): unknown {
     switch (part) {
+        case 'columnFilters': {
+            const ids = new Set(view.columnFilters.map(filter => filter.id));
+            const { parked } = readColumnFilters(stored.columnFilters, config);
+            return [...view.columnFilters, ...parked.filter(filter => !ids.has(filter.id))];
+        }
         case 'pagination':
             return { ...view.pagination, pageSizeBaseline: config.pageSize } satisfies StoredPage;
         case 'columnSizing':
@@ -328,6 +361,8 @@ const sameContent = (a: unknown, b: unknown): boolean => JSON.stringify(a) === J
  * @param change The changed part(s), in TanStack's state shapes.
  * @param capabilities The Tabellen-Fähigkeiten.
  * @param config The configuration.
+ * @param stored The stored snapshot the view was resolved from: its parked Spaltenfilter
+ *   are written back unchanged.
  * @returns The parts to write, in their stored forms; a parked part is never written.
  * @remarks
  * A changed sorting, Spaltenfilter, quick-filter term or page size restarts on page 1 —
@@ -338,6 +373,7 @@ export function storeChange(
     change: Partial<TableView>,
     capabilities: TableCapabilities,
     config: ViewConfig,
+    stored: StoredView,
 ): StoredView {
     const next: TableView = { ...view, ...change };
     const restart =
@@ -352,7 +388,7 @@ export function storeChange(
     const written: StoredView = {};
     for (const part of VIEW_PARTS) {
         if (touched.has(part) && !isParked(part, capabilities, config)) {
-            written[part] = storedForm(part, next, config);
+            written[part] = storedForm(part, next, config, stored);
         }
     }
     return written;

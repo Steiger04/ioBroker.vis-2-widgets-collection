@@ -108,6 +108,10 @@ export function getDefaultOperator(type: EffectiveType): FilterOperator {
     return filterOperators(type) === STRING_OPERATORS ? 'contains' : 'equals';
 }
 
+/** A value a filter can hold: string, number or boolean. */
+const isPrimitive = (value: unknown): value is FilterConfig['value'] =>
+    typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
+
 /** Every operator any type offers. */
 const KNOWN_OPERATORS = new Set<unknown>(
     [STRING_OPERATORS, NUMBER_OPERATORS, DATE_OPERATORS, BOOLEAN_OPERATORS].flatMap(catalog =>
@@ -130,7 +134,7 @@ export function filterFits(type: EffectiveType | undefined, filter: unknown): fi
     }
     const { operator, value } = filter;
     return (
-        ['string', 'number', 'boolean'].includes(typeof value) &&
+        isPrimitive(value) &&
         (type === undefined ? KNOWN_OPERATORS.has(operator) : filterOperators(type).some(o => o.operator === operator))
     );
 }
@@ -201,7 +205,7 @@ export function coerceFilterValue(type: EffectiveType, input: unknown): FilterCo
             return ms === null ? undefined : localDay(ms).key;
         }
         default: {
-            const text = ['string', 'number', 'boolean'].includes(typeof input) ? String(input).trim() : '';
+            const text = isPrimitive(input) ? String(input).trim() : '';
             return text === '' ? undefined : text;
         }
     }

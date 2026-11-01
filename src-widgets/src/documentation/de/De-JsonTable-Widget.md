@@ -142,7 +142,7 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 
 ## Funktionen
 
-> **Persistenz:** Die aktuelle Tabellenansicht — Sortierung, aktive Filter, Suchbegriff, Seite und Zeilen pro Seite, Spaltenbreiten und Spaltensichtbarkeit — bleibt über Seiten-Reloads erhalten (pro Browser lokal gespeichert). Ein Teil, dessen Funktion ausgeschaltet ist, wird geparkt: weder angewendet noch gelöscht, er kehrt mit der Funktion zurück. Eine gewählte Seitengröße oder eine gezogene Spaltenbreite gilt, bis der konfigurierte Wert (`tablePageSize` bzw. die Spaltenbreite im Editor) geändert wird oder die Seitengröße nicht mehr angeboten wird. Die Seite bleibt bei Live-Updates der Daten erhalten und springt nur bei Änderung von Sortierung, Filtern, Suchbegriff oder Seitengröße auf Seite 1 zurück.
+> **Persistenz:** Die aktuelle Tabellenansicht — Sortierung, aktive Filter, Suchbegriff, Seite und Zeilen pro Seite, Spaltenbreiten und Spaltensichtbarkeit — bleibt über Seiten-Reloads erhalten (pro Browser lokal gespeichert). Ein Teil, dessen Funktion ausgeschaltet ist, wird geparkt: weder angewendet noch gelöscht, er kehrt mit der Funktion zurück. Ebenso der Filter einer Spalte, die nicht filterbar ist (Überschreibung oder Typ-Voreinstellung aus). Eine gewählte Seitengröße oder eine gezogene Spaltenbreite gilt, bis der konfigurierte Wert (`tablePageSize` bzw. die Spaltenbreite im Editor) geändert wird oder die Seitengröße nicht mehr angeboten wird. Die Seite bleibt bei Live-Updates der Daten erhalten und springt nur bei Änderung von Sortierung, Filtern, Suchbegriff oder Seitengröße auf Seite 1 zurück.
 
 > **Kopfzeile und Spaltenmenü:** Sortieren, Spaltenfilter, Ausblenden und das Spaltenmenü leben in der Kopfzeile. Ist die Kopfzeile ausgeblendet (`tableShowHeader`), sind sie alle aus; ist das Spaltenmenü aus, sind auch Spaltenfilter und Ausblenden aus (beide sind nur über das Menü erreichbar). Schnellfilter, Paginierung und Zeilenauswahl hängen nicht an der Kopfzeile.
 
@@ -153,7 +153,12 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 | tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | Kopfzeile sichtbar |
 | tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv |
 
-Eine Spalte sortiert nach ihrem **effektiven Typ**: Datumswerte chronologisch, Zahlen numerisch — auch als Text gespeicherte Zahlen, wenn der Formattyp der Spalte `number` ist (Werte, die keine Zahl sind, sortieren wie 0) — alles andere als Text.
+Eine Spalte sortiert nach ihrem **effektiven Typ**:
+
+- `date` chronologisch,
+- `number` numerisch — auch als Text gespeicherte Zahlen, wenn der Formattyp der Spalte `number` ist (Werte, die keine Zahl sind, sortieren wie 0),
+- `string` in natürlicher Textreihenfolge ohne Groß-/Kleinschreibung (`Raum 2` vor `Raum 10`) — auch Zahlenwerte, wenn der Formattyp der Spalte `string` ist,
+- jeder andere Typ in der Standard-Reihenfolge.
 
 ### Filterung
 
