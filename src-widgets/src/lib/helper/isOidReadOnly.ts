@@ -4,6 +4,9 @@
  * @module lib/helper/isOidReadOnly
  * @remarks
  * Centralises the writability guard so every interactive widget disables its control the same way.
+ * The internal pure rule behind the Sperre (CONTEXT): widgets read it as `locked` from the OID
+ * binding ({@link module:hooks/useValueState}); the Select applies it to its Schreibziel
+ * ({@link module:lib/writeTarget}). Widgets never call it themselves.
  *
  * Semantics (decided against the ioBroker state-roles convention — switches/values are writable,
  * only sensors/indicators set `write:false` explicitly):
@@ -29,12 +32,11 @@ interface ReadOnlyData {
 }
 
 /**
- * @param data - Widget data slice with `onlyDisplay` / `write` (usually `widget.data`).
+ * @param data - Slice with the widget's `onlyDisplay` and the BOUND object's `write`.
  * @returns `true` when the control must be disabled (no user writes).
  * @example
  * ```ts
- * const isReadOnly = isOidReadOnly(widget.data);
- * <Radio disabled={isReadOnly} />
+ * const locked = isOidReadOnly({ onlyDisplay: widget.data.onlyDisplay, write: oidObject?.write });
  * ```
  */
 export function isOidReadOnly(data: ReadOnlyData | undefined | null): boolean {

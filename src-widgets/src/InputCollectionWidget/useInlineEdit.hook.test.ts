@@ -108,6 +108,19 @@ describe('useInlineEdit hook', () => {
         unmount();
     });
 
+    it.each([
+        ['a writable bound object', false, {}],
+        ['onlyDisplay', true, { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object', true, { oidObject: { _id: OID, type: 'string', write: false } }],
+    ])('passes the Sperre of the binding through: locked for %s is %s', (_case, locked, data) => {
+        const box = makeBox({ ...stringOid(), ...data }, { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+        const { captured, unmount } = mount(box, { showOkButton: false });
+
+        expect(captured.current?.locked).toBe(locked);
+        unmount();
+    });
+
     it('enterEdit only starts the session when editable', () => {
         const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
         const { captured, unmount } = mount(box, { showOkButton: false });

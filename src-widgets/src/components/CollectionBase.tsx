@@ -33,7 +33,11 @@ interface CollectionBaseProps {
     data: StyleData;
     /** Current OID value (used for footer fallback). */
     oidValue?: ioBroker.StateValue;
-    /** Whether the currently selected OID type is valid for the widget. */
+    /**
+     * Whether the currently selected OID type is valid for the widget. When `false` the frame
+     * renders the invalid-type notice and NO children — bodies therefore need no type guard of
+     * their own (neither around their content nor in a control's `disabled`).
+     */
     isValidType?: boolean;
     /** Whether active background styling should be applied. */
     bgActive?: boolean;

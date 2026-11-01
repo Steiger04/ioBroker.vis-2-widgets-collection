@@ -68,6 +68,8 @@ export interface UseInlineEditReturn {
     value: UseValueStateReturn['value'];
     /** Significant foreign backend change (see ADR-0087). */
     hasBackendChange: boolean;
+    /** Sperre of the OID binding (CONTEXT "Sperre"): the widget must not enter edit mode. */
+    locked: UseValueStateReturn['locked'];
     /** Whether the edit session is active. */
     editing: boolean;
     /** Current local draft (the TextField value while editing). */
@@ -104,7 +106,7 @@ const toRawString = (value: UseValueStateReturn['value']): string =>
  *    blur/Enter/OK ({@link blurAction}).
  */
 const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInlineEditReturn => {
-    const { value: oidValue, updateValue, hasBackendChange } = useValueState(idName);
+    const { value: oidValue, updateValue, hasBackendChange, locked } = useValueState(idName);
 
     const rawValue = toRawString(oidValue);
 
@@ -168,6 +170,7 @@ const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInline
     return {
         value: oidValue,
         hasBackendChange,
+        locked,
         editing,
         draft,
         enterEdit,

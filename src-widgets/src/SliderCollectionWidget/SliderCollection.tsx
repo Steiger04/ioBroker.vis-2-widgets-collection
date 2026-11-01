@@ -18,7 +18,6 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
 import type { SliderCollectionContextProps } from '../types';
 import { type Mark } from '@mui/material/Slider/useSlider.types';
@@ -118,7 +117,12 @@ const SliderCollection: FC = () => {
     // One optimistic truth for the controlled slider: local copy + debounced
     // backend write behind one interface (init/echo/non-numeric documented on
     // the hook).
-    const { backendValue: oidValue, value: sliderValue, setValue: commitSliderValue } = useOptimisticNumber('oid');
+    const {
+        backendValue: oidValue,
+        value: sliderValue,
+        setValue: commitSliderValue,
+        locked,
+    } = useOptimisticNumber('oid');
 
     const isHorizontal = widget.data.sliderOrientation === 'horizontal';
 
@@ -212,178 +216,174 @@ const SliderCollection: FC = () => {
                 data={data}
                 widget={widget}
             />
-            {isValidType ? (
-                <Box
-                    sx={{
-                        gap: Number(widget.data.sliderGap) || 0,
-                        display: 'flex',
-                        flexDirection: isHorizontal ? 'row' : 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+            <Box
+                sx={{
+                    gap: Number(widget.data.sliderGap) || 0,
+                    display: 'flex',
+                    flexDirection: isHorizontal ? 'row' : 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
 
-                        width: '100%',
-                        height: '100%',
-                    }}
-                >
-                    {/* Start icon - in normal layout flow */}
-                    {startIcon && (
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                flexShrink: 0,
-                                transform: isHorizontal
-                                    ? `translateY(${trackOffset.y}px)`
-                                    : `translateX(${trackOffset.x}px)`,
-                            }}
-                        >
-                            <SafeImg
-                                alt=""
-                                src={startIcon}
-                                style={{
-                                    width: isHorizontal
-                                        ? widget.data.iconSizeStart || '24px'
-                                        : widget.data.iconSizeEnd || '24px',
-                                    ...getIconColorStyles(startIcon, startIconColor, true),
-                                }}
-                            />
-                        </Box>
-                    )}
-
-                    {/* Slider container - takes available space */}
+                    width: '100%',
+                    height: '100%',
+                }}
+            >
+                {/* Start icon - in normal layout flow */}
+                {startIcon && (
                     <Box
                         sx={{
                             display: 'flex',
-                            flex: 1,
                             justifyContent: 'center',
                             alignItems: 'center',
-                            minWidth: isHorizontal ? '200px' : 'auto',
-                            minHeight: isHorizontal ? 'auto' : '200px',
+                            flexShrink: 0,
+                            transform: isHorizontal
+                                ? `translateY(${trackOffset.y}px)`
+                                : `translateX(${trackOffset.x}px)`,
                         }}
                     >
-                        {typeof sliderValue === 'number' && (
-                            <CollectionSlider
-                                data={widget.data}
-                                chrome={chrome}
-                                slots={{
-                                    markLabel: CollectionMark,
-                                }}
-                                slotProps={{
-                                    markLabel: {
-                                        marks: widget.data.marks,
-                                        sliderOrientation: widget.data.sliderOrientation,
-                                        aliasActive: widget.data.aliasActive,
-                                        activeMarkIndex: sliderMarksIndex,
-                                    } as SliderMarkLabelProps,
-                                }}
-                                disabled={oidType !== 'number' || isOidReadOnly(widget.data)}
-                                valueLabelDisplay={widget.data.valueLabelDisplay}
-                                orientation={widget.data.sliderOrientation}
-                                min={sliderMinValue ?? undefined}
-                                max={sliderMaxValue ?? undefined}
-                                marks={sliderMarks as Mark[]}
-                                step={
-                                    widget.data.onlyStates
-                                        ? null // For onlyStates: null means only mark values can be selected
-                                        : widget.data.step !== undefined
-                                          ? Number(widget.data.step)
-                                          : undefined
+                        <SafeImg
+                            alt=""
+                            src={startIcon}
+                            style={{
+                                width: isHorizontal
+                                    ? widget.data.iconSizeStart || '24px'
+                                    : widget.data.iconSizeEnd || '24px',
+                                ...getIconColorStyles(startIcon, startIconColor, true),
+                            }}
+                        />
+                    </Box>
+                )}
+
+                {/* Slider container - takes available space */}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        minWidth: isHorizontal ? '200px' : 'auto',
+                        minHeight: isHorizontal ? 'auto' : '200px',
+                    }}
+                >
+                    {typeof sliderValue === 'number' && (
+                        <CollectionSlider
+                            data={widget.data}
+                            chrome={chrome}
+                            slots={{
+                                markLabel: CollectionMark,
+                            }}
+                            slotProps={{
+                                markLabel: {
+                                    marks: widget.data.marks,
+                                    sliderOrientation: widget.data.sliderOrientation,
+                                    aliasActive: widget.data.aliasActive,
+                                    activeMarkIndex: sliderMarksIndex,
+                                } as SliderMarkLabelProps,
+                            }}
+                            disabled={locked}
+                            valueLabelDisplay={widget.data.valueLabelDisplay}
+                            orientation={widget.data.sliderOrientation}
+                            min={sliderMinValue ?? undefined}
+                            max={sliderMaxValue ?? undefined}
+                            marks={sliderMarks as Mark[]}
+                            step={
+                                widget.data.onlyStates
+                                    ? null // For onlyStates: null means only mark values can be selected
+                                    : widget.data.step !== undefined
+                                      ? Number(widget.data.step)
+                                      : undefined
+                            }
+                            size={widget.data.sliderSize}
+                            value={sliderValue}
+                            onChange={(_, newValue: number | number[]) => {
+                                if (typeof newValue === 'number') {
+                                    commitSliderValue(newValue);
                                 }
-                                size={widget.data.sliderSize}
-                                value={sliderValue}
-                                onChange={(_, newValue: number | number[]) => {
-                                    if (typeof newValue === 'number') {
-                                        commitSliderValue(newValue);
-                                    }
-                                }}
-                                sx={{
-                                    mb: widget.data.marks && isHorizontal ? `${MARK_LABEL_SPACE.horizontal}px` : '0px',
-                                    mr: widget.data.marks && !isHorizontal ? `${MARK_LABEL_SPACE.vertical}px` : '0px',
-                                    '& .MuiSlider-valueLabel': {
-                                        fontSize:
-                                            formatSizeRem(widget.data.valueSizeActive) ||
-                                            data.valueSizeActive ||
-                                            data.valueSize,
-                                        color:
-                                            widget.data.textColorActive ||
-                                            data.textColorActive ||
-                                            // activeFieldNumber is 1-based, so truthiness is safe
-                                            // here — never rebase it to 0-based.
-                                            (activeFieldNumber && widget.data.markerTextColor) ||
-                                            data.textColor ||
-                                            theme.palette.text.primary,
-                                        bgcolor: 'transparent',
-                                        top: isHorizontal ? widget.data.labelPosition : undefined,
-                                        right: !isHorizontal ? widget.data.labelPosition : undefined,
-                                    },
-                                    '& .MuiSlider-markLabel': {
-                                        fontSize: data.valueSize,
-                                        color: markLabelFallbackColor,
-                                        top: isHorizontal ? widget.data.markPosition : undefined,
-                                        left: !isHorizontal ? widget.data.markPosition : undefined,
-                                    },
-                                    '& .MuiSlider-markLabelActive': {
-                                        [`&[data-index='${sliderMarksIndex}']`]: {
-                                            "& div[data-font='active']": {
-                                                color: widget.data.textColorActive
-                                                    ? `${widget.data.textColorActive} !important`
+                            }}
+                            sx={{
+                                mb: widget.data.marks && isHorizontal ? `${MARK_LABEL_SPACE.horizontal}px` : '0px',
+                                mr: widget.data.marks && !isHorizontal ? `${MARK_LABEL_SPACE.vertical}px` : '0px',
+                                '& .MuiSlider-valueLabel': {
+                                    fontSize:
+                                        formatSizeRem(widget.data.valueSizeActive) ||
+                                        data.valueSizeActive ||
+                                        data.valueSize,
+                                    color:
+                                        widget.data.textColorActive ||
+                                        data.textColorActive ||
+                                        // activeFieldNumber is 1-based, so truthiness is safe
+                                        // here — never rebase it to 0-based.
+                                        (activeFieldNumber && widget.data.markerTextColor) ||
+                                        data.textColor ||
+                                        theme.palette.text.primary,
+                                    bgcolor: 'transparent',
+                                    top: isHorizontal ? widget.data.labelPosition : undefined,
+                                    right: !isHorizontal ? widget.data.labelPosition : undefined,
+                                },
+                                '& .MuiSlider-markLabel': {
+                                    fontSize: data.valueSize,
+                                    color: markLabelFallbackColor,
+                                    top: isHorizontal ? widget.data.markPosition : undefined,
+                                    left: !isHorizontal ? widget.data.markPosition : undefined,
+                                },
+                                '& .MuiSlider-markLabelActive': {
+                                    [`&[data-index='${sliderMarksIndex}']`]: {
+                                        "& div[data-font='active']": {
+                                            color: widget.data.textColorActive
+                                                ? `${widget.data.textColorActive} !important`
+                                                : undefined,
+                                            fontSize:
+                                                typeof widget.data.valueSizeActive === 'number'
+                                                    ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
                                                     : undefined,
-                                                fontSize:
-                                                    typeof widget.data.valueSizeActive === 'number'
-                                                        ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
-                                                        : undefined,
-                                            },
-                                            "& div[data-position='active']": {
-                                                left:
-                                                    widget.data.iconXOffsetActive &&
-                                                    widget.data.iconXOffsetActive !== '0px'
-                                                        ? `${widget.data.iconXOffsetActive} !important`
-                                                        : widget.data.iconXOffsetActive === ''
-                                                          ? undefined
-                                                          : '0px !important',
-                                                bottom:
-                                                    widget.data.iconYOffsetActive &&
-                                                    widget.data.iconYOffsetActive !== '0px'
-                                                        ? `${widget.data.iconYOffsetActive} !important`
-                                                        : widget.data.iconYOffsetActive === ''
-                                                          ? undefined
-                                                          : '0px !important',
-                                            },
+                                        },
+                                        "& div[data-position='active']": {
+                                            left:
+                                                widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
+                                                    ? `${widget.data.iconXOffsetActive} !important`
+                                                    : widget.data.iconXOffsetActive === ''
+                                                      ? undefined
+                                                      : '0px !important',
+                                            bottom:
+                                                widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
+                                                    ? `${widget.data.iconYOffsetActive} !important`
+                                                    : widget.data.iconYOffsetActive === ''
+                                                      ? undefined
+                                                      : '0px !important',
                                         },
                                     },
-                                }}
-                            />
-                        )}
-                    </Box>
-
-                    {/* End icon - in normal layout flow */}
-                    {endIcon && (
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                flexShrink: 0,
-                                transform: isHorizontal
-                                    ? `translateY(${trackOffset.y}px)`
-                                    : `translateX(${trackOffset.x}px)`,
+                                },
                             }}
-                        >
-                            <SafeImg
-                                alt=""
-                                src={endIcon}
-                                style={{
-                                    width: isHorizontal
-                                        ? widget.data.iconSizeEnd || '24px'
-                                        : widget.data.iconSizeStart || '24px',
-                                    ...getIconColorStyles(endIcon, endIconColor, true),
-                                }}
-                            />
-                        </Box>
+                        />
                     )}
                 </Box>
-            ) : null}
+
+                {/* End icon - in normal layout flow */}
+                {endIcon && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexShrink: 0,
+                            transform: isHorizontal
+                                ? `translateY(${trackOffset.y}px)`
+                                : `translateX(${trackOffset.x}px)`,
+                        }}
+                    >
+                        <SafeImg
+                            alt=""
+                            src={endIcon}
+                            style={{
+                                width: isHorizontal
+                                    ? widget.data.iconSizeEnd || '24px'
+                                    : widget.data.iconSizeStart || '24px',
+                                ...getIconColorStyles(endIcon, endIconColor, true),
+                            }}
+                        />
+                    </Box>
+                )}
+            </Box>
         </CollectionBase>
     );
 };
