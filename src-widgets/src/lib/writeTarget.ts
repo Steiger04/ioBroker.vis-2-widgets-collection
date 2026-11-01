@@ -48,19 +48,10 @@ export interface WriteTargetData {
 
 /**
  * Data property name of the control ID (Steuer ID): the Select's command target, whose
- * metadata lives in `cidObject` (ADR-0090).
+ * metadata lives in `cidObject` (ADR-0090). Which id field plays which role is decided
+ * by {@link module:lib/oidRole}.
  */
 export const CONTROL_ID_FIELD = 'cid';
-
-/**
- * Whether an id field's data property is the control ID ({@link CONTROL_ID_FIELD}).
- *
- * @param name - Data property of an id field (`oid`, `cid`, Dialog's `dialogId` …).
- * @returns `true` for the control ID only.
- */
-export function isControlIdField(name: string): boolean {
-    return name === CONTROL_ID_FIELD;
-}
 
 /** Data property name of the OID a selection writes. */
 export type WriteTargetIdName = 'oid' | typeof CONTROL_ID_FIELD;
