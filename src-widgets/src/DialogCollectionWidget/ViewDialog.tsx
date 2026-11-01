@@ -6,9 +6,9 @@
 
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import React from 'react';
 import CollectionBase from '../components/CollectionBase';
+import { alphaOf } from '../lib/helper/colorDerivation';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import type { StyleData } from '../hooks/useData/types';
@@ -132,12 +132,14 @@ export default function ViewDialog({
                     </>
                     <Box
                         sx={{
+                            // Tinted from the frame background; a value without a
+                            // Repräsentative Vollfarbe leaves the scrollbar untinted.
                             '::-webkit-scrollbar-track': {
-                                background: data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.5),
+                                background: alphaOf(data.frameBackgroundColor, 0.5),
                             },
                             '::-webkit-scrollbar-thumb': {
                                 opacity: '0.5',
-                                background: data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.7),
+                                background: alphaOf(data.frameBackgroundColor, 0.7),
                             },
                             position: 'relative',
                             overflow: 'auto',

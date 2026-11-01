@@ -48,6 +48,18 @@ describe('buildGroupChrome — text variant (default)', () => {
         expect(middle(sx).boxShadow).toBe('inset 1px 0 0 0 rgba(51, 153, 204, 0.6)');
     });
 
+    it("takes a gradient group colour's midpoint for the separator instead of throwing", () => {
+        const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+
+        expect(() => groupSx({ buttonGroupColor: gradient })).not.toThrow();
+        expect(middle(groupSx({ buttonGroupColor: gradient })).boxShadow).toBe(
+            'inset 1px 0 0 0 rgba(128, 0, 128, 0.6)',
+        );
+        expect(first(groupSx({ variant: 'outlined', buttonGroupColor: gradient })).borderColor).toBe(
+            'rgba(128, 0, 128, 0.6)',
+        );
+    });
+
     it('treats an undefined variant like text (frozen default)', () => {
         expect(groupSx({ variant: undefined })).toEqual(groupSx({ variant: 'text' }));
     });
@@ -142,6 +154,18 @@ describe('buildButtonChrome', () => {
 
         const active = buttonRoot(buildButtonChrome({ background: gradient, isActive: true }));
         expect(active.filter).toBe('opacity(80%)');
+    });
+
+    it('gives a background no tint calculation can read no hover/selected tint instead of throwing', () => {
+        // 'RGB(…)' is a valid stored colour (case-insensitive) that MUI's lighten() rejects.
+        for (const background of ['red', 'var(--x)', 'RGB(51, 153, 204)']) {
+            expect(() => buildButtonChrome({ background, isActive: false })).not.toThrow();
+
+            const root = buttonRoot(buildButtonChrome({ background, isActive: false }));
+            expect(root.background).toBe(background);
+            expect(root['&:hover'].background).toBeUndefined();
+            expect(root['&.Mui-selected'].background).toBeUndefined();
+        }
     });
 
     it('yields no backgrounds at all without a configured colour', () => {
