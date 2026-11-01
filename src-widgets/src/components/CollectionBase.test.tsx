@@ -7,7 +7,7 @@
  * header out of the frame exactly like the widget's own `noHeader` — the same collapsed header
  * box, its text slot left empty.
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createElement, type FC } from 'react';
 
 import CollectionBase from './CollectionBase';
@@ -15,7 +15,7 @@ import useData from '../hooks/useData/useData';
 import {
     collectionScene,
     installInertResizeObserver,
-    mountCollectionBody,
+    testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 
@@ -23,7 +23,7 @@ installInertResizeObserver();
 
 const OID = 'demo.0.frame';
 
-const mounted: MountedCollectionBody[] = [];
+const mountBody = testScopedMount();
 
 /** Mounts the frame around the scene's widget, the host passing `hideHeader`. */
 const mountFrame = (data: Record<string, unknown>, hideHeader?: boolean): MountedCollectionBody => {
@@ -31,7 +31,7 @@ const mountFrame = (data: Record<string, unknown>, hideHeader?: boolean): Mounte
         const { data: styleData } = useData('oid');
         return createElement(CollectionBase, { data: styleData, hideHeader });
     };
-    const body = mountCollectionBody(
+    return mountBody(
         Frame,
         collectionScene(
             'collection-base-test',
@@ -39,13 +39,7 @@ const mountFrame = (data: Record<string, unknown>, hideHeader?: boolean): Mounte
             0,
         ),
     );
-    mounted.push(body);
-    return body;
 };
-
-afterEach(() => {
-    mounted.splice(0).forEach(body => body.unmount());
-});
 
 /** The frame header's box: the slot above the frame's content box. */
 const headerBox = ({ container }: MountedCollectionBody): Element | null => container.querySelector('.BASE-HEADER');

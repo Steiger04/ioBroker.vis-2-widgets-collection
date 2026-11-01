@@ -9,7 +9,7 @@
  * `getWidgetView`, stubbed as a marker carrying the view name. The Modal portals into
  * `document.body`, so every query runs there.
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createElement, useContext, type FC } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';
@@ -17,19 +17,14 @@ import useData from '../hooks/useData/useData';
 import {
     collectionScene,
     installInertResizeObserver,
-    mountCollectionBody,
+    testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import ViewDialog from './ViewDialog';
+import { DIALOG_OID, getWidgetView, sessionOidData } from './dialogTestFixture';
 import type { DialogCollectionContextProps } from '../types';
 
 installInertResizeObserver();
-
-const DIALOG_OID = 'demo.0.dialog';
-
-/** vis-2's view renderer, stubbed: the embedded view is a marker naming the view. */
-const getWidgetView = (view: string): React.ReactElement =>
-    createElement('div', { 'data-testid': 'dialog-view', 'data-view': view });
 
 /** The open dialog, wired the way DialogCollection wires it. */
 const OpenViewDialog: FC = () => {
@@ -44,16 +39,15 @@ const OpenViewDialog: FC = () => {
     });
 };
 
-const mounted: MountedCollectionBody[] = [];
+const mountBody = testScopedMount();
 
-const mountDialog = (data: Record<string, unknown>): MountedCollectionBody => {
-    const body = mountCollectionBody(
+const mountDialog = (data: Record<string, unknown>): MountedCollectionBody =>
+    mountBody(
         OpenViewDialog,
         collectionScene(
             'view-dialog-test',
             {
-                dialogId: DIALOG_OID,
-                dialogIdObject: { _id: DIALOG_OID, type: 'boolean', write: true },
+                ...sessionOidData(),
                 view: 'detail',
                 header: 'Küche',
                 dialogCloseButtonTop: true,
@@ -65,13 +59,6 @@ const mountDialog = (data: Record<string, unknown>): MountedCollectionBody => {
         ),
         { getWidgetView },
     );
-    mounted.push(body);
-    return body;
-};
-
-afterEach(() => {
-    mounted.splice(0).forEach(body => body.unmount());
-});
 
 /** The dialog's frame (CollectionBase's outer paper) inside the portalled Modal. */
 const dialogFrame = (): Element | null => document.querySelector('.MuiModal-root .BASE-PAPER-0');

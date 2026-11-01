@@ -10,27 +10,25 @@
  * dialogSession.test.ts as pure data.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, createElement } from 'react';
+import { act } from 'react';
 
 import {
     collectionScene,
     installInertResizeObserver,
-    mountCollectionBody,
+    testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import DialogCollection from './DialogCollection';
+import { DIALOG_OID, getWidgetView, sessionOidData } from './dialogTestFixture';
 import type { PreviewScene } from '../preview/types';
 
 installInertResizeObserver();
-
-const DIALOG_OID = 'demo.0.dialog';
 
 const scene = (status: unknown, data: Record<string, unknown> = {}): PreviewScene =>
     collectionScene(
         'dialog-collection-test',
         {
-            dialogId: DIALOG_OID,
-            dialogIdObject: { _id: DIALOG_OID, type: 'boolean', write: true },
+            ...sessionOidData(),
             view: 'detail',
             dialogCloseButtonTop: true,
             noHeader: true,
@@ -42,27 +40,19 @@ const scene = (status: unknown, data: Record<string, unknown> = {}): PreviewScen
         DIALOG_OID,
     );
 
-/** vis-2's view renderer, stubbed: the embedded view is a marker element. */
-const getWidgetView = (): React.ReactElement => createElement('div', { 'data-testid': 'dialog-view' });
-
-const mounted: MountedCollectionBody[] = [];
+const mountBody = testScopedMount();
 
 /**
  * Mounts the body with an echoing backend: every write lands in the scene's state, so the next
  * render observes it — the echo that made the old wiring write `false` twice.
  */
 const mountDialog = (currentScene: PreviewScene): MountedCollectionBody => {
-    const body = mountCollectionBody(DialogCollection, currentScene, { getWidgetView });
+    const body = mountBody(DialogCollection, currentScene, { getWidgetView });
     body.setValue.mockImplementation((id: string, value: unknown) => {
         currentScene.context.values[`${id}.val`] = value;
     });
-    mounted.push(body);
     return body;
 };
-
-afterEach(() => {
-    mounted.splice(0).forEach(body => body.unmount());
-});
 
 afterEach(() => {
     vi.useRealTimers();
@@ -151,7 +141,7 @@ describe('DialogCollection wiring', () => {
     });
 
     it('a read-only Sitzungs-OID (write === false) is never written, the dialog still works', () => {
-        const body = mountDialog(scene(false, { dialogIdObject: { _id: DIALOG_OID, type: 'boolean', write: false } }));
+        const body = mountDialog(scene(false, sessionOidData(false)));
 
         clickDialogButton(body);
         expect(dialogView()).not.toBeNull();

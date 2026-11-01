@@ -11,7 +11,7 @@
  * so importing this module sets IS_REACT_ACT_ENVIRONMENT.
  */
 import { createElement, type FC } from 'react';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 import CollectionProvider from '../../components/CollectionProvider';
 import { buildPreviewContext } from '../../preview/mockContext';
@@ -101,4 +101,23 @@ export function mountCollectionBody(
 
     const { container, unmount } = renderComponent(CollectionHost, { context, body });
     return { container, setState, setValue, unmount };
+}
+
+/**
+ * A {@link mountCollectionBody} whose bodies are unmounted after each test — the `mounted[]` +
+ * `afterEach(unmount)` pattern in one call. Optional: call it once at module level, it registers
+ * the `afterEach` hook.
+ *
+ * @returns The mount function, called like {@link mountCollectionBody}.
+ */
+export function testScopedMount(): typeof mountCollectionBody {
+    const mounted: MountedCollectionBody[] = [];
+    afterEach(() => {
+        mounted.splice(0).forEach(body => body.unmount());
+    });
+    return (body, scene, extraContext) => {
+        const handle = mountCollectionBody(body, scene, extraContext);
+        mounted.push(handle);
+        return handle;
+    };
 }

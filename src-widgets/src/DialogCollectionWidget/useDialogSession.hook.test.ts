@@ -12,13 +12,12 @@ import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderHook } from '../lib/testing/testHarness';
+import { DIALOG_OID, sessionOidData } from './dialogTestFixture';
 import useDialogSession, { type DialogSessionInputs } from './useDialogSession';
-
-const DIALOG_OID = 'demo.0.dialog';
 
 const inputs = (autoClose: unknown, setValue: DialogSessionInputs['setValue']): DialogSessionInputs => ({
     oidValue: false,
-    dialogIdObject: { _id: DIALOG_OID, write: true },
+    dialogIdObject: sessionOidData().dialogIdObject,
     autoClose,
     setValue,
 });
