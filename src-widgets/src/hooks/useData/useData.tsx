@@ -1,19 +1,32 @@
 import { useCallback, useContext, useMemo } from 'react';
 import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
-import { getDynamicProperty, isSliderFieldsRxData } from '../../types/utility-types';
+import { getDynamicProperty } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import effectiveStateCount from '../../lib/effectiveStateCount';
-import { createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
 import { sameStateValue } from './stateValueEquality';
 
 import type { OidObject } from '../../types/utility-types';
-import type { UseDataResult, SliderProperties, StyleData, StateStyleData } from './types';
-import type { SliderFieldsRxData } from '../../types/field-definitions';
+import type { UseDataResult, MarkerLayer, StyleData, StateStyleData } from './types';
 
-function useData(_oid: string): UseDataResult {
+/** Options of {@link useData}. */
+export interface UseDataOptions {
+    /**
+     * The widget's marker layer (see {@link MarkerLayer}); omitted, the chains
+     * resolve without that tier. Read by content, so the reference need not be stable.
+     */
+    markerLayer?: MarkerLayer;
+}
+
+/**
+ * Resolves the widget's states and style data from the CollectionContext.
+ *
+ * @param _oid - OID property name from rxData (e.g. "oid", "oid1")
+ * @param options - Optional caller-supplied tiers, see {@link UseDataOptions}
+ */
+function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     const {
         theme,
         widget,
@@ -42,12 +55,13 @@ function useData(_oid: string): UseDataResult {
         [rxData],
     );
 
-    const widgetResolver: SliderProperties | Record<string, never> = useMemo(() => {
-        if (isSliderFieldsRxData(rxData)) {
-            return createSliderResolver(rxData as SliderFieldsRxData);
-        }
-        return createDefaultResolver(rxData);
-    }, [rxData]);
+    // Keyed by content, not by reference: vis-2 hands out new, content-equal refs
+    // on editor moves, so a caller's unmemoised literal must not rebuild the resolvers.
+    const { iconSize, iconColor, textColor, textSize } = options?.markerLayer ?? {};
+    const markerLayer: MarkerLayer = useMemo(
+        () => ({ iconSize, iconColor, textColor, textSize }),
+        [iconSize, iconColor, textColor, textSize],
+    );
 
     const propertyResolvers = useMemo(
         () =>
@@ -61,7 +75,7 @@ function useData(_oid: string): UseDataResult {
                 backgroundStyles,
                 formatSize,
                 getDataValue,
-                widgetResolver,
+                markerLayer,
             }),
         [
             rxData,
@@ -73,7 +87,7 @@ function useData(_oid: string): UseDataResult {
             backgroundStyles,
             formatSize,
             getDataValue,
-            widgetResolver,
+            markerLayer,
         ],
     );
 

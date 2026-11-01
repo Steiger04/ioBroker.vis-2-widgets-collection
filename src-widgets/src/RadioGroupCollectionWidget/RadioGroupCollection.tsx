@@ -17,7 +17,6 @@ import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { RadioGroupCollectionContextProps } from '../types';
 import type { StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
@@ -97,7 +96,7 @@ function RadioGroupCollection(): React.ReactElement {
     } = context as RadioGroupCollectionContextProps;
     const { data, states } = useData('oid');
 
-    const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
+    const { value: oidValue, updateValue: updateOidValue, locked } = useValueState('oid');
 
     const oidType = oidObject?.type;
     const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
@@ -189,7 +188,7 @@ function RadioGroupCollection(): React.ReactElement {
                             }}
                             control={
                                 <Radio
-                                    disabled={isOidReadOnly(widget.data)}
+                                    disabled={locked}
                                     checkedIcon={renderCheckedIcon(state)}
                                     icon={
                                         <RadioButtonUncheckedIcon

@@ -47,13 +47,16 @@ export interface UseOptimisticNumberReturn {
     value: number | undefined;
     /** Sets the local value AND schedules the debounced backend write. */
     setValue: (value: number) => void;
+    /** Sperre of the OID binding (CONTEXT "Sperre"): the slider must be disabled. */
+    locked: boolean;
 }
 
 /**
  * Binds a slider-style control optimistically to an ioBroker number state.
  *
  * @param idName - Name of the OID property (e.g. `"oid"`).
- * @returns The backend value, the controlled slider value and the combined setter.
+ * @returns The backend value, the controlled slider value, the combined setter and the
+ * binding's Sperre (`locked`).
  * @remarks
  * The sync cases, in the order their effects run:
  * 1. **Init** — while no local value exists, backend numbers are adopted
@@ -66,7 +69,7 @@ export interface UseOptimisticNumberReturn {
  *    matching the render gate `typeof value === 'number'` in the component.
  */
 const useOptimisticNumber = (idName: string): UseOptimisticNumberReturn => {
-    const { value: oidValue, updateValue, hasBackendChange } = useValueState(idName);
+    const { value: oidValue, updateValue, hasBackendChange, locked } = useValueState(idName);
 
     const [localValue, setLocalValue] = useState<number | undefined>(initLocalValue(undefined, oidValue));
 
@@ -93,7 +96,7 @@ const useOptimisticNumber = (idName: string): UseOptimisticNumberReturn => {
         [updateValue],
     );
 
-    return { backendValue: oidValue, value: localValue, setValue };
+    return { backendValue: oidValue, value: localValue, setValue, locked };
 };
 
 export default useOptimisticNumber;

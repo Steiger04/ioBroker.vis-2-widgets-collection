@@ -14,7 +14,6 @@ import useData from '../hooks/useData/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import SafeImg from '../components/SafeImg';
 
 import type { CheckboxCollectionContextProps } from '../types';
@@ -52,7 +51,7 @@ function CheckboxCollection(): React.JSX.Element {
     const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
 
     const oidType = oidObject?.type;
     const isValidType = oidType === 'boolean';
@@ -114,7 +113,7 @@ function CheckboxCollection(): React.JSX.Element {
                         }}
                         control={
                             <Checkbox
-                                disabled={isOidReadOnly(widget.data)}
+                                disabled={locked}
                                 disableRipple
                                 checked={Boolean(oidValue)}
                                 onChange={() => setOidValueState(!oidValue)}

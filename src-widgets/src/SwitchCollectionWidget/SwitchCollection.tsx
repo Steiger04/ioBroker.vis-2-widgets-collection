@@ -13,7 +13,6 @@ import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
@@ -36,7 +35,7 @@ function SwitchCollection(): React.JSX.Element {
     const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
-    const { value: oidValue, updateValue } = useValueState('oid');
+    const { value: oidValue, updateValue, locked } = useValueState('oid');
 
     const oidType = oidObject?.type;
 
@@ -89,7 +88,7 @@ function SwitchCollection(): React.JSX.Element {
                 >
                     {oidValue !== undefined && widget.data.thumbSize !== undefined && (
                         <MaterialUISwitch
-                            disabled={!isValidType || isOidReadOnly(widget.data)}
+                            disabled={locked}
                             width={rowWidth}
                             maxHeight={contentHeight}
                             data={data}

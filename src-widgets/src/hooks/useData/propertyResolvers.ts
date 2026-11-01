@@ -11,7 +11,7 @@
 import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
-import type { PropertyResolvers, SliderProperties } from './types';
+import type { MarkerLayer, PropertyResolvers } from './types';
 import { resolvePriority } from './priorityResolver';
 import { terminalColor } from '../../lib/helper/resolveEffectiveColor';
 
@@ -25,7 +25,8 @@ interface CreatePropertyResolversParams {
     backgroundStyles: WidgetStyleState | undefined;
     formatSize: (size: number | string | undefined) => string | undefined;
     getDataValue: <T>(key: string, ext: string) => T | undefined;
-    widgetResolver: SliderProperties | Record<string, never>;
+    /** The marker layer passed by the widget; `{}` when it has none. */
+    markerLayer: MarkerLayer;
 }
 
 /**
@@ -49,7 +50,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         backgroundStyles,
         formatSize,
         getDataValue,
-        widgetResolver,
+        markerLayer,
     } = params;
 
     /**
@@ -118,8 +119,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
                 },
                 {
-                    condition: typeof widgetResolver.markerIconSize === 'number',
-                    value: `calc(24px * ${widgetResolver.markerIconSize} / 100)`,
+                    condition: typeof markerLayer.iconSize === 'number',
+                    value: `calc(24px * ${markerLayer.iconSize} / 100)`,
                 },
                 { condition: getDataValue<number | string>('iconSize', '') === 0, value: '0px' },
                 {
@@ -165,7 +166,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { value: getDataValue<number>('iconSize', String(ext)) },
-                { value: widgetResolver.markerIconSize },
+                { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
             ]) ?? 100,
@@ -174,7 +175,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { value: getDataValue<number>('iconSize', String(ext)) },
-                { value: widgetResolver.markerIconSize },
+                { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
             ]) ?? 100,
@@ -201,7 +202,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
                 { condition: String(ext) !== '', value: getDataValue<string>('iconColor', String(ext)) },
-                { value: widgetResolver.markerIconColor },
+                { value: markerLayer.iconColor },
                 { value: getDataValue<string>('iconColor', '') },
             ]) ?? terminalColor('primary', theme),
 
@@ -266,9 +267,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                       },
                       {
                           value:
-                              widgetResolver.markerTextColor && widgetResolver.markerTextColor !== ''
-                                  ? widgetResolver.markerTextColor
-                                  : undefined,
+                              markerLayer.textColor && markerLayer.textColor !== '' ? markerLayer.textColor : undefined,
                       },
                       {
                           value: rxData.textColor && rxData.textColor !== '' ? rxData.textColor : undefined,
@@ -301,10 +300,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: getDataValue<string>('textColor', String(ext)),
                 },
                 {
-                    value:
-                        widgetResolver.markerTextColor && widgetResolver.markerTextColor !== ''
-                            ? widgetResolver.markerTextColor
-                            : undefined,
+                    value: markerLayer.textColor && markerLayer.textColor !== '' ? markerLayer.textColor : undefined,
                 },
                 {
                     condition: typeof getDataValue<string>('textColor', '') === 'string',
@@ -332,8 +328,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                             : undefined,
                 },
                 {
-                    condition: typeof widgetResolver.markerTextSize === 'number',
-                    value: formatSize(widgetResolver.markerTextSize),
+                    condition: typeof markerLayer.textSize === 'number',
+                    value: formatSize(markerLayer.textSize),
                 },
                 {
                     value: typeof rxData.valueSize === 'number' ? formatSize(rxData.valueSize) : undefined,
@@ -395,8 +391,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `${formatSize(getDataValue<number>('valueSize', String(ext)))}`,
                 },
                 {
-                    condition: typeof widgetResolver.markerTextSize === 'number',
-                    value: formatSize(widgetResolver.markerTextSize),
+                    condition: typeof markerLayer.textSize === 'number',
+                    value: formatSize(markerLayer.textSize),
                 },
                 {
                     condition: typeof getDataValue<number>('valueSize', '') === 'number',
@@ -500,13 +496,13 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         frameBackgroundActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? getDataValue<string>('frameBackground', String(ext)) : undefined,
 
-        // Slider Properties
-        markerIconSize: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerIconSize,
+        // Marker Layer pass-throughs (raw values, no chain)
+        markerIconSize: (_ext: string | number, _includeActive: boolean) => markerLayer.iconSize,
 
-        markerTextColor: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerTextColor,
+        markerTextColor: (_ext: string | number, _includeActive: boolean) => markerLayer.textColor,
 
-        markerTextSize: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerTextSize,
+        markerTextSize: (_ext: string | number, _includeActive: boolean) => markerLayer.textSize,
 
-        markerIconColor: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerIconColor,
+        markerIconColor: (_ext: string | number, _includeActive: boolean) => markerLayer.iconColor,
     };
 }
