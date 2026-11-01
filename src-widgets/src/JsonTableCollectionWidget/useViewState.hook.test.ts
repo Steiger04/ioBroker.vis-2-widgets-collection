@@ -25,7 +25,12 @@ const OPTIONS: UseViewStateOptions = {
     pageSizeOptions: '10,25,50,100',
     autoSize: false,
     columnConfig: [],
-    columns: {},
+    // The Columns the table shows (the ids the stored views below refer to).
+    columns: {
+        name: { type: 'string', filterable: true },
+        temp: { type: 'number', filterable: true },
+        room: { type: 'string', filterable: true },
+    },
 };
 
 const mounted: RenderHookHandle<ViewState>[] = [];

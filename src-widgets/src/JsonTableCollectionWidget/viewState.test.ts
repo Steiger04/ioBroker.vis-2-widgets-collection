@@ -26,12 +26,19 @@ import {
 /** Every view-hosting capability on (column filtering and quick filter default off). */
 const ALL_ON = tableCapabilities({ tableFiltering: true, tableQuickFilter: true });
 
+/** The Columns the table shows (the ids the stored views below refer to). */
+const SHOWN_COLUMNS: ViewConfig['columns'] = {
+    name: { type: 'string', filterable: true },
+    temp: { type: 'number', filterable: true },
+    room: { type: 'string', filterable: true },
+};
+
 const CONFIG: ViewConfig = {
     pageSize: 25,
     pageSizeOptions: [10, 25, 50, 100],
     columnWidths: {},
     autoSize: false,
-    columns: {},
+    columns: SHOWN_COLUMNS,
 };
 
 describe('resolveView — nothing stored', () => {
@@ -209,10 +216,31 @@ describe("resolveView — a stored Spaltenfilter its Column's Effektiver Typ doe
         expect(resolveView(stored, ALL_ON, { ...CONFIG, columns }).columnFilters).toEqual([contains, room]);
     });
 
-    it('keeps a filter on a Column of unknown type (no data yet), judging only its form', () => {
+    it('parks a filter on a Column the table does not show (no data yet, hidden, vanished), judging only its form', () => {
         const unknownOperator = { id: 'temp', value: { operator: 'matches', value: '2' } };
-        const view = resolveView({ columnFilters: [contains, unknownOperator] }, ALL_ON, CONFIG);
-        expect(view.columnFilters).toEqual([contains]);
+        const stored = { columnFilters: [contains, unknownOperator] };
+        const noColumns = { ...CONFIG, columns: {} };
+        const view = resolveView(stored, ALL_ON, noColumns);
+        // Not applied: TanStack would look the Column up and warn "Column with id … does not exist".
+        expect(view.columnFilters).toEqual([]);
+
+        const written = storeChange(view, { columnFilters: [room] }, ALL_ON, noColumns, stored);
+        expect(written.columnFilters).toEqual([room, contains]);
+    });
+});
+
+describe('resolveView — a stored sorting applies to the Columns the table shows', () => {
+    const gone = { id: 'gone', desc: true };
+    const name = { id: 'name', desc: false };
+
+    it('leaves out a sort on a Column the table does not show (hidden or vanished)', () => {
+        expect(resolveView({ sorting: [gone, name] }, ALL_ON, CONFIG).sorting).toEqual([name]);
+    });
+
+    it('applies nothing before the data arrives, and the stored sorting once it has', () => {
+        const stored = { sorting: [name] };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columns: {} }).sorting).toEqual([]);
+        expect(resolveView(stored, ALL_ON, CONFIG).sorting).toEqual([name]);
     });
 });
 
@@ -255,7 +283,13 @@ describe('a stored Spaltenfilter on a Column that is not filterable is parked: n
             false,
             false,
         ],
-        ['Column not known → judged by its form only', undefined, { operator: 'greaterThan', value: 20 }, true, true],
+        [
+            'Column not shown → parked, judged by its form only',
+            undefined,
+            { operator: 'greaterThan', value: 20 },
+            false,
+            true,
+        ],
     ])('%s', (_case, temp, value, applied, kept) => {
         const filter = { id: 'temp', value };
         const stored = { columnFilters: [filter] };

@@ -54,7 +54,7 @@ export type ViewConfig = Readonly<{
     columnWidths: Readonly<Record<string, number | undefined>>;
     /** Auto-size mode (`tableAutoSize`): widths are measured, not dragged. */
     autoSize: boolean;
-    /** The Columns per id (missing = Column not known, e.g. before the data arrives). */
+    /** The Columns the table shows, per id (missing = not shown: no data yet, hidden, vanished); sorting and Spaltenfilter apply to these only. */
     columns: Readonly<Record<string, ViewColumn>>;
 }>;
 
@@ -82,11 +82,19 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isCount = (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
-const readSorting = (stored: unknown): SortingState =>
+/**
+ * The stored sorting, on the Columns the table shows: a sort on a Column it does not show
+ * (no data yet, hidden in the editor, vanished from the data) is left out — TanStack would
+ * look the Column up and warn. It stays stored until the user sorts anew.
+ */
+const readSorting = (stored: unknown, columns: ViewConfig['columns']): SortingState =>
     Array.isArray(stored)
         ? stored.filter(
               (entry): entry is SortingState[number] =>
-                  isRecord(entry) && typeof entry.id === 'string' && typeof entry.desc === 'boolean',
+                  isRecord(entry) &&
+                  typeof entry.id === 'string' &&
+                  typeof entry.desc === 'boolean' &&
+                  Object.hasOwn(columns, entry.id),
           )
         : [];
 
@@ -107,14 +115,18 @@ function storedFilterFits(entry: unknown, columns: ViewConfig['columns']): entry
     return filterFits(type, entry.value);
 }
 
-/** Whether a fitting stored Spaltenfilter is parked: its Column is known but not filterable. */
+/**
+ * Whether a fitting stored Spaltenfilter is parked: its Column is not filterable, or the
+ * table does not show it (no data yet, hidden in the editor, vanished from the data —
+ * TanStack would look the Column up and warn).
+ */
 const isParkedFilter = (filter: ColumnFiltersState[number], columns: ViewConfig['columns']): boolean =>
-    Object.hasOwn(columns, filter.id) && !columns[filter.id].filterable;
+    !Object.hasOwn(columns, filter.id) || !columns[filter.id].filterable;
 
 /**
  * The stored Spaltenfilter that fit, split into the applied and the parked ones — the
- * filter of a Column that is not filterable is parked, never applied (no UI shows or
- * clears it) and never deleted (it returns with its Column's filterability).
+ * filter of a Column that is not filterable or not shown is parked, never applied (no UI
+ * shows or clears it) and never deleted (it returns with its Column).
  */
 function readColumnFilters(
     stored: unknown,
@@ -263,7 +275,7 @@ function resolveWidths(widths: Record<string, StoredWidth>, config: ViewConfig):
 export function resolveView(stored: StoredView, capabilities: TableCapabilities, config: ViewConfig): TableView {
     const live = (part: ViewPart): unknown => (isParked(part, capabilities, config) ? undefined : stored[part]);
     return {
-        sorting: readSorting(live('sorting')),
+        sorting: readSorting(live('sorting'), config.columns),
         columnFilters: readColumnFilters(live('columnFilters'), config).applied,
         globalFilter: readGlobalFilter(live('globalFilter')),
         pagination: isParked('pagination', capabilities, config)
