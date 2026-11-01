@@ -3,9 +3,8 @@
  *
  * @module JsonTableCollectionWidget/components/EffectiveResultIndicator
  * @remarks
- * Shows the effective result of a column feature (sorting/filtering)
- * considering both global settings and per-column overrides.
- * Supports 'auto' mode for type-based smart defaults.
+ * Renders a column's resolved capability (sorting/filtering/hiding) as computed by
+ * `../capabilities` — the same resolution the runtime uses. It computes nothing itself.
  */
 
 import { Box, Chip, Tooltip, Typography } from '@mui/material';
@@ -13,82 +12,55 @@ import { AutoFixHigh as AutoIcon, Edit as EditIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { typeDefaults, type EffectiveType } from '../capabilities';
+import type { EffectiveType } from '../capabilities';
 
 /** Props for the EffectiveResultIndicator component. */
 interface EffectiveResultIndicatorProps {
-    /** Whether the global feature is enabled */
-    globalEnabled: boolean;
-    /** The column-specific override (undefined/'auto' = use smart defaults, true/false = override) */
+    /** The column's resolved capability (table capability ∧ (override ?? type default)) */
+    effective: boolean;
+    /** Whether the table-wide capability is on (couplings included) */
+    tableEnabled: boolean;
+    /** The type default of the column's Effektiver Typ */
+    typeDefault: boolean;
+    /** The column-specific override (undefined/'auto' = type default, true/false = override) */
     columnOverride: boolean | 'auto' | undefined;
     /** The feature label for display (e.g., "Sorting", "Filtering") */
     featureLabel: string;
-    /** The detected column type for smart defaults */
-    detectedType?: EffectiveType;
-    /** Which feature to show smart defaults for ('sortable' or 'filterable') */
-    featureType?: 'sortable' | 'filterable';
+    /** The column's Effektiver Typ, named in the auto tooltip */
+    columnType: EffectiveType;
 }
+
+/** Replaces `{key}` placeholders; unknown keys stay as they are. */
+const interpolateTemplate = (template: string, values: Record<string, string>): string =>
+    template.replace(/\{(\w+)\}/g, (match: string, key: string): string => (key in values ? values[key] : match));
 
 /**
  * Renders an indicator showing the effective result of a feature setting.
  *
- * Calculates and displays:
- * - The effective value (true/false) based on override, smart defaults, or global
- * - The source of the value ("auto", "global", or "override")
- * - Visual distinction between inherited and overridden values
+ * Displays the resolved value (on/off) and its source ("auto" or "override"); the tooltip
+ * names the type default, the override, or the switched-off table capability.
  */
 function EffectiveResultIndicator({
-    globalEnabled,
+    effective,
+    tableEnabled,
+    typeDefault,
     columnOverride,
     featureLabel,
-    detectedType = 'string',
-    featureType = 'sortable',
+    columnType,
 }: EffectiveResultIndicatorProps): React.JSX.Element {
-    // Determine if we're using auto mode
-    const isAutoMode = columnOverride === 'auto' || columnOverride === undefined;
-
-    // Get smart defaults for the detected type
-    const smartDefaults = typeDefaults(detectedType);
-    const smartValue = featureType === 'sortable' ? smartDefaults.sortable : smartDefaults.filterable;
-
-    // Calculate effective value
-    let effective: boolean;
-    let sourceKey: string;
-
-    if (columnOverride === 'auto' || columnOverride === undefined) {
-        // Use smart defaults combined with global setting
-        effective = smartValue && globalEnabled;
-        sourceKey = 'json_table_source_auto';
-    } else {
-        // Use explicit override
-        effective = columnOverride;
-        sourceKey = 'json_table_source_override';
-    }
-
-    // Determine the source of the effective value
-    const isOverride = columnOverride !== undefined && columnOverride !== 'auto';
-
-    // Build tooltip content with safe interpolation
-    const interpolateTemplate = (template: string, values: Record<string, string>): string => {
-        return template.replace(/\{(\w+)\}/g, (match: string, key: string): string => {
-            if (key in values) {
-                return values[key];
-            }
-            // Return original match if key not found (graceful degradation)
-            return match;
-        });
-    };
+    const isOverride = columnOverride === true || columnOverride === false;
+    const sourceKey = isOverride ? 'json_table_source_override' : 'json_table_source_auto';
 
     let tooltipContent: string;
-    if (columnOverride === 'auto' || columnOverride === undefined) {
+    if (!tableEnabled) {
+        tooltipContent = interpolateTemplate(Generic.t('json_table_table_off_tooltip'), { feature: featureLabel });
+    } else if (isOverride) {
+        tooltipContent = interpolateTemplate(Generic.t('json_table_override_tooltip'), { feature: featureLabel });
+    } else {
         tooltipContent = interpolateTemplate(Generic.t('json_table_auto_tooltip'), {
             feature: featureLabel,
-            smart: smartValue ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off'),
-            type: detectedType,
-        });
-    } else {
-        tooltipContent = interpolateTemplate(Generic.t('json_table_override_tooltip'), {
-            feature: featureLabel,
+            smart: typeDefault ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off'),
+            type: columnType,
         });
     }
 
@@ -127,7 +99,7 @@ function EffectiveResultIndicator({
                     sx={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: 0.25 }}
                 >
                     {Generic.t(sourceKey)}
-                    {isAutoMode && <AutoIcon sx={{ fontSize: 12, ml: 0.25 }} />}
+                    {!isOverride && <AutoIcon sx={{ fontSize: 12, ml: 0.25 }} />}
                     {isOverride && <EditIcon sx={{ fontSize: 12, ml: 0.25 }} />}
                 </Typography>
             </Box>

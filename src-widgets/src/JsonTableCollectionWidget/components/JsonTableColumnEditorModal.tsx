@@ -33,6 +33,7 @@ import Generic from '../../Generic';
 import ColumnList from './ColumnList';
 import ColumnDetailEditor from './ColumnDetailEditor';
 import { analyzeJsonTable } from '../../hooks/useJsonTableAnalysis';
+import { tableCapabilities } from '../capabilities';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
@@ -269,6 +270,9 @@ function JsonTableColumnEditorModal({
         [selectedPath, discoveredColumns],
     );
 
+    // Tabellen-Fähigkeiten from the raw widget data — the runtime's own resolution
+    const capabilities = tableCapabilities(data);
+
     // Memoize dialog title id for aria-labelledby
     const dialogTitleId = useMemo(() => 'json-table-column-editor-title', []);
 
@@ -374,8 +378,7 @@ function JsonTableColumnEditorModal({
                                     column={selectedColumn}
                                     discoveredColumn={selectedDiscovered}
                                     onChange={handleColumnChange}
-                                    globalSorting={data.tableSorting as boolean}
-                                    globalFiltering={data.tableFiltering as boolean}
+                                    capabilities={capabilities}
                                 />
                             ) : (
                                 <Box

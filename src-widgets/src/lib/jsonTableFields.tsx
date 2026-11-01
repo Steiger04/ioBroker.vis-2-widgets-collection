@@ -11,13 +11,24 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnEditor';
-import { tableCapabilities } from '../JsonTableCollectionWidget/capabilities';
+import { tableCapabilities, type TableCapabilities } from '../JsonTableCollectionWidget/capabilities';
 import { createColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
-/** Header-hosted feature settings vanish with the Header (vis-2 hands `hidden` the raw data). */
-const headerHidden = (data: WidgetData): boolean => !tableCapabilities(data).header;
+/**
+ * A feature setting is hidden when a coupling of the Tabellen-Fähigkeiten blocks it, i.e.
+ * when switching the setting itself on would leave its capability off (vis-2 hands `hidden`
+ * the raw widget data).
+ *
+ * @param setting The widget data key of the feature setting.
+ * @param capability The capability that setting switches.
+ * @returns The `hidden` predicate.
+ */
+const blockedByCoupling =
+    (setting: string, capability: keyof TableCapabilities) =>
+    (data: WidgetData): boolean =>
+        !tableCapabilities({ ...data, [setting]: true })[capability];
 
 const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // ═══════════════════════════════════════════════════════════════════
@@ -48,7 +59,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_sorting',
         default: true,
-        hidden: headerHidden,
+        hidden: blockedByCoupling('tableSorting', 'sorting'),
     },
     {
         name: 'tableSortingMulti',
@@ -56,7 +67,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_sorting_multi',
         default: false,
         tooltip: 'json_table_sorting_multi_tooltip',
-        hidden: headerHidden,
+        hidden: blockedByCoupling('tableSortingMulti', 'multiSort'),
     },
     {
         name: 'tableFiltering',
@@ -64,7 +75,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_filtering',
         default: true,
         tooltip: 'json_table_filtering_tooltip',
-        hidden: headerHidden,
+        hidden: blockedByCoupling('tableFiltering', 'columnFiltering'),
     },
     {
         name: 'tableQuickFilter',
@@ -77,7 +88,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_column_menu',
         default: true,
-        hidden: headerHidden,
+        hidden: blockedByCoupling('tableColumnMenu', 'columnMenu'),
     },
     {
         name: 'tableHiding',
@@ -85,7 +96,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_hiding',
         default: true,
         tooltip: 'json_table_hiding_tooltip',
-        hidden: headerHidden,
+        hidden: blockedByCoupling('tableHiding', 'hiding'),
     },
 
     // ── Pagination ────────────────────────────────────────────────────

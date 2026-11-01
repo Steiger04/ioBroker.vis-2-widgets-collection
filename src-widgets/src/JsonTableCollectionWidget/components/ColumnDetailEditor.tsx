@@ -32,6 +32,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { columnCapabilities, effectiveType, typeDefaults, type TableCapabilities } from '../capabilities';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import type { ColumnConfigEntry, ColumnStyleRule, ColumnFormatConfig } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
@@ -54,10 +55,8 @@ interface ColumnDetailEditorProps {
     discoveredColumn?: JsonTableColumn;
     /** Callback when column configuration changes */
     onChange: (updated: ColumnConfigEntry) => void;
-    /** Whether global table sorting is enabled */
-    globalSorting?: boolean;
-    /** Whether global table filtering is enabled */
-    globalFiltering?: boolean;
+    /** The Tabellen-Fähigkeiten resolved from the widget's raw data */
+    capabilities: TableCapabilities;
 }
 
 /**
@@ -67,8 +66,7 @@ function ColumnDetailEditor({
     column,
     discoveredColumn,
     onChange,
-    globalSorting = true,
-    globalFiltering = false,
+    capabilities,
 }: ColumnDetailEditorProps): React.JSX.Element {
     // Track which accordion sections are expanded
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -84,6 +82,11 @@ function ColumnDetailEditor({
 
     // Detected type from analysis
     const detectedType = discoveredColumn?.type || 'string';
+
+    // What this column allows at runtime — the same resolution the table uses
+    const columnType = effectiveType(column.format?.type, discoveredColumn?.type);
+    const allowed = columnCapabilities(capabilities, columnType, column);
+    const defaults = typeDefaults(columnType);
 
     // Total value count for percentage calculations
     const totalValues = useMemo(() => {
@@ -588,10 +591,7 @@ function ColumnDetailEditor({
                     <AccordionDetails>
                         <Stack spacing={2}>
                             {/* Global status banner */}
-                            <StatusBanner
-                                globalSorting={globalSorting}
-                                globalFiltering={globalFiltering}
-                            />
+                            <StatusBanner capabilities={capabilities} />
 
                             {/* Per-column feature overrides with effective result indicators */}
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -625,11 +625,12 @@ function ColumnDetailEditor({
                                     </Select>
                                 </FormControl>
                                 <EffectiveResultIndicator
-                                    globalEnabled={globalSorting}
+                                    effective={allowed.sortable}
+                                    tableEnabled={capabilities.sorting}
+                                    typeDefault={defaults.sortable}
                                     columnOverride={column.sortable}
                                     featureLabel={Generic.t('json_table_sorting')}
-                                    detectedType={discoveredColumn?.type}
-                                    featureType="sortable"
+                                    columnType={columnType}
                                 />
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -667,11 +668,12 @@ function ColumnDetailEditor({
                                     </Select>
                                 </FormControl>
                                 <EffectiveResultIndicator
-                                    globalEnabled={globalFiltering}
+                                    effective={allowed.filterable}
+                                    tableEnabled={capabilities.columnFiltering}
+                                    typeDefault={defaults.filterable}
                                     columnOverride={column.filterable}
                                     featureLabel={Generic.t('json_table_filtering')}
-                                    detectedType={discoveredColumn?.type}
-                                    featureType="filterable"
+                                    columnType={columnType}
                                 />
                             </Box>
 

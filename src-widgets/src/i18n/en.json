@@ -1100,6 +1100,7 @@
     "json_table_string_suffix": "Suffix",
     "json_table_string_text_color": "Text color",
     "json_table_string_trim": "Trim whitespace",
+    "json_table_table_off_tooltip": "{feature} is switched off for the whole table, so this column setting has no effect",
     "json_table_text_color": "Text color",
     "json_table_type_label": "Type",
     "json_table_unsaved_changes": "You have unsaved changes. Discard them?",

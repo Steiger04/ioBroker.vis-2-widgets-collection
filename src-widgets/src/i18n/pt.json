@@ -1310,5 +1310,6 @@
     "widgets_collection": "Coleção de widgets",
     "without_card": "Sem fronteira",
     "without_label": "Sem rótulo",
-    "write_value": "Escrever valor"
+    "write_value": "Escrever valor",
+    "json_table_table_off_tooltip": "{feature} está desativado para toda a tabela, portanto esta configuração de coluna não tem efeito"
 }
