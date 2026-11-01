@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sortingFns, type ColumnDef, type Row, type SortingFn } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
-import { buildColumnDefs, createDateSortingFn } from './columnDefinitions';
-import { dateReader } from '../dateReader';
+import { buildColumnDefs } from './columnDefinitions';
 import { tableCapabilities } from '../capabilities';
 import { readJsonTable, type EffectiveColumn } from '../columns';
 import type { ColumnConfigEntry } from '../types';
@@ -15,34 +14,6 @@ const sortAscending = (values: unknown[], sortingFn: SortingFn<FlatRow>): unknow
         .map(row)
         .sort((a, b) => sortingFn(a, b, 'c'))
         .map(r => r.getValue('c'));
-
-describe("createDateSortingFn — sorts by the Column's Datums-Leser", () => {
-    it('orders the tolerant patterns and epoch strings of a manual date column chronologically', () => {
-        const at10 = String(new Date(2024, 11, 1, 10).getTime() / 1000);
-        const sorted = sortAscending(
-            ['2024-12-02 09:00', at10, '2024-12-01T09:00', '2024-12-01 11:00'],
-            createDateSortingFn(dateReader()),
-        );
-        expect(sorted).toEqual(['2024-12-01T09:00', at10, '2024-12-01 11:00', '2024-12-02 09:00']);
-    });
-
-    it('counts an unreadable value as 0, as before', () => {
-        // "Dec 1, 2024" is no date (no browser heuristic) — it sorts with the unreadable.
-        const sorted = sortAscending(
-            ['2024-12-01 10:00', 'Dec 1, 2024', '2024-11-30 10:00'],
-            createDateSortingFn(dateReader()),
-        );
-        expect(sorted).toEqual(['Dec 1, 2024', '2024-11-30 10:00', '2024-12-01 10:00']);
-    });
-
-    it('reads a detected date column strictly', () => {
-        const sorted = sortAscending(
-            ['02.12.2024', '01.12.2024 23:00', '01.12.2024'],
-            createDateSortingFn(dateReader({ type: 'date', dateFormat: 'dd.MM.yyyy' })),
-        );
-        expect(sorted).toEqual(['01.12.2024', '01.12.2024 23:00', '02.12.2024']);
-    });
-});
 
 // ── buildColumnDefs — the TanStack adapter over the merged Columns ─────────────
 
@@ -187,11 +158,30 @@ describe('buildColumnDefs — sorting follows the Effektiver Typ', () => {
         ]);
     });
 
-    it('a Column formatted as date sorts chronologically', () => {
+    it('a detected date Column reads its values strictly', () => {
+        const sortingFn = sortOf(['02.12.2024', '01.12.2024']);
+        expect(sortingFn && sortAscending(['02.12.2024', '01.12.2024 23:00', '01.12.2024'], sortingFn)).toEqual([
+            '01.12.2024',
+            '01.12.2024 23:00',
+            '02.12.2024',
+        ]);
+    });
+
+    it('a Column formatted as date orders the tolerant patterns and epoch strings chronologically', () => {
+        const at10 = String(new Date(2024, 11, 1, 10).getTime() / 1000);
         const sortingFn = sortOf(['x', 'y'], { format: { type: 'date' } });
-        expect(sortingFn && sortAscending(['2024-12-02 09:00', '2024-11-30 10:00'], sortingFn)).toEqual([
+        expect(
+            sortingFn && sortAscending(['2024-12-02 09:00', at10, '2024-12-01T09:00', '2024-12-01 11:00'], sortingFn),
+        ).toEqual(['2024-12-01T09:00', at10, '2024-12-01 11:00', '2024-12-02 09:00']);
+    });
+
+    it('an unreadable date counts as 0', () => {
+        // "Dec 1, 2024" is no date (no browser heuristic) — it sorts with the unreadable.
+        const sortingFn = sortOf(['x', 'y'], { format: { type: 'date' } });
+        expect(sortingFn && sortAscending(['2024-12-01 10:00', 'Dec 1, 2024', '2024-11-30 10:00'], sortingFn)).toEqual([
+            'Dec 1, 2024',
             '2024-11-30 10:00',
-            '2024-12-02 09:00',
+            '2024-12-01 10:00',
         ]);
     });
 

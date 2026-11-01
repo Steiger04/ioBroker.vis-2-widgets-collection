@@ -12,7 +12,6 @@ import type { ColumnDef, SortingFn, SortingFnOption, Row } from '@tanstack/react
 import { columnCapabilities, type TableCapabilities } from '../capabilities';
 import { columnFilterFn, readNumber } from '../columnFilter';
 import type { EffectiveColumn } from '../columns';
-import type { DateReader } from '../dateReader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -45,22 +44,14 @@ export interface BuildColumnDefsOptions {
 
 // ── Sorting by the Effektiver Typ ──────────────────────────────────────────────
 
-/** Sorts by a reading of the values; an unreadable value counts as 0. */
+/**
+ * Sorts by a reading of the values — a date by the instant its Column's Datums-Leser reads,
+ * a number by the one number reading; an unreadable value counts as 0.
+ */
 function sortingByReading(read: (value: unknown) => number | null): SortingFn<FlatRow> {
     const sortable = (value: unknown): number => read(value) ?? 0;
     return (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string): number =>
         sortable(rowA.getValue(columnId)) - sortable(rowB.getValue(columnId));
-}
-
-/**
- * Creates a custom sorting function for date columns: chronological by the instant the
- * Column's Datums-Leser reads; an unreadable value counts as 0.
- *
- * @param read - The Column's Datums-Leser
- * @returns A TanStack Table compatible sorting function
- */
-export function createDateSortingFn(read: DateReader): SortingFn<FlatRow> {
-    return sortingByReading(read);
 }
 
 /** Numerically, by the one number reading (numeric strings included). */
@@ -75,7 +66,7 @@ const numberSortingFn = sortingByReading(readNumber);
 function sortingFnOf(column: EffectiveColumn): SortingFnOption<FlatRow> | undefined {
     switch (column.type) {
         case 'date':
-            return createDateSortingFn(column.readDate);
+            return sortingByReading(column.readDate);
         case 'number':
             return numberSortingFn;
         case 'string':
