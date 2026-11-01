@@ -45,6 +45,17 @@ describe('sliderColorContracts', () => {
             inheritTextStyle: undefined,
         });
     });
+
+    it('declares the marker text cascade in the field itself', () => {
+        // Label contract (swatch only): the runtime renders the mark text via
+        // useData — markerTextColor → textColor → vis-2 text style → theme text.
+        expect(sliderColorContracts.markerTextColor).toEqual({
+            name: 'markerTextColor',
+            fallbackFields: ['textColor'],
+            terminal: 'text',
+            inheritTextStyle: true,
+        });
+    });
 });
 
 describe('buildSliderChromeStyles', () => {
