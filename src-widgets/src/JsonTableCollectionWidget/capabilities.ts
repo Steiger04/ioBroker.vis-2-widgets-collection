@@ -53,23 +53,20 @@ export type TableCapabilities = Readonly<{
     rowSelection: boolean;
 }>;
 
+/** The widget data key of one raw feature setting. */
+export type CapabilitySetting =
+    | 'tableShowHeader'
+    | 'tableSorting'
+    | 'tableSortingMulti'
+    | 'tableFiltering'
+    | 'tableQuickFilter'
+    | 'tableColumnMenu'
+    | 'tableHiding'
+    | 'tablePagination'
+    | 'tableRowSelection';
+
 /** The raw feature settings as vis-2 stores them in the widget data (any key may be missing). */
-export type CapabilitySettings = Readonly<
-    Partial<
-        Record<
-            | 'tableShowHeader'
-            | 'tableSorting'
-            | 'tableSortingMulti'
-            | 'tableFiltering'
-            | 'tableQuickFilter'
-            | 'tableColumnMenu'
-            | 'tableHiding'
-            | 'tablePagination'
-            | 'tableRowSelection',
-            unknown
-        >
-    >
->;
+export type CapabilitySettings = Readonly<Partial<Record<CapabilitySetting, unknown>>>;
 
 /** Default-on setting: only an explicit `false` switches it off. */
 const onUnlessFalse = (value: unknown): boolean => value !== false;

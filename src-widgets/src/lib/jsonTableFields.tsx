@@ -11,7 +11,11 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnEditor';
-import { tableCapabilities, type TableCapabilities } from '../JsonTableCollectionWidget/capabilities';
+import {
+    tableCapabilities,
+    type CapabilitySetting,
+    type TableCapabilities,
+} from '../JsonTableCollectionWidget/capabilities';
 import { createColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -26,7 +30,7 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
  * @returns The `hidden` predicate.
  */
 const blockedByCoupling =
-    (setting: string, capability: keyof TableCapabilities) =>
+    (setting: CapabilitySetting, capability: keyof TableCapabilities) =>
     (data: WidgetData): boolean =>
         !tableCapabilities({ ...data, [setting]: true })[capability];
 
