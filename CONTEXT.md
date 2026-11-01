@@ -44,6 +44,34 @@ _Avoid_: Format type (the detected type is a hint; the format type is the user's
 The `tableMaxDepth` setting (default 10): how deep the analysis engine flattens nested JSON into dot-path columns. Render-relevant — the table renders FROM the flattened rows, so the depth caps which cells exist, bounds processing time on deep payloads, and a warning fires when the payload outgrows it. Contrast **Spalten-Sichtweite** (the ECharts editor's discovery-only cap, no render effect).
 _Avoid_: Verschachtelungstiefe without qualifier (name which of the two), Spalten-Sichtweite (that is the ECharts editor's sight, no render effect), depth (unsaid which of the two depths)
 
+**Effektiver Typ**:
+The type a Column is treated as: its Format type when one is set, otherwise its Detected type. It decides the filter operators, how Spaltenfilter and conditional styles compare, the sort order, and the type defaults for a column's sortability and filterability.
+_Avoid_: Format type or Detected type alone (each is only one input), column type without qualifier
+
+**Tabellen-Fähigkeiten**:
+The effective feature set of one table — sorting, multi-sort, column filtering, quick filter, column hiding, column menu, pagination, row selection — resolved once from the widget settings, couplings included: a hidden Header switches off every header-hosted capability (sorting, column filtering, hiding, column menu), a switched-off column menu takes column filtering and hiding with it, and a missing `tableFiltering` counts as off. Per Column it also yields whether that column is sortable, filterable and hideable: the column override, else the type default of its Effektiver Typ — never more than the table-wide capability allows. Runtime and editor read the same resolution.
+_Avoid_: Feature flags (those are the raw settings, not the resolved set), Optionen, Features
+
+**Ansichtszustand**:
+The end user's own view of a table as it survives reloads — sorting, Spaltenfilter, quick-filter term, page and page size, column widths, column visibility — kept per widget in the browser. A part whose Tabellen-Fähigkeit is off is parked: neither applied nor deleted, it returns with the capability. The user's page size or column width wins until the editor changes the configured value; the page survives data updates and resets only when sorting, filters or page size change; a stored Spaltenfilter its Column's Effektiver Typ does not offer is discarded.
+_Avoid_: Table state (TanStack's term is wider and not persisted), Einstellungen (those are the widget's configuration), View settings
+
+**Spaltenfilter**:
+A filter on one Column — an operator plus a value, set through the Header's column menu — compared by the Column's Effektiver Typ: as text without case for strings, numerically for numbers, by local calendar day for dates; no type is ever guessed from the value. Distinct from the quick filter, the table-wide substring search that also works with a hidden Header.
+_Avoid_: Advanced filter (the former code name), Suche (that is the quick filter)
+
+**Spalten-Merge**:
+The one rule that turns the saved column configuration plus the Columns found in the data into the table's Column list, for runtime and editor alike: saved Columns still present keep their saved order and settings, newly found paths are appended visible with type defaults, saved Columns absent from the data are left out. The table without configuration is this rule applied to an empty configuration.
+_Avoid_: Auto mode vs. configured mode (both are this rule), Spalten-Erkennung (that is the analysis engine's discovery)
+
+**Datums-Leser**:
+The single reading of a Raw value as an instant and its local calendar day, in two stages. Columns detected as dates are read strictly by the analysis engine's own date patterns — the same that made them dates; Columns the user formatted as dates without detection also accept a fixed set of tolerant patterns (ISO without zone, `YYYY-MM-DD HH:mm(:ss)`, epoch strings). Anything else is no date and shows its Raw value as text; there is no browser-heuristic date parsing.
+_Avoid_: Datums-Parser (there used to be five), date normalisation, Datumserkennung (that is the Detected type)
+
+**Tabellen-Chrome**:
+The presentation shell of the table — outer frame, header bar (elevation, background, bottom line, text style), row and cell borders, even/odd row backgrounds, density-derived heights — resolved in exactly one widget-local place from raw widget data plus the theme. Frozen legacy presentation, pinned by tests; cell content (Format type rendering, conditional styles) is not chrome.
+_Avoid_: Tabellen-Styles (unsaid which), mixing chrome rules with cell formatting
+
 # ECharts Collection Widget
 
 The widget renders ioBroker state data as Apache ECharts charts (line/bar/scatter/pie — gauge/radar removed by ADR-0071). Its configurator modal is a sections-rail editor with a live real-data preview (ADR-0007/0008 seam, ADR-0010 layout). This glossary pins down the configurator's structural language.
