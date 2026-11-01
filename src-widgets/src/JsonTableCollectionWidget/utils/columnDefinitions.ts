@@ -8,11 +8,12 @@
  */
 
 import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
-import type { DateFormatId, DetectedType, JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
+import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { ColumnConfigEntry } from '../types';
 import { columnCapabilities, effectiveType, type TableCapabilities } from '../capabilities';
+import { dateReader, type DateReader } from '../dateReader';
 
-import { toDateMs } from './formatters';
+import type { CellColumn } from './cellFormatters';
 import { createDateFilterFn } from './filterFunctions';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -28,8 +29,8 @@ export interface BuildColumnDefsOptions {
     analysisColumns: JsonTableColumn[];
     /** The resolved Tabellen-Fähigkeiten (see `../capabilities`) */
     capabilities: TableCapabilities;
-    /** Cell renderer component for configured columns */
-    renderConfiguredCell: (value: unknown, config: ColumnConfigEntry) => React.ReactNode;
+    /** Cell renderer component for configured columns; `column` says how the Column is read */
+    renderConfiguredCell: (value: unknown, config: ColumnConfigEntry, column: CellColumn) => React.ReactNode;
     /** Cell renderer component for auto-detected columns */
     renderAutoDetectedCell: (value: unknown) => React.ReactNode;
     /** Selection column header renderer */
@@ -45,46 +46,19 @@ export interface BuildColumnDefsOptions {
     }) => React.ReactNode;
 }
 
-// ── Helper: toSortableTime ────────────────────────────────────────────────────
-
-/**
- * Converts a date value to a sortable timestamp (milliseconds since epoch).
- *
- * Delegates to the canonical {@link toDateMs} normalizer so that sorting, filtering
- * and the quick filter all agree on the same instant, with full precision (the previous
- * string path collapsed values to a UTC day, which broke within-day ordering).
- *
- * @param value - The value to convert (number, string, Date, or null/undefined)
- * @param inputFormat - Optional date format identifier for string parsing
- * @returns Timestamp in milliseconds, or 0 for invalid/null values
- * @example
- * toSortableTime(1704067200000)  // epoch-ms timestamp
- * toSortableTime(1704067200)     // epoch-s timestamp (auto-detected)
- * toSortableTime('2024-01-01')   // ISO date string
- * toSortableTime('01.01.2024', 'dd.MM.yyyy')  // German date format
- */
-export function toSortableTime(value: unknown, inputFormat?: DateFormatId): number {
-    return toDateMs(value, inputFormat) ?? 0;
-}
-
 // ── Helper: createDateSortingFn ────────────────────────────────────────────────
 
 /**
- * Creates a custom sorting function for date columns.
+ * Creates a custom sorting function for date columns: chronological by the instant the
+ * Column's Datums-Leser reads; an unreadable value counts as 0.
  *
- * @param inputFormat - Optional date format identifier for parsing string values
+ * @param read - The Column's Datums-Leser
  * @returns A TanStack Table compatible sorting function
- * @example
- * const sortingFn = createDateSortingFn('dd.MM.yyyy');
- * // Use in column definition:
- * const columnDef = {
- *   id: 'dateColumn',
- *   sortingFn: sortingFn,
- * };
  */
-export function createDateSortingFn(inputFormat?: DateFormatId): SortingFn<FlatRow> {
+export function createDateSortingFn(read: DateReader): SortingFn<FlatRow> {
+    const sortableTime = (value: unknown): number => read(value) ?? 0;
     return (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string): number =>
-        toSortableTime(rowA.getValue(columnId), inputFormat) - toSortableTime(rowB.getValue(columnId), inputFormat);
+        sortableTime(rowA.getValue(columnId)) - sortableTime(rowB.getValue(columnId));
 }
 
 // ── Main: buildColumnDefs ──────────────────────────────────────────────────────
@@ -112,11 +86,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
         renderSelectionCell,
     } = options;
 
-    // Build map of analysis date formats and types for fallback
-    const analysisDateFormats = new Map<string, DateFormatId | undefined>(
-        analysisColumns.map(c => [c.path, c.dateFormat]),
-    );
-    const analysisTypes = new Map<string, DetectedType>(analysisColumns.map(c => [c.path, c.type]));
+    // The analysis engine's detection per path: Detected type and the Datums-Leser's input
+    const analysisByPath = new Map<string, JsonTableColumn>(analysisColumns.map(c => [c.path, c]));
 
     // ── Selection Column ──────────────────────────────────────────────────────
 
@@ -144,13 +115,17 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
         dataCols = columnConfig
             .filter(cfg => cfg.visible)
             .map(cfg => {
-                const inputFmt = cfg.format?.dateInputFormat ?? analysisDateFormats.get(cfg.path);
-                const detectedType = analysisTypes.get(cfg.path) || 'string';
+                const detected = analysisByPath.get(cfg.path);
+                const detectedType = detected?.type || 'string';
                 // Unify "is this a date column?" for sort, filter AND the filter dialog (meta.columnType).
                 // Previously sort used cfg.format.type while the filter dialog used the auto-detected type,
                 // so manually configuring a string column as date gave date sort but string filter operators.
                 const isDateColumn = cfg.format?.type === 'date' || detectedType === 'date';
-                const allowed = columnCapabilities(capabilities, effectiveType(cfg.format?.type, detectedType), cfg);
+                const type = effectiveType(cfg.format?.type, detectedType);
+                const allowed = columnCapabilities(capabilities, type, cfg);
+                // The live detection decides the reading — not a format id stored in the config
+                const readDate = dateReader(detected);
+                const cellColumn: CellColumn = { type, readDate };
 
                 const col: ColumnDef<FlatRow> = {
                     id: cfg.path,
@@ -162,8 +137,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     enableColumnFilter: allowed.filterable,
                     enableHiding: allowed.hideable,
                     ...(isDateColumn && {
-                        sortingFn: createDateSortingFn(inputFmt),
-                        filterFn: createDateFilterFn(inputFmt),
+                        sortingFn: createDateSortingFn(readDate),
+                        filterFn: createDateFilterFn(readDate),
                     }),
                     cell: ({ getValue }) =>
                         renderConfiguredCell(
@@ -176,6 +151,7 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                             !cfg.format && detectedType === 'image'
                                 ? { ...cfg, format: { type: 'image' as const } }
                                 : cfg,
+                            cellColumn,
                         ),
                     meta: {
                         align: cfg.align || 'left',
@@ -189,8 +165,9 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
         // Auto-detected columns mode - no Format type, so the type defaults of the detected type
         dataCols = analysisColumns.map(col => {
             const isDate = col.type === 'date' && col.dateFormat;
-            const fmt = col.dateFormat;
-            const allowed = columnCapabilities(capabilities, effectiveType(undefined, col.type));
+            const type = effectiveType(undefined, col.type);
+            const allowed = columnCapabilities(capabilities, type);
+            const readDate = dateReader(col);
 
             const colDef: ColumnDef<FlatRow> = {
                 id: col.path,
@@ -201,20 +178,24 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 enableColumnFilter: allowed.filterable,
                 enableHiding: allowed.hideable,
                 ...(isDate && {
-                    sortingFn: createDateSortingFn(fmt),
-                    filterFn: createDateFilterFn(fmt),
+                    sortingFn: createDateSortingFn(readDate),
+                    filterFn: createDateFilterFn(readDate),
                 }),
                 // Auto-detected image columns render as graphics immediately (default format),
                 // so icons/images show on first view without manual configuration.
                 cell: ({ getValue }) => {
                     const value = getValue();
                     if (col.type === 'image') {
-                        return renderConfiguredCell(value, {
-                            path: col.path,
-                            visible: true,
-                            headerName: col.path.split('.').pop() || col.path,
-                            format: { type: 'image' },
-                        });
+                        return renderConfiguredCell(
+                            value,
+                            {
+                                path: col.path,
+                                visible: true,
+                                headerName: col.path.split('.').pop() || col.path,
+                                format: { type: 'image' },
+                            },
+                            { type, readDate },
+                        );
                     }
                     return renderAutoDetectedCell(value);
                 },

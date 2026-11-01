@@ -12,8 +12,12 @@ import type React from 'react';
 
 import Generic from '../../../Generic';
 import type { ColumnFormatConfig } from '../../types';
+import { dateReader } from '../../dateReader';
 import { formatDateValue, DATE_FORMAT_OPTIONS } from '../../utils/formatters';
 import type { DateFormatId } from '../../utils/formatters';
+
+/** The preview formats `new Date()` — a Date instance, read directly. */
+const readPreviewDate = dateReader();
 
 /** Props for the DateFormatEditor component. */
 export interface DateFormatEditorProps {
@@ -88,7 +92,7 @@ function DateFormatEditor({ format, detectedFormat, onChange }: DateFormatEditor
                     variant="body2"
                     sx={{ mt: 0.5, fontFamily: 'monospace' }}
                 >
-                    {formatDateValue(new Date(), format.dateFormat || 'yyyy-MM-dd')}
+                    {formatDateValue(new Date(), format.dateFormat || 'yyyy-MM-dd', readPreviewDate)}
                 </Typography>
             </Paper>
         </>

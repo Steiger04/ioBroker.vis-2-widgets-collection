@@ -11,7 +11,7 @@
 import type { FilterFn, Row } from '@tanstack/react-table';
 
 import type { FilterConfig, FilterOperator } from '../components/FilterDialog';
-import { toDateMs, type DateFormatId } from './formatters';
+import { dateReader, localDay, type DateReader } from '../dateReader';
 
 /** Type for flat row data used in the table */
 type FlatRow = Record<string, unknown>;
@@ -39,112 +39,11 @@ function safeToString(value: unknown): string {
 }
 
 /**
- * Normalizes a date value to a timestamp for comparison.
- * Supports multiple input formats:
- * - ISO-8601 strings (e.g., "2024-12-31", "2024-12-31T23:59:59Z")
- * - European format dd.MM.yyyy (e.g., "31.12.2024")
- * - US format MM/dd/yyyy (e.g., "12/31/2024")
- * - Epoch timestamps in seconds or milliseconds
- * - Date objects
- *
- * @param value - The value to normalize (string, number, or Date)
- * @returns Timestamp in milliseconds, or null if parsing fails
+ * Reads filter values (the date input's `YYYY-MM-DD`) and, until the Spaltenfilter binds the
+ * evaluation to the Effektiver Typ, the cells of non-date columns: the Datums-Leser for a
+ * value without a detected Column — no browser heuristic.
  */
-function normalizeToTimestamp(value: unknown): number | null {
-    if (value === null || value === undefined) {
-        return null;
-    }
-
-    // Handle Date objects directly
-    if (value instanceof Date) {
-        const time = value.getTime();
-        return isNaN(time) ? null : time;
-    }
-
-    // Handle numbers (epoch timestamps)
-    if (typeof value === 'number') {
-        // Threshold 1e11 distinguishes seconds (< ~1973) from milliseconds (>= ~1973)
-        // Epoch seconds are typically < 1e11 until year 5138
-        // Epoch milliseconds are typically >= 1e11 for modern dates
-        const timestamp = value >= 1e11 ? value : value * 1000;
-        const date = new Date(timestamp);
-        return isNaN(date.getTime()) ? null : timestamp;
-    }
-
-    // Handle strings
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (!trimmed) {
-            return null;
-        }
-
-        // Try European format dd.MM.yyyy first (must check before US format to avoid ambiguity)
-        const europeanMatch = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
-        if (europeanMatch) {
-            const [, day, month, year, hour = '0', minute = '0', second = '0'] = europeanMatch;
-            const date = new Date(
-                parseInt(year, 10),
-                parseInt(month, 10) - 1,
-                parseInt(day, 10),
-                parseInt(hour, 10),
-                parseInt(minute, 10),
-                parseInt(second, 10),
-            );
-            return isNaN(date.getTime()) ? null : date.getTime();
-        }
-
-        // Try US format MM/dd/yyyy
-        const usMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
-        if (usMatch) {
-            const [, month, day, year, hour = '0', minute = '0', second = '0'] = usMatch;
-            const date = new Date(
-                parseInt(year, 10),
-                parseInt(month, 10) - 1,
-                parseInt(day, 10),
-                parseInt(hour, 10),
-                parseInt(minute, 10),
-                parseInt(second, 10),
-            );
-            return isNaN(date.getTime()) ? null : date.getTime();
-        }
-
-        // Try pure numeric string as epoch
-        if (/^-?\d+$/.test(trimmed)) {
-            const numValue = parseInt(trimmed, 10);
-            const timestamp = numValue >= 1e11 ? numValue : numValue * 1000;
-            const date = new Date(timestamp);
-            return isNaN(date.getTime()) ? null : timestamp;
-        }
-
-        // Fallback: use Date constructor for ISO-8601 and other standard formats
-        const date = new Date(trimmed);
-        return isNaN(date.getTime()) ? null : date.getTime();
-    }
-
-    return null;
-}
-
-/**
- * Checks if a value looks like a date (can be parsed as a valid date).
- *
- * @param value - The value to check
- * @returns Whether the value can be interpreted as a date
- */
-function looksLikeDate(value: unknown): boolean {
-    return normalizeToTimestamp(value) !== null;
-}
-
-/**
- * Truncates a timestamp to the start of its LOCAL calendar day (local midnight).
- *
- * Used so date-column comparisons match the LOCAL day the user sees in the default
- * (non-ISO) display, instead of comparing against UTC midnight or a full timestamp.
- */
-function startOfLocalDay(ms: number): number {
-    const d = new Date(ms);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-}
+const readUndetectedDate = dateReader();
 
 /**
  * Performs the actual filter comparison based on operator and values.
@@ -219,8 +118,8 @@ function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValu
     ];
 
     if (comparisonOperators.includes(operator)) {
-        const cellTimestamp = normalizeToTimestamp(cellValue);
-        const filterTimestamp = normalizeToTimestamp(filterValue);
+        const cellTimestamp = readUndetectedDate(cellValue);
+        const filterTimestamp = readUndetectedDate(filterValue);
 
         // If both values are valid dates, use timestamp comparison
         if (cellTimestamp !== null && filterTimestamp !== null) {
@@ -298,22 +197,22 @@ function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValu
 /**
  * Date-aware filter comparison at LOCAL-DAY granularity.
  *
- * Both the cell value and the filter value are normalized to a full-precision timestamp
- * via {@link toDateMs} (honoring `inputFormat`) and then truncated to the start of their
- * LOCAL day. This makes `equals` match every value on the same LOCAL day (regardless of
- * its time component) and keeps range operators consistent with the LOCAL display.
+ * The cell value is read by the Column's Datums-Leser, the filter value (the date input's
+ * `YYYY-MM-DD`) by the reader for values without a Column; both compare at their local day.
+ * This makes `equals` match every value on the same local day (regardless of its time
+ * component) and keeps range operators consistent with the local display.
  *
  * @param cellValue - Raw cell value
  * @param operator - Filter operator
  * @param filterValue - Filter value (string from the date picker, number, etc.)
- * @param inputFormat - Detected column input format for unambiguous parsing
+ * @param read - The Column's Datums-Leser
  * @returns Whether the cell matches the filter criteria
  */
 function evaluateDateFilter(
     cellValue: unknown,
     operator: FilterOperator,
     filterValue: string | number | boolean,
-    inputFormat?: DateFormatId,
+    read: DateReader,
 ): boolean {
     // isEmpty / isNotEmpty operate on raw presence, not on date parsing
     if (operator === 'isEmpty') {
@@ -329,16 +228,16 @@ function evaluateDateFilter(
         return cellValue !== null && cellValue !== undefined;
     }
 
-    const cellMs = toDateMs(cellValue, inputFormat);
-    const filterMs = toDateMs(filterValue, inputFormat);
+    const cellMs = read(cellValue);
+    const filterMs = readUndetectedDate(filterValue);
 
-    // Unparseable cell or filter value cannot satisfy any comparison operator
+    // Unreadable cell or filter value cannot satisfy any comparison operator
     if (cellMs === null || filterMs === null) {
         return false;
     }
 
-    const cellDay = startOfLocalDay(cellMs);
-    const filterDay = startOfLocalDay(filterMs);
+    const cellDay = localDay(cellMs).start;
+    const filterDay = localDay(filterMs).start;
 
     switch (operator) {
         case 'equals':
@@ -364,21 +263,21 @@ function evaluateDateFilter(
  * Compares at LOCAL-DAY granularity so that `equals` matches every value on the same
  * calendar day the user sees. Attached only to date columns in `buildColumnDefs`.
  *
- * @param inputFormat - Detected input format for parsing string cell values
+ * @param read - The Column's Datums-Leser
  * @returns A TanStack Table compatible filter function expecting a FilterConfig
  */
-export function createDateFilterFn(inputFormat?: DateFormatId): FilterFn<FlatRow> {
+export function createDateFilterFn(read: DateReader): FilterFn<FlatRow> {
     return (row: Row<FlatRow>, columnId: string, filterValue: unknown): boolean => {
         if (filterValue === undefined || filterValue === null) {
             return true;
         }
         if (typeof filterValue === 'object' && filterValue !== null && 'operator' in filterValue) {
             const config = filterValue as FilterConfig;
-            return evaluateDateFilter(row.getValue(columnId), config.operator, config.value, inputFormat);
+            return evaluateDateFilter(row.getValue(columnId), config.operator, config.value, read);
         }
         // Legacy: a plain string/number value means "equals this day"
         if (typeof filterValue === 'string' || typeof filterValue === 'number') {
-            return evaluateDateFilter(row.getValue(columnId), 'equals', filterValue, inputFormat);
+            return evaluateDateFilter(row.getValue(columnId), 'equals', filterValue, read);
         }
         return true;
     };
@@ -473,6 +372,3 @@ export function isFilterConfig(value: unknown): value is FilterConfig {
         typeof (value as FilterConfig).operator === 'string'
     );
 }
-
-// Re-export normalizeToTimestamp for testing purposes
-export { normalizeToTimestamp, looksLikeDate };

@@ -15,27 +15,43 @@
 
 import type { FilterFn } from '@tanstack/react-table';
 import { FORMATTERS } from './cellFormatters';
+import { dateReader, type DateDetection, type DateReader } from '../dateReader';
 import type { ColumnConfigEntry, ColumnFormatConfig } from '../types';
+
+/** A Column found by the analysis engine: its path plus what the Datums-Leser needs. */
+export type DetectedColumn = DateDetection & Readonly<{ path: string }>;
+
+/** A date-formatted Column: its format plus its Datums-Leser. */
+interface DateColumn {
+    fmt: ColumnFormatConfig;
+    readDate: DateReader;
+}
 
 /**
  * Build the global quick-filter function for a set of configured columns.
  *
  * @param columnConfig - The table's column configuration; only `date` columns
  * get display-value matching, looked up by column id (== column path).
+ * @param detectedColumns - The analysis engine's Columns; their detection picks each date
+ * column's Datums-Leser, the same the cell renderer reads with.
  * @returns A TanStack `FilterFn` for use as `globalFilterFn`.
  */
-export function createDateAwareGlobalFilter(columnConfig: ColumnConfigEntry[]): FilterFn<Record<string, unknown>> {
-    // Precompute date columns: column id (== column path) → format config.
-    const dateColumns = new Map<string, ColumnFormatConfig>();
+export function createDateAwareGlobalFilter(
+    columnConfig: ColumnConfigEntry[],
+    detectedColumns: readonly DetectedColumn[],
+): FilterFn<Record<string, unknown>> {
+    // Precompute date columns: column id (== column path) → format config and reader.
+    const detection = new Map(detectedColumns.map(col => [col.path, col]));
+    const dateColumns = new Map<string, DateColumn>();
     for (const cfg of columnConfig) {
         if (cfg.format?.type === 'date') {
-            dateColumns.set(cfg.path, cfg.format);
+            dateColumns.set(cfg.path, { fmt: cfg.format, readDate: dateReader(detection.get(cfg.path)) });
         }
     }
 
-    // Display string for a date cell, via the same formatter the renderer uses.
-    const dateDisplayValue = (cellValue: unknown, dateFmt: ColumnFormatConfig): string =>
-        FORMATTERS.date.format(cellValue, { fmt: dateFmt, defaultDisplay: '' }).displayValue ?? '';
+    // Display string for a date cell, via the same formatter and reader the renderer uses.
+    const dateDisplayValue = (cellValue: unknown, { fmt, readDate }: DateColumn): string =>
+        FORMATTERS.date.format(cellValue, { fmt, defaultDisplay: '', readDate }).displayValue ?? '';
 
     return (row, columnId, filterValue: unknown): boolean => {
         // String() is only called on primitives; objects would stringify to

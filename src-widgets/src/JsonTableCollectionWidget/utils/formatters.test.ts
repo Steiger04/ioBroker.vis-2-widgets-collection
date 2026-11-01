@@ -1,90 +1,66 @@
 import { describe, expect, it } from 'vitest';
-import { formatDateValue, normalizeToIsoDate, toDateMs } from './formatters';
-import type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
+import { formatDateValue } from './formatters';
+import { dateReader } from '../dateReader';
 
-// Characterization tests: lock the CURRENT behaviour of the three date functions
-// before the parseDateToMs consolidation (candidate B, Q3=A). Expected values are
-// chosen to be timezone-robust: local-constructor equivalence for local-parsing
-// paths, UTC-explicit instants for normalizeToIsoDate (which slices toISOString),
-// and year tokens for formatDateValue.
+// How values are read as dates is the Datums-Leser's contract (dateReader.test.ts); these
+// tests pin what the display does with the reading. Expected values stay timezone-robust:
+// local-constructor inputs for token output, UTC-explicit instants for the ISO output.
 
-const DMY = 'dd.MM.yyyy' as DateFormatId;
-const MDY = 'MM/dd/yyyy' as DateFormatId;
-
-describe('toDateMs', () => {
-    it('returns null for empty-ish inputs', () => {
-        expect(toDateMs(null)).toBeNull();
-        expect(toDateMs(undefined)).toBeNull();
-        expect(toDateMs('')).toBeNull();
-    });
-
-    it('passes epoch-ms through (>= 1e11)', () => {
-        expect(toDateMs(1_700_000_000_000)).toBe(1_700_000_000_000);
-    });
-
-    it('scales epoch-seconds to ms (< 1e11)', () => {
-        expect(toDateMs(1_700_000_000)).toBe(1_700_000_000_000);
-    });
-
-    it('returns getTime for a Date object', () => {
-        expect(toDateMs(new Date(1_700_000_000_000))).toBe(1_700_000_000_000);
-    });
-
-    it('parses European dd.MM.yyyy as local midnight', () => {
-        expect(toDateMs('15.06.2024', DMY)).toBe(new Date(2024, 5, 15).getTime());
-    });
-
-    it('parses US MM/dd/yyyy as local midnight', () => {
-        expect(toDateMs('06/15/2024', MDY)).toBe(new Date(2024, 5, 15).getTime());
-    });
-
-    it('parses pure yyyy-MM-dd as local midnight (not UTC)', () => {
-        expect(toDateMs('2024-06-15')).toBe(new Date(2024, 5, 15).getTime());
-    });
-
-    it('parses numeric strings as epoch (s vs ms by 1e11)', () => {
-        expect(toDateMs('1700000000')).toBe(1_700_000_000_000);
-    });
-
-    it('returns null for unparseable strings', () => {
-        expect(toDateMs('not a date')).toBeNull();
-    });
-});
-
-describe('normalizeToIsoDate', () => {
-    it('returns empty string for null/undefined', () => {
-        expect(normalizeToIsoDate(null)).toBe('');
-        expect(normalizeToIsoDate(undefined)).toBe('');
-    });
-
-    it('slices a UTC-explicit instant to its UTC day', () => {
-        expect(normalizeToIsoDate('2024-06-15T12:00:00Z')).toBe('2024-06-15');
-    });
-
-    it('reassembles European input to yyyy-MM-dd (no Date involved)', () => {
-        expect(normalizeToIsoDate('15.06.2024', DMY)).toBe('2024-06-15');
-    });
-
-    it('returns empty string for unparseable input', () => {
-        expect(normalizeToIsoDate('not a date')).toBe('');
-    });
-});
+const manualDate = dateReader();
+const detectedDmy = dateReader({ type: 'date', dateFormat: 'dd.MM.yyyy' });
 
 describe('formatDateValue', () => {
     it('returns empty string for null/empty', () => {
-        expect(formatDateValue(null)).toBe('');
-        expect(formatDateValue('')).toBe('');
+        expect(formatDateValue(null, undefined, manualDate)).toBe('');
+        expect(formatDateValue('', undefined, manualDate)).toBe('');
     });
 
     it('formats the year of a UTC-noon instant (TZ-stable)', () => {
-        expect(formatDateValue('2024-06-15T12:00:00Z', 'yyyy')).toBe('2024');
+        expect(formatDateValue('2024-06-15T12:00:00Z', 'yyyy', manualDate)).toBe('2024');
     });
 
     it('round-trips a pure yyyy-MM-dd through local midnight', () => {
-        expect(formatDateValue('2024-06-15', 'yyyy-MM-dd')).toBe('2024-06-15');
+        expect(formatDateValue('2024-06-15', 'yyyy-MM-dd', manualDate)).toBe('2024-06-15');
     });
 
-    it('falls back to toDisplayString for non-date values', () => {
-        expect(formatDateValue(true)).toBe('true');
+    it('formats every token in local time', () => {
+        const ms = new Date(2024, 5, 15, 9, 5, 7, 42).getTime();
+        expect(formatDateValue(ms, 'dd.MM.yyyy HH:mm:ss.SSS', manualDate)).toBe('15.06.2024 09:05:07.042');
+    });
+
+    it('defaults to yyyy-MM-dd', () => {
+        expect(formatDateValue('15.06.2024', undefined, detectedDmy)).toBe('2024-06-15');
+    });
+
+    it('keeps the ISO-8601 (UTC) output', () => {
+        expect(formatDateValue('2024-06-15T12:00:00Z', "yyyy-MM-dd'T'HH:mm:ss.SSSxxx", manualDate)).toBe(
+            '2024-06-15T12:00:00.000Z',
+        );
+    });
+
+    it('formats a Date instance (the format editor preview)', () => {
+        expect(formatDateValue(new Date(2024, 5, 15), 'dd.MM.yyyy', manualDate)).toBe('15.06.2024');
+    });
+
+    it('shows a value the reader cannot read as its Raw value', () => {
+        expect(formatDateValue(true, undefined, manualDate)).toBe('true');
+        expect(formatDateValue('n/a', 'dd.MM.yyyy', detectedDmy)).toBe('n/a');
+    });
+
+    // Regression: the browser parser read "1.12.2024" as 12 January 2024.
+    it('shows 1.12.2024 in a manual date column as raw text, not 12 January', () => {
+        expect(formatDateValue('1.12.2024', 'yyyy-MM-dd', manualDate)).toBe('1.12.2024');
+    });
+
+    // Regression: epoch strings sorted as dates but displayed as raw text.
+    it('formats an epoch string in a manual date column', () => {
+        const ms = new Date(2024, 11, 1, 10, 30).getTime();
+        expect(formatDateValue(String(ms), 'dd.MM.yyyy HH:mm', manualDate)).toBe('01.12.2024 10:30');
+        expect(formatDateValue(String(ms / 1000), 'dd.MM.yyyy HH:mm', manualDate)).toBe('01.12.2024 10:30');
+    });
+
+    it('formats the tolerant patterns of a manual date column', () => {
+        expect(formatDateValue('2024-12-01 10:00:00', 'dd.MM.yyyy HH:mm', manualDate)).toBe('01.12.2024 10:00');
+        expect(formatDateValue('2024-12-01T10:00', 'dd.MM.yyyy HH:mm', manualDate)).toBe('01.12.2024 10:00');
     });
 });
