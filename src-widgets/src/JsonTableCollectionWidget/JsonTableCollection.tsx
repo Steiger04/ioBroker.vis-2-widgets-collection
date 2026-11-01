@@ -5,7 +5,7 @@
  * @remarks
  * Functional component that reads a JSON string from the OID state value through the
  * Spalten-Merge (`./columns`), and renders a TanStack Table v8 (headless)
- * backed by MUI Table components.
+ * backed by MUI Table components, drawn in the Tabellen-Chrome (`./chrome`).
  */
 
 import {
@@ -41,6 +41,7 @@ import {
     type SortingState,
     type Column,
     type Header,
+    type Row,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useContext, useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
@@ -58,10 +59,9 @@ import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useViewState } from './useViewState';
 import ColumnMenu from './components/ColumnMenu';
-import { gradientColor } from '../lib/helper/gradientColor';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { tableCapabilities, type EffectiveType } from './capabilities';
+import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
@@ -85,10 +85,36 @@ declare module '@tanstack/react-table' {
 
 type FlatRow = Record<string, unknown>;
 
-// ── Density row height mapping ───────────────────────────────────────────────
+// ── Body row ────────────────────────────────────────────────────────────────
 
-const DENSITY_ROW_HEIGHT: Record<string, number> = { compact: 36, standard: 52, comfortable: 68 };
-const DENSITY_HEADER_HEIGHT: Record<string, number> = { compact: 36, standard: 56, comfortable: 68 };
+/**
+ * One body row, the same markup for the virtualized and the paged body.
+ *
+ * @param row The TanStack row.
+ * @param rowIndex The row's index on the page (drives the even/odd background).
+ * @param chrome The resolved Tabellen-Chrome.
+ * @returns The row element.
+ */
+function renderBodyRow(row: Row<FlatRow>, rowIndex: number, chrome: TableChrome): React.JSX.Element {
+    return (
+        <TableRow
+            key={row.id}
+            data-row-index={rowIndex}
+            sx={chrome.rowSx(rowIndex)}
+        >
+            {row.getVisibleCells().map(cell => (
+                <TableCell
+                    key={cell.id}
+                    align={cell.column.columnDef.meta?.align || 'left'}
+                    padding={cell.column.id === '__select__' ? 'checkbox' : 'normal'}
+                    sx={chrome.cellSx}
+                >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+            ))}
+        </TableRow>
+    );
+}
 
 // ── TypographyMenuItem component for TablePagination ───────────────────────────
 
@@ -152,11 +178,9 @@ const JsonTableCollection: FC = () => {
     );
     const emptyText = emptyState(oidType, isValidType, tableColumns);
 
-    // ── Row height / header height ────────────────────────────────────────────
+    // ── Tabellen-Chrome (frame, header bar, borders, row backgrounds, heights) ──
 
-    const density = widget.data.tableDensity || 'standard';
-    const effectiveRowHeight = Number(widget.data.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
-    const effectiveHeaderHeight = Number(widget.data.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
+    const chrome = useMemo(() => buildTableChrome(widget.data, theme), [widget.data, theme]);
 
     // ── Grid rows ─────────────────────────────────────────────────────────────
 
@@ -351,161 +375,11 @@ const JsonTableCollection: FC = () => {
         return () => observer.disconnect();
     }, [isAutoSize, table]);
 
-    // ── sx memos ──────────────────────────────────────────────────────────────
-
-    const tableSx = useMemo(() => {
-        const sx: Record<string, unknown> = {
-            tableLayout: isAutoSize ? 'auto' : 'fixed',
-            width: '100%',
-        };
-
-        // Horizontal borders (row borders)
-        if (widget.data.tableShowRowBorders === false) {
-            sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
-        } else {
-            const hBorderWidth = widget.data.horizontalCellBorderWidth ?? 1;
-            const hBorderColorValue = extractColorFromValue(widget.data.horizontalCellBorderColor);
-            sx['& .MuiTableCell-root'] = {
-                ...(sx['& .MuiTableCell-root'] as Record<string, unknown>),
-                borderBottom: `${hBorderWidth}px solid`,
-                borderBottomColor: hBorderColorValue || 'divider',
-            };
-        }
-
-        // Vertical borders (cell borders) - exclude first and last cell borders
-        if (widget.data.tableShowCellBorders === true) {
-            const vBorderWidth = widget.data.verticalCellBorderWidth ?? 1;
-            const vBorderColorValue = extractColorFromValue(widget.data.verticalCellBorderColor);
-            // Apply borderRight only to cells that are NOT the last in their row
-            // This hides the outer vertical borders (first left and last right)
-            sx['& .MuiTableCell-root:not(:last-child)'] = {
-                borderRight: `${vBorderWidth}px solid`,
-                borderRightColor: vBorderColorValue || 'divider',
-            };
-        }
-        return sx;
-    }, [
-        widget.data.tableShowRowBorders,
-        widget.data.tableShowCellBorders,
-        widget.data.horizontalCellBorderWidth,
-        widget.data.horizontalCellBorderColor,
-        widget.data.verticalCellBorderWidth,
-        widget.data.verticalCellBorderColor,
-        isAutoSize,
-    ]);
-
-    const headerBgColor = widget.data.tableHeaderBgColor;
-    const headerTextColor = widget.data.tableHeaderTextColor;
-    const headerFontSize = widget.data.tableHeaderFontSize;
-
-    const headerCellSx = useMemo(
-        () => ({
-            height: effectiveHeaderHeight,
-            padding: 0,
-            whiteSpace: 'nowrap' as const,
-            ...(headerTextColor && { color: headerTextColor }),
-            ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
-        }),
-        [effectiveHeaderHeight, headerTextColor, headerFontSize],
-    );
-
-    // Typography sx for header text - ensures color and fontSize are applied correctly
-    const headerTextSx = useMemo(
-        () => ({
-            ...(headerTextColor && { color: headerTextColor }),
-            ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
-        }),
-        [headerTextColor, headerFontSize],
-    );
-
-    const noCard = widget.data.noCard === true;
+    // ── Header ────────────────────────────────────────────────────────────────
 
     // Header row visibility (default: visible). When hidden the entire TableHead is
     // skipped and the Tabellen-Fähigkeiten switch off every header-hosted capability.
     const showHeader = capabilities.header;
-
-    // Header border styling
-    const headerBorderWidth = widget.data.headerBorderWidth ?? 0;
-    const headerBorderColorValue = extractColorFromValue(widget.data.headerBorderColor);
-
-    // Header container styling - uses configurable elevation (default: 6)
-    // backgroundColor fallback ensures header is not transparent
-    const headerContainerSx = useMemo(() => {
-        const headerElevation = widget.data.tableHeaderElevation ?? 6;
-
-        const base: Record<string, unknown> = noCard
-            ? { backgroundColor: 'transparent', boxShadow: 'none' }
-            : {
-                  backgroundColor: 'background.paper',
-                  boxShadow: headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
-              };
-
-        // Add header bottom border as pseudo-element for sticky positioning
-        // Using ::after ensures the border stays visible when scrolling
-        if (headerBorderWidth > 0) {
-            base['&::after'] = {
-                content: '""',
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: `${headerBorderWidth}px`,
-                backgroundColor: headerBorderColorValue || theme.palette.divider,
-                pointerEvents: 'none',
-            };
-        }
-
-        const gradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
-        if (gradientBg) {
-            return { ...base, background: gradientBg };
-        }
-        if (headerBgColor) {
-            return { ...base, backgroundColor: headerBgColor };
-        }
-        return base;
-    }, [
-        noCard,
-        headerBgColor,
-        theme.shadows,
-        theme.palette.divider,
-        widget.data.tableHeaderElevation,
-        headerBorderWidth,
-        headerBorderColorValue,
-    ]);
-
-    // Outer container styling (border and overflow:hidden to clip scrollbars)
-    const outerContainerSx = useMemo(() => {
-        const base: Record<string, unknown> = {
-            flex: 1,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-        };
-
-        const borderWidth = widget.data.borderWidth;
-        const borderStyle = widget.data.borderStyle || 'solid';
-        const borderColor = extractColorFromValue(widget.data.borderColor);
-        const borderRadius = widget.data.borderRadius;
-
-        if (borderWidth && borderWidth > 0) {
-            base.border = `${borderWidth}px ${borderStyle}`;
-            base.borderColor = borderColor || 'divider';
-        }
-        if (borderRadius) {
-            base.borderRadius = borderRadius;
-        }
-
-        return base;
-    }, [widget.data.borderWidth, widget.data.borderStyle, widget.data.borderColor, widget.data.borderRadius]);
-
-    // Inner table container styling (overflow:auto for scrollbars)
-    const tableContainerSx = useMemo(
-        () => ({
-            flex: 1,
-            overflow: 'auto',
-        }),
-        [],
-    );
 
     const getHeaderCellWidth = useCallback(
         (header: Header<FlatRow, unknown>): number | 'auto' => {
@@ -517,44 +391,6 @@ const JsonTableCollection: FC = () => {
         [isAutoSize, headerWidths],
     );
 
-    const cellBaseSx = useMemo(
-        () => ({
-            // fontSize removed - applied directly to Typography in TableCellRenderer
-            overflow: 'hidden',
-            height: effectiveRowHeight,
-            maxHeight: effectiveRowHeight,
-            padding: 0, // Padding moved to TableCellRenderer for proper background color coverage
-            verticalAlign: 'middle',
-        }),
-        [effectiveRowHeight],
-    );
-
-    const evenRowColorValue = widget.data.evenRowColor || null;
-    const oddRowColorValue = widget.data.oddRowColor || null;
-    const evenRowGradient = evenRowColorValue ? gradientColor(evenRowColorValue) : null;
-    const oddRowGradient = oddRowColorValue ? gradientColor(oddRowColorValue) : null;
-
-    const getRowSx = useCallback(
-        (rowIndex: number) => {
-            const isEven = rowIndex % 2 === 0;
-            const colorValue = isEven ? evenRowColorValue : oddRowColorValue;
-            const gradient = isEven ? evenRowGradient : oddRowGradient;
-
-            if (!colorValue) {
-                return undefined;
-            }
-
-            if (gradient) {
-                return { background: gradient };
-            }
-
-            return {
-                backgroundColor: colorValue,
-            };
-        },
-        [evenRowColorValue, oddRowColorValue, evenRowGradient, oddRowGradient],
-    );
-
     // ── Row virtualization ────────────────────────────────────────────────────
 
     const tableRows = table.getRowModel().rows;
@@ -562,12 +398,12 @@ const JsonTableCollection: FC = () => {
     const rowVirtualizer = useVirtualizer({
         count: tableRows.length,
         getScrollElement: () => tableContainerRef.current,
-        estimateSize: () => effectiveRowHeight,
+        estimateSize: () => chrome.rowHeight,
         // Higher overscan prevents flickering during fast scrolling
         // by rendering more rows outside the viewport
         overscan: 25,
         // Smooth scrolling behavior
-        scrollPaddingStart: effectiveRowHeight,
+        scrollPaddingStart: chrome.rowHeight,
     });
 
     const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
@@ -591,16 +427,7 @@ const JsonTableCollection: FC = () => {
                 widget={widget}
             />
             {emptyText === null ? (
-                <Box
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                        p: Number(widget.data.jsonTablePadding) || 0,
-                    }}
-                >
+                <Box sx={chrome.bodySx}>
                     {capabilities.quickFilter && (
                         <Box sx={{ p: 1, flexShrink: 0 }}>
                             <TextField
@@ -634,30 +461,21 @@ const JsonTableCollection: FC = () => {
                     )}
 
                     {/* Outer container with border and overflow:hidden to clip scrollbars at rounded corners */}
-                    <Box sx={outerContainerSx}>
+                    <Box sx={chrome.frameSx}>
                         {/* TanStack Table v8 best practice: Single table with sticky thead */}
                         <TableContainer
                             ref={tableContainerRef}
-                            sx={tableContainerSx}
+                            sx={chrome.scrollSx}
                         >
                             <Table
-                                size={density === 'compact' ? 'small' : 'medium'}
-                                sx={tableSx}
+                                size={chrome.tableSize}
+                                sx={chrome.tableSx}
                             >
                                 {/* Sticky TableHead - follows TanStack Table v8 best practices.
                                      Skipped entirely when tableShowHeader is false, so no sticky
                                      bar or elevation shadow is rendered for an empty header. */}
                                 {showHeader && (
-                                    <TableHead
-                                        sx={{
-                                            position: 'sticky',
-                                            top: 0,
-                                            zIndex: 2,
-                                            ...headerContainerSx,
-                                            '& .resize-handle': { opacity: 0 },
-                                            '&:hover .resize-handle': { opacity: 1 },
-                                        }}
-                                    >
+                                    <TableHead sx={chrome.headerBarSx}>
                                         {table.getHeaderGroups().map(headerGroup => (
                                             <TableRow key={headerGroup.id}>
                                                 {headerGroup.headers.map(header => {
@@ -678,7 +496,7 @@ const JsonTableCollection: FC = () => {
                                                                 width: getHeaderCellWidth(header),
                                                                 minWidth: isSelectCol ? 48 : 40,
                                                                 position: 'relative',
-                                                                ...headerCellSx,
+                                                                ...chrome.headerCellSx,
                                                             }}
                                                         >
                                                             {isSelectCol ? (
@@ -713,7 +531,7 @@ const JsonTableCollection: FC = () => {
                                                                                 component="span"
                                                                                 fontWeight="medium"
                                                                                 noWrap
-                                                                                sx={headerTextSx}
+                                                                                sx={chrome.headerTextSx}
                                                                             >
                                                                                 {flexRender(
                                                                                     header.column.columnDef.header,
@@ -727,7 +545,7 @@ const JsonTableCollection: FC = () => {
                                                                             component="span"
                                                                             fontWeight="medium"
                                                                             noWrap
-                                                                            sx={headerTextSx}
+                                                                            sx={chrome.headerTextSx}
                                                                         >
                                                                             {flexRender(
                                                                                 header.column.columnDef.header,
@@ -810,39 +628,9 @@ const JsonTableCollection: FC = () => {
                                                     />
                                                 </TableRow>
                                             )}
-                                            {virtualItems.map(virtualRow => {
-                                                const row = tableRows[virtualRow.index];
-                                                const rowIndex = virtualRow.index;
-                                                return (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        data-row-index={rowIndex}
-                                                        sx={{
-                                                            height: effectiveRowHeight,
-                                                            ...getRowSx(rowIndex),
-                                                        }}
-                                                    >
-                                                        {row.getVisibleCells().map(cell => {
-                                                            const isSelectCell = cell.column.id === '__select__';
-                                                            return (
-                                                                <TableCell
-                                                                    key={cell.id}
-                                                                    align={cell.column.columnDef.meta?.align || 'left'}
-                                                                    padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                                    sx={{
-                                                                        ...cellBaseSx,
-                                                                    }}
-                                                                >
-                                                                    {flexRender(
-                                                                        cell.column.columnDef.cell,
-                                                                        cell.getContext(),
-                                                                    )}
-                                                                </TableCell>
-                                                            );
-                                                        })}
-                                                    </TableRow>
-                                                );
-                                            })}
+                                            {virtualItems.map(virtualRow =>
+                                                renderBodyRow(tableRows[virtualRow.index], virtualRow.index, chrome),
+                                            )}
                                             {paddingBottom > 0 && (
                                                 <TableRow>
                                                     <TableCell
@@ -853,32 +641,7 @@ const JsonTableCollection: FC = () => {
                                             )}
                                         </>
                                     ) : (
-                                        tableRows.map((row, rowIndex) => (
-                                            <TableRow
-                                                key={row.id}
-                                                data-row-index={rowIndex}
-                                                sx={{
-                                                    height: effectiveRowHeight,
-                                                    ...getRowSx(rowIndex),
-                                                }}
-                                            >
-                                                {row.getVisibleCells().map(cell => {
-                                                    const isSelectCell = cell.column.id === '__select__';
-                                                    return (
-                                                        <TableCell
-                                                            key={cell.id}
-                                                            align={cell.column.columnDef.meta?.align || 'left'}
-                                                            padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                            sx={{
-                                                                ...cellBaseSx,
-                                                            }}
-                                                        >
-                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </TableCell>
-                                                    );
-                                                })}
-                                            </TableRow>
-                                        ))
+                                        tableRows.map((row, rowIndex) => renderBodyRow(row, rowIndex, chrome))
                                     )}
                                 </TableBody>
                             </Table>
