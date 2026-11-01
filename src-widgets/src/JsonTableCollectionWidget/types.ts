@@ -11,7 +11,6 @@
  * properties are automatically supported (all new fields are optional).
  */
 
-import type { DateFormatId } from '../hooks/useJsonTableAnalysis/types';
 import type { JsonLogicRule } from './utils/jsonLogicEngine';
 
 // ── Column Format Configuration ─────────────────────────────────
@@ -83,13 +82,11 @@ export interface ColumnFormatConfig {
     numberThousandsSeparator?: boolean;
 
     // ── Date formatting ─────────────────────────────────────────
-    /** Output format string (date-fns compatible), e.g. "yyyy-MM-dd" */
-    dateFormat?: string;
     /**
-     * Detected input format from analysis at the time of editing (informational, read-only).
-     * Not read for parsing: the Datums-Leser follows the live detection (ADR-0093).
+     * Output format string (date-fns compatible), e.g. "yyyy-MM-dd". The input is read by
+     * the Column's Datums-Leser, following the live detection (ADR-0093) — never stored.
      */
-    dateInputFormat?: DateFormatId;
+    dateFormat?: string;
 
     // ── Boolean formatting ──────────────────────────────────────
     /** Display label for true values. @default "true" */

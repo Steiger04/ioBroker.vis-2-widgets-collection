@@ -4,7 +4,8 @@
  * @module JsonTableCollectionWidget/components/editors/DateFormatEditor
  * @remarks
  * Provides UI controls for date formatting options including output format
- * selection with live preview and detected input format display.
+ * selection with live preview and detected input format display (read-only: the
+ * Datums-Leser follows the live detection, nothing about the input is stored).
  */
 
 import { FormControl, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
@@ -23,7 +24,7 @@ const readPreviewDate = dateReader();
 export interface DateFormatEditorProps {
     /** Current format configuration */
     format: ColumnFormatConfig;
-    /** Detected input format from analysis */
+    /** Detected input format from analysis, shown for information */
     detectedFormat?: DateFormatId;
     /** Callback when format changes */
     onChange: (patch: Partial<ColumnFormatConfig>) => void;
@@ -59,13 +60,7 @@ function DateFormatEditor({ format, detectedFormat, onChange }: DateFormatEditor
                 <Select
                     label={Generic.t('json_table_date_output_format')}
                     value={format.dateFormat || 'yyyy-MM-dd'}
-                    onChange={e =>
-                        onChange({
-                            type: 'date',
-                            dateFormat: e.target.value,
-                            dateInputFormat: detectedFormat,
-                        })
-                    }
+                    onChange={e => onChange({ type: 'date', dateFormat: e.target.value })}
                 >
                     {DATE_FORMAT_OPTIONS.map(opt => (
                         <MenuItem

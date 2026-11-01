@@ -165,7 +165,6 @@ function ColumnDetailEditor({
                     delete base.numberThousandsSeparator;
                 } else if (oldType === 'date') {
                     delete base.dateFormat;
-                    delete base.dateInputFormat;
                 } else if (oldType === 'boolean') {
                     delete base.booleanTrue;
                     delete base.booleanFalse;
