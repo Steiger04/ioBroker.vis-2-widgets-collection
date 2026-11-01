@@ -62,12 +62,13 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
     const canWrite = canWriteSessionOid(dialogIdObject);
     const autoCloseMs = parseAutoCloseTimeout(autoClose);
 
-    const clearTimer = (): void => {
+    // Stable: it only touches the timer ref, so the unmount cleanup can use it too.
+    const clearTimer = useCallback((): void => {
         if (timerRef.current) {
             clearTimeout(timerRef.current);
             timerRef.current = null;
         }
-    };
+    }, []);
 
     const dispatch = (event: DialogEvent): void => {
         const transition = decideDialogTransition(event, openRef.current, { autoCloseMs, canWrite });
@@ -97,14 +98,7 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
         dispatchRef.current({ type: 'observe', value: oidValue });
     }, [oidValue]);
 
-    useEffect(
-        () => () => {
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-            }
-        },
-        [],
-    );
+    useEffect(() => clearTimer, [clearTimer]);
 
     const onClick = useCallback(() => dispatchRef.current({ type: 'click' }), []);
     const onClose = useCallback(() => dispatchRef.current({ type: 'close' }), []);
