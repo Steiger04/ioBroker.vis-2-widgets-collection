@@ -98,8 +98,12 @@ describe('ButtonGroupCollection wiring', () => {
         expect(next.values[`${OID}.lc`]).toBe(VALUE_NOT_CHANGED_TIMESTAMP);
     });
 
-    it('disables the buttons for a read-only state (write === false)', () => {
-        const { container } = mountGroup(scene({ write: false }));
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
+    ])('disables the buttons for %s (Sperre)', (_case, data) => {
+        const { container } = mountGroup(scene(data));
 
         // MUI disables the toggle buttons via context; the group root div carries no class.
         expect(container.querySelector('.MuiToggleButton-root.Mui-disabled')).not.toBeNull();

@@ -97,8 +97,12 @@ describe('StateCollection wiring', () => {
         expect(document.querySelector('.MuiDialog-root')).not.toBeNull();
     });
 
-    it('disables the button for a read-only state (write === false)', () => {
-        const { container } = mountState(scene({ write: false }));
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
+    ])('disables the button for %s (Sperre)', (_case, data) => {
+        const { container } = mountState(scene(data));
 
         expect(container.querySelector('button.MuiButton-root.Mui-disabled')).not.toBeNull();
     });

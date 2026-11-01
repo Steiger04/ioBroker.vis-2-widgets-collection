@@ -9,7 +9,6 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { decideTriggerAction, type TriggerEvent } from './stateTrigger';
 import StateChangeDialog from './StateChangeDialog';
 import type { StateCollectionContextProps } from '../types';
@@ -30,7 +29,7 @@ function StateCollection(): React.ReactElement {
     const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { data, widgetStates, states } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
     const oidType = oidObject?.type;
@@ -73,7 +72,7 @@ function StateCollection(): React.ReactElement {
 
     const StateButton = (
         <Button
-            disabled={isOidReadOnly(widget.data)}
+            disabled={locked}
             onClick={(): void => fire('click')}
             onMouseDown={(): void => fire('press')}
             onMouseUp={(): void => fire('release')}

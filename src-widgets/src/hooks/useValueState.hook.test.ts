@@ -145,6 +145,46 @@ describe('useValueState hook', () => {
         unmount();
     });
 
+    it.each([
+        ['onlyDisplay', true, { onlyDisplay: true, oidObject: { _id: OID, type: 'string', write: true } }],
+        [
+            'a non-writable bound object (write === false)',
+            true,
+            { oidObject: { _id: OID, type: 'string', write: false } },
+        ],
+        ['a writable bound object', false, { oidObject: { _id: OID, type: 'string', write: true } }],
+        ['a bound object without write (writable by convention)', false, { oidObject: { _id: OID, type: 'string' } }],
+        // The lock follows the object actually bound, not the root `write` copy.
+        [
+            'a stale root write === false over a writable object',
+            false,
+            { write: false, oidObject: { _id: OID, type: 'string', write: true } },
+        ],
+    ])('locked (Sperre) for %s is %s', (_case, locked, data) => {
+        const box = makeBox({ oid: OID, delay: 0, ...data });
+        const { captured, unmount } = mount(box);
+
+        expect(captured.current?.locked).toBe(locked);
+        unmount();
+    });
+
+    it('Sperre ist weiter als der Guard: onlyDisplay locks, yet updateValue still writes a writable object', async () => {
+        // A leaked onlyDisplay on a Light2 Hilfs-OID (ADR-0096, no heal) must not stop its writes.
+        const box = makeBox({ ...stringOid(), onlyDisplay: true });
+        const { captured, unmount } = mount(box);
+
+        expect(captured.current?.locked).toBe(true);
+
+        act(() => {
+            captured.current?.updateValue('neu');
+        });
+        await flushWrites(1);
+
+        expect(box.values[`${OID}.val`]).toBe('neu');
+        expect(box.setValue).toHaveBeenCalledWith(OID, 'neu');
+        unmount();
+    });
+
     it('updateValue drops values that fail type conversion', () => {
         const box = makeBox(numberOid());
         const { captured, unmount } = mount(box);

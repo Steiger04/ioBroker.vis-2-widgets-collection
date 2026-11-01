@@ -9,7 +9,8 @@
  * flexGrow, squeezes the label out of the root's flex row and shifts the
  * labelPlacement arrangements. disableTypography keeps the label element as
  * the DIRECT flex child; these tests pin that structure (proven equivalent to
- * the pre-extraction DOM by an A/B mount diff, 2026-10-29).
+ * the pre-extraction DOM by an A/B mount diff, 2026-10-29). The Sperre cases pin
+ * the checkbox's `disabled` against the OID binding's `locked`.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -21,7 +22,7 @@ installInertResizeObserver();
 
 const OID = 'demo.0.switch';
 
-const mountCheckbox = (values: Record<string, unknown>): HTMLDivElement => {
+const mountCheckbox = (values: Record<string, unknown>, data: Record<string, unknown> = {}): HTMLDivElement => {
     const scene = {
         slug: 'checkbox-test',
         size: { width: 480, height: 160 },
@@ -41,6 +42,7 @@ const mountCheckbox = (values: Record<string, unknown>): HTMLDivElement => {
                     alias1: '<b>AN</b>',
                     value2: 'false',
                     alias2: '<b>AUS</b>',
+                    ...data,
                 },
                 style: {},
             },
@@ -80,5 +82,23 @@ describe('CheckboxCollection label DOM contract', () => {
         const root = container.querySelector('.MuiFormControlLabel-root');
         expect(root?.querySelector('.MuiFormControlLabel-label')).toBeNull();
         expect(root?.querySelector(':scope > div > div')?.innerHTML).toContain('<b>AN</b>');
+    });
+});
+
+describe('CheckboxCollection Sperre', () => {
+    it('leaves the checkbox enabled for a writable bound object', () => {
+        const container = mountCheckbox({ [`${OID}.val`]: false });
+
+        expect(container.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled).toBe(false);
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'boolean', write: false } }],
+    ])('disables the checkbox for %s', (_case, data) => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, data);
+
+        expect(container.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled).toBe(true);
     });
 });

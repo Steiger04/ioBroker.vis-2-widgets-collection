@@ -120,8 +120,9 @@ describe('RadioGroupCollection wiring', () => {
 
     it.each([
         ['onlyDisplay', { onlyDisplay: true }],
-        ['a read-only state (write === false)', { write: false }],
-    ])('locks every radio for %s: disabled, and a click writes nothing', (_case, data) => {
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
+    ])('locks every radio for %s (Sperre): disabled, and a click writes nothing', (_case, data) => {
         const { container, setState } = mountRadioGroup(scene(data));
 
         const inputs = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
