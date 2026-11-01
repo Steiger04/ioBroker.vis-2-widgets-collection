@@ -1,38 +1,35 @@
 /**
- * Column definition builder utilities for TanStack Table.
+ * The TanStack adapter over the table's Columns.
  *
  * @module JsonTableCollectionWidget/utils/columnDefinitions
  * @remarks
- * Provides helper functions and the main `buildColumnDefs` factory
- * for constructing TanStack Table column definitions from widget configuration.
+ * Which Columns a table has, their order, settings, Effektiver Typ and Datums-Leser are the
+ * Spalten-Merge's (`../columns`); this module only translates each visible Column into a
+ * TanStack column definition.
  */
 
 import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
-import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
-import type { ColumnConfigEntry } from '../types';
-import { columnCapabilities, effectiveType, type TableCapabilities } from '../capabilities';
-import { columnFilterFn } from '../columnFilter';
-import { dateReader, type DateReader } from '../dateReader';
-
-import type { CellColumn } from './cellFormatters';
+import { columnCapabilities, type TableCapabilities } from '../capabilities';
+import { columnFilterFn, readNumber } from '../columnFilter';
+import type { EffectiveColumn } from '../columns';
+import type { DateReader } from '../dateReader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** Flat row type used by TanStack Table */
 type FlatRow = Record<string, unknown>;
 
+/** The width of a Column without a configured one. */
+const DEFAULT_WIDTH = 150;
+
 /** Options for buildColumnDefs function */
 export interface BuildColumnDefsOptions {
-    /** User-configured column definitions from widget data */
-    columnConfig: ColumnConfigEntry[];
-    /** Auto-detected columns from JSON analysis */
-    analysisColumns: JsonTableColumn[];
+    /** The table's Columns after the Spalten-Merge; hidden ones get no definition */
+    columns: readonly EffectiveColumn[];
     /** The resolved Tabellen-Fähigkeiten (see `../capabilities`) */
     capabilities: TableCapabilities;
-    /** Cell renderer component for configured columns; `column` says how the Column is read */
-    renderConfiguredCell: (value: unknown, config: ColumnConfigEntry, column: CellColumn) => React.ReactNode;
-    /** Cell renderer component for auto-detected columns */
-    renderAutoDetectedCell: (value: unknown) => React.ReactNode;
+    /** Renders one cell of a Column (with `column.cellConfig`; the Column is a `CellColumn`) */
+    renderCell: (value: unknown, column: EffectiveColumn) => React.ReactNode;
     /** Selection column header renderer */
     renderSelectionHeader?: (table: {
         getIsSomePageRowsSelected: () => boolean;
@@ -46,7 +43,14 @@ export interface BuildColumnDefsOptions {
     }) => React.ReactNode;
 }
 
-// ── Helper: createDateSortingFn ────────────────────────────────────────────────
+// ── Sorting by the Effektiver Typ ──────────────────────────────────────────────
+
+/** Sorts by a reading of the values; an unreadable value counts as 0. */
+function sortingByReading(read: (value: unknown) => number | null): SortingFn<FlatRow> {
+    const sortable = (value: unknown): number => read(value) ?? 0;
+    return (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string): number =>
+        sortable(rowA.getValue(columnId)) - sortable(rowB.getValue(columnId));
+}
 
 /**
  * Creates a custom sorting function for date columns: chronological by the instant the
@@ -56,38 +60,37 @@ export interface BuildColumnDefsOptions {
  * @returns A TanStack Table compatible sorting function
  */
 export function createDateSortingFn(read: DateReader): SortingFn<FlatRow> {
-    const sortableTime = (value: unknown): number => read(value) ?? 0;
-    return (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string): number =>
-        sortableTime(rowA.getValue(columnId)) - sortableTime(rowB.getValue(columnId));
+    return sortingByReading(read);
+}
+
+/** Numerically, by the one number reading (numeric strings included). */
+const numberSortingFn = sortingByReading(readNumber);
+
+/**
+ * The sort order of a Column by its Effektiver Typ: a date chronologically by its
+ * Datums-Leser, a number numerically; every other type keeps TanStack's default.
+ */
+function sortingFnOf(column: EffectiveColumn): SortingFn<FlatRow> | undefined {
+    switch (column.type) {
+        case 'date':
+            return createDateSortingFn(column.readDate);
+        case 'number':
+            return numberSortingFn;
+        default:
+            return undefined;
+    }
 }
 
 // ── Main: buildColumnDefs ──────────────────────────────────────────────────────
 
 /**
- * Builds TanStack Table column definitions from widget configuration.
+ * Builds the TanStack column definitions of a table's Columns.
  *
- * @param options - Configuration options including column config, analysis data, and renderers
- * @returns Array of TanStack Table column definitions
- * @remarks
- * This function handles three types of columns:
- * 1. Selection column (optional, based on tableRowSelection flag)
- * 2. Configured columns (from user-defined columnConfig)
- * 3. Auto-detected columns (fallback when no columnConfig exists)
- * Date sorting is automatically configured for columns with date format detection.
+ * @param options - The Columns, the Tabellen-Fähigkeiten and the renderers
+ * @returns The selection column (with row selection) followed by one definition per visible Column
  */
 export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<FlatRow>[] {
-    const {
-        columnConfig,
-        analysisColumns,
-        capabilities,
-        renderConfiguredCell,
-        renderAutoDetectedCell,
-        renderSelectionHeader,
-        renderSelectionCell,
-    } = options;
-
-    // The analysis engine's detection per path: Detected type and the Datums-Leser's input
-    const analysisByPath = new Map<string, JsonTableColumn>(analysisColumns.map(c => [c.path, c]));
+    const { columns, capabilities, renderCell, renderSelectionHeader, renderSelectionCell } = options;
 
     // ── Selection Column ──────────────────────────────────────────────────────
 
@@ -108,97 +111,31 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
 
     // ── Data Columns ───────────────────────────────────────────────────────────
 
-    let dataCols: ColumnDef<FlatRow>[];
-
-    if (columnConfig.length > 0) {
-        // Configured columns mode
-        dataCols = columnConfig
-            .filter(cfg => cfg.visible)
-            .map(cfg => {
-                const detected = analysisByPath.get(cfg.path);
-                const detectedType = detected?.type || 'string';
-                // Date sorting for a configured or detected date column
-                const isDateColumn = cfg.format?.type === 'date' || detectedType === 'date';
-                const type = effectiveType(cfg.format?.type, detectedType);
-                const allowed = columnCapabilities(capabilities, type, cfg);
-                // The live detection decides the reading — not a format id stored in the config
-                const readDate = dateReader(detected);
-                const cellColumn: CellColumn = { type, readDate };
-
-                const col: ColumnDef<FlatRow> = {
-                    id: cfg.path,
-                    size: cfg.width ?? 150,
-                    // FIX-P2-1: Add optional chaining and nullish coalescing for safe property access
-                    accessorFn: (row: FlatRow) => row?.[cfg.path] ?? null,
-                    header: cfg.headerName || cfg.path,
-                    enableSorting: allowed.sortable,
-                    enableColumnFilter: allowed.filterable,
-                    enableHiding: allowed.hideable,
-                    ...(isDateColumn && { sortingFn: createDateSortingFn(readDate) }),
-                    // The Spaltenfilter compares by the Effektiver Typ, never by a guessed one
-                    filterFn: columnFilterFn(type, readDate),
-                    cell: ({ getValue }) =>
-                        renderConfiguredCell(
-                            getValue(),
-                            // 'auto' (no format) on a detected image column → render as image,
-                            // consistent with auto-detected mode. Without this, configuring one
-                            // column (which switches the table to configured-columns mode) would
-                            // make sibling image columns fall back to text. Explicit 'string'
-                            // format is unaffected.
-                            !cfg.format && detectedType === 'image'
-                                ? { ...cfg, format: { type: 'image' as const } }
-                                : cfg,
-                            cellColumn,
-                        ),
-                    meta: {
-                        align: cfg.align || 'left',
-                        width: cfg.width,
-                        columnType: type,
-                    },
-                };
-                return col;
-            });
-    } else {
-        // Auto-detected columns mode - no Format type, so the type defaults of the detected type
-        dataCols = analysisColumns.map(col => {
-            const isDate = col.type === 'date' && col.dateFormat;
-            const type = effectiveType(undefined, col.type);
-            const allowed = columnCapabilities(capabilities, type);
-            const readDate = dateReader(col);
-
-            const colDef: ColumnDef<FlatRow> = {
-                id: col.path,
-                size: 150,
-                accessorFn: (row: FlatRow) => row[col.path],
-                header: col.path.split('.').pop() || col.path,
+    const dataCols = columns
+        .filter(column => column.config.visible)
+        .map((column): ColumnDef<FlatRow> => {
+            const { path, config, type } = column;
+            const allowed = columnCapabilities(capabilities, type, config);
+            const sortingFn = sortingFnOf(column);
+            return {
+                id: path,
+                size: config.width ?? DEFAULT_WIDTH,
+                accessorFn: (row: FlatRow) => row?.[path] ?? null,
+                header: column.header,
                 enableSorting: allowed.sortable,
                 enableColumnFilter: allowed.filterable,
                 enableHiding: allowed.hideable,
-                ...(isDate && { sortingFn: createDateSortingFn(readDate) }),
-                filterFn: columnFilterFn(type, readDate),
-                // Auto-detected image columns render as graphics immediately (default format),
-                // so icons/images show on first view without manual configuration.
-                cell: ({ getValue }) => {
-                    const value = getValue();
-                    if (col.type === 'image') {
-                        return renderConfiguredCell(
-                            value,
-                            {
-                                path: col.path,
-                                visible: true,
-                                headerName: col.path.split('.').pop() || col.path,
-                                format: { type: 'image' },
-                            },
-                            { type, readDate },
-                        );
-                    }
-                    return renderAutoDetectedCell(value);
+                ...(sortingFn && { sortingFn }),
+                // The Spaltenfilter compares by the Effektiver Typ, never by a guessed one
+                filterFn: columnFilterFn(type, column.readDate),
+                cell: ({ getValue }) => renderCell(getValue(), column),
+                meta: {
+                    align: column.cellConfig.align || 'left',
+                    width: config.width,
+                    columnType: type,
                 },
-                meta: { align: col.type === 'image' ? 'center' : 'left', columnType: type },
             };
-            return colDef;
         });
-    }
 
     return selectionCol ? [selectionCol, ...dataCols] : dataCols;
 }

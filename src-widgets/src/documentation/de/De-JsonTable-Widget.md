@@ -20,8 +20,11 @@ Die widgetspezifischen Einstellungen überschreiben die allgemeineren Einstellun
 
 Die JSON-Daten können sein:
 - **Array von Objekten**: Jedes Objekt repräsentiert eine Zeile
+- **Einzelnes Objekt**: Wird als eine Zeile angezeigt
 - **Verschachtelte Objekte**: Werden automatisch mit konfigurierbarer Tiefe flachgeklopft
 - **JSON-String**: Wird automatisch geparst
+
+Alles andere — eine einzelne Zahl, ein Text oder ein Wahrheitswert (auch als JSON), ungültiges JSON, ein leeres Array — zeigt *Keine Daten verfügbar*.
 
 ## Spaltenkonfiguration
 
@@ -37,6 +40,8 @@ Der Spalten-Editor bietet:
 - **Spalteneinstellungen**: Beschriftung, Breite, Ausrichtung, Format konfigurieren
 - **Bedingte Formatierung**: Stile basierend auf Zellenwerten anwenden
 - **Datentyperkennung**: Automatische Erkennung des Datentyps (`string`, `number`, `boolean`, `date`, `image`, `array`, `object`, `null`, `mixed`). Der **erkannte Typ** (detected type) ist ein Hinweis und bestimmt die Voreinstellung des **Formattyps** — er kann aber frei davon abweichen.
+
+> **Welche Spalten die Tabelle zeigt:** Die gespeicherte Spaltenkonfiguration und die in den Daten gefundenen Spalten werden nach einer Regel zusammengeführt, im Editor wie zur Laufzeit: Gespeicherte Spalten, die noch in den Daten sind, behalten Reihenfolge und Einstellungen; ein Feld, das die Daten neu bekommen, erscheint sofort als neue sichtbare Spalte am Ende (Standardeinstellungen) — ohne vorheriges Speichern im Editor; eine gespeicherte Spalte, die die Daten nicht mehr enthalten, wird ausgelassen. Ohne gespeicherte Konfiguration zeigt die Tabelle alle gefundenen Spalten. Der Editor öffnet mit genau dieser Liste; blendet man dort eine neue Spalte aus, wird das mit dem nächsten *Speichern* übernommen.
 
 ### Spalteneigenschaften
 
@@ -147,6 +152,8 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 | --------------- | -------- | -------- | ------------------------------------- | --------- |
 | tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | Kopfzeile sichtbar |
 | tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv |
+
+Eine Spalte sortiert nach ihrem **effektiven Typ**: Datumswerte chronologisch, Zahlen numerisch — auch als Text gespeicherte Zahlen, wenn der Formattyp der Spalte `number` ist (Werte, die keine Zahl sind, sortieren wie 0) — alles andere als Text.
 
 ### Filterung
 

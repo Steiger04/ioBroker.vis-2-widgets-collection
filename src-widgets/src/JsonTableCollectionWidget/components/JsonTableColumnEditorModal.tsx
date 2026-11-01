@@ -32,8 +32,8 @@ import type React from 'react';
 import Generic from '../../Generic';
 import ColumnList from './ColumnList';
 import ColumnDetailEditor from './ColumnDetailEditor';
-import { analyzeJsonTable } from '../../hooks/useJsonTableAnalysis';
 import { tableCapabilities } from '../capabilities';
+import { depthWarningText, readJsonTable } from '../columns';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
@@ -147,65 +147,24 @@ function JsonTableColumnEditorModal({
             }
 
             const state = await socket.getState(oid);
-            if (state?.val === null || state?.val === undefined) {
+
+            // The runtime's own reading: intake, analysis and Spalten-Merge over the working copy
+            const table = readJsonTable(state?.val, editedColumnsRef.current, data.tableMaxDepth);
+            if (table.columns.length === 0) {
+                // No data: nothing to merge against — keep the working copy (merging would empty it)
                 return;
             }
-
-            let jsonData: unknown[];
-            const rawVal = state.val;
-
-            if (typeof rawVal === 'string') {
-                try {
-                    const parsed = JSON.parse(rawVal);
-                    jsonData = Array.isArray(parsed) ? parsed : [parsed];
-                } catch {
-                    return;
-                }
-            } else if (Array.isArray(rawVal)) {
-                jsonData = rawVal;
-            } else if (typeof rawVal === 'object' && rawVal !== null) {
-                jsonData = [rawVal];
-            } else {
-                return;
-            }
-
-            // FIX-P2-5: Show warning when actual JSON depth exceeds configured maxDepth
-            const configuredMaxDepth = (data.tableMaxDepth as number) || 10;
-            const result = analyzeJsonTable(jsonData, { maxDepth: configuredMaxDepth });
 
             // Warn if actual depth exceeds configured depth (localized warning, not error)
-            if (result.meta.maxDepth > configuredMaxDepth) {
-                const warningMsg = Generic.t('json_table_depth_warning')
-                    .replace('{{actual}}', String(result.meta.maxDepth))
-                    .replace('{{configured}}', String(configuredMaxDepth));
-                setDiscoveryWarning(warningMsg);
+            if (table.depthWarning) {
+                setDiscoveryWarning(depthWarningText(table.depthWarning, Generic.t));
             }
 
             // Store discovered column metadata
-            setDiscoveredColumns(result.columns);
+            setDiscoveredColumns(table.columns.map(column => column.detected));
 
-            // Merge with existing config: preserve user's saved order, append newly discovered columns
-            const existingMap = new Map(editedColumnsRef.current.map(c => [c.path, c]));
-            const discoveredSet = new Set(result.columns.map(c => c.path));
-
-            // Keep saved columns that still exist in the data (in their saved order)
-            const preserved = editedColumnsRef.current.filter(c => discoveredSet.has(c.path));
-
-            // Append any newly discovered columns not yet in the saved config
-            // Apply type-based smart defaults for sortable/filterable/hideable
-            const newColumns: ColumnConfigEntry[] = result.columns
-                .filter(col => !existingMap.has(col.path))
-                .map(col => ({
-                    path: col.path,
-                    visible: true,
-                    headerName: col.path.split('.').pop() || col.path,
-                    // Use 'auto' to enable type-based smart defaults at render time
-                    sortable: 'auto' as const,
-                    filterable: 'auto' as const,
-                    enableHiding: 'auto' as const,
-                }));
-
-            const merged = [...preserved, ...newColumns];
+            // The working copy is the merged Column list — the same list the runtime shows
+            const merged = table.columns.map(column => column.config);
 
             setEditedColumns(merged);
             editedColumnsRef.current = merged;

@@ -33,6 +33,7 @@ import type React from 'react';
 
 import Generic from '../../Generic';
 import { columnCapabilities, effectiveType, typeDefaults, type TableCapabilities } from '../capabilities';
+import { headerNameOf } from '../columns';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import type { ColumnConfigEntry, ColumnStyleRule, ColumnFormatConfig } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
@@ -98,7 +99,7 @@ function ColumnDetailEditor({
 
     // ── Reset helpers ────────────────────────────────────────────
 
-    const defaultHeaderName = useMemo(() => column.path.split('.').pop() || column.path, [column.path]);
+    const defaultHeaderName = useMemo(() => headerNameOf(column.path), [column.path]);
 
     // Memoize dirty checks to avoid recalculation on every render
     const isBasicDirty = useMemo(

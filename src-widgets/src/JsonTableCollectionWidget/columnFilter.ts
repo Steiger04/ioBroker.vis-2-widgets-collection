@@ -147,8 +147,14 @@ export function needsValue(operator: FilterOperator): boolean {
 
 // ── Reading values by type ───────────────────────────────────────────────────
 
-/** A number: a finite number, or a string holding one; anything else (blank included) is none. */
-function readNumber(value: unknown): number | null {
+/**
+ * A number: a finite number, or a string holding one; anything else (blank included) is none.
+ * The one reading of a `number` Column's values — the Spaltenfilter's and the sort order's.
+ *
+ * @param value A Raw value or a filter input.
+ * @returns The number, or `null` when the value holds none.
+ */
+export function readNumber(value: unknown): number | null {
     if (typeof value === 'number') {
         return Number.isFinite(value) ? value : null;
     }
