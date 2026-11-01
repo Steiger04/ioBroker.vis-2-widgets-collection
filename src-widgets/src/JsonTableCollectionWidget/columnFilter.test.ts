@@ -8,9 +8,19 @@
  * guessed from the value.
  */
 import { describe, expect, it } from 'vitest';
+import type { Row } from '@tanstack/react-table';
 
 import type { EffectiveType } from './capabilities';
-import { coerceFilterValue, filterFits, filterOperators, getDefaultOperator, needsValue } from './columnFilter';
+import {
+    coerceFilterValue,
+    columnFilterFn,
+    filterFits,
+    filterOperators,
+    getDefaultOperator,
+    needsValue,
+    type FilterOperator,
+} from './columnFilter';
+import { dateReader, type DateReader } from './dateReader';
 
 const operatorsOf = (type: EffectiveType): string[] => filterOperators(type).map(o => o.operator);
 
@@ -162,5 +172,185 @@ describe("coerceFilterValue — the dialog's input as the value its Effektiver T
         ['date', '1.12.2024'],
     ] as const)('%s: %o is no filter', (type, input) => {
         expect(coerceFilterValue(type, input)).toBeUndefined();
+    });
+});
+
+// ── Evaluation ───────────────────────────────────────────────────────────────
+
+type FlatRow = Record<string, unknown>;
+
+/** A table row holding one cell, as TanStack hands it to a filterFn. */
+const row = (cell: unknown): Row<FlatRow> => ({ getValue: () => cell }) as unknown as Row<FlatRow>;
+
+/** Whether a cell passes a filter value on a Column of the given type. */
+const passesValue = (type: EffectiveType, cell: unknown, filter: unknown, read: DateReader = dateReader()): boolean =>
+    columnFilterFn(type, read)(row(cell), 'c', filter, () => undefined);
+
+/** Whether a cell passes `{operator, value}` on a Column of the given type. */
+const passes = (
+    type: EffectiveType,
+    cell: unknown,
+    operator: FilterOperator,
+    value: string | number | boolean,
+    read?: DateReader,
+): boolean => passesValue(type, cell, { operator, value }, read);
+
+describe('columnFilterFn — string: text without case, nothing else', () => {
+    it.each([
+        ['Raum 1', 'contains', 'RAUM'],
+        ['Raum 1', 'startsWith', 'raum'],
+        ['Raum 1', 'endsWith', 'M 1'],
+        ['Raum 1', 'equals', 'raum 1'],
+        ['Raum 1', 'notEquals', 'Raum 2'],
+        [42, 'contains', '4'],
+    ] as const)('%o %s %o', (cell, operator, value) => {
+        expect(passes('string', cell, operator, value)).toBe(true);
+    });
+
+    // Regression: the evaluation guessed a type from the values.
+    it.each([
+        ['"Raum 1" equals "Raum 01"', 'Raum 01', 'equals', 'Raum 1'],
+        ['a day equals its midnight', '2024-12-01', 'equals', '2024-12-01T00:00'],
+        ['"1.0" equals "1"', '1.0', 'equals', '1'],
+        ['"10" is no number above "9"', '10', 'contains', '9'],
+    ] as const)('never reads as date or number: %s', (_case, cell, operator, value) => {
+        expect(passes('string', cell, operator, value)).toBe(false);
+    });
+
+    it('notEquals compares the text too', () => {
+        expect(passes('string', '1.0', 'notEquals', '1')).toBe(true);
+    });
+});
+
+describe('columnFilterFn — number: numerically only', () => {
+    it.each([
+        [42, 'equals', 42],
+        ['42', 'equals', 42],
+        [41, 'notEquals', 42],
+        [43, 'greaterThan', 42],
+        [42, 'greaterThanOrEqual', 42],
+        [-1, 'lessThan', 0],
+        [0, 'lessThanOrEqual', 0],
+        // Regression: both were read as epochs — 9e10 as seconds (year 4821), 1e11 as ms (1973).
+        [100000000000, 'greaterThan', 90000000000],
+    ] as const)('%o %s %o', (cell, operator, value) => {
+        expect(passes('number', cell, operator, value)).toBe(true);
+    });
+
+    it.each([
+        [42, 'equals', 41],
+        [42, 'greaterThan', 42],
+        [42, 'lessThan', 42],
+    ] as const)('%o not %s %o', (cell, operator, value) => {
+        expect(passes('number', cell, operator, value)).toBe(false);
+    });
+
+    // Regression: a non-numeric cell fell back to text ("n/a" > "0").
+    it.each(['n/a', '', ' ', true, { v: 0 }])('a non-numeric cell %o never matches a value operator', cell => {
+        for (const operator of ['equals', 'notEquals', 'greaterThan', 'lessThanOrEqual'] as const) {
+            expect(passes('number', cell, operator, 0)).toBe(false);
+        }
+    });
+});
+
+describe('columnFilterFn — boolean: true/false, "true"/"false", 1/0', () => {
+    it.each([true, 'true', 1])('%o equals true', cell => {
+        expect(passes('boolean', cell, 'equals', true)).toBe(true);
+        expect(passes('boolean', cell, 'notEquals', false)).toBe(true);
+        expect(passes('boolean', cell, 'equals', false)).toBe(false);
+    });
+
+    it.each([false, 'false', 0])('%o equals false', cell => {
+        expect(passes('boolean', cell, 'equals', false)).toBe(true);
+        expect(passes('boolean', cell, 'notEquals', true)).toBe(true);
+    });
+
+    it.each(['yes', 'TRUE', 2])('%o is no boolean and never matches', cell => {
+        expect(passes('boolean', cell, 'equals', true)).toBe(false);
+        expect(passes('boolean', cell, 'notEquals', true)).toBe(false);
+    });
+});
+
+describe("columnFilterFn — date: the local day through the Column's Datums-Leser", () => {
+    const dmy = dateReader({ type: 'date', dateFormat: 'dd.MM.yyyy' });
+
+    it('equals every time of the local day', () => {
+        for (const cell of [new Date(2024, 11, 1, 0, 30).getTime(), new Date(2024, 11, 1, 23, 30).getTime()]) {
+            expect(passes('date', cell, 'equals', '2024-12-01')).toBe(true);
+        }
+        expect(passes('date', new Date(2024, 11, 2, 0, 30).getTime(), 'equals', '2024-12-01')).toBe(false);
+    });
+
+    it.each([
+        ['30.11.2024', 'lessThan', true],
+        ['01.12.2024', 'lessThan', false],
+        ['01.12.2024', 'lessThanOrEqual', true],
+        ['01.12.2024', 'greaterThan', false],
+        ['01.12.2024', 'greaterThanOrEqual', true],
+        ['02.12.2024', 'greaterThan', true],
+    ] as const)('detected dd.MM.yyyy: %s %s 2024-12-01 ⇒ %s', (cell, operator, expected) => {
+        expect(passes('date', cell, operator, '2024-12-01', dmy)).toBe(expected);
+    });
+
+    it('reads the tolerant patterns of a Column formatted as date', () => {
+        expect(passes('date', '2024-12-01 10:00:00', 'equals', '2024-12-01')).toBe(true);
+        expect(passes('date', String(new Date(2024, 11, 1, 10).getTime() / 1000), 'equals', '2024-12-01')).toBe(true);
+    });
+
+    // Regression: the browser parser read "1.12.2024" as 12 January.
+    it('never matches a value the reader cannot read', () => {
+        expect(passes('date', '1.12.2024', 'equals', '2024-01-12')).toBe(false);
+        expect(passes('date', 'Raum 1', 'lessThan', '2099-01-01')).toBe(false);
+    });
+});
+
+describe('columnFilterFn — mixed, object, array, image, null: text on the string form', () => {
+    it('compares objects as their JSON, without case', () => {
+        expect(passes('object', { room: 'Kitchen' }, 'contains', '"room":"kitchen"')).toBe(true);
+        expect(passes('array', [1, 2], 'equals', '[1,2]')).toBe(true);
+    });
+
+    it('compares numbers in a mixed Column as text', () => {
+        expect(passes('mixed', 5, 'equals', '5')).toBe(true);
+        expect(passes('mixed', 1, 'equals', '1.0')).toBe(false);
+        expect(passes('image', 'icons/Lamp.png', 'endsWith', '.PNG')).toBe(true);
+    });
+});
+
+describe('columnFilterFn — isEmpty / isNotEmpty judge the cell alone', () => {
+    const types: EffectiveType[] = ['string', 'number', 'date', 'boolean', 'object'];
+
+    it.each([
+        [null, true],
+        [undefined, true],
+        ['', true],
+        [' ', false],
+        [0, false],
+        [false, false],
+        [{}, false],
+    ])('%o is empty: %s', (cell, empty) => {
+        for (const type of types) {
+            expect(passes(type, cell, 'isEmpty', '')).toBe(empty);
+            expect(passes(type, cell, 'isNotEmpty', '')).toBe(!empty);
+        }
+    });
+
+    it('a missing cell matches no value operator', () => {
+        expect(passes('string', null, 'notEquals', 'x')).toBe(false);
+        expect(passes('number', undefined, 'notEquals', 1)).toBe(false);
+    });
+});
+
+describe('columnFilterFn — only a valid filter filters', () => {
+    it('lets every row pass without a filter', () => {
+        expect(passesValue('string', 'Raum 1', undefined)).toBe(true);
+    });
+
+    it.each([
+        ['an operator the type does not offer', 'number', { operator: 'contains', value: '4' }],
+        ['a bare value (no dialog form)', 'string', 'kitchen'],
+        ['a bare number', 'number', 7],
+    ] as const)('lets every row pass for %s', (_case, type, filter) => {
+        expect(passesValue(type, 'Raum 1', filter)).toBe(true);
     });
 });

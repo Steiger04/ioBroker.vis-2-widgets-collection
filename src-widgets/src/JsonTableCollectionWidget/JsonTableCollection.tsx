@@ -41,7 +41,6 @@ import {
     type SortingState,
     type Column,
     type Header,
-    type FilterFn,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useContext, useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
@@ -64,27 +63,22 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { tableCapabilities, type EffectiveType } from './capabilities';
-import { customFilterFns } from './utils/filterFunctions';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
-// Extend ColumnMeta to include custom alignment property for table cells
-// Extend FilterFns to include custom 'advanced' filter function
+// Extend ColumnMeta to include custom alignment property for table cells and the
+// Column's Effektiver Typ (each Column carries its own Spaltenfilter as filterFn)
 
 declare module '@tanstack/react-table' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface ColumnMeta<TData, TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
-        /** The Column's type for the filter dialog */
+        /** The Column's Effektiver Typ: the filter dialog's operators and input */
         columnType?: EffectiveType;
-    }
-
-    interface FilterFns {
-        advanced: FilterFn<unknown>;
     }
 }
 
@@ -283,10 +277,9 @@ const JsonTableCollection: FC = () => {
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: capabilities.multiSort,
         globalFilterFn: globalFilterFn,
-        filterFns: customFilterFns,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
-        defaultColumn: { minSize: 40, maxSize: 2000, filterFn: 'advanced' },
+        defaultColumn: { minSize: 40, maxSize: 2000 },
         state: view.state,
         // The page survives data updates (TanStack would reset it on every new data array);
         // the view state resets it when sorting, filters or the page size change.

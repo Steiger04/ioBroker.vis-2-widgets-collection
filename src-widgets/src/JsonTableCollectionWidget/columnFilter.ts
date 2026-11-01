@@ -9,8 +9,10 @@
  * value.
  */
 
+import type { FilterFn, Row } from '@tanstack/react-table';
+
 import type { EffectiveType } from './capabilities';
-import { dateReader, localDay } from './dateReader';
+import { dateReader, localDay, type DateReader } from './dateReader';
 
 /** The operators of a Spaltenfilter. */
 export type FilterOperator =
@@ -197,4 +199,123 @@ export function coerceFilterValue(type: EffectiveType, input: unknown): FilterCo
             return text === '' ? undefined : text;
         }
     }
+}
+
+// ── Evaluation ───────────────────────────────────────────────────────────────
+
+/** The string form of a value, lower case: JSON for objects and arrays. */
+function textOf(value: unknown): string {
+    if (typeof value === 'object' && value !== null) {
+        try {
+            return JSON.stringify(value).toLowerCase();
+        } catch {
+            return '[object object]';
+        }
+    }
+    return String(value).toLowerCase();
+}
+
+/** The comparison operators, on any ordered reading of cell and filter value. */
+function compare<T extends number | boolean>(operator: FilterOperator, cell: T, value: T): boolean {
+    switch (operator) {
+        case 'equals':
+            return cell === value;
+        case 'notEquals':
+            return cell !== value;
+        case 'greaterThan':
+            return cell > value;
+        case 'greaterThanOrEqual':
+            return cell >= value;
+        case 'lessThan':
+            return cell < value;
+        case 'lessThanOrEqual':
+            return cell <= value;
+        default:
+            return false;
+    }
+}
+
+/** Compares cell and filter value only when both read as the type; otherwise no match. */
+function compareRead<T extends number | boolean>(
+    read: (value: unknown) => T | null,
+    operator: FilterOperator,
+    cell: unknown,
+    value: unknown,
+): boolean {
+    const cellRead = read(cell);
+    const valueRead = read(value);
+    return cellRead !== null && valueRead !== null && compare(operator, cellRead, valueRead);
+}
+
+/** The text operators: without case, on the string form. */
+function compareText(operator: FilterOperator, cell: unknown, value: unknown): boolean {
+    const text = textOf(cell);
+    const term = textOf(value);
+    switch (operator) {
+        case 'contains':
+            return text.includes(term);
+        case 'startsWith':
+            return text.startsWith(term);
+        case 'endsWith':
+            return text.endsWith(term);
+        case 'equals':
+            return text === term;
+        case 'notEquals':
+            return text !== term;
+        default:
+            return false;
+    }
+}
+
+/** A cell without content: missing, or the empty string. */
+const isEmptyCell = (cell: unknown): boolean => cell === null || cell === undefined || cell === '';
+
+/**
+ * Whether a cell passes a valid filter, by the Column's Effektiver Typ.
+ *
+ * @param type The Column's Effektiver Typ.
+ * @param readDate The Column's Datums-Leser.
+ * @param cell The cell's Raw value.
+ * @param filter A filter the type offers.
+ * @returns The comparison's verdict; a missing cell matches only `isEmpty`.
+ */
+function matches(type: EffectiveType, readDate: DateReader, cell: unknown, filter: FilterConfig): boolean {
+    const { operator, value } = filter;
+    if (!needsValue(operator)) {
+        return isEmptyCell(cell) === (operator === 'isEmpty');
+    }
+    if (cell === null || cell === undefined) {
+        return false;
+    }
+    switch (type) {
+        case 'number':
+            return compareRead(readNumber, operator, cell, value);
+        case 'boolean':
+            return compareRead(readBoolean, operator, cell, value);
+        case 'date': {
+            // The filter value has no Column: it is read without detection
+            const cellMs = readDate(cell);
+            const valueMs = readFilterDate(value);
+            return (
+                cellMs !== null &&
+                valueMs !== null &&
+                compare(operator, localDay(cellMs).start, localDay(valueMs).start)
+            );
+        }
+        default:
+            return compareText(operator, cell, value);
+    }
+}
+
+/**
+ * The TanStack filterFn of one Column: its Spaltenfilter, bound to its Effektiver Typ.
+ *
+ * @param type The Column's Effektiver Typ.
+ * @param readDate The Column's Datums-Leser (read for date Columns only).
+ * @returns A filterFn that lets a row pass when the Column's filter matches its cell; a
+ *   missing or invalid filter (see {@link filterFits}) filters nothing.
+ */
+export function columnFilterFn<TData>(type: EffectiveType, readDate: DateReader): FilterFn<TData> {
+    return (row: Row<TData>, columnId: string, filter: unknown): boolean =>
+        !filterFits(type, filter) || matches(type, readDate, row.getValue(columnId), filter);
 }
