@@ -32,7 +32,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { columnCapabilities, effectiveType, typeDefaults, type TableCapabilities } from '../capabilities';
+import { effectiveType, type TableCapabilities } from '../capabilities';
 import { headerNameOf } from '../columns';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import type { ColumnConfigEntry, ColumnStyleRule, ColumnFormatConfig } from '../types';
@@ -46,7 +46,7 @@ import StringFormatEditor from './editors/StringFormatEditor';
 import ImageFormatEditor from './editors/ImageFormatEditor';
 import ConditionalStyleEditor from './editors/ConditionalStyleEditor';
 import StatusBanner from './StatusBanner';
-import EffectiveResultIndicator from './EffectiveResultIndicator';
+import CapabilityOverride from './CapabilityOverride';
 import TypeBadgeChip from './TypeBadgeChip';
 import { typeBadgeOf } from './typeBadge';
 
@@ -86,10 +86,8 @@ function ColumnDetailEditor({
     // Detected type from analysis
     const detectedType = discoveredColumn?.type || 'string';
 
-    // What this column allows at runtime — the same resolution the table uses
+    // The type the table treats this column as — the same resolution the runtime uses
     const columnType = effectiveType(column.format?.type, discoveredColumn?.type);
-    const allowed = columnCapabilities(capabilities, columnType, column);
-    const defaults = typeDefaults(columnType);
 
     // Total value count for percentage calculations
     const totalValues = useMemo(() => {
@@ -592,131 +590,27 @@ function ColumnDetailEditor({
                             <StatusBanner capabilities={capabilities} />
 
                             {/* Per-column feature overrides with effective result indicators */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <FormControl
-                                    size="small"
-                                    sx={{ minWidth: 120 }}
-                                >
-                                    <InputLabel>{Generic.t('json_table_sortable')}</InputLabel>
-                                    <Select
-                                        value={
-                                            column.sortable === true ? 'on' : column.sortable === false ? 'off' : 'auto'
-                                        }
-                                        label={Generic.t('json_table_sortable')}
-                                        onChange={e =>
-                                            onChange({
-                                                ...column,
-                                                sortable:
-                                                    e.target.value === 'on'
-                                                        ? true
-                                                        : e.target.value === 'off'
-                                                          ? false
-                                                          : 'auto',
-                                            })
-                                        }
-                                    >
-                                        <MenuItem value="auto">
-                                            <em>{Generic.t('json_table_option_auto')}</em>
-                                        </MenuItem>
-                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
-                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <EffectiveResultIndicator
-                                    effective={allowed.sortable}
-                                    tableEnabled={capabilities.sorting}
-                                    typeDefault={defaults.sortable}
-                                    columnOverride={column.sortable}
-                                    featureLabel={Generic.t('json_table_sorting')}
-                                    columnType={columnType}
-                                />
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <FormControl
-                                    size="small"
-                                    sx={{ minWidth: 120 }}
-                                >
-                                    <InputLabel>{Generic.t('json_table_filterable')}</InputLabel>
-                                    <Select
-                                        value={
-                                            column.filterable === true
-                                                ? 'on'
-                                                : column.filterable === false
-                                                  ? 'off'
-                                                  : 'auto'
-                                        }
-                                        label={Generic.t('json_table_filterable')}
-                                        onChange={e =>
-                                            onChange({
-                                                ...column,
-                                                filterable:
-                                                    e.target.value === 'on'
-                                                        ? true
-                                                        : e.target.value === 'off'
-                                                          ? false
-                                                          : 'auto',
-                                            })
-                                        }
-                                    >
-                                        <MenuItem value="auto">
-                                            <em>{Generic.t('json_table_option_auto')}</em>
-                                        </MenuItem>
-                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
-                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <EffectiveResultIndicator
-                                    effective={allowed.filterable}
-                                    tableEnabled={capabilities.columnFiltering}
-                                    typeDefault={defaults.filterable}
-                                    columnOverride={column.filterable}
-                                    featureLabel={Generic.t('json_table_filtering')}
-                                    columnType={columnType}
-                                />
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <FormControl
-                                    size="small"
-                                    sx={{ minWidth: 120 }}
-                                >
-                                    <InputLabel>{Generic.t('json_table_hideable')}</InputLabel>
-                                    <Select
-                                        value={
-                                            column.enableHiding === true
-                                                ? 'on'
-                                                : column.enableHiding === false
-                                                  ? 'off'
-                                                  : 'auto'
-                                        }
-                                        label={Generic.t('json_table_hideable')}
-                                        onChange={e =>
-                                            onChange({
-                                                ...column,
-                                                enableHiding:
-                                                    e.target.value === 'on'
-                                                        ? true
-                                                        : e.target.value === 'off'
-                                                          ? false
-                                                          : 'auto',
-                                            })
-                                        }
-                                    >
-                                        <MenuItem value="auto">
-                                            <em>{Generic.t('json_table_option_auto')}</em>
-                                        </MenuItem>
-                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
-                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <EffectiveResultIndicator
-                                    effective={allowed.hideable}
-                                    tableEnabled={capabilities.hiding}
-                                    typeDefault={defaults.hideable}
-                                    columnOverride={column.enableHiding}
-                                    featureLabel={Generic.t('json_table_hiding')}
-                                    columnType={columnType}
-                                />
-                            </Box>
+                            <CapabilityOverride
+                                capability="sortable"
+                                column={column}
+                                columnType={columnType}
+                                capabilities={capabilities}
+                                onChange={onChange}
+                            />
+                            <CapabilityOverride
+                                capability="filterable"
+                                column={column}
+                                columnType={columnType}
+                                capabilities={capabilities}
+                                onChange={onChange}
+                            />
+                            <CapabilityOverride
+                                capability="hideable"
+                                column={column}
+                                columnType={columnType}
+                                capabilities={capabilities}
+                                onChange={onChange}
+                            />
 
                             {/* Column analysis metadata */}
                             {discoveredColumn && (

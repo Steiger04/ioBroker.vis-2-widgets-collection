@@ -20,15 +20,36 @@ interface StatusBannerProps {
     capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering' | 'hiding'>;
 }
 
+/** Props for the StatusChip component. */
+interface StatusChipProps {
+    /** The i18n key of the capability's name */
+    featureLabel: string;
+    /** Whether the capability is on */
+    on: boolean;
+}
+
+/** One capability's status: green checkmark when on, grey cross when off. */
+function StatusChip({ featureLabel, on }: StatusChipProps): React.JSX.Element {
+    return (
+        <Chip
+            size="small"
+            icon={on ? <CheckIcon /> : <CloseIcon />}
+            label={`${Generic.t(featureLabel)}: ${on ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
+            color={on ? 'success' : 'default'}
+            variant="outlined"
+            sx={{ fontSize: '0.7rem' }}
+        />
+    );
+}
+
 /**
  * Renders a compact status banner showing the table-wide capabilities.
  *
  * Displays sorting, filtering and hiding status with visual indicators:
  * - Green checkmark for enabled features
- * - Red cross for disabled features
+ * - Grey cross for disabled features
  */
 function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
-    const { sorting, columnFiltering, hiding } = capabilities;
     return (
         <Box
             sx={{
@@ -47,29 +68,17 @@ function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
                 {Generic.t('json_table_global_status')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Chip
-                    size="small"
-                    icon={sorting ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_sorting')}: ${sorting ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={sorting ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_sorting"
+                    on={capabilities.sorting}
                 />
-                <Chip
-                    size="small"
-                    icon={columnFiltering ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_filtering')}: ${columnFiltering ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={columnFiltering ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_filtering"
+                    on={capabilities.columnFiltering}
                 />
-                <Chip
-                    size="small"
-                    icon={hiding ? <CheckIcon /> : <CloseIcon />}
-                    label={`${Generic.t('json_table_hiding')}: ${hiding ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
-                    color={hiding ? 'success' : 'default'}
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem' }}
+                <StatusChip
+                    featureLabel="json_table_hiding"
+                    on={capabilities.hiding}
                 />
             </Box>
         </Box>
