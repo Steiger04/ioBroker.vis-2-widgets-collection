@@ -34,6 +34,7 @@ import ColumnList from './ColumnList';
 import ColumnDetailEditor from './ColumnDetailEditor';
 import { tableCapabilities } from '../capabilities';
 import { depthWarningText, readJsonTable } from '../columns';
+import { translate } from '../translate';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
@@ -157,7 +158,7 @@ function JsonTableColumnEditorModal({
 
             // Warn if actual depth exceeds configured depth (localized warning, not error)
             if (table.depthWarning) {
-                setDiscoveryWarning(depthWarningText(table.depthWarning, Generic.t));
+                setDiscoveryWarning(depthWarningText(table.depthWarning, translate));
             }
 
             // Store discovered column metadata

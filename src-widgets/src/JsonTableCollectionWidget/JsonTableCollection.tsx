@@ -64,6 +64,7 @@ import { buildColumnDefs } from './utils/columnDefinitions';
 import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
+import { translate } from './translate';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
@@ -458,7 +459,7 @@ const JsonTableCollection: FC = () => {
                             severity="warning"
                             sx={{ m: 1 }}
                         >
-                            <Typography variant="body2">{depthWarningText(depthWarning, Generic.t)}</Typography>
+                            <Typography variant="body2">{depthWarningText(depthWarning, translate)}</Typography>
                         </Alert>
                     )}
 

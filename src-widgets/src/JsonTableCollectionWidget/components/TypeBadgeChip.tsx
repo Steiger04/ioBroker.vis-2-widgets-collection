@@ -10,7 +10,7 @@
 import { Chip, Tooltip, type SxProps, type Theme } from '@mui/material';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../translate';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import { typeBadgeText, type TypeBadge } from './typeBadge';
 
@@ -24,7 +24,7 @@ interface TypeBadgeChipProps {
 
 /** Renders the type badge of a Column. */
 function TypeBadgeChip({ badge, sx }: TypeBadgeChipProps): React.JSX.Element {
-    const { tooltip, ariaLabel } = typeBadgeText(badge, Generic.t);
+    const { tooltip, ariaLabel } = typeBadgeText(badge, translate);
     const chip = (
         <Chip
             label={badge.type}

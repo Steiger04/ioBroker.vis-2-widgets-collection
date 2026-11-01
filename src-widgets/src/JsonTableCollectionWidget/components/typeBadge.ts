@@ -39,7 +39,7 @@ export function typeBadgeOf(
  * The badge's texts.
  *
  * @param badge The badge.
- * @param t The translation function (`Generic.t`).
+ * @param t The translation function (`translate` from `../translate` — never a bare `Generic.t`, which loses `this`).
  * @returns The tooltip (`null` without a differing Detected type) and the accessible label,
  *   which names the Detected type too.
  */
