@@ -244,16 +244,16 @@ const JsonTableCollection: FC = () => {
 
     const isAutoSize = widget.data.tableAutoSize === true;
 
-    // The Effektiver Typ per Column, keyed by content: data updates rebuild the column
-    // definitions, but must not hand the view a new configuration.
+    // The Effektiver Typ per visible Column, keyed by content: data updates rebuild the
+    // Columns, but must not hand the view a new configuration.
     const columnTypesKey = useMemo(
         () =>
             JSON.stringify(
                 Object.fromEntries(
-                    columns.flatMap(col => (col.id && col.meta?.columnType ? [[col.id, col.meta.columnType]] : [])),
+                    tableColumns.filter(column => column.config.visible).map(column => [column.path, column.type]),
                 ),
             ),
-        [columns],
+        [tableColumns],
     );
     const columnTypes = useMemo(() => JSON.parse(columnTypesKey) as Record<string, EffectiveType>, [columnTypesKey]);
 
