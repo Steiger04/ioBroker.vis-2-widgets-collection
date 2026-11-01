@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { effectiveType, tableCapabilities, type CapabilitySettings } from './capabilities';
+import { effectiveType, tableCapabilities, type CapabilitySettings, type EffectiveType } from './capabilities';
 import {
     clampPage,
     recordBaselines,
@@ -18,6 +18,7 @@ import {
     storeChange,
     type StoredView,
     type TableView,
+    type ViewColumn,
     type ViewConfig,
     type ViewPart,
 } from './viewState';
@@ -30,7 +31,7 @@ const CONFIG: ViewConfig = {
     pageSizeOptions: [10, 25, 50, 100],
     columnWidths: {},
     autoSize: false,
-    columnTypes: {},
+    columns: {},
 };
 
 describe('resolveView — nothing stored', () => {
@@ -184,25 +185,118 @@ describe('resolveView — stored Spaltenfilter must have the form {operator, val
     });
 });
 
+/** A filterable Column of an Effektiver Typ. */
+const filterable = (type: EffectiveType): ViewColumn => ({ type, filterable: true });
+
 describe("resolveView — a stored Spaltenfilter its Column's Effektiver Typ does not offer is discarded", () => {
     const contains = { id: 'temp', value: { operator: 'contains', value: '2' } };
     const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
     const stored = { columnFilters: [contains, room] };
 
     it('discards contains on a Column whose Format type was changed to number', () => {
-        const columnTypes = { temp: effectiveType('number', 'string'), room: effectiveType(undefined, 'string') };
-        expect(resolveView(stored, ALL_ON, { ...CONFIG, columnTypes }).columnFilters).toEqual([room]);
+        const columns = {
+            temp: filterable(effectiveType('number', 'string')),
+            room: filterable(effectiveType(undefined, 'string')),
+        };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columns }).columnFilters).toEqual([room]);
     });
 
     it('keeps it while the Column is still a string column', () => {
-        const columnTypes = { temp: effectiveType(undefined, 'string'), room: effectiveType(undefined, 'string') };
-        expect(resolveView(stored, ALL_ON, { ...CONFIG, columnTypes }).columnFilters).toEqual([contains, room]);
+        const columns = {
+            temp: filterable(effectiveType(undefined, 'string')),
+            room: filterable(effectiveType(undefined, 'string')),
+        };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columns }).columnFilters).toEqual([contains, room]);
     });
 
     it('keeps a filter on a Column of unknown type (no data yet), judging only its form', () => {
         const unknownOperator = { id: 'temp', value: { operator: 'matches', value: '2' } };
         const view = resolveView({ columnFilters: [contains, unknownOperator] }, ALL_ON, CONFIG);
         expect(view.columnFilters).toEqual([contains]);
+    });
+});
+
+describe('a stored Spaltenfilter on a Column that is not filterable is parked: neither applied nor deleted', () => {
+    const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
+    const bath = { id: 'room', value: { operator: 'contains', value: 'bath' } };
+    const configWith = (temp?: ViewColumn): ViewConfig => ({
+        ...CONFIG,
+        columns: { room: filterable('string'), ...(temp && { temp }) },
+    });
+
+    it.each<[string, ViewColumn | undefined, unknown, boolean, boolean]>([
+        // case, the Column, the stored filter, applied, kept when the user writes another filter
+        ['filterable, offered operator', filterable('number'), { operator: 'greaterThan', value: 20 }, true, true],
+        [
+            'not filterable (override off) → parked',
+            { type: 'number', filterable: false },
+            { operator: 'greaterThan', value: 20 },
+            false,
+            true,
+        ],
+        [
+            'not filterable (type default off) → parked',
+            { type: 'image', filterable: false },
+            { operator: 'contains', value: 'png' },
+            false,
+            true,
+        ],
+        [
+            'filterable, operator not offered → discarded',
+            filterable('number'),
+            { operator: 'contains', value: '2' },
+            false,
+            false,
+        ],
+        [
+            'not filterable, operator not offered → discarded, not parked',
+            { type: 'number', filterable: false },
+            { operator: 'contains', value: '2' },
+            false,
+            false,
+        ],
+        ['Column not known → judged by its form only', undefined, { operator: 'greaterThan', value: 20 }, true, true],
+    ])('%s', (_case, temp, value, applied, kept) => {
+        const filter = { id: 'temp', value };
+        const stored = { columnFilters: [filter] };
+        const config = configWith(temp);
+        const view = resolveView(stored, ALL_ON, config);
+        expect(view.columnFilters.some(f => f.id === 'temp')).toBe(applied);
+
+        const written = storeChange(view, { columnFilters: [...view.columnFilters, room] }, ALL_ON, config, stored);
+        expect(written.columnFilters).toEqual(expect.arrayContaining([room]));
+        expect((written.columnFilters as unknown[]).some(f => (f as { id: string }).id === 'temp')).toBe(kept);
+    });
+
+    describe('round trip', () => {
+        const temp = { id: 'temp', value: { operator: 'greaterThan', value: 20 } };
+        const parkedConfig = configWith({ type: 'number', filterable: false });
+        const stored = { columnFilters: [temp, room] };
+
+        it('survives the user changing and clearing the other filters, and applies again with its Column', () => {
+            const changed = storeChange(
+                resolveView(stored, ALL_ON, parkedConfig),
+                { columnFilters: [bath] },
+                ALL_ON,
+                parkedConfig,
+                stored,
+            );
+            const afterChange = { ...stored, ...changed };
+            expect(resolveView(afterChange, ALL_ON, parkedConfig).columnFilters).toEqual([bath]);
+
+            const cleared = storeChange(
+                resolveView(afterChange, ALL_ON, parkedConfig),
+                { columnFilters: [] },
+                ALL_ON,
+                parkedConfig,
+                afterChange,
+            );
+            const afterClear = { ...afterChange, ...cleared };
+            expect(resolveView(afterClear, ALL_ON, parkedConfig).columnFilters).toEqual([]);
+
+            const filterableAgain = configWith(filterable('number'));
+            expect(resolveView(afterClear, ALL_ON, filterableAgain).columnFilters).toEqual([temp]);
+        });
     });
 });
 
@@ -213,13 +307,13 @@ const reload = (stored: StoredView, written: StoredView, config = CONFIG): Retur
 describe('storeChange — a chosen page size survives a reload', () => {
     it('keeps 50 chosen against a configured 25', () => {
         const view = resolveView({}, ALL_ON, CONFIG);
-        const written = storeChange(view, { pagination: { pageIndex: 0, pageSize: 50 } }, ALL_ON, CONFIG);
+        const written = storeChange(view, { pagination: { pageIndex: 0, pageSize: 50 } }, ALL_ON, CONFIG, {});
         expect(reload({}, written).pagination).toEqual({ pageIndex: 0, pageSize: 50 });
     });
 
     it('yields to a page size the editor changes after the choice', () => {
         const view = resolveView({}, ALL_ON, CONFIG);
-        const written = storeChange(view, { pagination: { pageIndex: 0, pageSize: 50 } }, ALL_ON, CONFIG);
+        const written = storeChange(view, { pagination: { pageIndex: 0, pageSize: 50 } }, ALL_ON, CONFIG, {});
         expect(reload({}, written, { ...CONFIG, pageSize: 100 }).pagination).toEqual({ pageIndex: 0, pageSize: 100 });
     });
 });
@@ -233,7 +327,7 @@ describe('storeChange — back to page 1 only when sorting, filters, quick-filte
         ['quick-filter term', { globalFilter: 'bath' }],
         ['page size', { pagination: { pageIndex: 2, pageSize: 50 } }],
     ])('a changed %s restarts on page 1', (_case, change) => {
-        const written = storeChange(onPage3, change, ALL_ON, CONFIG);
+        const written = storeChange(onPage3, change, ALL_ON, CONFIG, STORED);
         expect(reload(STORED, written).pagination.pageIndex).toBe(0);
     });
 
@@ -243,13 +337,19 @@ describe('storeChange — back to page 1 only when sorting, filters, quick-filte
         ['the page', { pagination: { pageIndex: 4, pageSize: 25 } }, 4],
         ['the sorting to what it already is', { sorting: [{ id: 'name', desc: true }] }, 2],
     ])('changing %s keeps the page', (_case, change, pageIndex) => {
-        const written = storeChange(onPage3, change, ALL_ON, CONFIG);
+        const written = storeChange(onPage3, change, ALL_ON, CONFIG, STORED);
         expect(reload(STORED, written).pagination.pageIndex).toBe(pageIndex);
     });
 
     it('does not write the reset of a parked page', () => {
         const noPaging = tableCapabilities({ tableFiltering: true, tableQuickFilter: true, tablePagination: false });
-        const written = storeChange(resolveView(STORED, noPaging, CONFIG), { globalFilter: 'bath' }, noPaging, CONFIG);
+        const written = storeChange(
+            resolveView(STORED, noPaging, CONFIG),
+            { globalFilter: 'bath' },
+            noPaging,
+            CONFIG,
+            STORED,
+        );
         expect(written).toEqual({ globalFilter: 'bath' });
     });
 });
@@ -317,7 +417,7 @@ describe('storeChange — a parked part is not written and returns with its capa
         ['pagination', { tablePagination: false }, CONFIG, { pagination: { pageIndex: 0, pageSize: 10 } }],
     ])('%s (off via %j)', (part, settings, offConfig, change) => {
         const off = tableCapabilities({ tableFiltering: true, tableQuickFilter: true, ...settings });
-        const written = storeChange(resolveView(STORED, off, offConfig), change, off, offConfig);
+        const written = storeChange(resolveView(STORED, off, offConfig), change, off, offConfig, STORED);
 
         expect(written).not.toHaveProperty(part);
         expect(reload(STORED, written)[part]).toEqual(resolveView(STORED, ALL_ON, CONFIG)[part]);
@@ -327,7 +427,7 @@ describe('storeChange — a parked part is not written and returns with its capa
 describe('storeChange — a dragged width survives a reload until its cfg.width changes', () => {
     const config = { ...CONFIG, columnWidths: { name: 200 } };
     const view = resolveView({}, ALL_ON, config);
-    const written = storeChange(view, { columnSizing: { name: 240, temp: 90 } }, ALL_ON, config);
+    const written = storeChange(view, { columnSizing: { name: 240, temp: 90 } }, ALL_ON, config, {});
 
     it('keeps the dragged widths while the configuration stays', () => {
         expect(reload({}, written, config).columnSizing).toEqual({ name: 240, temp: 90 });

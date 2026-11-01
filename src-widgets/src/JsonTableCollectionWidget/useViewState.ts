@@ -21,7 +21,7 @@ import type {
     VisibilityState,
 } from '@tanstack/react-table';
 
-import type { EffectiveType, TableCapabilities } from './capabilities';
+import type { TableCapabilities } from './capabilities';
 import type { ColumnConfigEntry } from './types';
 import {
     VIEW_PARTS,
@@ -111,8 +111,11 @@ export interface UseViewStateOptions {
     autoSize: boolean;
     /** The column configuration (its `width` per Column is the configured width). */
     columnConfig: readonly ColumnConfigEntry[];
-    /** The Effektiver Typ per Column id: a stored filter its Column's type does not offer is discarded. */
-    columnTypes: Readonly<Record<string, EffectiveType>>;
+    /**
+     * The Columns per id: a stored filter its Column's Effektiver Typ does not offer is
+     * discarded, the filter of a Column that is not filterable is parked.
+     */
+    columns: ViewConfig['columns'];
 }
 
 export interface ViewState {
@@ -164,7 +167,7 @@ export function useViewState(options: UseViewStateOptions): ViewState {
         pageSizeOptions: rawPageSizeOptions,
         autoSize,
         columnConfig,
-        columnTypes,
+        columns,
     } = options;
 
     const config = useMemo<ViewConfig>(
@@ -173,9 +176,9 @@ export function useViewState(options: UseViewStateOptions): ViewState {
             pageSizeOptions: parsePageSizeOptions(rawPageSizeOptions),
             columnWidths: Object.fromEntries(columnConfig.map(cfg => [cfg.path, cfg.width])),
             autoSize,
-            columnTypes,
+            columns,
         }),
-        [pageSize, rawPageSizeOptions, columnConfig, autoSize, columnTypes],
+        [pageSize, rawPageSizeOptions, columnConfig, autoSize, columns],
     );
 
     // The stored view as last read or written, tagged with what it was read for: a new
@@ -219,6 +222,7 @@ export function useViewState(options: UseViewStateOptions): ViewState {
                 { [part]: applyUpdater(updater, current[part]) },
                 capabilities,
                 config,
+                latest,
             );
             if (Object.keys(written).length === 0) {
                 return; // a parked part: neither applied nor written

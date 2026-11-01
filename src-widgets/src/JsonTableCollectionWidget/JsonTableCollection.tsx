@@ -58,9 +58,10 @@ import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useViewState } from './useViewState';
+import type { ViewColumn } from './viewState';
 import ColumnMenu from './components/ColumnMenu';
 import { buildColumnDefs } from './utils/columnDefinitions';
-import { tableCapabilities, type EffectiveType } from './capabilities';
+import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
@@ -244,18 +245,27 @@ const JsonTableCollection: FC = () => {
 
     const isAutoSize = widget.data.tableAutoSize === true;
 
-    // The Effektiver Typ per visible Column, keyed by content: data updates rebuild the
-    // Columns, but must not hand the view a new configuration.
-    const columnTypesKey = useMemo(
+    // The visible Columns as the view judges their Spaltenfilter (Effektiver Typ, filterable),
+    // keyed by content: data updates rebuild the Columns, but must not hand the view a new
+    // configuration.
+    const viewColumnsKey = useMemo(
         () =>
             JSON.stringify(
                 Object.fromEntries(
-                    tableColumns.filter(column => column.config.visible).map(column => [column.path, column.type]),
+                    tableColumns
+                        .filter(column => column.config.visible)
+                        .map(column => [
+                            column.path,
+                            {
+                                type: column.type,
+                                filterable: columnCapabilities(capabilities, column.type, column.config).filterable,
+                            } satisfies ViewColumn,
+                        ]),
                 ),
             ),
-        [tableColumns],
+        [tableColumns, capabilities],
     );
-    const columnTypes = useMemo(() => JSON.parse(columnTypesKey) as Record<string, EffectiveType>, [columnTypesKey]);
+    const viewColumns = useMemo(() => JSON.parse(viewColumnsKey) as Record<string, ViewColumn>, [viewColumnsKey]);
 
     const view = useViewState({
         widgetId,
@@ -264,7 +274,7 @@ const JsonTableCollection: FC = () => {
         pageSizeOptions: widget.data.tablePageSizeOptions,
         autoSize: isAutoSize,
         columnConfig,
-        columnTypes,
+        columns: viewColumns,
     });
     const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
 
