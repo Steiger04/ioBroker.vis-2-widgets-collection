@@ -957,7 +957,6 @@
     "json_table_format_type_image": "Изображение",
     "json_table_format_type_number": "Число",
     "json_table_format_type_string": "Строка",
-    "json_table_global_status": "Состояние глобальных функций",
     "json_table_has_formatting": "Форматирование",
     "json_table_has_styling": "Стилизация",
     "json_table_header_bg_color": "Фон заголовка",
@@ -1313,5 +1312,6 @@
     "json_table_table_off_tooltip": "{feature} отключено для всей таблицы, поэтому эта настройка столбца не действует",
     "json_table_hideable": "Скрываемый",
     "json_table_detected_type_hint": "Обнаружено: {type}",
-    "json_table_override_type_default_tooltip": "Этот столбец переопределяет значение по умолчанию типа для {feature} — но не более, чем допускает таблица"
+    "json_table_override_type_default_tooltip": "Этот столбец переопределяет значение по умолчанию типа для {feature} — но не более, чем допускает таблица",
+    "json_table_capabilities_status": "Возможности таблицы"
 }

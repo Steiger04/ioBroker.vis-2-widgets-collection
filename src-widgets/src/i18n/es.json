@@ -957,7 +957,6 @@
     "json_table_format_type_image": "Imagen",
     "json_table_format_type_number": "Número",
     "json_table_format_type_string": "Cadena",
-    "json_table_global_status": "Estado de funciones globales",
     "json_table_has_formatting": "Formato",
     "json_table_has_styling": "Estilo",
     "json_table_header_bg_color": "Fondo de encabezado",
@@ -1313,5 +1312,6 @@
     "json_table_table_off_tooltip": "{feature} está desactivado para toda la tabla, por lo que esta configuración de columna no tiene ningún efecto",
     "json_table_hideable": "Ocultable",
     "json_table_detected_type_hint": "Detectado: {type}",
-    "json_table_override_type_default_tooltip": "Esta columna anula el valor predeterminado del tipo para {feature} — nunca más de lo que permite la tabla"
+    "json_table_override_type_default_tooltip": "Esta columna anula el valor predeterminado del tipo para {feature} — nunca más de lo que permite la tabla",
+    "json_table_capabilities_status": "Capacidades de la tabla"
 }

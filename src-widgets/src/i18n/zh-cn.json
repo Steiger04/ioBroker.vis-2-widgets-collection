@@ -957,7 +957,6 @@
     "json_table_format_type_image": "图片",
     "json_table_format_type_number": "数字",
     "json_table_format_type_string": "字符串",
-    "json_table_global_status": "全局功能状态",
     "json_table_has_formatting": "格式化",
     "json_table_has_styling": "样式",
     "json_table_header_bg_color": "标题背景",
@@ -1313,5 +1312,6 @@
     "json_table_table_off_tooltip": "{feature} 已对整个表格关闭，因此此列设置不会生效",
     "json_table_hideable": "可隐藏",
     "json_table_detected_type_hint": "检测到：{type}",
-    "json_table_override_type_default_tooltip": "此列会覆盖 {feature} 的类型默认值——但绝不超过表所允许的上限"
+    "json_table_override_type_default_tooltip": "此列会覆盖 {feature} 的类型默认值——但绝不超过表所允许的上限",
+    "json_table_capabilities_status": "表格功能"
 }

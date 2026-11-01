@@ -65,7 +65,7 @@ function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
                 variant="caption"
                 sx={{ fontWeight: 500, display: 'block', mb: 0.5 }}
             >
-                {Generic.t('json_table_global_status')}
+                {Generic.t('json_table_capabilities_status')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <StatusChip

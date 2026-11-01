@@ -957,7 +957,6 @@
     "json_table_format_type_image": "Bild",
     "json_table_format_type_number": "Zahl",
     "json_table_format_type_string": "Text",
-    "json_table_global_status": "Globale Funktionen",
     "json_table_has_formatting": "Formatierung",
     "json_table_has_styling": "Styling",
     "json_table_header_bg_color": "Kopfzeilen-Hintergrund",
@@ -1313,5 +1312,6 @@
     "json_table_table_off_tooltip": "{feature} ist für die gesamte Tabelle deaktiviert, daher hat diese Spalteneinstellung keine Auswirkung",
     "json_table_hideable": "Ausblendbar",
     "json_table_detected_type_hint": "Erkannt: {type}",
-    "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt"
+    "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt",
+    "json_table_capabilities_status": "Tabellenfunktionen"
 }

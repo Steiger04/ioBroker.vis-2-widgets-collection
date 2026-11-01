@@ -957,7 +957,6 @@
     "json_table_format_type_image": "Obraz",
     "json_table_format_type_number": "Liczba",
     "json_table_format_type_string": "Ciąg znaków",
-    "json_table_global_status": "Status funkcji globalnych",
     "json_table_has_formatting": "Formatowanie",
     "json_table_has_styling": "Stylizacja",
     "json_table_header_bg_color": "Tło nagłówka",
@@ -1313,5 +1312,6 @@
     "json_table_table_off_tooltip": "{feature} jest wyłączone dla całej tabeli, więc to ustawienie kolumny nie ma żadnego efektu",
     "json_table_hideable": "Możliwość ukrycia",
     "json_table_detected_type_hint": "Wykryto: {type}",
-    "json_table_override_type_default_tooltip": "Ta kolumna nadpisuje domyślną wartość typu dla {feature} — nigdy więcej, niż pozwala tabela"
+    "json_table_override_type_default_tooltip": "Ta kolumna nadpisuje domyślną wartość typu dla {feature} — nigdy więcej, niż pozwala tabela",
+    "json_table_capabilities_status": "Możliwości tabeli"
 }

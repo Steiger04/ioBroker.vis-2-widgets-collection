@@ -958,7 +958,7 @@
     "json_table_format_type_image": "Image",
     "json_table_format_type_number": "Number",
     "json_table_format_type_string": "String",
-    "json_table_global_status": "Global Feature Status",
+    "json_table_capabilities_status": "Table capabilities",
     "json_table_has_formatting": "Formatting",
     "json_table_has_styling": "Styling",
     "json_table_header_bg_color": "Header background",
