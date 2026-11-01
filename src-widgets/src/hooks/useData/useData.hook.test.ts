@@ -38,12 +38,16 @@ const scene = (data: Record<string, unknown>, status: unknown): PreviewScene =>
 
 const mounted: MountedCollectionBody[] = [];
 
-/** Mounts `useData('oid')` inside the real provider and returns its result. */
-const resolve = (data: Record<string, unknown>, status: unknown): UseDataResult => {
+/** Mounts `useData('oid', options)` inside the real provider and returns its result. */
+const resolve = (
+    data: Record<string, unknown>,
+    status: unknown,
+    options?: Parameters<typeof useData>[1],
+): UseDataResult => {
     const captured: { current?: UseDataResult } = {};
 
     const Probe: FC = () => {
-        captured.current = useData('oid');
+        captured.current = useData('oid', options);
         return null;
     };
 
@@ -90,5 +94,44 @@ describe('useData — Feldnummer across a blank value row', () => {
         const { activeFieldNumber, activePosition } = resolve(gapRows, 'x');
 
         expect([activeFieldNumber, activePosition]).toEqual([undefined, undefined]);
+    });
+});
+
+/** Icon colour of the base tier. */
+const BASE_ICON_COLOR = '#aa0000';
+/** Icon colour carried by the marker layer. */
+const MARKER_ICON_COLOR = '#00aaaa';
+
+describe('useData — the marker layer comes from the caller', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    it('slots a passed marker layer into the chains (marker icon colour beats the base tier)', () => {
+        const { data } = resolve({ iconColor: BASE_ICON_COLOR }, 'x', {
+            markerLayer: { iconColor: MARKER_ICON_COLOR },
+        });
+
+        expect(data.iconColor).toBe(MARKER_ICON_COLOR);
+    });
+
+    it('ignores slider marker fields in the widget data when no marker layer is passed — no type detection', () => {
+        const { data } = resolve(
+            {
+                sliderOrientation: 'horizontal',
+                markerIconColor: MARKER_ICON_COLOR,
+                markerIconSize: 50,
+                iconColor: BASE_ICON_COLOR,
+                iconSize: 200,
+            },
+            'x',
+        );
+
+        expect({ iconColor: data.iconColor, iconSize: data.iconSize }).toEqual({
+            iconColor: BASE_ICON_COLOR,
+            iconSize: 'calc(24px * 200 / 100)',
+        });
     });
 });

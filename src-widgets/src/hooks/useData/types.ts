@@ -185,16 +185,6 @@ export interface PropertyResolver<T> {
 }
 
 /**
- * Generic type for widget-specific property resolvers.
- * Base for `createSliderResolver()` and `createDefaultResolver()`.
- *
- * @template T - Type of the widget data object
- */
-export type WidgetResolver<T> = {
-    [K in keyof T]: T[K];
-};
-
-/**
  * Utility type for indexed properties.
  * Extracts value type from indexed properties like `icon1`, `icon2`.
  *
@@ -209,29 +199,26 @@ export type WidgetResolver<T> = {
 export type IndexedProperty<T, P extends string> = T extends Record<`${P}${number}`, infer V> ? V : never;
 
 /**
- * Interface for slider-specific properties.
- * Used by `createSliderResolver()` in `widgetResolvers.ts`.
+ * The marker layer: an optional tier between the per-state values and the base
+ * values of the resolver chains.
+ *
+ * A widget passes it explicitly via `useData(idName, { markerLayer })`; the core
+ * never derives it from the widget data. Without it, the chains resolve as if
+ * the tier did not exist. Each value is inserted at a fixed position per chain
+ * (see `createPropertyResolvers()`).
  */
-export interface SliderProperties {
-    /**
-     * Size of the marker icon in pixels
-     */
-    markerIconSize?: number;
+export interface MarkerLayer {
+    /** Icon size in percent of the 24px default icon. */
+    iconSize?: number;
 
-    /**
-     * Color of the marker text
-     */
-    markerTextColor?: string;
+    /** Icon color (CSS color value). */
+    iconColor?: string;
 
-    /**
-     * Size of the marker text in pixels
-     */
-    markerTextSize?: number;
+    /** Text color (CSS color value); an empty string counts as unset. */
+    textColor?: string;
 
-    /**
-     * Color of the marker icon
-     */
-    markerIconColor?: string;
+    /** Text size, formatted like the other size fields. */
+    textSize?: number;
 }
 
 /**
@@ -243,7 +230,7 @@ export interface SliderProperties {
  * @remarks
  * Defines 46 resolver functions across 5 categories: Icon Properties (23),
  * Text Properties (3), Size Properties (6), Content Properties (4),
- * Background Properties (8), and Slider Properties (4).
+ * Background Properties (8), and Marker Layer pass-throughs (4).
  * @since 2.2.0
  */
 export interface PropertyResolvers {
@@ -299,7 +286,7 @@ export interface PropertyResolvers {
     frameBackground: (ext: string | number, includeActive: boolean) => string;
     frameBackgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
 
-    // Slider Properties (4 resolvers)
+    // Marker Layer pass-throughs (4 resolvers) — the raw values of the passed marker layer
     markerIconSize: (ext: string | number, includeActive: boolean) => number | undefined;
     markerTextColor: (ext: string | number, includeActive: boolean) => string | undefined;
     markerTextSize: (ext: string | number, includeActive: boolean) => number | undefined;

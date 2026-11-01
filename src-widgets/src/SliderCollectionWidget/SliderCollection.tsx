@@ -113,7 +113,24 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, states, minValue, maxValue, activeFieldNumber, resolveStyleData } = useData('oid');
+    // The slider's marker layer, passed explicitly to the shared resolver chains.
+    const markerLayer = useMemo(
+        () => ({
+            iconSize: widget.data.markerIconSize,
+            iconColor: widget.data.markerIconColor,
+            textColor: widget.data.markerTextColor,
+            textSize: widget.data.markerTextSize,
+        }),
+        [
+            widget.data.markerIconSize,
+            widget.data.markerIconColor,
+            widget.data.markerTextColor,
+            widget.data.markerTextSize,
+        ],
+    );
+    const { data, states, minValue, maxValue, activeFieldNumber, resolveStyleData } = useData('oid', {
+        markerLayer,
+    });
 
     // One optimistic truth for the controlled slider: local copy + debounced
     // backend write behind one interface (init/echo/non-numeric documented on

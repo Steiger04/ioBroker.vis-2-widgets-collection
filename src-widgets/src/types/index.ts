@@ -15,7 +15,6 @@ export {
     getDynamicProperty,
     setDynamicProperty,
     getAllIndexedProperties,
-    isSliderFieldsRxData,
     isCommonObjectFieldsRxData,
     isValidWidgetData,
     hasIndexedProperty,

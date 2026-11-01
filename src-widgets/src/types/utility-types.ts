@@ -1,4 +1,4 @@
-import type { SliderFieldsRxData, CommonObjectFieldsRxData } from './field-definitions';
+import type { CommonObjectFieldsRxData } from './field-definitions';
 
 /**
  * Runtime utility types for Collection widgets.
@@ -167,24 +167,6 @@ export function getAllIndexedProperties<T extends Record<string, any>, P extends
 
     result.sort((a, b) => a.index - b.index);
     return result;
-}
-
-/**
- * Type guard to check if data is SliderFieldsRxData.
- *
- * Enables safe access to slider-specific properties like sliderColor.
- *
- * @param data - Data to check
- * @returns true if data is SliderFieldsRxData
- * @example
- * ```typescript
- * if (isSliderFieldsRxData(rxData)) {
- *     const color = rxData.sliderColor; // ✅ Type-safe
- * }
- * ```
- */
-export function isSliderFieldsRxData(data: any): data is SliderFieldsRxData {
-    return typeof data === 'object' && data !== null && 'sliderOrientation' in data;
 }
 
 /**
