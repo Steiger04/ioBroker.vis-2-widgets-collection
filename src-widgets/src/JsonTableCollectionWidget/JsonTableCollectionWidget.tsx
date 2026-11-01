@@ -21,55 +21,13 @@ import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, Wi
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { WidgetRegistry } from '../types';
 
-/** All JSON-table-specific data field names that should be cleared on OID deletion. */
-const JSON_TABLE_DATA_FIELDS = [
-    // Column config
-    'columnConfig',
-    // Features
-    'tableSorting',
-    'tableSortingMulti',
-    'tableFiltering',
-    'tableQuickFilter',
-    'tableColumnMenu',
-    'tableHiding',
-    // Pagination
-    'tablePagination',
-    'tablePageSize',
-    'tablePageSizeOptions',
-    'tableVirtualizeThreshold',
-    // Selection
-    'tableRowSelection',
-    // Analysis
-    'tableMaxDepth',
-    // Layout
-    'tableDensity',
-    'tableRowHeight',
-    'tableHeaderHeight',
-    'tableAutoSize',
-    'tableHeaderElevation',
-    'jsonTablePadding',
-    // Outer border
-    'borderWidth',
-    'borderStyle',
-    'borderColor',
-    'borderRadius',
-    // Header style
-    'tableHeaderBgColor',
-    'tableHeaderTextColor',
-    'tableHeaderFontSize',
-    'headerBorderWidth',
-    'headerBorderColor',
-    // Cell borders
-    'tableShowCellBorders',
-    'verticalCellBorderWidth',
-    'verticalCellBorderColor',
-    'tableShowRowBorders',
-    'horizontalCellBorderWidth',
-    'horizontalCellBorderColor',
-    // Row colors
-    'evenRowColor',
-    'oddRowColor',
-];
+/**
+ * All JSON-table-specific data field names that are cleared on OID deletion: every named
+ * field of {@link jsonTableFields}, so a new setting can never be forgotten here.
+ */
+const JSON_TABLE_DATA_FIELDS: readonly string[] = jsonTableFields()
+    .map(field => (field as { name?: string }).name)
+    .filter((name): name is string => typeof name === 'string' && name.length > 0);
 
 class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableCollectionWidget']> {
     /**
