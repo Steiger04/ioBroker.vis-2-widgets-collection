@@ -13,14 +13,20 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { decideDialogTransition, parseAutoCloseTimeout, type DialogEvent } from './dialogSession';
+import {
+    canWriteSessionOid,
+    decideDialogTransition,
+    parseAutoCloseTimeout,
+    type DialogEvent,
+    type SessionOidObject,
+} from './dialogSession';
 
 /** Wiring inputs the body extracts from the widget context. */
 export interface DialogSessionInputs {
     /** Current value of the Sitzungs-OID (`dialogId`). */
     oidValue: unknown;
     /** Object metadata of the Sitzungs-OID; `write === false` marks it read-only. */
-    dialogIdObject: { _id?: string; write?: boolean } | undefined;
+    dialogIdObject: SessionOidObject | undefined;
     /** Raw `dialogAutoClose` configuration value. */
     autoClose: unknown;
     /** The context's backend write. */
@@ -53,7 +59,7 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
     const dispatchRef = useRef<(event: DialogEvent) => void>(() => undefined);
 
     const sessionOid = dialogIdObject?._id;
-    const canWrite = !!sessionOid && dialogIdObject?.write !== false;
+    const canWrite = canWriteSessionOid(dialogIdObject);
     const autoCloseMs = parseAutoCloseTimeout(autoClose);
 
     const clearTimer = (): void => {
@@ -69,6 +75,7 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
         openRef.current = transition.open;
         setOpen(transition.open);
 
+        // A write implies canWrite, hence a resolved id — the check only narrows it for TS.
         if (transition.write !== null && sessionOid) {
             setValue(sessionOid, transition.write);
         }

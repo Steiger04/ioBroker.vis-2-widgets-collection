@@ -62,11 +62,27 @@ export type DialogEvent =
     | { type: 'close' }
     | { type: 'timer-expired' };
 
+/** Object metadata of the Sitzungs-OID (`dialogIdObject`), as far as the session reads it. */
+export interface SessionOidObject {
+    _id?: string;
+    write?: boolean;
+}
+
+/**
+ * Whether the widget may write the Sitzungs-OID: it is resolved (non-empty `_id`) AND its
+ * object is not read-only (`write !== false`).
+ *
+ * @param object - The Sitzungs-OID's object metadata; `undefined` when none is bound.
+ */
+export function canWriteSessionOid(object: SessionOidObject | undefined): boolean {
+    return !!object?._id && object.write !== false;
+}
+
 /** Decision inputs the wiring extracts from the widget context. */
 export interface DialogSessionConfig {
     /** Auto-close timeout in ms (from {@link parseAutoCloseTimeout}); `0` = off. */
     autoCloseMs: number;
-    /** Sitzungs-OID resolved AND its object not read-only (`write !== false`). */
+    /** Whether the Sitzungs-OID may be written — {@link canWriteSessionOid}. */
     canWrite: boolean;
 }
 

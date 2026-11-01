@@ -10,7 +10,12 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { decideDialogTransition, parseAutoCloseTimeout, type DialogSessionConfig } from './dialogSession';
+import {
+    canWriteSessionOid,
+    decideDialogTransition,
+    parseAutoCloseTimeout,
+    type DialogSessionConfig,
+} from './dialogSession';
 
 const CLOSED = false;
 const OPEN = true;
@@ -141,6 +146,24 @@ describe.each([
             write: null,
             timer: 'keep',
         });
+    });
+});
+
+describe('canWriteSessionOid', () => {
+    it.each([
+        ['no Sitzungs-OID object', undefined],
+        ['an object without id', { write: true }],
+        ['an empty id', { _id: '', write: true }],
+        ['a read-only object (write === false)', { _id: 'demo.0.dialog', write: false }],
+    ])('is false for %s', (_label, object) => {
+        expect(canWriteSessionOid(object)).toBe(false);
+    });
+
+    it.each([
+        ['a writable object', { _id: 'demo.0.dialog', write: true }],
+        ['an object without write flag', { _id: 'demo.0.dialog' }],
+    ])('is true for %s', (_label, object) => {
+        expect(canWriteSessionOid(object)).toBe(true);
     });
 });
 
