@@ -69,7 +69,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                     sx={buildGroupChrome({
                         variant: buttonGroupVariant,
                         orientation: buttonGroupOrientation,
-                        buttonGroupColor: widget.data.buttonGroupColor,
+                        data: widget.data,
                         basePadding: widget.data.basePadding,
                         count: buttonStates.length,
                         theme,

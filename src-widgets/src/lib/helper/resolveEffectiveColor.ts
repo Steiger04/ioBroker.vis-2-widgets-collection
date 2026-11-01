@@ -43,6 +43,10 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
             return theme.palette.text.primary;
         case 'paper':
             return theme.palette.background.paper;
+        case 'divider':
+            return theme.palette.divider;
+        case 'textSecondary':
+            return theme.palette.text.secondary;
         case 'transparent':
         case undefined:
         default:
