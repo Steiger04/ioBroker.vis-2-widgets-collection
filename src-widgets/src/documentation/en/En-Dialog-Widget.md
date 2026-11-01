@@ -111,7 +111,9 @@ The widget-specific settings override the more general settings.
 
 ## OID Control
 
-With the `cid` (Control ID), the dialog can be controlled via an OID:
+With `dialogId`, the dialog can be controlled via a boolean OID.
+
+The widget writes the OID only on its own open and close (click, X/backdrop/Escape, auto-close) — never in reaction to the state, not even on view load. Only boolean values control the dialog; other values are ignored. A read-only state is only read.
 
 ### Open Dialog
 
@@ -128,7 +130,7 @@ With the `cid` (Control ID), the dialog can be controlled via an OID:
 **Example:**
 
 ```
-cid = "javascript.0.showAlarmDialog"
+dialogId = "javascript.0.showAlarmDialog"
 ```
 
 Script sets `showAlarmDialog = true` on alarm → dialog opens

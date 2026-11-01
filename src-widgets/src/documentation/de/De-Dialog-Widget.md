@@ -111,7 +111,9 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## OID-Steuerung
 
-Mit der `cid` (Control ID) kann der Dialog über eine OID gesteuert werden:
+Mit `dialogId` kann der Dialog über eine boolesche OID gesteuert werden.
+
+Das Widget schreibt die OID nur beim eigenen Öffnen und Schließen (Klick, X/Hintergrund/Escape, Auto-Close) — nie als Reaktion auf den State, auch nicht beim Laden der View. Nur boolesche Werte steuern den Dialog; andere Werte werden ignoriert. Ein schreibgeschützter State wird nur gelesen.
 
 ### Dialog öffnen
 
@@ -128,7 +130,7 @@ Mit der `cid` (Control ID) kann der Dialog über eine OID gesteuert werden:
 **Beispiel:**
 
 ```
-cid = "javascript.0.showAlarmDialog"
+dialogId = "javascript.0.showAlarmDialog"
 ```
 
 Skript setzt `showAlarmDialog = true` bei Alarm → Dialog öffnet sich
