@@ -20,8 +20,11 @@ The widget-specific settings override the more general settings.
 
 The JSON data can be:
 - **Array of objects**: Each object represents a row
+- **Single object**: Shown as one row
 - **Nested objects**: Flattened automatically with configurable depth
 - **JSON string**: Parsed automatically
+
+Anything else — a single number, text or boolean (also as JSON), invalid JSON, an empty array — shows *No data available*.
 
 ## Column Configuration
 
@@ -37,6 +40,8 @@ The column editor provides:
 - **Column settings**: Configure label, width, alignment, format
 - **Conditional styling**: Apply styles based on cell values
 - **Data type detection**: Automatic detection of the data type (`string`, `number`, `boolean`, `date`, `image`, `array`, `object`, `null`, `mixed`). The **detected type** is a hint and drives the default **format type** — but it may be chosen freely.
+
+> **Which columns the table shows:** The saved column configuration and the columns found in the data are merged by one rule, in the editor and at runtime alike: saved columns still present in the data keep their order and settings; a field the data gains appears right away as a new visible column at the end (default settings) — no need to save in the editor first; a saved column the data no longer carries is left out. Without a saved configuration the table shows every column found. The editor opens with exactly this list; hiding a new column there is saved with the next *Save*.
 
 ### Column Properties
 
@@ -147,6 +152,8 @@ Apply dynamic styles based on cell values:
 | ---------------- | -------- | ------- | ------------------------------------- | --------- |
 | tableSorting     | checkbox | true    | Enable column sorting                 | Header shown |
 | tableSortingMulti| checkbox | false   | Enable multi-column sorting (Ctrl+Click) | Sorting enabled |
+
+A column sorts by its **effective type**: dates chronologically, numbers numerically — also number values stored as text when the column's format type is `number` (values that are no number sort like 0) — everything else as text.
 
 ### Filtering
 
