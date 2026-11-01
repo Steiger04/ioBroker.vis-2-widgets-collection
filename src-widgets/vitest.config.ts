@@ -17,6 +17,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // it here, or give it a happy-dom docblock if it joins the dom project).
 const DOM_TS_TESTS = [
     'src/components/SectionTabs.test.ts',
+    'src/DialogCollectionWidget/useDialogSession.hook.test.ts',
     'src/EchartsCollectionWidget/EChart.legendSelect.test.ts',
     'src/EchartsCollectionWidget/editor/sections/series/SeriesDataFields.test.ts',
     'src/EchartsCollectionWidget/timeFormat.test.ts',
