@@ -256,6 +256,19 @@ const JsonTableCollection: FC = () => {
 
     const isAutoSize = widget.data.tableAutoSize === true;
 
+    // The Effektiver Typ per Column, keyed by content: data updates rebuild the column
+    // definitions, but must not hand the view a new configuration.
+    const columnTypesKey = useMemo(
+        () =>
+            JSON.stringify(
+                Object.fromEntries(
+                    columns.flatMap(col => (col.id && col.meta?.columnType ? [[col.id, col.meta.columnType]] : [])),
+                ),
+            ),
+        [columns],
+    );
+    const columnTypes = useMemo(() => JSON.parse(columnTypesKey) as Record<string, EffectiveType>, [columnTypesKey]);
+
     const view = useViewState({
         widgetId,
         capabilities,
@@ -263,6 +276,7 @@ const JsonTableCollection: FC = () => {
         pageSizeOptions: widget.data.tablePageSizeOptions,
         autoSize: isAutoSize,
         columnConfig,
+        columnTypes,
     });
     const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
 

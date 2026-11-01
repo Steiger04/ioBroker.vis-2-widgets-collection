@@ -17,7 +17,8 @@ import type {
     VisibilityState,
 } from '@tanstack/react-table';
 
-import type { TableCapabilities } from './capabilities';
+import type { EffectiveType, TableCapabilities } from './capabilities';
+import { filterFits } from './columnFilter';
 
 /** The persisted parts of a table's view, in TanStack's state shapes. */
 export type TableView = {
@@ -45,6 +46,8 @@ export type ViewConfig = Readonly<{
     columnWidths: Readonly<Record<string, number | undefined>>;
     /** Auto-size mode (`tableAutoSize`): widths are measured, not dragged. */
     autoSize: boolean;
+    /** The Effektiver Typ per Column id (missing = Column not known, e.g. before the data arrives). */
+    columnTypes: Readonly<Record<string, EffectiveType>>;
 }>;
 
 /** The page sizes offered when `tablePageSizeOptions` is empty or unreadable. */
@@ -83,21 +86,23 @@ const readSorting = (stored: unknown): SortingState =>
  * Whether a stored Spaltenfilter still fits — the ONE admission rule for stored filters.
  *
  * @param entry One stored entry of the column filters.
- * @returns `true` for `{id, value: {operator, value}}` with a string operator and a
- *   primitive value (the filter dialog's form); anything else is discarded on load.
- * @remarks
- * The check that the Column's Effektiver Typ still offers the operator belongs here too.
+ * @param columnTypes The Effektiver Typ per Column id.
+ * @returns `true` for `{id, value}` whose value is a valid filter for the Column
+ *   (`filterFits`: the dialog's form `{operator, value}`, an operator the Column's
+ *   Effektiver Typ offers); anything else is discarded on load.
  */
-function storedFilterFits(entry: unknown): entry is ColumnFiltersState[number] {
-    if (!isRecord(entry) || typeof entry.id !== 'string' || !isRecord(entry.value)) {
+function storedFilterFits(entry: unknown, columnTypes: ViewConfig['columnTypes']): entry is ColumnFiltersState[number] {
+    if (!isRecord(entry) || typeof entry.id !== 'string') {
         return false;
     }
-    const { operator, value } = entry.value;
-    return typeof operator === 'string' && ['string', 'number', 'boolean'].includes(typeof value);
+    const type = Object.hasOwn(columnTypes, entry.id) ? columnTypes[entry.id] : undefined;
+    return filterFits(type, entry.value);
 }
 
-const readColumnFilters = (stored: unknown): ColumnFiltersState =>
-    Array.isArray(stored) ? stored.filter(storedFilterFits) : [];
+const readColumnFilters = (stored: unknown, config: ViewConfig): ColumnFiltersState =>
+    Array.isArray(stored)
+        ? stored.filter((entry): entry is ColumnFiltersState[number] => storedFilterFits(entry, config.columnTypes))
+        : [];
 
 const readGlobalFilter = (stored: unknown): string => (typeof stored === 'string' ? stored : '');
 
@@ -234,7 +239,7 @@ export function resolveView(stored: StoredView, capabilities: TableCapabilities,
     const live = (part: ViewPart): unknown => (isParked(part, capabilities, config) ? undefined : stored[part]);
     return {
         sorting: readSorting(live('sorting')),
-        columnFilters: readColumnFilters(live('columnFilters')),
+        columnFilters: readColumnFilters(live('columnFilters'), config),
         globalFilter: readGlobalFilter(live('globalFilter')),
         pagination: isParked('pagination', capabilities, config)
             ? ALL_ROWS

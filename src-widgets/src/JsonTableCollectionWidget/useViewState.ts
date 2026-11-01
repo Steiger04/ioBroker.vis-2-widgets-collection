@@ -21,7 +21,7 @@ import type {
     VisibilityState,
 } from '@tanstack/react-table';
 
-import type { TableCapabilities } from './capabilities';
+import type { EffectiveType, TableCapabilities } from './capabilities';
 import type { ColumnConfigEntry } from './types';
 import {
     VIEW_PARTS,
@@ -111,6 +111,8 @@ export interface UseViewStateOptions {
     autoSize: boolean;
     /** The column configuration (its `width` per Column is the configured width). */
     columnConfig: readonly ColumnConfigEntry[];
+    /** The Effektiver Typ per Column id: a stored filter its Column's type does not offer is discarded. */
+    columnTypes: Readonly<Record<string, EffectiveType>>;
 }
 
 export interface ViewState {
@@ -155,7 +157,15 @@ function shownView(
  * @returns The effective TanStack state and its change handlers.
  */
 export function useViewState(options: UseViewStateOptions): ViewState {
-    const { widgetId, capabilities, pageSize, pageSizeOptions: rawPageSizeOptions, autoSize, columnConfig } = options;
+    const {
+        widgetId,
+        capabilities,
+        pageSize,
+        pageSizeOptions: rawPageSizeOptions,
+        autoSize,
+        columnConfig,
+        columnTypes,
+    } = options;
 
     const config = useMemo<ViewConfig>(
         () => ({
@@ -163,8 +173,9 @@ export function useViewState(options: UseViewStateOptions): ViewState {
             pageSizeOptions: parsePageSizeOptions(rawPageSizeOptions),
             columnWidths: Object.fromEntries(columnConfig.map(cfg => [cfg.path, cfg.width])),
             autoSize,
+            columnTypes,
         }),
-        [pageSize, rawPageSizeOptions, columnConfig, autoSize],
+        [pageSize, rawPageSizeOptions, columnConfig, autoSize, columnTypes],
     );
 
     // The stored view as last read or written, tagged with what it was read for: a new
