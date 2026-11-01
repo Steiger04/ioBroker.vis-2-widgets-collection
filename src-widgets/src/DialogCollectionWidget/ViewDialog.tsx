@@ -7,8 +7,8 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useRef, useState, useEffect } from 'react';
-import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
+import React from 'react';
+import CollectionBase from '../components/CollectionBase';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import type { StyleData } from '../hooks/useData/types';
@@ -37,28 +37,6 @@ export default function ViewDialog({
     data,
     getWidgetView,
 }: ViewDialogProps): React.ReactElement {
-    const baseRef = useRef<CollectionBaseHandle>(null);
-    const [titleRef, setTitleRef] = useState<HTMLElement | null>(null);
-
-    const header = baseRef.current?.header;
-
-    useEffect(() => {
-        if (!widget.data.dialogHeaderAsTitle) {
-            return;
-        }
-
-        if (header && titleRef) {
-            if (widget.data.dialogHeaderAsTitle) {
-                header.style.width = '0px';
-                header.style.height = '0px';
-            }
-
-            titleRef.innerHTML = data.header!;
-            titleRef.style.height = 'auto';
-            titleRef.style.width = 'auto';
-        }
-    }, [header, titleRef, data.header, widget.data.dialogHeaderAsTitle]);
-
     const iconButton = (
         <IconButton
             sx={{
@@ -96,8 +74,8 @@ export default function ViewDialog({
                 }}
             >
                 <CollectionBase
-                    ref={baseRef}
                     data={data}
+                    hideHeader={!!widget.data.dialogHeaderAsTitle}
                     sx={{
                         flexDirection: 'column',
                         background: data.backgroundColor || data.background,
@@ -122,7 +100,6 @@ export default function ViewDialog({
                             }}
                         >
                             <Typography
-                                ref={setTitleRef}
                                 noWrap
                                 variant="body2"
                                 sx={{
@@ -130,6 +107,9 @@ export default function ViewDialog({
                                     px: widget.data.dialogCloseButtonTop ? 4 : 0,
 
                                     ...gradientTextSx(data.textColor),
+                                }}
+                                dangerouslySetInnerHTML={{
+                                    __html: widget.data.dialogHeaderAsTitle ? (data.header ?? '') : '',
                                 }}
                             />
                         </Box>
