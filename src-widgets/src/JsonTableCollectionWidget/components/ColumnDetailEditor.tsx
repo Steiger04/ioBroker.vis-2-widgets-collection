@@ -253,13 +253,18 @@ function ColumnDetailEditor({
             </Box>
 
             <Stack spacing={1}>
+                {/* Every section header renders as a div (role="button", same keyboard handling):
+                    it hosts the section's reset IconButton, and a <button> must not contain one. */}
                 {/* ── Section: Basic ─────────────────────────────────────── */}
                 <Accordion
                     expanded={expanded.basic}
                     onChange={() => handleAccordionChange('basic')}
                     disableGutters
                 >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <AccordionSummary
+                        component="div"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
                         <Box
                             sx={{
                                 display: 'flex',
@@ -355,7 +360,10 @@ function ColumnDetailEditor({
                     onChange={() => handleAccordionChange('formatting')}
                     disableGutters
                 >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <AccordionSummary
+                        component="div"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
                         <Box
                             sx={{
                                 display: 'flex',
@@ -490,7 +498,10 @@ function ColumnDetailEditor({
                     onChange={() => handleAccordionChange('styling')}
                     disableGutters
                 >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <AccordionSummary
+                        component="div"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
                         <Box
                             sx={{
                                 display: 'flex',
@@ -550,7 +561,10 @@ function ColumnDetailEditor({
                     onChange={() => handleAccordionChange('advanced')}
                     disableGutters
                 >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <AccordionSummary
+                        component="div"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
                         <Box
                             sx={{
                                 display: 'flex',
