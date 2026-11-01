@@ -47,6 +47,8 @@ import ImageFormatEditor from './editors/ImageFormatEditor';
 import ConditionalStyleEditor from './editors/ConditionalStyleEditor';
 import StatusBanner from './StatusBanner';
 import EffectiveResultIndicator from './EffectiveResultIndicator';
+import TypeBadgeChip from './TypeBadgeChip';
+import { typeBadgeOf } from './typeBadge';
 
 /** Props for the ColumnDetailEditor component. */
 interface ColumnDetailEditorProps {
@@ -235,15 +237,9 @@ function ColumnDetailEditor({
         >
             {/* Column path header */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Chip
-                    label={detectedType}
-                    size="small"
-                    sx={{
-                        backgroundColor: TYPE_COLORS[detectedType] || TYPE_COLORS.string,
-                        color: '#fff',
-                        fontWeight: 600,
-                        fontSize: '0.7rem',
-                    }}
+                <TypeBadgeChip
+                    badge={typeBadgeOf(column.format?.type, discoveredColumn?.type)}
+                    sx={{ fontSize: '0.7rem' }}
                 />
                 <Typography
                     variant="subtitle2"

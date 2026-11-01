@@ -1312,5 +1312,6 @@
     "without_label": "Sem rótulo",
     "write_value": "Escrever valor",
     "json_table_table_off_tooltip": "{feature} está desativado para toda a tabela, portanto esta configuração de coluna não tem efeito",
-    "json_table_hideable": "Ocultável"
+    "json_table_hideable": "Ocultável",
+    "json_table_detected_type_hint": "Detectado: {type}"
 }
