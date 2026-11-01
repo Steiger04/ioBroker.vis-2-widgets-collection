@@ -588,7 +588,7 @@ function ColumnDetailEditor({
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>
-                            {/* Global status banner */}
+                            {/* Table-wide Tabellen-Fähigkeiten */}
                             <StatusBanner capabilities={capabilities} />
 
                             {/* Per-column feature overrides with effective result indicators */}

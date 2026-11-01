@@ -235,9 +235,9 @@ export interface ColumnConfigEntry {
      */
     filterable?: boolean | 'auto';
     /**
-     * Override global hiding setting for this column (never more than the table allows).
-     * - `true`: Can be hidden via column menu
-     * - `false`: Cannot be hidden
+     * Override the type default for hiding this column (never more than the table allows).
+     * - `true`: Hideable via the column menu whenever the table allows hiding
+     * - `false`: Never hideable
      * - `'auto'`: Use the type default (every type is hideable) (default behavior)
      */
     enableHiding?: boolean | 'auto';
