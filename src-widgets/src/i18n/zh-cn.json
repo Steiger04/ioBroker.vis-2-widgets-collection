@@ -1310,5 +1310,7 @@
     "widgets_collection": "小部件集合",
     "without_card": "无边框",
     "without_label": "没有标签",
-    "write_value": "写入值"
+    "write_value": "写入值",
+    "json_table_table_off_tooltip": "{feature} 已对整个表格关闭，因此此列设置不会生效",
+    "json_table_hideable": "可隐藏"
 }

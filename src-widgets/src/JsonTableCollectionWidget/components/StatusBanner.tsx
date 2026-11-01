@@ -3,8 +3,8 @@
  *
  * @module JsonTableCollectionWidget/components/StatusBanner
  * @remarks
- * Shows the current global status for sorting and filtering features.
- * Used in the column editor to provide context for per-column overrides.
+ * Shows the table-wide Tabellen-Fähigkeiten behind the per-column overrides — the resolved
+ * set (couplings included), not the raw settings.
  */
 
 import { Box, Chip, Typography } from '@mui/material';
@@ -12,23 +12,23 @@ import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import type { TableCapabilities } from '../capabilities';
 
 /** Props for the StatusBanner component. */
 interface StatusBannerProps {
-    /** Whether global table sorting is enabled */
-    globalSorting: boolean;
-    /** Whether global table filtering is enabled */
-    globalFiltering: boolean;
+    /** The resolved Tabellen-Fähigkeiten */
+    capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering' | 'hiding'>;
 }
 
 /**
- * Renders a compact status banner showing global feature toggles.
+ * Renders a compact status banner showing the table-wide capabilities.
  *
- * Displays sorting and filtering status with visual indicators:
+ * Displays sorting, filtering and hiding status with visual indicators:
  * - Green checkmark for enabled features
  * - Red cross for disabled features
  */
-function StatusBanner({ globalSorting, globalFiltering }: StatusBannerProps): React.JSX.Element {
+function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
+    const { sorting: globalSorting, columnFiltering: globalFiltering, hiding: globalHiding } = capabilities;
     return (
         <Box
             sx={{
@@ -60,6 +60,14 @@ function StatusBanner({ globalSorting, globalFiltering }: StatusBannerProps): Re
                     icon={globalFiltering ? <CheckIcon /> : <CloseIcon />}
                     label={`${Generic.t('json_table_filtering')}: ${globalFiltering ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
                     color={globalFiltering ? 'success' : 'default'}
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem' }}
+                />
+                <Chip
+                    size="small"
+                    icon={globalHiding ? <CheckIcon /> : <CloseIcon />}
+                    label={`${Generic.t('json_table_hiding')}: ${globalHiding ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
+                    color={globalHiding ? 'success' : 'default'}
                     variant="outlined"
                     sx={{ fontSize: '0.7rem' }}
                 />

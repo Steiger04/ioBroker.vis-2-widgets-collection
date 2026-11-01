@@ -63,6 +63,7 @@ import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
+import { tableCapabilities } from './capabilities';
 import { customFilterFns } from './utils/filterFunctions';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
@@ -202,19 +203,19 @@ const JsonTableCollection: FC = () => {
 
     // ── TanStack column definitions ───────────────────────────────────────────
 
-    // Feature flags (must be defined before useMemo that references them)
-    const canUserAccessColumnFiltering = widget.data.tableFiltering === true && widget.data.tableColumnMenu !== false;
+    // Tabellen-Fähigkeiten, the one resolution of the feature settings (couplings included).
+    // Keyed by content: vis-2 hands out new content-identical data refs (e.g. on an editor
+    // move), and the column definitions must not rebuild for that.
+    const resolvedCapabilities = tableCapabilities(widget.data);
+    const capabilitiesKey = JSON.stringify(resolvedCapabilities);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const capabilities = useMemo(() => resolvedCapabilities, [capabilitiesKey]);
 
     const columns = useMemo<ColumnDef<FlatRow>[]>(() => {
         return buildColumnDefs({
             columnConfig,
             analysisColumns,
-            widgetData: {
-                tableSorting: widget.data.tableSorting !== false,
-                tableFiltering: canUserAccessColumnFiltering,
-                tableRowSelection: widget.data.tableRowSelection === true,
-                tableHiding: widget.data.tableHiding !== false,
-            },
+            capabilities,
             renderConfiguredCell: (value, config) => (
                 <TableCellRenderer
                     value={value}
@@ -246,15 +247,7 @@ const JsonTableCollection: FC = () => {
                 />
             ),
         });
-    }, [
-        columnConfig,
-        analysisColumns,
-        widget.data.tableSorting,
-        canUserAccessColumnFiltering,
-        widget.data.tableRowSelection,
-        widget.data.tableHiding,
-        data.valueSize,
-    ]);
+    }, [columnConfig, analysisColumns, capabilities, data.valueSize]);
 
     // ── Date-aware global (quick) filter ────────────────────────────────────────
     // Built in utils/quickFilter.ts; date columns also match their formatted display
@@ -287,13 +280,9 @@ const JsonTableCollection: FC = () => {
         widgetId,
         columnConfig,
         tableAutoSize: isAutoSize,
-        tableRowSelection: widget.data.tableRowSelection === true,
         tablePageSize: Number(widget.data.tablePageSize) || 25,
         tablePageSizeOptions: widget.data.tablePageSizeOptions,
-        tablePagination: widget.data.tablePagination !== false,
-        tableFiltering: canUserAccessColumnFiltering,
-        tableSorting: widget.data.tableSorting !== false,
-        tableQuickFilter: widget.data.tableQuickFilter === true,
+        capabilities,
         gridRowsLength: gridRows.length,
     });
 
@@ -306,7 +295,7 @@ const JsonTableCollection: FC = () => {
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        enableMultiSort: widget.data.tableSortingMulti ?? false,
+        enableMultiSort: capabilities.multiSort,
         globalFilterFn: globalFilterFn,
         filterFns: customFilterFns,
         columnResizeMode: 'onChange',
@@ -324,14 +313,15 @@ const JsonTableCollection: FC = () => {
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onGlobalFilterChange: setGlobalFilter,
-        onPaginationChange: widget.data.tablePagination !== false ? setPagination : undefined,
+        onPaginationChange: capabilities.pagination ? setPagination : undefined,
         onRowSelectionChange: setRowSelection,
         onColumnSizingChange: setColumnSizing,
         onColumnVisibilityChange: setColumnVisibility,
-        enableRowSelection: widget.data.tableRowSelection === true,
-        enableSorting: widget.data.tableSorting !== false,
-        enableColumnFilters: canUserAccessColumnFiltering,
-        enableGlobalFilter: widget.data.tableQuickFilter === true,
+        enableRowSelection: capabilities.rowSelection,
+        enableSorting: capabilities.sorting,
+        enableColumnFilters: capabilities.columnFiltering,
+        enableHiding: capabilities.hiding,
+        enableGlobalFilter: capabilities.quickFilter,
     });
 
     // ── Column menu state ─────────────────────────────────────────────────────
@@ -473,10 +463,9 @@ const JsonTableCollection: FC = () => {
 
     const noCard = widget.data.noCard === true;
 
-    // Header row visibility (default: visible). When hidden the entire TableHead
-    // is skipped — pairs with the editor-side `hidden: '!data.tableShowHeader'`
-    // expressions in jsonTableFields.tsx that collapse all header-related fields.
-    const showHeader = widget.data.tableShowHeader !== false;
+    // Header row visibility (default: visible). When hidden the entire TableHead is
+    // skipped and the Tabellen-Fähigkeiten switch off every header-hosted capability.
+    const showHeader = capabilities.header;
 
     // Header border styling
     const headerBorderWidth = widget.data.headerBorderWidth ?? 0;
@@ -625,7 +614,7 @@ const JsonTableCollection: FC = () => {
     });
 
     const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
-    const shouldVirtualize = widget.data.tablePagination === false && tableRows.length > virtualizeThreshold;
+    const shouldVirtualize = !capabilities.pagination && tableRows.length > virtualizeThreshold;
     const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
     // FIX-P1-3: Use optional chaining for safe array access in virtualizer
     const firstItem = virtualItems?.[0];
@@ -655,7 +644,7 @@ const JsonTableCollection: FC = () => {
                         p: Number(widget.data.jsonTablePadding) || 0,
                     }}
                 >
-                    {widget.data.tableQuickFilter === true && (
+                    {capabilities.quickFilter && (
                         <Box sx={{ p: 1, flexShrink: 0 }}>
                             <TextField
                                 size="small"
@@ -793,10 +782,9 @@ const JsonTableCollection: FC = () => {
                                                                             )}
                                                                         </Typography>
                                                                     )}
-                                                                    {widget.data.tableColumnMenu !== false &&
+                                                                    {capabilities.columnMenu &&
                                                                         (header.column.getCanSort() ||
-                                                                            (canUserAccessColumnFiltering &&
-                                                                                header.column.getCanFilter()) ||
+                                                                            header.column.getCanFilter() ||
                                                                             header.column.getCanHide()) && (
                                                                             <Tooltip
                                                                                 title={Generic.t(
@@ -944,7 +932,7 @@ const JsonTableCollection: FC = () => {
                         </TableContainer>
                     </Box>
 
-                    {widget.data.tablePagination !== false && (
+                    {capabilities.pagination && (
                         <TablePagination
                             component="div"
                             count={table.getFilteredRowModel().rows.length}
@@ -995,7 +983,7 @@ const JsonTableCollection: FC = () => {
                         onClose={closeColumnMenu}
                         activeColumn={activeColumnRef.current}
                         isSorted={activeColumnSorted !== undefined}
-                        tableFiltering={canUserAccessColumnFiltering}
+                        capabilities={capabilities}
                         activeColumnFilter={activeColumnFilter}
                         onSetSorting={setSorting}
                         onClearSorting={(columnId: string) => setSorting(old => old.filter(s => s.id !== columnId))}

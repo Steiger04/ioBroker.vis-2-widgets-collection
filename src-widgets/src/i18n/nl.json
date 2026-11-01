@@ -1310,5 +1310,7 @@
     "widgets_collection": "Widgetverzameling",
     "without_card": "Zonder grens",
     "without_label": "Zonder label",
-    "write_value": "Schrijf waarde"
+    "write_value": "Schrijf waarde",
+    "json_table_table_off_tooltip": "{feature} is uitgeschakeld voor de hele tabel, dus deze kolominstelling heeft geen effect",
+    "json_table_hideable": "Verbergbaar"
 }

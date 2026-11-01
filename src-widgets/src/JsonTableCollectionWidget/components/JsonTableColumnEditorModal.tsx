@@ -33,6 +33,7 @@ import Generic from '../../Generic';
 import ColumnList from './ColumnList';
 import ColumnDetailEditor from './ColumnDetailEditor';
 import { analyzeJsonTable } from '../../hooks/useJsonTableAnalysis';
+import { tableCapabilities } from '../capabilities';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
@@ -191,7 +192,7 @@ function JsonTableColumnEditorModal({
             const preserved = editedColumnsRef.current.filter(c => discoveredSet.has(c.path));
 
             // Append any newly discovered columns not yet in the saved config
-            // Apply type-based smart defaults for sortable/filterable
+            // Apply type-based smart defaults for sortable/filterable/hideable
             const newColumns: ColumnConfigEntry[] = result.columns
                 .filter(col => !existingMap.has(col.path))
                 .map(col => ({
@@ -201,6 +202,7 @@ function JsonTableColumnEditorModal({
                     // Use 'auto' to enable type-based smart defaults at render time
                     sortable: 'auto' as const,
                     filterable: 'auto' as const,
+                    enableHiding: 'auto' as const,
                 }));
 
             const merged = [...preserved, ...newColumns];
@@ -268,6 +270,9 @@ function JsonTableColumnEditorModal({
         () => (selectedPath ? discoveredColumns.find(c => c.path === selectedPath) : undefined),
         [selectedPath, discoveredColumns],
     );
+
+    // Tabellen-Fähigkeiten from the raw widget data — the runtime's own resolution
+    const capabilities = tableCapabilities(data);
 
     // Memoize dialog title id for aria-labelledby
     const dialogTitleId = useMemo(() => 'json-table-column-editor-title', []);
@@ -374,8 +379,7 @@ function JsonTableColumnEditorModal({
                                     column={selectedColumn}
                                     discoveredColumn={selectedDiscovered}
                                     onChange={handleColumnChange}
-                                    globalSorting={data.tableSorting as boolean}
-                                    globalFiltering={data.tableFiltering as boolean}
+                                    capabilities={capabilities}
                                 />
                             ) : (
                                 <Box

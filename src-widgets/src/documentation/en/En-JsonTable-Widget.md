@@ -55,7 +55,7 @@ Each column can be configured with:
 | filterable   | Filtering for this column — `true` / `false` / `'auto'` |
 | enableHiding | Column can be hidden via the column menu — `true` / `false` / `'auto'` |
 
-> **Smart defaults (`'auto'`):** In `'auto'` mode (the default), sortability and filterability are derived from the **detected type**: `number`/`date` → sortable and filterable, `boolean` → filterable only, `image`/`array`/`object` → neither. `enableHiding: 'auto'` follows the global `tableHiding` setting.
+> **Smart defaults (`'auto'`):** In `'auto'` mode (the default), sortability and filterability follow the column's **effective type** — its format type if one is set, otherwise the detected type: `string`/`number`/`date` → sortable and filterable, `boolean` → filterable only, `image`/`array`/`object` → neither. Every column is hideable by default (`enableHiding: 'auto'`). An override never allows more than the table: while sorting, column filtering or hiding is off for the whole table, `true` has no effect. The column editor's *Advanced* section shows the resulting value per column.
 
 ### Column Formatting
 
@@ -127,23 +127,25 @@ Apply dynamic styles based on cell values:
 
 ## Features
 
-> **Persistence:** The current table view — sorting, active filters, and column visibility — is preserved across page reloads (stored locally per browser).
+> **Persistence:** The current table view — sorting, active filters, and column visibility — is preserved across page reloads (stored locally per browser). A part whose feature is switched off is parked: it is neither applied nor deleted and returns when the feature is switched on again.
+
+> **Header and column menu:** Sorting, column filtering, hiding and the column menu live in the header. With the header hidden (`tableShowHeader`) they are all off; with the column menu off, column filtering and hiding are off too (both are only reachable through the menu). The quick filter, pagination and row selection do not depend on the header.
 
 ### Sorting
 
 | Field Name       | Type     | Default | Description                           | Condition |
 | ---------------- | -------- | ------- | ------------------------------------- | --------- |
-| tableSorting     | checkbox | true    | Enable column sorting                 | -         |
-| tableSortingMulti| checkbox | false   | Enable multi-column sorting (Ctrl+Click) | -      |
+| tableSorting     | checkbox | true    | Enable column sorting                 | Header shown |
+| tableSortingMulti| checkbox | false   | Enable multi-column sorting (Ctrl+Click) | Sorting enabled |
 
 ### Filtering
 
 | Field Name      | Type     | Default | Description                           | Condition |
 | --------------- | -------- | ------- | ------------------------------------- | --------- |
-| tableFiltering  | checkbox | true    | Enable column filtering               | -         |
+| tableFiltering  | checkbox | true    | Enable column filtering               | Column menu enabled |
 | tableQuickFilter| checkbox | false   | Show global search field              | -         |
-| tableColumnMenu | checkbox | true    | Show column menu (filter/sort/hide)   | -         |
-| tableHiding     | checkbox | true    | Allow hiding columns via menu         | -         |
+| tableColumnMenu | checkbox | true    | Show column menu (filter/sort/hide)   | Header shown |
+| tableHiding     | checkbox | true    | Allow hiding columns via menu         | Column menu enabled |
 
 ### Pagination
 

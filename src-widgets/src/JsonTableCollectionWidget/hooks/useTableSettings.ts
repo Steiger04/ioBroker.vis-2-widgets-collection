@@ -19,6 +19,7 @@ import type {
     VisibilityState,
 } from '@tanstack/react-table';
 
+import type { TableCapabilities } from '../capabilities';
 import type { ColumnConfigEntry } from '../types';
 import { usePersistentState } from './usePersistentState';
 
@@ -31,20 +32,12 @@ export interface UseTableSettingsOptions {
     columnConfig: ColumnConfigEntry[];
     /** Whether auto-size mode is enabled (disables column resizing) */
     tableAutoSize: boolean;
-    /** Whether row selection is enabled */
-    tableRowSelection: boolean;
     /** Configured page size */
     tablePageSize: number;
     /** Comma-separated string of page size options (e.g., "10,25,50,100") */
     tablePageSizeOptions?: string;
-    /** Whether pagination is enabled */
-    tablePagination: boolean;
-    /** Whether column filtering is enabled */
-    tableFiltering: boolean;
-    /** Whether sorting is enabled */
-    tableSorting: boolean;
-    /** Whether quick filter (global filter) is enabled */
-    tableQuickFilter: boolean;
+    /** The resolved Tabellen-Fähigkeiten; a view-state part whose capability is off is parked */
+    capabilities: TableCapabilities;
     /** Total number of rows in the grid */
     gridRowsLength: number;
 }
@@ -108,19 +101,16 @@ export function parsePageSizeOptions(raw: string | undefined): number[] {
  * @returns Object containing all state values, setters, and helper functions
  */
 export function useTableSettings(options: UseTableSettingsOptions): UseTableSettingsReturn {
+    const { widgetId, columnConfig, tableAutoSize, tablePageSize, tablePageSizeOptions, capabilities, gridRowsLength } =
+        options;
     const {
-        widgetId,
-        columnConfig,
-        tableAutoSize,
-        tableRowSelection,
-        tablePageSize,
-        tablePageSizeOptions,
-        tablePagination,
-        tableFiltering,
-        tableSorting,
-        tableQuickFilter,
-        gridRowsLength,
-    } = options;
+        rowSelection: tableRowSelection,
+        pagination: tablePagination,
+        columnFiltering: tableFiltering,
+        sorting: tableSorting,
+        quickFilter: tableQuickFilter,
+        hiding: tableHiding,
+    } = capabilities;
 
     // ── Persistent State Refs ──────────────────────────────────────────────────
 
@@ -128,11 +118,13 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
     const preservedSortingRef = useRef<SortingState>([]);
     const preservedColumnFiltersRef = useRef<ColumnFiltersState>([]);
     const preservedGlobalFilterRef = useRef<string>('');
+    const preservedColumnVisibilityRef = useRef<VisibilityState>({});
 
     // Track previous feature states to detect transitions from disabled to enabled
     const prevTableSortingRef = useRef(tableSorting);
     const prevTableFilteringRef = useRef(tableFiltering);
     const prevTableQuickFilterRef = useRef(tableQuickFilter);
+    const prevTableHidingRef = useRef(tableHiding);
 
     // ── Sorting State ────────────────────────────────────────────────────────
 
@@ -265,10 +257,33 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     // ── Column Visibility State ──────────────────────────────────────────────
 
+    // Parked while hiding is unavailable (Header or column menu off): "Hide" and "Show all
+    // columns" live only in the column menu, so a stored hidden column would otherwise stay
+    // invisibly hidden with no way back.
     const [columnVisibility, setColumnVisibility] = usePersistentState<VisibilityState>(
         `jtc_visibility_${widgetId}`,
         {},
+        tableHiding,
     );
+
+    // Note: Using callback form of setColumnVisibility to avoid circular dependency
+    useEffect(() => {
+        if (tableHiding) {
+            // Feature enabled: restore from preserved ref if transitioning from disabled
+            if (!prevTableHidingRef.current && Object.keys(preservedColumnVisibilityRef.current).length > 0) {
+                setColumnVisibility(preservedColumnVisibilityRef.current);
+            }
+        } else {
+            // Feature disabled: save current state before resetting (using callback form)
+            setColumnVisibility(prev => {
+                if (Object.keys(prev).length > 0) {
+                    preservedColumnVisibilityRef.current = prev;
+                }
+                return {};
+            });
+        }
+        prevTableHidingRef.current = tableHiding;
+    }, [tableHiding, setColumnVisibility]);
 
     // ── Helper: Show All Columns ──────────────────────────────────────────────
 

@@ -21,6 +21,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import Generic from '../../Generic';
+import type { TableCapabilities } from '../capabilities';
 import FilterDialog from './FilterDialog';
 
 /** Props for the ColumnMenu component. */
@@ -56,8 +57,8 @@ export interface ColumnMenuProps {
     } | null;
     /** Whether the column is currently sorted */
     isSorted: boolean;
-    /** Whether global table filtering is enabled */
-    tableFiltering: boolean;
+    /** The resolved Tabellen-Fähigkeiten; each menu item needs its capability */
+    capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering' | 'hiding'>;
     /** Current filter value on the active column (undefined means no filter) */
     activeColumnFilter: unknown;
     /** Callback to set sorting state */
@@ -86,7 +87,7 @@ function ColumnMenu({
     onClose,
     activeColumn,
     isSorted,
-    tableFiltering,
+    capabilities,
     activeColumnFilter,
     onSetSorting,
     onClearSorting,
@@ -95,10 +96,11 @@ function ColumnMenu({
 }: ColumnMenuProps): React.JSX.Element | null {
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
-    // Check which menu items are visible to conditionally render the menu
-    const canSort = activeColumn?.getCanSort?.() === true;
-    const canFilter = tableFiltering && activeColumn?.getCanFilter?.() === true;
-    const canHide = activeColumn?.getCanHide?.() === true;
+    // Each item needs its table capability and the active column's own permission
+    const canSort = capabilities.sorting && activeColumn?.getCanSort?.() === true;
+    const canFilter = capabilities.columnFiltering && activeColumn?.getCanFilter?.() === true;
+    const canHide = capabilities.hiding && activeColumn?.getCanHide?.() === true;
+    const canShowAll = capabilities.hiding && hasHiddenColumns === true && onShowAllColumns !== undefined;
     const hasFilter = activeColumnFilter !== undefined && activeColumnFilter !== null;
 
     const hasVisibleItems = canSort || canFilter || canHide;
@@ -213,7 +215,7 @@ function ColumnMenu({
                         <Typography variant="body2">{Generic.t('json_table_hide_column')}</Typography>
                     </MenuItem>
                 )}
-                {hasHiddenColumns && onShowAllColumns && (
+                {canShowAll && (
                     <MenuItem onClick={handleShowAllColumns}>
                         <Typography variant="body2">{Generic.t('json_table_show_all_columns')}</Typography>
                     </MenuItem>

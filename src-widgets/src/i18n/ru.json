@@ -1310,5 +1310,7 @@
     "widgets_collection": "Коллекция виджетов",
     "without_card": "Без границы",
     "without_label": "Без ярлыка",
-    "write_value": "Запись значения"
+    "write_value": "Запись значения",
+    "json_table_table_off_tooltip": "{feature} отключено для всей таблицы, поэтому эта настройка столбца не действует",
+    "json_table_hideable": "Скрываемый"
 }

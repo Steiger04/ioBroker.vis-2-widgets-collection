@@ -1310,5 +1310,7 @@
     "widgets_collection": "Widget-Sammlung",
     "without_card": "Ohne Rand",
     "without_label": "Ohne Label",
-    "write_value": "Wert schreiben"
+    "write_value": "Wert schreiben",
+    "json_table_table_off_tooltip": "{feature} ist für die gesamte Tabelle deaktiviert, daher hat diese Spalteneinstellung keine Auswirkung",
+    "json_table_hideable": "Ausblendbar"
 }
