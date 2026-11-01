@@ -1,11 +1,11 @@
 /**
- * Filter dialog for advanced column filter configuration.
+ * Filter dialog for a Spaltenfilter.
  *
  * @module JsonTableCollectionWidget/components/FilterDialog
  * @remarks
- * Provides a modal dialog for setting column filters with type-specific
- * filter operators (contains, equals, greater than, etc.) and appropriate
- * input controls for each data type (text, number, date picker, boolean select).
+ * Provides a modal dialog for setting a column's filter: the operators and the default the
+ * Column's Effektiver Typ offers, the input control of that type (text, number, date picker,
+ * boolean select), and the coercion of the input — all from `../columnFilter`.
  */
 
 import {
@@ -29,30 +29,16 @@ import type React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import Generic from '../../Generic';
-import { dateReader, localDay } from '../dateReader';
-
-/** Reads a filter value — it has no Column of its own. */
-const readFilterDate = dateReader();
-
-/** Available filter operators */
-export type FilterOperator =
-    | 'contains'
-    | 'startsWith'
-    | 'endsWith'
-    | 'equals'
-    | 'notEquals'
-    | 'greaterThan'
-    | 'greaterThanOrEqual'
-    | 'lessThan'
-    | 'lessThanOrEqual'
-    | 'isEmpty'
-    | 'isNotEmpty';
-
-/** Filter configuration structure */
-export interface FilterConfig {
-    operator: FilterOperator;
-    value: string | number | boolean;
-}
+import type { EffectiveType } from '../capabilities';
+import {
+    coerceFilterValue,
+    filterFits,
+    filterOperators,
+    getDefaultOperator,
+    needsValue as operatorNeedsValue,
+    type FilterConfig,
+    type FilterOperator,
+} from '../columnFilter';
 
 /** Props for the FilterDialog component */
 export interface FilterDialogProps {
@@ -66,51 +52,9 @@ export interface FilterDialogProps {
     currentValue: unknown;
     /** Column identifier for display */
     columnId: string;
-    /** Column data type for operator selection */
-    columnType?: string;
+    /** The Column's Effektiver Typ: decides operators, input control and coercion */
+    columnType?: EffectiveType;
 }
-
-/** Operators available for string columns */
-const STRING_OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'contains', label: 'json_table_filter_contains' },
-    { value: 'startsWith', label: 'json_table_filter_starts_with' },
-    { value: 'endsWith', label: 'json_table_filter_ends_with' },
-    { value: 'equals', label: 'json_table_filter_equals' },
-    { value: 'notEquals', label: 'json_table_filter_not_equals' },
-    { value: 'isEmpty', label: 'json_table_filter_is_empty' },
-    { value: 'isNotEmpty', label: 'json_table_filter_is_not_empty' },
-];
-
-/** Operators available for number columns */
-const NUMBER_OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'equals', label: 'json_table_filter_equals' },
-    { value: 'notEquals', label: 'json_table_filter_not_equals' },
-    { value: 'greaterThan', label: 'json_table_filter_greater_than' },
-    { value: 'greaterThanOrEqual', label: 'json_table_filter_greater_than_or_equal' },
-    { value: 'lessThan', label: 'json_table_filter_less_than' },
-    { value: 'lessThanOrEqual', label: 'json_table_filter_less_than_or_equal' },
-    { value: 'isEmpty', label: 'json_table_filter_is_empty' },
-    { value: 'isNotEmpty', label: 'json_table_filter_is_not_empty' },
-];
-
-/** Operators available for date columns */
-const DATE_OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'equals', label: 'json_table_filter_equals' },
-    { value: 'greaterThan', label: 'json_table_filter_after' },
-    { value: 'greaterThanOrEqual', label: 'json_table_filter_on_or_after' },
-    { value: 'lessThan', label: 'json_table_filter_before' },
-    { value: 'lessThanOrEqual', label: 'json_table_filter_on_or_before' },
-    { value: 'isEmpty', label: 'json_table_filter_is_empty' },
-    { value: 'isNotEmpty', label: 'json_table_filter_is_not_empty' },
-];
-
-/** Operators available for boolean columns */
-const BOOLEAN_OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'equals', label: 'json_table_filter_equals' },
-    { value: 'notEquals', label: 'json_table_filter_not_equals' },
-    { value: 'isEmpty', label: 'json_table_filter_is_empty' },
-    { value: 'isNotEmpty', label: 'json_table_filter_is_not_empty' },
-];
 
 /** Boolean value options for the select dropdown (stored as strings for MUI compatibility) */
 const BOOLEAN_VALUES: { value: string; label: string }[] = [
@@ -118,50 +62,11 @@ const BOOLEAN_VALUES: { value: string; label: string }[] = [
     { value: 'false', label: 'json_table_filter_boolean_false' },
 ];
 
-/**
- * Gets the default operator for a column type.
- *
- * @param columnType - The column data type
- * @returns The default filter operator for the type
- */
-function getDefaultOperator(columnType: 'string' | 'number' | 'date' | 'boolean'): FilterOperator {
-    switch (columnType) {
-        case 'number':
-        case 'date':
-        case 'boolean':
-            return 'equals';
-        default:
-            return 'contains';
-    }
-}
+/** The input control of a type: its own for numbers, dates and booleans, text for the rest. */
+type InputKind = 'string' | 'number' | 'date' | 'boolean';
 
-/**
- * Formats a date value for the date input field (YYYY-MM-DD format).
- *
- * @param value - The value to format
- * @returns The formatted date string or empty string
- */
-function formatDateForInput(value: unknown): string {
-    if (value === null || value === undefined || value === '') {
-        return '';
-    }
-
-    // The local day the Datums-Leser reads — the same calendar day the default display,
-    // the date filter and conditional styles use (no browser-heuristic parsing).
-    const ms = readFilterDate(value);
-    if (ms !== null) {
-        return localDay(ms).key;
-    }
-
-    // Fallback: convert to string safely
-    if (typeof value === 'string') {
-        return value;
-    }
-    if (typeof value === 'number') {
-        return String(value);
-    }
-    return '';
-}
+const inputKindOf = (type: EffectiveType): InputKind =>
+    type === 'number' || type === 'date' || type === 'boolean' ? type : 'string';
 
 /**
  * Renders a dialog for configuring column filters.
@@ -186,55 +91,17 @@ function FilterDialog({
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-    // Determine effective column type
-    const effectiveType = useMemo((): 'string' | 'number' | 'date' | 'boolean' => {
-        if (columnType === 'number' || columnType === 'date' || columnType === 'boolean' || columnType === 'string') {
-            return columnType;
-        }
-        return 'string';
-    }, [columnType]);
+    // The Column's Effektiver Typ decides the operators, the input control and the coercion
+    const type = columnType ?? 'string';
+    const inputKind = inputKindOf(type);
+    const operators = filterOperators(type);
 
-    // Get available operators based on column type
-    const operators = useMemo(() => {
-        switch (effectiveType) {
-            case 'number':
-                return NUMBER_OPERATORS;
-            case 'date':
-                return DATE_OPERATORS;
-            case 'boolean':
-                return BOOLEAN_OPERATORS;
-            default:
-                return STRING_OPERATORS;
-        }
-    }, [effectiveType]);
-
-    // Parse current filter value with type-safe operator validation
-    const parsedCurrentValue = useMemo((): FilterConfig => {
-        const defaultOperator = getDefaultOperator(effectiveType);
-
-        if (currentValue === undefined || currentValue === null) {
-            return { operator: defaultOperator, value: '' };
-        }
-
-        if (typeof currentValue === 'object' && currentValue !== null && 'operator' in currentValue) {
-            const config = currentValue as FilterConfig;
-            // Validate operator against allowed operators for this type
-            const isValidOperator = operators.some(op => op.value === config.operator);
-            if (isValidOperator) {
-                return config;
-            }
-            // Fallback to default operator if invalid, but keep the value
-            return { operator: defaultOperator, value: config.value };
-        }
-
-        // Legacy: simple string/number/boolean value means default operator for type
-        if (typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean') {
-            return { operator: defaultOperator, value: currentValue };
-        }
-
-        // Fallback for other types (arrays, objects): stringify
-        return { operator: defaultOperator, value: JSON.stringify(currentValue) };
-    }, [currentValue, effectiveType, operators]);
+    // The current filter when its type offers it, else a fresh one with the type's default
+    const parsedCurrentValue = useMemo(
+        (): FilterConfig =>
+            filterFits(type, currentValue) ? currentValue : { operator: getDefaultOperator(type), value: '' },
+        [currentValue, type],
+    );
 
     // Store value as raw string during editing to preserve empty input state
     const [operator, setOperator] = useState<FilterOperator>(parsedCurrentValue.operator);
@@ -260,7 +127,7 @@ function FilterDialog({
     }, [parsedCurrentValue, open]);
 
     // Check if operator needs a value input
-    const needsValue = !['isEmpty', 'isNotEmpty'].includes(operator);
+    const needsValue = operatorNeedsValue(operator);
 
     // Handle apply - convert values only here
     const handleApply = useCallback((): void => {
@@ -269,25 +136,10 @@ function FilterDialog({
             onApply({ operator, value: '' });
             return;
         }
-
-        // Handle boolean type - convert string "true"/"false" back to boolean
-        if (effectiveType === 'boolean') {
-            const booleanValue = value === 'true';
-            onApply({ operator, value: booleanValue });
-            return;
-        }
-
-        const stringValue = typeof value === 'string' ? value.trim() : String(value).trim();
-
-        if (stringValue === '') {
-            // Empty or whitespace-only value means no filter
-            onApply(undefined);
-        } else {
-            // Convert to number only for number type, keep as string otherwise
-            const finalValue = effectiveType === 'number' ? Number(stringValue) : stringValue;
-            onApply({ operator, value: finalValue });
-        }
-    }, [needsValue, effectiveType, operator, value, onApply]);
+        // An input the type cannot hold (empty included) means no filter
+        const coerced = coerceFilterValue(type, value);
+        onApply(coerced === undefined ? undefined : ({ operator, value: coerced } satisfies FilterConfig));
+    }, [needsValue, type, operator, value, onApply]);
 
     // Handle clear
     const handleClear = useCallback((): void => {
@@ -310,14 +162,14 @@ function FilterDialog({
         (newOperator: FilterOperator): void => {
             setOperator(newOperator);
             // Reset value when switching to a no-value operator
-            if (['isEmpty', 'isNotEmpty'].includes(newOperator)) {
+            if (!operatorNeedsValue(newOperator)) {
                 setValue('');
-            } else if (effectiveType !== 'boolean' && (value === 'true' || value === 'false')) {
+            } else if (inputKind !== 'boolean' && (value === 'true' || value === 'false')) {
                 // Reset boolean string value when switching away from boolean type
                 setValue('');
             }
         },
-        [value, effectiveType],
+        [value, inputKind],
     );
 
     // Format column ID for display
@@ -375,8 +227,8 @@ function FilterDialog({
                         >
                             {operators.map(op => (
                                 <MenuItem
-                                    key={op.value}
-                                    value={op.value}
+                                    key={op.operator}
+                                    value={op.operator}
                                 >
                                     {Generic.t(op.label)}
                                 </MenuItem>
@@ -384,7 +236,7 @@ function FilterDialog({
                         </Select>
                     </FormControl>
 
-                    {needsValue && effectiveType === 'boolean' && (
+                    {needsValue && inputKind === 'boolean' && (
                         <FormControl fullWidth>
                             <InputLabel id={`filter-value-label-${columnId}`}>
                                 {Generic.t('json_table_filter_value')}
@@ -407,10 +259,10 @@ function FilterDialog({
                         </FormControl>
                     )}
 
-                    {needsValue && effectiveType === 'date' && (
+                    {needsValue && inputKind === 'date' && (
                         <TextField
                             label={Generic.t('json_table_filter_value')}
-                            value={formatDateForInput(value)}
+                            value={coerceFilterValue('date', value) ?? ''}
                             onChange={e => setValue(e.target.value)}
                             type="date"
                             fullWidth
@@ -421,7 +273,7 @@ function FilterDialog({
                         />
                     )}
 
-                    {needsValue && effectiveType === 'number' && (
+                    {needsValue && inputKind === 'number' && (
                         <TextField
                             label={Generic.t('json_table_filter_value')}
                             value={value}
@@ -432,7 +284,7 @@ function FilterDialog({
                         />
                     )}
 
-                    {needsValue && effectiveType === 'string' && (
+                    {needsValue && inputKind === 'string' && (
                         <TextField
                             label={Generic.t('json_table_filter_value')}
                             value={value}
@@ -468,7 +320,7 @@ function FilterDialog({
                 <Button
                     variant="contained"
                     onClick={handleApply}
-                    disabled={needsValue && effectiveType === 'boolean' && value !== 'true' && value !== 'false'}
+                    disabled={needsValue && inputKind === 'boolean' && value !== 'true' && value !== 'false'}
                 >
                     {Generic.t('json_table_filter_apply')}
                 </Button>

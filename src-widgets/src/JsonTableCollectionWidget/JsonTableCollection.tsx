@@ -63,7 +63,7 @@ import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
-import { tableCapabilities } from './capabilities';
+import { tableCapabilities, type EffectiveType } from './capabilities';
 import { customFilterFns } from './utils/filterFunctions';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
@@ -79,8 +79,8 @@ declare module '@tanstack/react-table' {
     interface ColumnMeta<TData, TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
-        /** Detected column type for filter dialog (string, number, date, boolean) */
-        columnType?: string;
+        /** The Column's type for the filter dialog */
+        columnType?: EffectiveType;
     }
 
     interface FilterFns {

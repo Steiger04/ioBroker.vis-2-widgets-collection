@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Row } from '@tanstack/react-table';
 import { createDateFilterFn } from './filterFunctions';
 import { dateReader } from '../dateReader';
-import type { FilterOperator } from '../components/FilterDialog';
+import type { FilterOperator } from '../columnFilter';
 
 // The date filter is rebuilt by the Spaltenfilter (ticket 04); these tests pin only its
 // reading: the cell through the Column's Datums-Leser, compared at the local day.

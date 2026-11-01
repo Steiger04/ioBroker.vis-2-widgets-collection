@@ -10,7 +10,7 @@
 
 import type { FilterFn, Row } from '@tanstack/react-table';
 
-import type { FilterConfig, FilterOperator } from '../components/FilterDialog';
+import type { FilterConfig, FilterOperator } from '../columnFilter';
 import { dateReader, localDay, type DateReader } from '../dateReader';
 
 /** Type for flat row data used in the table */

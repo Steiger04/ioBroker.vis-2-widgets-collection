@@ -21,7 +21,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import Generic from '../../Generic';
-import type { TableCapabilities } from '../capabilities';
+import type { EffectiveType, TableCapabilities } from '../capabilities';
 import FilterDialog from './FilterDialog';
 
 /** Props for the ColumnMenu component. */
@@ -48,10 +48,10 @@ export interface ColumnMenuProps {
         getFilterValue?: () => unknown;
         /** Toggle column visibility */
         toggleVisibility?: (value?: boolean) => void;
-        /** Column definition with meta containing columnType */
+        /** Column definition with meta containing the Column's Effektiver Typ */
         columnDef?: {
             meta?: {
-                columnType?: string;
+                columnType?: EffectiveType;
             };
         };
     } | null;
