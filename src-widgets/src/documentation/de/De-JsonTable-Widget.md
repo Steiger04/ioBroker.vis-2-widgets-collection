@@ -157,6 +157,8 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 | tableColumnMenu  | checkbox | true     | Spaltenmenü anzeigen (Filter/Sort/Ausblenden) | Kopfzeile sichtbar |
 | tableHiding      | checkbox | true     | Spalten ausblenden über Menü erlauben | Spaltenmenü aktiv |
 
+> **Spaltenfilter vergleichen nach dem Effektiven Typ der Spalte:** Textspalten als Text ohne Groß-/Kleinschreibung (`gleich „Raum 1"` trifft nicht `Raum 01`), Zahlenspalten nur numerisch (eine Zelle, die keine Zahl ist, trifft bei Wert-Operatoren nie), Datumsspalten nach lokalem Kalendertag, Boolean-Spalten nach `true`/`false`. Andere Typen (gemischt, Objekt, Array, Bild) vergleichen als Text, Objekte als JSON. Der Filter-Dialog bietet die Operatoren dieses Typs an; ein gespeicherter Filter, dessen Operator der Typ nicht mehr anbietet (z. B. nach Änderung des Formattyps), wird verworfen.
+
 ### Paginierung
 
 | Feldname                | Typ      | Standard   | Beschreibung                          | Bedingung |
