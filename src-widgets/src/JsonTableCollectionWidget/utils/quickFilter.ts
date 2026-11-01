@@ -15,11 +15,12 @@
 
 import type { FilterFn } from '@tanstack/react-table';
 import { FORMATTERS } from './cellFormatters';
-import { dateReader, type DateDetection, type DateReader } from '../dateReader';
-import type { ColumnConfigEntry, ColumnFormatConfig } from '../types';
+import type { EffectiveColumn } from '../columns';
+import type { DateReader } from '../dateReader';
+import type { ColumnFormatConfig } from '../types';
 
-/** A Column found by the analysis engine: its path plus what the Datums-Leser needs. */
-export type DetectedColumn = DateDetection & Readonly<{ path: string }>;
+/** What the quick filter reads of a Column (after the Spalten-Merge). */
+export type QuickFilterColumn = Pick<EffectiveColumn, 'path' | 'config' | 'readDate'>;
 
 /** A date-formatted Column: its format plus its Datums-Leser. */
 interface DateColumn {
@@ -28,24 +29,19 @@ interface DateColumn {
 }
 
 /**
- * Build the global quick-filter function for a set of configured columns.
+ * Build the global quick-filter function for a table's Columns.
  *
- * @param columnConfig - The table's column configuration; only `date` columns
- * get display-value matching, looked up by column id (== column path).
- * @param detectedColumns - The analysis engine's Columns; their detection picks each date
- * column's Datums-Leser, the same the cell renderer reads with.
+ * @param columns - The table's Columns; only those formatted as `date` get display-value
+ * matching, through their own Datums-Leser — the one the cell renderer reads with — looked
+ * up by column id (== column path).
  * @returns A TanStack `FilterFn` for use as `globalFilterFn`.
  */
-export function createDateAwareGlobalFilter(
-    columnConfig: ColumnConfigEntry[],
-    detectedColumns: readonly DetectedColumn[],
-): FilterFn<Record<string, unknown>> {
+export function createDateAwareGlobalFilter(columns: readonly QuickFilterColumn[]): FilterFn<Record<string, unknown>> {
     // Precompute date columns: column id (== column path) → format config and reader.
-    const detection = new Map(detectedColumns.map(col => [col.path, col]));
     const dateColumns = new Map<string, DateColumn>();
-    for (const cfg of columnConfig) {
-        if (cfg.format?.type === 'date') {
-            dateColumns.set(cfg.path, { fmt: cfg.format, readDate: dateReader(detection.get(cfg.path)) });
+    for (const { path, config, readDate } of columns) {
+        if (config.format?.type === 'date') {
+            dateColumns.set(path, { fmt: config.format, readDate });
         }
     }
 

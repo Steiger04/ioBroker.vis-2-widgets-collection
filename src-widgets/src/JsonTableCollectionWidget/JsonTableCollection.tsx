@@ -204,7 +204,6 @@ const JsonTableCollection: FC = () => {
             renderCell: (value, column) => (
                 <TableCellRenderer
                     value={value}
-                    config={column.cellConfig}
                     column={column}
                     valueSize={data.valueSize}
                 />
@@ -232,14 +231,7 @@ const JsonTableCollection: FC = () => {
     // ── Date-aware global (quick) filter ────────────────────────────────────────
     // Built in utils/quickFilter.ts; date columns also match their formatted display
     // value via the formatter registry so filter and display can never drift.
-    const globalFilterFn = useMemo(
-        () =>
-            createDateAwareGlobalFilter(
-                tableColumns.map(column => column.config),
-                tableColumns.map(column => column.detected),
-            ),
-        [tableColumns],
-    );
+    const globalFilterFn = useMemo(() => createDateAwareGlobalFilter(tableColumns), [tableColumns]);
 
     // ── Ansichtszustand (sorting, filters, page, widths, hidden columns) ────────
 

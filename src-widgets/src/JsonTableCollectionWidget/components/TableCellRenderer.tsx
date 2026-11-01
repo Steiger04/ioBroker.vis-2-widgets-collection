@@ -3,8 +3,8 @@
  *
  * @module JsonTableCollectionWidget/components/TableCellRenderer
  * @remarks
- * Renders a table cell with optional formatting and conditional styling.
- * Used for both configured columns (with ColumnConfigEntry) and auto-detected columns.
+ * Renders a table cell with formatting and conditional styling, by its Column (after the
+ * Spalten-Merge, `../columns`).
  */
 
 import { Avatar, Box, Chip, Typography } from '@mui/material';
@@ -18,15 +18,19 @@ import { isUrlIcon } from '../../lib/helper/isUrlIcon';
 // ── Types ───────────────────────────────────────────────────────────
 
 /**
+ * How a cell's Column renders: the configuration its cells render with (`cellConfig`) and
+ * how it is read (Effektiver Typ, Datums-Leser) — an `EffectiveColumn` is one.
+ */
+export type RenderedColumn = CellColumn & Readonly<{ cellConfig: ColumnConfigEntry }>;
+
+/**
  * Props for TableCellRenderer component.
  */
 export interface TableCellRendererProps {
     /** Raw cell value from the data source */
     value: unknown;
-    /** Optional column configuration for formatting and styling */
-    config?: ColumnConfigEntry;
-    /** How the cell's Column is read (Effektiver Typ, Datums-Leser); goes with `config` */
-    column?: CellColumn;
+    /** The cell's Column */
+    column: RenderedColumn;
     /** Optional font size for the cell text (e.g., "12px", "1rem") */
     valueSize?: string | null;
 }
@@ -34,38 +38,34 @@ export interface TableCellRendererProps {
 // ── Component ───────────────────────────────────────────────────────
 
 /**
- * Renders a table cell with optional formatting and conditional styling.
+ * Renders a table cell with formatting and conditional styling.
  *
  * @param props - Component props
  * @param props.value - Raw cell value
- * @param props.config - Optional column configuration
- * @param props.column - How the cell's Column is read
+ * @param props.column - The cell's Column
  * @param props.valueSize - Optional font size for the cell text
  * @returns JSX element with formatted and styled cell content
  * @example
  * ```tsx
- * // With column config
- * <TableCellRenderer value={123.45} config={columnConfig} column={cellColumn} />
- *
- * // Without config (auto-detected column)
- * <TableCellRenderer value="simple text" />
+ * <TableCellRenderer value={123.45} column={effectiveColumn} />
  * ```
  */
-export function TableCellRenderer({ value, config, column, valueSize }: TableCellRendererProps): React.JSX.Element {
+export function TableCellRenderer({ value, column, valueSize }: TableCellRendererProps): React.JSX.Element {
+    const config = column.cellConfig;
     // FIX-P3: Extract isTruncated flag from buildCellContent
     const { displayValue, textSx, bgSx, isTruncated, image } = useMemo(
-        () => buildCellContent(value, config, column),
-        [value, config, column],
+        () => buildCellContent(value, column.cellConfig, column),
+        [value, column],
     );
 
     // Image columns render a graphic instead of text. The cell box still honours
     // conditional background colours (bgSx); font styles only apply on text fallback.
     if (image) {
-        const align = config?.align;
+        const align = config.align;
         // Image cells default to center alignment unless the column's `align` overrides.
         const justifyContent = align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
         // Per-side avatar padding; legacy default `0 8px` when no padding configured.
-        const pad = config?.format?.imagePadding;
+        const pad = config.format?.imagePadding;
         const padding = pad ? `${pad.top ?? 0}px ${pad.right ?? 0}px ${pad.bottom ?? 0}px ${pad.left ?? 0}px` : '0 8px';
         return (
             <Box
