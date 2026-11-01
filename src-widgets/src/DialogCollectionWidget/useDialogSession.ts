@@ -17,7 +17,7 @@ import {
     canWriteSessionOid,
     decideDialogTransition,
     parseAutoCloseTimeout,
-    type DialogEvent,
+    type DialogSessionEvent,
     type SessionOidObject,
 } from './dialogSession';
 
@@ -34,7 +34,7 @@ export interface DialogSessionInputs {
 }
 
 /** What the body renders and binds. */
-export interface DialogSession {
+export interface DialogSessionControls {
     /** Whether the dialog is open. */
     open: boolean;
     /** The dialog button's click. */
@@ -48,7 +48,7 @@ export interface DialogSession {
  *
  * @param inputs - Sitzungs-OID value and object, auto-close value and the backend write.
  */
-export default function useDialogSession(inputs: DialogSessionInputs): DialogSession {
+export default function useDialogSession(inputs: DialogSessionInputs): DialogSessionControls {
     const { oidValue, dialogIdObject, autoClose, setValue } = inputs;
     const [open, setOpen] = useState(false);
     // The decision reads the open state synchronously — events may arrive before a re-render.
@@ -56,7 +56,7 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     // The latest dispatch (current config and setValue) for the stable callbacks, the
     // observation effect and the timer callback.
-    const dispatchRef = useRef<(event: DialogEvent) => void>(() => undefined);
+    const dispatchRef = useRef<(event: DialogSessionEvent) => void>(() => undefined);
 
     const sessionOid = dialogIdObject?._id;
     const canWrite = canWriteSessionOid(dialogIdObject);
@@ -70,8 +70,8 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
         }
     }, []);
 
-    const dispatch = (event: DialogEvent): void => {
-        const transition = decideDialogTransition(event, openRef.current, { autoCloseMs, canWrite });
+    const dispatch = (event: DialogSessionEvent): void => {
+        const transition = decideDialogTransition(event, { autoCloseMs, canWrite }, openRef.current);
 
         openRef.current = transition.open;
         setOpen(transition.open);

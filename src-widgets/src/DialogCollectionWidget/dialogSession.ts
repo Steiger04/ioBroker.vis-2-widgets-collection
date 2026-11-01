@@ -54,7 +54,7 @@ export function parseAutoCloseTimeout(value: unknown): number {
 }
 
 /** Events the wiring delivers to the session. */
-export type DialogEvent =
+export type DialogSessionEvent =
     | { type: 'click' }
     /** A backend value of the Sitzungs-OID — the one present at view load included. */
     | { type: 'observe'; value: unknown }
@@ -100,19 +100,19 @@ export interface DialogTransition {
  * Decides what an event does to the session.
  *
  * @param event - The event.
- * @param open - The current open state.
  * @param config - Auto-close timeout and write permission.
+ * @param open - The current open state.
  * @returns The transition for the wiring to execute.
  * @example
  * ```ts
- * decideDialogTransition({ type: 'observe', value: false }, true, { autoCloseMs: 0, canWrite: true });
+ * decideDialogTransition({ type: 'observe', value: false }, { autoCloseMs: 0, canWrite: true }, true);
  * // → { open: false, write: null, timer: 'clear' } — closes, no echo write
  * ```
  */
 export function decideDialogTransition(
-    event: DialogEvent,
-    open: boolean,
+    event: DialogSessionEvent,
     config: DialogSessionConfig,
+    open: boolean,
 ): DialogTransition {
     const { autoCloseMs, canWrite } = config;
     const unchanged: DialogTransition = { open, write: null, timer: 'keep' };
