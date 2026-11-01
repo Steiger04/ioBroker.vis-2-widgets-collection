@@ -85,6 +85,16 @@ See the subsections below for the format-type-specific options.
 
 > **Note — HTML rendering:** String cells render HTML markup (e.g. `<b>`, `<br>`, `<span style="…">`). The values come from your own ioBroker state and are treated as trusted. If you bind third-party data, be aware of the XSS risk of unfiltered HTML.
 
+### Date Columns (format type `date`)
+
+A date column reads every raw value as a point in time and shows it in the chosen output format, in the browser's local time.
+
+- **Detected date columns** (detected type `date`) read exactly the patterns the detection recognises: ISO-8601 with zone (`2024-12-01T10:00:00Z`, `…+02:00`), `YYYY-MM-DD`, `dd.MM.yyyy( HH:mm(:ss))`, `MM/dd/yyyy( HH:mm(:ss))` and epoch numbers (≥ 1e11 → milliseconds, ≥ 1e9 → seconds).
+- **Columns you set to `date` yourself** additionally read, as local time: ISO without zone (`2024-12-01T10:00`, `…:00`, `…:00.000`), `YYYY-MM-DD HH:mm(:ss)` and epoch strings (digits only, same thresholds).
+- **Anything else is not a date** and shows its raw value as text — e.g. `1.12.2024`, `Dec 1, 2024`, `2024/12/01`. There is no browser guessing.
+
+Sorting, the date filter, the quick filter and conditional rules read dates the same way and compare the **local calendar day**. Values that are not a date sort before all dates. The output format `ISO-8601 (UTC)` shows UTC and may therefore show a different day around midnight.
+
 ### Image Column (format type `image`)
 
 An **image column** renders every raw value as a graphic instead of text. The raw value is read as a **visual reference** — never as an icon *name* (`mdi-*`, `fa-*`); there is no name resolution. Supported:
@@ -114,7 +124,7 @@ An **image column** renders every raw value as a graphic instead of text. The ra
 ### Conditional Styling
 
 Apply dynamic styles based on cell values:
-- **Conditions**: Compare against fixed values or thresholds (json-logic rules)
+- **Conditions**: Compare against fixed values or thresholds (json-logic rules). The rule builder follows the column's effective type; on a date column — detected or set — rules compare the value's local calendar day as `YYYY-MM-DD`.
 - **Styles**: Background color, text color, font weight, font style
 - **Evaluation mode** (`cellStyleMode`):
 

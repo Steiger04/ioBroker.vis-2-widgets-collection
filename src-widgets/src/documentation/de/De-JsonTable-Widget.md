@@ -85,6 +85,16 @@ Details zu den formattypspezifischen Optionen finden sich in den folgenden Unter
 
 > **Hinweis – HTML-Rendering:** String-Zellen rendern HTML-Markup (z. B. `<b>`, `<br>`, `<span style="…">`). Die Werte stammen aus dem eigenen ioBroker-State und gelten als vertrauenswürdig. Bindest du fremde Daten ein, beachte das XSS-Risiko ungefilterten HTMLs.
 
+### Datums-Spalten (Formattyp `date`)
+
+Eine Datums-Spalte liest jeden Rohwert als Zeitpunkt und zeigt ihn im gewählten Ausgabeformat in der Ortszeit des Browsers.
+
+- **Erkannte Datums-Spalten** (erkannter Typ `date`) lesen genau die Muster, die die Erkennung kennt: ISO-8601 mit Zone (`2024-12-01T10:00:00Z`, `…+02:00`), `YYYY-MM-DD`, `dd.MM.yyyy( HH:mm(:ss))`, `MM/dd/yyyy( HH:mm(:ss))` und Epoch-Zahlen (≥ 1e11 → Millisekunden, ≥ 1e9 → Sekunden).
+- **Selbst auf `date` gestellte Spalten** lesen zusätzlich, als Ortszeit: ISO ohne Zone (`2024-12-01T10:00`, `…:00`, `…:00.000`), `YYYY-MM-DD HH:mm(:ss)` und Epoch-Strings (nur Ziffern, gleiche Schwellen).
+- **Alles andere ist kein Datum** und erscheint als Rohtext — z. B. `1.12.2024`, `Dec 1, 2024`, `2024/12/01`. Der Browser rät nicht mit.
+
+Sortierung, Datumsfilter, Schnellfilter und bedingte Regeln lesen Daten genauso und vergleichen den **lokalen Kalendertag**. Werte, die kein Datum sind, sortieren vor allen Daten. Das Ausgabeformat `ISO-8601 (UTC)` zeigt UTC und kann deshalb um Mitternacht einen anderen Tag zeigen.
+
 ### Bild-Spalte (Formattyp `image`)
 
 Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwert wird dabei als **visuelle Referenz** gelesen — niemals als Icon-*Name* (`mdi-*`, `fa-*`); es gibt keine Namensauflösung. Unterstützt werden:
@@ -114,7 +124,7 @@ Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwer
 ### Bedingte Formatierung
 
 Dynamische Stile basierend auf Zellenwerten anwenden:
-- **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten (json-logic-Regeln)
+- **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten (json-logic-Regeln). Der Regel-Editor folgt dem effektiven Typ der Spalte; bei einer Datums-Spalte — erkannt oder selbst gesetzt — vergleichen Regeln den lokalen Kalendertag des Werts als `YYYY-MM-DD`.
 - **Stile**: Hintergrundfarbe, Textfarbe, Schriftstärke, Schriftstil
 - **Auswertungsmodus** (`cellStyleMode`):
 
