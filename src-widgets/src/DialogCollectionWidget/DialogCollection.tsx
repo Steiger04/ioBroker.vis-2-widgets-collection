@@ -6,7 +6,7 @@
 
 import { Box, ButtonBase, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import React, { useRef, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData/useData';
@@ -16,15 +16,9 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
+import useDialogSession from './useDialogSession';
 
 import type { DialogCollectionContextProps } from '../types';
-
-/** Default auto-close timeout when `dialogAutoClose` is just `true`. */
-const DEFAULT_AUTO_CLOSE_MS = 10_000;
-/** Values below this threshold are treated as seconds and converted to ms. */
-const SECONDS_THRESHOLD = 60;
-/** Fallback timeout when parsing yields 0 or NaN. */
-const MIN_TIMEOUT_MS = 1_000;
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -54,41 +48,14 @@ const outerBoxSx = {
 } as const;
 
 /**
- * Parses the dialogAutoClose config value into a millisecond timeout.
- *
- * Accepts `"true"` (→ default), numeric strings in ms or seconds (< 60 → s).
- * Returns `0` when auto-close is disabled.
- */
-function parseAutoCloseTimeout(value: unknown): number {
-    const str = String(value);
-
-    if (!value || str === '' || str === '0') {
-        return 0;
-    }
-    if (str === 'true') {
-        return DEFAULT_AUTO_CLOSE_MS;
-    }
-
-    let timeout = parseInt(str, 10);
-    if (timeout < SECONDS_THRESHOLD) {
-        // Small numbers are assumed to be seconds.
-        timeout *= 1_000;
-    }
-
-    return timeout || MIN_TIMEOUT_MS;
-}
-
-/**
  * Renders a button that opens a modal dialog containing a vis view.
  *
  * @remarks
- * - If a boolean `oid` is configured, `true` opens the dialog and `false` closes it.
- * - Auto-close supports values in milliseconds and (for small numbers) seconds.
+ * Wiring only: the open state, the auto-close timer and the Sitzungs-OID (`dialogId`) are
+ * the Dialog-Sitzung ({@link module:widgets/DialogCollectionWidget/useDialogSession}) — the
+ * button's click and the dialog's close request are its events.
  */
 function DialogCollection(): React.ReactElement {
-    const [open, setOpen] = useState(false);
-    const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     // DialogCollection is only used by DialogCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as DialogCollectionContextProps;
     const {
@@ -99,76 +66,12 @@ function DialogCollection(): React.ReactElement {
     } = context;
     const { data, oidValue } = useData('dialogId');
 
-    const oid = widget.data.dialogIdObject?._id;
-    const oidType = widget.data.dialogIdObject?.type;
-
-    const isValidType = oidType === 'boolean' || !widget.data.oid || widget.data.oid === 'nothing_selected';
-
-    // Clean up pending auto-close timeout on unmount to prevent late state updates.
-    useEffect(() => {
-        return () => {
-            if (hideTimeout.current) {
-                clearTimeout(hideTimeout.current);
-            }
-        };
-    }, []);
-
-    const handleClickOpen = useCallback(() => {
-        if (hideTimeout.current) {
-            return;
-        }
-
-        const timeout = parseAutoCloseTimeout(widget.data.dialogAutoClose);
-
-        if (timeout === 0) {
-            setOpen(true);
-            return;
-        }
-
-        hideTimeout.current = setTimeout(() => {
-            hideTimeout.current = null;
-            if (oid) {
-                setValue(oid, false);
-            }
-            setOpen(false);
-        }, timeout);
-
-        setOpen(true);
-    }, [oid, setValue, widget.data.dialogAutoClose]);
-
-    const handleClose = useCallback(() => {
-        if (hideTimeout.current) {
-            clearTimeout(hideTimeout.current);
-            hideTimeout.current = null;
-        }
-
-        if (oid) {
-            setValue(oid, false);
-        }
-        setOpen(false);
-    }, [oid, setValue]);
-
-    // Synchronize dialog open/close state with the backend OID value.
-    // Both handleClickOpen and handleClose are stable callbacks (deps only change
-    // when oid/setValue change), so including them here is safe and correct.
-    useEffect(() => {
-        if (oidValue == null) {
-            return;
-        }
-
-        if (oidValue) {
-            handleClickOpen();
-        } else {
-            handleClose();
-        }
-    }, [oidValue, handleClickOpen, handleClose]);
-
-    const handleButtonClick = useCallback(() => {
-        if (oid) {
-            setValue(oid, true);
-        }
-        handleClickOpen();
-    }, [oid, setValue, handleClickOpen]);
+    const { open, onClick, onClose } = useDialogSession({
+        oidValue,
+        dialogIdObject: rxData.dialogIdObject,
+        autoClose: rxData.dialogAutoClose,
+        setValue,
+    });
 
     // Pre-compute visibility booleans once instead of duplicating the condition.
     const showIcon = useMemo(
@@ -227,22 +130,19 @@ function DialogCollection(): React.ReactElement {
         <>
             <ViewDialog
                 open={open}
-                handleClose={handleClose}
+                handleClose={onClose}
                 widget={widget}
                 data={data}
                 getWidgetView={getWidgetView}
             />
-            <CollectionBase
-                isValidType={isValidType}
-                data={data}
-            >
+            <CollectionBase data={data}>
                 <CollectionBaseImage
                     data={data}
                     widget={widget}
                 />
                 <Box sx={outerBoxSx}>
                     <ImageHtmlButton
-                        onClick={handleButtonClick}
+                        onClick={onClick}
                         sx={rippleSx}
                     >
                         {showIcon ? (

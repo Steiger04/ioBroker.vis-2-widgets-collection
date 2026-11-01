@@ -40,20 +40,24 @@ export function installInertResizeObserver(): void {
  * The preview scene of one collection widget: light mode, inside its card, 480 × 120.
  *
  * @param slug - The scene's slug.
- * @param data - The widget data — `oid` names the state whose status the scene carries.
- * @param status - The value of `data.oid`.
+ * @param data - The widget data — `oid` names the state whose status the scene carries, unless
+ * `statusOid` names another one.
+ * @param status - The value of the status state.
+ * @param statusOid - The state carrying `status`, for widgets whose state is not `data.oid`
+ * (e.g. the Dialog's Sitzungs-OID `dialogId`). Defaults to `data.oid`.
  */
 export const collectionScene = (
     slug: string,
-    data: { oid: string } & Record<string, unknown>,
+    data: { oid?: string } & Record<string, unknown>,
     status: unknown,
+    statusOid: string | undefined = data.oid,
 ): PreviewScene =>
     ({
         slug,
         size: { width: 480, height: 120 },
         context: {
             widget: { data, style: {} },
-            values: { [`${data.oid}.val`]: status },
+            values: { [`${statusOid}.val`]: status },
             mode: 'light',
             wrappedContent: true,
         },
@@ -78,12 +82,19 @@ const CollectionHost: FC<{ context: AllCollectionContextProps; body: FC }> = ({ 
  *
  * @param body - The component rendered inside the provider.
  * @param scene - The preview scene.
+ * @param extraContext - Widget-specific context entries merged over the preview context, the
+ * way a widget's `renderWithProvider` adds them (e.g. the Dialog's `getWidgetView`).
  */
-export function mountCollectionBody(body: FC, scene: PreviewScene): MountedCollectionBody {
+export function mountCollectionBody(
+    body: FC,
+    scene: PreviewScene,
+    extraContext: Record<string, unknown> = {},
+): MountedCollectionBody {
     const setState = vi.fn();
     const setValue = vi.fn();
     const context = {
         ...buildPreviewContext(scene),
+        ...extraContext,
         setState,
         setValue,
     } as unknown as AllCollectionContextProps;
