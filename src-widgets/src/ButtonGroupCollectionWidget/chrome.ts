@@ -17,9 +17,9 @@
  * not chrome and stay in the JSX.
  */
 
-import { alpha, lighten, type CSSObject, type Theme } from '@mui/material/styles';
+import type { CSSObject, Theme } from '@mui/material/styles';
 
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import { alphaOf, lightenOf } from '../lib/helper/colorDerivation';
 import { gradientColor } from '../lib/helper/gradientColor';
 
 /** Alpha applied to both the configured colour and the theme fallback. */
@@ -58,10 +58,11 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
 
     // Separator colour: configured group colour, else the theme's primary text
     // (used for the inset box-shadow dividers in text mode and the border color
-    // in outlined mode).
+    // in outlined mode). A gradient yields its midpoint colour; a value without
+    // a Repräsentative Vollfarbe draws no separator instead of throwing.
     const separatorColor = buttonGroupColor
-        ? alpha(buttonGroupColor, SEPARATOR_ALPHA)
-        : alpha(theme.palette.text.primary, SEPARATOR_ALPHA);
+        ? alphaOf(buttonGroupColor, SEPARATOR_ALPHA)
+        : alphaOf(theme.palette.text.primary, SEPARATOR_ALPHA);
 
     // Borderless mode: borders fully removed and inset box-shadows used for the
     // separator lines so they stay visible even when buttons have a background
@@ -71,7 +72,8 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
         border: 'none',
         marginLeft: isVertical ? undefined : 0,
         marginTop: isVertical ? 0 : undefined,
-        boxShadow: isVertical ? `inset 0 1px 0 0 ${separatorColor}` : `inset 1px 0 0 0 ${separatorColor}`,
+        boxShadow:
+            separatorColor && (isVertical ? `inset 0 1px 0 0 ${separatorColor}` : `inset 1px 0 0 0 ${separatorColor}`),
     };
 
     return {
@@ -130,7 +132,9 @@ export interface ButtonChromeInput {
  * Builds the sx for a single toggle button: the state background as-is, plus
  * the hover/selected interplay. Solid colours lighten on hover (0.5) and on
  * selection (0.3); gradients never lighten — they dim via an opacity(80%)
- * filter instead (also applied on the active button's base).
+ * filter instead (also applied on the active button's base). A background no
+ * tint calculation can read (a colour name, a CSS variable) still paints the
+ * button but gets no hover/selected tint — it never throws.
  *
  * @param input - The state's background and its active flag.
  * @returns The button's sx object; spread onto `<ToggleButton sx={…}>`.
@@ -139,11 +143,10 @@ export function buildButtonChrome(input: ButtonChromeInput): CSSObject {
     const { background, isActive } = input;
 
     const gradient = gradientColor(background);
-    const color = extractColorFromValue(background);
 
     const hasGradient = !!gradient;
-    const hoverBackground = gradient ? undefined : color && background ? lighten(background, 0.5) : undefined;
-    const selectedBackground = gradient ? undefined : color && background ? lighten(background, 0.3) : undefined;
+    const hoverBackground = gradient ? undefined : lightenOf(background, 0.5);
+    const selectedBackground = gradient ? undefined : lightenOf(background, 0.3);
 
     return {
         width: '100%',

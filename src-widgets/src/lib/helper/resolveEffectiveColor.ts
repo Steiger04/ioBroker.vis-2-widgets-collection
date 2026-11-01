@@ -11,11 +11,16 @@
  * This is the FIELD CONTRACT (base layer) only — it knows nothing about
  * active/state/marker layers, which the widget resolvers apply on top. See
  * ADR 0004.
+ *
+ * `resolveEffectiveSolidColor` walks the same cascade for slots that can only
+ * draw a solid color (borders, separators, shadows) and accepts a stage only
+ * with its Repräsentative Vollfarbe (`lib/helper/colorDerivation`).
  */
 
 import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { ColorTerminal, ExtendedField } from '../../types/field-definitions/extended-field';
+import { solidOf } from './colorDerivation';
 import { validateColorInput } from './colorValidation';
 
 /** Minimal shape needed to read the vis-2 widget CSS `color`. */
@@ -45,30 +50,53 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
     }
 }
 
-/**
- * Returns the first valid color among the field's `fallbackFields`, or undefined.
- *
- * Empty-string entries (the legacy `fallbackFields: ['']` convention) and
- * non-string / invalid values are skipped.
- */
-function firstValidFallback(data: Record<string, unknown>, fallbackFields: string[] | undefined): string | undefined {
-    if (!fallbackFields || fallbackFields.length === 0) {
+/** A stored color value as the picker validates it (trimmed), or undefined when unset/invalid. */
+function validColor(value: unknown): string | undefined {
+    if (typeof value !== 'string' || value.trim() === '') {
         return undefined;
     }
-    for (const name of fallbackFields) {
-        if (!name) {
-            continue;
-        }
-        const value = data[name];
-        if (typeof value !== 'string' || value.trim() === '') {
-            continue;
-        }
-        const validation = validateColorInput(value);
-        if (validation.isValid && validation.normalizedValue.trim() !== '') {
-            return validation.normalizedValue;
+    const validation = validateColorInput(value);
+    return validation.isValid && validation.normalizedValue.trim() !== '' ? validation.normalizedValue : undefined;
+}
+
+/**
+ * The stages of the Auflösungskaskade as candidates, most specific first — the
+ * one cascade both resolvers walk. Lazy, so a resolver stops at the first
+ * candidate it accepts:
+ * 1. explicit override (`data[field.name]`), if valid
+ * 2. each valid `fallbackFields` value, in order (empty-string entries — the
+ *    legacy `fallbackFields: ['']` convention — and invalid values are skipped)
+ * 3. vis-2 widget CSS `color` (only when `field.inheritTextStyle`)
+ * 4. terminal default ({@link terminalColor}) — always yielded, last
+ *
+ * @yields Each stage's color, most specific first; the last one is the terminal (`''` for transparent/none).
+ */
+function* cascadeCandidates(
+    field: ColorFieldContract,
+    data: Record<string, unknown>,
+    theme: Theme,
+    textStyles: StyleColor,
+): Generator<string, void, undefined> {
+    const explicit = validColor(field.name ? data[field.name] : undefined);
+    if (explicit !== undefined) {
+        yield explicit;
+    }
+
+    for (const name of field.fallbackFields ?? []) {
+        const fallback = name ? validColor(data[name]) : undefined;
+        if (fallback !== undefined) {
+            yield fallback;
         }
     }
-    return undefined;
+
+    if (field.inheritTextStyle === true) {
+        const styleColor = textStyles?.color;
+        if (typeof styleColor === 'string' && styleColor.trim() !== '') {
+            yield styleColor;
+        }
+    }
+
+    yield terminalColor(field.terminal, theme);
 }
 
 /**
@@ -92,30 +120,39 @@ export function resolveEffectiveColor(
     theme: Theme,
     textStyles: StyleColor,
 ): string {
-    const explicit = field.name ? data[field.name] : undefined;
+    const first = cascadeCandidates(field, data, theme, textStyles).next();
+    return first.done ? '' : first.value;
+}
 
-    // 1. Explicit override
-    if (typeof explicit === 'string' && explicit.trim() !== '') {
-        const validation = validateColorInput(explicit);
-        if (validation.isValid && validation.normalizedValue.trim() !== '') {
-            return validation.normalizedValue;
+/**
+ * Resolves the effective color of a slot that can only draw a solid color —
+ * borders, separators, shadows, hover tints.
+ *
+ * Same Auflösungskaskade as {@link resolveEffectiveColor} (override → fallback
+ * fields → vis-2 style → terminal), but each stage counts only with its
+ * Repräsentative Vollfarbe (`docs/context/color-theme.md`): a gradient yields
+ * its midpoint color, and a stage without one (a color name, `transparent`,
+ * `var(…)`, a gradient without hex/rgb stops) counts as Erben — the cascade
+ * continues.
+ *
+ * @param contract - Field contract (name, fallbackFields, terminal, inheritTextStyle).
+ * @param data  - Widget data map (explicit values + fallback sources).
+ * @param theme - Effective MUI theme (for the terminal default).
+ * @param textStyles - vis-2 widget style fragment carrying `color` (may be undefined).
+ * @returns The solid color (hex or rgb(a)), or `undefined` when no stage has one —
+ *   always for the `transparent` terminal or no terminal, unless a more specific stage has one.
+ */
+export function resolveEffectiveSolidColor(
+    contract: ColorFieldContract,
+    data: Record<string, unknown>,
+    theme: Theme,
+    textStyles: StyleColor,
+): string | undefined {
+    for (const candidate of cascadeCandidates(contract, data, theme, textStyles)) {
+        const solid = solidOf(candidate);
+        if (solid !== undefined) {
+            return solid;
         }
     }
-
-    // 2. First valid fallback field
-    const fallback = firstValidFallback(data, field.fallbackFields);
-    if (fallback !== undefined) {
-        return fallback;
-    }
-
-    // 3. vis-2 widget CSS color (text-bearing fields only)
-    if (field.inheritTextStyle === true) {
-        const styleColor = textStyles?.color;
-        if (typeof styleColor === 'string' && styleColor.trim() !== '') {
-            return styleColor;
-        }
-    }
-
-    // 4. Terminal default
-    return terminalColor(field.terminal, theme);
+    return undefined;
 }
