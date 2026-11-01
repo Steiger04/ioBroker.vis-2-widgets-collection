@@ -3,8 +3,8 @@
  *
  * @module widgets/JsonTableCollection
  * @remarks
- * Functional component that reads a JSON string from the OID state value,
- * analyzes it with `useJsonTableAnalysis`, and renders a TanStack Table v8 (headless)
+ * Functional component that reads a JSON string from the OID state value through the
+ * Spalten-Merge (`./columns`), and renders a TanStack Table v8 (headless)
  * backed by MUI Table components.
  */
 
@@ -50,7 +50,6 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import { useJsonTableAnalysis } from '../hooks/useJsonTableAnalysis';
 import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
@@ -63,10 +62,10 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { tableCapabilities, type EffectiveType } from './capabilities';
+import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
-import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
 // Extend ColumnMeta to include custom alignment property for table cells and the
@@ -137,53 +136,21 @@ const JsonTableCollection: FC = () => {
     const oidType = oidObject?.type as string | undefined;
     const isValidType = isAllowedOidType(JSON_TABLE_TYPES, oidType);
 
-    // Parse JSON from state value
-    const jsonData = useMemo<unknown[]>(() => {
-        if (oidValue === undefined || oidValue === null) {
-            return [];
-        }
-        let raw: unknown;
-        if (typeof oidValue === 'string') {
-            try {
-                raw = JSON.parse(oidValue);
-            } catch {
-                return [];
-            }
-        } else {
-            raw = oidValue;
-        }
-        if (Array.isArray(raw)) {
-            return raw;
-        }
-        if (typeof raw === 'object' && raw !== null) {
-            return [raw];
-        }
-        return [];
-    }, [oidValue]);
-
-    const analysisOptions = useMemo<JsonTableAnalysisOptions>(
-        () => ({ maxDepth: widget.data.tableMaxDepth || 10 }),
-        [widget.data.tableMaxDepth],
-    );
-
-    const { columns: analysisColumns, rows, meta } = useJsonTableAnalysis(jsonData, analysisOptions);
-
-    // FIX-P2-4: Add depth warning when JSON depth exceeds configured maxDepth
-    const depthWarning = useMemo(() => {
-        const configuredMax = widget.data.tableMaxDepth || 10;
-        if (meta.maxDepth > configuredMax) {
-            return {
-                actual: meta.maxDepth,
-                configured: configuredMax,
-            };
-        }
-        return null;
-    }, [meta.maxDepth, widget.data.tableMaxDepth]);
-
     const columnConfig = useMemo(
         () => parseColumnConfig(widget.data.columnConfig as string),
         [widget.data.columnConfig],
     );
+
+    // The Spalten-Merge: rows, Columns and depth warning — the same reading the column editor uses
+    const {
+        rows,
+        columns: tableColumns,
+        depthWarning,
+    } = useMemo(
+        () => readJsonTable(oidValue, columnConfig, widget.data.tableMaxDepth),
+        [oidValue, columnConfig, widget.data.tableMaxDepth],
+    );
+    const emptyText = emptyState(oidType, isValidType, tableColumns);
 
     // ── Row height / header height ────────────────────────────────────────────
 
@@ -207,20 +174,13 @@ const JsonTableCollection: FC = () => {
 
     const columns = useMemo<ColumnDef<FlatRow>[]>(() => {
         return buildColumnDefs({
-            columnConfig,
-            analysisColumns,
+            columns: tableColumns,
             capabilities,
-            renderConfiguredCell: (value, config, column) => (
+            renderCell: (value, column) => (
                 <TableCellRenderer
                     value={value}
-                    config={config}
+                    config={column.cellConfig}
                     column={column}
-                    valueSize={data.valueSize}
-                />
-            ),
-            renderAutoDetectedCell: value => (
-                <TableCellRenderer
-                    value={value}
                     valueSize={data.valueSize}
                 />
             ),
@@ -242,14 +202,18 @@ const JsonTableCollection: FC = () => {
                 />
             ),
         });
-    }, [columnConfig, analysisColumns, capabilities, data.valueSize]);
+    }, [tableColumns, capabilities, data.valueSize]);
 
     // ── Date-aware global (quick) filter ────────────────────────────────────────
     // Built in utils/quickFilter.ts; date columns also match their formatted display
     // value via the formatter registry so filter and display can never drift.
     const globalFilterFn = useMemo(
-        () => createDateAwareGlobalFilter(columnConfig, analysisColumns),
-        [columnConfig, analysisColumns],
+        () =>
+            createDateAwareGlobalFilter(
+                tableColumns.map(column => column.config),
+                tableColumns.map(column => column.detected),
+            ),
+        [tableColumns],
     );
 
     // ── Ansichtszustand (sorting, filters, page, widths, hidden columns) ────────
@@ -626,7 +590,7 @@ const JsonTableCollection: FC = () => {
                 data={data}
                 widget={widget}
             />
-            {isValidType && columns.length > 0 ? (
+            {emptyText === null ? (
                 <Box
                     sx={{
                         width: '100%',
@@ -665,11 +629,7 @@ const JsonTableCollection: FC = () => {
                             severity="warning"
                             sx={{ m: 1 }}
                         >
-                            <Typography variant="body2">
-                                {Generic.t('json_table_depth_warning')
-                                    .replace('{{actual}}', String(depthWarning.actual))
-                                    .replace('{{configured}}', String(depthWarning.configured))}
-                            </Typography>
+                            <Typography variant="body2">{depthWarningText(depthWarning, Generic.t)}</Typography>
                         </Alert>
                     )}
 
@@ -1003,13 +963,7 @@ const JsonTableCollection: FC = () => {
                         variant="body2"
                         color="text.secondary"
                     >
-                        {oidType === undefined
-                            ? Generic.t('json_table_no_oid')
-                            : !isValidType
-                              ? Generic.t('json_table_invalid_type')
-                              : columnConfig.length > 0 && columns.length === 0
-                                ? Generic.t('json_table_all_columns_hidden')
-                                : Generic.t('json_table_no_data')}
+                        {Generic.t(emptyText)}
                     </Typography>
                 </Box>
             )}

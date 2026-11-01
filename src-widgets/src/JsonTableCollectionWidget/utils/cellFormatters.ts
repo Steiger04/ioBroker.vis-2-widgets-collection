@@ -48,8 +48,8 @@ export interface CellContent {
 }
 
 /**
- * What a cell knows about its Column beyond the configuration — until the effective Columns
- * (Spalten-Merge) carry it, handed in through the column definition.
+ * What a cell knows about its Column beyond the configuration. Every effective Column of the
+ * Spalten-Merge (`../columns`) is one.
  */
 export interface CellColumn {
     /** The Column's Effektiver Typ: decides how conditional styles compare. */

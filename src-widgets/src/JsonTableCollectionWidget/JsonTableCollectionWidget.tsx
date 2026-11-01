@@ -4,7 +4,8 @@
  * @module widgets/JsonTableCollectionWidget
  * @remarks
  * Displays a TanStack Table v8 (headless) populated from a JSON-valued ioBroker state object.
- * Columns are auto-discovered via `analyzeJsonTable()` and can be configured
+ * Columns are discovered from the data and merged with the saved configuration (Spalten-Merge,
+ * `./columns`); they can be configured
  * through the {@link JsonTableColumnEditor} in the vis-2 property editor.
  */
 
@@ -35,7 +36,7 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
      * data when the OID is deleted.
      */
     private static createObjectFields(): RxWidgetInfoAttributesField[] {
-        // JSON table renders columns from the JSON data (useJsonTableAnalysis), not from
+        // JSON table renders columns from the JSON data (Spalten-Merge, ./columns), not from
         // common.states value groups, and has no use for a unit override — drop both sections.
         const fields = commonObjectFields(JSON_TABLE_TYPES, { unit: false, valueGroups: false });
         const oidField = fields.find(f => f.name === 'oid');
