@@ -192,6 +192,7 @@ function CollectionBase({
             {!!isValidType && (
                 <>
                     <Box
+                        className="BASE-HEADER"
                         sx={{
                             width: !headerHidden ? '100%' : '0%',
                             height: headerHidden ? '0%' : 'auto',

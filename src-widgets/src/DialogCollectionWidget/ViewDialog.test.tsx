@@ -76,8 +76,8 @@ afterEach(() => {
 /** The dialog's frame (CollectionBase's outer paper) inside the portalled Modal. */
 const dialogFrame = (): Element | null => document.querySelector('.MuiModal-root .BASE-PAPER-0');
 
-/** The frame header: the text slot above the frame's content box. */
-const frameHeader = (): Element | null | undefined => dialogFrame()?.firstElementChild?.firstElementChild;
+/** The frame header: CollectionBase's header box above the frame's content box. */
+const frameHeader = (): Element | null | undefined => dialogFrame()?.querySelector('.BASE-HEADER');
 
 /** The dialog's title line: the first text slot inside the frame's content. */
 const titleLine = (): Element | null | undefined => dialogFrame()?.querySelector('.BASE-PAPER-1 p');

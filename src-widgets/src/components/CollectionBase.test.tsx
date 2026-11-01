@@ -48,8 +48,7 @@ afterEach(() => {
 });
 
 /** The frame header's box: the slot above the frame's content box. */
-const headerBox = ({ container }: MountedCollectionBody): Element | null | undefined =>
-    container.querySelector('.BASE-PAPER-0')?.firstElementChild;
+const headerBox = ({ container }: MountedCollectionBody): Element | null => container.querySelector('.BASE-HEADER');
 
 describe('CollectionBase frame header', () => {
     it('shows the header text in the frame by default', () => {
