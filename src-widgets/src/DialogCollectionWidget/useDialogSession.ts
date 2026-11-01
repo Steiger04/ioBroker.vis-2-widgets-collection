@@ -87,6 +87,9 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
         if (transition.timer === 'start') {
             timerRef.current = setTimeout(() => {
                 timerRef.current = null;
+                // The expiry dispatches through the LATEST dispatch: the current write target and
+                // canWrite apply, as for a close via X/backdrop/Escape. They differ from the ones at
+                // start only when the Sitzungs-OID is re-picked in the editor while the timer runs.
                 dispatchRef.current({ type: 'timer-expired' });
             }, autoCloseMs);
         }
