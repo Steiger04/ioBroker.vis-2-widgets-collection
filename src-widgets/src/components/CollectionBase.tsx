@@ -75,7 +75,7 @@ function CollectionBase({
     const { wrappedContent, widget } = context;
 
     // The frame header is absent when the widget opts out or the host shows it elsewhere.
-    const noHeader = widget.data.noHeader || hideHeader;
+    const headerHidden = widget.data.noHeader || hideHeader;
 
     // Get styles
     const { backgroundStyles, borderStyles } = useStyles(widget.style);
@@ -168,11 +168,11 @@ function CollectionBase({
 
     // Setup header effect
     useEffect(() => {
-        if (noHeader || !headerRef.current) {
+        if (headerHidden || !headerRef.current) {
             return;
         }
         headerRef.current.innerHTML = data.header!;
-    }, [data.header, noHeader]);
+    }, [data.header, headerHidden]);
 
     // Setup footer effect
     useEffect(() => {
@@ -193,8 +193,8 @@ function CollectionBase({
                 <>
                     <Box
                         sx={{
-                            width: !noHeader ? '100%' : '0%',
-                            height: noHeader ? '0%' : 'auto',
+                            width: !headerHidden ? '100%' : '0%',
+                            height: headerHidden ? '0%' : 'auto',
                             mt: (widget.data.basePadding ?? 8) / 2,
                             mb: -(widget.data.basePadding ?? 8) / 2,
                         }}
