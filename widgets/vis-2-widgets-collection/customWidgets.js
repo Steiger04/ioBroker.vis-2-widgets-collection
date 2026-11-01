@@ -43,7 +43,7 @@ let __tla = Promise.all([
     },
     "./SliderCollectionWidget": async () => {
       await L("./SliderCollectionWidget"), await Promise.all([]);
-      const i = await W("./SliderCollectionWidget", () => I(() => import("./assets/SliderCollectionWidget-BP1YGd7B.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./SliderCollectionWidget", () => I(() => import("./assets/SliderCollectionWidget-CgTE3VKm.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -93,7 +93,7 @@ let __tla = Promise.all([
     },
     "./DialogCollectionWidget": async () => {
       await L("./DialogCollectionWidget"), await Promise.all([]);
-      const i = await W("./DialogCollectionWidget", () => I(() => import("./assets/DialogCollectionWidget-D-UpS_h4.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./DialogCollectionWidget", () => I(() => import("./assets/DialogCollectionWidget-BmMcv944.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -133,7 +133,7 @@ let __tla = Promise.all([
     },
     "./Light2CollectionWidget": async () => {
       await L("./Light2CollectionWidget"), await Promise.all([]);
-      const i = await W("./Light2CollectionWidget", () => I(() => import("./assets/Light2CollectionWidget-cN7EacnF.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./Light2CollectionWidget", () => I(() => import("./assets/Light2CollectionWidget-CN3F7xoz.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -143,7 +143,7 @@ let __tla = Promise.all([
     },
     "./JsonTableCollectionWidget": async () => {
       await L("./JsonTableCollectionWidget"), await Promise.all([]);
-      const i = await W("./JsonTableCollectionWidget", () => I(() => import("./assets/JsonTableCollectionWidget-IPBYhu7R.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./JsonTableCollectionWidget", () => I(() => import("./assets/JsonTableCollectionWidget-DtgtHKi5.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -153,7 +153,7 @@ let __tla = Promise.all([
     },
     "./EchartsCollectionWidget": async () => {
       await L("./EchartsCollectionWidget"), await Promise.all([]);
-      const i = await W("./EchartsCollectionWidget", () => I(() => import("./assets/EchartsCollectionWidget-BepZWIZ3.js"), __vite__mapDeps([0]), import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./EchartsCollectionWidget", () => I(() => import("./assets/EchartsCollectionWidget-QYEfM8EX.js"), __vite__mapDeps([0]), import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -173,7 +173,7 @@ let __tla = Promise.all([
     },
     "./translations": async () => {
       await L("./translations"), await Promise.all([]);
-      const i = await W("./translations", () => I(() => import("./assets/translations-XsXmoL8d.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./translations", () => I(() => import("./assets/translations-XOE_uUi8.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
