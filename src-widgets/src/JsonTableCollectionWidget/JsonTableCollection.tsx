@@ -280,13 +280,9 @@ const JsonTableCollection: FC = () => {
         widgetId,
         columnConfig,
         tableAutoSize: isAutoSize,
-        tableRowSelection: widget.data.tableRowSelection === true,
         tablePageSize: Number(widget.data.tablePageSize) || 25,
         tablePageSizeOptions: widget.data.tablePageSizeOptions,
-        tablePagination: widget.data.tablePagination !== false,
-        tableFiltering: widget.data.tableFiltering === true && widget.data.tableColumnMenu !== false,
-        tableSorting: widget.data.tableSorting !== false,
-        tableQuickFilter: widget.data.tableQuickFilter === true,
+        capabilities,
         gridRowsLength: gridRows.length,
     });
 
