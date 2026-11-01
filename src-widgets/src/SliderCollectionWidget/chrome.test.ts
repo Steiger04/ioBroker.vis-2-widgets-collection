@@ -45,6 +45,17 @@ describe('sliderColorContracts', () => {
             inheritTextStyle: undefined,
         });
     });
+
+    it('declares the marker text cascade in the field itself', () => {
+        // Label contract (swatch only): the runtime renders the mark text via
+        // useData — markerTextColor → textColor → vis-2 text style → theme text.
+        expect(sliderColorContracts.markerTextColor).toEqual({
+            name: 'markerTextColor',
+            fallbackFields: ['textColor'],
+            terminal: 'text',
+            inheritTextStyle: true,
+        });
+    });
 });
 
 describe('buildSliderChromeStyles', () => {
@@ -103,6 +114,25 @@ describe('buildSliderChromeStyles', () => {
         // Solid slots get the interpolated 50% representative.
         expect(chrome.thumbShadowBase).toBe('rgb(128, 0, 128)');
         expect(chrome.trackBorder).toBe('rgb(128, 0, 128)');
+    });
+
+    it('lets border and shadow slots without a solid color fall through the cascade', () => {
+        // 'red' is no Repräsentative Vollfarbe; nor is a gradient with named stops,
+        // which the picker accepts as valid but no color calculation can read.
+        const namedGradient = 'linear-gradient(red, blue)';
+
+        for (const value of ['red', namedGradient]) {
+            const chrome = styles({ trackBorderColor: value, railBorderColor: value, sliderColor: '#00ff00' });
+            expect(chrome.trackBorder).toBe('#00ff00');
+            expect(chrome.railBorder).toBe('#00ff00');
+        }
+
+        const chrome = styles({ thumbColor: namedGradient });
+        // The background slot keeps the raw gradient (the surface may render it) …
+        expect(chrome.thumbBackground).toBe(namedGradient);
+        // … the solid slots fall through to the primary terminal.
+        expect(chrome.thumbShadowBase).toBe(PRIMARY);
+        expect(chrome.thumbBorder).toBe(PRIMARY);
     });
 
     it('falls through on invalid explicit colors (documented delta)', () => {

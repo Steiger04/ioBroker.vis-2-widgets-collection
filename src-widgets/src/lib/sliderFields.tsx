@@ -242,7 +242,17 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider />,
         hidden: '!data.marks',
     } as const,
-    createSliderColorField('markerTextColor', 'marker_text_color'),
+    // Label field, not chrome: useData renders the mark text through
+    // textColor{n} → markerTextColor → textColor → vis-2 text style → theme
+    // text, so the contract mirrors that runtime cascade. See ADR 0004.
+    createColorField({
+        name: 'markerTextColor',
+        label: 'marker_text_color',
+        fallbackFields: ['textColor'],
+        terminal: 'text',
+        inheritTextStyle: true,
+        hidden: '!data.marks',
+    }),
     {
         name: 'markerTextSize',
         label: 'marker_text_size',
@@ -344,6 +354,10 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
  * site: the fields declare their cascade (`fallbackFields`, `terminal`), this
  * map only collects it for the runtime (`buildSliderChromeStyles`) and any
  * other contract consumer. See ADR 0004.
+ *
+ * `markerTextColor` is the exception: a label contract that only drives its
+ * picker swatch. No chrome slot reads it — the mark text is rendered by the
+ * state-resolver system (useData), whose cascade the field mirrors.
  */
 export const sliderColorContracts: Record<string, ColorFieldContract> = Object.fromEntries(
     sliderFields()

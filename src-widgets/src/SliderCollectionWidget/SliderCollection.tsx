@@ -4,7 +4,7 @@
  * @module widgets/SliderCollection
  */
 
-import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
+import { Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useMemo, useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -15,6 +15,7 @@ import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import useOptimisticNumber from './useOptimisticNumber';
 import { MARK_LABEL_SPACE, railOffset } from './railOffset';
 import CollectionBaseImage from '../components/CollectionBaseImage';
+import { alphaOf } from '../lib/helper/colorDerivation';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
@@ -39,21 +40,24 @@ const CollectionSlider = styled(Slider, {
 })<CollectionSliderProps>(({ data, chrome }) => {
     // Calculate border width with fallback chain
     const borderWidth = data?.thumbBorderWidth ?? 0;
+    // Hover/active halo; none when the thumb cascade has no Repräsentative Vollfarbe.
+    const thumbShadow = alphaOf(chrome.thumbShadowBase, 0.32);
 
     return {
         '& .MuiSlider-thumb': {
             width: `${data?.thumbWidth ?? 20}px`,
             height: `${data?.thumbHeight ?? 20}px`,
             background: chrome.thumbBackground,
-            // Apply border only when borderWidth > 0
+            // Apply border only when borderWidth > 0; without a solid border
+            // color it draws in currentColor, the CSS default of the shorthand.
             ...(borderWidth > 0 && {
-                border: `${borderWidth}px solid ${chrome.thumbBorder}`,
+                border: `${borderWidth}px solid ${chrome.thumbBorder ?? 'currentColor'}`,
             }),
             '&:hover': {
-                boxShadow: `0px 0px 0px 8px ${alpha(chrome.thumbShadowBase, 0.32)}`,
+                boxShadow: thumbShadow && `0px 0px 0px 8px ${thumbShadow}`,
             },
             '&:active': {
-                boxShadow: `0px 0px 0px 14px ${alpha(chrome.thumbShadowBase, 0.32)}`,
+                boxShadow: thumbShadow && `0px 0px 0px 14px ${thumbShadow}`,
             },
         },
         '& .MuiSlider-track': {
