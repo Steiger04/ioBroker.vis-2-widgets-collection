@@ -519,6 +519,18 @@ _Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formul
 The 1-based suffix of a state's field row (`value{i}`, `alias{i}`, `textColor{i}` …) — the key of the per-state style resolution (`resolveStyleData(i)`). useData carries it on every resolved state (`fieldNumber`) and resolves the active state by it (`activeFieldNumber` and the active style data `data`). It is NOT the state's position in the resolved state list: blank value rows are skipped, so after a gap the two diverge (blank `value2` → the state of `value3` sits at list position 1). Consumers that index the list — the Select's entry, the Button-Group's active button — take the 0-based `activePosition` instead.
 _Avoid_: Index without saying whether Feldnummer or list position, `index + 1` as a Feldnummer (holds only without gaps), activeIndex (the former name of the 1-based number)
 
+**OID-Rolle**:
+What an id field of a widget is to that widget — exactly one of **Haupt-OID**, Steuer ID (the Select's **Schreibziel**) or **Hilfs-OID** — decided once from the field, never guessed per call site. The role decides which widget data an OID pick may set: only the Haupt-OID owns the root fields (icon, writability, range, state rows).
+_Avoid_: OID-Typ (that is the state's value type), Feldname-Vergleich (that is the retired mechanism)
+
+**Haupt-OID**:
+The widget's primary state (`oid`) — the one whose pick seeds the root fields and the state rows.
+_Avoid_: Status-OID (that is its role beside a Steuer ID only), main ID without saying which widget
+
+**Hilfs-OID**:
+Every id field that is neither Haupt-OID nor Steuer ID — e.g. the Dialog's **Sitzungs-OID** or the Light2 channel states. A Hilfs-OID owns only its own object metadata; picking it never touches the root fields.
+_Avoid_: Neben-OID (sounds equal-ranking), Zusatz-OID (Light2 channels are not optional), auxiliary ID without the ownership rule
+
 # Input Collection Widget
 
 ## Language
@@ -558,3 +570,17 @@ _Avoid_: Doppel-Write (the retired write to both OIDs), Ziel-OID (unsaid which r
 **Select-Chrome**:
 The presentation shell of the Select — everything the renderer draws AROUND the per-state content (`SelectCollectionWidget/chrome.ts`): the menu paper (follows the EXPLICIT `noCard` only, not `wrappedContent` — the menu is portaled to the body, so an embedded Select keeps its own surface; `noCard` makes it shadowless but not transparent — an unset `frameBackground` resolves to the theme paper (terminal `paper`), so the popup stays opaque in it; transparent only for an empty resolved value, a defensive branch), the per-entry hover/selected treatment (hover turns into the 50 %-alpha of the state background — for gradients of its extracted colour; a background MUI cannot parse, e.g. a named colour or a CSS variable, gets no hover tint instead of crashing the menu), the arrow colour and the root width bound from the measured content box. Like **Button-Group-Chrome** NOT a colour contract — except the arrow: it resolves the ONE arrow contract the `arrowColor` field declares too (`lib/selectColorContract.ts`, ADR-0004) — `arrowColor`, else `textColor`, else the vis-2 CSS colour, else the theme text colour; an invalid colour counts as unset. The two resolve it over different data, deliberately: the editor swatch over the BASE fields (the widget's `textColor`), the runtime over the ACTIVE state's resolved text colour — a state with its own text colour draws its arrow in it. The icon/label content of a state is not chrome; it stays in the renderer (ADR-0091).
 _Avoid_: Menü-Styles (unsaid WHICH shell), mixing chrome with the per-state content layout, deriving the menu surface from `wrappedContent`
+
+# Dialog Collection Widget
+
+The collection's button that opens a vis view in a modal dialog, optionally mirrored to a boolean state. This glossary pins down its open-state language.
+
+## Language
+
+**Dialog-Sitzung**:
+The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back.
+_Avoid_: Dialog-Status (unsaid whether local or backend), Öffnungslogik (that is the wiring), Popup-State
+
+**Sitzungs-OID**:
+The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it.
+_Avoid_: Steuer-OID, Steuer ID (that is the Select's `cid`), Dialog-OID, control OID
