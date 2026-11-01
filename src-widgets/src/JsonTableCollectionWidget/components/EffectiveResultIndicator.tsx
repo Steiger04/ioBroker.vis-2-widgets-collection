@@ -13,7 +13,7 @@ import { AutoFixHigh as AutoIcon, Edit as EditIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { getSmartDefaults } from '../utils/columnDefinitions';
+import { typeDefaults, type EffectiveType } from '../capabilities';
 
 /** Props for the EffectiveResultIndicator component. */
 interface EffectiveResultIndicatorProps {
@@ -24,7 +24,7 @@ interface EffectiveResultIndicatorProps {
     /** The feature label for display (e.g., "Sorting", "Filtering") */
     featureLabel: string;
     /** The detected column type for smart defaults */
-    detectedType?: string;
+    detectedType?: EffectiveType;
     /** Which feature to show smart defaults for ('sortable' or 'filterable') */
     featureType?: 'sortable' | 'filterable';
 }
@@ -48,7 +48,7 @@ function EffectiveResultIndicator({
     const isAutoMode = columnOverride === 'auto' || columnOverride === undefined;
 
     // Get smart defaults for the detected type
-    const smartDefaults = getSmartDefaults(detectedType);
+    const smartDefaults = typeDefaults(detectedType);
     const smartValue = featureType === 'sortable' ? smartDefaults.sortable : smartDefaults.filterable;
 
     // Calculate effective value

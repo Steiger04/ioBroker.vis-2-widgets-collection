@@ -11,9 +11,13 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnEditor';
+import { tableCapabilities } from '../JsonTableCollectionWidget/capabilities';
 import { createColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
-import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+/** Header-hosted feature settings vanish with the Header (vis-2 hands `hidden` the raw data). */
+const headerHidden = (data: WidgetData): boolean => !tableCapabilities(data).header;
 
 const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // ═══════════════════════════════════════════════════════════════════
@@ -44,7 +48,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_sorting',
         default: true,
-        hidden: 'data.tableShowHeader === false',
+        hidden: headerHidden,
     },
     {
         name: 'tableSortingMulti',
@@ -52,7 +56,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_sorting_multi',
         default: false,
         tooltip: 'json_table_sorting_multi_tooltip',
-        hidden: 'data.tableShowHeader === false',
+        hidden: headerHidden,
     },
     {
         name: 'tableFiltering',
@@ -60,7 +64,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_filtering',
         default: true,
         tooltip: 'json_table_filtering_tooltip',
-        hidden: 'data.tableShowHeader === false',
+        hidden: headerHidden,
     },
     {
         name: 'tableQuickFilter',
@@ -73,7 +77,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_column_menu',
         default: true,
-        hidden: 'data.tableShowHeader === false',
+        hidden: headerHidden,
     },
     {
         name: 'tableHiding',
@@ -81,7 +85,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_hiding',
         default: true,
         tooltip: 'json_table_hiding_tooltip',
-        hidden: 'data.tableShowHeader === false',
+        hidden: headerHidden,
     },
 
     // ── Pagination ────────────────────────────────────────────────────
