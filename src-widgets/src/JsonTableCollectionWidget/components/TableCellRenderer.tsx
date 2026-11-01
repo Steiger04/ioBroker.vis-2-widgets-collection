@@ -12,7 +12,7 @@ import { BrokenImage as BrokenImageIcon } from '@mui/icons-material';
 import { useMemo, useState } from 'react';
 
 import type { CellImageContent, ColumnConfigEntry } from '../types';
-import { buildCellContent } from '../utils/cellFormatters';
+import { buildCellContent, type CellColumn } from '../utils/cellFormatters';
 import { isUrlIcon } from '../../lib/helper/isUrlIcon';
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -25,6 +25,8 @@ export interface TableCellRendererProps {
     value: unknown;
     /** Optional column configuration for formatting and styling */
     config?: ColumnConfigEntry;
+    /** How the cell's Column is read (Effektiver Typ, Datums-Leser); goes with `config` */
+    column?: CellColumn;
     /** Optional font size for the cell text (e.g., "12px", "1rem") */
     valueSize?: string | null;
 }
@@ -37,22 +39,23 @@ export interface TableCellRendererProps {
  * @param props - Component props
  * @param props.value - Raw cell value
  * @param props.config - Optional column configuration
+ * @param props.column - How the cell's Column is read
  * @param props.valueSize - Optional font size for the cell text
  * @returns JSX element with formatted and styled cell content
  * @example
  * ```tsx
  * // With column config
- * <TableCellRenderer value={123.45} config={columnConfig} />
+ * <TableCellRenderer value={123.45} config={columnConfig} column={cellColumn} />
  *
  * // Without config (auto-detected column)
  * <TableCellRenderer value="simple text" />
  * ```
  */
-export function TableCellRenderer({ value, config, valueSize }: TableCellRendererProps): React.JSX.Element {
+export function TableCellRenderer({ value, config, column, valueSize }: TableCellRendererProps): React.JSX.Element {
     // FIX-P3: Extract isTruncated flag from buildCellContent
     const { displayValue, textSx, bgSx, isTruncated, image } = useMemo(
-        () => buildCellContent(value, config),
-        [value, config],
+        () => buildCellContent(value, config, column),
+        [value, config, column],
     );
 
     // Image columns render a graphic instead of text. The cell box still honours

@@ -543,7 +543,7 @@ function ColumnDetailEditor({
                         <ConditionalStyleEditor
                             cellStyle={column.cellStyle || []}
                             cellStyleMode={column.cellStyleMode ?? 'first-match'}
-                            columnType={detectedType}
+                            columnType={columnType}
                             onStyleChange={handleStyleChange}
                             onModeChange={handleStyleModeChange}
                         />
