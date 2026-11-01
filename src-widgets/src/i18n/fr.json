@@ -1311,5 +1311,6 @@
     "without_card": "Sans frontière",
     "without_label": "Sans étiquette",
     "write_value": "Écrire la valeur",
-    "json_table_table_off_tooltip": "{feature} est désactivé pour l'ensemble du tableau, ce paramètre de colonne n'a donc aucun effet"
+    "json_table_table_off_tooltip": "{feature} est désactivé pour l'ensemble du tableau, ce paramètre de colonne n'a donc aucun effet",
+    "json_table_hideable": "Masquable"
 }

@@ -192,7 +192,7 @@ function JsonTableColumnEditorModal({
             const preserved = editedColumnsRef.current.filter(c => discoveredSet.has(c.path));
 
             // Append any newly discovered columns not yet in the saved config
-            // Apply type-based smart defaults for sortable/filterable
+            // Apply type-based smart defaults for sortable/filterable/hideable
             const newColumns: ColumnConfigEntry[] = result.columns
                 .filter(col => !existingMap.has(col.path))
                 .map(col => ({
@@ -202,6 +202,7 @@ function JsonTableColumnEditorModal({
                     // Use 'auto' to enable type-based smart defaults at render time
                     sortable: 'auto' as const,
                     filterable: 'auto' as const,
+                    enableHiding: 'auto' as const,
                 }));
 
             const merged = [...preserved, ...newColumns];

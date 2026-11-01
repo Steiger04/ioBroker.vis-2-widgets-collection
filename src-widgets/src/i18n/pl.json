@@ -1311,5 +1311,6 @@
     "without_card": "Bez granicy",
     "without_label": "Bez etykiety",
     "write_value": "Zapisz wartość",
-    "json_table_table_off_tooltip": "{feature} jest wyłączone dla całej tabeli, więc to ustawienie kolumny nie ma żadnego efektu"
+    "json_table_table_off_tooltip": "{feature} jest wyłączone dla całej tabeli, więc to ustawienie kolumny nie ma żadnego efektu",
+    "json_table_hideable": "Możliwość ukrycia"
 }

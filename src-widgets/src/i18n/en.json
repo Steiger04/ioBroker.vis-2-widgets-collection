@@ -973,6 +973,7 @@
     "json_table_hidden": "Hidden",
     "json_table_hide_all": "Hide all",
     "json_table_hide_column": "Hide column",
+    "json_table_hideable": "Hideable",
     "json_table_hiding": "Column hiding",
     "json_table_hiding_tooltip": "Allow columns to be hidden via column menu",
     "json_table_image_bg_color": "Background",

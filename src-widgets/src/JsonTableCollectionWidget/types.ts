@@ -218,24 +218,24 @@ export interface ColumnConfigEntry {
 
     // ── New: Per-column overrides ───────────────────────────────
     /**
-     * Override global sorting setting for this column.
-     * - `true`: Always sortable
+     * Override the type default for sorting this column (never more than the table allows).
+     * - `true`: Sortable whenever the table allows sorting
      * - `false`: Never sortable
      * - `'auto'`: Use type-based smart defaults (default behavior)
      */
     sortable?: boolean | 'auto';
     /**
-     * Override global filtering setting for this column.
-     * - `true`: Always filterable
+     * Override the type default for filtering this column (never more than the table allows).
+     * - `true`: Filterable whenever the table allows column filtering
      * - `false`: Never filterable
      * - `'auto'`: Use type-based smart defaults (default behavior)
      */
     filterable?: boolean | 'auto';
     /**
-     * Override global hiding setting for this column.
+     * Override global hiding setting for this column (never more than the table allows).
      * - `true`: Can be hidden via column menu
      * - `false`: Cannot be hidden
-     * - `'auto'`: Use global tableHiding setting (default behavior)
+     * - `'auto'`: Use the type default (every type is hideable) (default behavior)
      */
     enableHiding?: boolean | 'auto';
 }

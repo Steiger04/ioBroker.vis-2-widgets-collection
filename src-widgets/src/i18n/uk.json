@@ -1311,5 +1311,6 @@
     "without_card": "Без кордону",
     "without_label": "Без етикетки",
     "write_value": "Напишіть значення",
-    "json_table_table_off_tooltip": "{feature} вимкнено для всієї таблиці, тому цей параметр стовпця не матиме жодного впливу"
+    "json_table_table_off_tooltip": "{feature} вимкнено для всієї таблиці, тому цей параметр стовпця не матиме жодного впливу",
+    "json_table_hideable": "Приховуваний"
 }

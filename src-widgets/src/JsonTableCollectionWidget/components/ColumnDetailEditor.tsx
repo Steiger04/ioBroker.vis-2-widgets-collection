@@ -134,13 +134,14 @@ function ColumnDetailEditor({
     const isAdvancedDirty = useMemo(
         () =>
             (column.sortable !== undefined && column.sortable !== 'auto') ||
-            (column.filterable !== undefined && column.filterable !== 'auto'),
-        [column.sortable, column.filterable],
+            (column.filterable !== undefined && column.filterable !== 'auto') ||
+            (column.enableHiding !== undefined && column.enableHiding !== 'auto'),
+        [column.sortable, column.filterable, column.enableHiding],
     );
 
     const resetAdvanced = useCallback(() => {
-        const { sortable: _s, filterable: _f, ...rest } = column;
-        onChange({ ...rest, sortable: 'auto', filterable: 'auto' } as ColumnConfigEntry);
+        const { sortable: _s, filterable: _f, enableHiding: _h, ...rest } = column;
+        onChange({ ...rest, sortable: 'auto', filterable: 'auto', enableHiding: 'auto' } as ColumnConfigEntry);
     }, [column, onChange]);
 
     // ── Format update helper ──────────────────────────────────────
@@ -673,6 +674,49 @@ function ColumnDetailEditor({
                                     typeDefault={defaults.filterable}
                                     columnOverride={column.filterable}
                                     featureLabel={Generic.t('json_table_filtering')}
+                                    columnType={columnType}
+                                />
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <FormControl
+                                    size="small"
+                                    sx={{ minWidth: 120 }}
+                                >
+                                    <InputLabel>{Generic.t('json_table_hideable')}</InputLabel>
+                                    <Select
+                                        value={
+                                            column.enableHiding === true
+                                                ? 'on'
+                                                : column.enableHiding === false
+                                                  ? 'off'
+                                                  : 'auto'
+                                        }
+                                        label={Generic.t('json_table_hideable')}
+                                        onChange={e =>
+                                            onChange({
+                                                ...column,
+                                                enableHiding:
+                                                    e.target.value === 'on'
+                                                        ? true
+                                                        : e.target.value === 'off'
+                                                          ? false
+                                                          : 'auto',
+                                            })
+                                        }
+                                    >
+                                        <MenuItem value="auto">
+                                            <em>{Generic.t('json_table_option_auto')}</em>
+                                        </MenuItem>
+                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
+                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <EffectiveResultIndicator
+                                    effective={allowed.hideable}
+                                    tableEnabled={capabilities.hiding}
+                                    typeDefault={defaults.hideable}
+                                    columnOverride={column.enableHiding}
+                                    featureLabel={Generic.t('json_table_hiding')}
                                     columnType={columnType}
                                 />
                             </Box>

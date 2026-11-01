@@ -17,18 +17,18 @@ import type { TableCapabilities } from '../capabilities';
 /** Props for the StatusBanner component. */
 interface StatusBannerProps {
     /** The resolved Tabellen-Fähigkeiten */
-    capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering'>;
+    capabilities: Pick<TableCapabilities, 'sorting' | 'columnFiltering' | 'hiding'>;
 }
 
 /**
  * Renders a compact status banner showing the table-wide capabilities.
  *
- * Displays sorting and filtering status with visual indicators:
+ * Displays sorting, filtering and hiding status with visual indicators:
  * - Green checkmark for enabled features
  * - Red cross for disabled features
  */
 function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
-    const { sorting: globalSorting, columnFiltering: globalFiltering } = capabilities;
+    const { sorting: globalSorting, columnFiltering: globalFiltering, hiding: globalHiding } = capabilities;
     return (
         <Box
             sx={{
@@ -60,6 +60,14 @@ function StatusBanner({ capabilities }: StatusBannerProps): React.JSX.Element {
                     icon={globalFiltering ? <CheckIcon /> : <CloseIcon />}
                     label={`${Generic.t('json_table_filtering')}: ${globalFiltering ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
                     color={globalFiltering ? 'success' : 'default'}
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem' }}
+                />
+                <Chip
+                    size="small"
+                    icon={globalHiding ? <CheckIcon /> : <CloseIcon />}
+                    label={`${Generic.t('json_table_hiding')}: ${globalHiding ? Generic.t('json_table_status_on') : Generic.t('json_table_status_off')}`}
+                    color={globalHiding ? 'success' : 'default'}
                     variant="outlined"
                     sx={{ fontSize: '0.7rem' }}
                 />
