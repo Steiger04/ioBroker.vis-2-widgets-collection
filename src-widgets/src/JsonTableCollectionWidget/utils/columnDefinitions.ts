@@ -11,10 +11,10 @@ import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { ColumnConfigEntry } from '../types';
 import { columnCapabilities, effectiveType, type TableCapabilities } from '../capabilities';
+import { columnFilterFn } from '../columnFilter';
 import { dateReader, type DateReader } from '../dateReader';
 
 import type { CellColumn } from './cellFormatters';
-import { createDateFilterFn } from './filterFunctions';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -117,9 +117,7 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
             .map(cfg => {
                 const detected = analysisByPath.get(cfg.path);
                 const detectedType = detected?.type || 'string';
-                // Unify "is this a date column?" for sort, filter AND the filter dialog (meta.columnType).
-                // Previously sort used cfg.format.type while the filter dialog used the auto-detected type,
-                // so manually configuring a string column as date gave date sort but string filter operators.
+                // Date sorting for a configured or detected date column
                 const isDateColumn = cfg.format?.type === 'date' || detectedType === 'date';
                 const type = effectiveType(cfg.format?.type, detectedType);
                 const allowed = columnCapabilities(capabilities, type, cfg);
@@ -136,10 +134,9 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     enableSorting: allowed.sortable,
                     enableColumnFilter: allowed.filterable,
                     enableHiding: allowed.hideable,
-                    ...(isDateColumn && {
-                        sortingFn: createDateSortingFn(readDate),
-                        filterFn: createDateFilterFn(readDate),
-                    }),
+                    ...(isDateColumn && { sortingFn: createDateSortingFn(readDate) }),
+                    // The Spaltenfilter compares by the Effektiver Typ, never by a guessed one
+                    filterFn: columnFilterFn(type, readDate),
                     cell: ({ getValue }) =>
                         renderConfiguredCell(
                             getValue(),
@@ -156,7 +153,7 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     meta: {
                         align: cfg.align || 'left',
                         width: cfg.width,
-                        columnType: isDateColumn ? 'date' : detectedType,
+                        columnType: type,
                     },
                 };
                 return col;
@@ -177,10 +174,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 enableSorting: allowed.sortable,
                 enableColumnFilter: allowed.filterable,
                 enableHiding: allowed.hideable,
-                ...(isDate && {
-                    sortingFn: createDateSortingFn(readDate),
-                    filterFn: createDateFilterFn(readDate),
-                }),
+                ...(isDate && { sortingFn: createDateSortingFn(readDate) }),
+                filterFn: columnFilterFn(type, readDate),
                 // Auto-detected image columns render as graphics immediately (default format),
                 // so icons/images show on first view without manual configuration.
                 cell: ({ getValue }) => {
@@ -199,7 +194,7 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     }
                     return renderAutoDetectedCell(value);
                 },
-                meta: { align: col.type === 'image' ? 'center' : 'left', columnType: col.type },
+                meta: { align: col.type === 'image' ? 'center' : 'left', columnType: type },
             };
             return colDef;
         });

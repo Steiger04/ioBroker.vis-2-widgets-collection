@@ -6,7 +6,7 @@
  * Renders a context menu for column headers with conditional visibility
  * based on column capabilities (sortable, filterable, hideable).
  * Only displays menu items that are actually available for the active column.
- * Includes a filter dialog for advanced filter configuration.
+ * Includes the filter dialog for the Spaltenfilter.
  */
 
 import { Divider, Menu, MenuItem, Typography, ListItemIcon } from '@mui/material';
@@ -21,7 +21,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import Generic from '../../Generic';
-import type { TableCapabilities } from '../capabilities';
+import type { EffectiveType, TableCapabilities } from '../capabilities';
 import FilterDialog from './FilterDialog';
 
 /** Props for the ColumnMenu component. */
@@ -48,10 +48,10 @@ export interface ColumnMenuProps {
         getFilterValue?: () => unknown;
         /** Toggle column visibility */
         toggleVisibility?: (value?: boolean) => void;
-        /** Column definition with meta containing columnType */
+        /** Column definition with meta containing the Column's Effektiver Typ */
         columnDef?: {
             meta?: {
-                columnType?: string;
+                columnType?: EffectiveType;
             };
         };
     } | null;
@@ -79,7 +79,7 @@ export interface ColumnMenuProps {
  * - Shows sort options only if column is sortable
  * - Shows filter options only if filtering is enabled and column is filterable
  * - Shows hide option only if column can be hidden
- * - Includes filter dialog for advanced filter configuration
+ * - Includes the filter dialog for the Spaltenfilter
  */
 function ColumnMenu({
     anchorEl,

@@ -157,6 +157,8 @@ Apply dynamic styles based on cell values:
 | tableColumnMenu | checkbox | true    | Show column menu (filter/sort/hide)   | Header shown |
 | tableHiding     | checkbox | true    | Allow hiding columns via menu         | Column menu enabled |
 
+> **Column filters compare by the column's effective type:** text columns as text without case (`equals "Room 1"` does not match `Room 01`), number columns only numerically (a cell that is not a number never matches a value operator), date columns by local calendar day, boolean columns by `true`/`false`. Other types (mixed, object, array, image) compare as text, objects as their JSON. The filter dialog offers the operators of that type; a stored filter whose operator the type no longer offers (e.g. after the format type was changed) is discarded.
+
 ### Pagination
 
 | Field Name              | Type     | Default   | Description                           | Condition |

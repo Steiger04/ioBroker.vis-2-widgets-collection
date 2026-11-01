@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { tableCapabilities, type CapabilitySettings } from './capabilities';
+import { effectiveType, tableCapabilities, type CapabilitySettings } from './capabilities';
 import {
     clampPage,
     recordBaselines,
@@ -30,6 +30,7 @@ const CONFIG: ViewConfig = {
     pageSizeOptions: [10, 25, 50, 100],
     columnWidths: {},
     autoSize: false,
+    columnTypes: {},
 };
 
 describe('resolveView — nothing stored', () => {
@@ -180,6 +181,28 @@ describe('resolveView — stored Spaltenfilter must have the form {operator, val
     ])('discards %s and keeps the fitting ones', (_case, unfit) => {
         const stored = { columnFilters: [fitting, unfit, empty] };
         expect(resolveView(stored, ALL_ON, CONFIG).columnFilters).toEqual([fitting, empty]);
+    });
+});
+
+describe("resolveView — a stored Spaltenfilter its Column's Effektiver Typ does not offer is discarded", () => {
+    const contains = { id: 'temp', value: { operator: 'contains', value: '2' } };
+    const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
+    const stored = { columnFilters: [contains, room] };
+
+    it('discards contains on a Column whose Format type was changed to number', () => {
+        const columnTypes = { temp: effectiveType('number', 'string'), room: effectiveType(undefined, 'string') };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columnTypes }).columnFilters).toEqual([room]);
+    });
+
+    it('keeps it while the Column is still a string column', () => {
+        const columnTypes = { temp: effectiveType(undefined, 'string'), room: effectiveType(undefined, 'string') };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columnTypes }).columnFilters).toEqual([contains, room]);
+    });
+
+    it('keeps a filter on a Column of unknown type (no data yet), judging only its form', () => {
+        const unknownOperator = { id: 'temp', value: { operator: 'matches', value: '2' } };
+        const view = resolveView({ columnFilters: [contains, unknownOperator] }, ALL_ON, CONFIG);
+        expect(view.columnFilters).toEqual([contains]);
     });
 });
 

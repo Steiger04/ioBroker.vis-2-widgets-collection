@@ -25,6 +25,7 @@ const OPTIONS: UseViewStateOptions = {
     pageSizeOptions: '10,25,50,100',
     autoSize: false,
     columnConfig: [],
+    columnTypes: {},
 };
 
 const mounted: RenderHookHandle<ViewState>[] = [];
@@ -109,6 +110,25 @@ describe('useViewState — views stored by earlier versions', () => {
         handle.rerender(() => useViewState({ ...OPTIONS, pageSize: 10, columnConfig: edited }));
         expect(handle.result.current.state.pagination).toEqual({ pageIndex: 0, pageSize: 10 });
         expect(handle.result.current.state.columnSizing).toEqual({ __select__: 48 });
+    });
+});
+
+describe("useViewState — a stored Spaltenfilter and its Column's Effektiver Typ", () => {
+    it('discards a filter the new type does not offer, dropping it from storage with the next filter change', () => {
+        localStorage.setItem(
+            'jtc_filters_w000001',
+            JSON.stringify([{ id: 'temp', value: { operator: 'contains', value: '2' } }]),
+        );
+        const handle = mount({ columnTypes: { temp: 'string' } });
+        expect(handle.result.current.state.columnFilters).toHaveLength(1);
+
+        // The editor changes the Column's Format type to number
+        handle.rerender(() => useViewState({ ...OPTIONS, columnTypes: { temp: 'number', room: 'string' } }));
+        expect(handle.result.current.state.columnFilters).toEqual([]);
+
+        const room = { id: 'room', value: { operator: 'contains', value: 'kit' } };
+        act(() => handle.result.current.onColumnFiltersChange(old => [...old, room]));
+        expect(JSON.parse(localStorage.getItem('jtc_filters_w000001') ?? 'null')).toEqual([room]);
     });
 });
 

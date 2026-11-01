@@ -41,7 +41,6 @@ import {
     type SortingState,
     type Column,
     type Header,
-    type FilterFn,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useContext, useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
@@ -63,28 +62,23 @@ import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
-import { tableCapabilities } from './capabilities';
-import { customFilterFns } from './utils/filterFunctions';
+import { tableCapabilities, type EffectiveType } from './capabilities';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
-// Extend ColumnMeta to include custom alignment property for table cells
-// Extend FilterFns to include custom 'advanced' filter function
+// Extend ColumnMeta to include custom alignment property for table cells and the
+// Column's Effektiver Typ (each Column carries its own Spaltenfilter as filterFn)
 
 declare module '@tanstack/react-table' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface ColumnMeta<TData, TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
-        /** Detected column type for filter dialog (string, number, date, boolean) */
-        columnType?: string;
-    }
-
-    interface FilterFns {
-        advanced: FilterFn<unknown>;
+        /** The Column's Effektiver Typ: the filter dialog's operators and input */
+        columnType?: EffectiveType;
     }
 }
 
@@ -262,6 +256,19 @@ const JsonTableCollection: FC = () => {
 
     const isAutoSize = widget.data.tableAutoSize === true;
 
+    // The Effektiver Typ per Column, keyed by content: data updates rebuild the column
+    // definitions, but must not hand the view a new configuration.
+    const columnTypesKey = useMemo(
+        () =>
+            JSON.stringify(
+                Object.fromEntries(
+                    columns.flatMap(col => (col.id && col.meta?.columnType ? [[col.id, col.meta.columnType]] : [])),
+                ),
+            ),
+        [columns],
+    );
+    const columnTypes = useMemo(() => JSON.parse(columnTypesKey) as Record<string, EffectiveType>, [columnTypesKey]);
+
     const view = useViewState({
         widgetId,
         capabilities,
@@ -269,6 +276,7 @@ const JsonTableCollection: FC = () => {
         pageSizeOptions: widget.data.tablePageSizeOptions,
         autoSize: isAutoSize,
         columnConfig,
+        columnTypes,
     });
     const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
 
@@ -283,10 +291,9 @@ const JsonTableCollection: FC = () => {
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: capabilities.multiSort,
         globalFilterFn: globalFilterFn,
-        filterFns: customFilterFns,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
-        defaultColumn: { minSize: 40, maxSize: 2000, filterFn: 'advanced' },
+        defaultColumn: { minSize: 40, maxSize: 2000 },
         state: view.state,
         // The page survives data updates (TanStack would reset it on every new data array);
         // the view state resets it when sorting, filters or the page size change.
