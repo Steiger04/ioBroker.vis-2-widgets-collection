@@ -41,24 +41,29 @@ const OpenViewDialog: FC = () => {
 
 const mountBody = testScopedMount();
 
-const mountDialog = (data: Record<string, unknown>): MountedCollectionBody =>
-    mountBody(
-        OpenViewDialog,
-        collectionScene(
-            'view-dialog-test',
-            {
-                ...sessionOidData(),
-                view: 'detail',
-                header: 'Küche',
-                dialogCloseButtonTop: true,
-                noFooter: true,
-                ...data,
-            },
-            true,
-            DIALOG_OID,
-        ),
-        { getWidgetView },
+/**
+ * Mounts the open dialog.
+ *
+ * @param data - Widget data over the dialog defaults.
+ * @param style - The widget's vis-2 CSS (kebab-case keys, as vis-2 provides them).
+ */
+const mountDialog = (data: Record<string, unknown>, style: Record<string, string> = {}): MountedCollectionBody => {
+    const scene = collectionScene(
+        'view-dialog-test',
+        {
+            ...sessionOidData(),
+            view: 'detail',
+            header: 'Küche',
+            dialogCloseButtonTop: true,
+            noFooter: true,
+            ...data,
+        },
+        true,
+        DIALOG_OID,
     );
+    (scene.context.widget as { style?: Record<string, string> }).style = style;
+    return mountBody(OpenViewDialog, scene, { getWidgetView });
+};
 
 /** The dialog's frame (CollectionBase's outer paper) inside the portalled Modal. */
 const dialogFrame = (): Element | null => document.querySelector('.MuiModal-root .BASE-PAPER-0');
@@ -98,4 +103,16 @@ describe('ViewDialog title', () => {
         const views = document.querySelectorAll('.MuiModal-root [data-testid="dialog-view"]');
         expect([...views].map(view => view.getAttribute('data-view'))).toEqual(['detail']);
     });
+});
+
+describe('ViewDialog frame background', () => {
+    it.each(['transparent', 'red', 'var(--x)'])(
+        'renders with a vis-2 background-color %s no tint calculation can read',
+        backgroundColor => {
+            mountDialog({ dialogHeaderAsTitle: true }, { 'background-color': backgroundColor });
+
+            expect(dialogFrame()).not.toBeNull();
+            expect(titleLine()?.textContent).toBe('Küche');
+        },
+    );
 });

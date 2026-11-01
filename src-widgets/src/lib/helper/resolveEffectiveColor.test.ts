@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material';
-import { resolveEffectiveColor, terminalColor } from './resolveEffectiveColor';
+import { resolveEffectiveColor, resolveEffectiveSolidColor, terminalColor } from './resolveEffectiveColor';
 import type { ColorFieldContract } from './resolveEffectiveColor';
 
 const THEME = {
@@ -85,5 +85,82 @@ describe('resolveEffectiveColor', () => {
 
     it('treats a missing terminal as transparent (legacy default)', () => {
         expect(resolveEffectiveColor(contract({ name: 'background' }), {}, THEME, undefined)).toBe('');
+    });
+});
+
+describe('resolveEffectiveSolidColor', () => {
+    /** A theme whose terminals are readable solids (the shared THEME's placeholders are not). */
+    const SOLID_THEME = {
+        palette: {
+            primary: { main: '#1976d2' },
+            text: { primary: '#2f3e51' },
+            background: { paper: '#ffffff', default: '#fafafa' },
+        },
+    } as unknown as Theme;
+
+    const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+    /** A valid gradient (validateColorInput accepts it) without a Repräsentative Vollfarbe. */
+    const NAMED_GRADIENT = 'linear-gradient(red, blue)';
+
+    const border = contract({ name: 'thumbBorderColor', terminal: 'primary', fallbackFields: ['sliderColor'] });
+
+    it('returns a solid override as-is', () => {
+        expect(resolveEffectiveSolidColor(border, { thumbBorderColor: '#a1a1a1' }, SOLID_THEME, undefined)).toBe(
+            '#a1a1a1',
+        );
+    });
+
+    it('reduces a gradient override to its midpoint color', () => {
+        expect(resolveEffectiveSolidColor(border, { thumbBorderColor: GRADIENT }, SOLID_THEME, undefined)).toBe(
+            'rgb(128, 0, 128)',
+        );
+    });
+
+    it('lets an override without a solid color fall back to the fallback field', () => {
+        for (const override of ['red', 'var(--x)', 'transparent', NAMED_GRADIENT]) {
+            expect(
+                resolveEffectiveSolidColor(
+                    border,
+                    { thumbBorderColor: override, sliderColor: '#5b5b5b' },
+                    SOLID_THEME,
+                    undefined,
+                ),
+            ).toBe('#5b5b5b');
+        }
+    });
+
+    it('skips a fallback field without a solid color and ends on the terminal', () => {
+        expect(resolveEffectiveSolidColor(border, { sliderColor: NAMED_GRADIENT }, SOLID_THEME, undefined)).toBe(
+            '#1976d2',
+        );
+    });
+
+    it('skips a vis-2 style color without a solid color', () => {
+        const text = contract({ name: 'textColor', terminal: 'text', inheritTextStyle: true });
+
+        for (const styleColor of ['red', 'var(--x)', 'transparent']) {
+            expect(resolveEffectiveSolidColor(text, {}, SOLID_THEME, { color: styleColor })).toBe('#2f3e51');
+        }
+        // a readable vis-2 style color still counts
+        expect(resolveEffectiveSolidColor(text, {}, SOLID_THEME, { color: '#123456' })).toBe('#123456');
+    });
+
+    it('yields undefined for the transparent terminal and for no terminal', () => {
+        expect(
+            resolveEffectiveSolidColor(
+                contract({ name: 'background', terminal: 'transparent' }),
+                {},
+                SOLID_THEME,
+                undefined,
+            ),
+        ).toBeUndefined();
+        expect(
+            resolveEffectiveSolidColor(contract({ name: 'background' }), {}, SOLID_THEME, undefined),
+        ).toBeUndefined();
+    });
+
+    it('yields undefined when even the terminal has no solid color', () => {
+        // The shared THEME's '#pri' placeholder is no readable color.
+        expect(resolveEffectiveSolidColor(border, {}, THEME, undefined)).toBeUndefined();
     });
 });
