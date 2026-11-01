@@ -4,7 +4,7 @@ import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
-import type { PropertyResolvers, SliderProperties } from './types';
+import type { MarkerLayer, PropertyResolvers } from './types';
 
 // Characterization tests pinning the resolver layer's de-facto contract
 // (params -> createPropertyResolvers -> getStyleData -> StyleData). The chain is
@@ -12,13 +12,13 @@ import type { PropertyResolvers, SliderProperties } from './types';
 // as plain values — so we build a CreatePropertyResolversParams literal with
 // hand-rolled getDataValue/formatSize closures. No vi.mock needed.
 //
-// Purpose: F1 Stufe 2 removed the redundant isSlider flag (slider-ness is now
-// carried solely by `widgetResolver`). These tests prove the marker resolution is
-// unchanged for slider and non-slider widgets alike.
+// Purpose: the marker layer is passed in explicitly (`markerLayer`, supplied by
+// the widget via useData's options — no type detection). These tests pin where
+// each marker value slots into the chains, with and without a marker layer.
 
 interface ResolverOpts {
     rxData?: Record<string, any>;
-    widgetResolver?: SliderProperties | Record<string, never>;
+    markerLayer?: MarkerLayer;
     oidObject?: { unit?: string };
     oidName?: string;
     textStyles?: { color?: string };
@@ -49,7 +49,7 @@ function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
         backgroundStyles: opts.backgroundStyles as WidgetStyleState | undefined,
         formatSize: (n: number | string | undefined): string | undefined => (n == null ? undefined : `${n}%`),
         getDataValue,
-        widgetResolver: opts.widgetResolver ?? {},
+        markerLayer: opts.markerLayer ?? {},
     });
 }
 
@@ -219,26 +219,26 @@ describe('style-object fallbacks apply when the rxData tier is absent', () => {
     });
 });
 
-describe('isSlider — marker values slot into the fallback chain at the correct tier', () => {
-    // The contract an "extract isSlider" refactor most easily breaks: each marker
+describe('marker layer — marker values slot into the fallback chain at the correct tier', () => {
+    // The contract a refactor of the marker tier most easily breaks: each marker
     // value is inserted at a SPECIFIC position relative to the active/ext/base
     // tiers. These cases pin that position by populating multiple tiers at once.
-    const marker: SliderProperties = {
-        markerIconSize: 50,
-        markerTextColor: '#mtxt',
-        markerTextSize: 18,
-        markerIconColor: '#mcol',
+    const marker: MarkerLayer = {
+        iconSize: 50,
+        textColor: '#mtxt',
+        textSize: 18,
+        iconColor: '#mcol',
     };
 
     it('iconSize: marker beats base, but ext (iconSize1) beats marker', () => {
         // No base, no ext -> marker wins
-        const markerOnly = buildResolvers({ widgetResolver: marker });
+        const markerOnly = buildResolvers({ markerLayer: marker });
         expect(resolve(markerOnly).iconSize).toBe('calc(24px * 50 / 100)');
         // Base present -> marker still wins (inserted before base)
-        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconSize: 200 } });
+        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconSize: 200 } });
         expect(resolve(withBase).iconSize).toBe('calc(24px * 50 / 100)');
         // Ext present -> ext wins (inserted before marker)
-        const withExt = buildResolvers({ widgetResolver: marker, rxData: { iconSize1: 300 } });
+        const withExt = buildResolvers({ markerLayer: marker, rxData: { iconSize1: 300 } });
         expect(resolve(withExt, '1').iconSize).toBe('calc(24px * 300 / 100)');
     });
 
@@ -246,36 +246,36 @@ describe('isSlider — marker values slot into the fallback chain at the correct
         // Note the contrast with iconSize above: here the ext-tier option reads
         // `iconSize` directly, so with ext="" it already sees rxData.iconSize and
         // shadows the marker (the marker sits one position later).
-        const r = buildResolvers({ widgetResolver: marker });
+        const r = buildResolvers({ markerLayer: marker });
         expect(resolve(r).iconWidth).toBe(50);
         expect(resolve(r).iconHeight).toBe(50);
         // rxData.iconSize set -> the ext="" tier reads it and wins over the marker
-        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconSize: 200 } });
+        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconSize: 200 } });
         expect(resolve(withBase).iconWidth).toBe(200);
         // A real ext index with a value also wins over the marker
-        const withExt = buildResolvers({ widgetResolver: marker, rxData: { iconSize1: 300 } });
+        const withExt = buildResolvers({ markerLayer: marker, rxData: { iconSize1: 300 } });
         expect(resolve(withExt, '1').iconWidth).toBe(300);
         // ext index absent and base absent -> marker wins
-        const extAbsent = buildResolvers({ widgetResolver: marker, rxData: { other: 1 } });
+        const extAbsent = buildResolvers({ markerLayer: marker, rxData: { other: 1 } });
         expect(resolve(extAbsent, '1').iconWidth).toBe(50);
     });
 
     it('iconColor: marker beats base; theme is the last resort', () => {
-        const r = buildResolvers({ widgetResolver: marker });
+        const r = buildResolvers({ markerLayer: marker });
         expect(resolve(r).iconColor).toBe('#mcol');
-        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconColor: '#base' } });
+        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconColor: '#base' } });
         expect(resolve(withBase).iconColor).toBe('#mcol');
-        // Non-slider, no color anywhere -> theme primary
+        // No marker layer, no color anywhere -> theme primary
         expect(resolve(buildResolvers()).iconColor).toBe(THEME_PRIMARY);
     });
 
     it('textColor: marker is inserted only when non-empty', () => {
-        const r = buildResolvers({ widgetResolver: marker });
+        const r = buildResolvers({ markerLayer: marker });
         expect(resolve(r, '', true).textColor).toBe('#mtxt');
         expect(resolve(r).textColor).toBe('#mtxt');
         // Empty marker -> skipped, falls through
         const emptyMarker = buildResolvers({
-            widgetResolver: { ...marker, markerTextColor: '' },
+            markerLayer: { ...marker, textColor: '' },
             textStyles: { color: '#tsColor' },
         });
         expect(resolve(emptyMarker).textColor).toBe('#tsColor');
@@ -283,7 +283,7 @@ describe('isSlider — marker values slot into the fallback chain at the correct
 
     it('valueSize: markerTextSize (via formatSize) beats base, before fontStyles', () => {
         const r = buildResolvers({
-            widgetResolver: marker,
+            markerLayer: marker,
             fontStyles: { 'font-size': '13px' },
         });
         expect(resolve(r).valueSize).toBe('18%');
@@ -292,24 +292,24 @@ describe('isSlider — marker values slot into the fallback chain at the correct
     });
 });
 
-describe('isSlider — marker resolvers expose raw marker values', () => {
-    const marker: SliderProperties = {
-        markerIconSize: 50,
-        markerTextColor: '#mtxt',
-        markerTextSize: 18,
-        markerIconColor: '#mcol',
+describe('marker layer — marker resolvers expose raw marker values', () => {
+    const marker: MarkerLayer = {
+        iconSize: 50,
+        textColor: '#mtxt',
+        textSize: 18,
+        iconColor: '#mcol',
     };
 
-    it('returns undefined when not a slider', () => {
-        const r = buildResolvers({ widgetResolver: {} }); // empty widgetResolver = non-slider
+    it('returns undefined without a marker layer', () => {
+        const r = buildResolvers({ markerLayer: {} }); // empty marker layer = no marker tier
         expect(r.markerIconSize('', false)).toBeUndefined();
         expect(r.markerTextColor('', false)).toBeUndefined();
         expect(r.markerTextSize('', false)).toBeUndefined();
         expect(r.markerIconColor('', false)).toBeUndefined();
     });
 
-    it('returns the raw marker values when isSlider', () => {
-        const r = buildResolvers({ widgetResolver: marker });
+    it('returns the raw marker values of a passed marker layer', () => {
+        const r = buildResolvers({ markerLayer: marker });
         expect(r.markerIconSize('', false)).toBe(50);
         expect(r.markerTextColor('', false)).toBe('#mtxt');
         expect(r.markerTextSize('', false)).toBe(18);
