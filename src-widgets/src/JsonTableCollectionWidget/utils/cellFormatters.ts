@@ -15,13 +15,9 @@
  */
 
 import type { CellImageContent, ColumnConfigEntry, ColumnFormatConfig, ColumnFormatType } from '../types';
-import {
-    formatBooleanValue,
-    formatDateValue,
-    formatNumberValue,
-    formatStringValue,
-    normalizeToIsoDate,
-} from './formatters';
+import { effectiveType, type EffectiveType } from '../capabilities';
+import { dateReader, localDay, type DateReader } from '../dateReader';
+import { formatBooleanValue, formatDateValue, formatNumberValue, formatStringValue } from './formatters';
 import { evaluateLogic } from './jsonLogicEngine';
 import { gradientColor } from '../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../lib/helper/gradientTextSx';
@@ -51,11 +47,24 @@ export interface CellContent {
     image?: CellImageContent;
 }
 
+/**
+ * What a cell knows about its Column beyond the configuration — until the effective Columns
+ * (Spalten-Merge) carry it, handed in through the column definition.
+ */
+export interface CellColumn {
+    /** The Column's Effektiver Typ: decides how conditional styles compare. */
+    type: EffectiveType;
+    /** The Column's Datums-Leser (ADR-0093). */
+    readDate: DateReader;
+}
+
 /** Context handed to each descriptor. */
 interface FormatContext {
     fmt: ColumnFormatConfig;
     /** Default string conversion of the raw value (JSON for objects, else String). */
     defaultDisplay: string;
+    /** The Column's Datums-Leser — display and quick filter read dates through the same one. */
+    readDate: DateReader;
 }
 
 // ── Shared image-descriptor primitive ───────────────────────────────
@@ -132,7 +141,7 @@ export const FORMATTERS: Record<ColumnFormatType, FormatterDescriptor> = {
     },
     date: {
         format: (rawValue, ctx) => ({
-            displayValue: formatDateValue(rawValue, ctx.fmt.dateFormat, ctx.fmt.dateInputFormat),
+            displayValue: formatDateValue(rawValue, ctx.fmt.dateFormat, ctx.readDate),
         }),
     },
     boolean: {
@@ -163,17 +172,32 @@ export const FORMATTERS: Record<ColumnFormatType, FormatterDescriptor> = {
 // ── Conditional cell styling ────────────────────────────────────────
 
 /**
+ * The value a conditional rule sees: for a Column whose Effektiver Typ is `date` its local day
+ * as `YYYY-MM-DD` (the shape of the rule builder's date input; an unreadable value counts as
+ * empty, `''`), for every other type the Raw value.
+ */
+function ruleValue(rawValue: unknown, column: CellColumn): unknown {
+    if (column.type !== 'date') {
+        return rawValue;
+    }
+    const ms = column.readDate(rawValue);
+    return ms === null ? '' : localDay(ms).key;
+}
+
+/**
  * Evaluate a column's conditional styling rules against a raw value.
  *
  * Returns the background and text styles produced by the matching rules. Rules
  * keep their intra-list priority (lower index wins per property); these styles
  * are merged OVER the format-type-static styles by {@link buildCellContent}, so a
  * conditional rule overrides a static string style on the same property —
- * preserving the previous "conditional beats static" behaviour.
+ * preserving the previous "conditional beats static" behaviour. Rules compare by the
+ * Column's Effektiver Typ: a date Column at the local day of the value.
  */
 export function applyConditionalStyle(
     cfg: ColumnConfigEntry,
     rawValue: unknown,
+    column: CellColumn,
 ): { bgSx: Record<string, unknown>; textSx: Record<string, unknown> } {
     const bgSx: Record<string, unknown> = {};
     const textSx: Record<string, unknown> = {};
@@ -183,7 +207,7 @@ export function applyConditionalStyle(
     }
 
     const stopAfterFirst = !cfg.cellStyleMode || cfg.cellStyleMode === 'first-match';
-    const evalValue = cfg.format?.type === 'date' ? normalizeToIsoDate(rawValue, cfg.format.dateInputFormat) : rawValue;
+    const evalValue = ruleValue(rawValue, column);
 
     for (const rule of cfg.cellStyle) {
         if (rule.logic && evaluateLogic(rule.logic, evalValue)) {
@@ -230,8 +254,15 @@ export function applyConditionalStyle(
  * type up in {@link FORMATTERS}, then merges static ← conditional styles. No
  * config → unstyled default display; config without a format → default display
  * plus conditional styling; config with a format → formatted result plus styling.
+ *
+ * `column` says how the cell's Column is read; without it the Column counts as undetected
+ * (Effektiver Typ = Format type, tolerant Datums-Leser).
  */
-export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): CellContent {
+export function buildCellContent(
+    rawValue: unknown,
+    cfg?: ColumnConfigEntry,
+    column: CellColumn = { type: effectiveType(cfg?.format?.type, undefined), readDate: dateReader() },
+): CellContent {
     // Default display conversion; objects are stringified and flagged as truncated.
     let isTruncated = false;
     let defaultDisplay: string;
@@ -253,7 +284,11 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
     let result: FormatResult = {};
     if (cfg.format) {
         try {
-            result = FORMATTERS[cfg.format.type].format(rawValue, { fmt: cfg.format, defaultDisplay });
+            result = FORMATTERS[cfg.format.type].format(rawValue, {
+                fmt: cfg.format,
+                defaultDisplay,
+                readDate: column.readDate,
+            });
         } catch {
             // Formatting threw → fall back to the default display value, leaving styles empty.
         }
@@ -263,7 +298,7 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
     const staticTextSx = result.textSx ?? {};
 
     // Conditional rules override the format-type-static styles on conflict.
-    const { bgSx, textSx: conditionalTextSx } = applyConditionalStyle(cfg, rawValue);
+    const { bgSx, textSx: conditionalTextSx } = applyConditionalStyle(cfg, rawValue, column);
 
     return {
         displayValue,

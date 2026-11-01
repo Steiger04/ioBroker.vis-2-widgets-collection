@@ -85,7 +85,10 @@ export interface ColumnFormatConfig {
     // ── Date formatting ─────────────────────────────────────────
     /** Output format string (date-fns compatible), e.g. "yyyy-MM-dd" */
     dateFormat?: string;
-    /** Detected input format from analysis (informational, read-only) */
+    /**
+     * Detected input format from analysis at the time of editing (informational, read-only).
+     * Not read for parsing: the Datums-Leser follows the live detection (ADR-0093).
+     */
     dateInputFormat?: DateFormatId;
 
     // ── Boolean formatting ──────────────────────────────────────

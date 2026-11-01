@@ -29,6 +29,10 @@ import type React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import Generic from '../../Generic';
+import { dateReader, localDay } from '../dateReader';
+
+/** Reads a filter value — it has no Column of its own. */
+const readFilterDate = dateReader();
 
 /** Available filter operators */
 export type FilterOperator =
@@ -142,24 +146,11 @@ function formatDateForInput(value: unknown): string {
         return '';
     }
 
-    // If already in YYYY-MM-DD format, return as-is
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return value;
-    }
-
-    // Try to parse and format. Use LOCAL getters (not toISOString) so the picker shows the
-    // same calendar day the user sees in the default LOCAL display, avoiding an off-by-one
-    // around UTC midnight for non-UTC timezones.
-    try {
-        const date = new Date(value as string | number);
-        if (!isNaN(date.getTime())) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-    } catch {
-        // Ignore parsing errors
+    // The local day the Datums-Leser reads — the same calendar day the default display,
+    // the date filter and conditional styles use (no browser-heuristic parsing).
+    const ms = readFilterDate(value);
+    if (ms !== null) {
+        return localDay(ms).key;
     }
 
     // Fallback: convert to string safely

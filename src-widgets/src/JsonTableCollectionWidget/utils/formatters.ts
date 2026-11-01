@@ -9,7 +9,7 @@
  */
 
 import type { ColumnFormatConfig } from '../types';
-import type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
+import type { DateReader } from '../dateReader';
 
 // Re-export DateFormatId for convenience
 export type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
@@ -29,18 +29,6 @@ function toDisplayString(value: unknown): string {
         return value;
     }
     return `${value as number | boolean}`;
-}
-
-/**
- * Convert a numeric epoch to milliseconds, treating values below 1e11 as seconds
- * and values at or above 1e11 as milliseconds. Centralises the seconds/ms
- * threshold shared by every date parsing path (normalizeToIsoDate, toDateMs,
- * formatDateValue). The three date functions otherwise diverge deliberately —
- * normalizeToIsoDate works in UTC day granularity while the others work locally,
- * and they disagree on numeric strings — so only this threshold is shared.
- */
-function epochToMs(n: number): number {
-    return n >= 1e11 ? n : n * 1000;
 }
 
 // ── Number Formatting ───────────────────────────────────────────
@@ -137,154 +125,6 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
 ];
 
 /**
- * Normalize any supported date value to a YYYY-MM-DD ISO date string.
- * Uses inputFormat for deterministic parsing of European/US formats.
- * Falls back to the Date constructor for ISO-8601 and unknown formats.
- *
- * @param value - Raw date value (string, number, or Date).
- * @param inputFormat - Detected input format from column analysis (optional).
- * @returns YYYY-MM-DD string, or '' for unparseable values.
- */
-export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): string {
-    if (value === null || value === undefined) {
-        return '';
-    }
-
-    // Numbers: epoch-ms (≥1e11) or epoch-s
-    // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
-    if (typeof value === 'number') {
-        const d = new Date(epochToMs(value));
-        return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-    }
-
-    if (value instanceof Date) {
-        return isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
-    }
-
-    if (typeof value !== 'string') {
-        return '';
-    }
-    const trimmed = value.trim();
-    if (!trimmed) {
-        return '';
-    }
-
-    // European: dd.MM.yyyy[...] — only when explicitly detected to avoid day/month ambiguity
-    if (inputFormat?.startsWith('dd.MM.yyyy')) {
-        const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
-        return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
-    }
-
-    // US: MM/dd/yyyy[...] — only when explicitly detected
-    if (inputFormat?.startsWith('MM/dd/yyyy')) {
-        const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-        return m ? `${m[3]}-${m[1]}-${m[2]}` : '';
-    }
-
-    // ISO-8601 / YYYY-MM-DD / unknown — Date constructor handles these reliably
-    const d = new Date(trimmed);
-    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-}
-
-/**
- * Canonical full-precision timestamp normalization used by BOTH sorting and filtering.
- *
- * This is the single source of truth for "what instant does this cell value represent?".
- * It keeps the full time component (unlike {@link normalizeToIsoDate}, which collapses to
- * a day) and uses LOCAL timezone for date-only / European / US inputs so that sort and
- * filter agree with the default (non-ISO) LOCAL display the user sees; ISO-8601 strings
- * with an explicit timezone are honored as-is via the Date constructor. The `1e11` epoch
- * threshold (seconds vs milliseconds) matches detectDateFromNumber, normalizeToTimestamp,
- * and toSortableTime so all paths agree on the same instant.
- *
- * @param value - Raw date value (string, number, or Date).
- * @param inputFormat - Detected input format for unambiguous European/US parsing.
- * @returns Timestamp in ms since epoch, or `null` for null/empty/unparseable values.
- */
-export function toDateMs(value: unknown, inputFormat?: DateFormatId): number | null {
-    if (value === null || value === undefined || value === '') {
-        return null;
-    }
-
-    if (value instanceof Date) {
-        const t = value.getTime();
-        return isNaN(t) ? null : t;
-    }
-
-    if (typeof value === 'number') {
-        if (!Number.isFinite(value)) {
-            return null;
-        }
-        const ms = epochToMs(value);
-        return isNaN(new Date(ms).getTime()) ? null : ms;
-    }
-
-    if (typeof value !== 'string') {
-        return null;
-    }
-
-    const trimmed = value.trim();
-    if (!trimmed) {
-        return null;
-    }
-
-    try {
-        // European: dd.MM.yyyy[ HH:mm[:ss]] — local time
-        if (inputFormat?.startsWith('dd.MM.yyyy')) {
-            const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
-            if (m) {
-                const d = new Date(
-                    parseInt(m[3], 10),
-                    parseInt(m[2], 10) - 1,
-                    parseInt(m[1], 10),
-                    parseInt(m[4] ?? '0', 10),
-                    parseInt(m[5] ?? '0', 10),
-                    parseInt(m[6] ?? '0', 10),
-                );
-                return isNaN(d.getTime()) ? null : d.getTime();
-            }
-        }
-
-        // US: MM/dd/yyyy[ HH:mm[:ss]] — local time
-        if (inputFormat?.startsWith('MM/dd/yyyy')) {
-            const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
-            if (m) {
-                const d = new Date(
-                    parseInt(m[3], 10),
-                    parseInt(m[1], 10) - 1,
-                    parseInt(m[2], 10),
-                    parseInt(m[4] ?? '0', 10),
-                    parseInt(m[5] ?? '0', 10),
-                    parseInt(m[6] ?? '0', 10),
-                );
-                return isNaN(d.getTime()) ? null : d.getTime();
-            }
-        }
-
-        // Pure YYYY-MM-DD (no time/zone): parse as LOCAL midnight to avoid the UTC trap
-        // and stay consistent with the LOCAL display (see formatDateValue).
-        const ymd = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (ymd) {
-            const d = new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
-            return isNaN(d.getTime()) ? null : d.getTime();
-        }
-
-        // Pure numeric string → epoch (1e11 threshold)
-        if (/^-?\d+$/.test(trimmed)) {
-            const n = parseInt(trimmed, 10);
-            const ms = epochToMs(n);
-            return isNaN(new Date(ms).getTime()) ? null : ms;
-        }
-
-        // ISO-8601 with time/zone and other standard formats — let the engine parse
-        const d = new Date(trimmed);
-        return isNaN(d.getTime()) ? null : d.getTime();
-    } catch {
-        return null;
-    }
-}
-
-/**
  * Simple date formatting without external dependencies.
  *
  * Supports common format tokens:
@@ -296,67 +136,29 @@ export function toDateMs(value: unknown, inputFormat?: DateFormatId): number | n
  * - ss: 2-digit seconds
  * - SSS: 3-digit milliseconds
  *
- * Display timezone vs. sort/filter normalization: this function formats in the browser's
- * LOCAL timezone for non-ISO outputs (getDate/getMonth/…) and in UTC for the `ISO-8601 (UTC)`
- * option (`toISOString()`). This display choice is the user's explicit decision and is
- * independent of sort and filter normalization: sorting, the date-picker filter, and the
- * quick filter all normalize via {@link toDateMs} at LOCAL-day granularity, so they match the
- * default LOCAL display. Users who select `ISO-8601 (UTC)` may therefore see a displayed UTC
- * day that differs from the LOCAL day used by `equals` near timezone boundaries — this is
- * expected and unavoidable without forcing a single timezone.
+ * The value is read through the Column's Datums-Leser (`../dateReader`, ADR-0093); a value it
+ * cannot read shows its Raw value as text. Tokens format in the browser's LOCAL timezone —
+ * the same local day that sorting, the date filter and conditional styles compare. The
+ * `ISO-8601 (UTC)` option (`toISOString()`) is the user's explicit choice of UTC, so near
+ * midnight its displayed day may differ from the local day those compare.
  *
- * @param value - Raw value (string, number, or Date).
+ * @param value - Raw value.
  * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
- * @param inputFormat - Detected input format for correct string parsing (optional).
- * @returns Formatted date string or original value as string on error.
+ * @param read - The Column's Datums-Leser.
+ * @returns Formatted date string, or the Raw value as text when it is no date.
  */
-export function formatDateValue(value: unknown, formatString?: string, inputFormat?: DateFormatId): string {
+export function formatDateValue(value: unknown, formatString: string | undefined, read: DateReader): string {
     if (value === null || value === undefined || value === '') {
         return '';
     }
 
+    const ms = read(value);
+    if (ms === null) {
+        return toDisplayString(value);
+    }
+
     try {
-        let date: Date;
-
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-
-            // Honor detected European/US input formats to avoid Invalid Date from
-            // new Date("31.12.2024"). Mirrors normalizeToIsoDate; preserves any trailing
-            // time component (e.g. " 23:59:59") for the HH:mm:ss output tokens.
-            if (inputFormat?.startsWith('dd.MM.yyyy')) {
-                const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(.*)$/);
-                date = m ? new Date(`${m[3]}-${m[2]}-${m[1]}${m[4] ?? ''}`) : new Date(trimmed);
-            } else if (inputFormat?.startsWith('MM/dd/yyyy')) {
-                const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(.*)$/);
-                date = m ? new Date(`${m[3]}-${m[1]}-${m[2]}${m[4] ?? ''}`) : new Date(trimmed);
-            } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-                // For pure YYYY-MM-DD format (without time/timezone): parse directly to avoid UTC timezone trap.
-                // new Date("2024-12-01") interprets as UTC midnight, but getDate()/getMonth()
-                // use local timezone. In UTC-5, "2024-12-01" UTC midnight becomes Nov 30 locally!
-                // Solution: Use local time constructor new Date(year, month-1, day) instead.
-                const [year, month, day] = trimmed.split('-').map(Number);
-                date = new Date(year, month - 1, day); // Local time, not UTC
-            } else {
-                // Strings with time/timezone component: parse directly with Date constructor
-                // which preserves time and timezone information (e.g., ISO-8601 with time)
-                date = new Date(trimmed);
-            }
-        } else if (typeof value === 'number') {
-            // Epoch timestamp: detect seconds vs milliseconds
-            // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
-            date = new Date(epochToMs(value));
-        } else if (value instanceof Date) {
-            date = value;
-        } else {
-            return toDisplayString(value);
-        }
-
-        // Validate parsed date
-        if (isNaN(date.getTime())) {
-            return toDisplayString(value);
-        }
-
+        const date = new Date(ms);
         const fmt = formatString || 'yyyy-MM-dd';
 
         // Manual token replacement (avoids date-fns dependency).
