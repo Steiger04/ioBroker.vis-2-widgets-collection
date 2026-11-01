@@ -9,11 +9,14 @@
  * - an inner Paper for the actual widget content
  *
  * Header/footer text is applied via `innerHTML` to support rich text from vis.
+ * The inner Paper's measured size is published to the children as the Content-Box
+ * ({@link module:hooks/useContentBox}, ADR-0098).
  */
 
 import { Box, Paper, Typography } from '@mui/material';
 import { useRef, useContext, useEffect, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
+import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
@@ -63,6 +66,8 @@ function CollectionBase({
     // Consolidated refs
     // const containerRef = useRef<HTMLDivElement>(null);
     const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
+    // The inner Paper — the box the children live in; measured as the Content-Box.
+    const [contentPaper, setContentPaper] = useState<HTMLDivElement | null>(null);
     const headerRef = useRef<HTMLSpanElement>(null);
     const footerRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +87,9 @@ function CollectionBase({
 
     // Calculate dimensions
     const { width, height } = useSize(containerRef);
+
+    // Content-Box: what the children read through useContentBox() instead of measuring themselves.
+    const contentBox = useMeasuredContentBox(contentPaper);
 
     // Use signals for reactive updates
     useSignals();
@@ -226,12 +234,13 @@ function CollectionBase({
                     >
                         <Paper
                             className="BASE-PAPER-1"
+                            ref={setContentPaper}
                             elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
                             square={!widget.data.basePadding || widget.data.squaredCorner}
                             variant={widget.data.outlined ? 'outlined' : 'elevation'}
                             sx={paper1Sx}
                         >
-                            {children}
+                            <ContentBoxContext.Provider value={contentBox}>{children}</ContentBoxContext.Provider>
                         </Paper>
                     </Box>
 

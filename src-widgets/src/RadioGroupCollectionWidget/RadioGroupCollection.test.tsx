@@ -8,7 +8,8 @@
  * selection writing through the Schreibkette, and the read-only guard locking the group.
  * MUI draws the `checkedIcon` on checked radios only, so two checked icons coexist only
  * when two states share the OID value — that render is where the per-state icon size
- * becomes observable.
+ * becomes observable. The item size follows the frame's Content-Box (ADR-0098, injected
+ * through the test scene).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
@@ -17,6 +18,7 @@ import {
     collectionScene,
     installInertResizeObserver,
     mountCollectionBody,
+    withContentBox,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
@@ -131,5 +133,36 @@ describe('RadioGroupCollection wiring', () => {
             radioInput(container, '0').click();
         });
         expect(setState).not.toHaveBeenCalled();
+    });
+});
+
+describe('RadioGroupCollection item size (Content-Box)', () => {
+    /** The computed size property of every radio button. */
+    const radioSizes = (container: HTMLElement, property: 'height' | 'maxHeight'): string[] =>
+        Array.from(container.querySelectorAll<HTMLElement>('.MuiRadio-root')).map(
+            radio => getComputedStyle(radio)[property],
+        );
+
+    it('splits the Content-Box height evenly between the stacked items', () => {
+        const { container } = mountRadioGroup(withContentBox(scene(), { width: 200, height: 120 }));
+
+        expect(radioSizes(container, 'height')).toEqual(['60px', '60px']);
+        expect(radioSizes(container, 'maxHeight')).toEqual(['60px', '60px']);
+    });
+
+    it('caps every item at the full Content-Box height when laid out horizontally', () => {
+        const { container } = mountRadioGroup(
+            withContentBox(scene({ radioOrientation: 'horizontal' }), { width: 200, height: 120 }),
+        );
+
+        expect(radioSizes(container, 'maxHeight')).toEqual(['120px', '120px']);
+    });
+
+    it('leaves the items unsized until the box is measured', () => {
+        const { container } = mountRadioGroup(scene());
+
+        expect(radioSizes(container, 'height')).toEqual(['auto', 'auto']);
+        // No cap rule at all ('' or the initial 'none', whichever happy-dom reports).
+        expect(radioSizes(container, 'maxHeight').every(cap => cap === '' || cap === 'none')).toBe(true);
     });
 });

@@ -15,7 +15,7 @@ import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
-import { getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
+import { getMarginBetweenPickers, withMainPickerBound } from './colorPickerUtils/colorPickerMemos';
 import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
@@ -103,8 +103,12 @@ function Light2CollectionContent(): React.ReactElement {
 
     // Callback-ref-as-state: useElementDimensions re-runs when the element mounts.
     // (A plain useRef would leave the hook memoizing the null of the first render.)
+    // Measured locally, not the frame's Content-Box: the picker box carries its own
+    // colorLightPadding (ADR-0098). Light2 adds its main-picker bound itself.
     const [boxElement, setBoxElement] = useState<HTMLDivElement | null>(null);
-    const dimensions = useElementDimensions(boxElement, (rxData.colorLightSliderWidth || 1) * 28);
+    const measuredBox = useElementDimensions(boxElement);
+    const sliderSize = (rxData.colorLightSliderWidth || 1) * 28;
+    const dimensions = useMemo(() => withMainPickerBound(measuredBox, sliderSize), [measuredBox, sliderSize]);
     const mainPickerRef = useRef<iro.ColorPicker | null>(null);
     const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
     const prevCctLightRef = useRef(cctLight);
