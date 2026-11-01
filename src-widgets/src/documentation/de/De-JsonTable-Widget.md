@@ -55,7 +55,7 @@ Jede Spalte kann konfiguriert werden mit:
 | filterable   | Filterung für diese Spalte — `true` / `false` / `'auto'` |
 | enableHiding | Spalte über das Spaltenmenü ausblendbar — `true` / `false` / `'auto'` |
 
-> **Smart-Defaults (`'auto'`):** Im Modus `'auto'` (Voreinstellung) werden Sortier- und Filterbarkeit anhand des **erkannten Typs** gesetzt: `number`/`date` → sortier- und filterbar, `boolean` → nur filterbar, `image`/`array`/`object` → weder noch. `enableHiding: 'auto'` übernimmt die globale `tableHiding`-Einstellung.
+> **Smart-Defaults (`'auto'`):** Im Modus `'auto'` (Voreinstellung) folgen Sortier- und Filterbarkeit dem **Effektiven Typ** der Spalte — ihrem Formattyp, wenn einer gesetzt ist, sonst dem erkannten Typ: `string`/`number`/`date` → sortier- und filterbar, `boolean` → nur filterbar, `image`/`array`/`object` → weder noch. Ausblendbar ist per Voreinstellung jede Spalte (`enableHiding: 'auto'`). Eine Überschreibung erlaubt nie mehr als die Tabelle: Solange Sortieren, Spaltenfilter oder Ausblenden für die ganze Tabelle aus sind, bewirkt `true` nichts. Der Bereich *Erweitert* im Spalten-Editor zeigt das Ergebnis pro Spalte.
 
 ### Spaltenformatierung
 
@@ -127,23 +127,25 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 
 ## Funktionen
 
-> **Persistenz:** Die aktuelle Tabellenansicht — Sortierung, aktive Filter und Spaltensichtbarkeit — bleibt über Seiten-Reloads erhalten (pro Browser lokal gespeichert).
+> **Persistenz:** Die aktuelle Tabellenansicht — Sortierung, aktive Filter und Spaltensichtbarkeit — bleibt über Seiten-Reloads erhalten (pro Browser lokal gespeichert). Ein Teil, dessen Funktion ausgeschaltet ist, wird geparkt: weder angewendet noch gelöscht, er kehrt mit der Funktion zurück.
+
+> **Kopfzeile und Spaltenmenü:** Sortieren, Spaltenfilter, Ausblenden und das Spaltenmenü leben in der Kopfzeile. Ist die Kopfzeile ausgeblendet (`tableShowHeader`), sind sie alle aus; ist das Spaltenmenü aus, sind auch Spaltenfilter und Ausblenden aus (beide sind nur über das Menü erreichbar). Schnellfilter, Paginierung und Zeilenauswahl hängen nicht an der Kopfzeile.
 
 ### Sortierung
 
 | Feldname        | Typ      | Standard | Beschreibung                          | Bedingung |
 | --------------- | -------- | -------- | ------------------------------------- | --------- |
-| tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | -         |
-| tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | -   |
+| tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | Kopfzeile sichtbar |
+| tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv |
 
 ### Filterung
 
 | Feldname         | Typ      | Standard | Beschreibung                          | Bedingung |
 | ---------------- | -------- | -------- | ------------------------------------- | --------- |
-| tableFiltering   | checkbox | true     | Spaltenfilterung aktivieren           | -         |
+| tableFiltering   | checkbox | true     | Spaltenfilterung aktivieren           | Spaltenmenü aktiv |
 | tableQuickFilter | checkbox | false    | Globales Suchfeld anzeigen            | -         |
-| tableColumnMenu  | checkbox | true     | Spaltenmenü anzeigen (Filter/Sort/Ausblenden) | - |
-| tableHiding      | checkbox | true     | Spalten ausblenden über Menü erlauben | -         |
+| tableColumnMenu  | checkbox | true     | Spaltenmenü anzeigen (Filter/Sort/Ausblenden) | Kopfzeile sichtbar |
+| tableHiding      | checkbox | true     | Spalten ausblenden über Menü erlauben | Spaltenmenü aktiv |
 
 ### Paginierung
 
