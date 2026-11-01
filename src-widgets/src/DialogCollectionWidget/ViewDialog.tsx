@@ -37,6 +37,8 @@ export default function ViewDialog({
     data,
     getWidgetView,
 }: ViewDialogProps): React.ReactElement {
+    const headerAsTitle = !!widget.data.dialogHeaderAsTitle;
+
     const iconButton = (
         <IconButton
             sx={{
@@ -75,7 +77,7 @@ export default function ViewDialog({
             >
                 <CollectionBase
                     data={data}
-                    hideHeader={!!widget.data.dialogHeaderAsTitle}
+                    hideHeader={headerAsTitle}
                     sx={{
                         flexDirection: 'column',
                         background: data.backgroundColor || data.background,
@@ -89,7 +91,7 @@ export default function ViewDialog({
                             display: 'flex',
                             justifyContent: 'flex-end',
                             alignItems: 'center',
-                            p: widget.data.dialogCloseButtonTop || !widget.data.dialogHeaderAsTitle ? 0 : 2,
+                            p: widget.data.dialogCloseButtonTop || !headerAsTitle ? 0 : 2,
                         }}
                     >
                         <Box
@@ -109,7 +111,7 @@ export default function ViewDialog({
                                     ...gradientTextSx(data.textColor),
                                 }}
                                 dangerouslySetInnerHTML={{
-                                    __html: widget.data.dialogHeaderAsTitle ? (data.header ?? '') : '',
+                                    __html: headerAsTitle ? (data.header ?? '') : '',
                                 }}
                             />
                         </Box>
