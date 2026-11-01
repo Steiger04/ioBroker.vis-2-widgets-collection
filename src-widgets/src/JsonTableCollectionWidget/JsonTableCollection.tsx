@@ -44,7 +44,7 @@ import {
     type FilterFn,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useContext, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import type { FC } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
@@ -58,7 +58,7 @@ import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
-import { useTableSettings } from './hooks/useTableSettings';
+import { useViewState } from './useViewState';
 import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
@@ -254,37 +254,19 @@ const JsonTableCollection: FC = () => {
     // value via the formatter registry so filter and display can never drift.
     const globalFilterFn = useMemo(() => createDateAwareGlobalFilter(columnConfig), [columnConfig]);
 
-    // ── Table state via custom hook ─────────────────────────────────────────────
+    // ── Ansichtszustand (sorting, filters, page, widths, hidden columns) ────────
 
     const isAutoSize = widget.data.tableAutoSize === true;
 
-    const {
-        sorting,
-        columnFilters,
-        globalFilter,
-        rowSelection,
-        columnSizing,
-        pagination,
-        effectivePagination,
-        columnVisibility,
-        setSorting,
-        setColumnFilters,
-        setGlobalFilter,
-        setRowSelection,
-        setColumnSizing,
-        setPagination,
-        setColumnVisibility,
-        pageSizeOptions,
-        showAllColumns,
-    } = useTableSettings({
+    const view = useViewState({
         widgetId,
-        columnConfig,
-        tableAutoSize: isAutoSize,
-        tablePageSize: Number(widget.data.tablePageSize) || 25,
-        tablePageSizeOptions: widget.data.tablePageSizeOptions,
         capabilities,
-        gridRowsLength: gridRows.length,
+        pageSize: Number(widget.data.tablePageSize) || 25,
+        pageSizeOptions: widget.data.tablePageSizeOptions,
+        autoSize: isAutoSize,
+        columnConfig,
     });
+    const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
 
     // ── useReactTable ─────────────────────────────────────────────────────────
 
@@ -301,28 +283,28 @@ const JsonTableCollection: FC = () => {
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
         defaultColumn: { minSize: 40, maxSize: 2000, filterFn: 'advanced' },
-        state: {
-            sorting,
-            columnFilters,
-            globalFilter,
-            pagination: effectivePagination,
-            rowSelection,
-            columnSizing,
-            columnVisibility,
-        },
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        onGlobalFilterChange: setGlobalFilter,
-        onPaginationChange: capabilities.pagination ? setPagination : undefined,
-        onRowSelectionChange: setRowSelection,
-        onColumnSizingChange: setColumnSizing,
-        onColumnVisibilityChange: setColumnVisibility,
+        state: view.state,
+        // The page survives data updates (TanStack would reset it on every new data array);
+        // the view state resets it when sorting, filters or the page size change.
+        autoResetPageIndex: false,
+        onSortingChange: view.onSortingChange,
+        onColumnFiltersChange: view.onColumnFiltersChange,
+        onGlobalFilterChange: view.onGlobalFilterChange,
+        onPaginationChange: view.onPaginationChange,
+        onRowSelectionChange: view.onRowSelectionChange,
+        onColumnSizingChange: view.onColumnSizingChange,
+        onColumnVisibilityChange: view.onColumnVisibilityChange,
         enableRowSelection: capabilities.rowSelection,
         enableSorting: capabilities.sorting,
         enableColumnFilters: capabilities.columnFiltering,
         enableHiding: capabilities.hiding,
         enableGlobalFilter: capabilities.quickFilter,
     });
+
+    // The rows to page through; the view clamps the page shown to them (before paint).
+    const filteredRowCount = table.getFilteredRowModel().rows.length;
+    const { setRowCount } = view;
+    useLayoutEffect(() => setRowCount(filteredRowCount), [filteredRowCount, setRowCount]);
 
     // ── Column menu state ─────────────────────────────────────────────────────
 
@@ -651,7 +633,7 @@ const JsonTableCollection: FC = () => {
                                 variant="outlined"
                                 fullWidth
                                 value={globalFilter}
-                                onChange={e => setGlobalFilter(e.target.value)}
+                                onChange={e => view.onGlobalFilterChange(e.target.value)}
                                 placeholder={Generic.t('json_table_search_placeholder')}
                                 slotProps={{
                                     input: {
@@ -935,13 +917,15 @@ const JsonTableCollection: FC = () => {
                     {capabilities.pagination && (
                         <TablePagination
                             component="div"
-                            count={table.getFilteredRowModel().rows.length}
+                            count={filteredRowCount}
                             page={pagination.pageIndex}
                             rowsPerPage={pagination.pageSize}
-                            rowsPerPageOptions={pageSizeOptions}
-                            onPageChange={(_e, newPage) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
+                            rowsPerPageOptions={view.pageSizeOptions}
+                            onPageChange={(_e, newPage) =>
+                                view.onPaginationChange(prev => ({ ...prev, pageIndex: newPage }))
+                            }
                             onRowsPerPageChange={e =>
-                                setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })
+                                view.onPaginationChange(prev => ({ ...prev, pageSize: parseInt(e.target.value, 10) }))
                             }
                             labelRowsPerPage={
                                 <Typography
@@ -985,9 +969,11 @@ const JsonTableCollection: FC = () => {
                         isSorted={activeColumnSorted !== undefined}
                         capabilities={capabilities}
                         activeColumnFilter={activeColumnFilter}
-                        onSetSorting={setSorting}
-                        onClearSorting={(columnId: string) => setSorting(old => old.filter(s => s.id !== columnId))}
-                        onShowAllColumns={showAllColumns}
+                        onSetSorting={view.onSortingChange}
+                        onClearSorting={(columnId: string) =>
+                            view.onSortingChange(old => old.filter(s => s.id !== columnId))
+                        }
+                        onShowAllColumns={view.showAllColumns}
                         hasHiddenColumns={Object.keys(columnVisibility).some(k => columnVisibility[k] === false)}
                     />
                 </Box>
