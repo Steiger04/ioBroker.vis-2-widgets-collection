@@ -4,14 +4,16 @@
  * @module lib/commonObjectFields
  * @remarks
  * The main export in this module is `oidChangeHandlerAsync()`, an `onChange` handler factory used by several
- * widgets. It resolves the selected object and populates common widget fields (icons, labels, min/max, etc.)
- * based on object metadata — except for the Select's control ID, which owns only `cidObject` and the
- * `onlyDisplay` suggestion (Schreibziel, ADR-0090).
+ * widgets. It resolves the selected object and stores its metadata; the field's OID role decides which
+ * widget data the pick owns beyond that (ADR-0096): only the main OID populates the root fields (icon,
+ * min/max, value rows, etc.); the Select's control ID owns only `cidObject` and the `onlyDisplay`
+ * suggestion (Schreibziel, ADR-0090); an auxiliary ID owns only its own `<name>Object`.
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { isControlIdField, writeTargetDeniesWrite } from './writeTarget';
+import { oidRole } from './oidRole';
+import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
 import type { Connection } from '@iobroker/adapter-react-v5';
@@ -43,7 +45,9 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
     });
 
-    if (isControlIdField(oid)) {
+    const role = oidRole(oid);
+
+    if (role === 'control') {
         // The control ID is gone: the write target falls back to the main OID (ADR-0090).
         data.onlyDisplay = writeTargetDeniesWrite(data);
     }
@@ -81,7 +85,7 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         'frameBackgroundColor',
     ];
 
-    if (oid === 'oid') {
+    if (role === 'main') {
         delete data.icon;
         delete data.write;
 
@@ -130,15 +134,15 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
  * @param allowedTypes Allowed JS types for the selected state/object.
  * @param oid The name of the data property that stores the selected object id.
  * @remarks
- * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role decides:
- * - `'oid'` (main OID): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
+ * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role
+ * ({@link module:lib/oidRole}) decides what the pick owns:
+ * - `main` (Haupt-OID `oid`): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
  *   `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
  *   control ID keeps its suggestion, whatever the picking order.
- * - the control ID (`isControlIdField`, the Select's Steuer ID, ADR-0090): only `cidObject` and
- *   the `onlyDisplay` suggestion; clearing it (or losing its object) re-derives the suggestion
- *   from the main OID.
- * - any other id (Dialog's `dialogId`, Light2's channel IDs): root fields and the suggestion from
- *   the picked object, as before.
+ * - `control` (the Select's Steuer ID, ADR-0090): only `cidObject` and the `onlyDisplay`
+ *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
+ * - `auxiliary` (Hilfs-OID — Dialog's `dialogId`, Light2's channel IDs, ADR-0096): only its own
+ *   `${oid}Object`, `commonStates` included — no root field, no `onlyDisplay` suggestion.
  */
 export const oidChangeHandlerAsync =
     (allowedTypes: readonly AllowedType[], oid = 'oid') =>
@@ -148,6 +152,8 @@ export const oidChangeHandlerAsync =
         changeData: (newData: WidgetData) => void,
         socket: Connection,
     ): Promise<void> => {
+        const role = oidRole(oid);
+
         if (!data[oid]) {
             clearValueFields(data, oid);
             setTimeout(() => changeData(data), 100);
@@ -182,20 +188,21 @@ export const oidChangeHandlerAsync =
 
             data[`${oid}Object`] = objectData;
 
-            if (isControlIdField(oid)) {
+            if (role === 'main') {
+                // Root level properties belong to the main OID alone (required for compatibility).
+                data.icon = objectData.icon;
+                data.write = objectData.write;
+                // The main OID's suggestion yields to a resolved control ID (the write target).
+                data.onlyDisplay = writeTargetDeniesWrite(data);
+                data.minValue = objectData.minValue;
+                data.maxValue = objectData.maxValue;
+            } else if (role === 'control') {
                 // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
                 // suggestion — the root fields belong to the main OID.
                 data.onlyDisplay = writeTargetDeniesWrite(data);
-            } else {
-                // Set root level properties (required for compatibility)
-                data.icon = objectData.icon;
-                data.write = objectData.write;
-                // The main OID's suggestion yields to a resolved control ID (the write target);
-                // other auxiliary IDs (Dialog, Light2 channels) keep their own suggestion.
-                data.onlyDisplay = oid === 'oid' ? writeTargetDeniesWrite(data) : objectData.onlyDisplay;
-                data.minValue = objectData.minValue;
-                data.maxValue = objectData.maxValue;
             }
+            // An auxiliary ID (Dialog's dialogId, Light2's channel IDs) owns nothing but its
+            // own `${oid}Object` (ADR-0096).
 
             // Handle states configuration
             if (object.common.states) {
@@ -212,7 +219,7 @@ export const oidChangeHandlerAsync =
 
                 data[`${oid}Object`].commonStates = states;
 
-                if (oid === 'oid') {
+                if (role === 'main') {
                     data.values_count = Object.keys(states).length;
 
                     Object.entries(states).forEach(([value, alias], index) => {
@@ -221,19 +228,19 @@ export const oidChangeHandlerAsync =
                         data[`alias${keyIndex}`] = String(alias);
                     });
                 }
-            } else if (oidType === 'boolean' && oid === 'oid') {
+            } else if (oidType === 'boolean' && role === 'main') {
                 data[`${oid}Object`].commonStates = { true: 'TRUE', false: 'FALSE' };
                 data.values_count = 2;
                 data.value1 = true;
                 data.alias1 = 'TRUE';
                 data.value2 = false;
                 data.alias2 = 'FALSE';
-            } else if (oid === 'oid') {
+            } else if (role === 'main') {
                 data.values_count = 0;
             }
 
             // When ignoreCommonStates is active, hide value groups in editor but keep data populated
-            if (oid === 'oid' && data.ignoreCommonStates !== false) {
+            if (role === 'main' && data.ignoreCommonStates !== false) {
                 data.values_count = 0;
             }
 

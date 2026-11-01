@@ -179,15 +179,38 @@ describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {
     });
 });
 
-describe('oidChangeHandlerAsync — auxiliary IDs other than the control ID (unchanged)', () => {
-    it("keeps writing the picked object's root fields (Dialog's dialogId, Light2's channel IDs)", async () => {
-        expect(await pick('dialogId', { dialogId: COMMAND })).toMatchObject({
-            dialogIdObject: { _id: COMMAND },
-            icon: 'command.png',
-            write: true,
-            onlyDisplay: false,
-            minValue: 10,
-            maxValue: 20,
+describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
+    /** Root fields owned by the main OID; each differs from the command state's metadata. */
+    const ROOT = { icon: 'button.png', write: false, onlyDisplay: true, minValue: 1, maxValue: 5 };
+
+    /** The command state's metadata as stored in `<name>Object`. */
+    const COMMAND_OBJECT = {
+        _id: COMMAND,
+        name: 'Mode command',
+        type: 'number',
+        icon: 'command.png',
+        write: true,
+        onlyDisplay: false,
+        unit: '',
+        minValue: 10,
+        maxValue: 20,
+        commonStates: MODES,
+    };
+
+    // Dialog's session OID and one of Light2's channel IDs (resolved per channel).
+    describe.each(['dialogId', 'colorLightSwitchOid'])('%s', name => {
+        it('regression: a pick stores only its own object and leaves the root fields alone', async () => {
+            expect(await pick(name, { ...ROOT, [name]: COMMAND })).toEqual({
+                ...ROOT,
+                [name]: COMMAND,
+                [`${name}Object`]: COMMAND_OBJECT,
+            });
+        });
+
+        it('clearing it removes only its own object and leaves the root fields alone', async () => {
+            const picked = await pick(name, { ...ROOT, [name]: COMMAND });
+
+            expect(await pick(name, { ...picked, [name]: '' })).toEqual({ ...ROOT, [name]: '' });
         });
     });
 });
