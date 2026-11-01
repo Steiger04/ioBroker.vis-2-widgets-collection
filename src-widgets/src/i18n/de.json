@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Auto (typbasiert)",
     "json_table_option_off": "AUS",
     "json_table_option_on": "AN",
-    "json_table_override_tooltip": "Diese Spalte überschreibt die globale {feature}-Einstellung",
     "json_table_padding": "Tabellen-Abstand",
     "json_table_page_size": "Seitengröße",
     "json_table_page_size_options": "Seitengrößen-Optionen",
@@ -1313,5 +1312,6 @@
     "write_value": "Wert schreiben",
     "json_table_table_off_tooltip": "{feature} ist für die gesamte Tabelle deaktiviert, daher hat diese Spalteneinstellung keine Auswirkung",
     "json_table_hideable": "Ausblendbar",
-    "json_table_detected_type_hint": "Erkannt: {type}"
+    "json_table_detected_type_hint": "Erkannt: {type}",
+    "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt"
 }

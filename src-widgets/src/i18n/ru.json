@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Авто (по типу)",
     "json_table_option_off": "ВЫКЛ",
     "json_table_option_on": "ВКЛ",
-    "json_table_override_tooltip": "Этот параметр переопределяет глобальную конфигурацию виджета",
     "json_table_padding": "Отступы",
     "json_table_page_size": "Размер страницы",
     "json_table_page_size_options": "Опции размера страницы",
@@ -1313,5 +1312,6 @@
     "write_value": "Запись значения",
     "json_table_table_off_tooltip": "{feature} отключено для всей таблицы, поэтому эта настройка столбца не действует",
     "json_table_hideable": "Скрываемый",
-    "json_table_detected_type_hint": "Обнаружено: {type}"
+    "json_table_detected_type_hint": "Обнаружено: {type}",
+    "json_table_override_type_default_tooltip": "Этот столбец переопределяет значение по умолчанию типа для {feature} — но не более, чем допускает таблица"
 }

@@ -1033,7 +1033,6 @@
     "json_table_option_auto": "Авто (за типом)",
     "json_table_option_off": "ВИМ",
     "json_table_option_on": "УВІМ",
-    "json_table_override_tooltip": "Цей параметр перевизначає глобальну конфігурацію віджета",
     "json_table_padding": "Відступи",
     "json_table_page_size": "Розмір сторінки",
     "json_table_page_size_options": "Опції розміру сторінки",
@@ -1313,5 +1312,6 @@
     "write_value": "Напишіть значення",
     "json_table_table_off_tooltip": "{feature} вимкнено для всієї таблиці, тому цей параметр стовпця не матиме жодного впливу",
     "json_table_hideable": "Приховуваний",
-    "json_table_detected_type_hint": "Виявлено: {type}"
+    "json_table_detected_type_hint": "Виявлено: {type}",
+    "json_table_override_type_default_tooltip": "Цей стовпець перевизначає стандартне значення типу для {feature} — але не більше, ніж дозволяє таблиця"
 }

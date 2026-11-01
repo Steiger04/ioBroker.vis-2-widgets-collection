@@ -55,7 +55,9 @@ function EffectiveResultIndicator({
     if (!tableEnabled) {
         tooltipContent = interpolateTemplate(Generic.t('json_table_table_off_tooltip'), { feature: featureLabel });
     } else if (isOverride) {
-        tooltipContent = interpolateTemplate(Generic.t('json_table_override_tooltip'), { feature: featureLabel });
+        tooltipContent = interpolateTemplate(Generic.t('json_table_override_type_default_tooltip'), {
+            feature: featureLabel,
+        });
     } else {
         tooltipContent = interpolateTemplate(Generic.t('json_table_auto_tooltip'), {
             feature: featureLabel,

@@ -1035,7 +1035,7 @@
     "json_table_option_auto": "Auto (type-based)",
     "json_table_option_off": "OFF",
     "json_table_option_on": "ON",
-    "json_table_override_tooltip": "This column overrides the global {feature} setting",
+    "json_table_override_type_default_tooltip": "This column overrides the type default for {feature} — never more than the table allows",
     "json_table_padding": "Padding",
     "json_table_page_size": "Page size",
     "json_table_page_size_options": "Page size options",
