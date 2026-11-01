@@ -39,6 +39,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { defaultColumnConfig } from '../columns';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
@@ -202,15 +203,10 @@ function ColumnList({
         setDropTargetPath(null);
     }, []);
 
-    // Reset all columns to default settings (keep paths, clear all customizations)
+    // Reset all columns to default settings (keep paths, clear all customizations):
+    // the configuration a newly found path gets
     const handleResetAll = useCallback((): void => {
-        onChange(
-            columns.map(c => ({
-                path: c.path,
-                visible: true,
-                headerName: c.path.split('.').pop() || c.path,
-            })),
-        );
+        onChange(columns.map(c => defaultColumnConfig(c.path)));
         setResetDialogOpen(false);
     }, [columns, onChange]);
 

@@ -39,6 +39,7 @@ import {
     type FilterConfig,
     type FilterOperator,
 } from '../columnFilter';
+import { headerNameOf } from '../columns';
 
 /** Props for the FilterDialog component */
 export interface FilterDialogProps {
@@ -173,7 +174,7 @@ function FilterDialog({
     );
 
     // Format column ID for display
-    const displayColumnId = columnId.split('.').pop() || columnId;
+    const displayColumnId = headerNameOf(columnId);
 
     // Generate unique IDs for accessibility
     const dialogTitleId = `filter-dialog-title-${columnId}`;
