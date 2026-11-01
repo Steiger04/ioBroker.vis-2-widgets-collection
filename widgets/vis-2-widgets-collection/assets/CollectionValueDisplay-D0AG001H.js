@@ -1,7 +1,7 @@
 import { h as t, i as p, k as h } from "./_virtual_mf___mfe_internal__vis2CollectionWidget__mf_owner__242393638373206__loadShare__shared-ClxoeJ8S.js";
-import { a as y, e as c, i as _ } from "./useData-uC1Kpd-M.js";
-import { C as x } from "./useHtmlValue-CeUAYNwV.js";
-import { g as C } from "./CollectionBaseImage-DkYiHZqN.js";
+import { a as y, e as c, i as _ } from "./useData-jkOw5Oj_.js";
+import { C as x } from "./useHtmlValue-Dykqjd_u.js";
+import { g as C } from "./CollectionBaseImage-Cm6oCVNa.js";
 import { u as S, B as r } from "./usePopoverPositioning-C1_MhytU.js";
 import { A as b } from "./Avatar-Bdh5EYvv.js";
 const j = (e) => {

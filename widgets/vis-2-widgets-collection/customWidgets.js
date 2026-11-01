@@ -33,7 +33,7 @@ let __tla = Promise.all([
   const yt = {
     "./StateCollectionWidget": async () => {
       await L("./StateCollectionWidget"), await Promise.all([]);
-      const i = await W("./StateCollectionWidget", () => I(() => import("./assets/StateCollectionWidget-h35L6y4E.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./StateCollectionWidget", () => I(() => import("./assets/StateCollectionWidget-DHUZhAjg.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     },
     "./SliderCollectionWidget": async () => {
       await L("./SliderCollectionWidget"), await Promise.all([]);
-      const i = await W("./SliderCollectionWidget", () => I(() => import("./assets/SliderCollectionWidget-CgTE3VKm.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./SliderCollectionWidget", () => I(() => import("./assets/SliderCollectionWidget-hRH-6D_k.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -53,7 +53,7 @@ let __tla = Promise.all([
     },
     "./InputCollectionWidget": async () => {
       await L("./InputCollectionWidget"), await Promise.all([]);
-      const i = await W("./InputCollectionWidget", () => I(() => import("./assets/InputCollectionWidget-Ctdp2rXR.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./InputCollectionWidget", () => I(() => import("./assets/InputCollectionWidget-BY3SqflD.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -63,7 +63,7 @@ let __tla = Promise.all([
     },
     "./ButtonGroupCollectionWidget": async () => {
       await L("./ButtonGroupCollectionWidget"), await Promise.all([]);
-      const i = await W("./ButtonGroupCollectionWidget", () => I(() => import("./assets/ButtonGroupCollectionWidget-DRsHbJZi.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./ButtonGroupCollectionWidget", () => I(() => import("./assets/ButtonGroupCollectionWidget-DC4jRtbz.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -73,7 +73,7 @@ let __tla = Promise.all([
     },
     "./SwitchCollectionWidget": async () => {
       await L("./SwitchCollectionWidget"), await Promise.all([]);
-      const i = await W("./SwitchCollectionWidget", () => I(() => import("./assets/SwitchCollectionWidget-D7ibg6pe.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./SwitchCollectionWidget", () => I(() => import("./assets/SwitchCollectionWidget-58Hp3mDs.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -83,7 +83,7 @@ let __tla = Promise.all([
     },
     "./CheckboxCollectionWidget": async () => {
       await L("./CheckboxCollectionWidget"), await Promise.all([]);
-      const i = await W("./CheckboxCollectionWidget", () => I(() => import("./assets/CheckboxCollectionWidget-B5uztpDW.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./CheckboxCollectionWidget", () => I(() => import("./assets/CheckboxCollectionWidget-BIYuHNbF.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -93,7 +93,7 @@ let __tla = Promise.all([
     },
     "./DialogCollectionWidget": async () => {
       await L("./DialogCollectionWidget"), await Promise.all([]);
-      const i = await W("./DialogCollectionWidget", () => I(() => import("./assets/DialogCollectionWidget-BmMcv944.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./DialogCollectionWidget", () => I(() => import("./assets/DialogCollectionWidget-CZJBtjFp.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -103,7 +103,7 @@ let __tla = Promise.all([
     },
     "./SelectCollectionWidget": async () => {
       await L("./SelectCollectionWidget"), await Promise.all([]);
-      const i = await W("./SelectCollectionWidget", () => I(() => import("./assets/SelectCollectionWidget-CNDFIOqM.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./SelectCollectionWidget", () => I(() => import("./assets/SelectCollectionWidget-DT4irb0F.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -113,7 +113,7 @@ let __tla = Promise.all([
     },
     "./RadioGroupCollectionWidget": async () => {
       await L("./RadioGroupCollectionWidget"), await Promise.all([]);
-      const i = await W("./RadioGroupCollectionWidget", () => I(() => import("./assets/RadioGroupCollectionWidget-D1iYkm_B.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./RadioGroupCollectionWidget", () => I(() => import("./assets/RadioGroupCollectionWidget-Bl3hfuM4.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -123,7 +123,7 @@ let __tla = Promise.all([
     },
     "./GaugeCollectionWidget": async () => {
       await L("./GaugeCollectionWidget"), await Promise.all([]);
-      const i = await W("./GaugeCollectionWidget", () => I(() => import("./assets/GaugeCollectionWidget-PJFb7siM.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./GaugeCollectionWidget", () => I(() => import("./assets/GaugeCollectionWidget-CN9co_Ot.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -133,7 +133,7 @@ let __tla = Promise.all([
     },
     "./Light2CollectionWidget": async () => {
       await L("./Light2CollectionWidget"), await Promise.all([]);
-      const i = await W("./Light2CollectionWidget", () => I(() => import("./assets/Light2CollectionWidget-CN3F7xoz.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./Light2CollectionWidget", () => I(() => import("./assets/Light2CollectionWidget-YfKNVJ9y.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -143,7 +143,7 @@ let __tla = Promise.all([
     },
     "./JsonTableCollectionWidget": async () => {
       await L("./JsonTableCollectionWidget"), await Promise.all([]);
-      const i = await W("./JsonTableCollectionWidget", () => I(() => import("./assets/JsonTableCollectionWidget-DtgtHKi5.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./JsonTableCollectionWidget", () => I(() => import("./assets/JsonTableCollectionWidget-DiJNtInQ.js"), [], import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {
@@ -153,7 +153,7 @@ let __tla = Promise.all([
     },
     "./EchartsCollectionWidget": async () => {
       await L("./EchartsCollectionWidget"), await Promise.all([]);
-      const i = await W("./EchartsCollectionWidget", () => I(() => import("./assets/EchartsCollectionWidget-QYEfM8EX.js"), __vite__mapDeps([0]), import.meta.url)), s = i && i.__mf_remote_dependency_pending;
+      const i = await W("./EchartsCollectionWidget", () => I(() => import("./assets/EchartsCollectionWidget-CLQP_D15.js"), __vite__mapDeps([0]), import.meta.url)), s = i && i.__mf_remote_dependency_pending;
       s && typeof s.then == "function" && await s;
       const a = {};
       return Object.assign(a, i), Object.defineProperty(a, "__esModule", {

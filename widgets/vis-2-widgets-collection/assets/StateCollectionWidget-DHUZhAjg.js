@@ -1,11 +1,11 @@
 import { e as I, f as b, g as B, h as o, i as C, j as W, k as A } from "./_virtual_mf___mfe_internal__vis2CollectionWidget__mf_owner__242393638373206__loadShare__shared-ClxoeJ8S.js";
 import { B as V, L as j, I as k, P as F, C as M, G as P } from "./usePopoverPositioning-C1_MhytU.js";
-import { s as N, D as U, u as E, C as R, c as D } from "./useData-uC1Kpd-M.js";
-import { i as z, C as G, c as H } from "./CollectionBaseImage-DkYiHZqN.js";
-import { u as Y, d as q } from "./useValueState-CPRpFWB4.js";
-import { C as J, s as K } from "./CollectionValueDisplay-2thOuvgr.js";
+import { s as N, D as U, u as E, C as R, c as D } from "./useData-jkOw5Oj_.js";
+import { i as z, C as G, c as H } from "./CollectionBaseImage-Cm6oCVNa.js";
+import { u as Y, d as q } from "./useValueState-BB0agxu5.js";
+import { C as J, s as K } from "./CollectionValueDisplay-D0AG001H.js";
 import { i as Q, A as L } from "./allowedOidTypes-Dpd6yL-L.js";
-import { u as X } from "./useHtmlValue-CeUAYNwV.js";
+import { u as X } from "./useHtmlValue-Dykqjd_u.js";
 import { C as Z } from "./Close-CJIHvdeL.js";
 import { S as $ } from "./Slider-M3td3o7X.js";
 import { L as ee, a as te, b as oe } from "./ListItemText-D32xFiQs.js";

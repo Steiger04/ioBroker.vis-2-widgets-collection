@@ -1,5 +1,5 @@
 import { h as st, j as W, m as S, g as z, l as N, f as ut } from "./_virtual_mf___mfe_internal__vis2CollectionWidget__mf_owner__242393638373206__loadShare__shared-ClxoeJ8S.js";
-import { e as at } from "./useData-uC1Kpd-M.js";
+import { e as at } from "./useData-jkOw5Oj_.js";
 import { D as J, h as j, C as K, V as E } from "./usePopoverPositioning-C1_MhytU.js";
 import { _ as I, a as O, b as T, c as m, d as ct, e as Q, f as k, g as lt, h as ft } from "./tslib.es6-F1e60Aum.js";
 const sr = () => [{ label: "", type: "custom", component: () => st(at, { dividerText: "write_value" }) }, { name: "sampleInterval", type: "checkbox", label: "sample_interval", default: false }, { name: "sampleIntervalValue", type: "number", label: "sample_interval_value", default: J, min: 0, max: 1e4, step: 1, hidden: "!data.sampleInterval" }, { name: "delay", type: "number", label: "delay", default: j, min: 0, max: 1e4, step: 1, hidden: "data.sampleInterval" }];
