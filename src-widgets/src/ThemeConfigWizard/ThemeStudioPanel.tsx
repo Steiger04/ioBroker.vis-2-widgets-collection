@@ -9,7 +9,8 @@
  * {@link module:hooks/useCollectionTheme.useCollectionTheme}) re-themes live as
  * the user edits. Save persists the draft to the ioBroker state; the hook's
  * seamless handoff then retires the draft. Closing discards the draft (canvas
- * snaps back), with a confirm when there are unsaved changes.
+ * snaps back), with a confirm when there are unsaved changes. Unmounting while open
+ * (vis-2 collapses the palette group) discards the draft the same way, without a confirm.
  *
  * ADR-0020 chrome:
  * - **Undo/redo** — every edit runs through the editor history
@@ -275,6 +276,23 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         return () => clearTimeout(timer);
     }, [open, themeObj]);
 
+    // Leaving the open state without a close path (vis-2 unmounts the palette entry when its
+    // group collapses) must not strand the draft on the canvas: the session's end clears it.
+    // Not after a save — there the save handoff in useCollectionTheme retires the draft once
+    // the persisted state echoes it (clearing here would flicker the canvas back first).
+    const savedRef = useRef(false);
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+        savedRef.current = false;
+        return () => {
+            if (!savedRef.current) {
+                clearDraftTheme();
+            }
+        };
+    }, [open]);
+
     // Re-validate on every change.
     const validation = useMemo(() => validateThemeOptions(themeObj), [themeObj]);
 
@@ -433,7 +451,9 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
             setLastKnownTheme(themeObj);
             setSavedSnapshot(themeObj);
             // Do NOT clear the draft here: the hook's seamless handoff retires it
-            // once the persisted state echoes the saved value (no flicker).
+            // once the persisted state echoes the saved value (no flicker). The flag
+            // keeps the session-end cleanup from clearing it either.
+            savedRef.current = true;
             onClose();
         } catch (e: unknown) {
             setSaveError(Generic.t('theme_studio_save_error'));
