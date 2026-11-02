@@ -87,74 +87,72 @@ const InputCollection: FC = () => {
             data={data}
             oidValue={oidValue}
         >
-            {isValidType ? (
-                editing ? (
-                    <Box
-                        sx={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            px: Number(widget.data.inputPadding),
+            {editing ? (
+                <Box
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: Number(widget.data.inputPadding),
+                    }}
+                >
+                    <TextField
+                        inputRef={inputRef}
+                        fullWidth
+                        size="small"
+                        variant={inputVariant}
+                        type={isNumber ? 'number' : 'text'}
+                        value={draft}
+                        error={hasBackendChange}
+                        onChange={e => handleChange(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={e => handleKeyDown(e.key)}
+                        slotProps={{
+                            input: {
+                                endAdornment: oidObject?.unit ? (
+                                    <InputAdornment position="end">{oidObject.unit}</InputAdornment>
+                                ) : undefined,
+                            },
+                            htmlInput: isNumber ? { step, min: minValue, max: maxValue } : undefined,
                         }}
-                    >
-                        <TextField
-                            inputRef={inputRef}
-                            fullWidth
+                        sx={{
+                            fontSize: data.valueSize,
+                            color: textColor,
+                        }}
+                    />
+                    {showOkButton && (
+                        <Button
+                            variant="contained"
                             size="small"
-                            variant={inputVariant}
-                            type={isNumber ? 'number' : 'text'}
-                            value={draft}
-                            error={hasBackendChange}
-                            onChange={e => handleChange(e.target.value)}
-                            onBlur={handleBlur}
-                            onKeyDown={e => handleKeyDown(e.key)}
-                            slotProps={{
-                                input: {
-                                    endAdornment: oidObject?.unit ? (
-                                        <InputAdornment position="end">{oidObject.unit}</InputAdornment>
-                                    ) : undefined,
-                                },
-                                htmlInput: isNumber ? { step, min: minValue, max: maxValue } : undefined,
-                            }}
-                            sx={{
-                                fontSize: data.valueSize,
-                                color: textColor,
-                            }}
-                        />
-                        {showOkButton && (
-                            <Button
-                                variant="contained"
-                                size="small"
-                                // Prevent the field from blurring before the click registers.
-                                onMouseDown={e => e.preventDefault()}
-                                onClick={commit}
-                            >
-                                OK
-                            </Button>
-                        )}
-                    </Box>
-                ) : (
-                    <Box
-                        onClick={enter}
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            cursor: editable ? 'text' : 'default',
-                        }}
-                    >
-                        <CollectionValueDisplay
-                            data={data}
-                            contentValue={contentValue}
-                            noIcon={widget.data.noIcon}
-                            noValue={widget.data.noValue}
-                        />
-                    </Box>
-                )
-            ) : null}
+                            // Prevent the field from blurring before the click registers.
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={commit}
+                        >
+                            OK
+                        </Button>
+                    )}
+                </Box>
+            ) : (
+                <Box
+                    onClick={enter}
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: editable ? 'text' : 'default',
+                    }}
+                >
+                    <CollectionValueDisplay
+                        data={data}
+                        contentValue={contentValue}
+                        noIcon={widget.data.noIcon}
+                        noValue={widget.data.noValue}
+                    />
+                </Box>
+            )}
         </CollectionBase>
     );
 };
