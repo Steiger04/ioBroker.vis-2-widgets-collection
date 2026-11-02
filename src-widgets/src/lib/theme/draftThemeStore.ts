@@ -8,7 +8,8 @@
  * (one per canvas widget) live in DIFFERENT React subtrees — vis-2 owns the whole
  * editor tree above both, so there is no shared provider the panel could use to
  * push its in-memory draft to the widgets via React context. This singleton
- * bridges that gap: the panel writes the draft here; the shared
+ * bridges that gap: the panel's Studio session
+ * ({@link module:ThemeConfigWizard/useStudioSession}) writes the draft here; the shared
  * {@link module:hooks/useCollectionTheme.useCollectionTheme} hook reads it
  * (merged over the persisted ioBroker state) so every canvas widget re-themes
  * live while the panel is open, and snaps back when it is closed/discarded.
@@ -20,7 +21,11 @@
  * `snapshot` slot — and listeners notified — in ONE atomic step inside a
  * `requestAnimationFrame` callback. `getSnapshot` always returns `snapshot`,
  * never `pending`, so the snapshot only changes in the same tick listeners fire.
- * Rapid writes (slider pointermove) coalesce to a single notify per frame.
+ *
+ * The rAF promotion exists for that atomicity only — it is NOT the rate limit. Writes
+ * landing in the same frame do collapse into one notify as a side effect, but throttling
+ * the edit stream is the Studio session's job (its single 100 ms leading + trailing
+ * throttle, ADR-0020 addendum 2026-11-02); the store adds no second throttle.
  */
 
 import type { UserTheme } from './themeTypes';
@@ -90,7 +95,7 @@ export function getDraftThemeString(): string | null {
 }
 
 /**
- * Sets the in-progress draft. Coalesces rapid calls into one notify per frame.
+ * Sets the in-progress draft; promoted atomically with the next frame's notify.
  *
  * @param theme - The draft (or `null` to clear). The store keeps the reference.
  */

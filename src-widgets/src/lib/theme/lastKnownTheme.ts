@@ -8,7 +8,7 @@
  * never changes between opens, so the last loaded/saved value is kept here at
  * module level (survives panel close/open within the session): the next open seeds
  * the form from it INSTANTLY and revalidates against the state in the background
- * (the panel rebases only while the user has not touched the seeded draft yet).
+ * (the Studio session rebases only while the user has not touched the seeded draft yet).
  */
 
 import type { UserTheme } from './themeTypes';
@@ -21,7 +21,7 @@ export function getLastKnownTheme(): UserTheme | null {
     return lastKnown;
 }
 
-/** Seeds the session cache (on successful load and on save). */
-export function setLastKnownTheme(theme: UserTheme): void {
+/** Seeds the session cache (on successful load and on save); `null` forgets it. */
+export function setLastKnownTheme(theme: UserTheme | null): void {
     lastKnown = theme;
 }

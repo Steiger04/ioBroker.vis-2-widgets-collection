@@ -3,11 +3,12 @@
  *
  * @module ThemeConfigWizard/ThemeStudioPanel.test
  * @remarks
- * The panel mirrors its draft into the draft store while open (ADR-0020). When vis-2 unmounts
- * the palette entry (collapsing the palette group) without a close, the draft must leave the
- * canvas; after a save, the per-widget save handoff retires the draft instead, so the panel
- * must not clear it early. The store promotes writes inside a rAF flush, so every assertion
- * on {@link getDraftTheme} waits one frame first.
+ * The panel's Studio session mirrors its draft into the draft store while open (ADR-0020).
+ * When vis-2 unmounts the palette entry (collapsing the palette group) without a close, the
+ * draft must leave the canvas; after a save, the per-widget save handoff retires the draft
+ * instead, so the panel must not clear it early. This pins the panel wiring end to end; the
+ * session's own contract is pinned in useStudioSession.hook.test.ts. The store promotes
+ * writes inside a rAF flush, so every assertion on {@link getDraftTheme} waits one frame first.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -38,10 +39,7 @@ const nextFrame = (): Promise<void> =>
             }),
     );
 
-/**
- * Waits until the throttled draft push (100 ms leading + trailing) has landed in the store:
- * the first push carries the pre-seed `{}`, the seed follows as the trailing push.
- */
+/** Waits until the throttled draft push (100 ms leading + trailing) has landed in the store. */
 const settle = async (): Promise<void> => {
     await act(() => new Promise<void>(resolve => setTimeout(resolve, 150)));
     await nextFrame();

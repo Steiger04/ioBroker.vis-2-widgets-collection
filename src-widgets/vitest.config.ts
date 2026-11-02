@@ -30,6 +30,7 @@ const DOM_TS_TESTS = [
     'src/InputCollectionWidget/useInlineEdit.hook.test.ts',
     'src/JsonTableCollectionWidget/useViewState.hook.test.ts',
     'src/lib/allowedOidTypes.parity.test.ts',
+    'src/ThemeConfigWizard/useStudioSession.hook.test.ts',
     // Mocks Generic and every widget body (vi.mock / vi.doMock) to introspect getWidgetInfo():
     // it needs its own module registry, which the shared node cache (isolate: false) lacks.
     'src/lib/colorFieldTerminals.parity.test.ts',
