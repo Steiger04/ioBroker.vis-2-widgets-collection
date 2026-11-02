@@ -395,9 +395,10 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="json_table_cell_style" />,
     },
-    // Row colors (support gradients for backgrounds)
-    createColorField({ name: 'evenRowColor', label: 'json_table_even_row_color' }),
-    createColorField({ name: 'oddRowColor', label: 'json_table_odd_row_color' }),
+    // Row colors (support gradients for backgrounds); unset means no stripe — the terminal
+    // says so. Not a chrome contract: the row slot renders the stored value as is.
+    createColorField({ name: 'evenRowColor', label: 'json_table_even_row_color', terminal: 'transparent' }),
+    createColorField({ name: 'oddRowColor', label: 'json_table_odd_row_color', terminal: 'transparent' }),
 ];
 
 export default jsonTableFields;
