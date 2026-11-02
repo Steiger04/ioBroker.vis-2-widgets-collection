@@ -116,22 +116,16 @@ const SliderCollection: FC = () => {
         theme,
     } = context;
     // The slider's marker layer (CONTEXT "Marker-Ebene"): useData applies it to the
-    // marks only — `states` and `markBaseStyle`, never the active style `data`.
-    const markerLayer = useMemo(
-        () => ({
+    // marks only — `states` and `markBaseStyle`, never the active style `data`. A plain
+    // literal: useData keys the layer by its content, not by this reference.
+    const { data, states, markBaseStyle, minValue, maxValue } = useData('oid', {
+        markerLayer: {
             iconSize: widget.data.markerIconSize,
             iconColor: widget.data.markerIconColor,
             textColor: widget.data.markerTextColor,
             textSize: widget.data.markerTextSize,
-        }),
-        [
-            widget.data.markerIconSize,
-            widget.data.markerIconColor,
-            widget.data.markerTextColor,
-            widget.data.markerTextSize,
-        ],
-    );
-    const { data, states, markBaseStyle, minValue, maxValue } = useData('oid', { markerLayer });
+        },
+    });
 
     // One optimistic truth for the controlled slider: local copy + debounced
     // backend write behind one interface (init/echo/non-numeric documented on

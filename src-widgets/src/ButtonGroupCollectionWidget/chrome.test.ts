@@ -24,7 +24,6 @@ const groupSx = (overrides: Partial<ButtonGroupChromeInput> = {}): Record<string
         variant: 'text',
         orientation: 'horizontal',
         data: {},
-        basePadding: false,
         count: 3,
         theme,
         ...overrides,
@@ -76,11 +75,12 @@ describe('buildGroupChrome — text variant (default)', () => {
     });
 
     it('squares off the rounded ends without basePadding and keeps them with it', () => {
-        const squared = groupSx({ basePadding: false });
-        expect(first(squared).borderRadius).toBe(0);
-        expect(last(squared).borderRadius).toBe(0);
+        for (const squared of [groupSx({ data: {} }), groupSx({ data: { basePadding: 0 } })]) {
+            expect(first(squared).borderRadius).toBe(0);
+            expect(last(squared).borderRadius).toBe(0);
+        }
 
-        const rounded = groupSx({ basePadding: 8 });
+        const rounded = groupSx({ data: { basePadding: 8 } });
         expect(first(rounded).borderRadius).toBeUndefined();
         expect(last(rounded).borderRadius).toBeUndefined();
     });
@@ -156,6 +156,17 @@ describe('buildGroupChrome — the separator resolves the button-group colour co
         }
     });
 
+    it.each([
+        ['hsl()', 'hsl(200, 60%, 50%)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['a 4-digit hex', '#39cf', 'rgba(51, 153, 204, 0.6)'],
+    ])(
+        'draws an explicit %s the picker rejects but the colour calculation reads as stored, as before the spec',
+        (_case, buttonGroupColor, separator) => {
+            expect(middle(groupSx({ data: { buttonGroupColor } })).boxShadow).toBe(`inset 1px 0 0 0 ${separator}`);
+            expect(first(groupSx({ variant: 'outlined', data: { buttonGroupColor } })).borderColor).toBe(separator);
+        },
+    );
+
     it('treats a value without a Repräsentative Vollfarbe as unset and falls back to the theme text colour', () => {
         // A gradient with named stops passes the picker's validation but has no solid colour;
         // a colour name or a CSS variable is no valid stored colour at all.
@@ -216,6 +227,17 @@ describe('buildButtonChrome', () => {
         for (const background of ['red', 'var(--x)', 'RGB(51, 153, 204)']) {
             expect(() => buildButtonChrome({ background, isActive: false })).not.toThrow();
 
+            const root = buttonRoot(buildButtonChrome({ background, isActive: false }));
+            expect(root.background).toBe(background);
+            expect(root['&:hover'].background).toBeUndefined();
+            expect(root['&.Mui-selected'].background).toBeUndefined();
+        }
+    });
+
+    it('gives a background its own reading never took (hsl(), a 4-digit hex) no hover/selected tint, as before the spec', () => {
+        // The button tints only what extractColorFromValue reads (hex 3/6/8, rgb(a)), even
+        // where MUI's lighten() could calculate.
+        for (const background of ['hsl(200, 60%, 50%)', '#39cf']) {
             const root = buttonRoot(buildButtonChrome({ background, isActive: false }));
             expect(root.background).toBe(background);
             expect(root['&:hover'].background).toBeUndefined();

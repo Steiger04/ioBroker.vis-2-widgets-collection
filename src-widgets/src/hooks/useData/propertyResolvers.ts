@@ -15,6 +15,12 @@ import type { MarkerLayer, PropertyResolvers } from './types';
 import { resolvePriority } from './priorityResolver';
 import { terminalColor } from '../../lib/helper/resolveEffectiveColor';
 
+/**
+ * Whether a resolver call addresses a state (`ext` is its field number) rather than
+ * the base (`ext === ''`). The per-state tier of a chain applies to states only.
+ */
+const isStateExt = (ext: string | number): boolean => String(ext) !== '';
+
 interface CreatePropertyResolversParams {
     rxData: Record<string, any>;
     oidObject: OidObject | undefined;
@@ -117,11 +123,11 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', 'Active')} / 100)`,
                 },
                 {
-                    condition: String(ext) !== '' && getDataValue<number | string>('iconSize', String(ext)) === 0,
+                    condition: isStateExt(ext) && getDataValue<number | string>('iconSize', String(ext)) === 0,
                     value: '0px',
                 },
                 {
-                    condition: String(ext) !== '' && Boolean(getDataValue<number | string>('iconSize', String(ext))),
+                    condition: isStateExt(ext) && Boolean(getDataValue<number | string>('iconSize', String(ext))),
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
                 },
                 {
@@ -171,7 +177,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconWidth: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
-                { condition: String(ext) !== '', value: getDataValue<number>('iconSize', String(ext)) },
+                { condition: isStateExt(ext), value: getDataValue<number>('iconSize', String(ext)) },
                 { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
@@ -180,7 +186,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconHeight: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
-                { condition: String(ext) !== '', value: getDataValue<number>('iconSize', String(ext)) },
+                { condition: isStateExt(ext), value: getDataValue<number>('iconSize', String(ext)) },
                 { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
@@ -207,7 +213,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconColor: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
-                { condition: String(ext) !== '', value: getDataValue<string>('iconColor', String(ext)) },
+                { condition: isStateExt(ext), value: getDataValue<string>('iconColor', String(ext)) },
                 { value: markerLayer.iconColor },
                 { value: getDataValue<string>('iconColor', '') },
             ]) ?? terminalColor('primary', theme),
@@ -269,7 +275,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 ? (resolvePriority([
                       {
                           value: getDataValue<string>('textColor', String(ext)),
-                          condition: String(ext) !== '' && getDataValue<string>('textColor', String(ext)) !== '',
+                          condition: isStateExt(ext) && getDataValue<string>('textColor', String(ext)) !== '',
                       },
                       {
                           value:
@@ -302,7 +308,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: getDataValue<string>('textColor', 'Active'),
                 },
                 {
-                    condition: String(ext) !== '' && typeof getDataValue<string>('textColor', String(ext)) === 'string',
+                    condition: isStateExt(ext) && typeof getDataValue<string>('textColor', String(ext)) === 'string',
                     value: getDataValue<string>('textColor', String(ext)),
                 },
                 {
@@ -328,7 +334,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: formatSize(rxData.valueSizeActive),
                 },
                 {
-                    condition: String(ext) !== '',
+                    condition: isStateExt(ext),
                     value:
                         typeof getDataValue<number>('valueSize', String(ext)) === 'number'
                             ? formatSize(getDataValue<number>('valueSize', String(ext)))
@@ -394,7 +400,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `${formatSize(getDataValue<number>('valueSize', 'Active'))}`,
                 },
                 {
-                    condition: String(ext) !== '' && typeof getDataValue<number>('valueSize', String(ext)) === 'number',
+                    condition: isStateExt(ext) && typeof getDataValue<number>('valueSize', String(ext)) === 'number',
                     value: `${formatSize(getDataValue<number>('valueSize', String(ext)))}`,
                 },
                 {

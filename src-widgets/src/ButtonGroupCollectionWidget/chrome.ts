@@ -21,12 +21,19 @@
 import type { CSSObject, Theme } from '@mui/material/styles';
 
 import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
-import { alphaOf, lightenOf } from '../lib/helper/colorDerivation';
+import { alphaOf, lightenOf, solidOf } from '../lib/helper/colorDerivation';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
+import type { BaseFieldsRxData, ButtonGroupFieldsRxData } from '../types';
 
 /** Alpha applied to the separator's resolved colour (explicit value or theme text). */
 const SEPARATOR_ALPHA = 0.6;
+
+/** The widget data the group chrome reads, raw as vis-2 stores it (any key may be missing). */
+export type ButtonGroupChromeData = Readonly<
+    Pick<ButtonGroupFieldsRxData, 'buttonGroupColor'> & Pick<BaseFieldsRxData, 'basePadding'>
+>;
 
 /** Input for {@link buildGroupChrome} — raw rxData fields plus theme and button count. */
 export interface ButtonGroupChromeInput {
@@ -34,10 +41,12 @@ export interface ButtonGroupChromeInput {
     variant: string | undefined;
     /** rxData.buttonGroupOrientation — `'vertical'` stacks and caps the buttons, anything else lays them out horizontally. */
     orientation: string | undefined;
-    /** Widget data (rxData) the separator's colour contract (`buttonGroupColorContract`) resolves over. */
-    data: object;
-    /** rxData.basePadding — truthy keeps the group's rounded ends (borderRadius), falsy squares them off. */
-    basePadding: unknown;
+    /**
+     * Widget data (rxData): the separator's colour contract (`buttonGroupColorContract`)
+     * resolves over it, and a truthy `basePadding` keeps the group's rounded ends
+     * (borderRadius), a falsy one squares them off.
+     */
+    data: ButtonGroupChromeData;
     /** Number of rendered toggle buttons (drives the vertical per-button height cap). May be 0 (rule then matches nothing). */
     count: number;
     /** MUI theme providing the contract's terminal (theme text). */
@@ -54,7 +63,8 @@ export interface ButtonGroupChromeInput {
  * @returns The group's sx object; spread onto `<ToggleButtonGroup sx={…}>`.
  */
 export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
-    const { variant, orientation, data, basePadding, count, theme } = input;
+    const { variant, orientation, data, count, theme } = input;
+    const { basePadding } = data;
 
     const isVertical = orientation === 'vertical';
     const isOutlined = variant === 'outlined';
@@ -63,10 +73,13 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // colour in outlined mode): the button-group colour contract — explicit
     // `buttonGroupColor`, else the theme text — as a solid colour. A gradient
     // yields its midpoint; a value without a Repräsentative Vollfarbe counts as
-    // unset. No vis-2 style stage (`undefined` textStyles): the contract does not
+    // unset. No vis-2 style stage (no textStyles): the contract does not
     // inherit it. Only a theme text without a solid colour draws no separator.
+    // The explicit value counts as stored first, as before the contract: alpha()
+    // drew every value the colour calculation reads, also one the picker rejects
+    // (hsl(), a 4-digit hex) — such a value never crashed, so it keeps its colour.
     const separatorColor = alphaOf(
-        resolveEffectiveSolidColor(buttonGroupColorContract, data as Record<string, unknown>, theme, undefined),
+        solidOf(data.buttonGroupColor) ?? resolveEffectiveSolidColor(buttonGroupColorContract, data, theme),
         SEPARATOR_ALPHA,
     );
 
@@ -138,8 +151,10 @@ export interface ButtonChromeInput {
  * Builds the sx for a single toggle button: the state background as-is, plus
  * the hover/selected interplay. Solid colours lighten on hover (0.5) and on
  * selection (0.3); gradients never lighten — they dim via an opacity(80%)
- * filter instead (also applied on the active button's base). A background no
- * tint calculation can read (a colour name, a CSS variable) still paints the
+ * filter instead (also applied on the active button's base). Only a background
+ * the button's own reading takes (`extractColorFromValue`: hex, rgb(a)) is
+ * tinted, as before colorDerivation — not hsl() or a 4-digit hex, though MUI
+ * could. Any other background (a colour name, a CSS variable) still paints the
  * button but gets no hover/selected tint — it never throws.
  *
  * @param input - The state's background and its active flag.
@@ -151,8 +166,9 @@ export function buildButtonChrome(input: ButtonChromeInput): CSSObject {
     const gradient = gradientColor(background);
 
     const hasGradient = !!gradient;
-    const hoverBackground = gradient ? undefined : lightenOf(background, 0.5);
-    const selectedBackground = gradient ? undefined : lightenOf(background, 0.3);
+    const tintable = !gradient && extractColorFromValue(background) !== null;
+    const hoverBackground = tintable ? lightenOf(background, 0.5) : undefined;
+    const selectedBackground = tintable ? lightenOf(background, 0.3) : undefined;
 
     return {
         width: '100%',

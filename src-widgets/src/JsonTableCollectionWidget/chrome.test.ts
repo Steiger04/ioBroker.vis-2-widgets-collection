@@ -102,9 +102,9 @@ describe('buildTableChrome — header bar', () => {
     });
 
     it('follows the RAW noCard, not noCard || usedInWidget: inside another widget the sticky bar keeps paper and shadow', () => {
-        // Widget-im-Widget: Generic unwraps the card (wrappedContent false), but the widget
-        // data the renderer hands the chrome still says noCard false — the bar stays opaque,
-        // so the rows never scroll visibly underneath it.
+        // A widget inside another widget: Generic unwraps the card (wrappedContent false), but
+        // the widget data the renderer hands the chrome still says noCard false — the bar stays
+        // opaque, so the rows never scroll visibly underneath it.
         const widget = { usedInWidget: true, data: { noCard: false } satisfies TableChromeSettings };
         const bar = chrome(widget.data).headerBarSx;
 
@@ -112,12 +112,17 @@ describe('buildTableChrome — header bar', () => {
         expect(bar.boxShadow).toBe('shadow-6');
     });
 
-    it('counts an invalid header colour as unset: the paper in the card, transparent with noCard', () => {
-        for (const tableHeaderBgColor of ['red', 'var(--x)', 'transparent']) {
-            expect(chrome({ tableHeaderBgColor }).headerBarSx).toMatchObject({ backgroundColor: PAPER });
+    it('paints a stored header colour the picker rejects raw, as before the spec — in the card and with noCard', () => {
+        // Legacy values (red, var(), transparent, a hex padded with spaces) never crashed,
+        // so their rendering stays identical: the explicit value goes into the CSS as stored.
+        for (const tableHeaderBgColor of ['red', 'var(--x)', 'transparent', ' #123456 ']) {
+            expect(chrome({ tableHeaderBgColor }).headerBarSx).toMatchObject({
+                backgroundColor: tableHeaderBgColor,
+                boxShadow: 'shadow-6',
+            });
             expect(chrome({ tableHeaderBgColor }).headerBarSx.background).toBeUndefined();
             expect(chrome({ noCard: true, tableHeaderBgColor }).headerBarSx).toMatchObject({
-                backgroundColor: 'transparent',
+                backgroundColor: tableHeaderBgColor,
                 boxShadow: 'none',
             });
         }

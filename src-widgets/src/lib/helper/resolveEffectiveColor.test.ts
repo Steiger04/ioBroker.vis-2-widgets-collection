@@ -166,7 +166,8 @@ describe('resolveEffectiveSolidColor', () => {
     });
 
     it('yields undefined when even the terminal has no solid color', () => {
-        // The shared THEME's '#pri' placeholder is no readable color.
-        expect(resolveEffectiveSolidColor(border, {}, THEME, undefined)).toBeUndefined();
+        // A theme primary no colour calculation reads (a CSS variable).
+        const unreadable = { palette: { ...THEME.palette, primary: { main: 'var(--primary)' } } } as unknown as Theme;
+        expect(resolveEffectiveSolidColor(border, {}, unreadable, undefined)).toBeUndefined();
     });
 });

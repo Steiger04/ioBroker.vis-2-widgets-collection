@@ -63,7 +63,6 @@ function ButtonGroupCollection(): React.JSX.Element {
                         variant: buttonGroupVariant,
                         orientation: buttonGroupOrientation,
                         data: widget.data,
-                        basePadding: widget.data.basePadding,
                         count: buttonStates.length,
                         theme,
                     })}

@@ -23,10 +23,11 @@
  * are not attribute fields either.
  *
  * The roster is `widgetsRegistry.widgets`, introspected through each widget's
- * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does. Runs in the node project:
- * mocked are the vis-2 runtime base (`Generic` extends `window.visRxWidget`, absent outside
- * vis-2), the widget bodies and the heavy custom editors — none of them contributes a
- * field; the field lists and `getWidgetInfo()` run for real.
+ * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does, and like it runs isolated
+ * (`DOM_TS_TESTS` in vitest.config.ts) for its own module registry. Mocked are the vis-2
+ * runtime base (`Generic` extends `window.visRxWidget`, absent outside vis-2), the widget
+ * bodies and the heavy custom editors — none of them contributes a field; the field lists
+ * and `getWidgetInfo()` run for real.
  */
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 

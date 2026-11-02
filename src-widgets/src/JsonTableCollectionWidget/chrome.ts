@@ -7,15 +7,15 @@
  * table's presentation shell: density-derived heights, the padded body, the outer
  * frame, the table's layout and row/cell borders, the sticky header bar, header cell
  * and text, and the even/odd row backgrounds (the Select/Button-Group chrome pattern).
- * Behaviour is frozen: every rule reproduces the legacy inline sx of the renderer (the one
- * delta: an invalid header colour counts as unset, ADR-0004); the tests pin the results.
- * The colours of frame, lines and header are colour contracts
+ * Behaviour is frozen: every rule reproduces the legacy inline sx of the renderer; the
+ * tests pin the results. The colours of frame, lines and header are colour contracts
  * (ADR-0004, `lib/jsonTableColorContracts`): their fields declare the terminals the
  * runtime has always fallen back to — `divider` for the four lines (resolved as a solid
  * colour), `paper` for the header bar, `text` for the header text — and this module
- * resolves the same contracts. Two documented divergences: with `noCard` the header bar
- * stays transparent (the swatch shows paper), and the header text inherits when unset
- * (its contract only drives the swatch). The row stripes are not contracts yet. Cell
+ * resolves the same contracts. Three documented divergences: with `noCard` the header bar
+ * stays transparent (the swatch shows paper), the header bar paints its explicit value
+ * raw (a legacy value the picker rejects keeps painting), and the header text inherits
+ * when unset (its contract only drives the swatch). The row stripes are not contracts yet. Cell
  * content (Format type rendering, conditional styles) and the column-resize affordance
  * are not chrome and stay in the renderer.
  */
@@ -24,7 +24,6 @@ import type { Theme } from '@mui/material/styles';
 
 import { gradientColor } from '../lib/helper/gradientColor';
 import {
-    resolveEffectiveColor,
     resolveEffectiveSolidColor,
     terminalColor,
     type ColorFieldContract,
@@ -111,15 +110,15 @@ export type TableChrome = Readonly<{
  * colour, else (unset or without a solid colour) the theme divider.
  */
 function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, theme: Theme): string | undefined {
-    return resolveEffectiveSolidColor(contract, settings, theme, undefined);
+    return resolveEffectiveSolidColor(contract, settings, theme);
 }
 
 /**
  * The header bar's surface: the `tableHeaderBgColor` contract over a base layer — card
  * paper with the configured elevation (default 6), or transparent and flat with `noCard`;
  * the bottom line as `::after` (stays visible while the sticky bar scrolls). A gradient
- * header colour paints as `background` over the base, a solid one replaces its
- * `backgroundColor`; an unset or invalid one leaves the base.
+ * header colour paints as `background` over the base, any other set one replaces its
+ * `backgroundColor` as stored; an unset one leaves the base.
  */
 function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject {
     const headerElevation = settings.tableHeaderElevation ?? 6;
@@ -133,14 +132,15 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject 
     // The header colour contract: explicit value → theme paper (terminal). Documented
     // deviation under noCard: the bar stays transparent — the terminal yields to
     // transparent, while the editor swatch keeps showing the paper.
-    const contract = flat
-        ? { ...jsonTableColorContracts.tableHeaderBgColor, terminal: 'transparent' as const }
-        : jsonTableColorContracts.tableHeaderBgColor;
-    const headerBgColor = resolveEffectiveColor(contract, settings, theme, undefined);
+    const terminal = flat ? 'transparent' : jsonTableColorContracts.tableHeaderBgColor.terminal;
+    // The explicit stage goes into the CSS raw, as before the contract: a stored value the
+    // picker rejects (a colour name, var(), transparent) never crashed, so it keeps painting
+    // instead of counting as unset (spec: identical rendering, only crashing values change).
+    const headerBgColor = settings.tableHeaderBgColor;
 
     const base: SxObject = {
         // The base layer is the terminal: the paper, or transparent under noCard
-        backgroundColor: terminalColor(contract.terminal, theme) || 'transparent',
+        backgroundColor: terminalColor(terminal, theme) || 'transparent',
         boxShadow: !flat && headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
     };
 
