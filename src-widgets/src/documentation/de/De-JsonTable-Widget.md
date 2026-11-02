@@ -14,79 +14,81 @@ Die widgetspezifischen Einstellungen überschreiben die allgemeineren Einstellun
 
 ## Datenquelle
 
-| Feldname | Typ    | Standard | Beschreibung                                          | Bedingung |
-| -------- | ------ | -------- | ----------------------------------------------------- | --------- |
-| oid      | id     | -        | OID für JSON-Daten (Typ: string, mixed oder json)     | -         |
+| Feldname | Typ | Standard | Beschreibung                                      | Bedingung |
+| -------- | --- | -------- | ------------------------------------------------- | --------- |
+| oid      | id  | -        | OID für JSON-Daten (Typ: string, mixed oder json) | -         |
 
 Die JSON-Daten können sein:
+
 - **Array von Objekten**: Jedes Objekt repräsentiert eine Zeile
 - **Einzelnes Objekt**: Wird als eine Zeile angezeigt
 - **Verschachtelte Objekte**: Werden automatisch mit konfigurierbarer Tiefe flachgeklopft
 - **JSON-String**: Wird automatisch geparst
 
-Alles andere — eine einzelne Zahl, ein Text oder ein Wahrheitswert (auch als JSON), ungültiges JSON, ein leeres Array — zeigt *Keine Daten verfügbar*.
+Alles andere — eine einzelne Zahl, ein Text oder ein Wahrheitswert (auch als JSON), ungültiges JSON, ein leeres Array — zeigt _Keine Daten verfügbar_.
 
 ## Spaltenkonfiguration
 
 ### Spalten-Editor
 
-| Feldname     | Typ    | Standard | Beschreibung                          | Bedingung |
-| ------------ | ------ | -------- | ------------------------------------- | --------- |
-| columnConfig | custom | -        | Visueller Spaltenkonfigurations-Editor | -        |
+| Feldname     | Typ    | Standard | Beschreibung                           | Bedingung |
+| ------------ | ------ | -------- | -------------------------------------- | --------- |
+| columnConfig | custom | -        | Visueller Spaltenkonfigurations-Editor | -         |
 
 Der Spalten-Editor bietet:
+
 - **Drag & Drop-Neuanordnung**: Spalten durch Ziehen neu anordnen
 - **Sichtbarkeit umschalten**: Einzelspalten ein-/ausblenden
 - **Spalteneinstellungen**: Beschriftung, Breite, Ausrichtung, Format konfigurieren
 - **Bedingte Formatierung**: Stile basierend auf Zellenwerten anwenden
 - **Datentyperkennung**: Automatische Erkennung des Datentyps (`string`, `number`, `boolean`, `date`, `image`, `array`, `object`, `null`, `mixed`). Der **erkannte Typ** (detected type) ist ein Hinweis und bestimmt die Voreinstellung des **Formattyps** — er kann aber frei davon abweichen.
 
-> **Welche Spalten die Tabelle zeigt:** Die gespeicherte Spaltenkonfiguration und die in den Daten gefundenen Spalten werden nach einer Regel zusammengeführt, im Editor wie zur Laufzeit: Gespeicherte Spalten, die noch in den Daten sind, behalten Reihenfolge und Einstellungen; ein Feld, das die Daten neu bekommen, erscheint sofort als neue sichtbare Spalte am Ende (Standardeinstellungen) — ohne vorheriges Speichern im Editor; eine gespeicherte Spalte, die die Daten nicht mehr enthalten, wird ausgelassen. Ohne gespeicherte Konfiguration zeigt die Tabelle alle gefundenen Spalten. Der Editor öffnet mit genau dieser Liste; blendet man dort eine neue Spalte aus, wird das mit dem nächsten *Speichern* übernommen.
+> **Welche Spalten die Tabelle zeigt:** Die gespeicherte Spaltenkonfiguration und die in den Daten gefundenen Spalten werden nach einer Regel zusammengeführt, im Editor wie zur Laufzeit: Gespeicherte Spalten, die noch in den Daten sind, behalten Reihenfolge und Einstellungen; ein Feld, das die Daten neu bekommen, erscheint sofort als neue sichtbare Spalte am Ende (Standardeinstellungen) — ohne vorheriges Speichern im Editor; eine gespeicherte Spalte, die die Daten nicht mehr enthalten, wird ausgelassen. Ohne gespeicherte Konfiguration zeigt die Tabelle alle gefundenen Spalten. Der Editor öffnet mit genau dieser Liste; blendet man dort eine neue Spalte aus, wird das mit dem nächsten _Speichern_ übernommen.
 
 ### Spalteneigenschaften
 
 Jede Spalte kann konfiguriert werden mit:
 
-| Eigenschaft  | Beschreibung                                         |
-| ------------ | ---------------------------------------------------- |
-| id           | Eindeutige Spaltenkennung (auto-generiert aus JSON)  |
-| label        | Anzeigename in der Kopfzeile                         |
-| width        | Spaltenbreite (px, % oder auto)                      |
-| minWidth     | Minimale Spaltenbreite                               |
-| maxWidth     | Maximale Spaltenbreite                               |
-| align        | Textausrichtung (left, center, right)                |
-| visible      | Spalte ein-/ausblenden                               |
-| sortable     | Sortierung für diese Spalte — `true` / `false` / `'auto'` |
-| filterable   | Filterung für diese Spalte — `true` / `false` / `'auto'` |
+| Eigenschaft  | Beschreibung                                                          |
+| ------------ | --------------------------------------------------------------------- |
+| id           | Eindeutige Spaltenkennung (auto-generiert aus JSON)                   |
+| label        | Anzeigename in der Kopfzeile                                          |
+| width        | Spaltenbreite (px, % oder auto)                                       |
+| minWidth     | Minimale Spaltenbreite                                                |
+| maxWidth     | Maximale Spaltenbreite                                                |
+| align        | Textausrichtung (left, center, right)                                 |
+| visible      | Spalte ein-/ausblenden                                                |
+| sortable     | Sortierung für diese Spalte — `true` / `false` / `'auto'`             |
+| filterable   | Filterung für diese Spalte — `true` / `false` / `'auto'`              |
 | enableHiding | Spalte über das Spaltenmenü ausblendbar — `true` / `false` / `'auto'` |
 
-> **Smart-Defaults (`'auto'`):** Im Modus `'auto'` (Voreinstellung) folgen Sortier- und Filterbarkeit dem **Effektiven Typ** der Spalte — ihrem Formattyp, wenn einer gesetzt ist, sonst dem erkannten Typ: `string`/`number`/`date` → sortier- und filterbar, `boolean` → nur filterbar, `image`/`array`/`object` → weder noch. Ausblendbar ist per Voreinstellung jede Spalte (`enableHiding: 'auto'`). Eine Überschreibung erlaubt nie mehr als die Tabelle: Solange Sortieren, Spaltenfilter oder Ausblenden für die ganze Tabelle aus sind, bewirkt `true` nichts. Der Bereich *Erweitert* im Spalten-Editor zeigt das Ergebnis pro Spalte.
+> **Smart-Defaults (`'auto'`):** Im Modus `'auto'` (Voreinstellung) folgen Sortier- und Filterbarkeit dem **Effektiven Typ** der Spalte — ihrem Formattyp, wenn einer gesetzt ist, sonst dem erkannten Typ: `string`/`number`/`date` → sortier- und filterbar, `boolean` → nur filterbar, `image`/`array`/`object` → weder noch. Ausblendbar ist per Voreinstellung jede Spalte (`enableHiding: 'auto'`). Eine Überschreibung erlaubt nie mehr als die Tabelle: Solange Sortieren, Spaltenfilter oder Ausblenden für die ganze Tabelle aus sind, bewirkt `true` nichts. Der Bereich _Erweitert_ im Spalten-Editor zeigt das Ergebnis pro Spalte.
 
 ### Spaltenformatierung
 
 Jede Spalte hat genau einen aktiven **Formattyp** (format type), der bestimmt, wie der Rohwert gerendert wird. Er wird aus dem erkannten Typ vorbelegt, lässt sich aber frei wählen.
 
-| Formattyp | Beschreibung                                         | Wichtigste Optionen                                   |
-| --------- | ---------------------------------------------------- | ---------------------------------------------------- |
-| String    | Textanzeige, inkl. HTML-Rendering                    | case, prefix, suffix, trim, maxLength, regex, Schriftstil |
-| Number    | Zahlenformatierung mit Tausendertrennung             | decimals, prefix, suffix, thousandsSeparator         |
-| Boolean   | Boolean als Text                                     | trueText, falseText                                  |
-| Date      | Datum/Zeit-Formatierung                              | Format-String (vordefiniert), erkanntes Eingabeformat |
-| Image     | Rohwert als Bild/Icon-Grafik rendern                 | size, objectFit, variant, tint, padding, …           |
+| Formattyp | Beschreibung                             | Wichtigste Optionen                                       |
+| --------- | ---------------------------------------- | --------------------------------------------------------- |
+| String    | Textanzeige, inkl. HTML-Rendering        | case, prefix, suffix, trim, maxLength, regex, Schriftstil |
+| Number    | Zahlenformatierung mit Tausendertrennung | decimals, prefix, suffix, thousandsSeparator              |
+| Boolean   | Boolean als Text                         | trueText, falseText                                       |
+| Date      | Datum/Zeit-Formatierung                  | Format-String (vordefiniert), erkanntes Eingabeformat     |
+| Image     | Rohwert als Bild/Icon-Grafik rendern     | size, objectFit, variant, tint, padding, …                |
 
 Details zu den formattypspezifischen Optionen finden sich in den folgenden Unterabschnitten.
 
 ### String-Formatierung
 
-| Eigenschaft   | Beschreibung                                                       |
-| ------------- | ------------------------------------------------------------------ |
-| trim          | Leerzeichen am Anfang/Ende entfernen (vor allen anderen Schritten) |
-| regex         | Regex-Teiltreffer extrahieren (zusätzliche Optionen: regexGroup, regexFlags) |
-| regexGroup    | Zu verwendende Capture-Gruppe (0 = voller Treffer)                |
-| case          | none / upper / lower / title                                       |
-| maxLength     | auf N Zeichen kürzen (mit „…")                                     |
-| prefix/suffix | Prä-/Suffix an dem Wert                                            |
-| fontWeight/fontStyle/fontSize/textColor | Statische Schriftvorgabe (durch bedingte Regeln übersteuerbar) |
+| Eigenschaft                             | Beschreibung                                                                 |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| trim                                    | Leerzeichen am Anfang/Ende entfernen (vor allen anderen Schritten)           |
+| regex                                   | Regex-Teiltreffer extrahieren (zusätzliche Optionen: regexGroup, regexFlags) |
+| regexGroup                              | Zu verwendende Capture-Gruppe (0 = voller Treffer)                           |
+| case                                    | none / upper / lower / title                                                 |
+| maxLength                               | auf N Zeichen kürzen (mit „…")                                               |
+| prefix/suffix                           | Prä-/Suffix an dem Wert                                                      |
+| fontWeight/fontStyle/fontSize/textColor | Statische Schriftvorgabe (durch bedingte Regeln übersteuerbar)               |
 
 > **Hinweis – HTML-Rendering:** String-Zellen rendern HTML-Markup (z. B. `<b>`, `<br>`, `<span style="…">`). Die Werte stammen aus dem eigenen ioBroker-State und gelten als vertrauenswürdig. Bindest du fremde Daten ein, beachte das XSS-Risiko ungefilterten HTMLs.
 
@@ -102,25 +104,25 @@ Sortierung, Datumsfilter, Schnellfilter und bedingte Regeln lesen Daten genauso 
 
 ### Bild-Spalte (Formattyp `image`)
 
-Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwert wird dabei als **visuelle Referenz** gelesen — niemals als Icon-*Name* (`mdi-*`, `fa-*`); es gibt keine Namensauflösung. Unterstützt werden:
+Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwert wird dabei als **visuelle Referenz** gelesen — niemals als Icon-_Name_ (`mdi-*`, `fa-*`); es gibt keine Namensauflösung. Unterstützt werden:
 
 - **URL oder Dateipfad** (Bild oder SVG)
 - **`data:image/…`-URI**
 - **UTF-8-Zeichen** (z. B. ein Emoji)
 
-**Icon vs. Bild** ist eine Unterscheidung auf Wert-Ebene zur Laufzeit, kein eigener Spaltentyp: Ein *Icon* ist ein kleiner monochromer Glyph (SVG-Data-URI oder UTF-8-Zeichen), ein *Bild* ein Rasterfoto (png/jpg/webp/…). Ein konfigurierter Farb-**Tint** wirkt auf beide über eine CSS-Maske (Alpha-Kanal der Quelle) — exakt für monochrome Icons.
+**Icon vs. Bild** ist eine Unterscheidung auf Wert-Ebene zur Laufzeit, kein eigener Spaltentyp: Ein _Icon_ ist ein kleiner monochromer Glyph (SVG-Data-URI oder UTF-8-Zeichen), ein _Bild_ ein Rasterfoto (png/jpg/webp/…). Ein konfigurierter Farb-**Tint** wirkt auf beide über eine CSS-Maske (Alpha-Kanal der Quelle) — exakt für monochrome Icons.
 
-| Eigenschaft              | Standard   | Beschreibung                                                |
-| ------------------------ | ---------- | ----------------------------------------------------------- |
-| size                     | 64         | Rendergröße in px (8–256)                                   |
-| objectFit                | contain    | contain / cover / fill (CSS `object-fit`)                   |
-| variant                  | square     | square / rounded / circular (Avatar-Form)                   |
-| bgColor                  | –          | Avatar-Hintergrundfarbe                                     |
-| borderColor / borderWidth | – / –     | Avatarrahmen (nur bei Farbe und Breite > 0)                 |
-| tint                     | –          | Farbton via CSS-Maske                                       |
-| tooltip                  | true       | Rohwert als Hover-Tooltip anzeigen                          |
-| showBroken               | true       | Platzhalter-Icon bei fehlgeschlagener URL                   |
-| padding (top/right/bottom/left) | 0 8 0 8 | Innenabstand pro Seite in px (0–64)                   |
+| Eigenschaft                     | Standard | Beschreibung                                |
+| ------------------------------- | -------- | ------------------------------------------- |
+| size                            | 64       | Rendergröße in px (8–256)                   |
+| objectFit                       | contain  | contain / cover / fill (CSS `object-fit`)   |
+| variant                         | square   | square / rounded / circular (Avatar-Form)   |
+| bgColor                         | –        | Avatar-Hintergrundfarbe                     |
+| borderColor / borderWidth       | – / –    | Avatarrahmen (nur bei Farbe und Breite > 0) |
+| tint                            | –        | Farbton via CSS-Maske                       |
+| tooltip                         | true     | Rohwert als Hover-Tooltip anzeigen          |
+| showBroken                      | true     | Platzhalter-Icon bei fehlgeschlagener URL   |
+| padding (top/right/bottom/left) | 0 8 0 8  | Innenabstand pro Seite in px (0–64)         |
 
 **Automatische Erkennung:** Spalten mit URL-, Data-URI- oder Glyph-Werten werden als erkannter Typ `image` erkannt und sofort als Grafik gerendert — ohne manuelle Konfiguration.
 
@@ -129,14 +131,15 @@ Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwer
 ### Bedingte Formatierung
 
 Dynamische Stile basierend auf Zellenwerten anwenden:
+
 - **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten (json-logic-Regeln). Der Regel-Editor folgt dem effektiven Typ der Spalte; bei einer Datums-Spalte — erkannt oder selbst gesetzt — vergleichen Regeln den lokalen Kalendertag des Werts als `YYYY-MM-DD`.
 - **Stile**: Hintergrundfarbe, Textfarbe, Schriftstärke, Schriftstil
 - **Auswertungsmodus** (`cellStyleMode`):
 
-| Modus           | Beschreibung                                                                 |
-| --------------- | ---------------------------------------------------------------------------- |
-| `first-match` (Standard) | Stoppt bei der ersten treffenden Regel.                             |
-| `all-match`     | Alle treffenden Regeln werden angewendet; bei Konflikten gewinnt die Regel mit höherer Priorität (niedrigerer Index). |
+| Modus                    | Beschreibung                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `first-match` (Standard) | Stoppt bei der ersten treffenden Regel.                                                                               |
+| `all-match`              | Alle treffenden Regeln werden angewendet; bei Konflikten gewinnt die Regel mit höherer Priorität (niedrigerer Index). |
 
 - **Visuelle Vorschau**: Effektives Ergebnis sofort sehen
 
@@ -148,10 +151,10 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 
 ### Sortierung
 
-| Feldname        | Typ      | Standard | Beschreibung                          | Bedingung |
-| --------------- | -------- | -------- | ------------------------------------- | --------- |
-| tableSorting    | checkbox | true     | Spaltensortierung aktivieren          | Kopfzeile sichtbar |
-| tableSortingMulti| checkbox| false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv |
+| Feldname          | Typ      | Standard | Beschreibung                                    | Bedingung          |
+| ----------------- | -------- | -------- | ----------------------------------------------- | ------------------ |
+| tableSorting      | checkbox | true     | Spaltensortierung aktivieren                    | Kopfzeile sichtbar |
+| tableSortingMulti | checkbox | false    | Multi-Spaltensortierung aktivieren (Strg+Klick) | Sortierung aktiv   |
 
 Eine Spalte sortiert nach ihrem **effektiven Typ**:
 
@@ -162,23 +165,23 @@ Eine Spalte sortiert nach ihrem **effektiven Typ**:
 
 ### Filterung
 
-| Feldname         | Typ      | Standard | Beschreibung                          | Bedingung |
-| ---------------- | -------- | -------- | ------------------------------------- | --------- |
-| tableFiltering   | checkbox | true     | Spaltenfilterung aktivieren           | Spaltenmenü aktiv |
-| tableQuickFilter | checkbox | false    | Globales Suchfeld anzeigen            | -         |
+| Feldname         | Typ      | Standard | Beschreibung                                  | Bedingung          |
+| ---------------- | -------- | -------- | --------------------------------------------- | ------------------ |
+| tableFiltering   | checkbox | true     | Spaltenfilterung aktivieren                   | Spaltenmenü aktiv  |
+| tableQuickFilter | checkbox | false    | Globales Suchfeld anzeigen                    | -                  |
 | tableColumnMenu  | checkbox | true     | Spaltenmenü anzeigen (Filter/Sort/Ausblenden) | Kopfzeile sichtbar |
-| tableHiding      | checkbox | true     | Spalten ausblenden über Menü erlauben | Spaltenmenü aktiv |
+| tableHiding      | checkbox | true     | Spalten ausblenden über Menü erlauben         | Spaltenmenü aktiv  |
 
 > **Spaltenfilter vergleichen nach dem Effektiven Typ der Spalte:** Textspalten als Text ohne Groß-/Kleinschreibung (`gleich „Raum 1"` trifft nicht `Raum 01`), Zahlenspalten nur numerisch (eine Zelle, die keine Zahl ist, trifft bei Wert-Operatoren nie), Datumsspalten nach lokalem Kalendertag, Boolean-Spalten nach `true`/`false`. Andere Typen (gemischt, Objekt, Array, Bild) vergleichen als Text, Objekte als JSON. Der Filter-Dialog bietet die Operatoren dieses Typs an; ein gespeicherter Filter, dessen Operator der Typ nicht mehr anbietet (z. B. nach Änderung des Formattyps), wird verworfen.
 
 ### Paginierung
 
-| Feldname                | Typ      | Standard   | Beschreibung                          | Bedingung |
-| ----------------------- | -------- | ---------- | ------------------------------------- | --------- |
-| tablePagination         | checkbox | true       | Paginierung aktivieren                | -         |
-| tablePageSize           | number   | 25         | Initiale Seitengröße                  | Paginierung aktiv |
-| tablePageSizeOptions    | text     | '10,25,50,100' | Verfügbare Seitengrößen (komma-getrennt) | Paginierung aktiv |
-| tableVirtualizeThreshold| number   | 50         | Zeilenanzahl-Schwellwert für Virtualisierung | - |
+| Feldname                 | Typ      | Standard       | Beschreibung                                 | Bedingung         |
+| ------------------------ | -------- | -------------- | -------------------------------------------- | ----------------- |
+| tablePagination          | checkbox | true           | Paginierung aktivieren                       | -                 |
+| tablePageSize            | number   | 25             | Initiale Seitengröße                         | Paginierung aktiv |
+| tablePageSizeOptions     | text     | '10,25,50,100' | Verfügbare Seitengrößen (komma-getrennt)     | Paginierung aktiv |
+| tableVirtualizeThreshold | number   | 50             | Zeilenanzahl-Schwellwert für Virtualisierung | -                 |
 
 ### Zeilenauswahl
 
@@ -188,59 +191,59 @@ Eine Spalte sortiert nach ihrem **effektiven Typ**:
 
 ### Analyse-Optionen
 
-| Feldname      | Typ    | Standard | Beschreibung                          | Bedingung |
-| ------------- | ------ | -------- | ------------------------------------- | --------- |
-| tableMaxDepth | number | 10       | Maximale Verschachtelungstiefe für JSON-Flattening | - |
+| Feldname      | Typ    | Standard | Beschreibung                                       | Bedingung |
+| ------------- | ------ | -------- | -------------------------------------------------- | --------- |
+| tableMaxDepth | number | 10       | Maximale Verschachtelungstiefe für JSON-Flattening | -         |
 
 ## Layout
 
 ### Tabellen-Layout
 
-| Feldname          | Typ      | Standard     | Beschreibung                          | Bedingung |
-| ----------------- | -------- | ------------ | ------------------------------------- | --------- |
-| tableDensity      | select   | 'standard'   | Zeilendichte (compact, standard, comfortable) | - |
-| tableRowHeight    | number   | -            | Feste Zeilenhöhe (px)                 | -         |
-| tableHeaderHeight | number   | -            | Kopfzeilenhöhe (px)                   | -         |
-| tableAutoSize     | checkbox | false        | Spalten automatisch an Container anpassen | -    |
-| tableHeaderElevation| slider  | 6            | Schatten der Kopfzeile (0-24)         | -         |
-| jsonTablePadding  | number   | 1            | Innenabstand                          | -         |
+| Feldname             | Typ      | Standard   | Beschreibung                                  | Bedingung |
+| -------------------- | -------- | ---------- | --------------------------------------------- | --------- |
+| tableDensity         | select   | 'standard' | Zeilendichte (compact, standard, comfortable) | -         |
+| tableRowHeight       | number   | -          | Feste Zeilenhöhe (px)                         | -         |
+| tableHeaderHeight    | number   | -          | Kopfzeilenhöhe (px)                           | -         |
+| tableAutoSize        | checkbox | false      | Spalten automatisch an Container anpassen     | -         |
+| tableHeaderElevation | slider   | 6          | Schatten der Kopfzeile (0-24)                 | -         |
+| jsonTablePadding     | number   | 1          | Innenabstand                                  | -         |
 
 ### Tabellenrahmen
 
-| Feldname      | Typ    | Standard | Beschreibung                          | Bedingung |
-| ------------- | ------ | -------- | ------------------------------------- | --------- |
-| borderWidth   | slider | 0        | Außenrahmen-Breite (0-20)             | -         |
-| borderStyle   | select | 'solid'  | Rahmenstil (none, solid, dashed, etc.)| -         |
-| borderColor   | color  | -        | Rahmenfarbe                           | -         |
-| borderRadius  | text   | -        | Eckenradius (CSS-Wert)                | -         |
+| Feldname     | Typ    | Standard | Beschreibung                           | Bedingung |
+| ------------ | ------ | -------- | -------------------------------------- | --------- |
+| borderWidth  | slider | 0        | Außenrahmen-Breite (0-20)              | -         |
+| borderStyle  | select | 'solid'  | Rahmenstil (none, solid, dashed, etc.) | -         |
+| borderColor  | color  | -        | Rahmenfarbe                            | -         |
+| borderRadius | text   | -        | Eckenradius (CSS-Wert)                 | -         |
 
 ### Kopfzeilen-Stil
 
-| Feldname               | Typ    | Standard | Beschreibung                          | Bedingung |
-| ---------------------- | ------ | -------- | ------------------------------------- | --------- |
-| tableHeaderBgColor     | color  | -        | Hintergrundfarbe der Kopfzeile        | -         |
-| tableHeaderTextColor   | color  | -        | Textfarbe der Kopfzeile               | -         |
-| tableHeaderFontSize    | number | -        | Schriftgröße der Kopfzeile (px)       | -         |
-| headerBorderWidth      | slider | 0        | Rahmenbreite unten der Kopfzeile (0-10)| -        |
-| headerBorderColor      | color  | -        | Rahmenfarbe der Kopfzeile             | -         |
+| Feldname             | Typ    | Standard | Beschreibung                            | Bedingung |
+| -------------------- | ------ | -------- | --------------------------------------- | --------- |
+| tableHeaderBgColor   | color  | -        | Hintergrundfarbe der Kopfzeile          | -         |
+| tableHeaderTextColor | color  | -        | Textfarbe der Kopfzeile                 | -         |
+| tableHeaderFontSize  | number | -        | Schriftgröße der Kopfzeile (px)         | -         |
+| headerBorderWidth    | slider | 0        | Rahmenbreite unten der Kopfzeile (0-10) | -         |
+| headerBorderColor    | color  | -        | Rahmenfarbe der Kopfzeile               | -         |
 
 ### Zellrahmen
 
-| Feldname                  | Typ      | Standard | Beschreibung                          | Bedingung                    |
-| ------------------------- | -------- | -------- | ------------------------------------- | ---------------------------- |
-| tableShowCellBorders      | checkbox | false    | Vertikale Zellrahmen anzeigen         | -                            |
-| verticalCellBorderWidth   | slider   | 1        | Vertikale Rahmenbreite (0-10)         | Zellrahmen aktiv             |
-| verticalCellBorderColor   | color    | -        | Vertikale Rahmenfarbe                 | Zellrahmen aktiv             |
-| tableShowRowBorders       | checkbox | true     | Horizontale Zeilenrahmen anzeigen     | -                            |
-| horizontalCellBorderWidth | slider   | 1        | Horizontale Rahmenbreite (0-10)       | Zeilenrahmen aktiv           |
-| horizontalCellBorderColor | color    | -        | Horizontale Rahmenfarbe               | Zeilenrahmen aktiv           |
+| Feldname                  | Typ      | Standard | Beschreibung                      | Bedingung          |
+| ------------------------- | -------- | -------- | --------------------------------- | ------------------ |
+| tableShowCellBorders      | checkbox | false    | Vertikale Zellrahmen anzeigen     | -                  |
+| verticalCellBorderWidth   | slider   | 1        | Vertikale Rahmenbreite (0-10)     | Zellrahmen aktiv   |
+| verticalCellBorderColor   | color    | -        | Vertikale Rahmenfarbe             | Zellrahmen aktiv   |
+| tableShowRowBorders       | checkbox | true     | Horizontale Zeilenrahmen anzeigen | -                  |
+| horizontalCellBorderWidth | slider   | 1        | Horizontale Rahmenbreite (0-10)   | Zeilenrahmen aktiv |
+| horizontalCellBorderColor | color    | -        | Horizontale Rahmenfarbe           | Zeilenrahmen aktiv |
 
 ### Zellen-Stil
 
-| Feldname          | Typ    | Standard | Beschreibung                          | Bedingung |
-| ----------------- | ------ | -------- | ------------------------------------- | --------- |
-| evenRowColor      | color  | -        | Hintergrundfarbe für gerade Zeilen    | -         |
-| oddRowColor       | color  | -        | Hintergrundfarbe für ungerade Zeilen  | -         |
+| Feldname     | Typ   | Standard | Beschreibung                         | Bedingung |
+| ------------ | ----- | -------- | ------------------------------------ | --------- |
+| evenRowColor | color | -        | Hintergrundfarbe für gerade Zeilen   | -         |
+| oddRowColor  | color | -        | Hintergrundfarbe für ungerade Zeilen | -         |
 
 > Hinweis: Die pro-Spalte-Schriftgröße wird über den Formattyp **String** (`fontSize`) bzw. die bedingte Formatierung gesetzt; es gibt kein separates Tabellen-Feld für die Zellenschriftgröße.
 
@@ -250,8 +253,8 @@ Eine Spalte sortiert nach ihrem **effektiven Typ**:
 
 ```json
 [
-  {"name": "Max", "age": 30, "city": "Berlin"},
-  {"name": "Anna", "age": 25, "city": "München"}
+    { "name": "Max", "age": 30, "city": "Berlin" },
+    { "name": "Anna", "age": 25, "city": "München" }
 ]
 ```
 
@@ -259,10 +262,10 @@ Eine Spalte sortiert nach ihrem **effektiven Typ**:
 
 ```json
 [
-  {
-    "user": {"name": "Max", "email": "max@example.com"},
-    "stats": {"logins": 42, "lastLogin": "2024-01-15"}
-  }
+    {
+        "user": { "name": "Max", "email": "max@example.com" },
+        "stats": { "logins": 42, "lastLogin": "2024-01-15" }
+    }
 ]
 ```
 
@@ -272,8 +275,8 @@ Verschachtelte Pfade werden zu `user.name`, `stats.logins` usw. flachgeklopft.
 
 ```json
 [
-  {"id": 1, "tags": ["dringend", "arbeit"]},
-  {"id": 2, "tags": ["privat"]}
+    { "id": 1, "tags": ["dringend", "arbeit"] },
+    { "id": 2, "tags": ["privat"] }
 ]
 ```
 
@@ -285,10 +288,10 @@ Spalten mit Bild-Referenzen werden als erkannter Typ `image` automatisch als Gra
 
 ```json
 [
-  {"name": "Lampe",   "icon": "💡"},
-  {"name": "Sensor",  "icon": "🌡️"},
-  {"name": "Kamera",  "bild": "https://example.com/cam1.png"},
-  {"name": "Logo",    "bild": "data:image/svg+xml,%3Csvg …%3E"}
+    { "name": "Lampe", "icon": "💡" },
+    { "name": "Sensor", "icon": "🌡️" },
+    { "name": "Kamera", "bild": "https://example.com/cam1.png" },
+    { "name": "Logo", "bild": "data:image/svg+xml,%3Csvg …%3E" }
 ]
 ```
 
@@ -308,10 +311,11 @@ tablePageSize: 25
 ```
 
 JSON-Struktur:
+
 ```json
 [
-  {"device": "Wohnzimmer Licht", "type": "bulb", "state": "on", "battery": 100},
-  {"device": "Küchen Sensor", "type": "motion", "state": "idle", "battery": 85}
+    { "device": "Wohnzimmer Licht", "type": "bulb", "state": "on", "battery": 100 },
+    { "device": "Küchen Sensor", "type": "motion", "state": "idle", "battery": 85 }
 ]
 ```
 
@@ -340,6 +344,7 @@ evenRowColor: #f5f5f5
 ### Beispiel für bedingte Formatierung
 
 Spalten so konfigurieren, dass:
+
 - Grüner Hintergrund für Batterie > 80%
 - Gelber Hintergrund für Batterie 50-80%
 - Roter Hintergrund für Batterie < 50%
@@ -363,9 +368,9 @@ Ein JavaScript-Adapter-Skript verwenden, um JSON-Daten zu generieren:
 // Beispiel: Gerätedaten zu JSON aggregieren
 const devices = $('channel[state.id=*.state]');
 const tableData = devices.map(id => ({
-  name: getObject(id).common.name,
-  state: getState(id).val,
-  lastUpdate: new Date(getState(id).ts).toISOString()
+    name: getObject(id).common.name,
+    state: getState(id).val,
+    lastUpdate: new Date(getState(id).ts).toISOString(),
 }));
 setState('javascript.0.deviceTable', JSON.stringify(tableData), true);
 ```

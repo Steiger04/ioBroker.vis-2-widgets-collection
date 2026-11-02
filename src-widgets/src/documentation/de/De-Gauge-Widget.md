@@ -16,13 +16,13 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## Grundeinstellungen
 
-| Feldname      | Typ      | Standard | Beschreibung                    | Bedingung |
-| ------------- | -------- | -------- | ------------------------------- | --------- |
-| gaugeType     | select   | 'linear' | Typ des Gauges (linear, radial) | -         |
-| gaugeMinValue | number   | -        | Minimaler Wert. Leer lassen, um `common.min` des gebundenen Objekts zu übernehmen (Fallback: 0). | -         |
+| Feldname      | Typ      | Standard | Beschreibung                                                                                       | Bedingung |
+| ------------- | -------- | -------- | -------------------------------------------------------------------------------------------------- | --------- |
+| gaugeType     | select   | 'linear' | Typ des Gauges (linear, radial)                                                                    | -         |
+| gaugeMinValue | number   | -        | Minimaler Wert. Leer lassen, um `common.min` des gebundenen Objekts zu übernehmen (Fallback: 0).   | -         |
 | gaugeMaxValue | number   | -        | Maximaler Wert. Leer lassen, um `common.max` des gebundenen Objekts zu übernehmen (Fallback: 100). | -         |
-| gaugePadding  | number   | 10       | Innenabstand des Gauges         | -         |
-| gaugeIconFit  | checkbox | false    | Icon an Gauge-Größe anpassen    | -         |
+| gaugePadding  | number   | 10       | Innenabstand des Gauges                                                                            | -         |
+| gaugeIconFit  | checkbox | false    | Icon an Gauge-Größe anpassen                                                                       | -         |
 
 ## Linear Gauge Einstellungen
 

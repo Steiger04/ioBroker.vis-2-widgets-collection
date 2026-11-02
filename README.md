@@ -86,7 +86,7 @@ reads them from there.
 
 ## Changelog
 
-### __WORK IN PROGRESS__
+### **WORK IN PROGRESS**
 
 - (steiger04) ECharts fixed: charts with numeric string states now plot — the shared intake reads prefix numbers, comma decimals and bool texts (unreadable becomes a gap, never a faked 0)
 - (steiger04) ECharts: per-series value mapping (raw value → number or deliberate gap), formula context symbols smin/smax/savg/sfirst/slast, smoothing window and running total extend the value chain; legend values now read the same final series the axis shows
@@ -108,15 +108,18 @@ reads them from there.
 - (steiger04) JSON Table quick filtering fixed
 
 ### 2.4.2 (2026-07-06)
+
 - (steiger04) JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)
 - (steiger04) ColorPickerField: debouncing for picker drag events and refactor
 - (steiger04) CheckboxCollection: refactor (helpers, memoization, type safety)
 
 ### 2.4.1 (2026-03-11)
+
 - (steiger04) Add HTML rendering support for table cells of Json Table
 - (steiger04) Bug fixing
 
 ### 2.4.0 (2026-03-01)
+
 - (steiger04) JSON Table added
 - (steiger04) Bug fixing
 

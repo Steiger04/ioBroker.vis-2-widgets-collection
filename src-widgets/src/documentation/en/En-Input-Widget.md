@@ -16,38 +16,38 @@ The widget-specific and value-specific settings override the more general settin
 
 ### Object & Values
 
-| Field Name         | Type     | Default | Description                                                                  | Condition                                              |
-| ------------------ | -------- | ------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
-| oid                | id       | -       | Object ID; accepts the types string, number, and mixed                       | -                                                      |
-| unit               | text     | ''      | Unit (taken from the object, overridable)                                    | Only when an OID is selected                           |
-| ignoreCommonStates | checkbox | true    | Ignore common states (hide value groups derived from `common.states`)        | Only when an OID is selected                           |
-| values_count       | number   | 0       | Number of value-specific value groups                                        | Only when type ≠ boolean and ignoreCommonStates = false |
+| Field Name         | Type     | Default | Description                                                           | Condition                                               |
+| ------------------ | -------- | ------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| oid                | id       | -       | Object ID; accepts the types string, number, and mixed                | -                                                       |
+| unit               | text     | ''      | Unit (taken from the object, overridable)                             | Only when an OID is selected                            |
+| ignoreCommonStates | checkbox | true    | Ignore common states (hide value groups derived from `common.states`) | Only when an OID is selected                            |
+| values_count       | number   | 0       | Number of value-specific value groups                                 | Only when type ≠ boolean and ignoreCommonStates = false |
 
 ### Input
 
-| Field Name   | Type     | Default    | Description                                                                             | Condition |
-| ------------ | -------- | ---------- | --------------------------------------------------------------------------------------- | --------- |
-| showOkButton | checkbox | false      | Show OK button: commit value only on OK/Enter/blur (otherwise every keystroke)          | -         |
-| inputVariant | select   | 'standard' | Text field variant (standard, outlined, filled)                                         | -         |
-| inputPadding | number   | 1          | Inner padding of the input field                                                        | -         |
+| Field Name   | Type     | Default    | Description                                                                    | Condition |
+| ------------ | -------- | ---------- | ------------------------------------------------------------------------------ | --------- |
+| showOkButton | checkbox | false      | Show OK button: commit value only on OK/Enter/blur (otherwise every keystroke) | -         |
+| inputVariant | select   | 'standard' | Text field variant (standard, outlined, filled)                                | -         |
+| inputPadding | number   | 1          | Inner padding of the input field                                               | -         |
 
 ### Number Range
 
 Only visible when the bound OID is of type **number**.
 
-| Field Name | Type   | Default | Description                                       | Condition  |
-| ---------- | ------ | ------- | ------------------------------------------------- | ---------- |
-| step       | number | 1       | Step size                                         | Only number |
-| minValue   | number | -       | Minimum value (pre-filled from `common.min`)      | Only number |
-| maxValue   | number | -       | Maximum value (pre-filled from `common.max`)      | Only number |
+| Field Name | Type   | Default | Description                                  | Condition   |
+| ---------- | ------ | ------- | -------------------------------------------- | ----------- |
+| step       | number | 1       | Step size                                    | Only number |
+| minValue   | number | -       | Minimum value (pre-filled from `common.min`) | Only number |
+| maxValue   | number | -       | Maximum value (pre-filled from `common.max`) | Only number |
 
 ### Display
 
-| Field Name  | Type     | Default | Description                          | Condition           |
-| ----------- | -------- | ------- | ------------------------------------ | ------------------- |
-| onlyDisplay | checkbox | false   | Display only (no inline editing)     | Only when write=true |
-| noIcon      | checkbox | false   | Do not show an icon                  | -                   |
-| noValue     | checkbox | false   | Do not show a value                  | -                   |
+| Field Name  | Type     | Default | Description                      | Condition            |
+| ----------- | -------- | ------- | -------------------------------- | -------------------- |
+| onlyDisplay | checkbox | false   | Display only (no inline editing) | Only when write=true |
+| noIcon      | checkbox | false   | Do not show an icon              | -                    |
+| noValue     | checkbox | false   | Do not show a value              | -                    |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 

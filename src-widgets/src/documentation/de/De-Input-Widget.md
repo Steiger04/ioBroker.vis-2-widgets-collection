@@ -16,30 +16,30 @@ Die Widget-spezifischen und Value-spezifischen Einstellungen überschreiben die 
 
 ### Objekt & Werte
 
-| Feldname           | Typ      | Standard | Beschreibung                                                              | Bedingung                                              |
-| ------------------ | -------- | -------- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
-| oid                | id       | -        | Object ID; akzeptiert die Typen string, number und mixed                  | -                                                      |
-| unit               | text     | ''       | Einheit (wird aus dem Objekt übernommen, überschreibbar)                  | Nur wenn eine OID gewählt ist                          |
-| ignoreCommonStates | checkbox | true     | Common States ignorieren (Werte-Gruppen aus `common.states` ausblenden)   | Nur wenn eine OID gewählt ist                          |
-| values_count       | number   | 0        | Anzahl der Value-spezifischen Wertegruppen                                | Nur wenn Typ ≠ boolean und ignoreCommonStates = false  |
+| Feldname           | Typ      | Standard | Beschreibung                                                            | Bedingung                                             |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| oid                | id       | -        | Object ID; akzeptiert die Typen string, number und mixed                | -                                                     |
+| unit               | text     | ''       | Einheit (wird aus dem Objekt übernommen, überschreibbar)                | Nur wenn eine OID gewählt ist                         |
+| ignoreCommonStates | checkbox | true     | Common States ignorieren (Werte-Gruppen aus `common.states` ausblenden) | Nur wenn eine OID gewählt ist                         |
+| values_count       | number   | 0        | Anzahl der Value-spezifischen Wertegruppen                              | Nur wenn Typ ≠ boolean und ignoreCommonStates = false |
 
 ### Eingabe
 
-| Feldname     | Typ      | Standard   | Beschreibung                                                                                | Bedingung |
-| ------------ | -------- | ---------- | ------------------------------------------------------------------------------------------- | --------- |
+| Feldname     | Typ      | Standard   | Beschreibung                                                                                 | Bedingung |
+| ------------ | -------- | ---------- | -------------------------------------------------------------------------------------------- | --------- |
 | showOkButton | checkbox | false      | OK-Button anzeigen: Wert erst bei OK/Enter/Verlassen übernehmen (sonst jeder Tastenanschlag) | -         |
-| inputVariant | select   | 'standard' | Variante des Textfelds (standard, outlined, filled)                                         | -         |
-| inputPadding | number   | 1          | Innenabstand des Eingabefelds                                                               | -         |
+| inputVariant | select   | 'standard' | Variante des Textfelds (standard, outlined, filled)                                          | -         |
+| inputPadding | number   | 1          | Innenabstand des Eingabefelds                                                                | -         |
 
 ### Zahlenbereich
 
 Nur sichtbar, wenn die gebundene OID den Typ **number** hat.
 
-| Feldname | Typ    | Standard | Beschreibung                                          | Bedingung  |
-| -------- | ------ | -------- | ----------------------------------------------------- | ---------- |
-| step     | number | 1        | Schrittweite                                          | Nur number |
-| minValue | number | -        | Minimaler Wert (wird aus `common.min` vorausgefüllt)  | Nur number |
-| maxValue | number | -        | Maximaler Wert (wird aus `common.max` vorausgefüllt)  | Nur number |
+| Feldname | Typ    | Standard | Beschreibung                                         | Bedingung  |
+| -------- | ------ | -------- | ---------------------------------------------------- | ---------- |
+| step     | number | 1        | Schrittweite                                         | Nur number |
+| minValue | number | -        | Minimaler Wert (wird aus `common.min` vorausgefüllt) | Nur number |
+| maxValue | number | -        | Maximaler Wert (wird aus `common.max` vorausgefüllt) | Nur number |
 
 ### Anzeige
 

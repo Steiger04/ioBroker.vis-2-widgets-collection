@@ -16,13 +16,13 @@ The widget-specific settings override the more general settings.
 
 ## Basic Settings
 
-| Field Name    | Type     | Default  | Description                    | Condition |
-| ------------- | -------- | -------- | ------------------------------ | --------- |
-| gaugeType     | select   | 'linear' | Type of gauge (linear, radial) | -         |
-| gaugeMinValue | number   | -        | Minimum value. Leave empty to use the bound object's `common.min` (fallback: 0). | -         |
+| Field Name    | Type     | Default  | Description                                                                        | Condition |
+| ------------- | -------- | -------- | ---------------------------------------------------------------------------------- | --------- |
+| gaugeType     | select   | 'linear' | Type of gauge (linear, radial)                                                     | -         |
+| gaugeMinValue | number   | -        | Minimum value. Leave empty to use the bound object's `common.min` (fallback: 0).   | -         |
 | gaugeMaxValue | number   | -        | Maximum value. Leave empty to use the bound object's `common.max` (fallback: 100). | -         |
-| gaugePadding  | number   | 10       | Inner padding of the gauge     | -         |
-| gaugeIconFit  | checkbox | false    | Fit icon to gauge size         | -         |
+| gaugePadding  | number   | 10       | Inner padding of the gauge                                                         | -         |
+| gaugeIconFit  | checkbox | false    | Fit icon to gauge size                                                             | -         |
 
 ## Linear Gauge Settings
 
