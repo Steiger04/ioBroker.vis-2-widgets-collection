@@ -17,6 +17,7 @@ import useValueState from '../hooks/useValueState';
 import useContentBox from '../hooks/useContentBox';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
+import { resolveRadioColors } from '../lib/radioColorContract';
 import type { RadioGroupCollectionContextProps } from '../types';
 import type { StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
@@ -96,7 +97,7 @@ interface RadioStackProps {
  * every item is capped at the full height. Unsized until the first measurement.
  */
 function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): React.ReactElement {
-    const { widget } = useContext(CollectionContext) as RadioGroupCollectionContextProps;
+    const { widget, theme } = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const { height: radioGroupHeight } = useContentBox();
 
     // Extract orientation-dependent values for clarity
@@ -115,6 +116,7 @@ function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): 
             }}
         >
             {states.map((state, index) => {
+                const radioColors = resolveRadioColors(widget.data, state.iconColor, theme);
                 return (
                     <FormControlLabel
                         key={`${String(state.value)}-${index}`}
@@ -155,9 +157,9 @@ function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): 
                                 }),
                                 '&.Mui-disabled': {
                                     '&.Mui-checked': {
-                                        color: state.iconColor || 'primary.main',
+                                        color: radioColors.checked,
                                     },
-                                    color: widget.data.radioGroupUncheckedIconColor || 'action.active',
+                                    color: radioColors.disabledUnchecked,
                                 },
                             },
                             '& .MuiFormControlLabel-label': {
@@ -182,7 +184,7 @@ function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): 
                                     />
                                 }
                                 sx={{
-                                    color: widget.data.radioGroupUncheckedIconColor,
+                                    color: radioColors.unchecked,
                                     width: '100%',
                                     height: '100%',
                                     maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,

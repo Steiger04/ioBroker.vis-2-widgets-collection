@@ -10,6 +10,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
+import { radioUncheckedIconColorContract } from './radioColorContract';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -54,11 +55,11 @@ const radioGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => 
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    // Radio group unchecked icon color (no fallback, noGradient for icons)
+    // Radio group unchecked icon color: the contract the renderer resolves (ADR-0004),
+    // noGradient for icons
     createColorField({
-        name: 'radioGroupUncheckedIconColor',
+        ...radioUncheckedIconColorContract,
         label: 'radio_group_unchecked_icon_color',
-        fallbackFields: [],
         noGradient: true,
     }),
     {
