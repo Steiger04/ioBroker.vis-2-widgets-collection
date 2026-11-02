@@ -17,6 +17,7 @@ import {
     type TableCapabilities,
 } from '../JsonTableCollectionWidget/capabilities';
 import { createColorField } from './fieldFactories';
+import { jsonTableColorContracts } from './jsonTableColorContracts';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -270,8 +271,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 'solid',
         noTranslation: true,
     },
-    // Border color with noGradient
-    createColorField({ name: 'borderColor', label: 'table_border_color', noGradient: true }),
+    // Border color with noGradient; Tabellen-Chrome contract: explicit → theme divider (ADR-0004)
+    createColorField({ ...jsonTableColorContracts.borderColor, label: 'table_border_color', noGradient: true }),
     {
         name: 'borderRadius',
         label: 'table_border_radius',
@@ -286,15 +287,15 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider dividerText="json_table_header_style" />,
         hidden: 'data.tableShowHeader === false',
     },
-    // Header background (supports gradients)
+    // Header background (supports gradients); contract: explicit → theme paper (transparent under noCard)
     createColorField({
-        name: 'tableHeaderBgColor',
+        ...jsonTableColorContracts.tableHeaderBgColor,
         label: 'json_table_header_bg_color',
         hidden: 'data.tableShowHeader === false',
     }),
-    // Header text color (noGradient for text)
+    // Header text color (noGradient for text); contract for the swatch only, the runtime inherits
     createColorField({
-        name: 'tableHeaderTextColor',
+        ...jsonTableColorContracts.tableHeaderTextColor,
         label: 'json_table_header_text_color',
         noGradient: true,
         hidden: 'data.tableShowHeader === false',
@@ -322,9 +323,9 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 0,
         hidden: 'data.tableShowHeader === false',
     },
-    // Header border color (noGradient for borders)
+    // Header border color (noGradient for borders); contract: explicit → theme divider
     createColorField({
-        name: 'headerBorderColor',
+        ...jsonTableColorContracts.headerBorderColor,
         label: 'json_table_header_border_color',
         noGradient: true,
         hidden: 'data.tableShowHeader === false',
@@ -352,9 +353,9 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 1,
         hidden: '!data.tableShowCellBorders',
     },
-    // Vertical cell border color (noGradient, hidden condition)
+    // Vertical cell border color (noGradient, hidden condition); contract: explicit → theme divider
     createColorField({
-        name: 'verticalCellBorderColor',
+        ...jsonTableColorContracts.verticalCellBorderColor,
         label: 'vertical_cell_border_color',
         noGradient: true,
         hidden: '!data.tableShowCellBorders',
@@ -380,9 +381,9 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 1,
         hidden: '!data.tableShowRowBorders',
     },
-    // Horizontal cell border color (noGradient, hidden condition)
+    // Horizontal cell border color (noGradient, hidden condition); contract: explicit → theme divider
     createColorField({
-        name: 'horizontalCellBorderColor',
+        ...jsonTableColorContracts.horizontalCellBorderColor,
         label: 'horizontal_cell_border_color',
         noGradient: true,
         hidden: '!data.tableShowRowBorders',
