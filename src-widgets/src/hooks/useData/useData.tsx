@@ -9,16 +9,21 @@ import { getStyleData } from './styleDataResolver';
 import { sameStateValue } from './stateValueEquality';
 
 import type { OidObject } from '../../types/utility-types';
-import type { UseDataResult, MarkerLayer, StyleData, StateStyleData } from './types';
+import type { UseDataResult, MarkerLayer, MarkBaseStyle, StyleData, StateStyleData } from './types';
 
 /** Options of {@link useData}. */
 export interface UseDataOptions {
     /**
-     * The widget's marker layer (see {@link MarkerLayer}); omitted, the chains
-     * resolve without that tier. Read by content, so the reference need not be stable.
+     * The widget's marker layer (see {@link MarkerLayer}), applied to marks only:
+     * `states` and `markBaseStyle` resolve with it, `data` and `resolveStyleData`
+     * without. Omitted, nothing carries the tier. Read by content, so the
+     * reference need not be stable.
      */
     markerLayer?: MarkerLayer;
 }
+
+/** Resolves without the marker tier. */
+const NO_MARKER_LAYER: MarkerLayer = {};
 
 /**
  * Resolves the widget's states and style data from the CollectionContext.
@@ -63,23 +68,10 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         [iconSize, iconColor, textColor, textSize],
     );
 
-    const propertyResolvers = useMemo(
-        () =>
-            createPropertyResolvers({
-                rxData,
-                oidObject: oidObject as OidObject | undefined,
-                oidName,
-                theme,
-                fontStyles,
-                textStyles,
-                backgroundStyles,
-                formatSize,
-                getDataValue,
-                markerLayer,
-            }),
-        [
+    const resolverParams = useMemo(
+        () => ({
             rxData,
-            oidObject,
+            oidObject: oidObject as OidObject | undefined,
             oidName,
             theme,
             fontStyles,
@@ -87,8 +79,20 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             backgroundStyles,
             formatSize,
             getDataValue,
-            markerLayer,
-        ],
+        }),
+        [rxData, oidObject, oidName, theme, fontStyles, textStyles, backgroundStyles, formatSize, getDataValue],
+    );
+
+    // Two resolver sets over the same widget data: the marker layer applies to
+    // marks only (CONTEXT "Marker-Ebene") — `states` and `markBaseStyle` resolve
+    // with it, `data` and `resolveStyleData` without.
+    const propertyResolvers = useMemo(
+        () => createPropertyResolvers({ ...resolverParams, markerLayer: NO_MARKER_LAYER }),
+        [resolverParams],
+    );
+    const markResolvers = useMemo(
+        () => createPropertyResolvers({ ...resolverParams, markerLayer }),
+        [resolverParams, markerLayer],
     );
 
     // getStyleData is now a pure function imported from styleDataResolver.ts
@@ -97,6 +101,16 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         (ext: string | number = '', includeActive: boolean = false): StyleData =>
             getStyleData(ext, includeActive, propertyResolvers),
         [propertyResolvers],
+    );
+
+    const resolveMarkStyleData = useCallback(
+        (ext: string | number, includeActive: boolean): StyleData => getStyleData(ext, includeActive, markResolvers),
+        [markResolvers],
+    );
+
+    const markBaseStyle: MarkBaseStyle = useMemo(
+        () => ({ inactive: resolveMarkStyleData('', false), active: resolveMarkStyleData('', true) }),
+        [resolveMarkStyleData],
     );
 
     // Independent per-state resolution using active-aware styles.
@@ -140,8 +154,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 // Calculate isActive for this state (named equality contract)
                 const isActive = sameStateValue(oidValue, convertedValue);
 
-                // Get style data via resolveStyleData
-                const styleData = resolveStyleData(i, isActive);
+                // A state is the basis of a Zustandsmarke, so it carries the marker layer.
+                const styleData = resolveMarkStyleData(i, isActive);
 
                 // Map to StateItem interface
                 states.push({
@@ -185,7 +199,15 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         }
 
         return { states, widgetStates, minValue, maxValue };
-    }, [oidObject?.type, oidObject?.commonStates, oidObject?.unit, rxData, getDataValue, oidValue, resolveStyleData]);
+    }, [
+        oidObject?.type,
+        oidObject?.commonStates,
+        oidObject?.unit,
+        rxData,
+        getDataValue,
+        oidValue,
+        resolveMarkStyleData,
+    ]);
 
     // `data`, `activeFieldNumber` and `activePosition` are pure functions of the
     // current OID value and resolved states, so they are derived together here — no
@@ -230,6 +252,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         activePosition,
         oidValue,
         states,
+        markBaseStyle,
         resolveStyleData,
     };
 }

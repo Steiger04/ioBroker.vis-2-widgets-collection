@@ -13,8 +13,8 @@ import type { MarkerLayer, PropertyResolvers } from './types';
 // hand-rolled getDataValue/formatSize closures. No vi.mock needed.
 //
 // Purpose: the marker layer is passed in explicitly (`markerLayer`, supplied by
-// the widget via useData's options — no type detection). These tests pin where
-// each marker value slots into the chains, with and without a marker layer.
+// the widget via useData's options — no type detection). These tests pin its one
+// position in every chain carrying it (CONTEXT "Marker-Ebene"), with and without it.
 
 interface ResolverOpts {
     rxData?: Record<string, any>;
@@ -219,101 +219,130 @@ describe('style-object fallbacks apply when the rxData tier is absent', () => {
     });
 });
 
-describe('marker layer — marker values slot into the fallback chain at the correct tier', () => {
-    // The contract a refactor of the marker tier most easily breaks: each marker
-    // value is inserted at a SPECIFIC position relative to the active/ext/base
-    // tiers. These cases pin that position by populating multiple tiers at once.
-    const marker: MarkerLayer = {
-        iconSize: 50,
-        textColor: '#mtxt',
-        textSize: 18,
-        iconColor: '#mcol',
-    };
+/** One chain carrying the marker layer: its three tiers and the value each one resolves to. */
+interface MarkerChainCase {
+    /** The marker layer carrying a value for this chain. */
+    marker: MarkerLayer;
+    /** The base tier (`ext=''`) in the widget data. */
+    base: Record<string, unknown>;
+    /** The per-state tier of Feldnummer 1. */
+    perState: Record<string, unknown>;
+    /** Reads the chain for a state extension. */
+    read: (r: PropertyResolvers, ext: string | number) => unknown;
+    /** What each tier resolves to. */
+    resolved: { marker: unknown; base: unknown; perState: unknown };
+}
 
-    it('iconSize: marker beats base, but ext (iconSize1) beats marker', () => {
-        // No base, no ext -> marker wins
-        const markerOnly = buildResolvers({ markerLayer: marker });
-        expect(resolve(markerOnly).iconSize).toBe('calc(24px * 50 / 100)');
-        // Base present -> marker still wins (inserted before base)
-        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconSize: 200 } });
-        expect(resolve(withBase).iconSize).toBe('calc(24px * 50 / 100)');
-        // Ext present -> ext wins (inserted before marker)
-        const withExt = buildResolvers({ markerLayer: marker, rxData: { iconSize1: 300 } });
-        expect(resolve(withExt, '1').iconSize).toBe('calc(24px * 300 / 100)');
+const ICON_TIERS = { marker: { iconSize: 50 }, base: { iconSize: 200 }, perState: { iconSize1: 300 } };
+const ICON_COLOR_TIERS = {
+    marker: { iconColor: '#mcol' },
+    base: { iconColor: '#base' },
+    perState: { iconColor1: '#state' },
+};
+const TEXT_COLOR_TIERS = {
+    marker: { textColor: '#mtxt' },
+    base: { textColor: '#base' },
+    perState: { textColor1: '#state' },
+};
+const TEXT_SIZE_TIERS = { marker: { textSize: 18 }, base: { valueSize: 16 }, perState: { valueSize1: 30 } };
+
+const MARKER_CHAINS: [string, MarkerChainCase][] = [
+    [
+        'iconSize',
+        {
+            ...ICON_TIERS,
+            read: (r, ext) => r.iconSize(ext, false),
+            resolved: {
+                marker: 'calc(24px * 50 / 100)',
+                base: 'calc(24px * 200 / 100)',
+                perState: 'calc(24px * 300 / 100)',
+            },
+        },
+    ],
+    [
+        'iconWidth',
+        {
+            ...ICON_TIERS,
+            read: (r, ext) => r.iconWidth(ext, false),
+            resolved: { marker: 50, base: 200, perState: 300 },
+        },
+    ],
+    [
+        'iconHeight',
+        {
+            ...ICON_TIERS,
+            read: (r, ext) => r.iconHeight(ext, false),
+            resolved: { marker: 50, base: 200, perState: 300 },
+        },
+    ],
+    [
+        'iconColor',
+        {
+            ...ICON_COLOR_TIERS,
+            read: (r, ext) => r.iconColor(ext, false),
+            resolved: { marker: '#mcol', base: '#base', perState: '#state' },
+        },
+    ],
+    [
+        'textColor',
+        {
+            ...TEXT_COLOR_TIERS,
+            read: (r, ext) => r.textColor(ext, false),
+            resolved: { marker: '#mtxt', base: '#base', perState: '#state' },
+        },
+    ],
+    [
+        'textColorActive',
+        {
+            ...TEXT_COLOR_TIERS,
+            read: (r, ext) => r.textColorActive(ext, true),
+            resolved: { marker: '#mtxt', base: '#base', perState: '#state' },
+        },
+    ],
+    [
+        'fontSize',
+        {
+            ...TEXT_SIZE_TIERS,
+            read: (r, ext) => r.fontSize(ext, false),
+            resolved: { marker: '18%', base: '16%', perState: '30%' },
+        },
+    ],
+    [
+        'valueSize',
+        {
+            ...TEXT_SIZE_TIERS,
+            read: (r, ext) => r.valueSize(ext, false),
+            resolved: { marker: '18%', base: '16%', perState: '30%' },
+        },
+    ],
+];
+
+describe('marker layer applies to marks only, between per-state and base', () => {
+    // Every chain carrying the marker layer places it at the SAME position — behind
+    // the per-state tier, before the base — the base resolution of a mark (ext='')
+    // included. Without the layer (the active style `data`), the chain resolves as
+    // if the tier did not exist.
+    it.each(MARKER_CHAINS)('%s: per-state → marker → base', (_property, chain) => {
+        const { marker, base, perState, read, resolved } = chain;
+
+        // Base resolution for marks: the marker beats the base.
+        expect(read(buildResolvers({ markerLayer: marker, rxData: base }), '')).toBe(resolved.marker);
+        // A state without its own value takes the marker, not the base.
+        expect(read(buildResolvers({ markerLayer: marker, rxData: base }), 1)).toBe(resolved.marker);
+        // The state's own value beats the marker.
+        expect(read(buildResolvers({ markerLayer: marker, rxData: { ...base, ...perState } }), 1)).toBe(
+            resolved.perState,
+        );
+        // Without the layer the base wins.
+        expect(read(buildResolvers({ rxData: base }), '')).toBe(resolved.base);
     });
 
-    it('iconWidth/iconHeight: ext/iconSize tier beats marker; marker wins only when that tier is empty', () => {
-        // Note the contrast with iconSize above: here the ext-tier option reads
-        // `iconSize` directly, so with ext="" it already sees rxData.iconSize and
-        // shadows the marker (the marker sits one position later).
-        const r = buildResolvers({ markerLayer: marker });
-        expect(resolve(r).iconWidth).toBe(50);
-        expect(resolve(r).iconHeight).toBe(50);
-        // rxData.iconSize set -> the ext="" tier reads it and wins over the marker
-        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconSize: 200 } });
-        expect(resolve(withBase).iconWidth).toBe(200);
-        // A real ext index with a value also wins over the marker
-        const withExt = buildResolvers({ markerLayer: marker, rxData: { iconSize1: 300 } });
-        expect(resolve(withExt, '1').iconWidth).toBe(300);
-        // ext index absent and base absent -> marker wins
-        const extAbsent = buildResolvers({ markerLayer: marker, rxData: { other: 1 } });
-        expect(resolve(extAbsent, '1').iconWidth).toBe(50);
-    });
-
-    it('iconColor: marker beats base; theme is the last resort', () => {
-        const r = buildResolvers({ markerLayer: marker });
-        expect(resolve(r).iconColor).toBe('#mcol');
-        const withBase = buildResolvers({ markerLayer: marker, rxData: { iconColor: '#base' } });
-        expect(resolve(withBase).iconColor).toBe('#mcol');
-        // No marker layer, no color anywhere -> theme primary
-        expect(resolve(buildResolvers()).iconColor).toBe(THEME_PRIMARY);
-    });
-
-    it('textColor: marker is inserted only when non-empty', () => {
-        const r = buildResolvers({ markerLayer: marker });
-        expect(resolve(r, '', true).textColor).toBe('#mtxt');
-        expect(resolve(r).textColor).toBe('#mtxt');
-        // Empty marker -> skipped, falls through
+    it('textColor: an empty marker text colour counts as unset', () => {
         const emptyMarker = buildResolvers({
-            markerLayer: { ...marker, textColor: '' },
+            markerLayer: { textColor: '' },
             textStyles: { color: '#tsColor' },
         });
         expect(resolve(emptyMarker).textColor).toBe('#tsColor');
-    });
-
-    it('valueSize: markerTextSize (via formatSize) beats base, before fontStyles', () => {
-        const r = buildResolvers({
-            markerLayer: marker,
-            fontStyles: { 'font-size': '13px' },
-        });
-        expect(resolve(r).valueSize).toBe('18%');
-        // fontSize resolver (not surfaced in StyleData) follows the same chain
-        expect(r.fontSize('', false)).toBe('18%');
-    });
-});
-
-describe('marker layer — marker resolvers expose raw marker values', () => {
-    const marker: MarkerLayer = {
-        iconSize: 50,
-        textColor: '#mtxt',
-        textSize: 18,
-        iconColor: '#mcol',
-    };
-
-    it('returns undefined without a marker layer', () => {
-        const r = buildResolvers({ markerLayer: {} }); // empty marker layer = no marker tier
-        expect(r.markerIconSize('', false)).toBeUndefined();
-        expect(r.markerTextColor('', false)).toBeUndefined();
-        expect(r.markerTextSize('', false)).toBeUndefined();
-        expect(r.markerIconColor('', false)).toBeUndefined();
-    });
-
-    it('returns the raw marker values of a passed marker layer', () => {
-        const r = buildResolvers({ markerLayer: marker });
-        expect(r.markerIconSize('', false)).toBe(50);
-        expect(r.markerTextColor('', false)).toBe('#mtxt');
-        expect(r.markerTextSize('', false)).toBe(18);
-        expect(r.markerIconColor('', false)).toBe('#mcol');
     });
 });
 

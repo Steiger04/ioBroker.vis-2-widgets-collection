@@ -25,7 +25,7 @@ interface CreatePropertyResolversParams {
     backgroundStyles: WidgetStyleState | undefined;
     formatSize: (size: number | string | undefined) => string | undefined;
     getDataValue: <T>(key: string, ext: string) => T | undefined;
-    /** The marker layer passed by the widget; `{}` when it has none. */
+    /** The marker layer to resolve with; `{}` resolves without the tier. */
     markerLayer: MarkerLayer;
 }
 
@@ -34,6 +34,12 @@ interface CreatePropertyResolversParams {
  *
  * Each resolver accepts a state extension and an `includeActive` flag to
  * control whether active-state values participate in the fallback chain.
+ *
+ * The eight chains carrying the marker layer (`iconSize`, `iconWidth`,
+ * `iconHeight`, `iconColor`, `textColor`, `textColorActive`, `fontSize`,
+ * `valueSize`) place it uniformly behind the per-state tier and before the
+ * base. Their per-state tier is skipped for `ext === ''`, so the base
+ * resolution of a mark takes the marker before the base as well.
  *
  * @param params - Resolver dependencies derived from widget context and rxData
  * @returns PropertyResolvers with normalized fallback behavior across all properties
@@ -165,7 +171,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconWidth: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
-                { value: getDataValue<number>('iconSize', String(ext)) },
+                { condition: String(ext) !== '', value: getDataValue<number>('iconSize', String(ext)) },
                 { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
@@ -174,7 +180,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconHeight: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
-                { value: getDataValue<number>('iconSize', String(ext)) },
+                { condition: String(ext) !== '', value: getDataValue<number>('iconSize', String(ext)) },
                 { value: markerLayer.iconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
@@ -263,7 +269,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 ? (resolvePriority([
                       {
                           value: getDataValue<string>('textColor', String(ext)),
-                          condition: getDataValue<string>('textColor', String(ext)) !== '',
+                          condition: String(ext) !== '' && getDataValue<string>('textColor', String(ext)) !== '',
                       },
                       {
                           value:
@@ -296,7 +302,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: getDataValue<string>('textColor', 'Active'),
                 },
                 {
-                    condition: typeof getDataValue<string>('textColor', String(ext)) === 'string',
+                    condition: String(ext) !== '' && typeof getDataValue<string>('textColor', String(ext)) === 'string',
                     value: getDataValue<string>('textColor', String(ext)),
                 },
                 {
@@ -322,6 +328,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: formatSize(rxData.valueSizeActive),
                 },
                 {
+                    condition: String(ext) !== '',
                     value:
                         typeof getDataValue<number>('valueSize', String(ext)) === 'number'
                             ? formatSize(getDataValue<number>('valueSize', String(ext)))
@@ -387,7 +394,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `${formatSize(getDataValue<number>('valueSize', 'Active'))}`,
                 },
                 {
-                    condition: typeof getDataValue<number>('valueSize', String(ext)) === 'number',
+                    condition: String(ext) !== '' && typeof getDataValue<number>('valueSize', String(ext)) === 'number',
                     value: `${formatSize(getDataValue<number>('valueSize', String(ext)))}`,
                 },
                 {
@@ -495,14 +502,5 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
 
         frameBackgroundActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? getDataValue<string>('frameBackground', String(ext)) : undefined,
-
-        // Marker Layer pass-throughs (raw values, no chain)
-        markerIconSize: (_ext: string | number, _includeActive: boolean) => markerLayer.iconSize,
-
-        markerTextColor: (_ext: string | number, _includeActive: boolean) => markerLayer.textColor,
-
-        markerTextSize: (_ext: string | number, _includeActive: boolean) => markerLayer.textSize,
-
-        markerIconColor: (_ext: string | number, _includeActive: boolean) => markerLayer.iconColor,
     };
 }
