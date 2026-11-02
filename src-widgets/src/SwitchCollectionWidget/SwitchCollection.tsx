@@ -9,6 +9,7 @@ import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
+import useContentBox from '../hooks/useContentBox';
 import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
@@ -16,15 +17,27 @@ import MaterialUISwitch from './MaterialUISwitch';
 import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
+/**
+ * The switch, its thumb capped by the height budget: the frame's Content-Box height
+ * (ADR-0098) — a child of CollectionBase, where the box is published.
+ */
+function BudgetedSwitch(props: Omit<React.ComponentProps<typeof MaterialUISwitch>, 'maxHeight'>): React.JSX.Element {
+    const { height } = useContentBox();
+
+    return (
+        <MaterialUISwitch
+            {...props}
+            maxHeight={height}
+        />
+    );
+}
+
 function SwitchCollection(): React.JSX.Element {
-    // Measured via ResizeObserver (the RadioGroup pattern), not by walking the
-    // DOM during render: the width comes from the track row itself, the height
-    // budget from a zero-width probe spanning the full content height —
-    // no coupling to CollectionBase's internal structure (ADR-0088).
+    // The width comes from the track row itself (measured locally, its own element); the
+    // height budget is the frame's Content-Box (BudgetedSwitch) — no coupling to
+    // CollectionBase's internal structure (ADR-0098).
     const [trackRowRef, setTrackRowRef] = useState<HTMLDivElement | null>(null);
-    const [heightProbeRef, setHeightProbeRef] = useState<HTMLDivElement | null>(null);
     const { width: rowWidth } = useElementDimensions(trackRowRef);
-    const { height: contentHeight } = useElementDimensions(heightProbeRef);
 
     const context = useContext(CollectionContext);
     if (!context) {
@@ -57,14 +70,6 @@ function SwitchCollection(): React.JSX.Element {
                 widget={widget}
             />
 
-            {/* Invisible height probe: resolves against the inner Paper's height
-                while taking no flow width, so the track row stays centred. */}
-            <Box
-                ref={setHeightProbeRef}
-                aria-hidden="true"
-                sx={{ width: 0, height: '100%' }}
-            />
-
             <Box
                 ref={setTrackRowRef}
                 sx={{
@@ -87,10 +92,9 @@ function SwitchCollection(): React.JSX.Element {
                     }}
                 >
                     {oidValue !== undefined && widget.data.thumbSize !== undefined && (
-                        <MaterialUISwitch
+                        <BudgetedSwitch
                             disabled={locked}
                             width={rowWidth}
-                            maxHeight={contentHeight}
                             data={data}
                             widget={widget}
                             checked={Boolean(oidValue)}

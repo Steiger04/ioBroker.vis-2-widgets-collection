@@ -8,20 +8,24 @@
  * Only the scene's envelope is shared — light mode, inside its card, 480 × 120, the OID's status —
  * while each test keeps its widget data in view: the OID, its object and the state rows. The mount records the context's `setState` (optimistic patch) and `setValue`
  * (backend write) as mocks; the preview context's own are no-ops. It mounts through testHarness,
- * so importing this module sets IS_REACT_ACT_ENVIRONMENT.
+ * so importing this module sets IS_REACT_ACT_ENVIRONMENT. A scene may carry a Content-Box
+ * ({@link withContentBox}): the frame publishes it instead of measuring under the inert
+ * ResizeObserver.
  */
 import { createElement, type FC } from 'react';
 import { afterEach, vi } from 'vitest';
 
 import CollectionProvider from '../../components/CollectionProvider';
+import { InjectedContentBoxContext, type ContentBox } from '../../hooks/useContentBox';
 import { buildPreviewContext } from '../../preview/mockContext';
 import { renderComponent } from './testHarness';
 import type { AllCollectionContextProps } from '../../types';
 import type { PreviewScene } from '../../preview/types';
 
 /**
- * Installs an inert ResizeObserver unless the environment provides one: bodies measuring their
- * content box (useElementDimensions) observe it on mount. Call it once at module level.
+ * Installs an inert ResizeObserver unless the environment provides one: the frame (its
+ * Content-Box) and bodies measuring their own elements (useElementDimensions) observe on mount.
+ * Call it once at module level; give a scene a box with {@link withContentBox}.
  */
 export function installInertResizeObserver(): void {
     if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver !== 'undefined') {
@@ -63,6 +67,24 @@ export const collectionScene = (
         },
     }) as unknown as PreviewScene;
 
+/** A preview scene that may carry the Content-Box the frame publishes ({@link withContentBox}). */
+export interface CollectionScene extends PreviewScene {
+    /** Published by CollectionBase instead of its measurement. */
+    contentBox?: ContentBox;
+}
+
+/**
+ * The same scene with a Content-Box: CollectionBase publishes `contentBox` to the body instead of
+ * measuring (the ResizeObserver stays inert for everything else).
+ *
+ * @param scene - The preview scene.
+ * @param contentBox - The box in px.
+ */
+export const withContentBox = (scene: PreviewScene, contentBox: ContentBox): CollectionScene => ({
+    ...scene,
+    contentBox,
+});
+
 /** A collection body mounted on the real CollectionProvider. */
 export interface MountedCollectionBody {
     container: HTMLDivElement;
@@ -73,21 +95,29 @@ export interface MountedCollectionBody {
     unmount: () => void;
 }
 
-const CollectionHost: FC<{ context: AllCollectionContextProps; body: FC }> = ({ context, body }) =>
-    createElement(CollectionProvider, { context } as never, createElement(body));
+const CollectionHost: FC<{ context: AllCollectionContextProps; body: FC; contentBox?: ContentBox }> = ({
+    context,
+    body,
+    contentBox,
+}) =>
+    createElement(
+        InjectedContentBoxContext.Provider,
+        { value: contentBox },
+        createElement(CollectionProvider, { context } as never, createElement(body)),
+    );
 
 /**
  * Mounts a collection body (or a hook probe) inside the real CollectionProvider over the scene's
  * preview context, `setState` and `setValue` recorded.
  *
  * @param body - The component rendered inside the provider.
- * @param scene - The preview scene.
+ * @param scene - The preview scene, optionally with a Content-Box ({@link withContentBox}).
  * @param extraContext - Widget-specific context entries merged over the preview context, the
  * way a widget's `renderWithProvider` adds them (e.g. the Dialog's `getWidgetView`).
  */
 export function mountCollectionBody(
     body: FC,
-    scene: PreviewScene,
+    scene: CollectionScene,
     extraContext: Record<string, unknown> = {},
 ): MountedCollectionBody {
     const setState = vi.fn();
@@ -99,7 +129,7 @@ export function mountCollectionBody(
         setValue,
     } as unknown as AllCollectionContextProps;
 
-    const { container, unmount } = renderComponent(CollectionHost, { context, body });
+    const { container, unmount } = renderComponent(CollectionHost, { context, body, contentBox: scene.contentBox });
     return { container, setState, setValue, unmount };
 }
 

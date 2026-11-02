@@ -7,14 +7,14 @@
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData, { sameStateValue } from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
-import useElementDimensions from '../hooks/useElementDimensions';
+import useContentBox from '../hooks/useContentBox';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { resolveRadioColors } from '../lib/radioColorContract';
@@ -81,10 +81,159 @@ function renderCheckedIcon(state: StateStyleData): React.JSX.Element {
     );
 }
 
-function RadioGroupCollection(): React.ReactElement {
-    const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
-    const { height: radioGroupHeight } = useElementDimensions(stackRef);
+/** Props for {@link RadioStack}. */
+interface RadioStackProps {
+    /** The resolved state rows, one radio each. */
+    states: StateStyleData[];
+    /** The bound OID's current value — the checked radio. */
+    oidValue: unknown;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled: boolean;
+}
 
+/**
+ * The radios, sized by the frame's Content-Box (ADR-0098) — a child of CollectionBase, where
+ * the box is published: stacked, the height is split evenly between the items; side by side,
+ * every item is capped at the full height. Unsized until the first measurement.
+ */
+function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): React.ReactElement {
+    const { widget, theme } = useContext(CollectionContext) as RadioGroupCollectionContextProps;
+    const { height: radioGroupHeight } = useContentBox();
+
+    // Extract orientation-dependent values for clarity
+    const isHorizontal = widget.data.radioOrientation === 'horizontal';
+    const itemSize = radioGroupHeight && states.length > 0 ? radioGroupHeight / states.length : undefined;
+
+    return (
+        <Stack
+            spacing={0}
+            direction={isHorizontal ? 'row' : 'column'}
+            sx={{
+                width: isHorizontal ? '100%' : 'auto',
+                height: '100%',
+                justifyContent: isHorizontal ? 'space-around' : 'flex-start',
+                alignItems: isHorizontal ? 'center' : 'stretch',
+            }}
+        >
+            {states.map((state, index) => {
+                const radioColors = resolveRadioColors(widget.data, state.iconColor, theme);
+                return (
+                    <FormControlLabel
+                        key={`${String(state.value)}-${index}`}
+                        labelPlacement={widget.data.labelPlacement}
+                        sx={{
+                            m: 0,
+                            pr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
+                            pl: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
+                            width: '100%',
+                            // Vertical: equal height distribution
+                            ...(!isHorizontal && {
+                                flex: '1 1 0',
+                                minHeight: 0,
+                            }),
+                            // Horizontal: auto sizing based on content
+                            ...(isHorizontal && {
+                                height: '100%',
+                            }),
+                            '& .MuiButtonBase-root': {
+                                width: '100%',
+                                padding: 0,
+                                // Horizontal: enforce square shape
+                                ...(isHorizontal && {
+                                    aspectRatio: '1',
+                                    maxWidth: radioGroupHeight || undefined,
+                                    maxHeight: radioGroupHeight || undefined,
+                                    flexShrink: 0,
+                                }),
+                                // Vertical: fixed size per button
+                                ...(!isHorizontal && {
+                                    height: itemSize ? `${itemSize}px` : 'auto',
+                                    maxWidth: itemSize || undefined,
+                                    maxHeight: itemSize || undefined,
+                                    flexShrink: 0,
+                                }),
+                                '&.Mui-disabled': {
+                                    '&.Mui-checked': {
+                                        color: radioColors.checked,
+                                    },
+                                    color: radioColors.disabledUnchecked,
+                                },
+                            },
+                            '& .MuiFormControlLabel-label': {
+                                flex: '1 1 auto',
+                                minWidth: 0,
+                                overflow: 'hidden',
+                                ...(widget.data.hideLabels && {
+                                    display: 'none',
+                                }),
+                            },
+                        }}
+                        control={
+                            <Radio
+                                disabled={disabled}
+                                checkedIcon={renderCheckedIcon(state)}
+                                icon={
+                                    <RadioButtonUncheckedIcon
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                        }}
+                                    />
+                                }
+                                sx={{
+                                    color: radioColors.unchecked,
+                                    width: '100%',
+                                    height: '100%',
+                                    maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
+                                    '& .MuiTouchRipple-root': {
+                                        color: state.iconColor,
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                        width: '100%',
+                                        height: '100%',
+                                        maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
+                                    },
+                                }}
+                                checked={sameStateValue(state.value, oidValue)}
+                                onChange={onChange}
+                                value={state.value}
+                            />
+                        }
+                        label={
+                            !widget.data.hideLabels ? (
+                                <Typography
+                                    component={Box}
+                                    variant="body2"
+                                    sx={{
+                                        width: '100%',
+                                        display: '-webkit-box',
+                                        WebkitBoxOrient: 'vertical',
+                                        WebkitLineClamp: 2,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        wordBreak: 'break-word',
+                                        fontSize: state.valueSize,
+                                        textAlign: 'left',
+                                        ...gradientTextSx(state.textColor),
+                                    }}
+                                    contentEditable="false"
+                                    dangerouslySetInnerHTML={{
+                                        __html: state.label!,
+                                    }}
+                                />
+                            ) : undefined
+                        }
+                    />
+                );
+            })}
+        </Stack>
+    );
+}
+
+function RadioGroupCollection(): React.ReactElement {
     const context = useContext(CollectionContext);
     if (!context) {
         throw new Error('RadioGroupCollection must be used within a CollectionProvider');
@@ -94,7 +243,6 @@ function RadioGroupCollection(): React.ReactElement {
             data: { oidObject },
         },
         widget,
-        theme,
     } = context as RadioGroupCollectionContextProps;
     const { data, states } = useData('oid');
 
@@ -102,10 +250,6 @@ function RadioGroupCollection(): React.ReactElement {
 
     const oidType = oidObject?.type;
     const isValidType = isAllowedOidType(ANY_VALUE_TYPES, oidType);
-
-    // Extract orientation-dependent values for clarity
-    const isHorizontal = widget.data.radioOrientation === 'horizontal';
-    const itemSize = radioGroupHeight && states.length > 0 ? radioGroupHeight / states.length : undefined;
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         updateOidValue(event.target.value);
@@ -122,132 +266,12 @@ function RadioGroupCollection(): React.ReactElement {
                 widget={widget}
             />
 
-            <Stack
-                spacing={0}
-                ref={setStackRef}
-                direction={isHorizontal ? 'row' : 'column'}
-                sx={{
-                    width: isHorizontal ? '100%' : 'auto',
-                    height: '100%',
-                    justifyContent: isHorizontal ? 'space-around' : 'flex-start',
-                    alignItems: isHorizontal ? 'center' : 'stretch',
-                }}
-            >
-                {states.map((state, index) => {
-                    const radioColors = resolveRadioColors(widget.data, state.iconColor, theme);
-                    return (
-                        <FormControlLabel
-                            key={`${String(state.value)}-${index}`}
-                            labelPlacement={widget.data.labelPlacement}
-                            sx={{
-                                m: 0,
-                                pr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
-                                pl: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
-                                width: '100%',
-                                // Vertical: equal height distribution
-                                ...(!isHorizontal && {
-                                    flex: '1 1 0',
-                                    minHeight: 0,
-                                }),
-                                // Horizontal: auto sizing based on content
-                                ...(isHorizontal && {
-                                    height: '100%',
-                                }),
-                                '& .MuiButtonBase-root': {
-                                    width: '100%',
-                                    padding: 0,
-                                    // Horizontal: enforce square shape
-                                    ...(isHorizontal && {
-                                        aspectRatio: '1',
-                                        maxWidth: radioGroupHeight || undefined,
-                                        maxHeight: radioGroupHeight || undefined,
-                                        flexShrink: 0,
-                                    }),
-                                    // Vertical: fixed size per button
-                                    ...(!isHorizontal && {
-                                        height: itemSize ? `${itemSize}px` : 'auto',
-                                        maxWidth: itemSize || undefined,
-                                        maxHeight: itemSize || undefined,
-                                        flexShrink: 0,
-                                    }),
-                                    '&.Mui-disabled': {
-                                        '&.Mui-checked': {
-                                            color: radioColors.checked,
-                                        },
-                                        color: radioColors.disabledUnchecked,
-                                    },
-                                },
-                                '& .MuiFormControlLabel-label': {
-                                    flex: '1 1 auto',
-                                    minWidth: 0,
-                                    overflow: 'hidden',
-                                    ...(widget.data.hideLabels && {
-                                        display: 'none',
-                                    }),
-                                },
-                            }}
-                            control={
-                                <Radio
-                                    disabled={locked}
-                                    checkedIcon={renderCheckedIcon(state)}
-                                    icon={
-                                        <RadioButtonUncheckedIcon
-                                            sx={{
-                                                width: '100%',
-                                                height: '100%',
-                                            }}
-                                        />
-                                    }
-                                    sx={{
-                                        color: radioColors.unchecked,
-                                        width: '100%',
-                                        height: '100%',
-                                        maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
-                                        '& .MuiTouchRipple-root': {
-                                            color: state.iconColor,
-                                        },
-                                        '& .MuiSvgIcon-root': {
-                                            width: '100%',
-                                            height: '100%',
-                                            maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
-                                        },
-                                    }}
-                                    checked={sameStateValue(state.value, oidValue)}
-                                    onChange={handleChange}
-                                    value={state.value}
-                                />
-                            }
-                            label={
-                                !widget.data.hideLabels ? (
-                                    <Typography
-                                        component={Box}
-                                        variant="body2"
-                                        sx={{
-                                            width: '100%',
-                                            display: '-webkit-box',
-                                            WebkitBoxOrient: 'vertical',
-                                            WebkitLineClamp: 2,
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            wordBreak: 'break-word',
-                                            fontSize: state.valueSize,
-                                            textAlign: 'left',
-                                            ...gradientTextSx(state.textColor),
-                                        }}
-                                        contentEditable="false"
-                                        dangerouslySetInnerHTML={{
-                                            __html: state.label!,
-                                        }}
-                                    />
-                                ) : undefined
-                            }
-                        />
-                    );
-                })}
-            </Stack>
+            <RadioStack
+                states={states}
+                oidValue={oidValue}
+                onChange={handleChange}
+                disabled={locked}
+            />
         </CollectionBase>
     );
 }
