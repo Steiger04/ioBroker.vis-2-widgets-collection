@@ -6,7 +6,8 @@
  * This is not a droppable widget. It uses vis-2's public `customPalette`
  * extension point to render a button in the widget palette (edit mode only)
  * that opens {@link module:ThemeConfigWizard/ThemeStudioPanel}, a floating
- * live-preview studio. The user edits an in-memory `UserTheme` (accent-driven,
+ * live-preview studio in its own React root outside the palette
+ * ({@link module:ThemeConfigWizard/studioHost}). The user edits an in-memory `UserTheme` (accent-driven,
  * with presets); on save it is validated and stored in the
  * `vis-2-widgets-collection.0.theme` state. The {@link module:components/CollectionProvider}
  * subscribes to that state (and the shared draft while the studio is open) and

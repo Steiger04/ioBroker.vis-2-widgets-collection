@@ -4,8 +4,8 @@
  * @module ThemeConfigWizard/ThemeStudioPanel.test
  * @remarks
  * The panel's Studio session mirrors its draft into the draft store while open (ADR-0020).
- * When vis-2 unmounts the palette entry (collapsing the palette group) without a close, the
- * draft must leave the canvas; after a save, the per-widget save handoff retires the draft
+ * When the panel unmounts without a close (e.g. its root is torn down), the draft must leave
+ * the canvas; after a save, the per-widget save handoff retires the draft
  * instead, so the panel must not clear it early. This pins the panel wiring end to end; the
  * session's own contract is pinned in useStudioSession.hook.test.ts. The store promotes
  * writes inside a rAF flush, so every assertion on {@link getDraftTheme} waits one frame first.
@@ -56,16 +56,16 @@ const fakeSocket = (): { socket: Connection; setState: ReturnType<typeof vi.fn> 
 };
 
 interface HostProps {
-    /** Whether the palette entry (button + panel) is mounted at all. */
+    /** Whether the panel's root is mounted at all. */
     mounted: boolean;
     socket: Connection;
 }
 
-/** Mirrors ThemeWizardButton: the panel opens once and closes through its own onClose. */
+/** Mirrors the studio host: the panel mounts once and unmounts through its own onClose. */
 const Host: FC<HostProps> = ({ mounted, socket }) => {
     const [open, setOpen] = useState(true);
-    return mounted
-        ? createElement(ThemeStudioPanel, { open, onClose: () => setOpen(false), socket, themeType: 'light' })
+    return mounted && open
+        ? createElement(ThemeStudioPanel, { onClose: () => setOpen(false), socket, themeType: 'light' })
         : null;
 };
 

@@ -7,8 +7,9 @@
  * seed and load, the live canvas preview through the draft store, dirty, save, discard and the
  * end invariant (session ends ⇒ the draft leaves the canvas) — is the
  * {@link module:ThemeConfigWizard/useStudioSession.useStudioSession} Studio session. The
- * session body mounts while `open` and unmounts on close, so every open starts fresh (all
- * sections collapsed). Closing discards the draft (canvas snaps back), with a confirm when
+ * panel runs in its own React root outside the widget palette
+ * ({@link module:ThemeConfigWizard/studioHost}), mounted on open and unmounted on close, so
+ * every open starts fresh (all sections collapsed). Closing discards the draft (canvas snaps back), with a confirm when
  * there are unsaved changes; Save persists it and the per-widget save handoff retires it.
  *
  * ADR-0020 chrome:
@@ -78,8 +79,6 @@ export const STUDIO_GEOMETRY_KEY = 'vis-2-widgets-collection:theme-studio:geomet
 
 /** Props for {@link ThemeStudioPanel}. */
 interface ThemeStudioPanelProps {
-    /** Whether the panel is open. */
-    open: boolean;
     /** Callback when the panel should close (after draft handling is done). */
     onClose: () => void;
     /** ioBroker socket connection for reading/writing the theme state. */
@@ -134,19 +133,11 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
 const formatIssue = (issue: ThemeValidationIssue): string =>
     issue.code && VALIDATION_CODE_KEYS[issue.code] ? Generic.t(VALIDATION_CODE_KEYS[issue.code]) : issue.message;
 
-/** Props of the session body (mounted only while the panel is open). */
-type StudioPanelBodyProps = Omit<ThemeStudioPanelProps, 'open'>;
-
 /**
- * Floating panel component for editing the theme with live preview: the session body mounts
- * while open, so closing ends the Studio session and every open starts a fresh one.
+ * The panel chrome around one Studio session: mounting starts the session, unmounting ends it
+ * (the studio host mounts the panel on open and unmounts it on close).
  */
-function ThemeStudioPanel({ open, ...props }: ThemeStudioPanelProps): React.JSX.Element | null {
-    return open ? <StudioPanelBody {...props} /> : null;
-}
-
-/** The panel chrome around one Studio session. */
-function StudioPanelBody({ onClose, socket, themeType }: StudioPanelBodyProps): React.JSX.Element {
+function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps): React.JSX.Element {
     const session = useStudioSession(socket);
     const { draft: themeObj, validation, dirty, loading, saving } = session;
     const { edit, apply, discard, save } = session;
@@ -337,9 +328,6 @@ function StudioPanelBody({ onClose, socket, themeType }: StudioPanelBodyProps): 
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 1300,
-                    // The panel renders inside the palette DOM, whose ancestor sets an inline
-                    // `text-align: center` that every label would otherwise inherit.
-                    textAlign: 'start',
                     // No hover-transition fight while a grip streams sizes.
                     transition: activeDrag ? 'none' : undefined,
                 }}

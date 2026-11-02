@@ -3,11 +3,12 @@
  *
  * @module lib/theme/draftThemeStore
  * @remarks
- * The studio panel (mounted via vis-2's `customPalette` in the palette pane) and
- * the per-widget {@link module:components/CollectionProvider.CollectionProvider}s
- * (one per canvas widget) live in DIFFERENT React subtrees — vis-2 owns the whole
- * editor tree above both, so there is no shared provider the panel could use to
- * push its in-memory draft to the widgets via React context. This singleton
+ * The studio panel (its own React root under `document.body`, opened from vis-2's
+ * `customPalette` button — {@link module:ThemeConfigWizard/studioHost}) and the
+ * per-widget {@link module:components/CollectionProvider.CollectionProvider}s
+ * (one per canvas widget) live in DIFFERENT React trees, so there is no shared
+ * provider the panel could use to push its in-memory draft to the widgets via
+ * React context. This singleton
  * bridges that gap: the panel's Studio session
  * ({@link module:ThemeConfigWizard/useStudioSession}) writes the draft here; the shared
  * {@link module:hooks/useCollectionTheme.useCollectionTheme} hook reads it
