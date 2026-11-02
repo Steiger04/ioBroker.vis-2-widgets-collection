@@ -5,14 +5,14 @@
  */
 
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
-import useElementDimensions from '../hooks/useElementDimensions';
+import useContentBox from '../hooks/useContentBox';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -22,13 +22,52 @@ import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrom
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
+import type { MenuChromeInput, SelectChromeInput } from './chrome';
+
+/** Props for {@link BoundedSelect}: the field, and its Select-Chrome inputs without the width. */
+interface BoundedSelectProps {
+    /** MUI's value: the 0-based entry index, '' for "nothing selected". */
+    value: number | '';
+    onChange: (event: SelectChangeEvent<string | number>) => void;
+    disabled: boolean;
+    /** The popup's chrome inputs ({@link buildMenuChrome}); the width comes from the Content-Box. */
+    menuChrome: Omit<MenuChromeInput, 'width'>;
+    /** The field's chrome inputs ({@link buildSelectChrome}); the width comes from the Content-Box. */
+    fieldChrome: Omit<SelectChromeInput, 'width'>;
+    /** The menu entries. */
+    children: React.ReactNode;
+}
+
+/**
+ * The select field and its popup, bounded by the frame's Content-Box (ADR-0098) — a child of
+ * CollectionBase, where the box is published; `undefined` until the first measurement.
+ */
+function BoundedSelect({
+    value,
+    onChange,
+    disabled,
+    menuChrome,
+    fieldChrome,
+    children,
+}: BoundedSelectProps): React.ReactElement {
+    const { width } = useContentBox();
+
+    return (
+        <Select
+            variant="standard"
+            disableUnderline
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+            MenuProps={buildMenuChrome({ ...menuChrome, width })}
+            sx={buildSelectChrome({ ...fieldChrome, width })}
+        >
+            {children}
+        </Select>
+    );
+}
 
 function SelectCollection(): React.ReactElement {
-    // Callback ref: the element lands in state on mount, so the measurement starts at once
-    // instead of waiting for a later re-render to read a filled ref.
-    const [contentRef, setContentRef] = useState<HTMLDivElement | null>(null);
-    const { width } = useElementDimensions(contentRef);
-
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget, theme } = context;
     const { borderStyles, textStyles } = useStyles(widget.style);
@@ -76,7 +115,6 @@ function SelectCollection(): React.ReactElement {
             />
 
             <Box
-                ref={setContentRef}
                 sx={{
                     width: '100%',
                     height: '100%',
@@ -85,28 +123,24 @@ function SelectCollection(): React.ReactElement {
                     alignItems: 'center',
                 }}
             >
-                <Select
-                    variant="standard"
-                    disableUnderline
+                <BoundedSelect
                     // MUI's value is the 0-based entry index = the active list position;
                     // '' is its "nothing selected".
                     value={activePosition ?? ''}
                     onChange={changeHandler}
                     disabled={readOnly}
                     // Select-Chrome: the popup follows the EXPLICIT noCard, never wrappedContent.
-                    MenuProps={buildMenuChrome({
-                        width,
+                    menuChrome={{
                         noCard: widget.data.noCard,
                         frameBackground: data.frameBackground,
                         borderStyles,
-                    })}
-                    sx={buildSelectChrome({
-                        width,
+                    }}
+                    fieldChrome={{
                         arrowColor: widget.data.arrowColor,
                         textColor: data.textColor,
                         textStyles,
                         theme,
-                    })}
+                    }}
                 >
                     {states.map((state, index) => (
                         <MenuItem
@@ -154,7 +188,7 @@ function SelectCollection(): React.ReactElement {
                             </Stack>
                         </MenuItem>
                     ))}
-                </Select>
+                </BoundedSelect>
             </Box>
         </CollectionBase>
     );
