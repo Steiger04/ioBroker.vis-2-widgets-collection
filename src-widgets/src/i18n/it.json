@@ -1196,7 +1196,6 @@
     "theme_studio_group_status": "Colori di stato",
     "theme_studio_group_surface": "Superfici",
     "theme_studio_group_text": "Testo",
-    "theme_studio_help_css_vars": "Genera una variabile CSS per ogni valore del tema (es. --mui-palette-primary-main) che puoi usare nel tuo CSS, più modalità chiara/scura reale tramite color-scheme. Necessario solo se vuoi fare riferimento ai colori del tema come variabili CSS.",
     "theme_studio_help_fonts": "Fonti dei font — Inclusi: forniti con la raccolta, sempre disponibili e coerenti (anche offline). Di sistema: installati sul dispositivo di visualizzazione; nessun costo di bundle ma la resa varia per dispositivo. Google: caricati una volta e incorporati. Personalizzati: qualsiasi nome di font CSS (es. un font installato localmente non in elenco).",
     "theme_studio_help_spacing": "Fattore di spaziatura di MUI (predefinito 8). Controlla tutti i padding, i gap e i margini dei componenti MUI — più alto significa una spaziatura più generosa.",
     "theme_studio_mode_follows": "segue l'host",
@@ -1328,5 +1327,7 @@
     "theme_studio_corners_unlink": "Imposta gli angoli singolarmente",
     "theme_wizard_reset": "Ripristina tutto ai valori predefiniti",
     "echarts_editor_reset": "Reimposta",
-    "theme_studio_help_weights": "Imposta lo spessore del carattere usato dai widget per i ruoli Light, Regular, Medium e Bold."
+    "theme_studio_help_weights": "Imposta lo spessore del carattere usato dai widget per i ruoli Light, Regular, Medium e Bold.",
+    "theme_studio_help_css_vars": "Espone ogni valore del tema come variabile CSS (prefisso predefinito --vis2c, ad es. --vis2c-palette-primary-main) — per il tuo CSS in vis-2. Non necessario senza CSS personalizzato.",
+    "theme_studio_valid_css_var_prefix": "il prefisso mui è riservato alle variabili proprie dell'editor vis-2 — scegline un altro o lascialo vuoto (predefinito vis2c)"
 }

@@ -1196,7 +1196,6 @@
     "theme_studio_group_status": "状态颜色",
     "theme_studio_group_surface": "表面",
     "theme_studio_group_text": "文本",
-    "theme_studio_help_css_vars": "为每个主题值生成 CSS 变量（例如 --mui-palette-primary-main），您可以在自己的 CSS 中使用，同时通过 color-scheme 实现真正的浅色/深色切换。仅当您需要将主题颜色作为 CSS 变量引用时才需要。",
     "theme_studio_help_fonts": "字体来源 — 内置：随合集一起提供，始终可用且一致（即使离线）。系统：安装在查看设备上；无打包成本但渲染效果因设备而异。Google：加载一次后嵌入。自定义：任意 CSS 字体名称（例如列表之外的本地安装字体）。",
     "theme_studio_help_spacing": "MUI 的间距因子（默认为 8）。控制 MUI 组件的所有内边距、间距和外边距 — 值越大间距越宽。",
     "theme_studio_mode_follows": "跟随宿主",
@@ -1328,5 +1327,7 @@
     "theme_studio_corners_unlink": "单独设置各角",
     "theme_wizard_reset": "全部重置为默认值",
     "echarts_editor_reset": "重置",
-    "theme_studio_help_weights": "设置部件在 Light、Regular、Medium 和 Bold 角色下使用的字体粗细。"
+    "theme_studio_help_weights": "设置部件在 Light、Regular、Medium 和 Bold 角色下使用的字体粗细。",
+    "theme_studio_help_css_vars": "将每个主题值公开为 CSS 变量（默认前缀 --vis2c，例如 --vis2c-palette-primary-main）— 用于在 vis-2 中编写您自己的 CSS。若无自定义 CSS 则无需此功能。",
+    "theme_studio_valid_css_var_prefix": "前缀 mui 已保留给 vis-2 编辑器自身的变量使用 — 请选择其他前缀或留空（默认为 vis2c）"
 }

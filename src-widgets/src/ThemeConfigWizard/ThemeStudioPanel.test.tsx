@@ -397,6 +397,15 @@ describe('ThemeStudioPanel field errors', () => {
         expect(fieldsWithError()).toEqual(['theme_wizard_palette_primary']);
         expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
     });
+
+    it('reports the CSS variables prefix mui, reserved by the vis-2 editor, as a problem', async () => {
+        await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } } as UserTheme);
+        const alert = document.body.querySelector('.MuiAlert-standardError');
+        expect(alert?.textContent).toContain('cssVariables.cssVarPrefix: theme_studio_valid_css_var_prefix');
+        expect(document.body.querySelector('button.MuiButton-colorError')?.textContent).toBe(
+            'theme_studio_problems_one',
+        );
+    });
 });
 
 describe('ThemeStudioPanel hex input', () => {

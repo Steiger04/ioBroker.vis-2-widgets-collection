@@ -1196,7 +1196,6 @@
     "theme_studio_group_status": "Statuskleuren",
     "theme_studio_group_surface": "Oppervlakken",
     "theme_studio_group_text": "Tekst",
-    "theme_studio_help_css_vars": "Genereert een CSS-variabele voor elke themawaarde (bijv. --mui-palette-primary-main) die je in je eigen CSS kunt gebruiken, plus echt licht/donker via color-scheme. Alleen nodig als je themakleuren als CSS-variabelen wilt gebruiken.",
     "theme_studio_help_fonts": "Lettertypebronnen — Gebundeld: meegeleverd met de collectie, altijd beschikbaar en consistent (zelfs offline). Systeem: geïnstalleerd op het weergaveapparaat; geen bundelkosten maar weergave varieert per apparaat. Google: eenmaal geladen en ingesloten. Aangepast: elke CSS-lettertypenaam (bijv. een lokaal geïnstalleerd lettertype buiten de lijst).",
     "theme_studio_help_spacing": "MUI's afstandsfactor (standaard 8). Bepaalt alle padding, tussenruimtes en marges van MUI-componenten — hoger betekent ruimere afstanden.",
     "theme_studio_mode_follows": "volgt host",
@@ -1328,5 +1327,7 @@
     "theme_studio_corners_unlink": "Hoeken afzonderlijk instellen",
     "theme_wizard_reset": "Alles terugzetten naar standaard",
     "echarts_editor_reset": "Opnieuw instellen",
-    "theme_studio_help_weights": "Stelt in welk lettergewicht de widgets gebruiken voor de rollen Light, Regular, Medium en Bold."
+    "theme_studio_help_weights": "Stelt in welk lettergewicht de widgets gebruiken voor de rollen Light, Regular, Medium en Bold.",
+    "theme_studio_help_css_vars": "Maakt elke themawaarde beschikbaar als CSS-variabele (standaard prefix --vis2c, bijv. --vis2c-palette-primary-main) — voor uw eigen CSS in vis-2. Niet nodig zonder custom CSS.",
+    "theme_studio_valid_css_var_prefix": "het prefix mui is gereserveerd voor de eigen variabelen van de vis-2-editor — kies een andere of laat het leeg (standaard vis2c)"
 }

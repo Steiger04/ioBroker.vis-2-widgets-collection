@@ -111,4 +111,24 @@ describe('validateDraft', () => {
             ['palette.info.main', 'uncomputable-color'],
         ]);
     });
+    // The vis-2 editor owns `--mui-*` on `:root` (spec B17).
+    it('rejects the CSS variables prefix mui, reserved by the vis-2 editor', () => {
+        const result = validateDraft({ cssVariables: { cssVarPrefix: 'mui' } } as UserTheme);
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toEqual([
+            expect.objectContaining({
+                path: 'cssVariables.cssVarPrefix',
+                severity: 'error',
+                code: 'reserved-css-var-prefix',
+            }),
+        ]);
+    });
+
+    it.each<[string, UserTheme]>([
+        ['cssVariables: true', { cssVariables: true } as UserTheme],
+        ['an own prefix', { cssVariables: { cssVarPrefix: 'my' } } as UserTheme],
+        ['the default prefix vis2c', { cssVariables: { cssVarPrefix: 'vis2c' } } as UserTheme],
+    ])('accepts %s', (_label, draft) => {
+        expect(validateDraft(draft).isValid).toBe(true);
+    });
 });

@@ -8,7 +8,7 @@
  * the split the echarts editor lifecycle uses (`lifecycleGuards`, ADR-0048).
  */
 
-import { uncomputableColorIssues } from '../lib/theme/resolveCollectionTheme';
+import { reservedCssVarPrefixIssues, uncomputableColorIssues } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 
@@ -36,21 +36,22 @@ export const canSave = ({ valid, dirty, saving }: { valid: boolean; dirty: boole
     valid && dirty && !saving;
 
 /**
- * Validates a draft: the theme schema plus the colours the canvas resolution would drop although
- * the schema accepts them (an accent `main` MUI cannot compute with). A value the canvas
- * silently replaces by the inherited colour must not pass as valid — it shows at its field and
- * blocks Save. Stricter than the runtime on purpose: a stored theme with such a colour still
- * loads (the field inherits there), the studio only refuses to save one.
+ * Validates a draft: the theme schema plus the values the canvas resolution would replace
+ * although the schema accepts them — an accent `main` MUI cannot compute with (the field
+ * inherits) and the CSS-variables prefix `mui`, owned by the vis-2 editor (the collection uses
+ * `vis2c` instead). A value the canvas silently replaces must not pass as valid — it shows as an
+ * error and blocks Save. Stricter than the runtime on purpose: a stored theme with such a value
+ * still loads (the resolution replaces it there), the studio only refuses to save one.
  *
  * @param draft - The current draft.
  */
 export function validateDraft(draft: UserTheme): ThemeValidationResult {
     const schema = validateThemeOptions(draft);
-    const uncomputable = uncomputableColorIssues(draft);
-    if (uncomputable.length === 0) {
+    const replaced = [...uncomputableColorIssues(draft), ...reservedCssVarPrefixIssues(draft)];
+    if (replaced.length === 0) {
         return schema;
     }
-    return { isValid: false, issues: [...schema.issues, ...uncomputable] };
+    return { isValid: false, issues: [...schema.issues, ...replaced] };
 }
 
 /**

@@ -240,3 +240,32 @@ describe('resolveCollectionTheme — the effective colour', () => {
         expect(theme.palette.success.main).toBe('#00aa00');
     });
 });
+
+describe('resolveCollectionTheme — CSS variables prefix (spec B17)', () => {
+    // The vis-2 editor owns `--mui-*` on `:root`; the collection's variables must not collide.
+    const host = createTheme({ palette: { primary: { main: '#137BF8' } } });
+    const primaryVar = (userTheme: UserTheme): string | undefined =>
+        // `vars` exists only on a CSS-variables theme (MUI types it on CssVarsTheme).
+        (resolveCollectionTheme(host, undefined, userTheme) as Theme & { vars?: { palette: Theme['palette'] } }).vars
+            ?.palette.primary.main;
+
+    it.each<[string, UserTheme]>([
+        ['cssVariables: true', { cssVariables: true } as UserTheme],
+        ['an object without prefix', { cssVariables: {} } as UserTheme],
+        ['an empty prefix', { cssVariables: { cssVarPrefix: '' } } as UserTheme],
+        ['the reserved prefix mui', { cssVariables: { cssVarPrefix: 'mui' } } as UserTheme],
+    ])('names the variables --vis2c-* for %s', (_label, userTheme) => {
+        // MUI appends the resolved value as fallback: `var(--vis2c-palette-primary-main, #…)`.
+        expect(primaryVar(userTheme)).toMatch(/^var\(--vis2c-palette-primary-main[,)]/);
+    });
+
+    it('keeps an own prefix', () => {
+        expect(primaryVar({ cssVariables: { cssVarPrefix: 'my' } } as UserTheme)).toMatch(
+            /^var\(--my-palette-primary-main[,)]/,
+        );
+    });
+
+    it('creates no variables while they are off', () => {
+        expect(primaryVar({})).toBeUndefined();
+    });
+});

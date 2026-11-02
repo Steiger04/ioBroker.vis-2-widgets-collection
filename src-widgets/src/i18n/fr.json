@@ -1196,7 +1196,6 @@
     "theme_studio_group_status": "Couleurs de statut",
     "theme_studio_group_surface": "Surfaces",
     "theme_studio_group_text": "Texte",
-    "theme_studio_help_css_vars": "Génère une variable CSS pour chaque valeur de thème (ex. --mui-palette-primary-main) que vous pouvez utiliser dans votre propre CSS, plus un vrai mode clair/sombre via color-scheme. Uniquement nécessaire si vous souhaitez référencer les couleurs du thème comme variables CSS.",
     "theme_studio_help_fonts": "Sources de polices — Intégrées : livrées avec la collection, toujours disponibles et cohérentes (même hors ligne). Système : installées sur l'appareil d'affichage ; aucun coût d'intégration mais le rendu varie selon l'appareil. Google : chargées une fois et intégrées. Personnalisées : n'importe quel nom de police CSS (ex. une police installée localement hors de la liste).",
     "theme_studio_help_spacing": "Facteur d'espacement de MUI (par défaut 8). Contrôle tous les paddings, écarts et marges des composants MUI — plus élevé signifie un espacement plus généreux.",
     "theme_studio_mode_follows": "suit l'hôte",
@@ -1328,5 +1327,7 @@
     "theme_studio_corners_unlink": "Définir les coins individuellement",
     "theme_wizard_reset": "Réinitialiser tout par défaut",
     "echarts_editor_reset": "Réinitialiser",
-    "theme_studio_help_weights": "Définit l'épaisseur de police utilisée par les widgets pour les rôles Light, Regular, Medium et Bold."
+    "theme_studio_help_weights": "Définit l'épaisseur de police utilisée par les widgets pour les rôles Light, Regular, Medium et Bold.",
+    "theme_studio_help_css_vars": "Expose chaque valeur de thème sous forme de variable CSS (préfixe par défaut --vis2c, p. ex. --vis2c-palette-primary-main) — pour votre propre CSS dans vis-2. Inutile sans CSS personnalisé.",
+    "theme_studio_valid_css_var_prefix": "le préfixe mui est réservé aux propres variables de l'éditeur vis-2 — choisissez-en un autre ou laissez le champ vide (vis2c par défaut)"
 }

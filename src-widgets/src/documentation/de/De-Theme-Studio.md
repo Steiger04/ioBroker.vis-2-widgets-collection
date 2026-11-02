@@ -66,11 +66,13 @@ Die Zusammenfassungszeile zählt die expliziten Overrides („x von 6 gesetzt").
 
 ## Sektion Erweitert
 
-| Einstellung              | Theme-Pfad                  | Beschreibung                                                                                                                                                                                  |
-| ------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Abstandsfaktor           | `spacing`                   | MUIs Abstandsfaktor (Standard 8) — steuert alle Innenabstände, Lücken und Ränder der Komponenten; höher = großzügiger                                                                         |
-| CSS-Variablen aktivieren | `cssVariables`              | Erzeugt für jeden Theme-Wert eine CSS-Variable (z. B. `--mui-palette-primary-main`) plus echtes Hell/Dunkel über `color-scheme` — nur nötig, wenn eigenes CSS Theme-Farben referenzieren soll |
-| CSS-Variablen-Präfix     | `cssVariables.cssVarPrefix` | Präfix der erzeugten Variablen                                                                                                                                                                |
+| Einstellung              | Theme-Pfad                  | Beschreibung                                                                                                                                    |
+| ------------------------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Abstandsfaktor           | `spacing`                   | MUIs Abstandsfaktor (Standard 8) — steuert alle Innenabstände, Lücken und Ränder der Komponenten; höher = großzügiger                           |
+| CSS-Variablen aktivieren | `cssVariables`              | Stellt jeden Theme-Wert als CSS-Variable bereit (z. B. `--vis2c-palette-primary-main`) — für eigenes CSS in vis-2; ohne eigenes CSS nicht nötig |
+| CSS-Variablen-Präfix     | `cssVariables.cssVarPrefix` | Präfix der erzeugten Variablen; leer = `vis2c`. `mui` ist reserviert (der vis-2-Editor definiert `--mui-*` selbst) und wird abgelehnt           |
+
+Die Variablen liegen auf `:root` und tragen standardmäßig das Präfix `--vis2c`. Frühere Versionen erzeugten `--mui-*` und überschrieben damit die gleichnamigen Variablen des vis-2-Editors — eigenes CSS, das `--mui-palette-…` aus dem Collection-Theme liest, auf `--vis2c-palette-…` umstellen. Das Collection-Theme setzt kein `color-scheme` mehr auf `:root`.
 
 ## Das Theme im Datenpunkt
 

@@ -45,6 +45,16 @@ describe('ErweitertSection CSS variables', () => {
         expect(container.textContent?.split(TEXT)).toHaveLength(2);
         expect(container.querySelector(`[aria-label="${TEXT}"]`)).toBeNull();
     });
+
+    it('shows the default prefix vis2c in the empty prefix field', () => {
+        handle = renderComponent<StudioSectionProps>(ErweitertSection, {
+            theme: { cssVariables: true } as StudioSectionProps['theme'],
+            onChange: () => {},
+            expanded: true,
+        });
+        const input = handle.container.querySelector<HTMLInputElement>('input[type="text"]');
+        expect([input?.value, input?.placeholder]).toEqual(['', 'vis2c']);
+    });
 });
 
 describe('ErweitertSection text direction', () => {

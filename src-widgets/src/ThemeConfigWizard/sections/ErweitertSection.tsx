@@ -20,6 +20,7 @@ import HelpHint from '../../components/HelpHint';
 import SectionCard from '../../components/SectionCard';
 import { InfoBox, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
 import Generic from '../../Generic';
+import { COLLECTION_CSS_VAR_PREFIX } from '../../lib/theme/resolveCollectionTheme';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
 
@@ -80,6 +81,7 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
                         <TextField2
                             label={Generic.t('theme_wizard_css_var_prefix')}
                             value={cssPrefix}
+                            placeholder={COLLECTION_CSS_VAR_PREFIX}
                             onChange={handlePrefixChange}
                         />
                     </Box>

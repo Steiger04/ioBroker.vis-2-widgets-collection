@@ -1196,7 +1196,6 @@
     "theme_studio_group_status": "Kolory statusu",
     "theme_studio_group_surface": "Powierzchnie",
     "theme_studio_group_text": "Tekst",
-    "theme_studio_help_css_vars": "Generuje zmienną CSS dla każdej wartości motywu (np. --mui-palette-primary-main), której możesz użyć we własnym kodzie CSS, a także prawdziwy tryb jasny/ciemny za pomocą color-scheme. Wymagane tylko wtedy, gdy chcesz odwoływać się do kolorów motywu jako zmiennych CSS.",
     "theme_studio_help_fonts": "Źródła czcionek — Wbudowane: dostarczane z kolekcją, zawsze dostępne i spójne (nawet offline). Systemowe: zainstalowane na urządzeniu wyświetlającym; brak kosztów pakietu, ale renderowanie różni się w zależności od urządzenia. Google: ładowane raz i osadzane. Niestandardowe: dowolna nazwa czcionki CSS (np. lokalnie zainstalowana czcionka spoza listy).",
     "theme_studio_help_spacing": "Współczynnik odstępów MUI (domyślnie 8). Kontroluje wszystkie marginesy wewnętrzne, odstępy i marginesy zewnętrzne komponentów MUI — wyższa wartość oznacza większe odstępy.",
     "theme_studio_mode_follows": "zgodny z hostem",
@@ -1328,5 +1327,7 @@
     "theme_studio_corners_unlink": "Ustaw narożniki osobno",
     "theme_wizard_reset": "Przywróć wszystkie domyślne",
     "echarts_editor_reset": "Resetuj",
-    "theme_studio_help_weights": "Ustawia grubość czcionki używaną przez widżety dla ról Light, Regular, Medium i Bold."
+    "theme_studio_help_weights": "Ustawia grubość czcionki używaną przez widżety dla ról Light, Regular, Medium i Bold.",
+    "theme_studio_help_css_vars": "Udostępnia każdą wartość motywu jako zmienną CSS (domyślny prefiks --vis2c, np. --vis2c-palette-primary-main) — dla własnego CSS w vis-2. Niepotrzebne bez własnego CSS.",
+    "theme_studio_valid_css_var_prefix": "prefiks mui jest zarezerwowany dla własnych zmiennych edytora vis-2 — wybierz inny lub pozostaw puste (domyślnie vis2c)"
 }

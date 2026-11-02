@@ -66,11 +66,13 @@ The summary line counts the explicit overrides ("x of 6 set").
 
 ## Advanced section
 
-| Setting              | Theme path                  | Description                                                                                                                                                                     |
-| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Spacing factor       | `spacing`                   | MUI's spacing factor (default 8) — drives every padding, gap and margin of the components; higher = more generous                                                               |
-| Enable CSS variables | `cssVariables`              | Produces a CSS variable for every theme value (e.g. `--mui-palette-primary-main`) plus real light/dark via `color-scheme` — only needed if your own CSS references theme colors |
-| CSS variables prefix | `cssVariables.cssVarPrefix` | prefix of the generated variables                                                                                                                                               |
+| Setting              | Theme path                  | Description                                                                                                                                  |
+| -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spacing factor       | `spacing`                   | MUI's spacing factor (default 8) — drives every padding, gap and margin of the components; higher = more generous                            |
+| Enable CSS variables | `cssVariables`              | Exposes every theme value as a CSS variable (e.g. `--vis2c-palette-primary-main`) — for your own CSS in vis-2; not needed without custom CSS |
+| CSS variables prefix | `cssVariables.cssVarPrefix` | prefix of the generated variables; empty = `vis2c`. `mui` is reserved (the vis-2 editor defines `--mui-*` itself) and rejected               |
+
+The variables live on `:root` and carry the prefix `--vis2c` by default. Earlier versions generated `--mui-*` and thereby overwrote the vis-2 editor's variables of the same name — switch custom CSS that reads `--mui-palette-…` from the collection theme to `--vis2c-palette-…`. The collection theme no longer sets `color-scheme` on `:root`.
 
 ## The theme in the datapoint
 
