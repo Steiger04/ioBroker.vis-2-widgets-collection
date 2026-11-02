@@ -400,6 +400,10 @@ The collection-wide theme editor (ADR-0020): edits the user theme (stored in the
 The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor's theme family (modernDark/modernLight, mirrored locally via the chrome theme since gui-components peers MUI 9; ADR-0038/0078) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
 _Avoid_: Wizard dialog (the deleted modal), theme dialog
 
+**Studio session**:
+One editing run of the Theme Studio, from opening to Save or discard: it owns the draft (seeded from the last known theme, rebased onto the stored theme while untouched), mirrors it to the canvas, knows whether it is dirty, and saves or discards it. Invariant: when the session ends — however it ends — the draft leaves the canvas. It lives independently of the widget palette: collapsing, filtering or hiding the palette, switching views or toggling Run does not end it. Distinguished from the Editor history (the undo stack beneath the draft) and from the per-widget save handoff (each widget retires the draft once the stored theme echoes it).
+_Avoid_: Studio-Sitzung, studio lifecycle, wizard state
+
 **Preset card**:
 A curated theme preset rendered as mini colour swatches (background / paper / primary / secondary) plus a mode icon. The card matching the current palette is marked active.
 _Avoid_: Preset chip (the old blind dot)
