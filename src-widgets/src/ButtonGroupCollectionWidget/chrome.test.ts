@@ -24,7 +24,6 @@ const groupSx = (overrides: Partial<ButtonGroupChromeInput> = {}): Record<string
         variant: 'text',
         orientation: 'horizontal',
         data: {},
-        basePadding: false,
         count: 3,
         theme,
         ...overrides,
@@ -76,11 +75,12 @@ describe('buildGroupChrome — text variant (default)', () => {
     });
 
     it('squares off the rounded ends without basePadding and keeps them with it', () => {
-        const squared = groupSx({ basePadding: false });
-        expect(first(squared).borderRadius).toBe(0);
-        expect(last(squared).borderRadius).toBe(0);
+        for (const squared of [groupSx({ data: {} }), groupSx({ data: { basePadding: 0 } })]) {
+            expect(first(squared).borderRadius).toBe(0);
+            expect(last(squared).borderRadius).toBe(0);
+        }
 
-        const rounded = groupSx({ basePadding: 8 });
+        const rounded = groupSx({ data: { basePadding: 8 } });
         expect(first(rounded).borderRadius).toBeUndefined();
         expect(last(rounded).borderRadius).toBeUndefined();
     });

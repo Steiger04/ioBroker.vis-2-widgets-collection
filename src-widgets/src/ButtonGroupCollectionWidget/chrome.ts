@@ -24,9 +24,15 @@ import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
 import { alphaOf, lightenOf } from '../lib/helper/colorDerivation';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
+import type { BaseFieldsRxData, ButtonGroupFieldsRxData } from '../types';
 
 /** Alpha applied to the separator's resolved colour (explicit value or theme text). */
 const SEPARATOR_ALPHA = 0.6;
+
+/** The widget data the group chrome reads, raw as vis-2 stores it (any key may be missing). */
+export type ButtonGroupChromeData = Readonly<
+    Pick<ButtonGroupFieldsRxData, 'buttonGroupColor'> & Pick<BaseFieldsRxData, 'basePadding'>
+>;
 
 /** Input for {@link buildGroupChrome} — raw rxData fields plus theme and button count. */
 export interface ButtonGroupChromeInput {
@@ -34,10 +40,12 @@ export interface ButtonGroupChromeInput {
     variant: string | undefined;
     /** rxData.buttonGroupOrientation — `'vertical'` stacks and caps the buttons, anything else lays them out horizontally. */
     orientation: string | undefined;
-    /** Widget data (rxData) the separator's colour contract (`buttonGroupColorContract`) resolves over. */
-    data: object;
-    /** rxData.basePadding — truthy keeps the group's rounded ends (borderRadius), falsy squares them off. */
-    basePadding: unknown;
+    /**
+     * Widget data (rxData): the separator's colour contract (`buttonGroupColorContract`)
+     * resolves over it, and a truthy `basePadding` keeps the group's rounded ends
+     * (borderRadius), a falsy one squares them off.
+     */
+    data: ButtonGroupChromeData;
     /** Number of rendered toggle buttons (drives the vertical per-button height cap). May be 0 (rule then matches nothing). */
     count: number;
     /** MUI theme providing the contract's terminal (theme text). */
@@ -54,7 +62,8 @@ export interface ButtonGroupChromeInput {
  * @returns The group's sx object; spread onto `<ToggleButtonGroup sx={…}>`.
  */
 export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
-    const { variant, orientation, data, basePadding, count, theme } = input;
+    const { variant, orientation, data, count, theme } = input;
+    const { basePadding } = data;
 
     const isVertical = orientation === 'vertical';
     const isOutlined = variant === 'outlined';
@@ -65,10 +74,7 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // yields its midpoint; a value without a Repräsentative Vollfarbe counts as
     // unset. No vis-2 style stage (no textStyles): the contract does not
     // inherit it. Only a theme text without a solid colour draws no separator.
-    const separatorColor = alphaOf(
-        resolveEffectiveSolidColor(buttonGroupColorContract, data as Record<string, unknown>, theme),
-        SEPARATOR_ALPHA,
-    );
+    const separatorColor = alphaOf(resolveEffectiveSolidColor(buttonGroupColorContract, data, theme), SEPARATOR_ALPHA);
 
     // Borderless mode: borders fully removed and inset box-shadows used for the
     // separator lines so they stay visible even when buttons have a background
