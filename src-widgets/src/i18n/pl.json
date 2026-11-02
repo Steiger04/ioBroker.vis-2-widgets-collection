@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "użyj tutaj formatu hex, rgb() lub hsl() — widżety nie potrafią przeliczać nazw kolorów ani wartości transparent",
     "theme_studio_corners_unlink": "Ustaw narożniki osobno",
     "theme_wizard_reset": "Przywróć wszystkie domyślne",
-    "echarts_editor_reset": "Resetuj"
+    "echarts_editor_reset": "Resetuj",
+    "theme_studio_help_weights": "Ustawia grubość czcionki używaną przez widżety dla ról Light, Regular, Medium i Bold."
 }

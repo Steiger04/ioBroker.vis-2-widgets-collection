@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "usa qui hex, rgb() o hsl() — i widget non riescono a elaborare i nomi dei colori o transparent",
     "theme_studio_corners_unlink": "Imposta gli angoli singolarmente",
     "theme_wizard_reset": "Ripristina tutto ai valori predefiniti",
-    "echarts_editor_reset": "Reimposta"
+    "echarts_editor_reset": "Reimposta",
+    "theme_studio_help_weights": "Imposta lo spessore del carattere usato dai widget per i ruoli Light, Regular, Medium e Bold."
 }

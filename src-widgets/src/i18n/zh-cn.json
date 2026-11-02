@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "请在此处使用 hex、rgb() 或 hsl() —— 小组件无法使用颜色名称或 transparent 进行计算",
     "theme_studio_corners_unlink": "单独设置各角",
     "theme_wizard_reset": "全部重置为默认值",
-    "echarts_editor_reset": "重置"
+    "echarts_editor_reset": "重置",
+    "theme_studio_help_weights": "设置部件在 Light、Regular、Medium 和 Bold 角色下使用的字体粗细。"
 }

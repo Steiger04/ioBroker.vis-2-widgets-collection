@@ -11,7 +11,8 @@
  * writes inside a rAF flush, so every assertion on {@link getDraftTheme} waits one frame first.
  * The colour swatches show the effective colour: the shared resolution against the chrome
  * theme, which stands in for the editor theme the canvas widgets receive (glossary
- * "Effektive Farbe").
+ * "Effektive Farbe"). Font and corner changes run through the real session history, so undo
+ * and reset are observed exactly as the user sees them.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -28,7 +29,16 @@ import { act, createElement, useState, type FC } from 'react';
 import { createTheme } from '@mui/material';
 import type { Connection } from '@iobroker/adapter-react-v5';
 
+import type * as GoogleFonts from '../lib/theme/googleFonts';
+
+// Google Fonts load over the network — stand in one face per requested family.
+vi.mock('../lib/theme/googleFonts', async importOriginal => ({
+    ...(await importOriginal<typeof GoogleFonts>()),
+    loadGoogleFont: vi.fn((name: string) => Promise.resolve([{ weight: 400, data: `data:font/woff2;base64,${name}` }])),
+}));
+
 import { createChromeTheme } from '../lib/theme/chromeTheme';
+import { BUNDLED_FONTS, CUSTOM_FONT_VALUE } from '../lib/theme/fontCatalogue';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
 import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import { THEME_PRESETS, applyPreset } from '../lib/theme/presets';
@@ -483,5 +493,157 @@ describe('ThemeStudioPanel problem counter', () => {
     it('uses the plural with the count for two problems', async () => {
         await mountPanel({ corners: { topLeft: -1, topRight: -1 } });
         expect(counter()).toBe('theme_studio_problems(2)');
+    });
+});
+
+describe('ThemeStudioPanel fonts and corners follow the draft', () => {
+    const INTER = BUNDLED_FONTS[0];
+    const LATO_FACES = [{ weight: 400, data: 'data:font/woff2;base64,Lato' }];
+
+    /** Expands the typography section (collapsed on open). */
+    const expandTypography = (): Promise<void> => expandSections('theme_studio_section_schrift_form');
+
+    /** The text input captioned `label` (a TextField2: caption box above the MUI field). */
+    const textInput = (label: string): HTMLInputElement | undefined =>
+        Array.from(document.body.querySelectorAll<HTMLInputElement>('input[type="text"]')).find(
+            input => input.closest('.MuiFormControl-root')?.parentElement?.firstElementChild?.textContent === label,
+        );
+
+    /** Types a value like a user would: React listens to the native input event. */
+    const type = (input: HTMLInputElement, value: string): void => {
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+    };
+
+    const undo = async (): Promise<void> => {
+        const undoButton = document.body.querySelector<HTMLButtonElement>('button[aria-label="theme_studio_undo"]');
+        act(() => undoButton?.click());
+        await settle();
+    };
+
+    /** The closed font-family select's displayed text. */
+    const selectedFont = (): string | null | undefined =>
+        document.body.querySelector('[data-studio-section="typography"] .MuiSelect-select')?.textContent;
+
+    const loadGoogleFontNamed = async (name: string): Promise<void> => {
+        type(textInput('theme_wizard_typography_google_font_hint')!, name);
+        await act(async () => {
+            button('theme_wizard_typography_google_font_load').click();
+            await Promise.resolve();
+        });
+        await settle();
+    };
+
+    it('loads a Google Font as one undo step', async () => {
+        const seed: UserTheme = { typography: { fontFamily: INTER.value } };
+        await mountPanel(seed);
+        await expandTypography();
+
+        await loadGoogleFontNamed('Lato');
+        expect(getDraftTheme()).toEqual({
+            typography: { fontFamily: "'Lato', sans-serif" },
+            googleFonts: { Lato: LATO_FACES },
+        });
+
+        await undo();
+        expect(getDraftTheme()).toEqual(seed);
+        expect(selectedFont()).toBe(INTER.label);
+    });
+
+    it('resets the font family together with the deleted Google Font it points to', async () => {
+        await mountPanel({ typography: { fontFamily: "'Lato', sans-serif" }, googleFonts: { Lato: LATO_FACES } });
+        await expandTypography();
+
+        const chip = Array.from(document.body.querySelectorAll<HTMLElement>('.MuiChip-root')).find(
+            element => element.textContent === 'Lato',
+        );
+        act(() => {
+            chip?.querySelector<SVGElement>('.MuiChip-deleteIcon')?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+            );
+        });
+        await settle();
+        expect(getDraftTheme()).toEqual({});
+        expect(selectedFont()).toBe('theme_wizard_typography_font_family_default');
+    });
+
+    it('keeps the font family when the deleted Google Font is another one', async () => {
+        await mountPanel({
+            typography: { fontFamily: "'Lato', sans-serif" },
+            googleFonts: { Lato: LATO_FACES, Oswald: LATO_FACES },
+        });
+        await expandTypography();
+
+        const chip = Array.from(document.body.querySelectorAll<HTMLElement>('.MuiChip-root')).find(
+            element => element.textContent === 'Oswald',
+        );
+        act(() => {
+            chip?.querySelector<SVGElement>('.MuiChip-deleteIcon')?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+            );
+        });
+        await settle();
+        expect(getDraftTheme()).toEqual({
+            typography: { fontFamily: "'Lato', sans-serif" },
+            googleFonts: { Lato: LATO_FACES },
+        });
+    });
+
+    it('shows the catalogue entry again after undoing a switch to a custom font', async () => {
+        await mountPanel({ typography: { fontFamily: INTER.value } });
+        await expandTypography();
+
+        const combobox = document.body.querySelector<HTMLElement>(
+            '[data-studio-section="typography"] [role="combobox"]',
+        );
+        act(() => {
+            combobox?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+        });
+        const customOption = document.body.querySelector<HTMLElement>(`li[data-value="${CUSTOM_FONT_VALUE}"]`);
+        act(() => customOption?.click());
+        await settle();
+        type(textInput('theme_wizard_typography_font_family_custom')!, 'Comic Sans MS, cursive');
+        await settle();
+        expect(getNestedValue<string>(getDraftTheme(), 'typography.fontFamily')).toBe('Comic Sans MS, cursive');
+
+        await undo();
+        expect(getNestedValue<string>(getDraftTheme(), 'typography.fontFamily')).toBe(INTER.value);
+        expect(selectedFont()).toBe(INTER.label);
+        expect(textInput('theme_wizard_typography_font_family_custom')).toBeUndefined();
+    });
+
+    /** The corner link toggle (the button carrying the link / link-off icon). */
+    const linkToggle = (): HTMLButtonElement | null | undefined =>
+        document.body
+            .querySelector('[data-testid="LinkIcon"], [data-testid="LinkOffIcon"]')
+            ?.closest<HTMLButtonElement>('button');
+
+    it('never shows unequal corners as linked: linking evens them, undo unlinks again', async () => {
+        const corners = { topLeft: 2, topRight: 6, bottomRight: 6, bottomLeft: 6 };
+        await mountPanel({ corners });
+        await expandTypography();
+        expect(linkToggle()?.getAttribute('aria-pressed')).toBe('false');
+
+        act(() => linkToggle()?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual({ corners: { topLeft: 2, topRight: 2, bottomRight: 2, bottomLeft: 2 } });
+        expect(linkToggle()?.getAttribute('aria-pressed')).toBe('true');
+
+        await undo();
+        expect(getDraftTheme()).toEqual({ corners });
+        expect(linkToggle()?.getAttribute('aria-pressed')).toBe('false');
+        expect(document.body.querySelector('[data-corner-grid]')).not.toBeNull();
+    });
+
+    it('links the corners again when a reset evens them', async () => {
+        await mountPanel({ corners: { topLeft: 2, topRight: 6, bottomRight: 6, bottomLeft: 6 } });
+        await expandTypography();
+        expect(linkToggle()?.getAttribute('aria-pressed')).toBe('false');
+
+        act(() => button('theme_wizard_reset').click());
+        await settle();
+        expect(linkToggle()?.getAttribute('aria-pressed')).toBe('true');
     });
 });

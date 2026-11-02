@@ -416,6 +416,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                                 <TypographySection
                                     theme={themeObj}
                                     onChange={handleChange}
+                                    onApply={apply}
                                     {...sectionProps('typography')}
                                 />
                             </Box>

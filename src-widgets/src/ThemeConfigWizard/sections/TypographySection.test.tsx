@@ -5,7 +5,9 @@
  * @remarks
  * Without `typography.fontFamily` the default entry (value `''`) is active; the closed select
  * must still show its label instead of rendering empty. The corner radius is one slider while
- * linked and a 2x2 grid of bounded number fields while unlinked.
+ * linked and a 2x2 grid of bounded number fields while unlinked. The fine-tuning weights carry
+ * a help hint. Undo-related behaviour (one step per font change, state derived from the draft)
+ * is pinned with the real session in ThemeStudioPanel.test.tsx.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -22,10 +24,10 @@ import { act } from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
 import { CORNER_RADIUS_MAX } from '../../lib/theme/themeUtils';
-import type { StudioSectionProps } from '../../lib/theme/themeTypes';
+import type { TypographySectionProps } from './TypographySection';
 import TypographySection from './TypographySection';
 
-let handle: RenderComponentHandle<StudioSectionProps> | null = null;
+let handle: RenderComponentHandle<TypographySectionProps> | null = null;
 
 afterEach(() => {
     handle?.unmount();
@@ -34,9 +36,10 @@ afterEach(() => {
 
 describe('TypographySection font family', () => {
     it('shows the default label in the closed select when no font family is set', () => {
-        const mounted = renderComponent<StudioSectionProps>(TypographySection, {
+        const mounted = renderComponent<TypographySectionProps>(TypographySection, {
             theme: {},
             onChange: () => {},
+            onApply: () => {},
             expanded: true,
         });
         handle = mounted;
@@ -49,10 +52,15 @@ describe('TypographySection font family', () => {
 describe('TypographySection corner radii', () => {
     /** Mounts the expanded section over `theme`; returns the container and the change spy. */
     const mount = (
-        theme: StudioSectionProps['theme'],
+        theme: TypographySectionProps['theme'],
     ): { container: HTMLElement; onChange: ReturnType<typeof vi.fn> } => {
         const onChange = vi.fn();
-        handle = renderComponent<StudioSectionProps>(TypographySection, { theme, onChange, expanded: true });
+        handle = renderComponent<TypographySectionProps>(TypographySection, {
+            theme,
+            onChange,
+            onApply: vi.fn(),
+            expanded: true,
+        });
         return { container: handle.container, onChange };
     };
 
@@ -138,17 +146,32 @@ describe('TypographySection corner radii', () => {
 });
 
 describe('TypographySection fine-tuning', () => {
-    it('shows the weights hint as an info box', () => {
-        handle = renderComponent<StudioSectionProps>(TypographySection, {
+    /** Mounts the expanded section and opens the fine-tuning disclosure. */
+    const openFineTuning = (): HTMLElement => {
+        handle = renderComponent<TypographySectionProps>(TypographySection, {
             theme: {},
             onChange: () => {},
+            onApply: () => {},
             expanded: true,
         });
         const disclosure = Array.from(handle.container.querySelectorAll('button')).find(
             element => element.textContent === 'theme_studio_feintuning',
         );
         act(() => disclosure?.click());
-        const hint = Array.from(handle.container.querySelectorAll('[data-info-box]')).map(box => box.textContent);
+        return handle.container;
+    };
+
+    it('shows the weights hint as an info box', () => {
+        const container = openFineTuning();
+        const hint = Array.from(container.querySelectorAll('[data-info-box]')).map(box => box.textContent);
         expect(hint).toEqual(['theme_studio_feintuning_hint']);
+    });
+
+    it('explains the weight roles with a help hint at the weights group', () => {
+        const container = openFineTuning();
+        const help = container.querySelector('button[aria-label="theme_studio_help_weights"]');
+        expect(help).not.toBeNull();
+        // The hint sits beside the weight selects, not elsewhere in the section.
+        expect(help?.closest('[data-weights-group]')?.textContent).toContain('theme_wizard_typography_weight_light');
     });
 });

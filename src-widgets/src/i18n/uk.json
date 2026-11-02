@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "використовуйте тут hex, rgb() або hsl() — віджети не можуть виконувати обчислення з назвами кольорів або transparent",
     "theme_studio_corners_unlink": "Налаштувати кути окремо",
     "theme_wizard_reset": "Скинути все до типових значень",
-    "echarts_editor_reset": "Скинути"
+    "echarts_editor_reset": "Скинути",
+    "theme_studio_help_weights": "Визначає товщину шрифту, яку віджети використовують для ролей Light, Regular, Medium і Bold."
 }

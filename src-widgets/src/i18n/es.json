@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "usa hex, rgb() o hsl() aquí — los widgets no pueden calcular con nombres de colores ni transparent",
     "theme_studio_corners_unlink": "Establecer esquinas individualmente",
     "theme_wizard_reset": "Restablecer todo a los valores predeterminados",
-    "echarts_editor_reset": "Restablecer"
+    "echarts_editor_reset": "Restablecer",
+    "theme_studio_help_weights": "Define qué peso de fuente usan los widgets para los roles Light, Regular, Medium y Bold."
 }

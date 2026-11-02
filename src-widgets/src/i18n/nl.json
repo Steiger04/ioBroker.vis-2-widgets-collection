@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "gebruik hier hex, rgb() of hsl() — de widgets kunnen niet rekenen met kleurnamen of transparent",
     "theme_studio_corners_unlink": "Hoeken afzonderlijk instellen",
     "theme_wizard_reset": "Alles terugzetten naar standaard",
-    "echarts_editor_reset": "Opnieuw instellen"
+    "echarts_editor_reset": "Opnieuw instellen",
+    "theme_studio_help_weights": "Stelt in welk lettergewicht de widgets gebruiken voor de rollen Light, Regular, Medium en Bold."
 }

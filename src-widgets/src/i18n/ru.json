@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "используйте здесь hex, rgb() или hsl() — виджеты не могут работать с названиями цветов или значением transparent",
     "theme_studio_corners_unlink": "Настроить углы по отдельности",
     "theme_wizard_reset": "Сбросить все до значений по умолчанию",
-    "echarts_editor_reset": "Сбросить"
+    "echarts_editor_reset": "Сбросить",
+    "theme_studio_help_weights": "Определяет, какую насыщенность шрифта используют виджеты для ролей Light, Regular, Medium и Bold."
 }

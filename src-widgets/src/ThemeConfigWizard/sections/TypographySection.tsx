@@ -10,6 +10,12 @@
  * and the rare knobs (font weights, line height) live behind the "Feintuning" disclosure
  * with a hint that bundled fonts ship real 400/700 faces only (other weights synthesise).
  * Everything sits on the shared control kit (`FieldLabel`, `SliderField`, `FieldGrid`).
+ *
+ * Shown state follows the theme (so it follows undo, reset and presets): the custom-font field
+ * and the corner link are derived from the draft — unequal radii are never shown as linked;
+ * only an explicit "Custom…" pick or unlink click adds UI state on top. Changes spanning
+ * several paths (Google Font faces + the family using them) go through `onApply` as ONE undo
+ * step.
  */
 
 import DownloadIcon from '@mui/icons-material/Download';
@@ -56,8 +62,8 @@ import {
     SYSTEM_FONTS,
 } from '../../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
-import type { StudioSectionProps } from '../../lib/theme/themeTypes';
-import { CORNER_RADIUS_MAX, getNestedValue } from '../../lib/theme/themeUtils';
+import type { StudioSectionProps, UserTheme } from '../../lib/theme/themeTypes';
+import { CORNER_RADIUS_MAX, getNestedValue, setNestedValue } from '../../lib/theme/themeUtils';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -80,6 +86,39 @@ const CORNER_FIELDS: ReadonlyArray<{ corner: string; path: string; labelKey: str
     { corner: 'bottomLeft', path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
     { corner: 'bottomRight', path: 'corners.bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
 ];
+
+/** Default radius (px) of a corner without a stored value. */
+const DEFAULT_CORNER_RADIUS = 4;
+
+/** Props of the typography section: the studio section props plus whole-draft transitions. */
+export interface TypographySectionProps extends StudioSectionProps {
+    /**
+     * Applies a whole-draft transformation as ONE undo step — for changes that touch several
+     * paths at once (a Google Font's faces + the family that uses it).
+     */
+    onApply: (next: (prev: UserTheme) => UserTheme) => void;
+}
+
+/** The Google Font family stack written to `typography.fontFamily` for `name`. */
+const googleFontFamily = (name: string): string => `'${name}', sans-serif`;
+
+/**
+ * Whether the font stack `fontFamily` uses the font `name` as its first (primary) family —
+ * quotes and case are irrelevant, as in CSS.
+ */
+function usesFontFirst(fontFamily: string | undefined, name: string): boolean {
+    const first = fontFamily
+        ?.split(',')[0]
+        .trim()
+        .replace(/^(['"])(.*)\1$/, '$2');
+    return first !== undefined && first.toLowerCase() === name.trim().toLowerCase();
+}
+
+/** Whether all four corners share one radius (missing corners count as the default). */
+function cornersAreEven(theme: UserTheme): boolean {
+    const radii = CORNER_FIELDS.map(field => getNestedValue<number>(theme, field.path) ?? DEFAULT_CORNER_RADIUS);
+    return radii.every(radius => radius === radii[0]);
+}
 
 /** One corner's radius as a number field, kept within 0 … {@link CORNER_RADIUS_MAX}. */
 function CornerField({
@@ -118,23 +157,28 @@ function CornerField({
 }
 
 /** Typography & Shape section: font family, base size, corner radius, feintuning. */
-function TypographySection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
+function TypographySection({
+    theme,
+    onChange,
+    onApply,
+    expanded,
+    onExpandedChange,
+}: TypographySectionProps): React.JSX.Element {
     const fontSize = getNestedValue<number>(theme, 'typography.fontSize') ?? 14;
     const fontFamily = getNestedValue<string>(theme, 'typography.fontFamily');
     const lineHeight = getNestedValue<number>(theme, 'typography.allVariants.lineHeight');
-    const [isCustomFont, setIsCustomFont] = useState<boolean>(resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE);
+    // Picking "Custom…" keeps the current family to edit, so the theme alone cannot tell. The
+    // pick is remembered together with the family it was made on; once the family changes
+    // elsewhere (undo, reset, another font) the theme decides again.
+    const [customPick, setCustomPick] = useState<{ fontFamily: string | undefined } | null>(null);
+    const isCustomFont =
+        resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE ||
+        (customPick !== null && customPick.fontFamily === fontFamily);
     // Feintuning disclosure: weights + line height (rare, expert knobs — ADR-0020).
     const [feintuningOpen, setFeintuningOpen] = useState<boolean>(false);
-    // Corner-radius "link" toggle: default on when the four radii are uniform.
-    const [linked, setLinked] = useState<boolean>(() => {
-        const cornerVals = [
-            getNestedValue<number>(theme, 'corners.topLeft') ?? 4,
-            getNestedValue<number>(theme, 'corners.topRight') ?? 4,
-            getNestedValue<number>(theme, 'corners.bottomRight') ?? 4,
-            getNestedValue<number>(theme, 'corners.bottomLeft') ?? 4,
-        ];
-        return cornerVals.every(v => v === cornerVals[0]);
-    });
+    // Corner-radius link: an explicit unlink is UI state, but unequal radii are never linked.
+    const [unlinkedByUser, setUnlinkedByUser] = useState<boolean>(false);
+    const linked = cornersAreEven(theme) && !unlinkedByUser;
     const fontSelectValue = isCustomFont ? CUSTOM_FONT_VALUE : resolveFontSelectValue(fontFamily);
 
     // Google Fonts loaded by name (stored as inlined woff2 in theme.googleFonts).
@@ -159,8 +203,14 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
         setGoogleFontError(null);
         try {
             const faces = await loadGoogleFont(name);
-            onChange(`googleFonts.${name}`, faces);
-            onChange('typography.fontFamily', `'${name}', sans-serif`);
+            // Faces + family in one transition: one undo step restores the state before.
+            onApply(prev =>
+                setNestedValue(
+                    setNestedValue(prev, `googleFonts.${name}`, faces),
+                    'typography.fontFamily',
+                    googleFontFamily(name),
+                ),
+            );
             setGoogleFontName('');
         } catch (error: unknown) {
             setGoogleFontError(error instanceof Error ? error.message : String(error));
@@ -169,24 +219,48 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
         }
     };
 
+    // Deleting a font also resets a family that uses it — in the same transition.
+    const handleDeleteGoogleFont = (name: string): void => {
+        onApply(prev => {
+            const next = setNestedValue(prev, `googleFonts.${name}`, undefined);
+            return usesFontFirst(getNestedValue<string>(prev, 'typography.fontFamily'), name)
+                ? setNestedValue(next, 'typography.fontFamily', undefined)
+                : next;
+        });
+    };
+
     const handleFontFamilyChange = (event: SelectChangeEvent): void => {
         const selected = event.target.value;
         if (selected === CUSTOM_FONT_VALUE) {
             // Reveal the custom free-text field; keep any existing value to edit.
-            setIsCustomFont(true);
-        } else if (selected === '') {
-            setIsCustomFont(false);
-            onChange('typography.fontFamily', undefined);
+            setCustomPick({ fontFamily });
         } else {
-            setIsCustomFont(false);
-            onChange('typography.fontFamily', selected);
+            setCustomPick(null);
+            onChange('typography.fontFamily', selected === '' ? undefined : selected);
         }
     };
 
+    const handleCustomFontChange = (value: string): void => {
+        // Typing keeps the field open, even while the text is empty or matches a catalogue entry.
+        setCustomPick({ fontFamily: value || undefined });
+        onChange('typography.fontFamily', value || undefined);
+    };
+
     // Linked: one value drives all four corners. Unlinked: each corner individually.
-    const linkedRadius = getNestedValue<number>(theme, 'corners.topLeft') ?? 4;
+    const linkedRadius = getNestedValue<number>(theme, 'corners.topLeft') ?? DEFAULT_CORNER_RADIUS;
     const handleLinkedRadiusChange = (value: number): void => {
         onChange('corners', { topLeft: value, topRight: value, bottomRight: value, bottomLeft: value });
+    };
+    const handleLinkToggle = (): void => {
+        if (linked) {
+            setUnlinkedByUser(true);
+            return;
+        }
+        setUnlinkedByUser(false);
+        // Linking evens the corners to the top-left radius (the value the slider then shows).
+        if (!cornersAreEven(theme)) {
+            handleLinkedRadiusChange(linkedRadius);
+        }
     };
     const handleCornerChange = (path: string, value: number): void => {
         onChange(path, value);
@@ -272,7 +346,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                         <TextField2
                             label={Generic.t('theme_wizard_typography_font_family_custom')}
                             value={fontFamily ?? ''}
-                            onChange={value => onChange('typography.fontFamily', value || undefined)}
+                            onChange={handleCustomFontChange}
                         />
                     ) : null}
                     {fontFamily ? (
@@ -332,8 +406,8 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                     key={name}
                                     label={name}
                                     size="small"
-                                    onClick={() => onChange('typography.fontFamily', `'${name}', sans-serif`)}
-                                    onDelete={() => onChange(`googleFonts.${name}`, undefined)}
+                                    onClick={() => onChange('typography.fontFamily', googleFontFamily(name))}
+                                    onDelete={() => handleDeleteGoogleFont(name)}
                                 />
                             ))}
                         </Box>
@@ -371,7 +445,9 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                                 key={field.path}
                                                 corner={field.corner}
                                                 label={Generic.t(field.labelKey)}
-                                                value={getNestedValue<number>(theme, field.path) ?? 4}
+                                                value={
+                                                    getNestedValue<number>(theme, field.path) ?? DEFAULT_CORNER_RADIUS
+                                                }
                                                 onChange={value => handleCornerChange(field.path, value)}
                                             />
                                         ))}
@@ -385,7 +461,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                         >
                             <IconButton
                                 size="small"
-                                onClick={() => setLinked(l => !l)}
+                                onClick={handleLinkToggle}
                                 aria-pressed={linked}
                                 color={linked ? 'primary' : 'default'}
                                 sx={{ mt: '18px' }}
@@ -426,25 +502,38 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                             spacing={2}
                             sx={{ mt: 1.5 }}
                         >
-                            <FieldGrid min={110}>
-                                {WEIGHT_FIELDS.map(field => {
-                                    const weight = getNestedValue<number>(theme, field.path);
-                                    return (
-                                        <LabeledSelect
-                                            key={field.path}
-                                            label={Generic.t(field.labelKey)}
-                                            value={weight === undefined ? '' : String(weight)}
-                                            onChange={value =>
-                                                onChange(field.path, value === '' ? undefined : Number(value))
-                                            }
-                                            options={[
-                                                ['', '—'],
-                                                ...FONT_WEIGHTS.map(w => [String(w), String(w)] as [string, string]),
-                                            ]}
-                                        />
-                                    );
-                                })}
-                            </FieldGrid>
+                            <Box
+                                data-weights-group
+                                sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
+                            >
+                                <FieldGrid
+                                    min={110}
+                                    sx={{ flex: 1, minWidth: 0 }}
+                                >
+                                    {WEIGHT_FIELDS.map(field => {
+                                        const weight = getNestedValue<number>(theme, field.path);
+                                        return (
+                                            <LabeledSelect
+                                                key={field.path}
+                                                label={Generic.t(field.labelKey)}
+                                                value={weight === undefined ? '' : String(weight)}
+                                                onChange={value =>
+                                                    onChange(field.path, value === '' ? undefined : Number(value))
+                                                }
+                                                options={[
+                                                    ['', '—'],
+                                                    ...FONT_WEIGHTS.map(
+                                                        w => [String(w), String(w)] as [string, string],
+                                                    ),
+                                                ]}
+                                            />
+                                        );
+                                    })}
+                                </FieldGrid>
+                                <Box sx={{ pt: '18px' }}>
+                                    <HelpHint title={Generic.t('theme_studio_help_weights')} />
+                                </Box>
+                            </Box>
                             <SliderField
                                 label={Generic.t('theme_wizard_typography_line_height')}
                                 value={lineHeight ?? 1.43}

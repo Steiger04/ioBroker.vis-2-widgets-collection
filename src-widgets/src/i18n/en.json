@@ -1209,6 +1209,7 @@
     "theme_studio_help_direction": "Text direction: LTR (left-to-right, default) or RTL (right-to-left, e.g. for Arabic or Hebrew).",
     "theme_studio_help_fonts": "Font sources — Bundled: shipped with the collection, always available and consistent (even offline). System: installed on the viewing device; no bundle cost but rendering varies by device. Google: loaded once and embedded. Custom: any CSS font name (e.g. a locally installed font outside the list).",
     "theme_studio_help_spacing": "MUI's spacing factor (default 8). Controls all padding, gaps and margins of MUI components — higher means more generous spacing.",
+    "theme_studio_help_weights": "Sets which font weight the widgets use for the roles Light, Regular, Medium and Bold.",
     "theme_studio_hint_background_default": "Background of the dialog widget when it has no frame colour.",
     "theme_studio_hint_background_paper": "Surface of widget cards and frames (default of every inheriting frame colour) — the main lever for dark themes.",
     "theme_studio_hint_divider": "Borders, separators and chart frames; default of every line colour attribute.",

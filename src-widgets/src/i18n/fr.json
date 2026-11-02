@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "utilisez ici hex, rgb() ou hsl() — les widgets ne peuvent pas effectuer de calculs avec les noms de couleurs ou transparent",
     "theme_studio_corners_unlink": "Définir les coins individuellement",
     "theme_wizard_reset": "Réinitialiser tout par défaut",
-    "echarts_editor_reset": "Réinitialiser"
+    "echarts_editor_reset": "Réinitialiser",
+    "theme_studio_help_weights": "Définit l'épaisseur de police utilisée par les widgets pour les rôles Light, Regular, Medium et Bold."
 }

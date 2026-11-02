@@ -1331,5 +1331,6 @@
     "theme_studio_valid_color_computable": "use hex, rgb() ou hsl() aqui — os widgets não conseguem processar nomes de cores ou transparent",
     "theme_studio_corners_unlink": "Definir cantos individualmente",
     "theme_wizard_reset": "Redefinir tudo para o padrão",
-    "echarts_editor_reset": "Redefinir"
+    "echarts_editor_reset": "Redefinir",
+    "theme_studio_help_weights": "Define qual peso de fonte os widgets usam para as funções Light, Regular, Medium e Bold."
 }
