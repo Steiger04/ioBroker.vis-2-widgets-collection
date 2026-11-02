@@ -8,8 +8,8 @@
  * the background load (rebased onto the draft only while it is untouched), the canvas mirror
  * through {@link module:lib/theme/draftThemeStore} with the session's SINGLE throttle (100 ms,
  * leading + trailing — the store itself only guards against tearing), dirty against the last
- * loaded/saved snapshot, save and discard, and the undo/redo keyboard binding over the
- * draft's editor history (ADR-0038).
+ * loaded/saved snapshot, save and discard, the browser's leave-page warning while dirty, and
+ * the undo/redo keyboard binding over the draft's editor history (ADR-0038).
  *
  * The session lives exactly as long as the component calling this hook: mount starts it,
  * unmount ends it — fresh state per session. Invariant: **when the session ends, the draft
@@ -189,6 +189,21 @@ export function useStudioSession(socket: Connection): StudioSession {
     const validation = useMemo(() => validateThemeOptions(draft), [draft]);
     const dirty = useMemo(() => isDirty(draft, snapshot), [draft, snapshot]);
     const canSave = canSaveStep({ valid: validation.isValid, dirty, saving });
+
+    // Leaving the page (reload, tab close, navigation) would lose unsaved edits without a
+    // prompt — the browser's native leave-page warning guards them while the draft is dirty.
+    useEffect(() => {
+        if (!dirty) {
+            return;
+        }
+        const onBeforeUnload = (event: BeforeUnloadEvent): void => {
+            event.preventDefault();
+            // Legacy browsers only show the prompt when returnValue is set.
+            event.returnValue = '';
+        };
+        window.addEventListener('beforeunload', onBeforeUnload);
+        return () => window.removeEventListener('beforeunload', onBeforeUnload);
+    }, [dirty]);
 
     const edit = useCallback(
         (path: string, value: unknown): void => set(prev => setNestedValue(prev, path, value), path),

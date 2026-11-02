@@ -290,3 +290,38 @@ describe('useStudioSession save', () => {
         error.mockRestore();
     });
 });
+
+describe('useStudioSession beforeunload warning', () => {
+    /** Dispatches a cancelable beforeunload and reports whether the session objected. */
+    const leavePage = (): boolean => {
+        const event = new Event('beforeunload', { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+    };
+
+    it('lets the page go while the draft is clean', () => {
+        start(fakeSocket().socket);
+
+        expect(leavePage()).toBe(false);
+    });
+
+    it('warns while the draft is dirty, and stops once it is clean again', () => {
+        const handle = start(fakeSocket().socket);
+        act(() => handle.result.current.edit('spacing', 4));
+
+        expect(leavePage()).toBe(true);
+
+        act(() => handle.result.current.undo());
+        expect(leavePage()).toBe(false);
+    });
+
+    it('stops warning when the session ends', () => {
+        const handle = start(fakeSocket().socket);
+        act(() => handle.result.current.edit('spacing', 4));
+
+        handle.unmount();
+        session = null;
+
+        expect(leavePage()).toBe(false);
+    });
+});
