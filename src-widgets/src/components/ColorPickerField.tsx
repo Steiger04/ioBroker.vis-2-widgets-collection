@@ -21,7 +21,7 @@
 
 import ClearIcon from '@mui/icons-material/Clear';
 import { Box, IconButton, InputBase, Popover, Typography, useTheme } from '@mui/material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
@@ -86,6 +86,7 @@ function ColorPickerField({
     swatchValue,
 }: ColorPickerFieldProps): React.JSX.Element {
     const theme = useTheme();
+    const errorId = useId();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     // Local cached value for immediate UI feedback during picker drag
@@ -223,7 +224,13 @@ function ColorPickerField({
                             // Typing and selecting (copying) the value must not open the picker.
                             onClick={(event: React.MouseEvent): void => event.stopPropagation()}
                             error={Boolean(error)}
-                            inputProps={{ 'data-hex-input': true, 'aria-label': label, spellCheck: false }}
+                            inputProps={{
+                                'data-hex-input': true,
+                                'aria-label': label,
+                                // The field's error names what is wrong with the typed value.
+                                'aria-describedby': error ? errorId : undefined,
+                                spellCheck: false,
+                            }}
                             sx={{
                                 width: '10ch',
                                 fontSize: '0.75rem',
@@ -265,6 +272,7 @@ function ColorPickerField({
 
             {error ? (
                 <Typography
+                    id={errorId}
                     variant="caption"
                     color="error"
                     sx={{ display: 'block', mt: -0.25, pb: 0.5 }}

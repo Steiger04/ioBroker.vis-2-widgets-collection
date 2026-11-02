@@ -14,6 +14,8 @@
  *   drag stays a layout/paint operation. A wide child takes `gridColumn: '1 / -1'`.
  * - **FieldRow** — flex-wrap row for composite fields (OID picker, colour); children own their
  *   `flex` basis, the row aligns control baselines (`flex-end`).
+ * - **FieldWithHint** — a field with its "?" help hint (and field actions) at the right, centred
+ *   on the control row below the caption.
  * - **SubGroup** — an overline-labelled knob cluster inside a card body. Structure without
  *   disclosure: no fourth expand level.
  * - **SwitchList / SwitchRow** — the boolean idiom: label left, switch right, ~32 px rows in a
@@ -39,6 +41,8 @@ import type React from 'react';
 import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 import { ExpandMore as ExpandIcon } from '@mui/icons-material';
+
+import HelpHint from './HelpHint';
 
 // ── tiny shared labels ────────────────────────────────────────────
 
@@ -243,6 +247,50 @@ export const FieldGrid: FC<{ children: ReactNode; min?: number; sx?: SxProps<The
         }}
     >
         {children}
+    </Box>
+);
+
+/**
+ * A field with a help hint ("?") at its right — the studio's hint idiom. The field takes the row;
+ * the hint, and any `actions` that belong to the field (e.g. a "Load" button), sit beside it,
+ * centred on the control row. A captioned field (`FieldLabel` above the control, the default)
+ * gets an invisible caption on the hint side too, so the alignment holds for any caption and
+ * control height without magic offsets; `captioned={false}` aligns with the row top (fields
+ * without a caption, e.g. a colour picker row).
+ */
+export const FieldWithHint: FC<{
+    /** The hint text (tooltip and accessible name). */
+    hint: string;
+    children: ReactNode;
+    /** Whether the field renders a `FieldLabel` caption above its control (default true). */
+    captioned?: boolean;
+    /** Controls between field and hint, aligned with the control row. */
+    actions?: ReactNode;
+}> = ({ hint, children, captioned = true, actions }) => (
+    <Box sx={{ display: 'flex', alignItems: 'stretch', gap: actions ? 1 : 0.5 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            {captioned ? (
+                <Box
+                    aria-hidden
+                    sx={{ visibility: 'hidden' }}
+                >
+                    <FieldLabel>{' '}</FieldLabel>
+                </Box>
+            ) : null}
+            <Box
+                data-field-hint-row
+                sx={{
+                    display: 'flex',
+                    alignItems: captioned ? 'center' : 'flex-start',
+                    gap: 0.5,
+                    flex: captioned ? 1 : undefined,
+                }}
+            >
+                {actions}
+                <HelpHint title={hint} />
+            </Box>
+        </Box>
     </Box>
 );
 

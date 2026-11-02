@@ -499,8 +499,17 @@ describe('ThemeStudioPanel hex input', () => {
         await mountPanel({ palette: { divider: '#303030' } });
         await expandColorSections();
         expect(hexInputOf('theme_wizard_palette_divider').value).toBe('#303030');
-        expect(hexInputOf('theme_wizard_palette_primary').value).toBe(createChromeTheme('light').palette.primary.main);
+        // The editor theme writes its hex in upper case; the field shows every hex in lower case.
+        expect(createChromeTheme('light').palette.primary.main).toBe('#137BF8');
+        expect(hexInputOf('theme_wizard_palette_primary').value).toBe('#137bf8');
         expect(document.body.querySelectorAll('input[data-hex-input]')).toHaveLength(11);
+    });
+
+    it('writes inherited and set hex values alike, in lower case', async () => {
+        await mountPanel({ palette: { divider: '#ABCDEF' } });
+        await expandColorSections();
+        expect(hexInputOf('theme_wizard_palette_divider').value).toBe('#abcdef');
+        expect(hexInputOf('theme_wizard_palette_background_paper').value).toBe('#ffffff');
     });
 
     it('keeps a stored value the resolution drops in the hex text, while the swatch inherits', async () => {
@@ -562,6 +571,18 @@ describe('ThemeStudioPanel problem counter', () => {
     it('uses the plural with the count for two problems', async () => {
         await mountPanel({ corners: { topLeft: -1, topRight: -1 } });
         expect(counter()).toBe('theme_studio_problems(2)');
+    });
+
+    it('keeps every footer button on one line; the footer wraps whole buttons instead', async () => {
+        await mountPanel({ corners: { topLeft: -1 } });
+        const footerButtons = ['theme_wizard_reset', 'theme_studio_problems_one', 'cancel', 'save'].map(button);
+        for (const footerButton of footerButtons) {
+            expect({ label: footerButton.textContent, whiteSpace: getComputedStyle(footerButton).whiteSpace }).toEqual({
+                label: footerButton.textContent,
+                whiteSpace: 'nowrap',
+            });
+        }
+        expect(getComputedStyle(footerButtons[0].parentElement!).flexWrap).toBe('wrap');
     });
 
     it('names the allowed range of an out-of-range value', async () => {

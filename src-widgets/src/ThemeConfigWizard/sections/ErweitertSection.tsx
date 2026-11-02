@@ -16,9 +16,16 @@
 import { Box } from '@mui/material';
 import type React from 'react';
 
-import HelpHint from '../../components/HelpHint';
 import SectionCard from '../../components/SectionCard';
-import { InfoBox, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
+import {
+    FieldWithHint,
+    InfoBox,
+    SliderField,
+    SubGroup,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../components/controls';
 import Generic from '../../Generic';
 import { COLLECTION_CSS_VAR_PREFIX } from '../../lib/theme/resolveCollectionTheme';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
@@ -57,21 +64,16 @@ function ErweitertSection({
             onExpandedChange={onExpandedChange}
         >
             <SubGroup title={Generic.t('theme_studio_group_layout')}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <SliderField
-                            label={Generic.t('theme_wizard_layout_spacing')}
-                            value={spacing}
-                            min={0}
-                            max={16}
-                            step={0.5}
-                            onChange={value => onChange('spacing', value)}
-                        />
-                    </Box>
-                    <Box sx={{ pt: '18px' }}>
-                        <HelpHint title={Generic.t('theme_studio_help_spacing')} />
-                    </Box>
-                </Box>
+                <FieldWithHint hint={Generic.t('theme_studio_help_spacing')}>
+                    <SliderField
+                        label={Generic.t('theme_wizard_layout_spacing')}
+                        value={spacing}
+                        min={0}
+                        max={16}
+                        step={0.5}
+                        onChange={value => onChange('spacing', value)}
+                    />
+                </FieldWithHint>
             </SubGroup>
             <SubGroup title={Generic.t('theme_studio_group_css')}>
                 <SwitchList>

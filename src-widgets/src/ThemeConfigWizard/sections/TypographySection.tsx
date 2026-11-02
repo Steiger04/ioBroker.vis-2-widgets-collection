@@ -44,10 +44,10 @@ import type React from 'react';
 
 import Generic from '../../Generic';
 import SectionCard from '../../components/SectionCard';
-import HelpHint from '../../components/HelpHint';
 import {
     FieldGrid,
     FieldLabel,
+    FieldWithHint,
     InfoBox,
     LabeledSelect,
     noSpinnerSx,
@@ -141,7 +141,8 @@ function CornerField({
                 size="small"
                 type="number"
                 value={value}
-                slotProps={{ htmlInput: { min: 0, max: CORNER_RADIUS_MAX, step: 0.5 } }}
+                // The caption above is no <label>: the input carries the corner's name itself.
+                slotProps={{ htmlInput: { min: 0, max: CORNER_RADIUS_MAX, step: 0.5, 'aria-label': label } }}
                 onChange={event => {
                     // An empty or half-typed number ("7.") reads as '' — keep the value meanwhile,
                     // so the next keystroke can complete it.
@@ -286,7 +287,13 @@ function TypographySection({
         : fontSelectValue === CUSTOM_FONT_VALUE
           ? Generic.t('theme_wizard_typography_font_family_custom')
           : (FONT_CATALOGUE.find(font => font.value === fontSelectValue)?.label ?? fontSelectValue);
-    const summary = `${fontLabel} · ${fontSize}px · r=${linkedRadius}`;
+    // Even corners show one radius, unequal ones all four in CSS order (TL/TR/BR/BL).
+    const radiusSummary = cornersAreEven(theme)
+        ? String(linkedRadius)
+        : (['topLeft', 'topRight', 'bottomRight', 'bottomLeft'] as const)
+              .map(corner => getNestedValue<number>(theme, cornerPath(corner)) ?? DEFAULT_CORNER_RADIUS)
+              .join('/');
+    const summary = `${fontLabel} · ${fontSize}px · r=${radiusSummary}`;
 
     return (
         <SectionCard
@@ -297,8 +304,8 @@ function TypographySection({
         >
             <Stack spacing={2}>
                 <Stack spacing={1}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <FieldWithHint hint={Generic.t('theme_studio_help_fonts')}>
+                        <Box>
                             <FieldLabel>{Generic.t('theme_wizard_typography_font_family')}</FieldLabel>
                             <Select
                                 size="small"
@@ -340,10 +347,7 @@ function TypographySection({
                                 </MenuItem>
                             </Select>
                         </Box>
-                        <Box sx={{ pt: '18px' }}>
-                            <HelpHint title={Generic.t('theme_studio_help_fonts')} />
-                        </Box>
-                    </Box>
+                    </FieldWithHint>
                     {isCustomFont ? (
                         <TextField2
                             label={Generic.t('theme_wizard_typography_font_family_custom')}
@@ -376,30 +380,29 @@ function TypographySection({
                             {Generic.t('theme_studio_google_fonts_link')}
                         </Link>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <TextField2
-                                label={Generic.t('theme_wizard_typography_google_font_hint')}
-                                placeholder={Generic.t('theme_studio_google_font_placeholder')}
-                                value={googleFontName}
-                                onChange={setGoogleFontName}
-                                disabled={googleFontLoading}
-                            />
-                        </Box>
-                        <Button
-                            size="small"
-                            variant="outlined"
-                            sx={{ mt: '22px', flexShrink: 0 }}
-                            startIcon={googleFontLoading ? <CircularProgress size={16} /> : <DownloadIcon />}
-                            onClick={() => void handleLoadGoogleFont()}
-                            disabled={googleFontLoading || !googleFontName.trim()}
-                        >
-                            {Generic.t('theme_wizard_typography_google_font_load')}
-                        </Button>
-                        <Box sx={{ pt: '18px' }}>
-                            <HelpHint title={Generic.t('theme_studio_help_google_font')} />
-                        </Box>
-                    </Box>
+                    <FieldWithHint
+                        hint={Generic.t('theme_studio_help_google_font')}
+                        actions={
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                sx={{ flexShrink: 0 }}
+                                startIcon={googleFontLoading ? <CircularProgress size={16} /> : <DownloadIcon />}
+                                onClick={() => void handleLoadGoogleFont()}
+                                disabled={googleFontLoading || !googleFontName.trim()}
+                            >
+                                {Generic.t('theme_wizard_typography_google_font_load')}
+                            </Button>
+                        }
+                    >
+                        <TextField2
+                            label={Generic.t('theme_wizard_typography_google_font_hint')}
+                            placeholder={Generic.t('theme_studio_google_font_placeholder')}
+                            value={googleFontName}
+                            onChange={setGoogleFontName}
+                            disabled={googleFontLoading}
+                        />
+                    </FieldWithHint>
                     {googleFontError ? (
                         <Alert
                             severity="error"
@@ -512,37 +515,30 @@ function TypographySection({
                             spacing={2}
                             sx={{ mt: 1.5 }}
                         >
-                            <Box
-                                data-weights-group
-                                sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
-                            >
-                                <FieldGrid
-                                    min={110}
-                                    sx={{ flex: 1, minWidth: 0 }}
-                                >
-                                    {WEIGHT_FIELDS.map(field => {
-                                        const weight = getNestedValue<number>(theme, field.path);
-                                        return (
-                                            <LabeledSelect
-                                                key={field.path}
-                                                label={Generic.t(field.labelKey)}
-                                                value={weight === undefined ? '' : String(weight)}
-                                                onChange={value =>
-                                                    onChange(field.path, value === '' ? undefined : Number(value))
-                                                }
-                                                options={[
-                                                    ['', '—'],
-                                                    ...FONT_WEIGHTS.map(
-                                                        w => [String(w), String(w)] as [string, string],
-                                                    ),
-                                                ]}
-                                            />
-                                        );
-                                    })}
-                                </FieldGrid>
-                                <Box sx={{ pt: '18px' }}>
-                                    <HelpHint title={Generic.t('theme_studio_help_weights')} />
-                                </Box>
+                            <Box data-weights-group>
+                                <FieldWithHint hint={Generic.t('theme_studio_help_weights')}>
+                                    <FieldGrid min={110}>
+                                        {WEIGHT_FIELDS.map(field => {
+                                            const weight = getNestedValue<number>(theme, field.path);
+                                            return (
+                                                <LabeledSelect
+                                                    key={field.path}
+                                                    label={Generic.t(field.labelKey)}
+                                                    value={weight === undefined ? '' : String(weight)}
+                                                    onChange={value =>
+                                                        onChange(field.path, value === '' ? undefined : Number(value))
+                                                    }
+                                                    options={[
+                                                        ['', '—'],
+                                                        ...FONT_WEIGHTS.map(
+                                                            w => [String(w), String(w)] as [string, string],
+                                                        ),
+                                                    ]}
+                                                />
+                                            );
+                                        })}
+                                    </FieldGrid>
+                                </FieldWithHint>
                             </Box>
                             <SliderField
                                 label={Generic.t('theme_wizard_typography_line_height')}

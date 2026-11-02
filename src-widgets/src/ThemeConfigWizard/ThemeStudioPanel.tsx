@@ -86,6 +86,9 @@ type ThemeStudioPanelProps = StudioHostProps & {
     onClose: () => void;
 };
 
+/** Footer buttons keep their label on one line (the panel is narrow; the footer wraps instead). */
+const FOOTER_BUTTON_SX = { whiteSpace: 'nowrap', flexShrink: 0 } as const;
+
 /** Section ids for controlled expansion (scroll-to-error). */
 type SectionKey = 'presets' | 'palette' | 'typography' | 'statusText' | 'erweitert';
 
@@ -510,6 +513,8 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                 <Box
                     sx={{
                         display: 'flex',
+                        // Whole buttons wrap, labels never break ("Reset all / to default").
+                        flexWrap: 'wrap',
                         alignItems: 'center',
                         gap: 1,
                         p: 1.5,
@@ -521,6 +526,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                         onClick={handleReset}
                         color="inherit"
                         disabled={loading || saving || Object.keys(themeObj).length === 0}
+                        sx={FOOTER_BUTTON_SX}
                     >
                         {Generic.t('theme_wizard_reset')}
                     </Button>
@@ -529,34 +535,39 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                             size="small"
                             color="error"
                             onClick={scrollToFirstError}
-                            sx={{ textTransform: 'none' }}
+                            sx={{ ...FOOTER_BUTTON_SX, textTransform: 'none' }}
                         >
                             {errorIssues.length === 1
                                 ? Generic.t('theme_studio_problems_one')
                                 : Generic.t('theme_studio_problems', String(errorIssues.length))}
                         </Button>
                     ) : null}
-                    <Box sx={{ flex: 1 }} />
-                    <Button
-                        onClick={requestClose}
-                        color="inherit"
-                    >
-                        {Generic.t('cancel')}
-                    </Button>
-                    <Tooltip title={validation.isValid ? '' : Generic.t('theme_studio_save_invalid')}>
-                        <span>
-                            <Button
-                                onClick={handleSave}
-                                variant="contained"
-                                // Disabled-when-clean (configurator-design contract): Save needs
-                                // something to commit — dirty flips back to false on a full
-                                // revert / undo-to-start, exactly like the echarts Apply.
-                                disabled={!session.canSave || loading}
-                            >
-                                {saving ? <CircularProgress size={20} /> : Generic.t('save')}
-                            </Button>
-                        </span>
-                    </Tooltip>
+                    {/* Cancel + Save stay together at the right; on a narrow panel they wrap
+                        to their own line as a pair. */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+                        <Button
+                            onClick={requestClose}
+                            color="inherit"
+                            sx={FOOTER_BUTTON_SX}
+                        >
+                            {Generic.t('cancel')}
+                        </Button>
+                        <Tooltip title={validation.isValid ? '' : Generic.t('theme_studio_save_invalid')}>
+                            <span>
+                                <Button
+                                    onClick={handleSave}
+                                    variant="contained"
+                                    // Disabled-when-clean (configurator-design contract): Save needs
+                                    // something to commit — dirty flips back to false on a full
+                                    // revert / undo-to-start, exactly like the echarts Apply.
+                                    disabled={!session.canSave || loading}
+                                    sx={FOOTER_BUTTON_SX}
+                                >
+                                    {saving ? <CircularProgress size={20} /> : Generic.t('save')}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    </Box>
                 </Box>
             </Paper>
 

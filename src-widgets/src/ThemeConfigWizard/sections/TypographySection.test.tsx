@@ -67,6 +67,23 @@ describe('TypographySection Google font field', () => {
         expect(input?.placeholder).toBe('theme_studio_google_font_placeholder');
         expect(group?.querySelector('button[aria-label="theme_studio_help_google_font"]')).not.toBeNull();
     });
+
+    it('puts the Load button and the help hint on one row beside the field, below an aligning caption', () => {
+        const mounted = renderComponent<TypographySectionProps>(TypographySection, {
+            theme: {},
+            onChange: () => {},
+            onApply: () => {},
+            expanded: true,
+        });
+        handle = mounted;
+
+        const row = mounted.container.querySelector('[data-google-font-group] [data-field-hint-row]');
+        expect(
+            Array.from(row?.querySelectorAll('button') ?? []).map(b => b.getAttribute('aria-label') ?? b.textContent),
+        ).toEqual(['theme_wizard_typography_google_font_load', 'theme_studio_help_google_font']);
+        // The invisible caption above the row matches the field's caption, so the row sits on the input.
+        expect(row?.previousElementSibling?.getAttribute('aria-hidden')).toBe('true');
+    });
 });
 
 describe('TypographySection corner radii', () => {
@@ -148,6 +165,39 @@ describe('TypographySection corner radii', () => {
         expect(onChange).toHaveBeenLastCalledWith('corners.topLeft', CORNER_RADIUS_MAX);
         type(inputs.get('topLeft')!, '-3');
         expect(onChange).toHaveBeenLastCalledWith('corners.topLeft', 0);
+    });
+
+    it('names every corner field for assistive technology', () => {
+        const { container } = mount({ corners: { topLeft: 1, topRight: 2, bottomRight: 3, bottomLeft: 4 } });
+        expect(cornerInputs(container).map(([, input]) => input.getAttribute('aria-label'))).toEqual([
+            'theme_studio_corner_top_left',
+            'theme_studio_corner_top_right',
+            'theme_studio_corner_bottom_left',
+            'theme_studio_corner_bottom_right',
+        ]);
+    });
+
+    /** The collapsed section's summary line. */
+    const summaryOf = (theme: TypographySectionProps['theme']): string | null | undefined => {
+        handle = renderComponent<TypographySectionProps>(TypographySection, {
+            theme,
+            onChange: vi.fn(),
+            onApply: vi.fn(),
+            expanded: false,
+        });
+        return handle.container.querySelector('.MuiTypography-caption')?.textContent;
+    };
+
+    it('summarises even corners with one radius', () => {
+        expect(summaryOf({ corners: { topLeft: 8, topRight: 8, bottomRight: 8, bottomLeft: 8 } })).toBe(
+            'theme_wizard_typography_font_family_default · 14px · r=8',
+        );
+    });
+
+    it('summarises unequal corners with all four radii, in CSS order', () => {
+        expect(summaryOf({ corners: { topLeft: 24, topRight: 96, bottomRight: 2, bottomLeft: 24 } })).toBe(
+            'theme_wizard_typography_font_family_default · 14px · r=24/96/2/24',
+        );
     });
 
     it('labels the link toggle by what a click does and exposes its state as pressed', () => {

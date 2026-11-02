@@ -145,3 +145,32 @@ describe('ColorPickerField hex input', () => {
         expect(popoverOpen()).toBe(true);
     });
 });
+
+describe('ColorPickerField swatch and error', () => {
+    it('links the error to the hex input and marks it invalid', () => {
+        const { container } = mount({ hexInput: true, error: 'Must be a colour' });
+        const input = hexInput(container);
+        expect(input.getAttribute('aria-invalid')).toBe('true');
+        const describedBy = input.getAttribute('aria-describedby');
+        expect(describedBy && document.getElementById(describedBy)?.textContent).toBe('Must be a colour');
+    });
+
+    it('describes nothing while valid', () => {
+        const { container } = mount({ hexInput: true });
+        const input = hexInput(container);
+        expect(input.getAttribute('aria-describedby')).toBeNull();
+        expect(input.getAttribute('aria-invalid')).not.toBe('true');
+    });
+
+    it('paints the swatch value instead of the value, until the user edits', () => {
+        const { container } = mount({ hexInput: true, value: 'red', swatchValue: '#0000ff' });
+        const swatch = (): string | undefined =>
+            container.querySelector<HTMLElement>('[data-swatch-color]')?.dataset.swatchColor;
+        expect(hexInput(container).value).toBe('red');
+        expect(swatch()).toBe('#0000ff');
+        const input = hexInput(container);
+        type(input, '#00ff00');
+        press(input, 'Enter');
+        expect(swatch()).toBe('#00ff00');
+    });
+});

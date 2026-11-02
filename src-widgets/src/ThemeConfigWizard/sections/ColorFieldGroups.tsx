@@ -14,12 +14,10 @@
  * the colour shows up.
  */
 
-import { Box } from '@mui/material';
 import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
-import HelpHint from '../../components/HelpHint';
-import { SubGroup } from '../../components/controls';
+import { FieldWithHint, SubGroup } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
@@ -40,6 +38,12 @@ type ColorFieldGroupsProps = Pick<
     section: StudioColorSection;
 };
 
+/**
+ * A colour as the hex text shows it: hex in lower case, whether inherited (the editor theme
+ * writes upper case) or set — other notations (`rgb()`, names) as they are.
+ */
+const displayColor = (color: string): string => (/^#[0-9a-f]+$/i.test(color) ? color.toLowerCase() : color);
+
 /** Renders the colour groups of one studio section. */
 function ColorFieldGroups({
     section,
@@ -56,28 +60,24 @@ function ColorFieldGroups({
         const label = markerKey ? `${Generic.t(field.labelKey)} · ${Generic.t(markerKey)}` : Generic.t(field.labelKey);
         // The hint sits outside the picker row: a click on it must not open the picker.
         return (
-            <Box
+            <FieldWithHint
                 key={field.path}
-                sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
+                hint={Generic.t(field.hintKey)}
+                captioned={false}
             >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <ColorPickerField
-                        label={label}
-                        value={stored ?? resolvedValue}
-                        // The swatch shows what the canvas paints (the resolution), even when it
-                        // drops a stored value; the hex text keeps the stored one to fix it.
-                        swatchValue={resolved ? resolvedValue : undefined}
-                        overridden={stored !== undefined}
-                        onChange={color => onChange(field.path, color || undefined)}
-                        presets={colorPresets}
-                        error={errorFor?.(field.path)}
-                        hexInput
-                    />
-                </Box>
-                <Box sx={{ pt: '1px' }}>
-                    <HelpHint title={Generic.t(field.hintKey)} />
-                </Box>
-            </Box>
+                <ColorPickerField
+                    label={label}
+                    value={displayColor(stored ?? resolvedValue)}
+                    // The swatch shows what the canvas paints (the resolution), even when it
+                    // drops a stored value; the hex text keeps the stored one to fix it.
+                    swatchValue={resolved ? resolvedValue : undefined}
+                    overridden={stored !== undefined}
+                    onChange={color => onChange(field.path, color || undefined)}
+                    presets={colorPresets}
+                    error={errorFor?.(field.path)}
+                    hexInput
+                />
+            </FieldWithHint>
         );
     };
 
