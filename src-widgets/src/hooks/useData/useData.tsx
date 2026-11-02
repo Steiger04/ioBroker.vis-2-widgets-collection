@@ -62,6 +62,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     // Keyed by content, not by reference: vis-2 hands out new, content-equal refs
     // on editor moves, so a caller's unmemoised literal must not rebuild the resolvers.
+    const hasMarkerLayer = options?.markerLayer !== undefined;
     const { iconSize, iconColor, textColor, textSize } = options?.markerLayer ?? {};
     const markerLayer: MarkerLayer = useMemo(
         () => ({ iconSize, iconColor, textColor, textSize }),
@@ -85,14 +86,15 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     // Two resolver sets over the same widget data: the marker layer applies to
     // marks only (CONTEXT "Marker-Ebene") — `states` and `markBaseStyle` resolve
-    // with it, `data` and `resolveStyleData` without.
+    // with it, `data` and `resolveStyleData` without. Without a marker layer both
+    // resolve alike, so the marks reuse the one set.
     const propertyResolvers = useMemo(
         () => createPropertyResolvers({ ...resolverParams, markerLayer: NO_MARKER_LAYER }),
         [resolverParams],
     );
     const markResolvers = useMemo(
-        () => createPropertyResolvers({ ...resolverParams, markerLayer }),
-        [resolverParams, markerLayer],
+        () => (hasMarkerLayer ? createPropertyResolvers({ ...resolverParams, markerLayer }) : propertyResolvers),
+        [hasMarkerLayer, resolverParams, markerLayer, propertyResolvers],
     );
 
     // getStyleData is now a pure function imported from styleDataResolver.ts
@@ -108,9 +110,19 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         [markResolvers],
     );
 
+    // The base style data, inactive and active: the active one is `data` while no
+    // state is active, and without a marker layer the pair is the marks' base too.
+    const baseStyle: MarkBaseStyle = useMemo(
+        () => ({ inactive: resolveStyleData('', false), active: resolveStyleData('', true) }),
+        [resolveStyleData],
+    );
+
     const markBaseStyle: MarkBaseStyle = useMemo(
-        () => ({ inactive: resolveMarkStyleData('', false), active: resolveMarkStyleData('', true) }),
-        [resolveMarkStyleData],
+        () =>
+            hasMarkerLayer
+                ? { inactive: resolveMarkStyleData('', false), active: resolveMarkStyleData('', true) }
+                : baseStyle,
+        [hasMarkerLayer, resolveMarkStyleData, baseStyle],
     );
 
     // Independent per-state resolution using active-aware styles.
@@ -236,12 +248,12 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 }
 
                 // Default to base state properties with active properties included.
-                return { data: resolveStyleData('', true), activeFieldNumber: undefined, activePosition: undefined };
+                return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
             }
             default:
-                return { data: resolveStyleData('', true), activeFieldNumber: undefined, activePosition: undefined };
+                return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
         }
-    }, [oidObject, oidValue, states, resolveStyleData]);
+    }, [oidObject, oidValue, states, resolveStyleData, baseStyle]);
 
     return {
         widgetStates,
