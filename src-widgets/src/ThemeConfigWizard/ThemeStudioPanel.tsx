@@ -489,6 +489,9 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 1300,
+                    // The panel renders inside the palette DOM, whose ancestor sets an inline
+                    // `text-align: center` that every label would otherwise inherit.
+                    textAlign: 'start',
                     // No hover-transition fight while a grip streams sizes.
                     transition: activeDrag ? 'none' : undefined,
                 }}
