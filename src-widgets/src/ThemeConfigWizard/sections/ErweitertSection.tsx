@@ -7,8 +7,9 @@
  * colours went to Farben, status & text colours got their own section — so this
  * section now holds exactly the rarely-tuned machinery: text direction, the spacing
  * base factor, and the CSS-variables switch with its prefix. Rebuilt on the shared
- * control kit (`SubGroup`, `SwitchRow`, `SliderField`, `FieldLabel`); the help hints
- * stay where they were. Collapsed by default, with a one-line summary.
+ * control kit (`SubGroup`, `SwitchRow`, `SliderField`, `FieldLabel`, `InfoBox`); the
+ * CSS-variables explanation is one info box in both switch states. Collapsed by default, with a
+ * one-line summary.
  */
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
@@ -16,7 +17,15 @@ import type React from 'react';
 
 import HelpHint from '../../components/HelpHint';
 import SectionCard from '../../components/SectionCard';
-import { FieldLabel, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
+import {
+    FieldLabel,
+    InfoBox,
+    SliderField,
+    SubGroup,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
@@ -103,30 +112,17 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
                         onChange={handleCssToggle}
                     />
                 </SwitchList>
+                {/* One explanation in both states: it tells whether the switch is needed at all. */}
+                <InfoBox text={Generic.t('theme_studio_help_css_vars')} />
                 {cssEnabled ? (
-                    <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <TextField2
-                                label={Generic.t('theme_wizard_css_var_prefix')}
-                                value={cssPrefix}
-                                onChange={handlePrefixChange}
-                            />
-                        </Box>
-                        <Box sx={{ pt: '18px' }}>
-                            <HelpHint title={Generic.t('theme_studio_help_css_vars')} />
-                        </Box>
+                    <Box sx={{ mt: 1.5 }}>
+                        <TextField2
+                            label={Generic.t('theme_wizard_css_var_prefix')}
+                            value={cssPrefix}
+                            onChange={handlePrefixChange}
+                        />
                     </Box>
-                ) : (
-                    <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ flex: 1, minWidth: 0 }}
-                        >
-                            {Generic.t('theme_studio_help_css_vars')}
-                        </Typography>
-                    </Box>
-                )}
+                ) : null}
             </SubGroup>
         </SectionCard>
     );

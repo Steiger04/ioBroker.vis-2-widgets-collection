@@ -414,7 +414,7 @@ function EchartsConfigEditorModal({
                             color="inherit"
                             disabled={!hasChanges}
                         >
-                            {Generic.t('theme_wizard_reset')}
+                            {Generic.t('echarts_editor_reset')}
                         </Button>
                         {issueCount > 0 ? (
                             <Button

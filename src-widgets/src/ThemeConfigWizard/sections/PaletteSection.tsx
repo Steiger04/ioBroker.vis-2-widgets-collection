@@ -69,9 +69,10 @@ function PaletteSection({
                     value={modeValue}
                     onChange={handleModeChange}
                 >
+                    {/* The default (follow vis-2) first. */}
+                    <ToggleButton value="auto">{Generic.t('theme_wizard_palette_mode_auto')}</ToggleButton>
                     <ToggleButton value="light">{Generic.t('theme_wizard_palette_mode_light')}</ToggleButton>
                     <ToggleButton value="dark">{Generic.t('theme_wizard_palette_mode_dark')}</ToggleButton>
-                    <ToggleButton value="auto">{Generic.t('theme_wizard_palette_mode_auto')}</ToggleButton>
                 </ToggleButtonGroup>
                 {modeValue === 'auto' ? (
                     <Typography

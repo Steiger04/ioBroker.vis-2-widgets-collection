@@ -121,4 +121,34 @@ describe('TypographySection corner radii', () => {
         type(inputs.get('topLeft')!, '-3');
         expect(onChange).toHaveBeenLastCalledWith('corners.topLeft', 0);
     });
+
+    it('labels the link toggle by what a click does and exposes its state as pressed', () => {
+        const { container } = mount({});
+        const toggle = linkToggle(container);
+        expect(toggle.getAttribute('aria-pressed')).toBe('true');
+        expect(toggle.getAttribute('aria-label')).toBe('theme_studio_corners_unlink');
+        // A MUI tooltip, not the native title.
+        expect(toggle.hasAttribute('title')).toBe(false);
+
+        act(() => toggle.click());
+        const unlinked = linkToggle(container);
+        expect(unlinked.getAttribute('aria-pressed')).toBe('false');
+        expect(unlinked.getAttribute('aria-label')).toBe('theme_studio_corners_link');
+    });
+});
+
+describe('TypographySection fine-tuning', () => {
+    it('shows the weights hint as an info box', () => {
+        handle = renderComponent<StudioSectionProps>(TypographySection, {
+            theme: {},
+            onChange: () => {},
+            expanded: true,
+        });
+        const disclosure = Array.from(handle.container.querySelectorAll('button')).find(
+            element => element.textContent === 'theme_studio_feintuning',
+        );
+        act(() => disclosure?.click());
+        const hint = Array.from(handle.container.querySelectorAll('[data-info-box]')).map(box => box.textContent);
+        expect(hint).toEqual(['theme_studio_feintuning_hint']);
+    });
 });

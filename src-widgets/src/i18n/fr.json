@@ -1255,7 +1255,6 @@
     "theme_wizard_palette_text_primary": "Text (primary)",
     "theme_wizard_palette_text_secondary": "Text (secondary)",
     "theme_wizard_palette_warning": "Warning color",
-    "theme_wizard_reset": "Réinitialiser",
     "theme_wizard_section_palette": "Colors",
     "theme_wizard_title": "Configurer le thème",
     "theme_wizard_typography_font_family": "Font family",
@@ -1329,5 +1328,8 @@
     "theme_studio_secondary_derived": "dérivé du principal",
     "theme_studio_presets_active": "%s · actif",
     "theme_studio_presets_custom": "couleurs personnalisées",
-    "theme_studio_valid_color_computable": "utilisez ici hex, rgb() ou hsl() — les widgets ne peuvent pas effectuer de calculs avec les noms de couleurs ou transparent"
+    "theme_studio_valid_color_computable": "utilisez ici hex, rgb() ou hsl() — les widgets ne peuvent pas effectuer de calculs avec les noms de couleurs ou transparent",
+    "theme_studio_corners_unlink": "Définir les coins individuellement",
+    "theme_wizard_reset": "Réinitialiser tout par défaut",
+    "echarts_editor_reset": "Réinitialiser"
 }

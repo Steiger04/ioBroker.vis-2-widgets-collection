@@ -1255,7 +1255,6 @@
     "theme_wizard_palette_text_primary": "Text (primary)",
     "theme_wizard_palette_text_secondary": "Text (secondary)",
     "theme_wizard_palette_warning": "Warning color",
-    "theme_wizard_reset": "Сбросить",
     "theme_wizard_section_palette": "Colors",
     "theme_wizard_title": "Настроить тему",
     "theme_wizard_typography_font_family": "Font family",
@@ -1329,5 +1328,8 @@
     "theme_studio_secondary_derived": "производное от основного",
     "theme_studio_presets_active": "%s · активен",
     "theme_studio_presets_custom": "пользовательские цвета",
-    "theme_studio_valid_color_computable": "используйте здесь hex, rgb() или hsl() — виджеты не могут работать с названиями цветов или значением transparent"
+    "theme_studio_valid_color_computable": "используйте здесь hex, rgb() или hsl() — виджеты не могут работать с названиями цветов или значением transparent",
+    "theme_studio_corners_unlink": "Настроить углы по отдельности",
+    "theme_wizard_reset": "Сбросить все до значений по умолчанию",
+    "echarts_editor_reset": "Сбросить"
 }

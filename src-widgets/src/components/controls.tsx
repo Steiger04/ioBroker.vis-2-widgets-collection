@@ -573,6 +573,7 @@ export const InfoBox: FC<{
     tone?: 'info' | 'warning';
 }> = ({ text, children, tone = 'info' }) => (
     <Box
+        data-info-box
         sx={{
             mt: 1,
             p: 1,

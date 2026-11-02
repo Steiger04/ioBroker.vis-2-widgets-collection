@@ -1255,7 +1255,6 @@
     "theme_wizard_palette_text_primary": "Text (primary)",
     "theme_wizard_palette_text_secondary": "Text (secondary)",
     "theme_wizard_palette_warning": "Warning color",
-    "theme_wizard_reset": "Скинути",
     "theme_wizard_section_palette": "Colors",
     "theme_wizard_title": "Налаштувати тему",
     "theme_wizard_typography_font_family": "Font family",
@@ -1329,5 +1328,8 @@
     "theme_studio_secondary_derived": "походить від основного",
     "theme_studio_presets_active": "%s · активний",
     "theme_studio_presets_custom": "власні кольори",
-    "theme_studio_valid_color_computable": "використовуйте тут hex, rgb() або hsl() — віджети не можуть виконувати обчислення з назвами кольорів або transparent"
+    "theme_studio_valid_color_computable": "використовуйте тут hex, rgb() або hsl() — віджети не можуть виконувати обчислення з назвами кольорів або transparent",
+    "theme_studio_corners_unlink": "Налаштувати кути окремо",
+    "theme_wizard_reset": "Скинути все до типових значень",
+    "echarts_editor_reset": "Скинути"
 }

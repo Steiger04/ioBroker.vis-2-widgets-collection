@@ -29,6 +29,7 @@ import {
     Select,
     Stack,
     TextField,
+    Tooltip,
     Typography,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
@@ -38,7 +39,15 @@ import type React from 'react';
 import Generic from '../../Generic';
 import SectionCard from '../../components/SectionCard';
 import HelpHint from '../../components/HelpHint';
-import { FieldGrid, FieldLabel, LabeledSelect, noSpinnerSx, SliderField, TextField2 } from '../../components/controls';
+import {
+    FieldGrid,
+    FieldLabel,
+    InfoBox,
+    LabeledSelect,
+    noSpinnerSx,
+    SliderField,
+    TextField2,
+} from '../../components/controls';
 import {
     BUNDLED_FONTS,
     CUSTOM_FONT_VALUE,
@@ -370,15 +379,20 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                 </>
                             )}
                         </Box>
-                        <IconButton
-                            size="small"
-                            onClick={() => setLinked(l => !l)}
-                            title={Generic.t('theme_studio_corners_link')}
-                            color={linked ? 'primary' : 'default'}
-                            sx={{ mt: '18px' }}
+                        {/* The tooltip names what a click does; aria-pressed carries the state. */}
+                        <Tooltip
+                            title={Generic.t(linked ? 'theme_studio_corners_unlink' : 'theme_studio_corners_link')}
                         >
-                            {linked ? <LinkIcon fontSize="small" /> : <LinkOffIcon fontSize="small" />}
-                        </IconButton>
+                            <IconButton
+                                size="small"
+                                onClick={() => setLinked(l => !l)}
+                                aria-pressed={linked}
+                                color={linked ? 'primary' : 'default'}
+                                sx={{ mt: '18px' }}
+                            >
+                                {linked ? <LinkIcon fontSize="small" /> : <LinkOffIcon fontSize="small" />}
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                 </Box>
                 <Box>
@@ -439,12 +453,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                 step={0.05}
                                 onChange={value => onChange('typography.allVariants.lineHeight', value)}
                             />
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                            >
-                                {Generic.t('theme_studio_feintuning_hint')}
-                            </Typography>
+                            <InfoBox text={Generic.t('theme_studio_feintuning_hint')} />
                         </Stack>
                     ) : null}
                 </Box>
