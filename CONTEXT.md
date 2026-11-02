@@ -524,7 +524,7 @@ The state in which a Collection widget offers its bound OID for display only —
 _Avoid_: Read-only (unsaid whether lock or guard), Schreibschutz (that is the object's `write === false` alone), disabled (that is the control's attribute, not the rule)
 
 **Eck-Icon**:
-The icon the Collection frame shows in its top-right corner — the active state's icon in its resolved colour. Size, offset, colour mask and the `noHeaderIcon` switch are widget-level settings, not per state. A widget may substitute its own icon data (Gauge: the active **Highlight-Zone**'s icon); frames that show something else carry none (the Dialog's view frame, ECharts).
+The icon the Collection frame shows in its top-right corner — the active state's icon in its resolved colour. Size, offset, colour mask and the `noHeaderIcon` switch are widget-level settings, not per state. The frame owns the Eck-Icon: every widget that declares the common icon fields gets it; a widget only substitutes the icon data (Gauge: the active **Highlight-Zone**'s icon) or switches it off (frames that show something else: the Dialog's view frame, ECharts).
 _Avoid_: Header-Icon (the editor's label for its switch — the icon sits in the corner, with or without a header), Kopf-Icon, Wert-Icon (that is the **Wert-Anzeige**'s icon)
 
 **Zustandsmenge**:

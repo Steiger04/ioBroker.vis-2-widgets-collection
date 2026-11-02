@@ -48,45 +48,6 @@ import type { WidgetRegistry } from './widget-registry';
 // and is augmented in vis-2-extensions.d.ts to support collection_${string} patterns
 
 /**
- * Minimal widget data interface for {@link module:components/CollectionBaseImage}.
- *
- * @remarks
- * This interface defines only the properties actually used by CollectionBaseImage
- * to avoid requiring the full widget data type. All collection widgets that use
- * CollectionBaseImage must provide these properties.
- *
- * Used to replace `any` with a precise, type-safe contract.
- * @example
- * ```typescript
- * import type { CollectionBaseImageWidgetData, CollectionContextProps } from '../types';
- *
- * interface MyComponentProps {
- *     widget: CollectionContextProps<CollectionBaseImageWidgetData>['widget'];
- * }
- * ```
- */
-export interface CollectionBaseImageWidgetData {
-    /** Hide header icon when true. */
-    noHeaderIcon?: boolean;
-    /** Horizontal offset for icon positioning (pixels or CSS value). */
-    iconXOffset?: number | string;
-    /** Vertical offset for icon positioning (pixels or CSS value). */
-    iconYOffset?: number | string;
-    /** Enable color mask for inactive icon. */
-    enableIconColorMask?: boolean;
-    /** Enable color mask for active icon. */
-    enableIconColorMaskActive?: boolean;
-    /** Active icon URL/name (or ``). */
-    iconActive?: string;
-    /** Active icon URL/name (or ``). */
-    iconSmallActive?: string;
-    /** Icon color (CSS color value). */
-    iconColor?: string;
-    /** Active icon color (CSS color value). */
-    iconColorActive?: string;
-}
-
-/**
  * Minimal widget data interface for {@link module:hooks/useHtmlValue}.
  *
  * @remarks

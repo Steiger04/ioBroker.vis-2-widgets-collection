@@ -22,7 +22,6 @@ import useOidValue from '../hooks/useOidValue';
 import useContentBox from '../hooks/useContentBox';
 import useStyles from '../hooks/useStyles';
 import Gauge from './Gauge';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
 import gaugeFields from '../lib/gaugeFields';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -137,16 +136,8 @@ function GaugeCollection(): React.JSX.Element {
             isValidType={isValidType}
             data={baseData}
             oidValue={oidValue}
+            cornerIcon={{ ...data, icon: segment?.state.icon, iconColor: segment?.state.iconColor }}
         >
-            <CollectionBaseImage
-                data={{
-                    ...data,
-                    icon: segment?.state.icon,
-                    iconColor: segment?.state.iconColor,
-                    forceColorMask: segment?.state.forceColorMask,
-                }}
-                widget={widget}
-            />
             <Box
                 sx={{
                     width: '100%',

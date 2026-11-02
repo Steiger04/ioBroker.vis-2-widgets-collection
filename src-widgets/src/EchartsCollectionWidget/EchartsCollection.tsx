@@ -249,6 +249,7 @@ function EchartsCollection(): React.ReactElement {
         <CollectionBase
             isValidType
             data={styleData}
+            cornerIcon={false}
         >
             <Box
                 sx={{

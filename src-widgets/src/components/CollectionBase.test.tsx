@@ -5,16 +5,19 @@
  * @remarks
  * DOM contract of the frame on the preview context: a host's `hideHeader` keeps the header out
  * of the frame exactly like the widget's own `noHeader` — the same collapsed header box, its text
- * slot left empty. The frame publishes its Content-Box (ADR-0098) to its children: the injected
+ * slot left empty. The frame owns the corner icon (CONTEXT "Eck-Icon"): rendered from its data as
+ * the content slot's first element, substituted by a `cornerIcon` override, absent for
+ * `cornerIcon={false}`, `noHeaderIcon` and an invalid type. The frame publishes its Content-Box (ADR-0098) to its children: the injected
  * box of the test scene, else the measured inner paper (BASE-PAPER-1); `undefined` until the
  * first measurement and outside the frame.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createElement, type FC } from 'react';
+import { createElement, type ComponentProps, type FC } from 'react';
 
 import CollectionBase from './CollectionBase';
 import useContentBox, { type ContentBox } from '../hooks/useContentBox';
 import useData from '../hooks/useData/useData';
+import type { StyleData } from '../hooks/useData/types';
 import {
     collectionScene,
     installInertResizeObserver,
@@ -64,6 +67,70 @@ describe('CollectionBase frame header', () => {
         expect(headerBox(hidden)?.textContent).toBe('');
         expect(headerBox(hidden)?.outerHTML).toBe(headerBox(noHeader)?.outerHTML);
         expect(headerBox(hidden)?.className).not.toBe(headerBox(shown)?.className);
+    });
+});
+
+describe('CollectionBase corner icon (Eck-Icon)', () => {
+    /** The widget's common icon fields: source, size (percent of 24 px) and offsets. */
+    const ICON_FIELDS = { icon: 'corner.svg', iconSize: 50, iconXOffset: '5px', iconYOffset: '7px' };
+
+    /**
+     * Mounts the frame around a marker child, fed from the widget data; `props` derives the
+     * frame's further props from the resolved style data (e.g. a `cornerIcon` override).
+     */
+    const mountIconFrame = (
+        data: Record<string, unknown> = {},
+        props: (styleData: StyleData) => Partial<ComponentProps<typeof CollectionBase>> = () => ({}),
+    ): MountedCollectionBody => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            return createElement(
+                CollectionBase,
+                { data: styleData, ...props(styleData) },
+                createElement('span', { className: 'frame-child' }),
+            );
+        };
+        return mountBody(Frame, frameScene({ ...ICON_FIELDS, ...data }));
+    };
+
+    /** The corner icon: the only image in the frame (its child is a plain marker). */
+    const cornerIcon = ({ container }: MountedCollectionBody): HTMLImageElement | null =>
+        container.querySelector('img');
+
+    it('renders the icon from the frame data: source, height and offsets', () => {
+        const icon = cornerIcon(mountIconFrame());
+
+        expect(icon?.getAttribute('src')).toBe('corner.svg');
+        expect(icon?.style.position).toBe('absolute');
+        expect(icon?.style.height).toBe('calc(24px * 50 / 100)');
+        expect(icon?.style.top).toBe('calc(0px - 7px)');
+        expect(icon?.style.right).toBe('calc(0px - 5px)');
+    });
+
+    it('a cornerIcon override substitutes the icon data', () => {
+        const icon = cornerIcon(mountIconFrame({}, styleData => ({ cornerIcon: { ...styleData, icon: 'zone.svg' } })));
+
+        expect(icon?.getAttribute('src')).toBe('zone.svg');
+    });
+
+    it('cornerIcon={false} renders no icon', () => {
+        expect(cornerIcon(mountIconFrame({}, () => ({ cornerIcon: false })))).toBeNull();
+    });
+
+    it('noHeaderIcon renders no icon', () => {
+        expect(cornerIcon(mountIconFrame({ noHeaderIcon: true }))).toBeNull();
+    });
+
+    it('an invalid type renders no icon', () => {
+        expect(cornerIcon(mountIconFrame({}, () => ({ isValidType: false })))).toBeNull();
+    });
+
+    it('sits as the first element of the content slot, before the children', () => {
+        const frame = mountIconFrame();
+        const slot = frame.container.querySelector('.BASE-PAPER-1');
+
+        expect(slot?.firstElementChild).toBe(cornerIcon(frame));
+        expect(slot?.firstElementChild?.nextElementSibling?.className).toBe('frame-child');
     });
 });
 

@@ -7,7 +7,6 @@
 import { Box, Checkbox, FormControlLabel } from '@mui/material';
 import React, { useContext, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueText from '../components/CollectionValueText';
 import useData from '../hooks/useData/useData';
@@ -82,11 +81,6 @@ function CheckboxCollection(): React.JSX.Element {
             data={data}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
-
             <Box
                 sx={{
                     width: '100%',

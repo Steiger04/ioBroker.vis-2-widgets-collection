@@ -7,7 +7,6 @@
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import React, { useCallback, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
@@ -109,11 +108,6 @@ function SelectCollection(): React.ReactElement {
             data={data}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
-
             <Box
                 sx={{
                     width: '100%',

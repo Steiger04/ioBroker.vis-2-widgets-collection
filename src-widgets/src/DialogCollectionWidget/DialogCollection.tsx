@@ -14,7 +14,6 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
 import useDialogSession from './useDialogSession';
 
@@ -136,10 +135,6 @@ function DialogCollection(): React.ReactElement {
                 getWidgetView={getWidgetView}
             />
             <CollectionBase data={data}>
-                <CollectionBaseImage
-                    data={data}
-                    widget={widget}
-                />
                 <Box sx={outerBoxSx}>
                     <ImageHtmlButton
                         onClick={onClick}

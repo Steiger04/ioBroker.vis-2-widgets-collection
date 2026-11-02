@@ -78,6 +78,7 @@ export default function ViewDialog({
                 <CollectionBase
                     data={data}
                     hideHeader={headerAsTitle}
+                    cornerIcon={false}
                     sx={{
                         flexDirection: 'column',
                         background: data.backgroundColor || data.background,

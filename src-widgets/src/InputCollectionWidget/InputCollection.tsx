@@ -7,7 +7,6 @@
 import { Box, Button, InputAdornment, TextField } from '@mui/material';
 import { useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
@@ -88,10 +87,6 @@ const InputCollection: FC = () => {
             data={data}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
             {isValidType ? (
                 editing ? (
                     <Box

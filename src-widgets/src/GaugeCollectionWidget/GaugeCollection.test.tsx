@@ -7,7 +7,8 @@
  * Content-Box (ADR-0098, injected through the test scene) minus the gauge padding. The
  * canvas adapter is replaced by a recording stub — canvas-gauges needs a real canvas, and
  * the adapter itself is pinned in Gauge.test.tsx; the stub records the option set the body
- * hands over.
+ * hands over. The frame's corner icon shows the active Highlight-Zone's icon (CONTEXT
+ * "Eck-Icon").
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -78,5 +79,29 @@ describe('GaugeCollection canvas size', () => {
 
         // An unmeasured box counts as 0 — minus the padding, the adapter draws nothing.
         expect(lastOptions()).toMatchObject({ width: -8, height: -8 });
+    });
+});
+
+describe('GaugeCollection corner icon (Eck-Icon)', () => {
+    it("shows the active Highlight-Zone's icon, not the widget's base icon", () => {
+        // Two zones: 0–20 and 20–100; the value 21 lies in the second.
+        const { container } = mountBody(
+            GaugeCollection,
+            scene({
+                noHeaderIcon: false,
+                icon: 'base.svg',
+                gaugeMaxValue: 100,
+                values_count: 2,
+                value1: 0,
+                icon1: 'cold.svg',
+                value2: 20,
+                icon2: 'warm.svg',
+            }),
+        );
+
+        // The corner icon is the frame's first content element; the zone overlay sits below it.
+        const icon = container.querySelector('.BASE-PAPER-1')?.firstElementChild;
+        expect(icon?.tagName).toBe('IMG');
+        expect(icon?.getAttribute('src')).toBe('warm.svg');
     });
 });

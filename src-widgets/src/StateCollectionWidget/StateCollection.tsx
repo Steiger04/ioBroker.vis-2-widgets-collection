@@ -1,7 +1,6 @@
 import { Box, Button } from '@mui/material';
 import React, { useCallback, useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
 import Generic from '../Generic';
@@ -137,10 +136,6 @@ function StateCollection(): React.ReactElement {
                 data={data}
                 oidValue={oidValue}
             >
-                <CollectionBaseImage
-                    data={data}
-                    widget={widget}
-                />
                 <Box
                     sx={{
                         width: '100%',

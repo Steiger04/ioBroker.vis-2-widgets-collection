@@ -6,7 +6,8 @@
  * This component renders:
  * - optional header/footer Typography
  * - a framed Paper container
- * - an inner Paper for the actual widget content
+ * - an inner Paper for the actual widget content, its first element the corner icon
+ *   ({@link module:components/CornerIcon}, CONTEXT "Eck-Icon")
  *
  * Header/footer text is applied via `innerHTML` to support rich text from vis.
  * The inner Paper's measured size is published to the children as the Content-Box
@@ -17,6 +18,7 @@ import { Box, Paper, Typography } from '@mui/material';
 import { useRef, useContext, useEffect, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
+import CornerIcon from './CornerIcon';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
@@ -51,6 +53,12 @@ interface CollectionBaseProps {
     hideHeader?: boolean;
     /** Additional `sx` passed to the inner Paper. */
     sx?: SxProps<Theme>;
+    /**
+     * The corner icon (CONTEXT "Eck-Icon"). Absent: rendered from `data`. A StyleData object
+     * substitutes the icon's data (Gauge: the active Highlight-Zone's icon); `false` renders none
+     * (a frame showing something else: the Dialog's view frame, ECharts).
+     */
+    cornerIcon?: StyleData | false;
 }
 
 /**
@@ -66,6 +74,7 @@ function CollectionBase({
     bgActive = true,
     hideHeader = false,
     sx = {},
+    cornerIcon,
 }: CollectionBaseProps): JSX.Element {
     // Consolidated refs
     // const containerRef = useRef<HTMLDivElement>(null);
@@ -244,6 +253,9 @@ function CollectionBase({
                             variant={widget.data.outlined ? 'outlined' : 'elevation'}
                             sx={paper1Sx}
                         >
+                            {/* The corner icon is the slot's first element, absolutely positioned
+                                — out of the flow, it leaves the measured Content-Box unchanged. */}
+                            {cornerIcon !== false && <CornerIcon data={cornerIcon ?? data} />}
                             <ContentBoxContext.Provider value={contentBox}>{children}</ContentBoxContext.Provider>
                         </Paper>
                     </Box>

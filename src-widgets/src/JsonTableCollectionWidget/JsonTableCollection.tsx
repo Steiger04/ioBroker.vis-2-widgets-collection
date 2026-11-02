@@ -48,7 +48,6 @@ import { useCallback, useContext, useMemo, useRef, useState, useEffect, useLayou
 import type { FC } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
@@ -425,10 +424,6 @@ const JsonTableCollection: FC = () => {
             isValidType={isValidType}
             data={data}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
             {emptyText === null ? (
                 <Box sx={chrome.bodySx}>
                     {capabilities.quickFilter && (

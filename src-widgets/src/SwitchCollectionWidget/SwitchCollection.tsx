@@ -7,7 +7,6 @@
 import { Box } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useContentBox from '../hooks/useContentBox';
 import useData from '../hooks/useData';
@@ -65,11 +64,6 @@ function SwitchCollection(): React.JSX.Element {
             data={data}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
-
             <Box
                 ref={setTrackRowRef}
                 sx={{
