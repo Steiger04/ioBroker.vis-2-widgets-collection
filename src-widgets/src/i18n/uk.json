@@ -1313,5 +1313,6 @@
     "json_table_override_type_default_tooltip": "Цей стовпець перевизначає стандартне значення типу для {feature} — але не більше, ніж дозволяє таблиця",
     "json_table_capabilities_status": "Можливості таблиці",
     "collection_base_invalid_type": "%s має некоректний тип!",
-    "collection_base_select_oid": "Будь ласка, виберіть дійсний ідентифікатор об'єкта"
+    "collection_base_select_oid": "Будь ласка, виберіть дійсний ідентифікатор об'єкта",
+    "theme_studio_problems_one": "1 проблема"
 }

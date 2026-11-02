@@ -1313,5 +1313,6 @@
     "json_table_override_type_default_tooltip": "Esta coluna substitui o padrão do tipo para {feature} — nunca mais do que a tabela permite",
     "json_table_capabilities_status": "Capacidades da tabela",
     "collection_base_invalid_type": "%s tem um tipo inválido!",
-    "collection_base_select_oid": "Selecione um ID de objeto válido"
+    "collection_base_select_oid": "Selecione um ID de objeto válido",
+    "theme_studio_problems_one": "1 problema"
 }

@@ -1313,5 +1313,6 @@
     "json_table_override_type_default_tooltip": "Этот столбец переопределяет значение по умолчанию типа для {feature} — но не более, чем допускает таблица",
     "json_table_capabilities_status": "Возможности таблицы",
     "collection_base_invalid_type": "%s имеет недопустимый тип!",
-    "collection_base_select_oid": "Выберите допустимый идентификатор объекта"
+    "collection_base_select_oid": "Выберите допустимый идентификатор объекта",
+    "theme_studio_problems_one": "1 проблема"
 }

@@ -1313,5 +1313,6 @@
     "json_table_override_type_default_tooltip": "Ta kolumna nadpisuje domyślną wartość typu dla {feature} — nigdy więcej, niż pozwala tabela",
     "json_table_capabilities_status": "Możliwości tabeli",
     "collection_base_invalid_type": "%s ma nieprawidłowy typ!",
-    "collection_base_select_oid": "Wybierz prawidłowy identyfikator obiektu"
+    "collection_base_select_oid": "Wybierz prawidłowy identyfikator obiektu",
+    "theme_studio_problems_one": "1 problem"
 }

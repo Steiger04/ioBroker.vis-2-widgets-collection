@@ -1222,6 +1222,7 @@
     "theme_studio_preset_sunset": "Sunset",
     "theme_studio_presets": "Presets",
     "theme_studio_problems": "%s problems",
+    "theme_studio_problems_one": "1 problem",
     "theme_studio_redo": "Redo (Ctrl+Shift+Z)",
     "theme_studio_reset_color": "Reset to default",
     "theme_studio_resize_height": "Resize height",

@@ -1313,5 +1313,6 @@
     "json_table_override_type_default_tooltip": "Cette colonne remplace la valeur par défaut du type pour {feature} — jamais plus que ce que le tableau autorise",
     "json_table_capabilities_status": "Fonctionnalités du tableau",
     "collection_base_invalid_type": "Le type de %s est invalide !",
-    "collection_base_select_oid": "Veuillez sélectionner un identifiant d'objet valide"
+    "collection_base_select_oid": "Veuillez sélectionner un identifiant d'objet valide",
+    "theme_studio_problems_one": "1 problème"
 }

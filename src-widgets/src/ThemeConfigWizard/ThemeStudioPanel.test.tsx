@@ -131,3 +131,21 @@ describe('ThemeStudioPanel draft lifetime', () => {
         expect(getDraftTheme()).toEqual({});
     });
 });
+
+describe('ThemeStudioPanel problem counter', () => {
+    // Out-of-range corner radii are validation errors that MUI's createTheme tolerates
+    // (an invalid colour would already throw while resolving the display theme).
+    /** The footer's scroll-to-error button (the only error-coloured text button). */
+    const counter = (): string | null | undefined =>
+        document.body.querySelector('button.MuiButton-colorError')?.textContent;
+
+    it('uses the singular for one problem', async () => {
+        await mountPanel({ corners: { topLeft: -1 } });
+        expect(counter()).toBe('theme_studio_problems_one');
+    });
+
+    it('uses the plural with the count for two problems', async () => {
+        await mountPanel({ corners: { topLeft: -1, topRight: -1 } });
+        expect(counter()).toBe('theme_studio_problems(2)');
+    });
+});

@@ -699,7 +699,9 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                             onClick={scrollToFirstError}
                             sx={{ textTransform: 'none' }}
                         >
-                            {Generic.t('theme_studio_problems', String(errorIssues.length))}
+                            {errorIssues.length === 1
+                                ? Generic.t('theme_studio_problems_one')
+                                : Generic.t('theme_studio_problems', String(errorIssues.length))}
                         </Button>
                     ) : null}
                     <Box sx={{ flex: 1 }} />
