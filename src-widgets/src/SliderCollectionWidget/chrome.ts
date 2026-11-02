@@ -60,7 +60,7 @@ const contractOf = (field: string): ColorFieldContract => {
 /**
  * Builds the chrome colors for the slider from the widget data.
  *
- * Each slot resolves its field contract; `undefined` as textStyles: chrome
+ * Each slot resolves its field contract without textStyles: chrome
  * fields never inherit the vis-2 text color (no `inheritTextStyle` among them).
  *
  * @param rxData - Widget data (slider color fields).
@@ -82,9 +82,8 @@ const contractOf = (field: string): ColorFieldContract => {
 export function buildSliderChromeStyles(rxData: SliderFieldsRxData, theme: Theme): SliderChromeStyles {
     const data = rxData as Record<string, unknown>;
 
-    const background = (field: string): string => resolveEffectiveColor(contractOf(field), data, theme, undefined);
-    const solid = (field: string): string | undefined =>
-        resolveEffectiveSolidColor(contractOf(field), data, theme, undefined);
+    const background = (field: string): string => resolveEffectiveColor(contractOf(field), data, theme);
+    const solid = (field: string): string | undefined => resolveEffectiveSolidColor(contractOf(field), data, theme);
 
     return {
         thumbBackground: background('thumbColor'),

@@ -115,14 +115,14 @@ function* cascadeCandidates(
  * @param field - Field contract (name, fallbackFields, terminal, inheritTextStyle).
  * @param data  - Widget data map (explicit values + fallback sources).
  * @param theme - Effective MUI theme (for the terminal default).
- * @param textStyles - vis-2 widget style fragment carrying `color` (may be undefined).
+ * @param textStyles - vis-2 widget style fragment carrying `color`; omitted where the slot never inherits it.
  * @returns The effective color string (never null; `''` for transparent/inherit).
  */
 export function resolveEffectiveColor(
     field: ColorFieldContract,
     data: Record<string, unknown>,
     theme: Theme,
-    textStyles: StyleColor,
+    textStyles?: StyleColor,
 ): string {
     const first = cascadeCandidates(field, data, theme, textStyles).next();
     return first.done ? '' : first.value;
@@ -142,7 +142,7 @@ export function resolveEffectiveColor(
  * @param contract - Field contract (name, fallbackFields, terminal, inheritTextStyle).
  * @param data  - Widget data map (explicit values + fallback sources).
  * @param theme - Effective MUI theme (for the terminal default).
- * @param textStyles - vis-2 widget style fragment carrying `color` (may be undefined).
+ * @param textStyles - vis-2 widget style fragment carrying `color`; omitted where the slot never inherits it.
  * @returns The solid color (hex or rgb(a)), or `undefined` when no stage has one —
  *   always for the `transparent` terminal or no terminal, unless a more specific stage has one.
  */
@@ -150,7 +150,7 @@ export function resolveEffectiveSolidColor(
     contract: ColorFieldContract,
     data: Record<string, unknown>,
     theme: Theme,
-    textStyles: StyleColor,
+    textStyles?: StyleColor,
 ): string | undefined {
     for (const candidate of cascadeCandidates(contract, data, theme, textStyles)) {
         const solid = solidOf(candidate);

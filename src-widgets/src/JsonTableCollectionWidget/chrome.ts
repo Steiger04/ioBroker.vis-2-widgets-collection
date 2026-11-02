@@ -110,7 +110,7 @@ export type TableChrome = Readonly<{
  * colour, else (unset or without a solid colour) the theme divider.
  */
 function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, theme: Theme): string | undefined {
-    return resolveEffectiveSolidColor(contract, settings, theme, undefined);
+    return resolveEffectiveSolidColor(contract, settings, theme);
 }
 
 /**

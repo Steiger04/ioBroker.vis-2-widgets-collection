@@ -63,10 +63,10 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // colour in outlined mode): the button-group colour contract — explicit
     // `buttonGroupColor`, else the theme text — as a solid colour. A gradient
     // yields its midpoint; a value without a Repräsentative Vollfarbe counts as
-    // unset. No vis-2 style stage (`undefined` textStyles): the contract does not
+    // unset. No vis-2 style stage (no textStyles): the contract does not
     // inherit it. Only a theme text without a solid colour draws no separator.
     const separatorColor = alphaOf(
-        resolveEffectiveSolidColor(buttonGroupColorContract, data as Record<string, unknown>, theme, undefined),
+        resolveEffectiveSolidColor(buttonGroupColorContract, data as Record<string, unknown>, theme),
         SEPARATOR_ALPHA,
     );
 
