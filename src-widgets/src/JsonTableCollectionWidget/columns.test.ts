@@ -203,30 +203,20 @@ describe('emptyState — why no table is shown', () => {
     const columnsOf = (value: unknown, config: ColumnConfigEntry[] = []): readonly EffectiveColumn[] =>
         readJsonTable(value, config).columns;
 
-    // ⇒ empty-state text (null = the table is shown), from OID type, valid type, Columns
+    // ⇒ empty-state text (null = the table is shown), from the Columns
     it.each([
-        ['no OID', 'json_table_no_oid', undefined, false, columnsOf(data)],
-        ['an invalid OID type', 'json_table_invalid_type', 'number', false, columnsOf(data)],
-        ['no data', 'json_table_no_data', 'string', true, columnsOf(null)],
-        ['an empty payload', 'json_table_no_data', 'string', true, columnsOf('[]')],
-        [
-            'an empty payload with a saved configuration',
-            'json_table_no_data',
-            'string',
-            true,
-            columnsOf('[]', [saved('a')]),
-        ],
+        ['no data', 'json_table_no_data', columnsOf(null)],
+        ['an empty payload', 'json_table_no_data', columnsOf('[]')],
+        ['an empty payload with a saved configuration', 'json_table_no_data', columnsOf('[]', [saved('a')])],
         [
             'every Column hidden',
             'json_table_all_columns_hidden',
-            'string',
-            true,
             columnsOf(data, [saved('a', { visible: false }), saved('b', { visible: false })]),
         ],
-        ['one Column visible', null, 'string', true, columnsOf(data, [saved('a', { visible: false })])],
-        ['no configuration', null, 'mixed', true, columnsOf(data)],
-    ] as const)('%s ⇒ %s', (_case, text, oidType, validType, columns) => {
-        expect(emptyState(oidType, validType, columns)).toBe(text);
+        ['one Column visible', null, columnsOf(data, [saved('a', { visible: false })])],
+        ['no configuration', null, columnsOf(data)],
+    ] as const)('%s ⇒ %s', (_case, text, columns) => {
+        expect(emptyState(columns)).toBe(text);
     });
 });
 
