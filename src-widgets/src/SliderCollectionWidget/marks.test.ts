@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import type { Theme } from '@mui/material';
 
 import { buildSliderMarks, type BuildSliderMarksParams } from './marks';
+import { createPropertyResolvers } from '../hooks/useData/propertyResolvers';
+import { getStyleData } from '../hooks/useData/styleDataResolver';
 
-import type { StateStyleData, StyleData } from '../hooks/useData/types';
+import type { MarkerLayer, PropertyResolvers, StateStyleData, StyleData } from '../hooks/useData/types';
 
 const baseStyle = (overrides: Partial<StyleData> = {}): StyleData => ({
     iconSize: '24px',
@@ -227,5 +230,59 @@ describe('buildSliderMarks — active overlay', () => {
         expect(active?.iconSize).toBe(base.iconSize);
         expect(active?.iconColor).toBe(base.iconColor);
         expect(active?.forceColorMask).toBe(base.forceColorMask);
+    });
+});
+
+/** The real resolver chains over plain widget data — what useData resolves the marks with. */
+const markResolvers = (rxData: Record<string, unknown>, markerLayer: MarkerLayer): PropertyResolvers =>
+    createPropertyResolvers({
+        rxData,
+        oidObject: undefined,
+        oidName: undefined,
+        theme: {
+            palette: { primary: { main: '#pri' }, text: { primary: '#txt' }, background: { paper: '#pap' } },
+        } as unknown as Theme,
+        fontStyles: undefined,
+        textStyles: undefined,
+        backgroundStyles: undefined,
+        formatSize: size => (size == null ? undefined : `${size}%`),
+        getDataValue: <T>(key: string, ext: string) => rxData[`${key}${ext}`] as T | undefined,
+        markerLayer,
+    });
+
+describe('buildSliderMarks — marker layer applies to marks only, between per-state and base', () => {
+    it('renders a state mark and a generated mark alike: marker text colour, text size and icon size beat the base', () => {
+        // Base and marker both set; the state row 50 carries no style of its own.
+        const r = markResolvers(
+            { textColor: '#base', valueSize: 16, iconSize: 200 },
+            { textColor: '#marker', textSize: 18, iconSize: 50 },
+        );
+        const stateStyle = getStyleData(1, false, r);
+
+        const marks = buildSliderMarks(
+            params({
+                states: [
+                    state(50, {
+                        textColor: stateStyle.textColor,
+                        valueSize: stateStyle.valueSize,
+                        iconSize: stateStyle.iconSize,
+                    }),
+                ],
+                minValue: 0,
+                maxValue: 100,
+                markStep: 50,
+                baseStyle: getStyleData('', false, r),
+                activeStyle: getStyleData('', true, r),
+            }),
+        );
+
+        const marker = { textColor: '#marker', valueSize: '18%', iconSize: 'calc(24px * 50 / 100)' };
+        expect(
+            marks.map(({ value, textColor, valueSize, iconSize }) => ({ value, textColor, valueSize, iconSize })),
+        ).toEqual([
+            { value: 0, ...marker },
+            { value: 50, ...marker },
+            { value: 100, ...marker },
+        ]);
     });
 });
