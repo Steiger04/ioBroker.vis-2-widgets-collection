@@ -192,8 +192,8 @@ export function buildGaugeOptions(
 
         const key = stripGaugePrefix(field.name);
 
-        // Color-contract fields (createColorField, ADR-0004): explicit override →
-        // fallbackFields → widget text color (when inheritTextStyle) → terminal.
+        // Color-contract fields (createColorField, ADR-0004): resolved through the
+        // shared cascade, stages at `cascadeCandidates` (lib/helper/resolveEffectiveColor).
         if (field.terminal !== undefined) {
             const contract: ColorFieldContract = {
                 name: field.name,

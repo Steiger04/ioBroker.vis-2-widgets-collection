@@ -59,9 +59,9 @@ export interface ColorFieldOptions {
     /** Default value (empty string by default) */
     default?: string;
     /**
-     * Fallback stage of the runtime resolution cascade (override → fallback fields →
-     * vis-2 style → terminal), resolved alike by the picker preview and the widget.
-     * See `ExtendedField.fallbackFields` and ADR 0004.
+     * Orders the fallback stage of the field's runtime resolution cascade, which the
+     * picker preview and the widget resolve alike (stages at `cascadeCandidates`,
+     * `lib/helper/resolveEffectiveColor`). See `ExtendedField.fallbackFields` and ADR 0004.
      */
     fallbackFields?: string[];
     /** When true, extracts solid color from gradients before saving */

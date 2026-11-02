@@ -459,7 +459,7 @@ How a color attribute resolves to the color a user actually sees — shared betw
 ## Language
 
 **Auflösungskaskade** (allgemein → speziell):
-The fixed order in which a color attribute's effective color is determined — layered from the most general default up to the most specific override; the resolution checks from the most specific end, so the most specific **set** value wins. Identical for every color property.
+The fixed order in which a color attribute's effective color is determined — layered from the most general default up to the most specific override; the resolution checks from the most specific end, so the most specific **set** value wins. The order of these stages is the same for every color field; a runtime consumer may still lay its own tiers in front of it — the state resolvers (`hooks/useData/propertyResolvers`) add active, per-state and the **Marker-Ebene** and share only the terminal mapping — or paint the explicit value raw, as some chrome slots do (see **Chrome-Farbvertrag**).
 _Avoid_: Fallback (vague — often means just one level); Vererbung (reserved for the „Erben" state).
 
 **Effektive Farbe**:
