@@ -452,6 +452,44 @@ _Avoid_: Fit-to-content, dynamic height
 The Studio panel's persisted window rectangle — position, width, and height-or-Auto in a single localStorage entry. Stored as the user's intent; the applied rectangle is clamped to the viewport (width 320…viewport−48, height 240…viewport−48) live during drags and on browser-window resize, so a shrunken window never strands the panel and a re-grown window restores the intended size.
 _Avoid_: Position+width (the retired two-key form), size
 
+# Farb- & Theme-Auflösung
+
+How a color attribute resolves to the color a user actually sees — shared between the vis-2 attribute editor and the rendered widget, across every Collection widget. Pinned down by ADR-0004 (resolution contract on the field). The widget-specific consumers (e.g. the Slider's **Chrome-Farbvertrag**) build on this language.
+
+## Language
+
+**Auflösungskaskade** (allgemein → speziell):
+The fixed order in which a color attribute's effective color is determined — from the most general default up to the most specific override. The most specific **set** value wins. Identical for every color property.
+_Avoid_: Fallback (vague — often means just one level); Vererbung (reserved for the „Erben" state).
+
+**Effektive Farbe**:
+The color an attribute actually takes on — the result of the Auflösungskaskade. What the editor swatch displays and the widget renders. Need not match the stored value.
+_Avoid_: Anzeigefarbe, Renderfarbe.
+
+**Erben**:
+The state of a color attribute that has no value of its own. Its effective color emerges solely from the Auflösungskaskade (terminal default / vis-2 style / fallback fields). A deliberate, first-class state — not „not yet initialized". Not the ECharts **Erben-Override** (per-series data settings against the chart-level Voreinstellung).
+_Avoid_: Leer (misleading — sounds like „no color"); Default.
+
+**Expliziter Override**:
+A color value the user chose consciously. Wins in the Auflösungskaskade; it is the only thing persisted as the attribute's value.
+_Avoid_: Set value, Benutzerfarbe.
+
+**Terminaler Default**:
+The most general end of the Auflösungskaskade — the color that applies when neither an override, nor a fallback, nor a vis-2 style is present. Fixed per attribute (e.g. text color → theme text color, icon color → theme primary).
+_Avoid_: Basisfarbe (reserved for the theme configurator's base color).
+
+**Basisfarbe**:
+The primary color set in the theme configurator. Icon-color default and (derived) the text color follow it.
+_Avoid_: Primary, Accent (implementation jargon).
+
+**Repräsentative Vollfarbe**:
+The one solid color a color value stands for: a solid color stands for itself, a gradient for its color at the midpoint, a value no color calculation can read (a color name, `transparent`, a CSS variable) for none. Where only a solid can be drawn or tinted — borders, separators, shadows, hover tints — a value without one counts as Erben and the Auflösungskaskade continues.
+_Avoid_: Extrahierte Farbe, Gradient-Farbe (both name the mechanism, not the concept).
+
+**Field-Vertrag** (resolution contract):
+The declaration, attached to a color field, that fully describes its Auflösungskaskade (fallback fields, whether the vis-2 style participates, and the terminaler Default). The single source consumed by both the editor and the widget.
+_Avoid_: Feld-Definition (broader — covers non-color fields too).
+
 # Slider Collection Widget
 
 The dimmer/value slider of the collection (thumb, track, rail, marks, min/max icons). This glossary pins down its color-model language.
@@ -459,7 +497,7 @@ The dimmer/value slider of the collection (thumb, track, rail, marks, min/max ic
 ## Language
 
 **Chrome-Farbvertrag**:
-The pattern by which a widget's chrome colour slots carry ONE colour cascade (ADR-0004): a widget-local contract module DECLARES it (`fallbackFields` + terminal, optionally `inheritTextStyle`), the colour field spreads that contract so the editor swatch resolves it, and the widget's chrome module RESOLVES the same contract at runtime (`resolveEffectiveColor` / `resolveEffectiveSolidColor`) — swatch and widget read one declaration. Introduced with the slider's chrome parts (thumb, track, rail, marks: `sliderFields` → `sliderColorContracts`, terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`, resolved in `buildSliderChromeStyles`). Since kern-chrome-review K1 the same pattern carries the Button-Group separator (`lib/buttonGroupColorContract.ts` → `buildGroupChrome`), the table's frame, lines and header (`lib/jsonTableColorContracts.ts` → `buildTableChrome`) and the Radio's unchecked icon (`lib/radioColorContract.ts` → `resolveRadioColors`); the Select's arrow follows it too (`lib/selectColorContract.ts` → `buildSelectChrome`). Background slots keep their raw resolved value (gradients allowed); border, separator, line and shadow slots go solid via `resolveEffectiveSolidColor`: a stage without a Repräsentative Vollfarbe (`docs/context/color-theme.md`) counts as Erben and the cascade continues. Each consumer's divergences from the swatch (e.g. a stored explicit value the picker rejects that keeps painting raw, as before the contract) live in its contract module and, where the widget has one, its glossary entry. The parity test `lib/colorFieldTerminals.parity.test.ts` requires a terminal on every contract colour field of every widget; its listed exceptions, where no single terminal describes the runtime, are the Switch's thumb and track colours (unset means the state-dependent MUI Switch default) and the Dialog background (unset renders CSS `inherit`). Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine. The markLabel chain carries the **Marker-Ebene**, the valueLabel chain does not.
+The pattern by which a widget's chrome colour slots carry ONE colour cascade (ADR-0004): a widget-local contract module DECLARES it (`fallbackFields` + terminal, optionally `inheritTextStyle`), the colour field spreads that contract so the editor swatch resolves it, and the widget's chrome module RESOLVES the same contract at runtime (`resolveEffectiveColor` / `resolveEffectiveSolidColor`) — swatch and widget read one declaration. Introduced with the slider's chrome parts (thumb, track, rail, marks: `sliderFields` → `sliderColorContracts`, terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`, resolved in `buildSliderChromeStyles`). Since kern-chrome-review K1 the same pattern carries the Button-Group separator (`lib/buttonGroupColorContract.ts` → `buildGroupChrome`), the table's frame, lines and header (`lib/jsonTableColorContracts.ts` → `buildTableChrome`) and the Radio's unchecked icon (`lib/radioColorContract.ts` → `resolveRadioColors`); the Select's arrow follows it too (`lib/selectColorContract.ts` → `buildSelectChrome`). Background slots keep their raw resolved value (gradients allowed); border, separator, line and shadow slots go solid via `resolveEffectiveSolidColor`: a stage without a **Repräsentative Vollfarbe** counts as Erben and the cascade continues. Each consumer's divergences from the swatch (e.g. a stored explicit value the picker rejects that keeps painting raw, as before the contract) live in its contract module and, where the widget has one, its glossary entry. The parity test `lib/colorFieldTerminals.parity.test.ts` requires a terminal on every contract colour field of every widget; its listed exceptions, where no single terminal describes the runtime, are the Switch's thumb and track colours (unset means the state-dependent MUI Switch default) and the Dialog background (unset renders CSS `inherit`). Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine. The markLabel chain carries the **Marker-Ebene**, the valueLabel chain does not.
 _Avoid_: Slider-Farbregeln, Farbkaskade (unsaid WHICH contract), mixing chrome slots with label/state colors
 
 **Marke**:
