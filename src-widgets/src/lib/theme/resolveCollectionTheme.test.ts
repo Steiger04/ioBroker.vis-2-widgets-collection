@@ -4,7 +4,7 @@
  * @module lib/theme/resolveCollectionTheme.test
  * @remarks
  * Pins the host→collection boundary (`sanitizeHostTheme`, ADR-0078) and the resolution chain
- * on top of it (derived secondary, text follows primary, corners).
+ * on top of it (derived secondary, text follows primary, corners, unusable colours inherit).
  *
  * Regression guard for the vis-2 React-19/MUI-9 era: the host theme is a
  * CSS-variables theme whose `vars` mirror (and `components` skin) must never
@@ -220,5 +220,23 @@ describe('resolveCollectionTheme — the effective colour', () => {
         const paperRoot = (theme.components?.MuiPaper?.styleOverrides as { root: { borderRadius: string } }).root;
         expect(paperRoot.borderRadius).toBe('4px 8px 12px 16px');
         expect(theme.shape.borderRadius).toBe(4);
+    });
+
+    it.each(['nope', 'red', 'transparent'])(
+        'lets a primary MUI cannot compute with (%s) inherit instead of throwing',
+        value => {
+            const theme = resolveCollectionTheme(host(), {}, { palette: { primary: { main: value } } });
+            expect(theme.palette.primary.main).toBe('#137bf8');
+            // Nothing to derive from: secondary and text inherit as if the primary were unset.
+            expect(theme.palette.secondary.main).toBe('#e91e63');
+            expect(theme.palette.text.primary).toBe('#137bf8');
+        },
+    );
+
+    it('drops an unusable status colour but keeps the valid ones next to it', () => {
+        const user: UserTheme = { palette: { error: { main: 'nope' }, success: { main: '#00aa00' } } };
+        const theme = resolveCollectionTheme(host(), {}, user);
+        expect(theme.palette.error.main).toBe(createTheme().palette.error.main);
+        expect(theme.palette.success.main).toBe('#00aa00');
     });
 });
