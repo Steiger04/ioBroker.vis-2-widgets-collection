@@ -15,11 +15,12 @@
  * the JsonTable editors). Passing `presets` upgrades it to the theme-studio variant
  * (ADR-0020): hex/rgba inputs, the eyedropper and a preset swatch row (fed with the
  * current theme colours) become visible, and the solid/gradient toggle is hidden —
- * theme palette slots are solid colours.
+ * theme palette slots are solid colours. Independently, `hexInput` shows the value as
+ * editable, copyable monospace text next to the swatch (theme studio; off by default).
  */
 
 import ClearIcon from '@mui/icons-material/Clear';
-import { Box, IconButton, Popover, Typography, useTheme } from '@mui/material';
+import { Box, IconButton, InputBase, Popover, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
@@ -44,6 +45,13 @@ interface ColorPickerFieldProps {
     presets?: string[];
     /** Field-level validation message (ADR-0020) rendered under the row; also marks the row. */
     error?: string;
+    /**
+     * Shows the colour value as editable monospace text next to the swatch (theme studio). An
+     * edit commits on Enter or blur — as typed, invalid values included (the caller's field
+     * validation judges them); an emptied field commits `''` (reset). Escape restores the value.
+     * Off by default.
+     */
+    hexInput?: boolean;
 }
 
 /**
@@ -56,6 +64,7 @@ interface ColorPickerFieldProps {
  * @param props.overridden - Whether an explicit override exists (shows reset button).
  * @param props.presets - Theme-studio variant: preset swatches + inputs + eyedropper.
  * @param props.error - Field-level validation message.
+ * @param props.hexInput - Shows the value as editable monospace text next to the swatch.
  * @returns Rendered field UI.
  */
 function ColorPickerField({
@@ -65,12 +74,19 @@ function ColorPickerField({
     overridden,
     presets,
     error,
+    hexInput,
 }: ColorPickerFieldProps): React.JSX.Element {
     const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     // Local cached value for immediate UI feedback during picker drag
     const [cachedValue, setCachedValue] = useState<string>(value);
+
+    // Hex input text while editing; follows the displayed value (picker drags included).
+    const [hexText, setHexText] = useState<string>(value);
+    useEffect(() => {
+        setHexText(cachedValue);
+    }, [cachedValue]);
 
     // Debounce timer for picker-originated onChange calls
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -126,6 +142,40 @@ function ColorPickerField({
         [onChange],
     );
 
+    // Commits the typed text (Enter / blur) unless it is the displayed value already.
+    const commitHex = useCallback((): void => {
+        const next = hexText.trim();
+        if (next === cachedValue) {
+            setHexText(cachedValue);
+            return;
+        }
+        if (debounceRef.current !== null) {
+            clearTimeout(debounceRef.current);
+            debounceRef.current = null;
+        }
+        if (next === '') {
+            // A reset: the caller supplies the inherited value, show the current one meanwhile.
+            setHexText(cachedValue);
+        } else {
+            setCachedValue(next);
+        }
+        onChange(next);
+    }, [hexText, cachedValue, onChange]);
+
+    const handleHexKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLInputElement>): void => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                commitHex();
+            } else if (event.key === 'Escape') {
+                // Restore only: the Escape must not also close a surrounding panel or dialog.
+                event.stopPropagation();
+                setHexText(cachedValue);
+            }
+        },
+        [commitHex, cachedValue],
+    );
+
     return (
         <Box data-theme-error={error ? true : undefined}>
             <Box
@@ -151,6 +201,30 @@ function ColorPickerField({
                 </Typography>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {hexInput ? (
+                        <InputBase
+                            value={hexText}
+                            onChange={event => setHexText(event.target.value)}
+                            onBlur={commitHex}
+                            onKeyDown={handleHexKeyDown}
+                            // Typing and selecting (copying) the value must not open the picker.
+                            onClick={(event: React.MouseEvent): void => event.stopPropagation()}
+                            error={Boolean(error)}
+                            inputProps={{ 'data-hex-input': true, 'aria-label': label, spellCheck: false }}
+                            sx={{
+                                width: '10ch',
+                                fontSize: '0.75rem',
+                                color: error ? 'error.main' : 'text.primary',
+                                borderRadius: '4px',
+                                border: 1,
+                                borderColor: 'transparent',
+                                cursor: 'text',
+                                transition: 'border-color 150ms',
+                                '&:hover, &.Mui-focused': { borderColor: 'divider' },
+                                '& .MuiInputBase-input': { fontFamily: 'monospace', py: 0.25, px: 0.5 },
+                            }}
+                        />
+                    ) : null}
                     <Box
                         data-swatch-color={cachedValue}
                         sx={{

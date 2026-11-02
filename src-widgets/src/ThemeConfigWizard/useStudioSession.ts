@@ -31,9 +31,8 @@ import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
-import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
-import { canSave as canSaveStep, isDirty, parseStoredTheme, shouldRebase } from './studioSessionSteps';
+import { canSave as canSaveStep, isDirty, parseStoredTheme, shouldRebase, validateDraft } from './studioSessionSteps';
 
 /** Minimum gap between two draft pushes to the canvas (the session's single throttle, ADR-0020). */
 const DRAFT_FLUSH_MS = 100;
@@ -186,7 +185,7 @@ export function useStudioSession(socket: Connection): StudioSession {
         }
     }, [draft, push]);
 
-    const validation = useMemo(() => validateThemeOptions(draft), [draft]);
+    const validation = useMemo(() => validateDraft(draft), [draft]);
     const dirty = useMemo(() => isDirty(draft, snapshot), [draft, snapshot]);
     const canSave = canSaveStep({ valid: validation.isValid, dirty, saving });
 

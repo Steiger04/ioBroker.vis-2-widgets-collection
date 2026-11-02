@@ -19,7 +19,7 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
 
 import { createThemeCached } from './createThemeCache';
 import { withDerivedSecondary, withPrimaryAsText } from './derivePalette';
-import type { CornerRadii, UserTheme } from './themeTypes';
+import type { CornerRadii, ThemeValidationIssue, UserTheme } from './themeTypes';
 import { buildCornerRadiusCss, getNestedValue, isPlainObject } from './themeUtils';
 import { isValidCssColor } from './validateTheme';
 
@@ -128,6 +128,37 @@ function isComputableColor(value: string): boolean {
     } catch {
         return false;
     }
+}
+
+/**
+ * Field-level issues for the colours the resolution drops although the schema accepts them: an
+ * augmented slot's `main` that is a valid CSS colour but not computable by MUI (named colours,
+ * `transparent`). Colours the browser rejects are left to the schema validator, which reports
+ * them already — so the two never report the same value twice.
+ *
+ * @param theme - The user theme (typically the studio draft).
+ * @returns One `uncomputable-color` error per such `palette.<slot>.main`.
+ */
+export function uncomputableColorIssues(theme: UserTheme): ThemeValidationIssue[] {
+    const palette: unknown = theme.palette;
+    if (!isPlainObject(palette)) {
+        return [];
+    }
+    const issues: ThemeValidationIssue[] = [];
+    for (const slot of AUGMENTED_SLOTS) {
+        const slotValue = palette[slot];
+        const main = isPlainObject(slotValue) ? slotValue.main : undefined;
+        if (typeof main === 'string' && isValidCssColor(main) && !isComputableColor(main)) {
+            const path = `palette.${slot}.main`;
+            issues.push({
+                path,
+                severity: 'error',
+                code: 'uncomputable-color',
+                message: `Value at "${path}" is a colour MUI cannot compute with (use hex, rgb() or hsl()).`,
+            });
+        }
+    }
+    return issues;
 }
 
 /**

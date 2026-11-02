@@ -8,7 +8,8 @@
  * the split the echarts editor lifecycle uses (`lifecycleGuards`, ADR-0048).
  */
 
-import type { UserTheme } from '../lib/theme/themeTypes';
+import { uncomputableColorIssues } from '../lib/theme/resolveCollectionTheme';
+import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 
 /** Content equality of two drafts (the drafts are plain JSON objects). */
@@ -33,6 +34,24 @@ export const isDirty = (draft: UserTheme, snapshot: UserTheme): boolean => !same
 /** Save needs a valid draft with something to commit, and no save already in flight. */
 export const canSave = ({ valid, dirty, saving }: { valid: boolean; dirty: boolean; saving: boolean }): boolean =>
     valid && dirty && !saving;
+
+/**
+ * Validates a draft: the theme schema plus the colours the canvas resolution would drop although
+ * the schema accepts them (an accent `main` MUI cannot compute with). A value the canvas
+ * silently replaces by the inherited colour must not pass as valid — it shows at its field and
+ * blocks Save. Stricter than the runtime on purpose: a stored theme with such a colour still
+ * loads (the field inherits there), the studio only refuses to save one.
+ *
+ * @param draft - The current draft.
+ */
+export function validateDraft(draft: UserTheme): ThemeValidationResult {
+    const schema = validateThemeOptions(draft);
+    const uncomputable = uncomputableColorIssues(draft);
+    if (uncomputable.length === 0) {
+        return schema;
+    }
+    return { isValid: false, issues: [...schema.issues, ...uncomputable] };
+}
 
 /**
  * Turns a stored state value into a draft. An unset, corrupt or invalid state yields the

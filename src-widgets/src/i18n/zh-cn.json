@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "跟随主颜色",
     "theme_studio_secondary_derived": "派生自主项",
     "theme_studio_presets_active": "%s · 使用中",
-    "theme_studio_presets_custom": "自定义颜色"
+    "theme_studio_presets_custom": "自定义颜色",
+    "theme_studio_valid_color_computable": "请在此处使用 hex、rgb() 或 hsl() —— 小组件无法使用颜色名称或 transparent 进行计算"
 }

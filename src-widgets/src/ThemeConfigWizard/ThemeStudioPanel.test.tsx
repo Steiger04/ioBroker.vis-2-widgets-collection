@@ -389,6 +389,86 @@ describe('ThemeStudioPanel field errors', () => {
     });
 });
 
+describe('ThemeStudioPanel hex input', () => {
+    /** The hex input of the colour field labelled `labelKey` (stubbed labels are keys). */
+    const hexInputOf = (labelKey: string): HTMLInputElement => {
+        const input = document.body.querySelector<HTMLInputElement>(`input[data-hex-input][aria-label="${labelKey}"]`);
+        if (!input) {
+            throw new Error(`no hex input for "${labelKey}"`);
+        }
+        return input;
+    };
+
+    /** Types `value` into the input and commits it with Enter, like a user would. */
+    const enter = async (input: HTMLInputElement, value: string): Promise<void> => {
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        act(() => {
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        });
+        await settle();
+    };
+
+    /** Label and message of every field marked as erroneous. */
+    const fieldErrors = (): Array<[string, string]> =>
+        Array.from(document.body.querySelectorAll<HTMLElement>('[data-theme-error]')).map(field => [
+            field.querySelector('[data-swatch-color]')?.parentElement?.parentElement?.firstElementChild?.textContent ??
+                '',
+            field.querySelector('.MuiTypography-caption')?.textContent ?? '',
+        ]);
+
+    const saveButton = (): HTMLButtonElement => button('save');
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('shows the effective value at every colour field', async () => {
+        await mountPanel({ palette: { divider: '#303030' } });
+        await expandColorSections();
+        expect(hexInputOf('theme_wizard_palette_divider').value).toBe('#303030');
+        expect(hexInputOf('theme_wizard_palette_primary').value).toBe(createChromeTheme('light').palette.primary.main);
+        expect(document.body.querySelectorAll('input[data-hex-input]')).toHaveLength(11);
+    });
+
+    it('writes a typed colour into the draft', async () => {
+        await mountPanel({});
+        await expandColorSections();
+        await enter(hexInputOf('theme_wizard_palette_primary'), '#123456');
+        expect(getNestedValue<string>(getDraftTheme(), 'palette.primary.main')).toBe('#123456');
+        expect(fieldErrors()).toEqual([]);
+    });
+
+    it('reports a value the browser rejects at its field', async () => {
+        // happy-dom's CSS.supports accepts every value (and ignores a spy) — stand in a browser.
+        vi.stubGlobal('CSS', { supports: (_property: string, value?: string): boolean => value !== 'nope' });
+        await mountPanel({});
+        await expandColorSections();
+        await enter(hexInputOf('theme_wizard_palette_divider'), 'nope');
+        expect(fieldErrors()).toEqual([['theme_wizard_palette_divider', 'theme_studio_valid_color']]);
+        expect(saveButton().disabled).toBe(true);
+    });
+
+    it('reports an accent colour MUI cannot compute with at its field, as the canvas drops it', async () => {
+        // `red` is a valid CSS colour, but MUI's colour maths cannot parse it — the resolution
+        // lets the field inherit, so the field must not pass as valid.
+        await mountPanel({});
+        await expandColorSections();
+        await enter(hexInputOf('theme_wizard_palette_primary'), 'red');
+        expect(fieldErrors()).toEqual([['theme_wizard_palette_primary', 'theme_studio_valid_color_computable']]);
+        expect(saveButton().disabled).toBe(true);
+    });
+
+    it('accepts named colours where the resolution keeps them', async () => {
+        await mountPanel({});
+        await expandColorSections();
+        await enter(hexInputOf('theme_wizard_palette_divider'), 'red');
+        expect(fieldErrors()).toEqual([]);
+    });
+});
+
 describe('ThemeStudioPanel problem counter', () => {
     // Out-of-range corner radii are validation errors that MUI's createTheme tolerates.
     /** The footer's scroll-to-error button (the only error-coloured text button). */

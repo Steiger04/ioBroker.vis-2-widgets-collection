@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "volgt de primaire kleur",
     "theme_studio_secondary_derived": "afgeleid van primair",
     "theme_studio_presets_active": "%s · actief",
-    "theme_studio_presets_custom": "aangepaste kleuren"
+    "theme_studio_presets_custom": "aangepaste kleuren",
+    "theme_studio_valid_color_computable": "gebruik hier hex, rgb() of hsl() — de widgets kunnen niet rekenen met kleurnamen of transparent"
 }

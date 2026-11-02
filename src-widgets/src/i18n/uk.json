@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "наслідує основний",
     "theme_studio_secondary_derived": "походить від основного",
     "theme_studio_presets_active": "%s · активний",
-    "theme_studio_presets_custom": "власні кольори"
+    "theme_studio_presets_custom": "власні кольори",
+    "theme_studio_valid_color_computable": "використовуйте тут hex, rgb() або hsl() — віджети не можуть виконувати обчислення з назвами кольорів або transparent"
 }

@@ -6,8 +6,8 @@
  * Renders every colour group of one section from the field registry
  * ({@link module:ThemeConfigWizard/studioColorFields}): a `SubGroup` per group, a
  * `ColorPickerField` per field. Each field shows the effective (resolved) colour until the user
- * overrides it — the colour the canvas widgets inherit from the editor theme — and its
- * validation error at the field. A derived field carries its marker ("derived from primary",
+ * overrides it — the colour the canvas widgets inherit from the editor theme — as swatch and as
+ * editable hex text, and its validation error at the field. A derived field carries its marker ("derived from primary",
  * "follows primary") while the resolution derives it, and every field a `HelpHint` naming where
  * the colour shows up.
  */
@@ -66,6 +66,7 @@ function ColorFieldGroups({
                         onChange={color => onChange(field.path, color || undefined)}
                         presets={colorPresets}
                         error={errorFor?.(field.path)}
+                        hexInput
                     />
                 </Box>
                 <Box sx={{ pt: '1px' }}>

@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "podąża za podstawowym",
     "theme_studio_secondary_derived": "pochodny z podstawowego",
     "theme_studio_presets_active": "%s · aktywny",
-    "theme_studio_presets_custom": "niestandardowe kolory"
+    "theme_studio_presets_custom": "niestandardowe kolory",
+    "theme_studio_valid_color_computable": "użyj tutaj formatu hex, rgb() lub hsl() — widżety nie potrafią przeliczać nazw kolorów ani wartości transparent"
 }

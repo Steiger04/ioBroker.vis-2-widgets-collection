@@ -5,13 +5,13 @@
  * @remarks
  * Pins the policy the session hook only wires (ADR-0020 addendum 2026-11-02): when the stored
  * theme may replace the draft, when the draft counts as dirty, when Save is allowed and how a
- * stored state value becomes a draft. The wiring (load, canvas mirror, end invariant) is pinned
+ * stored state value becomes a draft, and which drafts count as valid. The wiring (load, canvas mirror, end invariant) is pinned
  * in useStudioSession.hook.test.ts.
  */
 import { describe, expect, it } from 'vitest';
 
 import type { UserTheme } from '../lib/theme/themeTypes';
-import { canSave, isDirty, parseStoredTheme, shouldRebase } from './studioSessionSteps';
+import { canSave, isDirty, parseStoredTheme, shouldRebase, validateDraft } from './studioSessionSteps';
 
 const SEED: UserTheme = { palette: { primary: { main: '#ff0000' } } };
 
@@ -72,5 +72,43 @@ describe('parseStoredTheme', () => {
         ['a non-object theme', '[1]'],
     ])('falls back to the empty theme for %s', (_label, raw) => {
         expect(parseStoredTheme(raw)).toEqual({});
+    });
+});
+
+describe('validateDraft', () => {
+    it('accepts a draft the schema and the resolution both keep', () => {
+        expect(validateDraft({ palette: { primary: { main: '#ff0000' }, divider: 'red' } })).toEqual({
+            isValid: true,
+            theme: { palette: { primary: { main: '#ff0000' }, divider: 'red' } },
+            issues: [],
+        });
+    });
+
+    it.each([
+        ['a named colour', 'primary', 'red'],
+        ['transparent', 'success', 'transparent'],
+    ])('reports %s as an accent main the resolution drops', (_label, slot, main) => {
+        const result = validateDraft({ palette: { [slot]: { main } } });
+        expect(result.isValid).toBe(false);
+        expect(result.theme).toBeUndefined();
+        expect(result.issues).toEqual([
+            expect.objectContaining({
+                path: `palette.${slot}.main`,
+                severity: 'error',
+                code: 'uncomputable-color',
+            }),
+        ]);
+    });
+
+    it('keeps named colours outside an accent main (the resolution keeps them too)', () => {
+        expect(validateDraft({ palette: { primary: { main: '#ff0000', light: 'red' } } }).isValid).toBe(true);
+    });
+
+    it("keeps the schema's own issues", () => {
+        const result = validateDraft({ corners: { topLeft: -1 }, palette: { info: { main: 'red' } } });
+        expect(result.issues.map(issue => [issue.path, issue.code])).toEqual([
+            ['corners.topLeft', 'number-out-of-range'],
+            ['palette.info.main', 'uncomputable-color'],
+        ]);
     });
 });

@@ -1245,6 +1245,7 @@
     "theme_studio_text_follows_primary": "folgt Primär",
     "theme_studio_undo": "Rückgängig (Strg+Z)",
     "theme_studio_valid_color": "muss eine Farbe sein (kein Farbverlauf)",
+    "theme_studio_valid_color_computable": "hier als Hex, rgb() oder hsl() angeben — mit Farbnamen und transparent können die Widgets nicht rechnen",
     "theme_studio_valid_number": "muss eine Zahl sein",
     "theme_studio_valid_range": "Wert außerhalb des erlaubten Bereichs",
     "theme_studio_valid_shape": "Theme muss ein Objekt sein",

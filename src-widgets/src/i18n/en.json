@@ -1250,6 +1250,7 @@
     "theme_studio_text_follows_primary": "follows primary",
     "theme_studio_undo": "Undo (Ctrl+Z)",
     "theme_studio_valid_color": "must be a color (gradients are not allowed)",
+    "theme_studio_valid_color_computable": "use hex, rgb() or hsl() here — the widgets cannot compute with colour names or transparent",
     "theme_studio_valid_number": "must be a number",
     "theme_studio_valid_range": "value is out of the allowed range",
     "theme_studio_valid_shape": "theme must be an object",

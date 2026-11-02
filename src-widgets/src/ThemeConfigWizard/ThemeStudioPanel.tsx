@@ -111,6 +111,7 @@ function sectionForPath(path: string): SectionKey {
 /** Maps validator issue codes to localized message keys. */
 const VALIDATION_CODE_KEYS: Record<string, string> = {
     'invalid-color': 'theme_studio_valid_color',
+    'uncomputable-color': 'theme_studio_valid_color_computable',
     'invalid-number': 'theme_studio_valid_number',
     'number-out-of-range': 'theme_studio_valid_range',
     'invalid-type': 'theme_studio_valid_type',

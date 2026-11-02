@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "suit la couleur primaire",
     "theme_studio_secondary_derived": "dérivé du principal",
     "theme_studio_presets_active": "%s · actif",
-    "theme_studio_presets_custom": "couleurs personnalisées"
+    "theme_studio_presets_custom": "couleurs personnalisées",
+    "theme_studio_valid_color_computable": "utilisez ici hex, rgb() ou hsl() — les widgets ne peuvent pas effectuer de calculs avec les noms de couleurs ou transparent"
 }

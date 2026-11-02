@@ -1328,5 +1328,6 @@
     "theme_studio_text_follows_primary": "следует за основным",
     "theme_studio_secondary_derived": "производное от основного",
     "theme_studio_presets_active": "%s · активен",
-    "theme_studio_presets_custom": "пользовательские цвета"
+    "theme_studio_presets_custom": "пользовательские цвета",
+    "theme_studio_valid_color_computable": "используйте здесь hex, rgb() или hsl() — виджеты не могут работать с названиями цветов или значением transparent"
 }
