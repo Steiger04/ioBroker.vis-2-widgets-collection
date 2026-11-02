@@ -3,23 +3,23 @@
  *
  * @module widgets/GaugeCollection
  * @remarks
- * Owns everything the Options-Builder cannot know: the measured dimensions,
- * the current value and the Highlight-Zones derived from the state rows
- * ({@link module:GaugeCollectionWidget/gaugeSegments}). The canvas-gauges
- * option object comes from
+ * Owns everything the Options-Builder cannot know: the canvas size (the
+ * frame's Content-Box, ADR-0098), the current value and the Highlight-Zones
+ * derived from the state rows ({@link module:GaugeCollectionWidget/gaugeSegments}).
+ * The canvas-gauges option object comes from
  * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}; the
  * active zone's styling is pre-composed into the `data` CollectionBase
  * renders — no imperative DOM writes (K3).
  */
 
 import { Box } from '@mui/material';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
-import useElementDimensions from '../hooks/useElementDimensions';
+import useContentBox from '../hooks/useContentBox';
 import useStyles from '../hooks/useStyles';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
@@ -29,14 +29,30 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
 import { buildHighlights, findSegment, resolveSegmentBackground, resolveSegmentFrame } from './gaugeSegments';
 
+import type { GaugeOptions } from 'canvas-gauges';
+
+/** Builds the complete option set for a canvas size in px. */
+type BuildGaugeOptions = (size: { width: number; height: number }) => GaugeOptions;
+
+/**
+ * The canvas, sized by the frame's Content-Box — a child of CollectionBase, where the box is
+ * published. An unmeasured box counts as 0 × 0 (the adapter draws nothing below its minimum).
+ */
+function SizedGauge({ buildOptions }: { buildOptions: BuildGaugeOptions }): React.JSX.Element {
+    const { width, height } = useContentBox();
+    const options = useMemo(
+        () => buildOptions({ width: width || 0, height: height || 0 }),
+        [buildOptions, width, height],
+    );
+
+    return <Gauge options={options} />;
+}
+
 /**
  * Renders a canvas-gauges based gauge; the active Highlight-Zone restyles
  * frame and content through the pre-composed style data.
  */
 function GaugeCollection(): React.JSX.Element {
-    const [gaugeElement, setGaugeElement] = useState<HTMLDivElement | null>(null);
-    const { width: gaugeWidth, height: gaugeHeight } = useElementDimensions(gaugeElement);
-
     const context = useContext(CollectionContext) as GaugeCollectionContextProps;
     const {
         theme,
@@ -92,12 +108,13 @@ function GaugeCollection(): React.JSX.Element {
 
     // Complete canvas-gauges option set — coercion, defaults, the color contract
     // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
-    // padding, value/unit/title) live behind this seam.
-    const gaugeOptions = useMemo(
-        () =>
+    // padding, value/unit/title) live behind this seam. The canvas size joins
+    // inside the frame (SizedGauge).
+    const buildOptions = useCallback<BuildGaugeOptions>(
+        ({ width, height }) =>
             buildGaugeOptions(fields, widget.data, {
-                width: gaugeWidth || 0,
-                height: gaugeHeight || 0,
+                width,
+                height,
                 value: oidValue,
                 unit: oidObject?.unit,
                 header: data.header,
@@ -105,18 +122,7 @@ function GaugeCollection(): React.JSX.Element {
                 theme,
                 textStyles,
             }),
-        [
-            fields,
-            widget.data,
-            gaugeWidth,
-            gaugeHeight,
-            oidValue,
-            oidObject?.unit,
-            data.header,
-            highlights,
-            theme,
-            textStyles,
-        ],
+        [fields, widget.data, oidValue, oidObject?.unit, data.header, highlights, theme, textStyles],
     );
 
     // Segment icon overlay (rendered above the canvas, positioned per state row).
@@ -142,7 +148,6 @@ function GaugeCollection(): React.JSX.Element {
                 widget={widget}
             />
             <Box
-                ref={setGaugeElement}
                 sx={{
                     width: '100%',
                     height: '100%',
@@ -170,7 +175,7 @@ function GaugeCollection(): React.JSX.Element {
                         ...iconColorStyles,
                     }}
                 />
-                <Gauge options={gaugeOptions} />
+                <SizedGauge buildOptions={buildOptions} />
             </Box>
         </CollectionBase>
     );

@@ -15,8 +15,9 @@
  * The Select-Chrome is pinned as rendered, too — only its wiring, i.e. which inputs
  * the body feeds in: the arrow takes `arrowColor`, else the ACTIVE state's text
  * colour; the popup surface follows the explicit `noCard` alone (an embedded Select
- * keeps its elevated popup); the width bound follows the measured content box. The
- * rules themselves are pinned as pure data in chrome.test.ts.
+ * keeps its elevated popup); the width bound follows the Content-Box the frame publishes
+ * (ADR-0098, injected through the test scene). The rules themselves are pinned as pure
+ * data in chrome.test.ts.
  *
  * Selections are driven through the real UI: a primary-button mousedown on the
  * combobox opens the menu (MUI renders it in a portal on document.body), a click
@@ -31,6 +32,7 @@ import {
     collectionScene,
     installInertResizeObserver,
     mountCollectionBody,
+    withContentBox,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
@@ -140,28 +142,6 @@ const embedded = (currentScene: PreviewScene): PreviewScene =>
         context: { ...currentScene.context, wrappedContent: false },
     }) as PreviewScene;
 
-/** A ResizeObserver that reports every observed element at the given content width. */
-const reportingResizeObserver = (width: number): unknown =>
-    class {
-        private readonly callback: ResizeObserverCallback;
-
-        constructor(callback: ResizeObserverCallback) {
-            this.callback = callback;
-        }
-
-        observe(target: Element): void {
-            this.callback(
-                [{ target, contentRect: { width, height: 120 } } as unknown as ResizeObserverEntry],
-                this as unknown as ResizeObserver,
-            );
-        }
-
-        /* eslint-disable class-methods-use-this -- nothing to release */
-        unobserve(): void {}
-        disconnect(): void {}
-        /* eslint-enable class-methods-use-this */
-    };
-
 /** Lets the debounced backend write (`delay: 0`) fire. */
 const flushWrites = async (): Promise<void> => {
     await act(async () => {
@@ -187,7 +167,6 @@ describe('SelectCollection wiring', () => {
         }
         vi.useRealTimers();
         vi.restoreAllMocks();
-        vi.unstubAllGlobals();
     });
 
     describe('active state', () => {
@@ -324,12 +303,11 @@ describe('SelectCollection wiring', () => {
             expect(getComputedStyle(popup('.MuiMenu-paper')).backgroundColor).toBe('#123456');
         });
 
-        it('bounds the select and its popup by the measured content box (300 px until measured)', () => {
+        it("bounds the select and its popup by the frame's Content-Box (300 px until measured)", () => {
             const unmeasured = mountSelect(scene());
             expect(getComputedStyle(selectRoot(unmeasured.container)).maxWidth).toBe('calc(300px - 10%)');
 
-            vi.stubGlobal('ResizeObserver', reportingResizeObserver(480));
-            const measured = mountSelect(scene());
+            const measured = mountSelect(withContentBox(scene(), { width: 480, height: 120 }));
             expect(getComputedStyle(selectRoot(measured.container)).maxWidth).toBe('calc(480px - 10%)');
 
             openMenu(measured.container);
