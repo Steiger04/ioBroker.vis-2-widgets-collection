@@ -1,5 +1,5 @@
 /**
- * Theme configuration wizard palette entry.
+ * Theme Studio palette entry.
  *
  * @module ThemeConfigWizard
  * @remarks

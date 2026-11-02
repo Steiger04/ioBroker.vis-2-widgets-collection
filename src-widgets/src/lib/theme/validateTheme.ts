@@ -168,12 +168,18 @@ function validateNumberValue(value: unknown, schema: NumberSchema, path: string,
         reportTypeError(path, 'number', value, issues, 'invalid-number');
         return;
     }
+    // The bounds for the localized "out of range (min–max)"; an open side reads as infinity.
+    const params = [
+        schema.min === undefined ? '-∞' : String(schema.min),
+        schema.max === undefined ? '∞' : String(schema.max),
+    ];
     if (schema.min !== undefined && value < schema.min) {
         issues.push({
             path,
             severity: 'error',
             code: 'number-out-of-range',
             message: `Value at "${path}" must be >= ${schema.min}.`,
+            params,
         });
     }
     if (schema.max !== undefined && value > schema.max) {
@@ -182,6 +188,7 @@ function validateNumberValue(value: unknown, schema: NumberSchema, path: string,
             severity: 'error',
             code: 'number-out-of-range',
             message: `Value at "${path}" must be <= ${schema.max}.`,
+            params,
         });
     }
 }

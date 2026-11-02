@@ -49,6 +49,26 @@ describe('TypographySection font family', () => {
     });
 });
 
+describe('TypographySection Google font field', () => {
+    it('names the field, shows an example and explains the fetch with a help hint', () => {
+        const mounted = renderComponent<TypographySectionProps>(TypographySection, {
+            theme: {},
+            onChange: () => {},
+            onApply: () => {},
+            expanded: true,
+        });
+        handle = mounted;
+
+        const group = mounted.container.querySelector('[data-google-font-group]');
+        const input = group?.querySelector<HTMLInputElement>('input[type="text"]');
+        expect(input?.closest('.MuiFormControl-root')?.parentElement?.firstElementChild?.textContent).toBe(
+            'theme_wizard_typography_google_font_hint',
+        );
+        expect(input?.placeholder).toBe('theme_studio_google_font_placeholder');
+        expect(group?.querySelector('button[aria-label="theme_studio_help_google_font"]')).not.toBeNull();
+    });
+});
+
 describe('TypographySection corner radii', () => {
     /** Mounts the expanded section over `theme`; returns the container and the change spy. */
     const mount = (

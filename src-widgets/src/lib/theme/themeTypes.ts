@@ -78,6 +78,8 @@ export interface ThemeValidationIssue {
     message: string;
     /** Machine-readable code for localized mapping in the UI (e.g. `invalid-color`). */
     code?: string;
+    /** Values for the localized message's `%s` placeholders, in order (e.g. a range's `[min, max]`). */
+    params?: string[];
 }
 
 /**

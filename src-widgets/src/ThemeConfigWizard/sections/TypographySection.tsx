@@ -359,7 +359,10 @@ function TypographySection({
                         </Typography>
                     ) : null}
                 </Stack>
-                <Stack spacing={1}>
+                <Stack
+                    spacing={1}
+                    data-google-font-group=""
+                >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <FieldLabel>{Generic.t('theme_wizard_typography_google_font')}</FieldLabel>
                         <Link
@@ -375,6 +378,7 @@ function TypographySection({
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             <TextField2
                                 label={Generic.t('theme_wizard_typography_google_font_hint')}
+                                placeholder={Generic.t('theme_studio_google_font_placeholder')}
                                 value={googleFontName}
                                 onChange={setGoogleFontName}
                                 disabled={googleFontLoading}
@@ -390,6 +394,9 @@ function TypographySection({
                         >
                             {Generic.t('theme_wizard_typography_google_font_load')}
                         </Button>
+                        <Box sx={{ pt: '18px' }}>
+                            <HelpHint title={Generic.t('theme_studio_help_google_font')} />
+                        </Box>
                     </Box>
                     {googleFontError ? (
                         <Alert

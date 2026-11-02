@@ -31,6 +31,13 @@ describe('validateThemeOptions: radius range', () => {
         );
     });
 
+    it('carries the range bounds so the studio can name them', () => {
+        const result = validateThemeOptions({ corners: { topLeft: -1 } });
+        expect(result.issues).toContainEqual(
+            expect.objectContaining({ path: 'corners.topLeft', code: 'number-out-of-range', params: ['0', '96'] }),
+        );
+    });
+
     it('accepts hand-written shape.borderRadius up to 96', () => {
         const result = validateThemeOptions({ shape: { borderRadius: 96 } });
         expect(result.issues.filter(issue => issue.severity === 'error')).toEqual([]);

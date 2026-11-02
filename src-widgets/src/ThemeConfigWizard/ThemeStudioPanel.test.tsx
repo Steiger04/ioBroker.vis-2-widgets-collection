@@ -503,6 +503,12 @@ describe('ThemeStudioPanel problem counter', () => {
         await mountPanel({ corners: { topLeft: -1, topRight: -1 } });
         expect(counter()).toBe('theme_studio_problems(2)');
     });
+
+    it('names the allowed range of an out-of-range value', async () => {
+        await mountPanel({ corners: { topLeft: -1 } });
+        const alertText = document.body.querySelector('.MuiAlert-standardError')?.textContent;
+        expect(alertText).toBe('corners.topLeft: theme_studio_valid_range(0,96)');
+    });
 });
 
 describe('ThemeStudioPanel fonts and corners follow the draft', () => {

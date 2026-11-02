@@ -120,9 +120,14 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
     'invalid-shape': 'theme_studio_valid_shape',
 };
 
-/** Formats a validation issue as a friendly localized message (falls back to the raw message). */
+/**
+ * Formats a validation issue as a friendly localized message, filling its `%s` placeholders from
+ * the issue's params (e.g. a range's bounds); falls back to the raw message.
+ */
 const formatIssue = (issue: ThemeValidationIssue): string =>
-    issue.code && VALIDATION_CODE_KEYS[issue.code] ? Generic.t(VALIDATION_CODE_KEYS[issue.code]) : issue.message;
+    issue.code && VALIDATION_CODE_KEYS[issue.code]
+        ? Generic.t(VALIDATION_CODE_KEYS[issue.code], ...(issue.params ?? []))
+        : issue.message;
 
 /**
  * The panel chrome around one Studio session: mounting starts the session, unmounting ends it
