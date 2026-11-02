@@ -25,7 +25,7 @@ The finished theme is stored as JSON in the ioBroker state `vis-2-widgets-collec
 
 Nine curated color themes as cards — **Graphite, Sunset, Daylight, Sage, Mono, Emerald, Amethyst, Ruby, Amber** — with mini color swatches (background/paper/primary/secondary) and a light/dark icon. The card whose palette is the current one is marked active.
 
-**Palette-only merge:** applying a preset card replaces **only the colors** (including the color mode) — typography, corner radii, spacing factor, text direction and the CSS-variables settings survive. Applying a preset is one undo step.
+**Palette-only merge:** applying a preset card replaces **only the colors** (including the color mode) — typography, corner radii, spacing factor and the CSS-variables settings survive. Applying a preset is one undo step.
 
 ## Colors section
 
@@ -69,7 +69,6 @@ The summary line counts the explicit overrides ("x of 6 set").
 | Setting              | Theme path                  | Description                                                                                                                                                                     |
 | -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Spacing factor       | `spacing`                   | MUI's spacing factor (default 8) — drives every padding, gap and margin of the components; higher = more generous                                                               |
-| Text direction       | `direction`                 | `ltr` (default) or `rtl` (e.g. Arabic/Hebrew)                                                                                                                                   |
 | Enable CSS variables | `cssVariables`              | Produces a CSS variable for every theme value (e.g. `--mui-palette-primary-main`) plus real light/dark via `color-scheme` — only needed if your own CSS references theme colors |
 | CSS variables prefix | `cssVariables.cssVarPrefix` | prefix of the generated variables                                                                                                                                               |
 
@@ -91,8 +90,7 @@ Compact example (dark, own accents, Inter, corner radius — this is roughly wha
     },
     "typography": { "fontFamily": "Inter", "fontSize": 14 },
     "corners": { "topLeft": 12, "topRight": 12, "bottomRight": 12, "bottomLeft": 12 },
-    "spacing": 8,
-    "direction": "ltr"
+    "spacing": 8
 }
 ```
 

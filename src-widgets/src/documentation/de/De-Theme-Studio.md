@@ -25,7 +25,7 @@ Das fertige Theme wird als JSON im ioBroker-Datenpunkt `vis-2-widgets-collection
 
 Neun kuratierte Farb-Themes als Karten — **Graphit, Sunset, Tageslicht, Salbei, Mono, Smaragd, Amethyst, Rubin, Bernstein** — mit Mini-Farbmustern (Hintergrund/Paper/Primär/Sekundär) und Hell/Dunkel-Icon. Die Karte, deren Palette die aktuelle ist, ist als aktiv markiert.
 
-**Palette-only merge:** Eine Preset-Karte ersetzt **nur die Farben** (inkl. Farbmodus) — Schrift, Eckradien, Abstandsfaktor, Textrichtung und CSS-Variablen-Einstellungen überleben die Anwendung. Ein Preset ist ein Undo-Schritt.
+**Palette-only merge:** Eine Preset-Karte ersetzt **nur die Farben** (inkl. Farbmodus) — Schrift, Eckradien, Abstandsfaktor und CSS-Variablen-Einstellungen überleben die Anwendung. Ein Preset ist ein Undo-Schritt.
 
 ## Sektion Farben
 
@@ -69,7 +69,6 @@ Die Zusammenfassungszeile zählt die expliziten Overrides („x von 6 gesetzt").
 | Einstellung              | Theme-Pfad                  | Beschreibung                                                                                                                                                                                  |
 | ------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Abstandsfaktor           | `spacing`                   | MUIs Abstandsfaktor (Standard 8) — steuert alle Innenabstände, Lücken und Ränder der Komponenten; höher = großzügiger                                                                         |
-| Textrichtung             | `direction`                 | `ltr` (Standard) oder `rtl` (z. B. Arabisch/Hebräisch)                                                                                                                                        |
 | CSS-Variablen aktivieren | `cssVariables`              | Erzeugt für jeden Theme-Wert eine CSS-Variable (z. B. `--mui-palette-primary-main`) plus echtes Hell/Dunkel über `color-scheme` — nur nötig, wenn eigenes CSS Theme-Farben referenzieren soll |
 | CSS-Variablen-Präfix     | `cssVariables.cssVarPrefix` | Präfix der erzeugten Variablen                                                                                                                                                                |
 
@@ -91,8 +90,7 @@ Kompaktes Beispiel (dark, eigene Akzente, Inter, Eckradius — so sieht der Stat
     },
     "typography": { "fontFamily": "Inter", "fontSize": 14 },
     "corners": { "topLeft": 12, "topRight": 12, "bottomRight": 12, "bottomLeft": 12 },
-    "spacing": 8,
-    "direction": "ltr"
+    "spacing": 8
 }
 ```
 

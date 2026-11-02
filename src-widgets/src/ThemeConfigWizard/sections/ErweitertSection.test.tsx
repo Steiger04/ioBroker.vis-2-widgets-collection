@@ -1,10 +1,11 @@
 /**
- * ErweitertSection — the CSS-variables explanation.
+ * ErweitertSection — the CSS-variables explanation and the removed text direction.
  *
  * @module ThemeConfigWizard/sections/ErweitertSection.test
  * @remarks
  * The CSS-variables text is an info box of the control kit and appears in exactly one form,
- * whether the switch is on or off (no second copy as help hint).
+ * whether the switch is on or off (no second copy as help hint). The text direction toggle is
+ * gone (it never mirrored anything, spec B16).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -43,5 +44,33 @@ describe('ErweitertSection CSS variables', () => {
         expect(boxes).toEqual([TEXT]);
         expect(container.textContent?.split(TEXT)).toHaveLength(2);
         expect(container.querySelector(`[aria-label="${TEXT}"]`)).toBeNull();
+    });
+});
+
+describe('ErweitertSection text direction', () => {
+    // A stored `direction` stays valid in the schema, but the studio no longer offers it (B16).
+    const rtlTheme = { direction: 'rtl', spacing: 4 } as StudioSectionProps['theme'];
+
+    it('offers no text direction control, even for a stored rtl theme', () => {
+        handle = renderComponent<StudioSectionProps>(ErweitertSection, {
+            theme: rtlTheme,
+            onChange: () => {},
+            expanded: true,
+        });
+        const text = handle.container.textContent ?? '';
+        expect(text).not.toContain('theme_wizard_layout_direction');
+        // Keys are lower-case, so upper-case LTR/RTL can only be the direction labels.
+        expect(text).not.toMatch(/LTR|RTL/);
+    });
+
+    it('summarises spacing and CSS variables only', () => {
+        handle = renderComponent<StudioSectionProps>(ErweitertSection, {
+            theme: rtlTheme,
+            onChange: () => {},
+            expanded: false,
+        });
+        const text = handle.container.textContent ?? '';
+        // The summary follows the section title directly: no direction segment in front.
+        expect(text).toContain('theme_studio_section_advanced4px · theme_studio_off');
     });
 });

@@ -5,42 +5,30 @@
  * @remarks
  * What's left after ADR-0020's regrouping: the palette grab-bag moved out — surface
  * colours went to Farben, status & text colours got their own section — so this
- * section now holds exactly the rarely-tuned machinery: text direction, the spacing
- * base factor, and the CSS-variables switch with its prefix. Rebuilt on the shared
- * control kit (`SubGroup`, `SwitchRow`, `SliderField`, `FieldLabel`, `InfoBox`); the
- * CSS-variables explanation is one info box in both switch states. Collapsed by default, with a
- * one-line summary.
+ * section now holds exactly the rarely-tuned machinery: the spacing base factor and the
+ * CSS-variables switch with its prefix. The text direction toggle is gone (spec B16): it only set
+ * `theme.direction`, which mirrors nothing without a `dir` attribute and an RTL style plugin; a
+ * stored `direction` stays valid in the schema. Rebuilt on the shared control kit (`SubGroup`,
+ * `SwitchRow`, `SliderField`, `InfoBox`); the CSS-variables explanation is one info box in both
+ * switch states. Collapsed by default, with a one-line summary.
  */
 
-import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import type React from 'react';
 
 import HelpHint from '../../components/HelpHint';
 import SectionCard from '../../components/SectionCard';
-import {
-    FieldLabel,
-    InfoBox,
-    SliderField,
-    SubGroup,
-    SwitchList,
-    SwitchRow,
-    TextField2,
-} from '../../components/controls';
+import { InfoBox, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
 
-/** "Erweitert" section: direction + spacing + CSS vars. */
+/** "Erweitert" section: spacing + CSS vars. */
 function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
     const spacing = getNestedValue<number>(theme, 'spacing') ?? 8;
-    const direction = getNestedValue<string>(theme, 'direction');
     const cssVariables = getNestedValue<unknown>(theme, 'cssVariables');
     const cssEnabled = cssVariables === true || (typeof cssVariables === 'object' && cssVariables !== null);
     const cssPrefix = getNestedValue<string>(theme, 'cssVariables.cssVarPrefix') ?? '';
-
-    const handleDirectionChange = (_event: React.MouseEvent<HTMLElement>, value: string | null): void => {
-        onChange('direction', value ?? undefined);
-    };
 
     const handleCssToggle = (checked: boolean): void => {
         onChange('cssVariables', checked ? true : undefined);
@@ -50,10 +38,8 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
         onChange('cssVariables', value ? { cssVarPrefix: value } : true);
     };
 
-    // Summary: direction · spacing factor · CSS-vars state.
-    const summary = `${direction === 'rtl' ? 'RTL' : 'LTR'} · ${spacing}px · ${Generic.t(
-        cssEnabled ? 'theme_studio_on' : 'theme_studio_off',
-    )}`;
+    // Summary: spacing factor · CSS-vars state.
+    const summary = `${spacing}px · ${Generic.t(cssEnabled ? 'theme_studio_on' : 'theme_studio_off')}`;
 
     return (
         <SectionCard
@@ -63,31 +49,6 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
             onExpandedChange={onExpandedChange}
         >
             <SubGroup title={Generic.t('theme_studio_group_layout')}>
-                <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <FieldLabel>{Generic.t('theme_wizard_layout_direction')}</FieldLabel>
-                        <HelpHint title={Generic.t('theme_studio_help_direction')} />
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <ToggleButtonGroup
-                            exclusive
-                            size="small"
-                            value={direction === 'rtl' ? 'rtl' : 'ltr'}
-                            onChange={handleDirectionChange}
-                        >
-                            <ToggleButton value="ltr">{Generic.t('theme_wizard_layout_direction_ltr')}</ToggleButton>
-                            <ToggleButton value="rtl">{Generic.t('theme_wizard_layout_direction_rtl')}</ToggleButton>
-                        </ToggleButtonGroup>
-                        {direction === undefined ? (
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                            >
-                                {Generic.t('theme_studio_default_value')}
-                            </Typography>
-                        ) : null}
-                    </Box>
-                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                         <SliderField
