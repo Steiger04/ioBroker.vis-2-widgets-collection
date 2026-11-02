@@ -10,37 +10,19 @@
  * default/paper + divider) lives here since ADR-0020 — the surfaces are the dark-mode
  * lever and do not belong in an "advanced" grab-bag. The colour mode defaults to "Auto"
  * (follow the vis-2 host); when Auto, the effective host mode is shown beneath the toggle.
- * Validation errors render at the field via `errorFor`.
+ * Validation errors render at the field via `errorFor`. The accent and surface groups come
+ * from the colour-field registry (shared renderer {@link module:ThemeConfigWizard/sections/ColorFieldGroups}).
  */
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import type React from 'react';
 
-import ColorPickerField from '../../components/ColorPickerField';
 import SectionCard from '../../components/SectionCard';
-import { FieldLabel, SubGroup } from '../../components/controls';
+import { FieldLabel } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
-
-/** One colour slot in a group. */
-interface ColorFieldDef {
-    path: string;
-    labelKey: string;
-}
-
-/** Accent slots (the hero palette controls). */
-const ACCENT_FIELDS: ReadonlyArray<ColorFieldDef> = [
-    { path: 'palette.primary.main', labelKey: 'theme_wizard_palette_primary' },
-    { path: 'palette.secondary.main', labelKey: 'theme_wizard_palette_secondary' },
-];
-
-/** Surface slots (backgrounds + divider) — promoted from the old "Erweitert" (ADR-0020). */
-const SURFACE_FIELDS: ReadonlyArray<ColorFieldDef> = [
-    { path: 'palette.background.default', labelKey: 'theme_wizard_palette_background_default' },
-    { path: 'palette.background.paper', labelKey: 'theme_wizard_palette_background_paper' },
-    { path: 'palette.divider', labelKey: 'theme_wizard_palette_divider' },
-];
+import ColorFieldGroups from './ColorFieldGroups';
 
 /** Palette section: color mode + accent and surface slots. */
 function PaletteSection({
@@ -58,26 +40,6 @@ function PaletteSection({
 
     const handleModeChange = (_event: React.MouseEvent<HTMLElement>, value: string | null): void => {
         onChange('palette.mode', value === 'light' || value === 'dark' ? value : undefined);
-    };
-
-    const renderField = (field: ColorFieldDef): React.JSX.Element => {
-        const stored = getNestedValue<string>(theme, field.path);
-        const resolvedValue = resolved ? (getNestedValue<string>(resolved, field.path) ?? '') : '';
-        const isDerivedSecondary = field.path === 'palette.secondary.main' && !stored;
-        const label = isDerivedSecondary
-            ? `${Generic.t(field.labelKey)} · ${Generic.t('theme_studio_secondary_derived')}`
-            : Generic.t(field.labelKey);
-        return (
-            <ColorPickerField
-                key={field.path}
-                label={label}
-                value={stored ?? resolvedValue}
-                overridden={stored !== undefined}
-                onChange={color => onChange(field.path, color || undefined)}
-                presets={colorPresets}
-                error={errorFor?.(field.path)}
-            />
-        );
     };
 
     // Summary: mode + the two effective accent colours.
@@ -125,8 +87,14 @@ function PaletteSection({
                     </Typography>
                 ) : null}
             </Box>
-            <SubGroup title={Generic.t('theme_studio_group_accents')}>{ACCENT_FIELDS.map(renderField)}</SubGroup>
-            <SubGroup title={Generic.t('theme_studio_group_surface')}>{SURFACE_FIELDS.map(renderField)}</SubGroup>
+            <ColorFieldGroups
+                section="palette"
+                theme={theme}
+                onChange={onChange}
+                resolved={resolved}
+                errorFor={errorFor}
+                colorPresets={colorPresets}
+            />
         </SectionCard>
     );
 }

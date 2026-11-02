@@ -65,7 +65,9 @@ import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
+import { getNestedValue } from '../lib/theme/themeUtils';
 import PresetCards from './PresetCards';
+import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
 import useStudioSession from './useStudioSession';
 import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
@@ -88,10 +90,14 @@ interface ThemeStudioPanelProps {
 /** Section ids for controlled expansion (scroll-to-error). */
 type SectionKey = 'palette' | 'typography' | 'statusText' | 'erweitert';
 
-/** Maps a theme path to the section that renders a field for it. */
+/**
+ * Maps a theme path to the section that renders a field for it: colour paths by the field
+ * registry; the remaining palette options (mode) live in the palette section.
+ */
 function sectionForPath(path: string): SectionKey {
-    if (/^palette\.(error|warning|info|success|text)(\.|$)/.test(path)) {
-        return 'statusText';
+    const colorSection = colorSectionForPath(path);
+    if (colorSection) {
+        return colorSection;
     }
     if (path.startsWith('palette.')) {
         return 'palette';
@@ -101,21 +107,6 @@ function sectionForPath(path: string): SectionKey {
     }
     return 'erweitert';
 }
-
-/** Colour-field paths — errors on these render at the field, not in the bottom alert. */
-const COLOR_FIELD_PATHS: ReadonlySet<string> = new Set([
-    'palette.primary.main',
-    'palette.secondary.main',
-    'palette.background.default',
-    'palette.background.paper',
-    'palette.divider',
-    'palette.error.main',
-    'palette.warning.main',
-    'palette.info.main',
-    'palette.success.main',
-    'palette.text.primary',
-    'palette.text.secondary',
-]);
 
 /** Maps validator issue codes to localized message keys. */
 const VALIDATION_CODE_KEYS: Record<string, string> = {
@@ -174,23 +165,12 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
         [chromeTheme, themeObj],
     );
 
-    // The pickers' preset swatch row: the current theme colours (decision 5).
-    const colorPresets = useMemo<string[]>(() => {
-        const palette = resolvedTheme.palette;
-        return [
-            palette.primary.main,
-            palette.secondary.main,
-            palette.error.main,
-            palette.warning.main,
-            palette.info.main,
-            palette.success.main,
-            palette.text.primary,
-            palette.text.secondary,
-            palette.background.default,
-            palette.background.paper,
-            palette.divider,
-        ];
-    }, [resolvedTheme]);
+    // The pickers' preset swatch row: the current theme colours (decision 5), one per colour
+    // field in registry order.
+    const colorPresets = useMemo<string[]>(
+        () => STUDIO_COLOR_FIELDS.map(field => getNestedValue<string>(resolvedTheme, field.path) ?? ''),
+        [resolvedTheme],
+    );
 
     // Field-level error lookup (first error per path wins).
     const issuesByPath = useMemo(() => {
@@ -214,7 +194,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
     );
     // Errors without a colour-field home keep a compact alert at the bottom.
     const nonFieldErrors = useMemo(
-        () => errorIssues.filter(issue => !COLOR_FIELD_PATHS.has(issue.path)),
+        () => errorIssues.filter(issue => !colorFieldForIssuePath(issue.path)),
         [errorIssues],
     );
 
