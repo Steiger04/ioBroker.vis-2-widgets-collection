@@ -16,7 +16,7 @@ import {
     type CapabilitySetting,
     type TableCapabilities,
 } from '../JsonTableCollectionWidget/capabilities';
-import { createColorField } from './fieldFactories';
+import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -50,7 +50,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'columnConfig',
         label: 'json_table_column_config_label',
         type: 'custom',
-        component: JsonTableColumnEditor,
+        component: guardWidgetData(JsonTableColumnEditor),
     },
 
     // ── Features ──────────────────────────────────────────────────────

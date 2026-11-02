@@ -8,6 +8,7 @@
  * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
  * - `createDivider` for section dividers
+ * - `guardWidgetData`, the wrapper every data-reading custom field is declared through
  *
  * Per-type factories for number/select/checkbox fields are intentionally NOT
  * provided: a factory that only injects the vis-2 field `type` and passes the
@@ -47,6 +48,42 @@ import type {
     WidgetData,
 } from '@iobroker/types-vis-2';
 import type React from 'react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom-field data guard
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** The one empty data map every guarded custom field gets while vis-2 passes none. */
+const NO_WIDGET_DATA = Object.freeze({}) as WidgetData;
+
+/**
+ * Wraps a vis-2 custom-field render function so it never sees `data === undefined`.
+ *
+ * @remarks
+ * When the selection grows from one widget to several, vis-2 renders the attribute panel
+ * once with the stale single-selection `commonValues` (`{}`, no `data`) before it computes
+ * the shared values; every custom field reading `data[...]` then throws and takes the
+ * whole editor down. The guard hands that render one frozen empty map — stable across
+ * renders, so `useMemo` dependencies on `data` stay put — and passes real data through.
+ * Every custom field that reads `data` must be declared through it.
+ * @param component - The custom-field render function (`field, data, onDataChange, props`).
+ * @returns The same function, tolerant of a missing data map.
+ */
+export function guardWidgetData<F, R>(
+    component: (
+        field: F,
+        data: WidgetData,
+        onDataChange: (patch: WidgetData) => void,
+        props: RxWidgetInfoCustomComponentProperties,
+    ) => R,
+): (
+    field: F,
+    data: WidgetData | undefined,
+    onDataChange: (patch: WidgetData) => void,
+    props: RxWidgetInfoCustomComponentProperties,
+) => R {
+    return (field, data, onDataChange, props) => component(field, data ?? NO_WIDGET_DATA, onDataChange, props);
+}
 
 /**
  * Options for creating a color field definition.
@@ -115,18 +152,15 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         label,
         default: defaultValue,
         type: 'custom',
-        component: (
-            field: ExtendedField,
-            data: WidgetData,
-            onDataChange: (patch: WidgetData) => void,
-            props: RxWidgetInfoCustomComponentProperties,
-        ): React.JSX.Element => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
+        component: guardWidgetData(
+            (field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+                <CollectionGradientColorPicker
+                    field={field}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            ),
         ),
     };
 

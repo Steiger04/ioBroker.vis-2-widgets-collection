@@ -14,6 +14,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import EchartsConfigEditor from '../EchartsCollectionWidget/EchartsConfigEditor';
+import { guardWidgetData } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -31,7 +32,7 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'chartConfig',
         label: 'echarts_editor_edit_config',
         type: 'custom',
-        component: EchartsConfigEditor,
+        component: guardWidgetData(EchartsConfigEditor),
     },
 
     // ── Chart padding (4-side, panel-owned layout — not chart config; .scratch/chart-padding/) ──

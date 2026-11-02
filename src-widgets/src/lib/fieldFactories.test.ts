@@ -10,8 +10,10 @@ vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => n
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import {
+    createColorField,
     createDivider,
     createOnlyDisplayField,
+    guardWidgetData,
     hiddenIf,
     hiddenUnless,
     hiddenWhenFalsy,
@@ -150,5 +152,49 @@ describe('shared option constants', () => {
     it('sideOptions has both/left/right', () => {
         expect(sideOptions).toHaveLength(3);
         expect(sideOptions.map(o => o.value)).toEqual(['both', 'left', 'right']);
+    });
+});
+
+// vis-2 renders the switch from one to several selected widgets once with the stale
+// single-selection `commonValues` ({} without `data`), so a custom field receives
+// `data === undefined` for that one render (Ticket 29).
+describe('guardWidgetData', () => {
+    const props = {} as Parameters<ReturnType<typeof guardWidgetData>>[3];
+    const onDataChange = (): void => {};
+
+    it('hands an empty data map to the component while vis-2 passes none', () => {
+        const component = vi.fn((_field: unknown, data: WidgetData) => data);
+        const guarded = guardWidgetData(component);
+
+        guarded({}, undefined, onDataChange, props);
+
+        expect(component.mock.calls[0][1]).toEqual({});
+    });
+
+    it('hands the same empty map on every render (stable memo dependency)', () => {
+        const component = vi.fn((_field: unknown, data: WidgetData) => data);
+        const guarded = guardWidgetData(component);
+
+        guarded({}, undefined, onDataChange, props);
+        guarded({}, undefined, onDataChange, props);
+
+        expect(component.mock.calls[0][1]).toBe(component.mock.calls[1][1]);
+    });
+
+    it('passes present data through unchanged', () => {
+        const component = vi.fn((_field: unknown, data: WidgetData) => data);
+        const data = { color: '#ff0000' } as WidgetData;
+
+        guardWidgetData(component)({}, data, onDataChange, props);
+
+        expect(component.mock.calls[0][1]).toBe(data);
+    });
+
+    it('guards the colour field picker', () => {
+        const field = createColorField({ name: 'iconColor', label: 'icon_color' });
+        const { component } = field as unknown as { component: (...args: unknown[]) => { props: { data: unknown } } };
+        const element = component(field, undefined, onDataChange, props);
+
+        expect(element.props.data).toEqual({});
     });
 });
