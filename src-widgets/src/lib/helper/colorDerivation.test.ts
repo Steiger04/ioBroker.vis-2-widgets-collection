@@ -34,6 +34,11 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
         ['short hex', '#f00', '#f00'],
         ['rgb', 'rgb(255, 0, 0)', 'rgb(255, 0, 0)'],
         ['rgba', 'rgba(255, 0, 0, 0.5)', 'rgba(255, 0, 0, 0.5)'],
+        ['hsl', 'hsl(0, 100%, 50%)', 'hsl(0, 100%, 50%)'],
+        ['hsla', 'hsla(0, 100%, 50%, 0.5)', 'hsla(0, 100%, 50%, 0.5)'],
+        ['#rgba', '#f00f', '#f00f'],
+        ['#rrggbbaa', '#ff0000ff', '#ff0000ff'],
+        ['rgb in upper case (CSS reads it, MUI does not)', 'RGB(255, 0, 0)', 'RGB(255, 0, 0)'],
         ['linear gradient → its midpoint', LINEAR, 'rgb(128, 0, 128)'],
         ['radial gradient → its midpoint', RADIAL, 'rgb(128, 128, 128)'],
     ])('%s', (_label, value, expected) => {
@@ -53,13 +58,13 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
         },
     );
 
-    it.each([
-        ['#ff0000 ', '#ff0000'],
-        ['rgb(255, 0, 0) ', 'rgb(255, 0, 0)'],
-    ])('trailing whitespace after a solid colour (%s) is ignored, as MUI ignored it', (value, expected) => {
-        expect(solidOf(value)).toBe(expected);
-        expect(alphaOf(value, 0.5)).toBe('rgba(255, 0, 0, 0.5)');
-    });
+    it.each(['#ff0000 ', 'rgb(255, 0, 0) '])(
+        'a solid colour with trailing whitespace (%s) stands for itself, unchanged — MUI reads past it',
+        value => {
+            expect(solidOf(value)).toBe(value);
+            expect(alphaOf(value, 0.5)).toBe('rgba(255, 0, 0, 0.5)');
+        },
+    );
 
     it('a gradient padded with whitespace still stands for its midpoint', () => {
         expect(solidOf(` ${LINEAR} `)).toBe('rgb(128, 0, 128)');
@@ -74,6 +79,15 @@ describe('alphaOf', () => {
 
     it("applies the opacity to a gradient's midpoint", () => {
         expect(alphaOf(LINEAR, 0.5)).toBe('rgba(128, 0, 128, 0.5)');
+    });
+
+    it('applies the opacity to every other colour MUI reads, as MUI does (hsl, #rgba)', () => {
+        expect(alphaOf('hsl(0, 100%, 50%)', 0.5)).toBe('hsla(0, 100%, 50%, 0.5)');
+        expect(alphaOf('#f00f', 0.5)).toBe('rgba(255, 0, 0, 0.5)');
+    });
+
+    it('tints no rgb() in upper case — MUI cannot calculate with it', () => {
+        expect(alphaOf('RGB(255, 0, 0)', 0.5)).toBeUndefined();
     });
 
     it.each(UNREADABLE.map(value => [String(value), value]))('%s → undefined', (_label, value) => {
@@ -93,6 +107,11 @@ describe('lightenOf', () => {
 
     it("lightens a gradient's midpoint", () => {
         expect(lightenOf(LINEAR, 0.5)).toBe('rgb(191, 127, 191)');
+    });
+
+    it('lightens every other colour MUI reads, as MUI does (hsl, #rgba)', () => {
+        expect(lightenOf('hsl(0, 100%, 50%)', 0.5)).toBe('hsl(0, 100%, 75%)');
+        expect(lightenOf('#f00f', 0.5)).toBe('rgba(255, 127, 127, 1)');
     });
 
     it.each(UNREADABLE.map(value => [String(value), value]))('%s → undefined', (_label, value) => {

@@ -252,6 +252,15 @@ describe('buildMenuItemChrome', () => {
         expect(sx['&.Mui-selected:hover']).toEqual({ background: undefined, bgcolor: undefined });
     });
 
+    it.each([
+        ['hsl()', 'hsl(200, 60%, 50%)', 'hsla(200, 60%, 50%, 0.5)'],
+        ['a 4-digit hex', '#39cf', 'rgba(51, 153, 204, 0.5)'],
+    ])('tints %s on hover in its half alpha, as MUI did before the spec', (_case, bgColor, hover) => {
+        const sx = buildMenuItemChrome(bgColor) as Record<string, any>;
+
+        expect(sx['&:hover']).toEqual({ background: undefined, bgcolor: hover });
+    });
+
     it('tints a hex with only trailing whitespace on hover, as before the spec', () => {
         // MUI's alpha() read past trailing whitespace, so the legacy hover was tinted.
         const sx = buildMenuItemChrome('#3399cc ') as Record<string, any>;

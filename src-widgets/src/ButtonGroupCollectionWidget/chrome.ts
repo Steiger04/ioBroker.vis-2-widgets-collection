@@ -21,7 +21,8 @@
 import type { CSSObject, Theme } from '@mui/material/styles';
 
 import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
-import { alphaOf, lightenOf } from '../lib/helper/colorDerivation';
+import { alphaOf, lightenOf, solidOf } from '../lib/helper/colorDerivation';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
 import type { BaseFieldsRxData, ButtonGroupFieldsRxData } from '../types';
@@ -74,7 +75,13 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // yields its midpoint; a value without a Repräsentative Vollfarbe counts as
     // unset. No vis-2 style stage (no textStyles): the contract does not
     // inherit it. Only a theme text without a solid colour draws no separator.
-    const separatorColor = alphaOf(resolveEffectiveSolidColor(buttonGroupColorContract, data, theme), SEPARATOR_ALPHA);
+    // The explicit value counts as stored first, as before the contract: alpha()
+    // drew every value the colour calculation reads, also one the picker rejects
+    // (hsl(), a 4-digit hex) — such a value never crashed, so it keeps its colour.
+    const separatorColor = alphaOf(
+        solidOf(data.buttonGroupColor) ?? resolveEffectiveSolidColor(buttonGroupColorContract, data, theme),
+        SEPARATOR_ALPHA,
+    );
 
     // Borderless mode: borders fully removed and inset box-shadows used for the
     // separator lines so they stay visible even when buttons have a background
@@ -144,8 +151,10 @@ export interface ButtonChromeInput {
  * Builds the sx for a single toggle button: the state background as-is, plus
  * the hover/selected interplay. Solid colours lighten on hover (0.5) and on
  * selection (0.3); gradients never lighten — they dim via an opacity(80%)
- * filter instead (also applied on the active button's base). A background no
- * tint calculation can read (a colour name, a CSS variable) still paints the
+ * filter instead (also applied on the active button's base). Only a background
+ * the button's own reading takes (`extractColorFromValue`: hex, rgb(a)) is
+ * tinted, as before colorDerivation — not hsl() or a 4-digit hex, though MUI
+ * could. Any other background (a colour name, a CSS variable) still paints the
  * button but gets no hover/selected tint — it never throws.
  *
  * @param input - The state's background and its active flag.
@@ -157,8 +166,9 @@ export function buildButtonChrome(input: ButtonChromeInput): CSSObject {
     const gradient = gradientColor(background);
 
     const hasGradient = !!gradient;
-    const hoverBackground = gradient ? undefined : lightenOf(background, 0.5);
-    const selectedBackground = gradient ? undefined : lightenOf(background, 0.3);
+    const tintable = !gradient && extractColorFromValue(background) !== null;
+    const hoverBackground = tintable ? lightenOf(background, 0.5) : undefined;
+    const selectedBackground = tintable ? lightenOf(background, 0.3) : undefined;
 
     return {
         width: '100%',

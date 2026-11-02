@@ -143,7 +143,7 @@ export function resolveEffectiveColor(
  * @param data  - Widget data map (explicit values + fallback sources).
  * @param theme - Effective MUI theme (for the terminal default).
  * @param textStyles - vis-2 widget style fragment carrying `color`; omitted where the slot never inherits it.
- * @returns The solid color (hex or rgb(a)), or `undefined` when no stage has one —
+ * @returns The solid color as a color calculation reads it (`solidOf`), or `undefined` when no stage has one —
  *   always for the `transparent` terminal or no terminal, unless a more specific stage has one.
  */
 export function resolveEffectiveSolidColor(
