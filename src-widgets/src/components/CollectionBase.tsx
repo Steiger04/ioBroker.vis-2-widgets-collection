@@ -9,13 +9,14 @@
  * - an inner Paper for the actual widget content, its first element the corner icon
  *   ({@link module:components/CornerIcon}, CONTEXT "Eck-Icon")
  *
- * Header/footer text is applied via `innerHTML` to support rich text from vis.
+ * Header/footer text (CONTEXT "Rahmen-Kopfzeile"/"Rahmen-Fußzeile") is rendered as HTML
+ * (`dangerouslySetInnerHTML`) to support rich text from vis.
  * The inner Paper's measured size is published to the children as the Content-Box
  * ({@link module:hooks/useContentBox}, ADR-0098).
  */
 
 import { Box, Paper, Typography } from '@mui/material';
-import { useRef, useContext, useEffect, useMemo, useState, type JSX } from 'react';
+import { useContext, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
 import CornerIcon from './CornerIcon';
@@ -82,8 +83,6 @@ function CollectionBase({
     const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
     // The inner Paper — the box the children live in; measured as the Content-Box.
     const [contentPaper, setContentPaper] = useState<HTMLDivElement | null>(null);
-    const headerRef = useRef<HTMLSpanElement>(null);
-    const footerRef = useRef<HTMLDivElement>(null);
 
     // Get context
     const context = useContext(CollectionContext);
@@ -188,21 +187,17 @@ function CollectionBase({
         sx,
     ]);
 
-    // Setup header effect
-    useEffect(() => {
-        if (headerHidden || !headerRef.current) {
-            return;
-        }
-        headerRef.current.innerHTML = data.header!;
-    }, [data.header, headerHidden]);
-
-    // Setup footer effect
-    useEffect(() => {
-        if (widget.data.noFooter || !footerRef.current) {
-            return;
-        }
-        footerRef.current.innerHTML = String(footerValue);
-    }, [footerValue, widget.data.noFooter]);
+    // Header/footer are `html` fields, rendered declaratively: the lines mount only once the
+    // type is valid — often after their text is known (the OID pick stores `oid` before
+    // `oidObject`) — and a ref effect keyed on the text would never fill them then.
+    const headerHtml = useMemo(
+        () => ({ __html: headerHidden ? '' : (data.header ?? '') }),
+        [data.header, headerHidden],
+    );
+    const footerHtml = useMemo(
+        () => ({ __html: widget.data.noFooter ? '' : String(footerValue) }),
+        [footerValue, widget.data.noFooter],
+    );
 
     return (
         <Paper
@@ -223,7 +218,7 @@ function CollectionBase({
                         }}
                     >
                         <Typography
-                            ref={headerRef}
+                            dangerouslySetInnerHTML={headerHtml}
                             noWrap
                             variant="body2"
                             sx={{
@@ -270,7 +265,7 @@ function CollectionBase({
                         }}
                     >
                         <Typography
-                            ref={footerRef}
+                            dangerouslySetInnerHTML={footerHtml}
                             noWrap
                             variant="body2"
                             sx={{

@@ -5,7 +5,9 @@
  * @remarks
  * DOM contract of the frame on the preview context: a host's `hideHeader` keeps the header out
  * of the frame exactly like the widget's own `noHeader` — the same collapsed header box, its text
- * slot left empty. The frame owns the corner icon (CONTEXT "Eck-Icon"): rendered from its data as
+ * slot left empty. Header and footer (CONTEXT "Rahmen-Kopfzeile"/"Rahmen-Fußzeile") carry their text
+ * from the moment they appear — also when they mount late, after an invalid type turned valid with
+ * the text already known (the editor's OID pick stores `oid` before `oidObject`). The frame owns the corner icon (CONTEXT "Eck-Icon"): rendered from its data as
  * the content slot's first element, substituted by a `cornerIcon` override, absent for
  * `cornerIcon={false}`, `noHeaderIcon` and an invalid type. The frame publishes its Content-Box (ADR-0098) to its children: the injected
  * box of the test scene, else the measured inner paper (BASE-PAPER-1); `undefined` until the
@@ -29,7 +31,7 @@ vi.hoisted(() => {
     };
 });
 
-import { createElement, type ComponentProps, type FC } from 'react';
+import { act, createElement, useState, type ComponentProps, type FC } from 'react';
 
 import CollectionBase from './CollectionBase';
 import useContentBox, { type ContentBox } from '../hooks/useContentBox';
@@ -84,6 +86,47 @@ describe('CollectionBase frame header', () => {
         expect(headerBox(hidden)?.textContent).toBe('');
         expect(headerBox(hidden)?.outerHTML).toBe(headerBox(noHeader)?.outerHTML);
         expect(headerBox(hidden)?.className).not.toBe(headerBox(shown)?.className);
+    });
+});
+
+describe('CollectionBase frame lines appearing with a valid type', () => {
+    /** Switches the mounted frame's `isValidType`, standing in for the late `oidObject` of an OID pick. */
+    let setValidType: (valid: boolean) => void = () => {};
+
+    /**
+     * Mounts the frame invalid first — the editor's state between the stored `oid` and the
+     * arriving `oidObject` — with the OID value already present and constant.
+     */
+    const mountLateValidFrame = (): MountedCollectionBody => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            const [isValidType, setIsValidType] = useState(false);
+            setValidType = setIsValidType;
+            return createElement(CollectionBase, { data: styleData, oidValue: 42, isValidType });
+        };
+        return mountBody(Frame, frameScene({ noFooter: false }));
+    };
+
+    /** The frame's lines: the header box first, the footer box last in the outer paper. */
+    const lines = (frame: MountedCollectionBody): { header?: string | null; footer?: string | null } => ({
+        header: headerBox(frame)?.textContent,
+        footer: frame.container.querySelector('.BASE-PAPER-0')?.lastElementChild?.textContent,
+    });
+
+    it('the Rahmen-Fußzeile shows the current value as soon as it appears, without a value change', () => {
+        const frame = mountLateValidFrame();
+
+        act(() => setValidType(true));
+
+        expect(lines(frame).footer).toBe('42');
+    });
+
+    it('the Rahmen-Kopfzeile shows its text as soon as it appears', () => {
+        const frame = mountLateValidFrame();
+
+        act(() => setValidType(true));
+
+        expect(lines(frame).header).toBe('Küche');
     });
 });
 
