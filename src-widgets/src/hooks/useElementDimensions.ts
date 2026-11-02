@@ -93,11 +93,3 @@ const useElementDimensions = (element: HTMLElement | RefObject<HTMLElement> | nu
 };
 
 export default useElementDimensions;
-
-/**
- * Compatibility export for older code paths.
- *
- * @remarks
- * `useRefDimensions` is kept to avoid churn in widget implementations.
- */
-export { useElementDimensions as useRefDimensions };
