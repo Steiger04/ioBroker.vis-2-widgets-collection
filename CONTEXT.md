@@ -21,15 +21,15 @@ HOW a column's raw value is rendered. One of `number`, `date`, `boolean`, `strin
 _Avoid_: Render mode, display type
 
 **Image column**:
-A column whose format type is `image`. Each raw value is read as a *visual reference* and drawn as a graphic instead of text.
+A column whose format type is `image`. Each raw value is read as a _visual reference_ and drawn as a graphic instead of text.
 _Avoid_: Icon column — "icon" vs "image" is a value-level distinction, not a column type
 
 **Visual reference**:
-A string that resolves to a renderable graphic: a URL or file path, a `data:image/…` URI, or a short UTF-8 character (e.g. an emoji). A cell value is **never** an icon *name* (`mdi-*`, `fa-*`) — there is no name resolution in cell values.
+A string that resolves to a renderable graphic: a URL or file path, a `data:image/…` URI, or a short UTF-8 character (e.g. an emoji). A cell value is **never** an icon _name_ (`mdi-*`, `fa-*`) — there is no name resolution in cell values.
 _Avoid_: Image src, icon name
 
 **Icon vs Image**:
-A *per-value, runtime* distinction — never a config or column type, and not a tint gate. An **icon** is a small monochrome glyph (SVG data-URI or UTF-8 character); an **image** is a raster photo (png/jpg/webp/…). A configured colour tint applies to either, via a CSS mask over the source's alpha channel.
+A _per-value, runtime_ distinction — never a config or column type, and not a tint gate. An **icon** is a small monochrome glyph (SVG data-URI or UTF-8 character); an **image** is a raster photo (png/jpg/webp/…). A configured colour tint applies to either, via a CSS mask over the source's alpha channel.
 _Avoid_: Treating "icon" and "image" as separate column types or separate format types; assuming tint is icons-only.
 
 **Fallback**:
@@ -95,7 +95,7 @@ The chart-type picker and data-mode toggle sitting above the section stack — a
 _Avoid_: Header controls, first section
 
 **Data mode**:
-The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is *what the data needs*, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — which **Payload-Familie** decides how series are derived from that one document). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
+The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is _what the data needs_, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — which **Payload-Familie** decides how series are derived from that one document). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Payload-Familie**:
@@ -251,11 +251,11 @@ The value label ON a bar series — the Bar Sub-group's cluster beside the „We
 _Avoid_: data label (chart-lib vocabulary; our label switch is „Werte-Labels"), series label (that is the on/off switch concept)
 
 **Axis auto-bind**:
-The cartesian *creation* default that each new series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`); 1:n (several series on one axis) is reached by rebind, not by this default. A fresh or reset configuration starts with ZERO axes (ADR-0067 — the former default „Achse 1" is gone); axes exist only through binding and die with their last binder (**Axis–series coupling**, ADR-0069) — beside the series-add default, the per-series Y-axis dropdown's „Neue Achse" entry is the only other birth path (append + bind in one step). On EVERY structural event (series/axis add/delete/rebind, JSON hide/show, a **Data path** reset) the **axis auto-balance** (`balanceAxes`) re-arranges the bound axes to the standard interleaving — array order alternating left/right, densely on the 80 px raster — computed over the bound axes (ADR-0067 widening ADR-0028). A manual position or offset is fine-justure that survives only until the next structural event; the load path never re-arranges. An axis without an explicit colour **or name** inherits its **Namensgeber**'s values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot. In the editor the Axis-card swatch resolves that inherited colour by the **Namensgeber**'s **display position** (palette slot) — matching the Series card, not the axis index, which drifts in JSON after a rebind or a payload-name reorder.
+The cartesian _creation_ default that each new series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`); 1:n (several series on one axis) is reached by rebind, not by this default. A fresh or reset configuration starts with ZERO axes (ADR-0067 — the former default „Achse 1" is gone); axes exist only through binding and die with their last binder (**Axis–series coupling**, ADR-0069) — beside the series-add default, the per-series Y-axis dropdown's „Neue Achse" entry is the only other birth path (append + bind in one step). On EVERY structural event (series/axis add/delete/rebind, JSON hide/show, a **Data path** reset) the **axis auto-balance** (`balanceAxes`) re-arranges the bound axes to the standard interleaving — array order alternating left/right, densely on the 80 px raster — computed over the bound axes (ADR-0067 widening ADR-0028). A manual position or offset is fine-justure that survives only until the next structural event; the load path never re-arranges. An axis without an explicit colour **or name** inherits its **Namensgeber**'s values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot. In the editor the Axis-card swatch resolves that inherited colour by the **Namensgeber**'s **display position** (palette slot) — matching the Series card, not the axis index, which drifts in JSON after a rebind or a payload-name reorder.
 _Avoid_: auto-axis (too vague)
 
 **Namensgeber (name owner)**:
-The series an axis displays — its inherited name and colour come from the OWNER, not from „the first series in list order" (ADR-0068): the incumbent keeps the identity, so a series rebinding onto an occupied axis NEVER steals it however early it sits in the list; when the owner leaves, the first remaining binder takes over. Kept current on every structural event; the inheritance stays live (renaming the owner renames the axis immediately). In the serien-förmig JSON family the owner is the payload NAME (the overlay's key); in Verlauf and Tabellarisch it is the series' stable id — the tabellarisch family is positional (its series bind a yPath column, ADR-0075), and an unnamed tabellarisch series titles its axis with the column's last segment. The Namensgeber is a *who*, never a frozen *value* — every axis that exists is bound (ADR-0069), so the owner always resolves.
+The series an axis displays — its inherited name and colour come from the OWNER, not from „the first series in list order" (ADR-0068): the incumbent keeps the identity, so a series rebinding onto an occupied axis NEVER steals it however early it sits in the list; when the owner leaves, the first remaining binder takes over. Kept current on every structural event; the inheritance stays live (renaming the owner renames the axis immediately). In the serien-förmig JSON family the owner is the payload NAME (the overlay's key); in Verlauf and Tabellarisch it is the series' stable id — the tabellarisch family is positional (its series bind a yPath column, ADR-0075), and an unnamed tabellarisch series titles its axis with the column's last segment. The Namensgeber is a _who_, never a frozen _value_ — every axis that exists is bound (ADR-0069), so the owner always resolves.
 _Avoid_: first binder (the superseded reading), owner series (redundant), axis name source
 
 **Axis–series coupling**:
@@ -305,7 +305,6 @@ _Avoid_: Complete scaffold (old name), preset, look (those bundle MULTIPLE group
 **Solo**:
 A scalar template for ONE key that has no object group (`sampling`, `clip`, `startAngle`, `logBase`, `universalTransition`…). Object part-snippets of the old atomic style (e.g. `label · value`) no longer exist since ADR-0043 — their group carries a Group scaffold instead.
 _Avoid_: Atomic snippet (the superseded form), single-key template
-
 
 **Template snippet** (retired):
 The chart-wide Advanced-JSON preset concept (v4, ADR-0014) — wound down in stages: ADR-0044 left it the toolbox scaffold + radar presets (title/legend/tooltip/xAxis had moved to their sections), and ADR-0045 retired the chart-level U entirely — the toolbox is GUI-configured in its own section, and the radar presets became the radar family's Section-raw catalog (itself removed with the radar family, ADR-0071). The per-level template concept lives on as Series/Axis/Section templates.
@@ -390,8 +389,6 @@ _Avoid_: du-addressed hints, machine-translation artifacts („kollabiert“, �
 **relend-Rasterfamilie (adapter parity)**:
 The relative-end grid labels („Ende von 10 Minuten“, „Stundenende“, „Minutenende“) mirror ioBroker.echarts' German verbatim — parity beats elegance, do not polish them. The calendar anchors deviate deliberately: the window ENDS at the boundary (`roundEnd` rolls to the 1st of the next period), so they read „Monatsende“/„Jahresende“/„Ende der Woche (So)/(Sa)“ — the adapter itself writes „Wochenssende“ there, a typo this collection does not inherit.
 _Avoid_: renaming the grid labels, „dieser Monat“ (an end-anchor phrased as a range)
-
-
 
 # Theme Studio
 
