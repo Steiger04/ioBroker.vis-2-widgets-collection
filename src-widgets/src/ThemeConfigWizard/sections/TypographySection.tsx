@@ -179,6 +179,9 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                 fullWidth
                                 value={fontSelectValue}
                                 onChange={handleFontFamilyChange}
+                                // The default entry has value '' — without displayEmpty MUI skips
+                                // renderValue and the closed select renders empty.
+                                displayEmpty
                                 renderValue={renderFontValue}
                             >
                                 <MenuItem value="">{Generic.t('theme_wizard_typography_font_family_default')}</MenuItem>
