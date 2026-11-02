@@ -7,7 +7,8 @@
  * Marker-Ebene applies to marks only (CONTEXT "Marker-Ebene"): the value label follows
  * `textColorActive` → active state → base → theme text, never the marker text colour — even
  * while a state is active, where the retired local marker stage used to cut in. The Sperre
- * cases pin the slider's `disabled` against the OID binding's `locked`.
+ * cases pin the slider's `disabled` against the OID binding's `locked`. The mark label text paints
+ * its own resolved colour, since the mark label container sets none.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -78,6 +79,56 @@ describe('SliderCollection value label ignores the marker text colour', () => {
         // Guards against a vacuous match should happy-dom stop resolving the Emotion rules.
         expect(withoutMarker).not.toBe('');
         expect(valueLabelColor({ markerTextColor: MARKER_TEXT_COLOR })).toBe(withoutMarker);
+    });
+});
+
+describe('SliderCollection mark label text', () => {
+    /** The colours of the value label and of every mark label text, mounted with the given data. */
+    const labelColors = (data: Record<string, unknown>): { valueLabel: string; marks: string[] } => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-mark-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    valueLabelDisplay: 'on',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const valueLabel = container.querySelector('.MuiSlider-valueLabel');
+        const marks = Array.from(container.querySelectorAll(".MuiSlider-markLabel [data-font='active']"));
+        if (!valueLabel || marks.length === 0) {
+            throw new Error('the slider rendered no value label or no mark label');
+        }
+        return { valueLabel: getComputedStyle(valueLabel).color, marks: marks.map(m => getComputedStyle(m).color) };
+    };
+
+    // The mark label container carries no colour of its own: the text must resolve one even with
+    // nothing configured, or it would fall back to MUI's secondary mark-label grey.
+    it('paints the theme text colour with no colour configured, like the value label', () => {
+        const { valueLabel, marks } = labelColors({});
+
+        expect(valueLabel).not.toBe('');
+        expect(marks).toEqual([valueLabel, valueLabel, valueLabel]);
+    });
+
+    it('paints the marker text colour on every mark', () => {
+        expect(labelColors({ markerTextColor: MARKER_TEXT_COLOR }).marks).toEqual([
+            MARKER_TEXT_COLOR,
+            MARKER_TEXT_COLOR,
+            MARKER_TEXT_COLOR,
+        ]);
     });
 });
 

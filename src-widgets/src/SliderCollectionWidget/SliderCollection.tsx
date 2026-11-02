@@ -146,9 +146,6 @@ const SliderCollection: FC = () => {
     // the field contracts (sliderColorContracts), resolved in one place.
     const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
 
-    // The mark label is part of the mark, so it reads the marks' base style.
-    const markLabelFallbackColor = markBaseStyle.inactive.textColor || theme.palette.text.primary;
-
     // Source icons (orientation-independent).
     const minIcon = widget.data.iconMin || widget.data.iconSmallMin;
     const maxIcon = widget.data.iconMax || widget.data.iconSmallMax;
@@ -329,8 +326,11 @@ const SliderCollection: FC = () => {
                                     right: !isHorizontal ? widget.data.labelPosition : undefined,
                                 },
                                 '& .MuiSlider-markLabel': {
+                                    // Not the text size (CollectionMark's Typography sets its
+                                    // own): the inherited size sets the line box of the icon
+                                    // row, so it moves the mark icon. No colour here — the
+                                    // mark text and icon always paint their resolved colours.
                                     fontSize: data.valueSize,
-                                    color: markLabelFallbackColor,
                                     top: isHorizontal ? widget.data.markPosition : undefined,
                                     left: !isHorizontal ? widget.data.markPosition : undefined,
                                 },
