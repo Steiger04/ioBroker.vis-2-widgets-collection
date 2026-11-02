@@ -138,3 +138,36 @@ describe('decideBackendChange', () => {
         expect(decision.significant).toBe(true);
     });
 });
+
+describe('decideBackendChange — foreign (Fremdänderung, ADR-0087 addendum)', () => {
+    it.each([
+        [
+            'an own optimistic write (lc sentinel)',
+            { lc: 1000, value: 0.2 },
+            { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: 0.7 },
+            0,
+        ],
+        ['an echo inside the ignore window', { lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, 10_000],
+        ['the first observation', { lc: undefined, value: undefined }, { lc: 2000, value: 0.7 }, 0],
+        ['an unchanged lc', { lc: 2000, value: 0.2 }, { lc: 2000, value: 0.7 }, 0],
+    ])('is false for %s', (_case, prev, current, ignoreUntil) => {
+        expect(decideBackendChange(prev, current, ignoreUntil, 5000).foreign).toBe(false);
+    });
+
+    it.each([
+        ['0.2 → 0.7', 0.2, 0.7],
+        ['21 → 21.5', 21, 21.5],
+        ['5 → 42', 5, 42],
+        ['#ff0000 → #00ff00', '#ff0000', '#00ff00'],
+    ])('is true for an lc change outside the window, whatever the delta (%s)', (_case, from, to) => {
+        expect(decideBackendChange({ lc: 1000, value: from }, { lc: 2000, value: to }, 0, 5000).foreign).toBe(true);
+    });
+
+    it('keeps significant = foreign AND the jitter filter: a sub-unit change is foreign, not significant', () => {
+        const decision = decideBackendChange({ lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, 0, 5000);
+
+        expect(decision.foreign).toBe(true);
+        expect(decision.significant).toBe(false);
+        expect(decision.next).toEqual({ lc: 2000, value: 0.7 });
+    });
+});

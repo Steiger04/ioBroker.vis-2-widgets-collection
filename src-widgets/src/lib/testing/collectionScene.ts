@@ -92,6 +92,11 @@ export interface MountedCollectionBody {
     setState: ReturnType<typeof vi.fn>;
     /** The context's `setValue` — the backend write lands here. */
     setValue: ReturnType<typeof vi.fn>;
+    /**
+     * Re-renders the same body over the next scene — new widget data or state values, the way the
+     * host re-renders on a subscription update; component state survives, the mocks stay the same.
+     */
+    rerender: (scene: CollectionScene) => void;
     unmount: () => void;
 }
 
@@ -122,15 +127,23 @@ export function mountCollectionBody(
 ): MountedCollectionBody {
     const setState = vi.fn();
     const setValue = vi.fn();
-    const context = {
-        ...buildPreviewContext(scene),
-        ...extraContext,
+    const contextOf = (next: CollectionScene): AllCollectionContextProps =>
+        ({
+            ...buildPreviewContext(next),
+            ...extraContext,
+            setState,
+            setValue,
+        }) as unknown as AllCollectionContextProps;
+
+    const handle = renderComponent(CollectionHost, { context: contextOf(scene), body, contentBox: scene.contentBox });
+    return {
+        container: handle.container,
         setState,
         setValue,
-    } as unknown as AllCollectionContextProps;
-
-    const { container, unmount } = renderComponent(CollectionHost, { context, body, contentBox: scene.contentBox });
-    return { container, setState, setValue, unmount };
+        rerender: (next: CollectionScene): void =>
+            handle.rerender({ context: contextOf(next), body, contentBox: next.contentBox }),
+        unmount: handle.unmount,
+    };
 }
 
 /**

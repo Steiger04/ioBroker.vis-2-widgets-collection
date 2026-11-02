@@ -8,6 +8,9 @@
  * - type-aware conversion via the configured `OidObject.type`
  * - throttled/debounced writes via {@link module:hooks/useDebounce}
  * - a short “ignore window” to avoid immediately re-applying backend echoes while the user is interacting
+ * - two outputs of one backend decision: `hasForeignChange` (Fremdänderung, CONTEXT — any change
+ *   another party made) and `hasBackendChange` (Signifikante Backend-Änderung, CONTEXT — a
+ *   Fremdänderung that also passes the jitter filter); ADR-0087 and its 2026-11-02 addendum
  *
  * The decision logic is exported as pure transitions ({@link convertToOidType},
  * {@link isSignificantBackendChange}, {@link decideBackendChange} — the useOptimisticNumber /
@@ -117,9 +120,18 @@ export interface BackendChangeState {
     value: string | number | boolean | undefined | null;
 }
 
-/** Result of {@link decideBackendChange}: the flag plus the state to carry forward. */
+/** Result of {@link decideBackendChange}: both flags plus the state to carry forward. */
 export interface BackendChangeDecision {
-    /** Whether this observation counts as a significant foreign backend change. */
+    /**
+     * Fremdänderung (CONTEXT): another party changed the state — neither the own write
+     * (sentinel), nor its echo (ignore window), nor the first observation; the `lc` moved.
+     * No value filter (ADR-0087 addendum 2026-11-02).
+     */
+    foreign: boolean;
+    /**
+     * Signifikante Backend-Änderung (CONTEXT): a {@link BackendChangeDecision.foreign} change
+     * that also passes {@link isSignificantBackendChange} (the numeric jitter filter, ADR-0087).
+     */
     significant: boolean;
     /** State to remember for the next decision. */
     next: BackendChangeState;
@@ -137,11 +149,12 @@ export interface BackendChangeDecision {
  * @returns The decision plus the state to remember.
  * @remarks
  * Precedence (first match wins):
- * 1. own optimistic write (`lc` = the {@link VALUE_NOT_CHANGED_TIMESTAMP} sentinel) → never significant
- * 2. inside the ignore window → not significant (the own write's backend echo)
- * 3. first observation (`prev.lc === undefined`) → not significant (initialisation)
- * 4. otherwise significant iff `lc` changed AND the value change is significant
- *    ({@link isSignificantBackendChange})
+ * 1. own optimistic write (`lc` = the {@link VALUE_NOT_CHANGED_TIMESTAMP} sentinel) → neither flag
+ * 2. inside the ignore window → neither flag (the own write's backend echo)
+ * 3. first observation (`prev.lc === undefined`) → neither flag (initialisation)
+ * 4. otherwise `foreign` iff `lc` changed (Fremdänderung); `significant` iff `foreign` AND the
+ *    value change is significant ({@link isSignificantBackendChange}) — ADR-0087 addendum
+ *    2026-11-02: the second output of the same decision, not a second decision.
  */
 export function decideBackendChange(
     prev: BackendChangeState,
@@ -150,20 +163,22 @@ export function decideBackendChange(
     now: number,
 ): BackendChangeDecision {
     if (current.lc === VALUE_NOT_CHANGED_TIMESTAMP) {
-        return { significant: false, next: { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: current.value } };
+        return {
+            foreign: false,
+            significant: false,
+            next: { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: current.value },
+        };
     }
 
     const next: BackendChangeState = { lc: current.lc, value: current.value };
 
-    if (now < ignoreUntil) {
-        return { significant: false, next };
+    if (now < ignoreUntil || prev.lc === undefined) {
+        return { foreign: false, significant: false, next };
     }
 
-    if (prev.lc === undefined) {
-        return { significant: false, next };
-    }
+    const foreign = prev.lc !== current.lc;
 
-    return { significant: prev.lc !== current.lc && isSignificantBackendChange(prev.value, current.value), next };
+    return { foreign, significant: foreign && isSignificantBackendChange(prev.value, current.value), next };
 }
 
 /**
@@ -173,8 +188,19 @@ export interface UseValueStateReturn {
     /** Current (optimistic) value for the configured OID. */
     value: string | number | boolean | undefined | null;
 
-    /** Indicates the backend value has changed since last local update. */
+    /**
+     * Signifikante Backend-Änderung (CONTEXT): the last observation was a Fremdänderung that
+     * passes the numeric jitter filter (delta ≥ 1 while both sides are numeric, ADR-0087).
+     * A state, not an event — it stays true until the next observation decides otherwise.
+     */
     hasBackendChange: boolean;
+
+    /**
+     * Fremdänderung (CONTEXT): the last observation was a change by another party, of ANY size
+     * (ADR-0087 addendum 2026-11-02). The Slider syncs on this; Input and Light2 keep
+     * {@link UseValueStateReturn.hasBackendChange}. A state, not an event, like that flag.
+     */
+    hasForeignChange: boolean;
 
     /**
      * Sperre (CONTEXT): the control must be disabled — the widget is display-only
@@ -196,8 +222,8 @@ export interface UseValueStateReturn {
  * Manages a value associated with an OID, including conversion and debounced writes.
  *
  * @param idName - Name of the OID property (e.g. `"oid"`, `"oid1"`, `"oid2"`).
- * @returns An object containing the current value, backend-change flag, the Sperre (`locked`)
- * and an update function.
+ * @returns An object containing the current value, both backend-change flags, the Sperre
+ * (`locked`) and an update function.
  * @example
  * ```tsx
  * const { value, updateValue, hasBackendChange } = useValueState('oid');
@@ -240,9 +266,9 @@ const useValueState = (idName: string): UseValueStateReturn => {
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;
 
-    const hasBackendChange = useMemo(() => {
+    const { foreign: hasForeignChange, significant: hasBackendChange } = useMemo(() => {
         if (!oidObject?._id) {
-            return false;
+            return { foreign: false, significant: false };
         }
 
         const decision = decideBackendChange(
@@ -254,7 +280,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
         prevStateRef.current = decision.next;
 
-        return decision.significant;
+        return { foreign: decision.foreign, significant: decision.significant };
     }, [oidObject?._id, currentLc, currentValue]);
 
     const debounce = useDebounce({
@@ -314,6 +340,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
     return {
         value,
         hasBackendChange,
+        hasForeignChange,
         locked,
         updateValue,
     };

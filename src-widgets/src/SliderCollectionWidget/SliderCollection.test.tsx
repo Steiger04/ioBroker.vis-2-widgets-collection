@@ -9,7 +9,8 @@
  * while a state is active, where the retired local marker stage used to cut in. The Sperre
  * cases pin the slider's `disabled` against the OID binding's `locked`. The mark label text paints
  * its own resolved colour, since the mark label container sets none; the container carries the
- * configured value size only, which positions the mark icon.
+ * configured value size only, which positions the mark icon. The backend sync cases pin the thumb
+ * against Fremdänderungen of any size, the own write's echo and an OID rebind (ADR-0087 addendum).
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -22,6 +23,8 @@ vi.hoisted(() => {
         }
     };
 });
+
+import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
 import SliderCollection from './SliderCollection';
@@ -255,5 +258,128 @@ describe('SliderCollection Sperre', () => {
         ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
     ])('disables the slider for %s', (_case, data) => {
         expect(rangeInput(data)?.disabled).toBe(true);
+    });
+});
+
+describe('SliderCollection backend sync (Fremdänderung, ADR-0087 addendum)', () => {
+    const OID_B = 'demo.0.dimmer2';
+
+    /** A 0–1 dimmer slider bound to `oid`, with the given state values. */
+    const dimmerScene = (
+        oid: string,
+        values: Record<string, unknown>,
+        data: Record<string, unknown> = {},
+    ): ReturnType<typeof collectionScene> => {
+        const scene = collectionScene(
+            'slider-sync-test',
+            {
+                oid,
+                oidObject: { _id: oid, type: 'number' },
+                sliderOrientation: 'horizontal',
+                minValue: 0,
+                maxValue: 1,
+                step: 0.01,
+                noHeader: true,
+                noFooter: true,
+                noHeaderIcon: true,
+                ...data,
+            },
+            undefined,
+        );
+        scene.context.values = values;
+        return scene;
+    };
+
+    const rangeOf = (container: HTMLElement): HTMLInputElement => {
+        const input = container.querySelector<HTMLInputElement>('input[type="range"]');
+        if (!input) {
+            throw new Error('the slider rendered no range input');
+        }
+        return input;
+    };
+
+    const thumbOf = (container: HTMLElement): number => Number(rangeOf(container).getAttribute('aria-valuenow'));
+
+    /** Moves the thumb like a user would: the native range input fires `change`. */
+    const drag = (container: HTMLElement, value: number): void => {
+        const input = rangeOf(container);
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, String(value));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
+
+    it.each([
+        ['0.2 → 0.7 on a 0–1 slider', {}, 0.2, 0.7],
+        ['21 → 21.5 on a step-0.5 slider', { minValue: 0, maxValue: 100, step: 0.5 }, 21, 21.5],
+    ])('moves the thumb on a sub-unit Fremdänderung (%s)', (_case, data, from, to) => {
+        const { container, rerender } = mount(
+            SliderCollection,
+            dimmerScene(OID, { [`${OID}.val`]: from, [`${OID}.lc`]: 1000 }, data),
+        );
+        expect(thumbOf(container)).toBe(from);
+
+        rerender(dimmerScene(OID, { [`${OID}.val`]: to, [`${OID}.lc`]: 2000 }, data));
+
+        expect(thumbOf(container)).toBe(to);
+    });
+
+    it('keeps the dragged thumb when the own write echoes back inside the ignore window', () => {
+        const { container, rerender, setState } = mount(
+            SliderCollection,
+            dimmerScene(OID, { [`${OID}.val`]: 0.2, [`${OID}.lc`]: 1000 }),
+        );
+
+        drag(container, 0.5);
+        expect(setState).toHaveBeenCalled();
+        expect(thumbOf(container)).toBe(0.5);
+
+        // A stale intermediate echo (0.3) lands within the window: absorbed, the thumb stays.
+        rerender(dimmerScene(OID, { [`${OID}.val`]: 0.3, [`${OID}.lc`]: 2000 }));
+
+        expect(thumbOf(container)).toBe(0.5);
+    });
+
+    it('puts the thumb on the new OID value at once on a rebind A → B, even right after a write on A', () => {
+        const { container, rerender } = mount(
+            SliderCollection,
+            dimmerScene(OID, { [`${OID}.val`]: 0.2, [`${OID}.lc`]: 1000 }),
+        );
+
+        // The write on A opens its ignore window.
+        drag(container, 0.5);
+
+        rerender(
+            dimmerScene(OID_B, {
+                [`${OID}.val`]: 0.5,
+                [`${OID}.lc`]: 1000,
+                [`${OID_B}.val`]: 0.45,
+                [`${OID_B}.lc`]: 3000,
+            }),
+        );
+
+        expect(thumbOf(container)).toBe(0.45);
+    });
+
+    // The editor sets `data.oid` first and fills `oidObject` later: the rebind keys on the binding
+    // (`widget.data.oid`, the source of the value), not on `oidObject._id`.
+    it('rebinds on the data.oid change alone, before oidObject follows', () => {
+        const { container, rerender } = mount(
+            SliderCollection,
+            dimmerScene(OID, { [`${OID}.val`]: 0.2, [`${OID}.lc`]: 1000 }),
+        );
+
+        drag(container, 0.5);
+
+        rerender(
+            dimmerScene(
+                OID_B,
+                { [`${OID}.val`]: 0.5, [`${OID}.lc`]: 1000, [`${OID_B}.val`]: 0.45, [`${OID_B}.lc`]: 3000 },
+                { oidObject: { _id: OID, type: 'number' } },
+            ),
+        );
+
+        expect(thumbOf(container)).toBe(0.45);
     });
 });

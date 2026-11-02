@@ -6,7 +6,8 @@
  * Pins what the hook adds AROUND {@link module:hooks/useValueState.test} (the pure
  * decision logic): the `updateValue` guards (no OID, read-only, rejected
  * conversion), the optimistic `setState` shape (`.val` + `.lc` sentinel) and the
- * ignore-window echo absorption end-to-end. The pure transitions' semantics
+ * ignore-window echo absorption end-to-end, for both outputs (`hasBackendChange`,
+ * `hasForeignChange`). The pure transitions' semantics
  * (ADR-0087) are pinned in the node-project suite; the string case here
  * mirrors it once for the composed path.
  */
@@ -293,6 +294,41 @@ describe('useValueState hook', () => {
         rerender();
         expect(captured.current?.hasBackendChange).toBe(true);
         expect(captured.current?.value).toBe(30);
+        unmount();
+    });
+
+    it('flags sub-unit jitter as a Fremdänderung, not as significant (ADR-0087 addendum)', async () => {
+        const box = makeBox(numberOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 0.2 });
+        const { captured, rerender, unmount } = mount(box);
+
+        rerender(); // first observation
+        expect(captured.current?.hasForeignChange).toBe(false);
+
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 0.7 };
+        await flushWrites(2000);
+        rerender();
+
+        expect(captured.current?.hasForeignChange).toBe(true);
+        expect(captured.current?.hasBackendChange).toBe(false);
+        unmount();
+    });
+
+    it('absorbs the own write echo for hasForeignChange too', async () => {
+        const box = makeBox(numberOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 0.2 });
+        const { captured, rerender, unmount } = mount(box);
+
+        rerender(); // first observation
+        act(() => {
+            captured.current?.updateValue(0.5);
+        });
+        rerender();
+        expect(captured.current?.hasForeignChange).toBe(false);
+
+        // Echo inside the 1800 ms window (see the quirk above): absorbed.
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 0.4 };
+        await flushWrites(100);
+        rerender();
+        expect(captured.current?.hasForeignChange).toBe(false);
         unmount();
     });
 });
