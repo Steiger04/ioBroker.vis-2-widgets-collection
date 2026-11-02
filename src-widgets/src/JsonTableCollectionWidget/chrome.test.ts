@@ -112,12 +112,17 @@ describe('buildTableChrome — header bar', () => {
         expect(bar.boxShadow).toBe('shadow-6');
     });
 
-    it('counts an invalid header colour as unset: the paper in the card, transparent with noCard', () => {
-        for (const tableHeaderBgColor of ['red', 'var(--x)', 'transparent']) {
-            expect(chrome({ tableHeaderBgColor }).headerBarSx).toMatchObject({ backgroundColor: PAPER });
+    it('paints a stored header colour the picker rejects raw, as before the spec — in the card and with noCard', () => {
+        // Legacy values (red, var(), transparent, a hex padded with spaces) never crashed,
+        // so their rendering stays identical: the explicit value goes into the CSS as stored.
+        for (const tableHeaderBgColor of ['red', 'var(--x)', 'transparent', ' #123456 ']) {
+            expect(chrome({ tableHeaderBgColor }).headerBarSx).toMatchObject({
+                backgroundColor: tableHeaderBgColor,
+                boxShadow: 'shadow-6',
+            });
             expect(chrome({ tableHeaderBgColor }).headerBarSx.background).toBeUndefined();
             expect(chrome({ noCard: true, tableHeaderBgColor }).headerBarSx).toMatchObject({
-                backgroundColor: 'transparent',
+                backgroundColor: tableHeaderBgColor,
                 boxShadow: 'none',
             });
         }
