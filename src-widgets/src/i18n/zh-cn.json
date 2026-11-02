@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "调整宽度",
     "theme_studio_save_error": "保存失败 — 请检查连接并重试。",
     "theme_studio_save_invalid": "请先修复标记的问题再保存",
-    "theme_studio_secondary_derived": "派生",
     "theme_studio_section_advanced": "高级",
     "theme_studio_section_schrift_form": "排版与形状",
     "theme_studio_section_status_text": "状态与文本",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "表格功能",
     "collection_base_invalid_type": "%s 的类型无效！",
     "collection_base_select_oid": "请选择有效的对象 ID",
-    "theme_studio_problems_one": "1 个问题"
+    "theme_studio_problems_one": "1 个问题",
+    "theme_studio_hint_background_default": "未设置框架颜色时对话框组件的背景。",
+    "theme_studio_hint_background_paper": "组件卡片和框架的表面（所有继承框架颜色的默认值）——深色主题的主要调节手段。",
+    "theme_studio_hint_divider": "边框、分隔线和图表框架；所有线条颜色属性的默认值。",
+    "theme_studio_hint_error": "图表调色板“主题（自动）”的系列颜色 6 以及控件的状态指示器（如输入错误）。",
+    "theme_studio_hint_info": "图表调色板“主题（自动）”的系列颜色 5 以及控件的状态指示器。",
+    "theme_studio_hint_primary": "主强调色：激活状态、默认图标颜色、图表调色板“主题（自动）”的第一个系列颜色。",
+    "theme_studio_hint_secondary": "次要强调色和图表第二个系列颜色。在设置之前，按主色的三色组搭配计算得出。",
+    "theme_studio_hint_success": "图表调色板“主题（自动）”的系列颜色 4 以及控件的状态指示器。",
+    "theme_studio_hint_text_primary": "所有文本颜色的默认值。在设置之前跟随主颜色。",
+    "theme_studio_hint_text_secondary": "次要文本，如单位、说明文字和提示。",
+    "theme_studio_hint_warning": "图表调色板“主题（自动）”的系列颜色 3 以及控件的状态指示器。",
+    "theme_studio_text_follows_primary": "跟随主颜色",
+    "theme_studio_secondary_derived": "派生自主项"
 }

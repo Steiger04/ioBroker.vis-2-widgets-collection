@@ -10,8 +10,19 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import en from '../i18n/en.json';
+import de from '../i18n/de.json';
+import { createChromeTheme } from '../lib/theme/chromeTheme';
+import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { THEME_OPTIONS_SCHEMA, type SchemaNode } from '../lib/theme/themeSchema';
-import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
+import type { UserTheme } from '../lib/theme/themeTypes';
+import {
+    STUDIO_COLOR_FIELDS,
+    colorFieldForIssuePath,
+    colorSectionForPath,
+    derivationMarkerKey,
+    type StudioColorField,
+} from './studioColorFields';
 
 /** Every colour leaf path of a schema tree; record keys appear as `*`. */
 function schemaColorPaths(node: SchemaNode, path: string, out: Set<string>): Set<string> {
@@ -148,5 +159,77 @@ describe('error path → field', () => {
         expect(colorFieldForIssuePath('palette')).toBeUndefined();
         expect(colorFieldForIssuePath('palette.primary.light')).toBeUndefined();
         expect(colorFieldForIssuePath('corners.topLeft')).toBeUndefined();
+    });
+});
+
+/** The registered field at `path`. */
+const field = (path: string): StudioColorField => {
+    const found = STUDIO_COLOR_FIELDS.find(entry => entry.path === path);
+    if (!found) {
+        throw new Error(`no field ${path}`);
+    }
+    return found;
+};
+
+/** The marker shown on the field at `path` for a user theme (resolved against the light editor theme). */
+const markerOf = (path: string, theme: UserTheme): string | undefined =>
+    derivationMarkerKey(field(path), theme, resolveCollectionTheme(createChromeTheme('light'), {}, theme));
+
+describe('derivation markers', () => {
+    const SECONDARY = 'palette.secondary.main';
+    const TEXT = 'palette.text.primary';
+
+    it('marks the secondary as derived while it inherits from a user primary', () => {
+        expect(markerOf(SECONDARY, { palette: { primary: { main: '#ff0000' } } })).toBe(
+            'theme_studio_secondary_derived',
+        );
+    });
+
+    it('does not mark the secondary without a user primary (it is the editor secondary then)', () => {
+        expect(markerOf(SECONDARY, {})).toBeUndefined();
+    });
+
+    it('does not mark the secondary when the user primary is unusable (nothing is derived)', () => {
+        expect(markerOf(SECONDARY, { palette: { primary: { main: 'nope' } } })).toBeUndefined();
+    });
+
+    it('drops the secondary marker once the secondary is chosen', () => {
+        expect(
+            markerOf(SECONDARY, { palette: { primary: { main: '#ff0000' }, secondary: { main: '#00ff00' } } }),
+        ).toBeUndefined();
+    });
+
+    it('marks the primary text as following the primary while it inherits — with or without a user primary', () => {
+        expect(markerOf(TEXT, {})).toBe('theme_studio_text_follows_primary');
+        expect(markerOf(TEXT, { palette: { primary: { main: '#ff0000' } } })).toBe('theme_studio_text_follows_primary');
+    });
+
+    it('drops the text marker once the primary text is chosen', () => {
+        expect(markerOf(TEXT, { palette: { text: { primary: '#222222' } } })).toBeUndefined();
+    });
+
+    it('marks no other field', () => {
+        const others = STUDIO_COLOR_FIELDS.filter(entry => entry.path !== SECONDARY && entry.path !== TEXT);
+        for (const theme of [{}, { palette: { primary: { main: '#ff0000' } } }] as UserTheme[]) {
+            expect(others.map(entry => markerOf(entry.path, theme)).filter(Boolean)).toEqual([]);
+        }
+    });
+});
+
+describe('field texts', () => {
+    it('gives every field its own location hint', () => {
+        const hints = STUDIO_COLOR_FIELDS.map(entry => entry.hintKey);
+        expect(new Set(hints).size).toBe(STUDIO_COLOR_FIELDS.length);
+        expect(hints.every(key => key.startsWith('theme_studio_hint_'))).toBe(true);
+    });
+
+    it.each([
+        ['en', en as Record<string, string>],
+        ['de', de as Record<string, string>],
+    ])('has every label, hint and marker key translated (%s)', (_lang, dict) => {
+        const keys = STUDIO_COLOR_FIELDS.flatMap(entry =>
+            [entry.labelKey, entry.hintKey, entry.markerKey ?? []].flat(),
+        );
+        expect(keys.filter(key => !dict[key])).toEqual([]);
     });
 });

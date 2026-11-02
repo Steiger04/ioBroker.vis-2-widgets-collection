@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Zmień szerokość",
     "theme_studio_save_error": "Zapisywanie nie powiodło się — sprawdź połączenie i spróbuj ponownie.",
     "theme_studio_save_invalid": "Napraw zaznaczone problemy, aby zapisać",
-    "theme_studio_secondary_derived": "pochodny",
     "theme_studio_section_advanced": "Zaawansowane",
     "theme_studio_section_schrift_form": "Typografia i kształt",
     "theme_studio_section_status_text": "Status i tekst",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Możliwości tabeli",
     "collection_base_invalid_type": "%s ma nieprawidłowy typ!",
     "collection_base_select_oid": "Wybierz prawidłowy identyfikator obiektu",
-    "theme_studio_problems_one": "1 problem"
+    "theme_studio_problems_one": "1 problem",
+    "theme_studio_hint_background_default": "Tło widżetu okna dialogowego, gdy nie ma koloru ramki.",
+    "theme_studio_hint_background_paper": "Powierzchnia kart i ramek widżetów (wartość domyślna każdego dziedziczącego koloru ramki) — główne narzędzie dla motywów ciemnych.",
+    "theme_studio_hint_divider": "Obramowania, separatory i ramki wykresów; wartość domyślna każdego atrybutu koloru linii.",
+    "theme_studio_hint_error": "Kolor serii 6 palety wykresów „Motyw (auto)” i wskaźniki stanu kontrolek (np. błędy wprowadzania).",
+    "theme_studio_hint_info": "Kolor serii 5 palety wykresów „Motyw (auto)” i wskaźniki stanu kontrolek.",
+    "theme_studio_hint_primary": "Główny akcent: stany aktywne, domyślny kolor ikon, pierwszy kolor serii palety wykresów „Motyw (auto)”.",
+    "theme_studio_hint_secondary": "Drugi akcent i drugi kolor serii wykresu. Obliczany jako triadowy odpowiednik koloru podstawowego, dopóki nie zostanie ustawiony.",
+    "theme_studio_hint_success": "Kolor serii 4 palety wykresów „Motyw (auto)” i wskaźniki stanu kontrolek.",
+    "theme_studio_hint_text_primary": "Wartość domyślna wszystkich kolorów tekstu. Podąża za kolorem podstawowym, dopóki nie zostanie ustawiony.",
+    "theme_studio_hint_text_secondary": "Tekst pomocniczy, taki jak jednostki, podpisy i wskazówki.",
+    "theme_studio_hint_warning": "Kolor serii 3 palety wykresów „Motyw (auto)” i wskaźniki stanu kontrolek.",
+    "theme_studio_text_follows_primary": "podąża za podstawowym",
+    "theme_studio_secondary_derived": "pochodny z podstawowego"
 }

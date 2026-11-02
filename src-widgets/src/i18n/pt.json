@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Redimensionar a largura",
     "theme_studio_save_error": "Falha ao salvar — verifique a conexão e tente novamente.",
     "theme_studio_save_invalid": "Corrige os problemas assinalados para guardar",
-    "theme_studio_secondary_derived": "derivado",
     "theme_studio_section_advanced": "Avançado",
     "theme_studio_section_schrift_form": "Tipografia e Forma",
     "theme_studio_section_status_text": "Estado e texto",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Capacidades da tabela",
     "collection_base_invalid_type": "%s tem um tipo inválido!",
     "collection_base_select_oid": "Selecione um ID de objeto válido",
-    "theme_studio_problems_one": "1 problema"
+    "theme_studio_problems_one": "1 problema",
+    "theme_studio_hint_background_default": "Fundo do widget de diálogo quando não tem cor de moldura.",
+    "theme_studio_hint_background_paper": "Superfície de cartões e molduras de widgets (predefinição de todas as cores de moldura herdadas) — a principal alavanca para os temas escuros.",
+    "theme_studio_hint_divider": "Contornos, divisores e molduras de gráficos; predefinição de todos os atributos de cor de linha.",
+    "theme_studio_hint_error": "Cor da série 6 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos (por exemplo, erros de introdução).",
+    "theme_studio_hint_info": "Cor da série 5 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos.",
+    "theme_studio_hint_primary": "Acento principal: estados ativos, cor predefinida dos ícones, primeira cor de série da paleta de gráficos “Tema (automático)”.",
+    "theme_studio_hint_secondary": "Segundo acento e segunda cor de série de gráficos. Calculado como parceiro triádico do primário até ser definido.",
+    "theme_studio_hint_success": "Cor da série 4 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos.",
+    "theme_studio_hint_text_primary": "Predefinição de todas as cores de texto. Segue a cor primária até ser definida.",
+    "theme_studio_hint_text_secondary": "Texto secundário, como unidades, legendas e dicas.",
+    "theme_studio_hint_warning": "Cor da série 3 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos.",
+    "theme_studio_text_follows_primary": "segue o primário",
+    "theme_studio_secondary_derived": "derivado do principal"
 }

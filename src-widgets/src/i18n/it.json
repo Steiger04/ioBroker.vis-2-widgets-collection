@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Ridimensiona la larghezza",
     "theme_studio_save_error": "Salvataggio non riuscito — controlla la connessione e riprova.",
     "theme_studio_save_invalid": "Correggi i problemi segnalati per salvare",
-    "theme_studio_secondary_derived": "derivato",
     "theme_studio_section_advanced": "Avanzate",
     "theme_studio_section_schrift_form": "Tipografia e forma",
     "theme_studio_section_status_text": "Stato e testo",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Funzionalità della tabella",
     "collection_base_invalid_type": "%s ha un tipo non valido!",
     "collection_base_select_oid": "Seleziona un ID oggetto valido",
-    "theme_studio_problems_one": "1 problema"
+    "theme_studio_problems_one": "1 problema",
+    "theme_studio_hint_background_default": "Sfondo del widget di dialogo quando non ha un colore della cornice.",
+    "theme_studio_hint_background_paper": "Superficie di schede e cornici dei widget (predefinito di ogni colore cornice che eredita) — il principale strumento per i temi scuri.",
+    "theme_studio_hint_divider": "Bordi, separatori e cornici dei grafici; predefinito di ogni attributo di colore linea.",
+    "theme_studio_hint_error": "Colore serie 6 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli (ad es. errori di input).",
+    "theme_studio_hint_info": "Colore serie 5 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli.",
+    "theme_studio_hint_primary": "Accento principale: stati attivi, colore predefinito delle icone, primo colore serie della tavolozza dei grafici “Tema (auto)”.",
+    "theme_studio_hint_secondary": "Secondo accento e secondo colore serie dei grafici. Calcolato come partner triadico del colore primario finché non viene impostato.",
+    "theme_studio_hint_success": "Colore serie 4 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli.",
+    "theme_studio_hint_text_primary": "Predefinito di tutti i colori del testo. Segue il colore primario finché non viene impostato.",
+    "theme_studio_hint_text_secondary": "Testo secondario come unità, didascalie e suggerimenti.",
+    "theme_studio_hint_warning": "Colore serie 3 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli.",
+    "theme_studio_text_follows_primary": "segue il primario",
+    "theme_studio_secondary_derived": "derivato dalla primaria"
 }

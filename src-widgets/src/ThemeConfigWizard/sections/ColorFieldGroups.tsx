@@ -7,12 +7,16 @@
  * ({@link module:ThemeConfigWizard/studioColorFields}): a `SubGroup` per group, a
  * `ColorPickerField` per field. Each field shows the effective (resolved) colour until the user
  * overrides it — the colour the canvas widgets inherit from the editor theme — and its
- * validation error at the field.
+ * validation error at the field. A derived field carries its marker ("derived from primary",
+ * "follows primary") while the resolution derives it, and every field a `HelpHint` naming where
+ * the colour shows up.
  */
 
+import { Box } from '@mui/material';
 import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
+import HelpHint from '../../components/HelpHint';
 import { SubGroup } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
@@ -20,6 +24,7 @@ import { getNestedValue } from '../../lib/theme/themeUtils';
 import {
     STUDIO_COLOR_GROUPS,
     colorFieldsOfGroup,
+    derivationMarkerKey,
     type StudioColorField,
     type StudioColorSection,
 } from '../studioColorFields';
@@ -45,20 +50,28 @@ function ColorFieldGroups({
     const renderField = (field: StudioColorField): React.JSX.Element => {
         const stored = getNestedValue<string>(theme, field.path);
         const resolvedValue = resolved ? (getNestedValue<string>(resolved, field.path) ?? '') : '';
-        const label =
-            field.markerKey && !stored
-                ? `${Generic.t(field.labelKey)} · ${Generic.t(field.markerKey)}`
-                : Generic.t(field.labelKey);
+        const markerKey = derivationMarkerKey(field, theme, resolved);
+        const label = markerKey ? `${Generic.t(field.labelKey)} · ${Generic.t(markerKey)}` : Generic.t(field.labelKey);
+        // The hint sits outside the picker row: a click on it must not open the picker.
         return (
-            <ColorPickerField
+            <Box
                 key={field.path}
-                label={label}
-                value={stored ?? resolvedValue}
-                overridden={stored !== undefined}
-                onChange={color => onChange(field.path, color || undefined)}
-                presets={colorPresets}
-                error={errorFor?.(field.path)}
-            />
+                sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
+            >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <ColorPickerField
+                        label={label}
+                        value={stored ?? resolvedValue}
+                        overridden={stored !== undefined}
+                        onChange={color => onChange(field.path, color || undefined)}
+                        presets={colorPresets}
+                        error={errorFor?.(field.path)}
+                    />
+                </Box>
+                <Box sx={{ pt: '1px' }}>
+                    <HelpHint title={Generic.t(field.hintKey)} />
+                </Box>
+            </Box>
         );
     };
 

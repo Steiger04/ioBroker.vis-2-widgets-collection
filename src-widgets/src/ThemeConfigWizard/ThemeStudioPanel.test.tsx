@@ -250,6 +250,73 @@ describe('ThemeStudioPanel effective colours', () => {
     });
 });
 
+describe('ThemeStudioPanel derivation markers and hints', () => {
+    /** The full label (with a marker suffix, if any) of the colour field labelled `labelKey`. */
+    const labelOf = (labelKey: string): string | undefined =>
+        Array.from(document.body.querySelectorAll<HTMLElement>('[data-swatch-color]'))
+            .map(swatch => swatch.parentElement?.parentElement?.firstElementChild?.textContent ?? '')
+            .find(label => label.split(' · ')[0] === labelKey);
+
+    const SECONDARY = 'theme_wizard_palette_secondary';
+    const TEXT = 'theme_wizard_palette_text_primary';
+
+    it('marks the inheriting secondary and primary text, and drops the secondary marker once a preset sets it', async () => {
+        await mountPanel({ palette: { primary: { main: '#ff0000' } } });
+        await expandColorSections();
+        expect(labelOf(SECONDARY)).toBe(`${SECONDARY} · theme_studio_secondary_derived`);
+        expect(labelOf(TEXT)).toBe(`${TEXT} · theme_studio_text_follows_primary`);
+        expect(labelOf('theme_wizard_palette_primary')).toBe('theme_wizard_palette_primary');
+
+        // Presets set primary + secondary (not the text): an own secondary, no derivation.
+        const preset = document.body.querySelector<HTMLButtonElement>('button[aria-pressed]');
+        act(() => preset?.click());
+        await settle();
+        expect(labelOf(SECONDARY)).toBe(SECONDARY);
+        expect(labelOf(TEXT)).toBe(`${TEXT} · theme_studio_text_follows_primary`);
+    });
+
+    it('marks the primary text only while it inherits', async () => {
+        await mountPanel({ palette: { text: { primary: '#222222' } } });
+        await expandColorSections();
+        expect(labelOf(TEXT)).toBe(TEXT);
+
+        const textRow = Array.from(document.body.querySelectorAll<HTMLElement>('[data-swatch-color]')).find(
+            swatch => swatch.parentElement?.parentElement?.firstElementChild?.textContent === TEXT,
+        )?.parentElement;
+        act(() => textRow?.querySelector<HTMLButtonElement>('button[title="theme_studio_reset_color"]')?.click());
+        await settle();
+        expect(labelOf(TEXT)).toBe(`${TEXT} · theme_studio_text_follows_primary`);
+    });
+
+    it('does not mark the secondary as derived without a user primary', async () => {
+        await mountPanel({});
+        await expandColorSections();
+        expect(labelOf(SECONDARY)).toBe(SECONDARY);
+        expect(labelOf(TEXT)).toBe(`${TEXT} · theme_studio_text_follows_primary`);
+    });
+
+    it('offers a location hint at every colour field', async () => {
+        await mountPanel({});
+        await expandColorSections();
+        const hints = Array.from(
+            document.body.querySelectorAll<HTMLButtonElement>('button[aria-label^="theme_studio_hint_"]'),
+        );
+        expect(hints.map(hint => hint.getAttribute('aria-label')).sort()).toEqual([
+            'theme_studio_hint_background_default',
+            'theme_studio_hint_background_paper',
+            'theme_studio_hint_divider',
+            'theme_studio_hint_error',
+            'theme_studio_hint_info',
+            'theme_studio_hint_primary',
+            'theme_studio_hint_secondary',
+            'theme_studio_hint_success',
+            'theme_studio_hint_text_primary',
+            'theme_studio_hint_text_secondary',
+            'theme_studio_hint_warning',
+        ]);
+    });
+});
+
 describe('ThemeStudioPanel field errors', () => {
     /** Label texts of the fields marked as erroneous. */
     const fieldsWithError = (): string[] =>

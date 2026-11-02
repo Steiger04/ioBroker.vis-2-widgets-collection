@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Cambiar anchura",
     "theme_studio_save_error": "Error al guardar — comprueba la conexión e inténtalo de nuevo.",
     "theme_studio_save_invalid": "Corrige los problemas marcados para guardar",
-    "theme_studio_secondary_derived": "derivado",
     "theme_studio_section_advanced": "Avanzado",
     "theme_studio_section_schrift_form": "Tipografía y forma",
     "theme_studio_section_status_text": "Estado y texto",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Capacidades de la tabla",
     "collection_base_invalid_type": "¡%s tiene un tipo no válido!",
     "collection_base_select_oid": "Seleccione un ID de objeto válido",
-    "theme_studio_problems_one": "1 problema"
+    "theme_studio_problems_one": "1 problema",
+    "theme_studio_hint_background_default": "Fondo del widget de diálogo cuando no tiene color de marco.",
+    "theme_studio_hint_background_paper": "Superficie de las tarjetas y marcos de widgets (predeterminado de cada color de marco heredado): el principal recurso para los temas oscuros.",
+    "theme_studio_hint_divider": "Bordes, separadores y marcos de gráficos; predeterminado de cada atributo de color de línea.",
+    "theme_studio_hint_error": "Color de serie 6 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles (p. ej., errores de entrada).",
+    "theme_studio_hint_info": "Color de serie 5 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles.",
+    "theme_studio_hint_primary": "Acento principal: estados activos, color de icono predeterminado y primer color de serie de la paleta de gráficos «Tema (automático)».",
+    "theme_studio_hint_secondary": "Segundo acento y segundo color de serie de gráficos. Se calcula como contraparte triádica del color primario hasta que se establezca.",
+    "theme_studio_hint_success": "Color de serie 4 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles.",
+    "theme_studio_hint_text_primary": "Predeterminado de todos los colores de texto. Sigue el color primario hasta que se establezca.",
+    "theme_studio_hint_text_secondary": "Texto secundario como unidades, leyendas y sugerencias.",
+    "theme_studio_hint_warning": "Color de serie 3 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles.",
+    "theme_studio_text_follows_primary": "sigue al primario",
+    "theme_studio_secondary_derived": "derivado del principal"
 }

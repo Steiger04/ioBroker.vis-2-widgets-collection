@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Breedte aanpassen",
     "theme_studio_save_error": "Opslaan mislukt — controleer de verbinding en probeer het opnieuw.",
     "theme_studio_save_invalid": "Los de gemarkeerde problemen op om op te slaan",
-    "theme_studio_secondary_derived": "afgeleid",
     "theme_studio_section_advanced": "Geavanceerd",
     "theme_studio_section_schrift_form": "Typografie & Vorm",
     "theme_studio_section_status_text": "Status en tekst",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Tabelmogelijkheden",
     "collection_base_invalid_type": "%s heeft een ongeldig type!",
     "collection_base_select_oid": "Selecteer een geldig object-ID",
-    "theme_studio_problems_one": "1 probleem"
+    "theme_studio_problems_one": "1 probleem",
+    "theme_studio_hint_background_default": "Achtergrond van het dialoogwidget wanneer het geen framekleur heeft.",
+    "theme_studio_hint_background_paper": "Oppervlak van widgetkaarten en -frames (standaard van elke overervende framekleur) — de belangrijkste hendel voor donkere thema's.",
+    "theme_studio_hint_divider": "Randen, scheidingslijnen en grafiekframes; standaard voor elk lijnkleurattribuut.",
+    "theme_studio_hint_error": "Serieskleur 6 van het grafiekpalet “Thema (auto)” en statusindicatoren van besturingselementen (bijv. invoerfouten).",
+    "theme_studio_hint_info": "Serieskleur 5 van het grafiekpalet “Thema (auto)” en statusindicatoren van besturingselementen.",
+    "theme_studio_hint_primary": "Hoofdaccent: actieve statussen, standaard pictogramkleur, eerste serieskleur van het grafiekpalet “Thema (auto)”.",
+    "theme_studio_hint_secondary": "Tweede accent en tweede grafiekserieskleur. Berekend als triadische partner van de primaire kleur totdat ingesteld.",
+    "theme_studio_hint_success": "Serieskleur 4 van het grafiekpalet “Thema (auto)” en statusindicatoren van besturingselementen.",
+    "theme_studio_hint_text_primary": "Standaard voor alle tekstkleuren. Volgt de primaire kleur totdat ingesteld.",
+    "theme_studio_hint_text_secondary": "Secundaire tekst zoals eenheden, bijschriften en hints.",
+    "theme_studio_hint_warning": "Serieskleur 3 van het grafiekpalet “Thema (auto)” en statusindicatoren van besturingselementen.",
+    "theme_studio_text_follows_primary": "volgt de primaire kleur",
+    "theme_studio_secondary_derived": "afgeleid van primair"
 }

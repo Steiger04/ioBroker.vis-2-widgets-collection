@@ -1221,7 +1221,6 @@
     "theme_studio_resize_width": "Redimensionner la largeur",
     "theme_studio_save_error": "Échec de l'enregistrement — vérifiez la connexion et réessayez.",
     "theme_studio_save_invalid": "Corrigez les problèmes signalés pour enregistrer",
-    "theme_studio_secondary_derived": "dérivé",
     "theme_studio_section_advanced": "Avancé",
     "theme_studio_section_schrift_form": "Typographie et forme",
     "theme_studio_section_status_text": "Statut et texte",
@@ -1314,5 +1313,18 @@
     "json_table_capabilities_status": "Fonctionnalités du tableau",
     "collection_base_invalid_type": "Le type de %s est invalide !",
     "collection_base_select_oid": "Veuillez sélectionner un identifiant d'objet valide",
-    "theme_studio_problems_one": "1 problème"
+    "theme_studio_problems_one": "1 problème",
+    "theme_studio_hint_background_default": "Arrière-plan du widget de boîte de dialogue lorsqu'il n'a pas de couleur de cadre.",
+    "theme_studio_hint_background_paper": "Surface des cartes et cadres de widgets (valeur par défaut de chaque couleur de cadre héritée) — le levier principal pour les thèmes sombres.",
+    "theme_studio_hint_divider": "Bordures, séparateurs et cadres de graphiques ; valeur par défaut de chaque attribut de couleur de ligne.",
+    "theme_studio_hint_error": "Couleur de série 6 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles (par ex. erreurs de saisie).",
+    "theme_studio_hint_info": "Couleur de série 5 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles.",
+    "theme_studio_hint_primary": "Accent principal : états actifs, couleur d'icône par défaut, première couleur de série de la palette de graphiques « Thème (auto) ».",
+    "theme_studio_hint_secondary": "Second accent et deuxième couleur de série de graphique. Calculé comme partenaire triadique de la couleur primaire tant qu'il n'est pas défini.",
+    "theme_studio_hint_success": "Couleur de série 4 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles.",
+    "theme_studio_hint_text_primary": "Valeur par défaut de toutes les couleurs de texte. Suit la couleur primaire tant qu'elle n'est pas définie.",
+    "theme_studio_hint_text_secondary": "Texte secondaire tel que les unités, légendes et astuces.",
+    "theme_studio_hint_warning": "Couleur de série 3 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles.",
+    "theme_studio_text_follows_primary": "suit la couleur primaire",
+    "theme_studio_secondary_derived": "dérivé du principal"
 }
