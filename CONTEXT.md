@@ -21,15 +21,15 @@ HOW a column's raw value is rendered. One of `number`, `date`, `boolean`, `strin
 _Avoid_: Render mode, display type
 
 **Image column**:
-A column whose format type is `image`. Each raw value is read as a *visual reference* and drawn as a graphic instead of text.
+A column whose format type is `image`. Each raw value is read as a _visual reference_ and drawn as a graphic instead of text.
 _Avoid_: Icon column — "icon" vs "image" is a value-level distinction, not a column type
 
 **Visual reference**:
-A string that resolves to a renderable graphic: a URL or file path, a `data:image/…` URI, or a short UTF-8 character (e.g. an emoji). A cell value is **never** an icon *name* (`mdi-*`, `fa-*`) — there is no name resolution in cell values.
+A string that resolves to a renderable graphic: a URL or file path, a `data:image/…` URI, or a short UTF-8 character (e.g. an emoji). A cell value is **never** an icon _name_ (`mdi-*`, `fa-*`) — there is no name resolution in cell values.
 _Avoid_: Image src, icon name
 
 **Icon vs Image**:
-A *per-value, runtime* distinction — never a config or column type, and not a tint gate. An **icon** is a small monochrome glyph (SVG data-URI or UTF-8 character); an **image** is a raster photo (png/jpg/webp/…). A configured colour tint applies to either, via a CSS mask over the source's alpha channel.
+A _per-value, runtime_ distinction — never a config or column type, and not a tint gate. An **icon** is a small monochrome glyph (SVG data-URI or UTF-8 character); an **image** is a raster photo (png/jpg/webp/…). A configured colour tint applies to either, via a CSS mask over the source's alpha channel.
 _Avoid_: Treating "icon" and "image" as separate column types or separate format types; assuming tint is icons-only.
 
 **Fallback**:
@@ -95,7 +95,7 @@ The chart-type picker and data-mode toggle sitting above the section stack — a
 _Avoid_: Header controls, first section
 
 **Data mode**:
-The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is *what the data needs*, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — which **Payload-Familie** decides how series are derived from that one document). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
+The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is _what the data needs_, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — which **Payload-Familie** decides how series are derived from that one document). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Payload-Familie**:
@@ -251,11 +251,11 @@ The value label ON a bar series — the Bar Sub-group's cluster beside the „We
 _Avoid_: data label (chart-lib vocabulary; our label switch is „Werte-Labels"), series label (that is the on/off switch concept)
 
 **Axis auto-bind**:
-The cartesian *creation* default that each new series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`); 1:n (several series on one axis) is reached by rebind, not by this default. A fresh or reset configuration starts with ZERO axes (ADR-0067 — the former default „Achse 1" is gone); axes exist only through binding and die with their last binder (**Axis–series coupling**, ADR-0069) — beside the series-add default, the per-series Y-axis dropdown's „Neue Achse" entry is the only other birth path (append + bind in one step). On EVERY structural event (series/axis add/delete/rebind, JSON hide/show, a **Data path** reset) the **axis auto-balance** (`balanceAxes`) re-arranges the bound axes to the standard interleaving — array order alternating left/right, densely on the 80 px raster — computed over the bound axes (ADR-0067 widening ADR-0028). A manual position or offset is fine-justure that survives only until the next structural event; the load path never re-arranges. An axis without an explicit colour **or name** inherits its **Namensgeber**'s values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot. In the editor the Axis-card swatch resolves that inherited colour by the **Namensgeber**'s **display position** (palette slot) — matching the Series card, not the axis index, which drifts in JSON after a rebind or a payload-name reorder.
+The cartesian _creation_ default that each new series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`); 1:n (several series on one axis) is reached by rebind, not by this default. A fresh or reset configuration starts with ZERO axes (ADR-0067 — the former default „Achse 1" is gone); axes exist only through binding and die with their last binder (**Axis–series coupling**, ADR-0069) — beside the series-add default, the per-series Y-axis dropdown's „Neue Achse" entry is the only other birth path (append + bind in one step). On EVERY structural event (series/axis add/delete/rebind, JSON hide/show, a **Data path** reset) the **axis auto-balance** (`balanceAxes`) re-arranges the bound axes to the standard interleaving — array order alternating left/right, densely on the 80 px raster — computed over the bound axes (ADR-0067 widening ADR-0028). A manual position or offset is fine-justure that survives only until the next structural event; the load path never re-arranges. An axis without an explicit colour **or name** inherits its **Namensgeber**'s values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot. In the editor the Axis-card swatch resolves that inherited colour by the **Namensgeber**'s **display position** (palette slot) — matching the Series card, not the axis index, which drifts in JSON after a rebind or a payload-name reorder.
 _Avoid_: auto-axis (too vague)
 
 **Namensgeber (name owner)**:
-The series an axis displays — its inherited name and colour come from the OWNER, not from „the first series in list order" (ADR-0068): the incumbent keeps the identity, so a series rebinding onto an occupied axis NEVER steals it however early it sits in the list; when the owner leaves, the first remaining binder takes over. Kept current on every structural event; the inheritance stays live (renaming the owner renames the axis immediately). In the serien-förmig JSON family the owner is the payload NAME (the overlay's key); in Verlauf and Tabellarisch it is the series' stable id — the tabellarisch family is positional (its series bind a yPath column, ADR-0075), and an unnamed tabellarisch series titles its axis with the column's last segment. The Namensgeber is a *who*, never a frozen *value* — every axis that exists is bound (ADR-0069), so the owner always resolves.
+The series an axis displays — its inherited name and colour come from the OWNER, not from „the first series in list order" (ADR-0068): the incumbent keeps the identity, so a series rebinding onto an occupied axis NEVER steals it however early it sits in the list; when the owner leaves, the first remaining binder takes over. Kept current on every structural event; the inheritance stays live (renaming the owner renames the axis immediately). In the serien-förmig JSON family the owner is the payload NAME (the overlay's key); in Verlauf and Tabellarisch it is the series' stable id — the tabellarisch family is positional (its series bind a yPath column, ADR-0075), and an unnamed tabellarisch series titles its axis with the column's last segment. The Namensgeber is a _who_, never a frozen _value_ — every axis that exists is bound (ADR-0069), so the owner always resolves.
 _Avoid_: first binder (the superseded reading), owner series (redundant), axis name source
 
 **Axis–series coupling**:
@@ -305,7 +305,6 @@ _Avoid_: Complete scaffold (old name), preset, look (those bundle MULTIPLE group
 **Solo**:
 A scalar template for ONE key that has no object group (`sampling`, `clip`, `startAngle`, `logBase`, `universalTransition`…). Object part-snippets of the old atomic style (e.g. `label · value`) no longer exist since ADR-0043 — their group carries a Group scaffold instead.
 _Avoid_: Atomic snippet (the superseded form), single-key template
-
 
 **Template snippet** (retired):
 The chart-wide Advanced-JSON preset concept (v4, ADR-0014) — wound down in stages: ADR-0044 left it the toolbox scaffold + radar presets (title/legend/tooltip/xAxis had moved to their sections), and ADR-0045 retired the chart-level U entirely — the toolbox is GUI-configured in its own section, and the radar presets became the radar family's Section-raw catalog (itself removed with the radar family, ADR-0071). The per-level template concept lives on as Series/Axis/Section templates.
@@ -391,8 +390,6 @@ _Avoid_: du-addressed hints, machine-translation artifacts („kollabiert“, �
 The relative-end grid labels („Ende von 10 Minuten“, „Stundenende“, „Minutenende“) mirror ioBroker.echarts' German verbatim — parity beats elegance, do not polish them. The calendar anchors deviate deliberately: the window ENDS at the boundary (`roundEnd` rolls to the 1st of the next period), so they read „Monatsende“/„Jahresende“/„Ende der Woche (So)/(Sa)“ — the adapter itself writes „Wochenssende“ there, a typo this collection does not inherit.
 _Avoid_: renaming the grid labels, „dieser Monat“ (an end-anchor phrased as a range)
 
-
-
 # Theme Studio
 
 The collection-wide theme editor (ADR-0020): edits the user theme (stored in the `vis-2-widgets-collection.0.theme` state) while every collection widget on the canvas re-themes live. Opened from the widget palette, not dropped onto the canvas.
@@ -455,6 +452,44 @@ _Avoid_: Fit-to-content, dynamic height
 The Studio panel's persisted window rectangle — position, width, and height-or-Auto in a single localStorage entry. Stored as the user's intent; the applied rectangle is clamped to the viewport (width 320…viewport−48, height 240…viewport−48) live during drags and on browser-window resize, so a shrunken window never strands the panel and a re-grown window restores the intended size.
 _Avoid_: Position+width (the retired two-key form), size
 
+# Farb- & Theme-Auflösung
+
+How a color attribute resolves to the color a user actually sees — shared between the vis-2 attribute editor and the rendered widget, across every Collection widget. Pinned down by ADR-0004 (resolution contract on the field). The widget-specific consumers (e.g. the Slider's **Chrome-Farbvertrag**) build on this language.
+
+## Language
+
+**Auflösungskaskade** (allgemein → speziell):
+The fixed order in which a color attribute's effective color is determined — from the most general default up to the most specific override. The most specific **set** value wins. Identical for every color property.
+_Avoid_: Fallback (vague — often means just one level); Vererbung (reserved for the „Erben" state).
+
+**Effektive Farbe**:
+The color an attribute actually takes on — the result of the Auflösungskaskade. What the editor swatch displays and the widget renders. Need not match the stored value.
+_Avoid_: Anzeigefarbe, Renderfarbe.
+
+**Erben**:
+The state of a color attribute that has no value of its own. Its effective color emerges solely from the Auflösungskaskade (terminal default / vis-2 style / fallback fields). A deliberate, first-class state — not „not yet initialized". Not the ECharts **Erben-Override** (per-series data settings against the chart-level Voreinstellung).
+_Avoid_: Leer (misleading — sounds like „no color"); Default.
+
+**Expliziter Override**:
+A color value the user chose consciously. Wins in the Auflösungskaskade; it is the only thing persisted as the attribute's value.
+_Avoid_: Set value, Benutzerfarbe.
+
+**Terminaler Default**:
+The most general end of the Auflösungskaskade — the color that applies when neither an override, nor a fallback, nor a vis-2 style is present. Fixed per attribute (e.g. text color → theme text color, icon color → theme primary).
+_Avoid_: Basisfarbe (reserved for the theme configurator's base color).
+
+**Basisfarbe**:
+The primary color set in the theme configurator. Icon-color default and (derived) the text color follow it.
+_Avoid_: Primary, Accent (implementation jargon).
+
+**Repräsentative Vollfarbe**:
+The one solid color a color value stands for: a solid color stands for itself, a gradient for its color at the midpoint, a value no color calculation can read (a color name, `transparent`, a CSS variable) for none. Where only a solid can be drawn or tinted — borders, separators, shadows, hover tints — a value without one counts as Erben and the Auflösungskaskade continues.
+_Avoid_: Extrahierte Farbe, Gradient-Farbe (both name the mechanism, not the concept).
+
+**Field-Vertrag** (resolution contract):
+The declaration, attached to a color field, that fully describes its Auflösungskaskade (fallback fields, whether the vis-2 style participates, and the terminaler Default). The single source consumed by both the editor and the widget.
+_Avoid_: Feld-Definition (broader — covers non-color fields too).
+
 # Slider Collection Widget
 
 The dimmer/value slider of the collection (thumb, track, rail, marks, min/max icons). This glossary pins down its color-model language.
@@ -462,7 +497,7 @@ The dimmer/value slider of the collection (thumb, track, rail, marks, min/max ic
 ## Language
 
 **Chrome-Farbvertrag**:
-The color cascade of the slider's chrome parts (thumb, track, rail, marks) — DECLARED by the field definitions (`sliderFields` → `sliderColorContracts`: `fallbackFields` + terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`) and RESOLVED in exactly one runtime place (`buildSliderChromeStyles` via `resolveEffectiveColor`, ADR-0004). Background slots keep their raw value (gradients allowed); border/shadow slots go solid via `extractColorFromValue`. Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine. The markLabel chain carries the **Marker-Ebene**, the valueLabel chain does not.
+The pattern by which a widget's chrome colour slots carry ONE colour cascade (ADR-0004): a widget-local contract module DECLARES it (`fallbackFields` + terminal, optionally `inheritTextStyle`), the colour field spreads that contract so the editor swatch resolves it, and the widget's chrome module RESOLVES the same contract at runtime (`resolveEffectiveColor` / `resolveEffectiveSolidColor`) — swatch and widget read one declaration. Introduced with the slider's chrome parts (thumb, track, rail, marks: `sliderFields` → `sliderColorContracts`, terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`, resolved in `buildSliderChromeStyles`). Since kern-chrome-review K1 the same pattern carries the Button-Group separator (`lib/buttonGroupColorContract.ts` → `buildGroupChrome`), the table's frame, lines and header (`lib/jsonTableColorContracts.ts` → `buildTableChrome`) and the Radio's unchecked icon (`lib/radioColorContract.ts` → `resolveRadioColors`); the Select's arrow follows it too (`lib/selectColorContract.ts` → `buildSelectChrome`). Background slots keep their raw resolved value (gradients allowed); border, separator, line and shadow slots go solid via `resolveEffectiveSolidColor`: a stage without a **Repräsentative Vollfarbe** counts as Erben and the cascade continues. Each consumer's divergences from the swatch (e.g. a stored explicit value the picker rejects that keeps painting raw, as before the contract) live in its contract module and, where the widget has one, its glossary entry. The parity test `lib/colorFieldTerminals.parity.test.ts` requires a terminal on every contract colour field of every widget; its listed exceptions, where no single terminal describes the runtime, are the Switch's thumb and track colours (unset means the state-dependent MUI Switch default) and the Dialog background (unset renders CSS `inherit`). Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine. The markLabel chain carries the **Marker-Ebene**, the valueLabel chain does not.
 _Avoid_: Slider-Farbregeln, Farbkaskade (unsaid WHICH contract), mixing chrome slots with label/state colors
 
 **Marke**:
