@@ -44,3 +44,4 @@ demos-echarts
 src-widgets/input
 .tokensave
 .zcode
+.playwright-mcp
