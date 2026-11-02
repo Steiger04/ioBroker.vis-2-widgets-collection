@@ -328,8 +328,10 @@ const SliderCollection: FC = () => {
                                 '& .MuiSlider-markLabel': {
                                     // Not the text size (CollectionMark's Typography sets its
                                     // own): the inherited size sets the line box of the icon
-                                    // row, so it moves the mark icon. No colour here — the
-                                    // mark text and icon always paint their resolved colours.
+                                    // row, so it moves the mark icon. No colour here: the mark
+                                    // text paints its own resolved colour, and an inherited
+                                    // colour never tints the icon — the <img> shows its image as
+                                    // is unless getIconColorStyles applies its colour mask.
                                     fontSize: data.valueSize,
                                     top: isHorizontal ? widget.data.markPosition : undefined,
                                     left: !isHorizontal ? widget.data.markPosition : undefined,

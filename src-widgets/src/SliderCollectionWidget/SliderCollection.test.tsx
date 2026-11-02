@@ -8,7 +8,8 @@
  * `textColorActive` → active state → base → theme text, never the marker text colour — even
  * while a state is active, where the retired local marker stage used to cut in. The Sperre
  * cases pin the slider's `disabled` against the OID binding's `locked`. The mark label text paints
- * its own resolved colour, since the mark label container sets none.
+ * its own resolved colour, since the mark label container sets none; the container carries the
+ * configured value size only, which positions the mark icon.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -116,7 +117,7 @@ describe('SliderCollection mark label text', () => {
 
     // The mark label container carries no colour of its own: the text must resolve one even with
     // nothing configured, or it would fall back to MUI's secondary mark-label grey.
-    it('paints the theme text colour with no colour configured, like the value label', () => {
+    it('paints the colour the value label falls back to with no colour configured', () => {
         const { valueLabel, marks } = labelColors({});
 
         expect(valueLabel).not.toBe('');
@@ -129,6 +130,52 @@ describe('SliderCollection mark label text', () => {
             MARKER_TEXT_COLOR,
             MARKER_TEXT_COLOR,
         ]);
+    });
+});
+
+describe('SliderCollection mark label font size', () => {
+    /** The font size of every mark label container, mounted with the given data. */
+    const markLabelSizes = (data: Record<string, unknown>): string[] => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-mark-size-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const marks = Array.from(container.querySelectorAll('.MuiSlider-markLabel'));
+        if (marks.length === 0) {
+            throw new Error('the slider rendered no mark label');
+        }
+        return marks.map(m => getComputedStyle(m).fontSize);
+    };
+
+    // The container's font size sets the line box of the icon row, so it positions the mark
+    // icon: a configured value size must reach the container, an unset one must leave MUI's own.
+    it('carries the configured value size and leaves the MUI size without one', () => {
+        const unset = markLabelSizes({});
+        const small = markLabelSizes({ valueSize: 150 });
+        const large = markLabelSizes({ valueSize: 200 });
+
+        // Guards against a vacuous match should happy-dom stop resolving the Emotion rules.
+        expect(unset[0]).not.toBe('');
+        expect(unset).toEqual([unset[0], unset[0], unset[0]]);
+        expect(small).toEqual([small[0], small[0], small[0]]);
+        expect(large).toEqual([large[0], large[0], large[0]]);
+        expect(new Set([unset[0], small[0], large[0]]).size).toBe(3);
     });
 });
 

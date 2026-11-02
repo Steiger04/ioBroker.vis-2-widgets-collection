@@ -8,8 +8,7 @@
  *
  * Resolution model (ADR 0004):
  * - The **swatch** shows the field's *effective* color via `resolveEffectiveColor`
- *   (explicit override → fallbackFields → vis-2 style color → terminal default),
- *   so it reflects theme/fallback changes immediately — even when the field is
+ *   (the field's Auflösungskaskade, stages at `cascadeCandidates`), so it reflects theme/fallback changes immediately — even when the field is
  *   empty ("inherit"). The text field still shows the *stored* value.
  * - The field's value is only ever persisted on an **explicit** user choice
  *   (pick / type / clear). The picker never "materializes" a resolved color into

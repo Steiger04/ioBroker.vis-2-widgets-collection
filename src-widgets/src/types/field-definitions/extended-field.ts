@@ -7,16 +7,25 @@
  * This type extends RxWidgetInfoAttributesField to support custom properties
  * used by CollectionGradientColorPicker and field definitions across the widget collection.
  *
- * Color resolution contract (ADR 0004). `resolveEffectiveColor` walks one
- * cascade, most specific first, for both the picker swatch and the widget
- * runtime; the first stage with a valid color wins:
- * 1. Override — the field's own stored value (`data[name]`)
- * 2. Fallback fields — each `fallbackFields` entry's stored value, in order
- * 3. vis-2 style — the widget's CSS `color`, only when `inheritTextStyle` is true
- * 4. Terminal — the theme color of `terminal`; always the last stage
+ * Color resolution contract (ADR 0004): `fallbackFields`, `inheritTextStyle` and
+ * `terminal` declare a field's Auflösungskaskade — layered general → specific
+ * (CONTEXT.md), resolved from the most specific stage: override → fallback
+ * fields → vis-2 style → terminal. The stages and the values each one skips
+ * are documented once, at `cascadeCandidates` (`lib/helper/resolveEffectiveColor`).
  *
- * An empty value — and an invalid stored value — is "inherit": the stage is skipped. The picker never
- * writes a resolved value into data — only an explicit user choice is persisted.
+ * Who walks that cascade whole, through `resolveEffectiveColor` /
+ * `resolveEffectiveSolidColor`: the picker swatch, the Gauge's color options and
+ * most chrome contract consumers (CONTEXT.md, Chrome-Farbvertrag). Others build
+ * their own chain and share only the terminal mapping (`terminalColor`): the
+ * state resolvers (`hooks/useData/propertyResolvers`), and the chrome slots that
+ * paint the explicit value raw, as stored — the Radio's unchecked icon and the
+ * table's header bar. The Button-Group separator takes the stored value raw
+ * wherever a color calculation reads it, before it walks the cascade. So a stored
+ * value the picker rejects can paint at runtime while the swatch skips it; each
+ * such divergence is documented in the consumer's contract or chrome module.
+ *
+ * The picker never writes a resolved value into data — only an explicit user
+ * choice is persisted.
  *
  * [fallbackFields] - Orders the fallback stage only. `undefined` and `[]` both mean
  *                    "no fallback fields"; neither decides what applies at the end —
@@ -66,14 +75,10 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
  */
 export type ExtendedField = RxWidgetInfoAttributesField & {
     /**
-     * Fallback stage of the resolution cascade (ADR 0004, `resolveEffectiveColor`):
-     * field names whose stored colors stand in, in order, when this field has no
-     * valid value of its own. The first valid one wins.
-     *
-     * Empty-string entries (the legacy `['']` convention) and empty or invalid
-     * stored values are skipped. `undefined` and `[]` behave the same — no
-     * fallback fields. This list only orders the fallbacks; what applies after
-     * them is decided by `inheritTextStyle` and `terminal`.
+     * Fallback stage of the resolution cascade (ADR 0004): field names whose
+     * stored colors stand in, in order, when this field has none of its own.
+     * `undefined` and `[]` behave the same — no fallback fields. Which entries and
+     * values the stage skips: `cascadeCandidates` (`lib/helper/resolveEffectiveColor`).
      */
     fallbackFields?: string[];
 
@@ -86,10 +91,8 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
     noGradient?: boolean;
 
     /**
-     * The terminal default — the last, most general stage of the resolution
-     * cascade (override → `fallbackFields` → vis-2 style → terminal), used when
-     * no earlier stage provides a valid color. See ADR 0004 and
-     * `resolveEffectiveColor`.
+     * The terminal default — the most general stage of the resolution cascade,
+     * resolved last (see the module remarks and ADR 0004).
      *
      * - `'primary'` → `theme.palette.primary.main`
      * - `'text'` → `theme.palette.text.primary`
