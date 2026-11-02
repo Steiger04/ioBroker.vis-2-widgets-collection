@@ -12,6 +12,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import type { Theme } from '@mui/material';
+import type { ColorTerminal } from '../types/field-definitions/extended-field';
 
 /** Minimal fake theme for the color-contract terminals. */
 const theme = {
@@ -37,7 +38,7 @@ type FieldLike = {
     name?: string;
     type?: string;
     default?: unknown;
-    terminal?: 'primary' | 'text' | 'paper' | 'transparent';
+    terminal?: ColorTerminal;
 };
 
 const fields = (): FieldLike[] => gaugeFields() as FieldLike[];

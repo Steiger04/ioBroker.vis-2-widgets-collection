@@ -1,9 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { Theme } from '@mui/material/styles';
 
+import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
+import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 import type { ButtonGroupChromeInput } from './chrome';
+
+// The field list renders CollectionDivider / CollectionGradientColorPicker, which pull
+// Generic (extends window.visRxWidget, absent outside vis-2). The parity test reads only
+// the field data.
+vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+
+import buttonGroupFields from '../lib/buttonGroupFields';
 
 /** Minimal theme: chrome only reads palette.text.primary (the separator fallback). */
 const theme = { palette: { text: { primary: '#2f3e51' } } } as unknown as Theme;
@@ -12,7 +23,7 @@ const groupSx = (overrides: Partial<ButtonGroupChromeInput> = {}): Record<string
     buildGroupChrome({
         variant: 'text',
         orientation: 'horizontal',
-        buttonGroupColor: null,
+        data: {},
         basePadding: false,
         count: 3,
         theme,
@@ -43,7 +54,7 @@ describe('buildGroupChrome — text variant (default)', () => {
     });
 
     it('resolves the separator from the configured group colour at the frozen alpha', () => {
-        const sx = groupSx({ buttonGroupColor: '#3399CC' });
+        const sx = groupSx({ data: { buttonGroupColor: '#3399CC' } });
 
         expect(middle(sx).boxShadow).toBe('inset 1px 0 0 0 rgba(51, 153, 204, 0.6)');
     });
@@ -51,11 +62,11 @@ describe('buildGroupChrome — text variant (default)', () => {
     it("takes a gradient group colour's midpoint for the separator instead of throwing", () => {
         const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
 
-        expect(() => groupSx({ buttonGroupColor: gradient })).not.toThrow();
-        expect(middle(groupSx({ buttonGroupColor: gradient })).boxShadow).toBe(
+        expect(() => groupSx({ data: { buttonGroupColor: gradient } })).not.toThrow();
+        expect(middle(groupSx({ data: { buttonGroupColor: gradient } })).boxShadow).toBe(
             'inset 1px 0 0 0 rgba(128, 0, 128, 0.6)',
         );
-        expect(first(groupSx({ variant: 'outlined', buttonGroupColor: gradient })).borderColor).toBe(
+        expect(first(groupSx({ variant: 'outlined', data: { buttonGroupColor: gradient } })).borderColor).toBe(
             'rgba(128, 0, 128, 0.6)',
         );
     });
@@ -120,13 +131,57 @@ describe('buildGroupChrome — orientation', () => {
 
 describe('buildGroupChrome — outlined variant', () => {
     it('colours all position borders instead of removing them', () => {
-        const sx = groupSx({ variant: 'outlined', buttonGroupColor: '#3399CC' });
+        const sx = groupSx({ variant: 'outlined', data: { buttonGroupColor: '#3399CC' } });
 
         for (const block of [first(sx), middle(sx), last(sx)]) {
             expect(block.borderColor).toBe('rgba(51, 153, 204, 0.6)');
             expect(block.border).toBeUndefined();
             expect(block.boxShadow).toBeUndefined();
         }
+    });
+});
+
+describe('buildGroupChrome — the separator resolves the button-group colour contract', () => {
+    const THEME_TEXT_SEPARATOR = 'rgba(47, 62, 81, 0.6)';
+
+    it('without a value, draws the theme text colour at the frozen alpha (unchanged)', () => {
+        expect(middle(groupSx()).boxShadow).toBe(`inset 1px 0 0 0 ${THEME_TEXT_SEPARATOR}`);
+        expect(first(groupSx({ variant: 'outlined' })).borderColor).toBe(THEME_TEXT_SEPARATOR);
+    });
+
+    it("stays at the theme text colour when only textColor is set — the field's old fallback never applied", () => {
+        for (const data of [{ textColor: '#00aa00' }, { textColor: '#00aa00', buttonGroupColor: '' }]) {
+            expect(middle(groupSx({ data })).boxShadow).toBe(`inset 1px 0 0 0 ${THEME_TEXT_SEPARATOR}`);
+            expect(first(groupSx({ variant: 'outlined', data })).borderColor).toBe(THEME_TEXT_SEPARATOR);
+        }
+    });
+
+    it('treats a value without a Repräsentative Vollfarbe as unset and falls back to the theme text colour', () => {
+        // A gradient with named stops passes the picker's validation but has no solid colour;
+        // a colour name or a CSS variable is no valid stored colour at all.
+        for (const buttonGroupColor of ['linear-gradient(red, blue)', 'red', 'var(--x)']) {
+            expect(middle(groupSx({ data: { buttonGroupColor } })).boxShadow).toBe(
+                `inset 1px 0 0 0 ${THEME_TEXT_SEPARATOR}`,
+            );
+        }
+    });
+});
+
+describe('buttonGroupColor — the field declares the contract the separator resolves (ADR-0004)', () => {
+    const field = buttonGroupFields().find(
+        candidate => (candidate as { name?: string }).name === 'buttonGroupColor',
+    ) as ExtendedField;
+
+    it('spreads exactly the button-group colour contract, solid-only', () => {
+        const { name, fallbackFields, terminal, inheritTextStyle, noGradient } = field;
+
+        expect({ name, fallbackFields, terminal, inheritTextStyle }).toEqual(buttonGroupColorContract);
+        expect(buttonGroupColorContract).toEqual({ name: 'buttonGroupColor', fallbackFields: [], terminal: 'text' });
+        expect(noGradient).toBe(true);
+    });
+
+    it('without a value, the swatch shows the theme text colour — not textColor, not the vis-2 CSS colour', () => {
+        expect(resolveEffectiveColor(field, { textColor: '#00aa00' }, theme, { color: '#0000aa' })).toBe('#2f3e51');
     });
 });
 
