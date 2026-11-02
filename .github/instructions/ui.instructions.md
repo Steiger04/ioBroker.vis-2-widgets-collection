@@ -1593,17 +1593,13 @@ const [loading, setLoading] = useState(true);
 
 ```tsx
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 
+// The frame renders the corner icon (Eck-Icon) from `data` itself;
+// `cornerIcon={...}` substitutes its data, `cornerIcon={false}` switches it off.
 <CollectionBase
     data={data}
     oidValue={oidValue}
 >
-    <CollectionBaseImage
-        data={data}
-        widget={widget}
-    />
-
     <Box
         sx={
             {
@@ -1623,6 +1619,7 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 - Consistent Paper elevation
 - Border management
 - Header/footer support
+- Corner icon (Eck-Icon)
 - Background image handling
 
 ### Modal/Dialog Pattern

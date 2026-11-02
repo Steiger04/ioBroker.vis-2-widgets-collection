@@ -14,7 +14,6 @@ import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import useOptimisticNumber from './useOptimisticNumber';
 import { MARK_LABEL_SPACE, railOffset } from './railOffset';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { alphaOf } from '../lib/helper/colorDerivation';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -233,10 +232,6 @@ const SliderCollection: FC = () => {
                 p: Number(widget.data.sliderPadding),
             }}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
             <Box
                 sx={{
                     gap: Number(widget.data.sliderGap) || 0,

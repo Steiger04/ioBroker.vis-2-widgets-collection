@@ -14,7 +14,6 @@
 import { Box, Button, Modal } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
@@ -95,10 +94,6 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                     data={data}
                     oidValue={onOffValue}
                 >
-                    <CollectionBaseImage
-                        data={data}
-                        widget={widget}
-                    />
                     <Button
                         variant="text"
                         onPointerDown={longPressProps.onPointerDown}

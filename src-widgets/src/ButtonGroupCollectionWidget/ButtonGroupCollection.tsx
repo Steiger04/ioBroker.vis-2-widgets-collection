@@ -7,7 +7,6 @@
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import React, { useCallback, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import SafeImg from '../components/SafeImg';
 import useData from '../hooks/useData';
@@ -49,11 +48,6 @@ function ButtonGroupCollection(): React.JSX.Element {
             data={styleData}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={styleData}
-                widget={widget}
-            />
-
             <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
                 {/* MUI compares the group value against each button value with strict
                     === internally. Coercing both sides to string applies the

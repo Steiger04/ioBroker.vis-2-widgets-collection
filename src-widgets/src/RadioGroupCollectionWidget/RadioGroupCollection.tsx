@@ -9,7 +9,6 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
 import { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData, { sameStateValue } from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
@@ -240,7 +239,6 @@ function RadioGroupCollection(): React.ReactElement {
         widget: {
             data: { oidObject },
         },
-        widget,
     } = context as RadioGroupCollectionContextProps;
     const { data, states } = useData('oid');
 
@@ -259,11 +257,6 @@ function RadioGroupCollection(): React.ReactElement {
             data={data}
             oidValue={oidValue}
         >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
-
             <RadioStack
                 states={states}
                 oidValue={oidValue}

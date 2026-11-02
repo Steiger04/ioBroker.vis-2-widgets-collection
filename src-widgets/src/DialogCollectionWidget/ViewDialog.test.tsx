@@ -5,7 +5,8 @@
  * @remarks
  * DOM contract of the open dialog on the preview context: with "header as title" the header
  * text is the dialog's title line and the frame header stays empty; without it the header
- * sits in the frame and the title line stays empty. The embedded view is vis-2's
+ * sits in the frame and the title line stays empty. The dialog frame carries no corner icon
+ * (CONTEXT "Eck-Icon"): the style data it renders is the button's. The embedded view is vis-2's
  * `getWidgetView`, stubbed as a marker carrying the view name. The Modal portals into
  * `document.body`, so every query runs there.
  */
@@ -102,6 +103,15 @@ describe('ViewDialog title', () => {
 
         const views = document.querySelectorAll('.MuiModal-root [data-testid="dialog-view"]');
         expect([...views].map(view => view.getAttribute('data-view'))).toEqual(['detail']);
+    });
+});
+
+describe('ViewDialog corner icon', () => {
+    it("carries no corner icon in the dialog frame — the button's icon data stays on the button", () => {
+        mountDialog({ dialogHeaderAsTitle: true, noHeaderIcon: false, icon: 'button.svg' });
+
+        expect(dialogFrame()).not.toBeNull();
+        expect(dialogFrame()?.querySelector('img')).toBeNull();
     });
 });
 
