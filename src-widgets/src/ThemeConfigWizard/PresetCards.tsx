@@ -111,6 +111,10 @@ function PresetCards({ theme, onApply }: PresetCardsProps): React.JSX.Element {
                                 borderColor: active ? 'primary.main' : 'divider',
                                 borderRadius: 1.5,
                                 bgcolor: 'transparent',
+                                // A native button paints the browser's own text colour and font
+                                // (black system text — unreadable on the dark chrome theme).
+                                color: 'text.primary',
+                                font: 'inherit',
                                 cursor: 'pointer',
                                 textAlign: 'left',
                                 transition: 'border-color 150ms, background-color 150ms',
