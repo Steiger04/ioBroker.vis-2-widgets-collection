@@ -1,8 +1,11 @@
 /**
- * sanitizeHostTheme — the host→collection theme boundary.
+ * resolveCollectionTheme — the one theme resolution shared by the canvas and the studio.
  *
- * @module hooks/useCollectionTheme.test
+ * @module lib/theme/resolveCollectionTheme.test
  * @remarks
+ * Pins the host→collection boundary (`sanitizeHostTheme`, ADR-0078) and the resolution chain
+ * on top of it (derived secondary, text follows primary, corners).
+ *
  * Regression guard for the vis-2 React-19/MUI-9 era: the host theme is a
  * CSS-variables theme whose `vars` mirror (and `components` skin) must never
  * reach the collection theme — a leaked `vars` overrides the merged palette
@@ -14,11 +17,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { deepmerge } from '@mui/utils';
 import { createTheme } from '@mui/material';
 
-import { sanitizeHostTheme } from './useCollectionTheme';
+import { resolveCollectionTheme, sanitizeHostTheme } from './resolveCollectionTheme';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
+import type { UserTheme } from './themeTypes';
 
 /** A Rubin-style user theme (palette-only, like the curated presets). */
 const USER_THEME: ThemeOptions = {
@@ -148,10 +151,7 @@ describe('sanitizeHostTheme — host→collection boundary', () => {
 
 describe('merge chain over a sanitized MUI-9 host', () => {
     it('delivers the user background/primary and no vars leak into the created theme', () => {
-        const host = buildMui9StyleHost();
-        const sanitized = sanitizeHostTheme(host);
-        const merged = deepmerge(deepmerge(sanitized, {}), USER_THEME);
-        const theme = createTheme(merged);
+        const theme = resolveCollectionTheme(buildMui9StyleHost(), {}, USER_THEME);
 
         // User theme wins on every key it sets:
         expect(theme.palette.background.paper).toBe('#241414');
@@ -164,5 +164,61 @@ describe('merge chain over a sanitized MUI-9 host', () => {
         expect('vars' in theme).toBe(false);
         expect('colorSchemes' in theme).toBe(false);
         expect(Object.keys(theme.components ?? {})).toEqual([]);
+    });
+});
+
+describe('resolveCollectionTheme — the effective colour', () => {
+    /** A plain MUI host (light mode, non-default accents) — the studio passes the chrome theme. */
+    const host = (): Theme =>
+        createTheme({
+            palette: {
+                mode: 'light',
+                primary: { main: '#137bf8' },
+                secondary: { main: '#e91e63' },
+                text: { primary: '#101418', secondary: '#5f6b7a' },
+                background: { default: '#f3f5f8', paper: '#ffffff' },
+                divider: '#dde3ea',
+            },
+        });
+
+    it('inherits every unset colour from the host, text following the host primary', () => {
+        const theme = resolveCollectionTheme(host(), {}, {});
+        expect(theme.palette.primary.main).toBe('#137bf8');
+        expect(theme.palette.secondary.main).toBe('#e91e63');
+        expect(theme.palette.text.primary).toBe('#137bf8');
+        expect(theme.palette.text.secondary).toBe('#5f6b7a');
+        expect(theme.palette.background.paper).toBe('#ffffff');
+        expect(theme.palette.mode).toBe('light');
+    });
+
+    it('derives the secondary from a user primary and lets the text follow it', () => {
+        const theme = resolveCollectionTheme(host(), {}, { palette: { primary: { main: '#ff0000' } } });
+        expect(theme.palette.primary.main).toBe('#ff0000');
+        expect(theme.palette.secondary.main).toBe('#00ff00');
+        expect(theme.palette.text.primary).toBe('#ff0000');
+    });
+
+    it('keeps an explicit user text colour', () => {
+        const user: UserTheme = { palette: { primary: { main: '#ff0000' }, text: { primary: '#222222' } } };
+        const theme = resolveCollectionTheme(host(), {}, user);
+        expect(theme.palette.text.primary).toBe('#222222');
+    });
+
+    it('applies overrides between host and user theme (user wins)', () => {
+        const theme = resolveCollectionTheme(
+            host(),
+            { typography: { fontSize: 12 }, shape: { borderRadius: 2 } },
+            { shape: { borderRadius: 6 } },
+        );
+        expect(theme.typography.fontSize).toBe(12);
+        expect(theme.shape.borderRadius).toBe(6);
+    });
+
+    it('injects per-corner radii into the surface components', () => {
+        const user: UserTheme = { corners: { topLeft: 4, topRight: 8, bottomRight: 12, bottomLeft: 16 } };
+        const theme = resolveCollectionTheme(host(), {}, user);
+        const paperRoot = (theme.components?.MuiPaper?.styleOverrides as { root: { borderRadius: string } }).root;
+        expect(paperRoot.borderRadius).toBe('4px 8px 12px 16px');
+        expect(theme.shape.borderRadius).toBe(4);
     });
 });
