@@ -248,4 +248,4 @@ Die Widget Collection umfasst folgende Widgets:
 - [JSON Table Widget](De-JsonTable-Widget.md) - Tabellen-Widget für JSON-Daten mit Sortierung, Filterung und Paginierung
 - [ECharts Widget](De-Echarts-Widget.md) - Diagramme (Linie, Balken, Punktwolke, Torte) mit vollem Konfigurator — History-Adapter oder JSON-Datenpunkt
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md) - Die JSON-Payload-Formate des ECharts-Widgets mit Beispielen
-- [Theme Studio](De-Theme-Studio.md) - Collection-weiter Theme-Editor (Farben, Schrift, Form) für alle Widgets der Sammlung
+- [Theme-Studio](De-Theme-Studio.md) - Collection-weiter Theme-Editor (Farben, Schrift, Form) für alle Widgets der Sammlung
