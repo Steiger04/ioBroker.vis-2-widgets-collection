@@ -58,7 +58,11 @@ export interface ColorFieldOptions {
     label: string;
     /** Default value (empty string by default) */
     default?: string;
-    /** Array of field names to use as fallback values during initialization */
+    /**
+     * Fallback stage of the runtime resolution cascade (override → fallback fields →
+     * vis-2 style → terminal), resolved alike by the picker preview and the widget.
+     * See `ExtendedField.fallbackFields` and ADR 0004.
+     */
     fallbackFields?: string[];
     /** When true, extracts solid color from gradients before saving */
     noGradient?: boolean;
