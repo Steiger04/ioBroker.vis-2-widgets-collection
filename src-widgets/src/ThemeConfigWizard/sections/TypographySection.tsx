@@ -4,8 +4,9 @@
  * @module ThemeConfigWizard/sections/TypographySection
  * @remarks
  * Font family (bundled / system / Google / custom), base size and the corner radius.
- * Decluttered per ADR-0020: the four per-corner sliders collapse into ONE linked slider
- * with an unlink expander (the linked state was always the default — the UI now sells it),
+ * Decluttered per ADR-0020: the corner radius is ONE linked slider with an unlink toggle (the
+ * linked state was always the default — the UI now sells it); unlinked, the four radii are
+ * number fields laid out where their corners are (2x2 grid),
  * and the rare knobs (font weights, line height) live behind the "Feintuning" disclosure
  * with a hint that bundled fonts ship real 400/700 faces only (other weights synthesise).
  * Everything sits on the shared control kit (`FieldLabel`, `SliderField`, `FieldGrid`).
@@ -27,6 +28,7 @@ import {
     MenuItem,
     Select,
     Stack,
+    TextField,
     Typography,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
@@ -36,7 +38,7 @@ import type React from 'react';
 import Generic from '../../Generic';
 import SectionCard from '../../components/SectionCard';
 import HelpHint from '../../components/HelpHint';
-import { FieldGrid, FieldLabel, LabeledSelect, SliderField, TextField2 } from '../../components/controls';
+import { FieldGrid, FieldLabel, LabeledSelect, noSpinnerSx, SliderField, TextField2 } from '../../components/controls';
 import {
     BUNDLED_FONTS,
     CUSTOM_FONT_VALUE,
@@ -59,13 +61,52 @@ const WEIGHT_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
     { path: 'typography.fontWeightBold', labelKey: 'theme_wizard_typography_weight_bold' },
 ];
 
-/** Corner-radius fields (border radius per corner), in display order. */
-const CORNER_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
-    { path: 'corners.topLeft', labelKey: 'theme_studio_corner_top_left' },
-    { path: 'corners.topRight', labelKey: 'theme_studio_corner_top_right' },
-    { path: 'corners.bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
-    { path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
+/**
+ * Corner-radius fields (border radius per corner) in reading order of a 2x2 grid, so each
+ * field sits where its corner is: top left | top right / bottom left | bottom right.
+ */
+const CORNER_FIELDS: ReadonlyArray<{ corner: string; path: string; labelKey: string }> = [
+    { corner: 'topLeft', path: 'corners.topLeft', labelKey: 'theme_studio_corner_top_left' },
+    { corner: 'topRight', path: 'corners.topRight', labelKey: 'theme_studio_corner_top_right' },
+    { corner: 'bottomLeft', path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
+    { corner: 'bottomRight', path: 'corners.bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
 ];
+
+/** One corner's radius as a number field, kept within 0 … {@link CORNER_RADIUS_MAX}. */
+function CornerField({
+    corner,
+    label,
+    value,
+    onChange,
+}: {
+    corner: string;
+    label: string;
+    value: number;
+    onChange: (value: number) => void;
+}): React.JSX.Element {
+    return (
+        <Box data-corner={corner}>
+            <FieldLabel>{label}</FieldLabel>
+            <TextField
+                size="small"
+                type="number"
+                value={value}
+                inputProps={{ min: 0, max: CORNER_RADIUS_MAX, step: 0.5 }}
+                onChange={event => {
+                    // An empty or half-typed number ("7.") reads as '' — keep the value meanwhile,
+                    // so the next keystroke can complete it.
+                    const raw = event.target.value;
+                    const next = Number(raw);
+                    if (raw !== '' && Number.isFinite(next)) {
+                        onChange(Math.min(CORNER_RADIUS_MAX, Math.max(0, next)));
+                    }
+                }}
+                fullWidth
+                sx={noSpinnerSx}
+            />
+        </Box>
+    );
+}
 
 /** Typography & Shape section: font family, base size, corner radius, feintuning. */
 function TypographySection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
@@ -312,19 +353,20 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                             ) : (
                                 <>
                                     <FieldLabel>{Generic.t('theme_wizard_layout_border_radius')}</FieldLabel>
-                                    <FieldGrid min={110}>
+                                    <Box
+                                        data-corner-grid
+                                        sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}
+                                    >
                                         {CORNER_FIELDS.map(field => (
-                                            <SliderField
+                                            <CornerField
                                                 key={field.path}
+                                                corner={field.corner}
                                                 label={Generic.t(field.labelKey)}
                                                 value={getNestedValue<number>(theme, field.path) ?? 4}
-                                                min={0}
-                                                max={CORNER_RADIUS_MAX}
-                                                step={0.5}
                                                 onChange={value => handleCornerChange(field.path, value)}
                                             />
                                         ))}
-                                    </FieldGrid>
+                                    </Box>
                                 </>
                             )}
                         </Box>
