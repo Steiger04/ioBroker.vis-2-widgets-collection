@@ -53,7 +53,6 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme as MuiTheme } from '@mui/material/styles';
 
 import Generic from '../Generic';
@@ -70,6 +69,7 @@ import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import { isTargetInside } from '../lib/useEditorHistory';
 import PresetCards, { presetsSummary } from './PresetCards';
+import type { StudioHostProps } from './studioHost';
 import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
 import useStudioSession from './useStudioSession';
 import ErweitertSection from './sections/ErweitertSection';
@@ -80,15 +80,11 @@ import TypographySection from './sections/TypographySection';
 /** localStorage key for the panel geometry (codebase namespacing idiom, cf. RAIL_STORAGE_KEY). */
 export const STUDIO_GEOMETRY_KEY = 'vis-2-widgets-collection:theme-studio:geometry';
 
-/** Props for {@link ThemeStudioPanel}. */
-interface ThemeStudioPanelProps {
+/** Props for {@link ThemeStudioPanel}: the studio host's props plus the close callback. */
+type ThemeStudioPanelProps = StudioHostProps & {
     /** Callback when the panel should close (after draft handling is done). */
     onClose: () => void;
-    /** ioBroker socket connection for reading/writing the theme state. */
-    socket: Connection;
-    /** vis-2 host dark/light mode used to theme the panel chrome. */
-    themeType: 'dark' | 'light';
-}
+};
 
 /** Section ids for controlled expansion (scroll-to-error). */
 type SectionKey = 'presets' | 'palette' | 'typography' | 'statusText' | 'erweitert';
@@ -162,6 +158,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
     // Escape below) act only on events inside the panel.
     const session = useStudioSession(socket, panelRef);
     const { draft: themeObj, validation, dirty, loading, saving } = session;
+    // `edit` coalesces continuous edits per path (one slider drag = one undo step).
     const { edit, apply, discard, save } = session;
     const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
     // Panel-owned section expansion (only set once the user toggles or scroll-to-error forces one).
@@ -273,9 +270,6 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
         }),
         [expandedMap],
     );
-
-    // Continuous edits coalesce per path in the session (one slider drag = one undo step).
-    const handleChange = edit;
 
     const handleReset = useCallback((): void => {
         apply(() => ({}));
@@ -424,7 +418,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                             <Box data-studio-section="palette">
                                 <PaletteSection
                                     theme={themeObj}
-                                    onChange={handleChange}
+                                    onChange={edit}
                                     resolved={resolvedTheme}
                                     errorFor={errorFor}
                                     colorPresets={colorPresets}
@@ -434,7 +428,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                             <Box data-studio-section="typography">
                                 <TypographySection
                                     theme={themeObj}
-                                    onChange={handleChange}
+                                    onChange={edit}
                                     onApply={apply}
                                     {...sectionProps('typography')}
                                 />
@@ -442,7 +436,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                             <Box data-studio-section="statusText">
                                 <StatusTextSection
                                     theme={themeObj}
-                                    onChange={handleChange}
+                                    onChange={edit}
                                     resolved={resolvedTheme}
                                     errorFor={errorFor}
                                     colorPresets={colorPresets}
@@ -452,7 +446,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                             <Box data-studio-section="erweitert">
                                 <ErweitertSection
                                     theme={themeObj}
-                                    onChange={handleChange}
+                                    onChange={edit}
                                     errorFor={errorFor}
                                     {...sectionProps('erweitert')}
                                 />

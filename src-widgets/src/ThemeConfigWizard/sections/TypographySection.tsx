@@ -62,8 +62,8 @@ import {
     SYSTEM_FONTS,
 } from '../../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
-import type { StudioSectionProps, UserTheme } from '../../lib/theme/themeTypes';
-import { CORNER_RADIUS_MAX, getNestedValue, setNestedValue } from '../../lib/theme/themeUtils';
+import type { CornerRadii, StudioSectionProps, UserTheme } from '../../lib/theme/themeTypes';
+import { CORNER_RADIUS_MAX, DEFAULT_CORNER_RADIUS, getNestedValue, setNestedValue } from '../../lib/theme/themeUtils';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -80,15 +80,15 @@ const WEIGHT_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
  * Corner-radius fields (border radius per corner) in reading order of a 2x2 grid, so each
  * field sits where its corner is: top left | top right / bottom left | bottom right.
  */
-const CORNER_FIELDS: ReadonlyArray<{ corner: string; path: string; labelKey: string }> = [
-    { corner: 'topLeft', path: 'corners.topLeft', labelKey: 'theme_studio_corner_top_left' },
-    { corner: 'topRight', path: 'corners.topRight', labelKey: 'theme_studio_corner_top_right' },
-    { corner: 'bottomLeft', path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
-    { corner: 'bottomRight', path: 'corners.bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
+const CORNER_FIELDS: ReadonlyArray<{ corner: keyof CornerRadii; labelKey: string }> = [
+    { corner: 'topLeft', labelKey: 'theme_studio_corner_top_left' },
+    { corner: 'topRight', labelKey: 'theme_studio_corner_top_right' },
+    { corner: 'bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
+    { corner: 'bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
 ];
 
-/** Default radius (px) of a corner without a stored value. */
-const DEFAULT_CORNER_RADIUS = 4;
+/** The theme path of one corner's radius. */
+const cornerPath = (corner: keyof CornerRadii): string => `corners.${corner}`;
 
 /** Props of the typography section: the studio section props plus whole-draft transitions. */
 export interface TypographySectionProps extends StudioSectionProps {
@@ -116,7 +116,9 @@ function usesFontFirst(fontFamily: string | undefined, name: string): boolean {
 
 /** Whether all four corners share one radius (missing corners count as the default). */
 function cornersAreEven(theme: UserTheme): boolean {
-    const radii = CORNER_FIELDS.map(field => getNestedValue<number>(theme, field.path) ?? DEFAULT_CORNER_RADIUS);
+    const radii = CORNER_FIELDS.map(
+        field => getNestedValue<number>(theme, cornerPath(field.corner)) ?? DEFAULT_CORNER_RADIUS,
+    );
     return radii.every(radius => radius === radii[0]);
 }
 
@@ -127,7 +129,7 @@ function CornerField({
     value,
     onChange,
 }: {
-    corner: string;
+    corner: keyof CornerRadii;
     label: string;
     value: number;
     onChange: (value: number) => void;
@@ -139,7 +141,7 @@ function CornerField({
                 size="small"
                 type="number"
                 value={value}
-                inputProps={{ min: 0, max: CORNER_RADIUS_MAX, step: 0.5 }}
+                slotProps={{ htmlInput: { min: 0, max: CORNER_RADIUS_MAX, step: 0.5 } }}
                 onChange={event => {
                     // An empty or half-typed number ("7.") reads as '' — keep the value meanwhile,
                     // so the next keystroke can complete it.
@@ -449,13 +451,14 @@ function TypographySection({
                                     >
                                         {CORNER_FIELDS.map(field => (
                                             <CornerField
-                                                key={field.path}
+                                                key={field.corner}
                                                 corner={field.corner}
                                                 label={Generic.t(field.labelKey)}
                                                 value={
-                                                    getNestedValue<number>(theme, field.path) ?? DEFAULT_CORNER_RADIUS
+                                                    getNestedValue<number>(theme, cornerPath(field.corner)) ??
+                                                    DEFAULT_CORNER_RADIUS
                                                 }
-                                                onChange={value => handleCornerChange(field.path, value)}
+                                                onChange={value => handleCornerChange(cornerPath(field.corner), value)}
                                             />
                                         ))}
                                     </Box>

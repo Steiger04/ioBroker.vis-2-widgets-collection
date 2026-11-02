@@ -19,8 +19,8 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
 
 import { createThemeCached } from './createThemeCache';
 import { withDerivedSecondary, withPrimaryAsText } from './derivePalette';
-import type { CornerRadii, ThemeValidationIssue, UserTheme } from './themeTypes';
-import { buildCornerRadiusCss, getNestedValue, isPlainObject } from './themeUtils';
+import type { CornerRadii, UserTheme } from './themeTypes';
+import { DEFAULT_CORNER_RADIUS, buildCornerRadiusCss, getNestedValue, isPlainObject } from './themeUtils';
 import { isValidCssColor } from './validateTheme';
 
 /** Standard MUI typography variant keys that `createTypography` regenerates. */
@@ -79,11 +79,18 @@ const PALETTE_FUNCTION_KEYS = ['getContrastText', 'augmentColor'] as const;
  */
 export const COLLECTION_CSS_VAR_PREFIX = 'vis2c';
 
-/** Prefixes owned by the host editor: the collection never emits them. */
-const RESERVED_CSS_VAR_PREFIXES: ReadonlySet<string> = new Set(['mui']);
+/** The CSS-variables prefix the host editor owns (`--mui-*`): the collection never emits it. */
+export const HOST_CSS_VAR_PREFIX = 'mui';
 
 /** Palette slots MUI augments: their `main` feeds lighten/darken/getContrastText. */
-const AUGMENTED_SLOTS: ReadonlySet<string> = new Set(['primary', 'secondary', 'error', 'warning', 'info', 'success']);
+export const AUGMENTED_SLOTS: ReadonlySet<string> = new Set([
+    'primary',
+    'secondary',
+    'error',
+    'warning',
+    'info',
+    'success',
+]);
 
 /**
  * Reduces the host theme to the DNA the collection may inherit (allowlist, ADR-0078).
@@ -133,8 +140,11 @@ export function sanitizeHostTheme(host: Theme): ThemeOptions {
     return sanitized as ThemeOptions;
 }
 
-/** Whether MUI's colour maths (lighten/darken/contrast) can parse the value. */
-function isComputableColor(value: string): boolean {
+/**
+ * Whether MUI's colour maths (lighten/darken/contrast) can parse the value — an augmented slot's
+ * `main` that fails this is dropped by the resolution (the studio validation reports it).
+ */
+export function isComputableColor(value: string): boolean {
     try {
         decomposeColor(value);
         return true;
@@ -143,66 +153,11 @@ function isComputableColor(value: string): boolean {
     }
 }
 
-/**
- * Field-level issues for the colours the resolution drops although the schema accepts them: an
- * augmented slot's `main` that is a valid CSS colour but not computable by MUI (named colours,
- * `transparent`). Colours the browser rejects are left to the schema validator, which reports
- * them already — so the two never report the same value twice.
- *
- * @param theme - The user theme (typically the studio draft).
- * @returns One `uncomputable-color` error per such `palette.<slot>.main`.
- */
-export function uncomputableColorIssues(theme: UserTheme): ThemeValidationIssue[] {
-    const palette: unknown = theme.palette;
-    if (!isPlainObject(palette)) {
-        return [];
-    }
-    const issues: ThemeValidationIssue[] = [];
-    for (const slot of AUGMENTED_SLOTS) {
-        const slotValue = palette[slot];
-        const main = isPlainObject(slotValue) ? slotValue.main : undefined;
-        if (typeof main === 'string' && isValidCssColor(main) && !isComputableColor(main)) {
-            const path = `palette.${slot}.main`;
-            issues.push({
-                path,
-                severity: 'error',
-                code: 'uncomputable-color',
-                message: `Value at "${path}" is a colour MUI cannot compute with (use hex, rgb() or hsl()).`,
-            });
-        }
-    }
-    return issues;
-}
-
 /** The `cssVariables.cssVarPrefix` a theme sets, if it is a string. */
-function ownCssVarPrefix(theme: object): string | undefined {
+export function ownCssVarPrefix(theme: object): string | undefined {
     const cssVariables: unknown = (theme as Record<string, unknown>).cssVariables;
     const prefix = isPlainObject(cssVariables) ? cssVariables.cssVarPrefix : undefined;
     return typeof prefix === 'string' ? prefix : undefined;
-}
-
-/**
- * Field-level issue for a CSS-variables prefix the host editor owns (`mui`): the resolution
- * replaces it by {@link COLLECTION_CSS_VAR_PREFIX}, so the studio must not save it as if it
- * applied.
- *
- * @param theme - The user theme (typically the studio draft).
- * @returns One `reserved-css-var-prefix` error at `cssVariables.cssVarPrefix`, or none.
- */
-export function reservedCssVarPrefixIssues(theme: UserTheme): ThemeValidationIssue[] {
-    const prefix = ownCssVarPrefix(theme);
-    if (prefix === undefined || !RESERVED_CSS_VAR_PREFIXES.has(prefix)) {
-        return [];
-    }
-    const path = 'cssVariables.cssVarPrefix';
-    return [
-        {
-            path,
-            severity: 'error',
-            code: 'reserved-css-var-prefix',
-            message: `Value at "${path}" is reserved by the vis-2 editor (its own variables use "--${prefix}-").`,
-        },
-    ];
 }
 
 /**
@@ -222,9 +177,7 @@ function withCollectionCssVariables(options: ThemeOptions): ThemeOptions {
     const own = isPlainObject(cssVariables) ? cssVariables : {};
     const prefix = ownCssVarPrefix(options);
     const cssVarPrefix =
-        prefix !== undefined && prefix !== '' && !RESERVED_CSS_VAR_PREFIXES.has(prefix)
-            ? prefix
-            : COLLECTION_CSS_VAR_PREFIX;
+        prefix !== undefined && prefix !== '' && prefix !== HOST_CSS_VAR_PREFIX ? prefix : COLLECTION_CSS_VAR_PREFIX;
     return {
         ...options,
         cssVariables: { disableCssColorScheme: true, ...own, cssVarPrefix },
@@ -239,15 +192,25 @@ function withCollectionCssVariables(options: ThemeOptions): ThemeOptions {
  * rejects is dropped; an augmented slot's `main` must also be computable by MUI, which otherwise
  * throws inside `createTheme` ("MUI: Unsupported color") — named colours and `transparent` pass
  * the browser but not MUI. Returns the input itself when nothing was dropped.
+ * @param node - The palette (sub)tree.
+ * @param level - Where `node` sits: the palette root (its `mode` is no colour), an augmented
+ *   slot (its `main` must be computable) or any other node.
  */
-function withoutUnusableLeaves(node: Record<string, unknown>, slot: string | null): Record<string, unknown> {
+function withoutUnusableLeaves(
+    node: Record<string, unknown>,
+    level: 'palette' | 'augmented-slot' | 'other',
+): Record<string, unknown> {
     let result: Record<string, unknown> | null = null;
     for (const [key, value] of Object.entries(node)) {
         let next: unknown = value;
         if (isPlainObject(value)) {
-            next = withoutUnusableLeaves(value, slot === null && AUGMENTED_SLOTS.has(key) ? key : '');
-        } else if (typeof value === 'string' && !(slot === null && key === 'mode')) {
-            const usable = isValidCssColor(value) && (slot === '' || key !== 'main' || isComputableColor(value));
+            next = withoutUnusableLeaves(
+                value,
+                level === 'palette' && AUGMENTED_SLOTS.has(key) ? 'augmented-slot' : 'other',
+            );
+        } else if (typeof value === 'string' && !(level === 'palette' && key === 'mode')) {
+            const usable =
+                isValidCssColor(value) && (level !== 'augmented-slot' || key !== 'main' || isComputableColor(value));
             next = usable ? value : undefined;
         }
         if (next !== value) {
@@ -274,7 +237,7 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
     if (!isPlainObject(palette)) {
         return theme;
     }
-    const cleaned = withoutUnusableLeaves(palette, null);
+    const cleaned = withoutUnusableLeaves(palette, 'palette');
     return cleaned === palette ? theme : { ...theme, palette: cleaned as ThemeOptions['palette'] };
 }
 
@@ -305,7 +268,7 @@ export function resolveCollectionTheme(
     const radiusCss = buildCornerRadiusCss(corners);
     const withCorners = radiusCss
         ? deepmerge(merged, {
-              shape: { borderRadius: corners?.topLeft ?? 4 },
+              shape: { borderRadius: corners?.topLeft ?? DEFAULT_CORNER_RADIUS },
               components: {
                   MuiPaper: { styleOverrides: { root: { borderRadius: radiusCss } } },
                   MuiCard: { styleOverrides: { root: { borderRadius: radiusCss } } },

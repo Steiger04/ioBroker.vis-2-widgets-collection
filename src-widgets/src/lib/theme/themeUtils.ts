@@ -49,21 +49,24 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
  */
 export const CORNER_RADIUS_MAX = 96;
 
+/** The radius (px) of a corner without a stored value — resolution and studio alike. */
+export const DEFAULT_CORNER_RADIUS = 4;
+
 /**
  * Builds a CSS 4-value `border-radius` string (`TL TR BR BL`) from corner radii.
  *
  * @returns The CSS string, or `undefined` when `corners` is unset (so no override
  * is applied and MUI's `shape.borderRadius` governs). Missing individual radii
- * default to `4`.
+ * default to {@link DEFAULT_CORNER_RADIUS}.
  */
 export function buildCornerRadiusCss(corners: CornerRadii | undefined): string | undefined {
     if (!corners) {
         return undefined;
     }
-    const tl = corners.topLeft ?? 4;
-    const tr = corners.topRight ?? 4;
-    const br = corners.bottomRight ?? 4;
-    const bl = corners.bottomLeft ?? 4;
+    const tl = corners.topLeft ?? DEFAULT_CORNER_RADIUS;
+    const tr = corners.topRight ?? DEFAULT_CORNER_RADIUS;
+    const br = corners.bottomRight ?? DEFAULT_CORNER_RADIUS;
+    const bl = corners.bottomLeft ?? DEFAULT_CORNER_RADIUS;
     return `${tl}px ${tr}px ${br}px ${bl}px`;
 }
 
