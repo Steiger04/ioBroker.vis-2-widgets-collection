@@ -31,6 +31,7 @@ import type { Connection } from '@iobroker/adapter-react-v5';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
 import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { THEME_PRESETS, applyPreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
@@ -157,19 +158,29 @@ const COLOR_FIELD_LABELS: Record<string, string> = {
     'palette.text.secondary': 'theme_wizard_palette_text_secondary',
 };
 
-/** Expands the colour sections (collapsed on open) so their fields mount. */
-const expandColorSections = async (): Promise<void> => {
-    for (const title of ['theme_wizard_section_palette', 'theme_studio_section_status_text']) {
-        const summary = Array.from(document.body.querySelectorAll<HTMLElement>('.MuiAccordionSummary-root')).find(
-            element => element.textContent?.startsWith(title),
-        );
-        if (!summary) {
-            throw new Error(`section "${title}" not found`);
-        }
-        act(() => summary.click());
+/** The header (accordion summary) of the section titled `title`. */
+const sectionHeader = (title: string): HTMLElement => {
+    const header = Array.from(document.body.querySelectorAll<HTMLElement>('.MuiAccordionSummary-root')).find(
+        element => element.firstElementChild?.firstElementChild?.textContent === title,
+    );
+    if (!header) {
+        throw new Error(`section "${title}" not found`);
+    }
+    return header;
+};
+
+/** Expands the sections titled `titles` (all collapsed on open) so their fields mount. */
+const expandSections = async (...titles: string[]): Promise<void> => {
+    for (const title of titles) {
+        const header = sectionHeader(title);
+        act(() => header.click());
     }
     await settle();
 };
+
+/** Expands the colour sections (collapsed on open) so their fields mount. */
+const expandColorSections = (): Promise<void> =>
+    expandSections('theme_wizard_section_palette', 'theme_studio_section_status_text');
 
 /** The displayed swatch colour per field label key (a marker suffix like "· derived" is cut). */
 const displayedSwatches = (): Map<string, string> => {
@@ -268,6 +279,7 @@ describe('ThemeStudioPanel derivation markers and hints', () => {
         expect(labelOf('theme_wizard_palette_primary')).toBe('theme_wizard_palette_primary');
 
         // Presets set primary + secondary (not the text): an own secondary, no derivation.
+        await expandSections('theme_studio_presets');
         const preset = document.body.querySelector<HTMLButtonElement>('button[aria-pressed]');
         act(() => preset?.click());
         await settle();
@@ -314,6 +326,48 @@ describe('ThemeStudioPanel derivation markers and hints', () => {
             'theme_studio_hint_text_secondary',
             'theme_studio_hint_warning',
         ]);
+    });
+});
+
+describe('ThemeStudioPanel presets section', () => {
+    /** The collapsed presets section's summary line. */
+    const presetsSummary = (): string | null | undefined =>
+        sectionHeader('theme_studio_presets').querySelector('.MuiTypography-caption')?.textContent;
+
+    const RUBIN = THEME_PRESETS.find(preset => preset.id === 'rubin');
+
+    it('starts collapsed, like every section', async () => {
+        await mountPanel({});
+        expect(document.body.querySelector('button[aria-pressed]')).toBeNull();
+    });
+
+    it('names the active preset in the summary', async () => {
+        expect(RUBIN).toBeDefined();
+        await mountPanel(applyPreset({}, RUBIN!));
+        expect(presetsSummary()).toBe('theme_studio_presets_active(theme_studio_preset_rubin)');
+    });
+
+    it('reads "custom colours" once a colour leaves the preset', async () => {
+        const seed = applyPreset({}, RUBIN!);
+        await mountPanel({ ...seed, palette: { ...seed.palette, primary: { main: '#123456' } } });
+        expect(presetsSummary()).toBe('theme_studio_presets_custom');
+    });
+
+    it('reads "default" while no colour is set', async () => {
+        await mountPanel({ palette: { mode: 'dark' } });
+        expect(presetsSummary()).toBe('theme_studio_default_value');
+    });
+
+    it('applies a preset from the expanded section', async () => {
+        await mountPanel({});
+        await expandSections('theme_studio_presets');
+        const rubin = Array.from(document.body.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')).find(
+            card => card.textContent === 'theme_studio_preset_rubin',
+        );
+        act(() => rubin?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual(applyPreset({}, RUBIN!));
+        expect(rubin?.getAttribute('aria-pressed')).toBe('true');
     });
 });
 

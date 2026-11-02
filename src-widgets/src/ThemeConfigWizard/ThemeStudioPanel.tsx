@@ -58,7 +58,7 @@ import Generic from '../Generic';
 import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
 import EditorHistoryButtons from '../components/EditorHistoryButtons';
 import FloatingPanelGrips from '../components/FloatingPanelGrips';
-import { SubGroup } from '../components/controls';
+import SectionCard from '../components/SectionCard';
 import useFloatingPanel, { PANEL_DEFAULT_W } from '../hooks/useFloatingPanel';
 import { ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
@@ -66,7 +66,7 @@ import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
 import { getNestedValue } from '../lib/theme/themeUtils';
-import PresetCards from './PresetCards';
+import PresetCards, { presetsSummary } from './PresetCards';
 import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
 import useStudioSession from './useStudioSession';
 import ErweitertSection from './sections/ErweitertSection';
@@ -88,7 +88,7 @@ interface ThemeStudioPanelProps {
 }
 
 /** Section ids for controlled expansion (scroll-to-error). */
-type SectionKey = 'palette' | 'typography' | 'statusText' | 'erweitert';
+type SectionKey = 'presets' | 'palette' | 'typography' | 'statusText' | 'erweitert';
 
 /**
  * Maps a theme path to the section that renders a field for it: colour paths by the field
@@ -389,12 +389,18 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                         </Box>
                     ) : (
                         <>
-                            <SubGroup title={Generic.t('theme_studio_presets')}>
-                                <PresetCards
-                                    theme={themeObj}
-                                    onApply={handleApplyPreset}
-                                />
-                            </SubGroup>
+                            <Box data-studio-section="presets">
+                                <SectionCard
+                                    title={Generic.t('theme_studio_presets')}
+                                    summary={presetsSummary(themeObj)}
+                                    {...sectionProps('presets')}
+                                >
+                                    <PresetCards
+                                        theme={themeObj}
+                                        onApply={handleApplyPreset}
+                                    />
+                                </SectionCard>
+                            </Box>
                             <Box data-studio-section="palette">
                                 <PaletteSection
                                     theme={themeObj}

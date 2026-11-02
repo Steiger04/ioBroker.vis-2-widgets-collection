@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "次要文本，如单位、说明文字和提示。",
     "theme_studio_hint_warning": "图表调色板“主题（自动）”的系列颜色 3 以及控件的状态指示器。",
     "theme_studio_text_follows_primary": "跟随主颜色",
-    "theme_studio_secondary_derived": "派生自主项"
+    "theme_studio_secondary_derived": "派生自主项",
+    "theme_studio_presets_active": "%s · 使用中",
+    "theme_studio_presets_custom": "自定义颜色"
 }

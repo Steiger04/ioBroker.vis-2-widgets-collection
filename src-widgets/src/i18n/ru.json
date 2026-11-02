@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Второстепенный текст, такой как единицы измерения, подписи и подсказки.",
     "theme_studio_hint_warning": "Цвет ряда 3 палитры диаграмм «Тема (авто)» и индикаторы состояния элементов управления.",
     "theme_studio_text_follows_primary": "следует за основным",
-    "theme_studio_secondary_derived": "производное от основного"
+    "theme_studio_secondary_derived": "производное от основного",
+    "theme_studio_presets_active": "%s · активен",
+    "theme_studio_presets_custom": "пользовательские цвета"
 }

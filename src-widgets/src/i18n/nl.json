@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Secundaire tekst zoals eenheden, bijschriften en hints.",
     "theme_studio_hint_warning": "Serieskleur 3 van het grafiekpalet “Thema (auto)” en statusindicatoren van besturingselementen.",
     "theme_studio_text_follows_primary": "volgt de primaire kleur",
-    "theme_studio_secondary_derived": "afgeleid van primair"
+    "theme_studio_secondary_derived": "afgeleid van primair",
+    "theme_studio_presets_active": "%s · actief",
+    "theme_studio_presets_custom": "aangepaste kleuren"
 }

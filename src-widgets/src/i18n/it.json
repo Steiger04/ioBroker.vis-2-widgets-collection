@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Testo secondario come unità, didascalie e suggerimenti.",
     "theme_studio_hint_warning": "Colore serie 3 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli.",
     "theme_studio_text_follows_primary": "segue il primario",
-    "theme_studio_secondary_derived": "derivato dalla primaria"
+    "theme_studio_secondary_derived": "derivato dalla primaria",
+    "theme_studio_presets_active": "%s · attivo",
+    "theme_studio_presets_custom": "colori personalizzati"
 }

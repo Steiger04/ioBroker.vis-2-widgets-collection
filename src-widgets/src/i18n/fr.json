@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Texte secondaire tel que les unités, légendes et astuces.",
     "theme_studio_hint_warning": "Couleur de série 3 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles.",
     "theme_studio_text_follows_primary": "suit la couleur primaire",
-    "theme_studio_secondary_derived": "dérivé du principal"
+    "theme_studio_secondary_derived": "dérivé du principal",
+    "theme_studio_presets_active": "%s · actif",
+    "theme_studio_presets_custom": "couleurs personnalisées"
 }

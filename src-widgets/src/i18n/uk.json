@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Вторинний текст, як-от одиниці вимірювання, підписи та підказки.",
     "theme_studio_hint_warning": "Колір серії 3 палітри діаграм «Тема (авто)» та індикатори стану елементів керування.",
     "theme_studio_text_follows_primary": "наслідує основний",
-    "theme_studio_secondary_derived": "походить від основного"
+    "theme_studio_secondary_derived": "походить від основного",
+    "theme_studio_presets_active": "%s · активний",
+    "theme_studio_presets_custom": "власні кольори"
 }

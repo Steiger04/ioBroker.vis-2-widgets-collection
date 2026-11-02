@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Tekst pomocniczy, taki jak jednostki, podpisy i wskazówki.",
     "theme_studio_hint_warning": "Kolor serii 3 palety wykresów „Motyw (auto)” i wskaźniki stanu kontrolek.",
     "theme_studio_text_follows_primary": "podąża za podstawowym",
-    "theme_studio_secondary_derived": "pochodny z podstawowego"
+    "theme_studio_secondary_derived": "pochodny z podstawowego",
+    "theme_studio_presets_active": "%s · aktywny",
+    "theme_studio_presets_custom": "niestandardowe kolory"
 }

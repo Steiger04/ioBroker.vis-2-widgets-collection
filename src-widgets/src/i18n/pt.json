@@ -1326,5 +1326,7 @@
     "theme_studio_hint_text_secondary": "Texto secundário, como unidades, legendas e dicas.",
     "theme_studio_hint_warning": "Cor da série 3 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos.",
     "theme_studio_text_follows_primary": "segue o primário",
-    "theme_studio_secondary_derived": "derivado do principal"
+    "theme_studio_secondary_derived": "derivado do principal",
+    "theme_studio_presets_active": "%s · ativo",
+    "theme_studio_presets_custom": "cores personalizadas"
 }

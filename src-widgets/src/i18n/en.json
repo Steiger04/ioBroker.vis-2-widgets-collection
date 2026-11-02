@@ -1232,6 +1232,8 @@
     "theme_studio_preset_smaragd": "Emerald",
     "theme_studio_preset_sunset": "Sunset",
     "theme_studio_presets": "Presets",
+    "theme_studio_presets_active": "%s · active",
+    "theme_studio_presets_custom": "custom colours",
     "theme_studio_problems": "%s problems",
     "theme_studio_problems_one": "1 problem",
     "theme_studio_redo": "Redo (Ctrl+Shift+Z)",

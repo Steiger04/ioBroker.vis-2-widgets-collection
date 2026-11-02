@@ -1227,6 +1227,8 @@
     "theme_studio_preset_smaragd": "Smaragd",
     "theme_studio_preset_sunset": "Sunset",
     "theme_studio_presets": "Vorlagen",
+    "theme_studio_presets_active": "%s · aktiv",
+    "theme_studio_presets_custom": "eigene Farben",
     "theme_studio_problems": "%s Probleme",
     "theme_studio_problems_one": "1 Problem",
     "theme_studio_redo": "Wiederholen (Strg+Umschalt+Z)",

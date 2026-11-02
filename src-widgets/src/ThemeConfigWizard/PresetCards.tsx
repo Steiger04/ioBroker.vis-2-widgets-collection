@@ -30,6 +30,20 @@ interface PresetCardsProps {
     onApply: (preset: ThemePreset) => void;
 }
 
+/**
+ * The presets section's summary line: the active preset's name, "custom colours" once the
+ * palette leaves every preset, and "default" while the theme sets no colour at all.
+ */
+export function presetsSummary(theme: UserTheme): string {
+    const active = THEME_PRESETS.find(preset => isPresetActive(theme, preset));
+    if (active) {
+        return Generic.t('theme_studio_presets_active', Generic.t(active.labelKey));
+    }
+    const palette = theme.palette as Record<string, unknown> | undefined;
+    const setsColours = palette ? Object.keys(palette).some(key => key !== 'mode') : false;
+    return Generic.t(setsColours ? 'theme_studio_presets_custom' : 'theme_studio_default_value');
+}
+
 /** The mini-UI thumbnail: bg surface + paper card + primary bar + secondary dot. */
 function PresetThumb({ preset }: { preset: ThemePreset }): React.JSX.Element {
     const { background: bg, paper, primary, secondary } = presetColors(preset);
