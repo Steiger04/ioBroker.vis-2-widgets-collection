@@ -1,6 +1,6 @@
 /**
  * The Radio colour rules: the unchecked icon resolves its field contract; checked and
- * disabled-unchecked are state rules on top (ADR-0004, Nachtrag „Chrome-Slots").
+ * disabled-unchecked are state rules on top (ADR-0004, addendum "Chrome-Slots").
  *
  * @module lib/radioColorContract.test
  */

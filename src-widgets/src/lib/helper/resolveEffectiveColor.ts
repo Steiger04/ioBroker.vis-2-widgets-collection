@@ -136,8 +136,8 @@ export function resolveEffectiveColor(
  * fields → vis-2 style → terminal), but each stage counts only with its
  * Repräsentative Vollfarbe (`docs/context/color-theme.md`): a gradient yields
  * its midpoint color, and a stage without one (a color name, `transparent`,
- * `var(…)`, a gradient without hex/rgb stops) counts as Erben — the cascade
- * continues.
+ * `var(…)`, a gradient without hex/rgb stops) counts as inheriting (the
+ * glossary state "Erben") — the cascade continues.
  *
  * @param contract - Field contract (name, fallbackFields, terminal, inheritTextStyle).
  * @param data  - Widget data map (explicit values + fallback sources).

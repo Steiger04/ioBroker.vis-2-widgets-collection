@@ -102,9 +102,9 @@ describe('buildTableChrome — header bar', () => {
     });
 
     it('follows the RAW noCard, not noCard || usedInWidget: inside another widget the sticky bar keeps paper and shadow', () => {
-        // Widget-im-Widget: Generic unwraps the card (wrappedContent false), but the widget
-        // data the renderer hands the chrome still says noCard false — the bar stays opaque,
-        // so the rows never scroll visibly underneath it.
+        // A widget inside another widget: Generic unwraps the card (wrappedContent false), but
+        // the widget data the renderer hands the chrome still says noCard false — the bar stays
+        // opaque, so the rows never scroll visibly underneath it.
         const widget = { usedInWidget: true, data: { noCard: false } satisfies TableChromeSettings };
         const bar = chrome(widget.data).headerBarSx;
 
