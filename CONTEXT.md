@@ -562,6 +562,14 @@ _Avoid_: Read-only (unsaid whether lock or guard), Schreibschutz (that is the ob
 The icon the Collection frame shows in its top-right corner — the active state's icon in its resolved colour. Size, offset, colour mask and the `noHeaderIcon` switch are widget-level settings, not per state. The frame owns the Eck-Icon: every widget that declares the common icon fields gets it; a widget only substitutes the icon data (Gauge: the active **Highlight-Zone**'s icon) or switches it off (frames that show something else: the Dialog's view frame, ECharts).
 _Avoid_: Header-Icon (the editor's label for its switch — the icon sits in the corner, with or without a header), Kopf-Icon, Wert-Icon (that is the **Wert-Anzeige**'s icon)
 
+**Rahmen-Kopfzeile**:
+The single text line above a Collection widget's content, owned by the frame — the active state's header text, HTML allowed, switched off by `noHeader`. Shown only while the bound OID has a valid type; until then the frame shows its OID hint instead of both lines.
+_Avoid_: Header (that is the JSON Table's column-header row), Titel, Überschrift
+
+**Rahmen-Fußzeile**:
+The single text line below a Collection widget's content, owned by the frame, HTML allowed, switched off by `noFooter`. Shows the first non-empty of: the active state's footer text → its alias → its value → the OID's current value with unit. Like the Rahmen-Kopfzeile it exists only while the bound OID has a valid type, and it always reflects the current value from the moment it appears — not only after the next value change.
+_Avoid_: Footer without saying which frame, Statuszeile, Wert-Anzeige (that is the content's icon + value cluster)
+
 **Zustandsmenge**:
 The ONE pure rule for how many discrete states a widget effectively has (`lib/effectiveStateCount.ts`): `ignoreCommonStates === false` → the authored rows (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to `values_count` when absent (e.g. boolean OIDs without commonStates). Consumed by BOTH the editor's field visibility (stateFields' hidden closures) and the runtime state resolution (useData) — visibility never promises behaviour the runtime does not deliver. The OID-change heal in commonObjectFields remains the PRODUCER of `values_count`, deliberately outside this seam.
 _Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formula (mechanism, not the seam), effektive Anzahl without the one-rule meaning
