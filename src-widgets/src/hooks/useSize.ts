@@ -3,8 +3,10 @@
  *
  * @module hooks/useSize
  * @remarks
- * For square/circle widgets, the resulting width/height is based on the smaller of the available
- * dimensions after subtracting base padding.
+ * For square/circle widgets, the resulting width/height is the smaller side of the measured
+ * element's content area. The ResizeObserver's `contentRect` already excludes the element's own
+ * padding (CollectionBase's BASE-BOX-1 carries `p: basePadding`), so the base padding is not
+ * subtracted again.
  */
 
 import { useContext, useEffect, useState, useMemo, type RefObject } from 'react';
@@ -32,7 +34,7 @@ interface UseSizeReturn {
 /**
  * Computes the widget size for square/circle layouts.
  *
- * @param ref - Ref to the element that should be measured.
+ * @param ref - Ref to the element whose content area (its padding excluded) bounds the frame.
  * @returns Computed `width` and `height` as CSS strings.
  * @example
  * ```tsx
@@ -52,16 +54,11 @@ const useSize = (ref: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | nu
 
     const widgetConfig = useMemo(
         () => ({
-            basePadding: widget.data.basePadding || 0,
             isSquare: widget.data.square || false,
             isCircle: widget.data.circle || false,
         }),
-        [widget.data.basePadding, widget.data.square, widget.data.circle],
+        [widget.data.square, widget.data.circle],
     );
-
-    const paddingOffset = useMemo(() => {
-        return widgetConfig.basePadding * 16;
-    }, [widgetConfig.basePadding]);
 
     useEffect(() => {
         if (!clientWidth || !clientHeight || clientWidth < 0 || clientHeight < 0) {
@@ -74,21 +71,12 @@ const useSize = (ref: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | nu
             return;
         }
 
-        const hasMinimumSpace = clientWidth >= paddingOffset && clientHeight >= paddingOffset;
-
-        if (!hasMinimumSpace) {
-            setWidth('0px');
-            setHeight('0px');
-            return;
-        }
-
-        const availableWidth = clientWidth - paddingOffset;
-        const availableHeight = clientHeight - paddingOffset;
-        const squareSize = Math.min(availableWidth, availableHeight);
+        // The measurement is the content area: the padding is already outside it.
+        const squareSize = Math.min(clientWidth, clientHeight);
 
         setWidth(`${squareSize}px`);
         setHeight(`${squareSize}px`);
-    }, [clientWidth, clientHeight, paddingOffset, widgetConfig.isSquare, widgetConfig.isCircle]);
+    }, [clientWidth, clientHeight, widgetConfig.isSquare, widgetConfig.isCircle]);
 
     return { width, height };
 };
