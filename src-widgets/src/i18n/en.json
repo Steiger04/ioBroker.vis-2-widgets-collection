@@ -6,6 +6,8 @@
     "background_color": "Background color",
     "base_elevation": "Elevation",
     "base_padding": "Padding",
+    "collection_base_invalid_type": "%s has an invalid type!",
+    "collection_base_select_oid": "Please select a valid object ID",
     "button_group": "Button group",
     "button_group_collection_widget": "Button group (boolean, number, string, mixed)",
     "button_group_color": "Color",

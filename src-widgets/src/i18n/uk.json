@@ -1311,5 +1311,7 @@
     "json_table_hideable": "Приховуваний",
     "json_table_detected_type_hint": "Виявлено: {type}",
     "json_table_override_type_default_tooltip": "Цей стовпець перевизначає стандартне значення типу для {feature} — але не більше, ніж дозволяє таблиця",
-    "json_table_capabilities_status": "Можливості таблиці"
+    "json_table_capabilities_status": "Можливості таблиці",
+    "collection_base_invalid_type": "%s має некоректний тип!",
+    "collection_base_select_oid": "Будь ласка, виберіть дійсний ідентифікатор об'єкта"
 }

@@ -12,6 +12,23 @@
  * first measurement and outside the frame.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.hoisted(() => {
+    // Mirrors vis-2's VisRxWidget.t, which reads `this.getI18nPrefix()` (an unbound
+    // Generic.t throws in the host; identity stubs would hide that). Generic overrides the
+    // prefix, so a correctly bound call carries Generic's. Arguments are appended so the
+    // %s substitution stays visible.
+    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
+        static getI18nPrefix(): string {
+            return '';
+        }
+
+        static t(this: { getI18nPrefix(): string }, key: string, ...args: string[]): string {
+            return `${this.getI18nPrefix()}${key}${args.length ? `(${args.join(',')})` : ''}`;
+        }
+    };
+});
+
 import { createElement, type ComponentProps, type FC } from 'react';
 
 import CollectionBase from './CollectionBase';
@@ -67,6 +84,28 @@ describe('CollectionBase frame header', () => {
         expect(headerBox(hidden)?.textContent).toBe('');
         expect(headerBox(hidden)?.outerHTML).toBe(headerBox(noHeader)?.outerHTML);
         expect(headerBox(hidden)?.className).not.toBe(headerBox(shown)?.className);
+    });
+});
+
+describe('CollectionBase invalid object hint', () => {
+    const PREFIX = 'vis_2_widgets_collection_';
+
+    /** The frame's text with an invalid type reported by its widget. */
+    const hint = (data: Record<string, unknown>): string | null | undefined => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            return createElement(CollectionBase, { data: styleData, isValidType: false });
+        };
+        return mountBody(Frame, frameScene({ noHeader: true, ...data })).container.querySelector('.MuiTypography-root')
+            ?.textContent;
+    };
+
+    it('names the bound object through the translation', () => {
+        expect(hint({})).toBe(`${PREFIX}collection_base_invalid_type(${OID})`);
+    });
+
+    it('asks for an object through the translation while none is bound', () => {
+        expect(hint({ oid: '', oidObject: undefined })).toBe(`${PREFIX}collection_base_select_oid`);
     });
 });
 

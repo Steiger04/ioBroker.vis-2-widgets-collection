@@ -1311,5 +1311,7 @@
     "json_table_hideable": "Ocultável",
     "json_table_detected_type_hint": "Detectado: {type}",
     "json_table_override_type_default_tooltip": "Esta coluna substitui o padrão do tipo para {feature} — nunca mais do que a tabela permite",
-    "json_table_capabilities_status": "Capacidades da tabela"
+    "json_table_capabilities_status": "Capacidades da tabela",
+    "collection_base_invalid_type": "%s tem um tipo inválido!",
+    "collection_base_select_oid": "Selecione um ID de objeto válido"
 }

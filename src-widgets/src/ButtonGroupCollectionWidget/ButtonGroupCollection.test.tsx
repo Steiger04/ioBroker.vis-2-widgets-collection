@@ -10,7 +10,17 @@
  * and the read-only guard disabling the group. The presentation chrome itself is
  * pinned in chrome.test.ts as pure data — these tests only cover the wiring.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.hoisted(() => {
+    // CollectionBase translates its hints through Generic, which extends
+    // window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
+    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
+        static t(key: string): string {
+            return key;
+        }
+    };
+});
 import { act } from 'react';
 
 import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../lib/testing/collectionScene';

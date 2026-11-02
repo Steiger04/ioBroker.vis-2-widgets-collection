@@ -1311,5 +1311,7 @@
     "json_table_hideable": "可隐藏",
     "json_table_detected_type_hint": "检测到：{type}",
     "json_table_override_type_default_tooltip": "此列会覆盖 {feature} 的类型默认值——但绝不超过表所允许的上限",
-    "json_table_capabilities_status": "表格功能"
+    "json_table_capabilities_status": "表格功能",
+    "collection_base_invalid_type": "%s 的类型无效！",
+    "collection_base_select_oid": "请选择有效的对象 ID"
 }

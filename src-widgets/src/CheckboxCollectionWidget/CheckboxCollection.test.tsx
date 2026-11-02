@@ -12,7 +12,17 @@
  * the pre-extraction DOM by an A/B mount diff, 2026-10-29). The Sperre cases pin
  * the checkbox's `disabled` against the OID binding's `locked`.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.hoisted(() => {
+    // CollectionBase translates its hints through Generic, which extends
+    // window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
+    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
+        static t(key: string): string {
+            return key;
+        }
+    };
+});
 
 import { installInertResizeObserver, mountCollectionBody } from '../lib/testing/collectionScene';
 import CheckboxCollection from './CheckboxCollection';

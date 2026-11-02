@@ -1311,5 +1311,7 @@
     "json_table_hideable": "Verbergbaar",
     "json_table_detected_type_hint": "Gedetecteerd: {type}",
     "json_table_override_type_default_tooltip": "Deze kolom overschrijft de standaardwaarde van het type voor {feature} — nooit meer dan de tabel toestaat",
-    "json_table_capabilities_status": "Tabelmogelijkheden"
+    "json_table_capabilities_status": "Tabelmogelijkheden",
+    "collection_base_invalid_type": "%s heeft een ongeldig type!",
+    "collection_base_select_oid": "Selecteer een geldig object-ID"
 }

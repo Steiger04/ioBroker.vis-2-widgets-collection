@@ -1311,5 +1311,7 @@
     "json_table_hideable": "Nascondibile",
     "json_table_detected_type_hint": "Rilevato: {type}",
     "json_table_override_type_default_tooltip": "Questa colonna sovrascrive il valore predefinito del tipo per {feature} — mai più di quanto consentito dalla tabella",
-    "json_table_capabilities_status": "Funzionalità della tabella"
+    "json_table_capabilities_status": "Funzionalità della tabella",
+    "collection_base_invalid_type": "%s ha un tipo non valido!",
+    "collection_base_select_oid": "Seleziona un ID oggetto valido"
 }

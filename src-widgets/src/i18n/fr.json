@@ -1311,5 +1311,7 @@
     "json_table_hideable": "Masquable",
     "json_table_detected_type_hint": "Détecté : {type}",
     "json_table_override_type_default_tooltip": "Cette colonne remplace la valeur par défaut du type pour {feature} — jamais plus que ce que le tableau autorise",
-    "json_table_capabilities_status": "Fonctionnalités du tableau"
+    "json_table_capabilities_status": "Fonctionnalités du tableau",
+    "collection_base_invalid_type": "Le type de %s est invalide !",
+    "collection_base_select_oid": "Veuillez sélectionner un identifiant d'objet valide"
 }

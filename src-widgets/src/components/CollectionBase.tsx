@@ -19,6 +19,7 @@ import { useRef, useContext, useEffect, useMemo, useState, type JSX } from 'reac
 import { CollectionContext } from '../components/CollectionProvider';
 import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
 import CornerIcon from './CornerIcon';
+import Generic from '../Generic';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
@@ -298,7 +299,7 @@ function CollectionBase({
                             textAlign: 'center',
                         }}
                     >
-                        {oid ? `${oid} has an invalid type!` : 'Please select a valid object ID'}
+                        {oid ? Generic.t('collection_base_invalid_type', oid) : Generic.t('collection_base_select_oid')}
                     </Typography>
                 </Box>
             )}
