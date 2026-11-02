@@ -115,7 +115,8 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    // The slider's marker layer, passed explicitly to the shared resolver chains.
+    // The slider's marker layer (CONTEXT "Marker-Ebene"): useData applies it to the
+    // marks only — `states` and `markBaseStyle`, never the active style `data`.
     const markerLayer = useMemo(
         () => ({
             iconSize: widget.data.markerIconSize,
@@ -130,9 +131,7 @@ const SliderCollection: FC = () => {
             widget.data.markerTextSize,
         ],
     );
-    const { data, states, minValue, maxValue, activeFieldNumber, resolveStyleData } = useData('oid', {
-        markerLayer,
-    });
+    const { data, states, markBaseStyle, minValue, maxValue } = useData('oid', { markerLayer });
 
     // One optimistic truth for the controlled slider: local copy + debounced
     // backend write behind one interface (init/echo/non-numeric documented on
@@ -153,7 +152,8 @@ const SliderCollection: FC = () => {
     // the field contracts (sliderColorContracts), resolved in one place.
     const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
 
-    const markLabelFallbackColor = resolveStyleData('', false).textColor || theme.palette.text.primary;
+    // The mark label is part of the mark, so it reads the marks' base style.
+    const markLabelFallbackColor = markBaseStyle.inactive.textColor || theme.palette.text.primary;
 
     // Source icons (orientation-independent).
     const minIcon = widget.data.iconMin || widget.data.iconSmallMin;
@@ -197,8 +197,8 @@ const SliderCollection: FC = () => {
                 onlyStates: widget.data.onlyStates,
                 unit: oidObject?.unit,
                 oidValue,
-                baseStyle: resolveStyleData('', false),
-                activeStyle: resolveStyleData('', true),
+                baseStyle: markBaseStyle.inactive,
+                activeStyle: markBaseStyle.active,
                 iconColorActive: widget.data.iconColorActive,
             }),
         [
@@ -209,7 +209,7 @@ const SliderCollection: FC = () => {
             sliderMaxValue,
             oidObject?.unit,
             oidValue,
-            resolveStyleData,
+            markBaseStyle,
             widget.data.iconColorActive,
         ],
     );
@@ -324,12 +324,10 @@ const SliderCollection: FC = () => {
                                         formatSizeRem(widget.data.valueSizeActive) ||
                                         data.valueSizeActive ||
                                         data.valueSize,
+                                    // No marker layer: the value label is not a mark.
                                     color:
                                         widget.data.textColorActive ||
                                         data.textColorActive ||
-                                        // activeFieldNumber is 1-based, so truthiness is safe
-                                        // here — never rebase it to 0-based.
-                                        (activeFieldNumber && widget.data.markerTextColor) ||
                                         data.textColor ||
                                         theme.palette.text.primary,
                                     bgcolor: 'transparent',

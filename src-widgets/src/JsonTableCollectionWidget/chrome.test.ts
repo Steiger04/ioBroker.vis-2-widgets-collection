@@ -1,13 +1,30 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import type { Theme } from '@mui/material/styles';
+
+import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
+import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { buildTableChrome } from './chrome';
-import type { TableChromeSettings, TableChromeTheme } from './chrome';
+import type { TableChromeSettings } from './chrome';
 
-/** Minimal theme: the chrome only reads the shadow ladder and the divider colour. */
-const theme: TableChromeTheme = {
+// The field list renders CollectionDivider / CollectionGradientColorPicker / the column
+// editor, which pull Generic (extends window.visRxWidget, absent outside vis-2). The
+// parity test reads only the field data.
+vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
+
+import jsonTableFields from '../lib/jsonTableFields';
+
+const DIVIDER = 'rgba(0, 0, 0, 0.12)';
+const PAPER = '#fafafa';
+
+/** Minimal theme: the chrome reads the shadow ladder and the contract terminals (divider, paper, text). */
+const theme = {
     shadows: Array.from({ length: 25 }, (_, i) => (i === 0 ? 'none' : `shadow-${i}`)),
-    palette: { divider: 'rgba(0, 0, 0, 0.12)' },
-};
+    palette: { divider: DIVIDER, background: { paper: PAPER }, text: { primary: '#2f3e51' } },
+} as unknown as Theme;
 
 const chrome = (settings: TableChromeSettings = {}): ReturnType<typeof buildTableChrome> =>
     buildTableChrome(settings, theme);
@@ -56,13 +73,13 @@ describe('buildTableChrome — density heights', () => {
 });
 
 describe('buildTableChrome — header bar', () => {
-    it('sticks to the top as an elevated paper card by default (elevation 6)', () => {
+    it('sticks to the top as an elevated card in the theme paper by default (terminal paper, elevation 6)', () => {
         const bar = chrome().headerBarSx;
 
         expect(bar.position).toBe('sticky');
         expect(bar.top).toBe(0);
         expect(bar.zIndex).toBe(2);
-        expect(bar.backgroundColor).toBe('background.paper');
+        expect(bar.backgroundColor).toBe(PAPER);
         expect(bar.boxShadow).toBe('shadow-6');
         // the resize handles only show while the bar is hovered
         expect(bar['& .resize-handle']).toEqual({ opacity: 0 });
@@ -84,6 +101,28 @@ describe('buildTableChrome — header bar', () => {
         expect(bar.boxShadow).toBe('none');
     });
 
+    it('follows the RAW noCard, not noCard || usedInWidget: inside another widget the sticky bar keeps paper and shadow', () => {
+        // Widget-im-Widget: Generic unwraps the card (wrappedContent false), but the widget
+        // data the renderer hands the chrome still says noCard false — the bar stays opaque,
+        // so the rows never scroll visibly underneath it.
+        const widget = { usedInWidget: true, data: { noCard: false } satisfies TableChromeSettings };
+        const bar = chrome(widget.data).headerBarSx;
+
+        expect(bar.backgroundColor).toBe(PAPER);
+        expect(bar.boxShadow).toBe('shadow-6');
+    });
+
+    it('counts an invalid header colour as unset: the paper in the card, transparent with noCard', () => {
+        for (const tableHeaderBgColor of ['red', 'var(--x)', 'transparent']) {
+            expect(chrome({ tableHeaderBgColor }).headerBarSx).toMatchObject({ backgroundColor: PAPER });
+            expect(chrome({ tableHeaderBgColor }).headerBarSx.background).toBeUndefined();
+            expect(chrome({ noCard: true, tableHeaderBgColor }).headerBarSx).toMatchObject({
+                backgroundColor: 'transparent',
+                boxShadow: 'none',
+            });
+        }
+    });
+
     it('paints a solid header colour as backgroundColor, a gradient as background over the card', () => {
         const solid = chrome({ tableHeaderBgColor: '#123456' }).headerBarSx;
         expect(solid.backgroundColor).toBe('#123456');
@@ -92,7 +131,7 @@ describe('buildTableChrome — header bar', () => {
         const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
         const graded = chrome({ tableHeaderBgColor: gradient }).headerBarSx;
         expect(graded.background).toBe(gradient);
-        expect(graded.backgroundColor).toBe('background.paper');
+        expect(graded.backgroundColor).toBe(PAPER);
 
         // noCard keeps its transparent base under the colour
         expect(chrome({ noCard: true, tableHeaderBgColor: gradient }).headerBarSx.backgroundColor).toBe('transparent');
@@ -120,7 +159,7 @@ describe('buildTableChrome — header bar', () => {
             chrome({ headerBorderWidth: 1, headerBorderColor }).headerBarSx['&::after'] as Record<string, unknown>;
 
         expect(line('linear-gradient(90deg, #ff0000 0%, #0000ff 100%)').backgroundColor).toBe('rgb(128, 0, 128)');
-        expect(line(undefined).backgroundColor).toBe('rgba(0, 0, 0, 0.12)');
+        expect(line(undefined).backgroundColor).toBe(DIVIDER);
     });
 });
 
@@ -148,6 +187,13 @@ describe('buildTableChrome — header cell and text', () => {
     it('ignores a font size of 0', () => {
         expect(chrome({ tableHeaderFontSize: 0 }).headerTextSx).toEqual({});
     });
+
+    it('inherits the header text colour when unset: no color at runtime, the contract only drives the swatch', () => {
+        const resolved = chrome({ tableHeaderFontSize: 14 });
+
+        expect(resolved.headerCellSx).not.toHaveProperty('color');
+        expect(resolved.headerTextSx).not.toHaveProperty('color');
+    });
 });
 
 describe('buildTableChrome — table layout and borders', () => {
@@ -164,7 +210,7 @@ describe('buildTableChrome — table layout and borders', () => {
     it('draws 1 px row borders in the theme divider by default, and no cell borders', () => {
         const sx = chrome().tableSx;
 
-        expect(cells(sx)).toEqual({ borderBottom: '1px solid', borderBottomColor: 'divider' });
+        expect(cells(sx)).toEqual({ borderBottom: '1px solid', borderBottomColor: DIVIDER });
         expect(innerCells(sx)).toBeUndefined();
     });
 
@@ -179,7 +225,7 @@ describe('buildTableChrome — table layout and borders', () => {
         // an unreadable colour falls back to the divider
         expect(cells(chrome({ horizontalCellBorderColor: 'nonsense' }).tableSx)).toEqual({
             borderBottom: '1px solid',
-            borderBottomColor: 'divider',
+            borderBottomColor: DIVIDER,
         });
     });
 
@@ -192,7 +238,7 @@ describe('buildTableChrome — table layout and borders', () => {
     it('draws cell borders between the cells (not after the last) only when switched on', () => {
         expect(innerCells(chrome({ tableShowCellBorders: true }).tableSx)).toEqual({
             borderRight: '1px solid',
-            borderRightColor: 'divider',
+            borderRightColor: DIVIDER,
         });
         expect(
             innerCells(
@@ -201,6 +247,63 @@ describe('buildTableChrome — table layout and borders', () => {
             ),
         ).toEqual({ borderRight: '2px solid', borderRightColor: '#0000ff' });
         expect(innerCells(chrome({ tableShowCellBorders: false, verticalCellBorderWidth: 2 }).tableSx)).toBeUndefined();
+    });
+});
+
+describe('buildTableChrome — the four lines resolve their divider contract as a solid colour', () => {
+    const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+    type Line = (color: string | undefined) => unknown;
+    const lines: [string, Line][] = [
+        ['borderColor', color => chrome({ borderWidth: 1, borderColor: color }).frameSx.borderColor],
+        [
+            'headerBorderColor',
+            color =>
+                (
+                    chrome({ headerBorderWidth: 1, headerBorderColor: color }).headerBarSx['&::after'] as Record<
+                        string,
+                        unknown
+                    >
+                ).backgroundColor,
+        ],
+        [
+            'verticalCellBorderColor',
+            color =>
+                (
+                    chrome({ tableShowCellBorders: true, verticalCellBorderColor: color }).tableSx[
+                        '& .MuiTableCell-root:not(:last-child)'
+                    ] as Record<string, unknown>
+                ).borderRightColor,
+        ],
+        [
+            'horizontalCellBorderColor',
+            color =>
+                (
+                    chrome({ horizontalCellBorderColor: color }).tableSx['& .MuiTableCell-root'] as Record<
+                        string,
+                        unknown
+                    >
+                ).borderBottomColor,
+        ],
+    ];
+
+    it.each(lines)('%s without a value → the theme palette.divider', (_, line) => {
+        expect(line(undefined)).toBe(DIVIDER);
+        expect(line('')).toBe(DIVIDER);
+    });
+
+    it.each(lines)('%s with a gradient → its middle colour', (_, line) => {
+        expect(line(gradient)).toBe('rgb(128, 0, 128)');
+    });
+
+    it.each(lines)('%s with an unreadable colour (red, var(), nonsense) → the divider', (_, line) => {
+        for (const color of ['red', 'var(--x)', 'nonsense', 'linear-gradient(red, blue)']) {
+            expect(line(color)).toBe(DIVIDER);
+        }
+    });
+
+    it.each(lines)('%s with a hex or rgb colour → the colour itself', (_, line) => {
+        expect(line('#00ff00')).toBe('#00ff00');
+        expect(line('rgba(1, 2, 3, 0.5)')).toBe('rgba(1, 2, 3, 0.5)');
     });
 });
 
@@ -213,7 +316,7 @@ describe('buildTableChrome — outer frame and padding', () => {
     it('draws the frame in the configured width, style and colour, the divider without colour', () => {
         const solid = chrome({ borderWidth: 2 }).frameSx;
         expect(solid.border).toBe('2px solid');
-        expect(solid.borderColor).toBe('divider');
+        expect(solid.borderColor).toBe(DIVIDER);
 
         const dashed = chrome({ borderWidth: 3, borderStyle: 'dashed', borderColor: '#00ff00' }).frameSx;
         expect(dashed.border).toBe('3px dashed');
@@ -279,5 +382,61 @@ describe('buildTableChrome — body rows and cells', () => {
         expect(evenOnly.rowSx(1)).toEqual({ height: 52 });
         expect(chrome({ oddRowColor: '#dddddd' }).rowSx(0)).toEqual({ height: 52 });
         expect(chrome({ evenRowColor: '' }).rowSx(0)).toEqual({ height: 52 });
+    });
+});
+
+describe('table colour fields — each declares the contract the chrome resolves (ADR-0004)', () => {
+    const fieldOf = (name: string): ExtendedField =>
+        jsonTableFields().find(candidate => (candidate as { name?: string }).name === name) as ExtendedField;
+
+    it.each([
+        // field, terminal, inheritTextStyle, noGradient (as the field set it before the contract)
+        ['borderColor', 'divider', undefined, true],
+        ['headerBorderColor', 'divider', undefined, true],
+        ['verticalCellBorderColor', 'divider', undefined, true],
+        ['horizontalCellBorderColor', 'divider', undefined, true],
+        ['tableHeaderBgColor', 'paper', undefined, undefined],
+        ['tableHeaderTextColor', 'text', true, true],
+    ] as const)(
+        '%s spreads exactly its contract: terminal %s, no fallback field',
+        (name, terminal, inherit, noGradient) => {
+            const field = fieldOf(name);
+            const contract = jsonTableColorContracts[name];
+
+            expect(contract).toEqual({
+                name,
+                fallbackFields: [],
+                terminal,
+                ...(inherit !== undefined && { inheritTextStyle: inherit }),
+            });
+            expect({
+                name: field.name,
+                fallbackFields: field.fallbackFields,
+                terminal: field.terminal,
+                inheritTextStyle: field.inheritTextStyle,
+            }).toEqual(contract);
+            expect(field.noGradient).toBe(noGradient);
+        },
+    );
+
+    it('without a value, the swatches show the terminals: divider for the lines, paper for the header bar', () => {
+        for (const name of [
+            'borderColor',
+            'headerBorderColor',
+            'verticalCellBorderColor',
+            'horizontalCellBorderColor',
+        ]) {
+            expect(resolveEffectiveColor(fieldOf(name), { textColor: '#00aa00' }, theme, { color: '#0000aa' })).toBe(
+                DIVIDER,
+            );
+        }
+        expect(resolveEffectiveColor(fieldOf('tableHeaderBgColor'), {}, theme, { color: '#0000aa' })).toBe(PAPER);
+    });
+
+    it('without a value, the header text swatch shows the vis-2 CSS colour, else the theme text', () => {
+        const field = fieldOf('tableHeaderTextColor');
+
+        expect(resolveEffectiveColor(field, { textColor: '#00aa00' }, theme, { color: '#0000aa' })).toBe('#0000aa');
+        expect(resolveEffectiveColor(field, { textColor: '#00aa00' }, theme, undefined)).toBe('#2f3e51');
     });
 });

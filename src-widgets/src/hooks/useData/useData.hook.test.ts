@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../../lib/testing/collectionScene';
 import useData from './useData';
-import type { UseDataResult } from './types';
+import type { StateStyleData, UseDataResult } from './types';
 import type { PreviewScene } from '../../preview/types';
 
 const OID = 'demo.0.mode';
@@ -101,37 +101,92 @@ describe('useData — Feldnummer across a blank value row', () => {
 const BASE_ICON_COLOR = '#aa0000';
 /** Icon colour carried by the marker layer. */
 const MARKER_ICON_COLOR = '#00aaaa';
+/** Text colour of the base tier. */
+const BASE_TEXT_COLOR = '#aa00aa';
+/** Text colour carried by the marker layer. */
+const MARKER_TEXT_COLOR = '#aaaa00';
 
-describe('useData — the marker layer comes from the caller', () => {
+/** One state row ('a', no own style) over a styled base tier. */
+const markedRows = {
+    values_count: 1,
+    value1: 'a',
+    iconColor: BASE_ICON_COLOR,
+    iconSize: 200,
+    textColor: BASE_TEXT_COLOR,
+    valueSize: 16,
+};
+
+/** All four marker values, each differing from the base tier. */
+const markerLayer = { iconColor: MARKER_ICON_COLOR, iconSize: 50, textColor: MARKER_TEXT_COLOR, textSize: 18 };
+
+/** The four marker-bearing values of a resolved style. */
+const markerFields = (
+    style: Pick<StateStyleData, 'iconColor' | 'iconSize' | 'textColor' | 'valueSize'>,
+): Record<string, unknown> => ({
+    iconColor: style.iconColor,
+    iconSize: style.iconSize,
+    textColor: style.textColor,
+    valueSize: style.valueSize,
+});
+
+const BASE_FIELDS = {
+    iconColor: BASE_ICON_COLOR,
+    iconSize: 'calc(24px * 200 / 100)',
+    textColor: BASE_TEXT_COLOR,
+    valueSize: 'calc(0.16rem * 0.875)',
+};
+
+const MARKER_FIELDS = {
+    iconColor: MARKER_ICON_COLOR,
+    iconSize: 'calc(24px * 50 / 100)',
+    textColor: MARKER_TEXT_COLOR,
+    valueSize: 'calc(0.18rem * 0.875)',
+};
+
+describe('useData — the marker layer applies to marks only', () => {
     afterEach(() => {
         for (const host of mounted.splice(0)) {
             host.unmount();
         }
     });
 
-    it('slots a passed marker layer into the chains (marker icon colour beats the base tier)', () => {
-        const { data } = resolve({ iconColor: BASE_ICON_COLOR }, 'x', {
-            markerLayer: { iconColor: MARKER_ICON_COLOR },
-        });
+    it.each([
+        ['a state is active', 'a'],
+        ['no state is active', 'x'],
+    ])('resolves the active style `data` without the marker layer (%s)', (_case, status) => {
+        const { data } = resolve(markedRows, status, { markerLayer });
 
-        expect(data.iconColor).toBe(MARKER_ICON_COLOR);
+        expect(markerFields(data)).toEqual(BASE_FIELDS);
+    });
+
+    it('resolves every state with the marker layer — a state without its own style takes the marker', () => {
+        const { states } = resolve(markedRows, 'x', { markerLayer });
+
+        expect(markerFields(states[0])).toEqual(MARKER_FIELDS);
+    });
+
+    it("resolves the marks' base style with the marker layer, inactive and active", () => {
+        const { markBaseStyle } = resolve(markedRows, 'x', { markerLayer });
+
+        expect([markerFields(markBaseStyle.inactive), markerFields(markBaseStyle.active)]).toEqual([
+            MARKER_FIELDS,
+            MARKER_FIELDS,
+        ]);
     });
 
     it('ignores slider marker fields in the widget data when no marker layer is passed — no type detection', () => {
-        const { data } = resolve(
+        const { states, markBaseStyle } = resolve(
             {
+                ...markedRows,
                 sliderOrientation: 'horizontal',
                 markerIconColor: MARKER_ICON_COLOR,
                 markerIconSize: 50,
-                iconColor: BASE_ICON_COLOR,
-                iconSize: 200,
+                markerTextColor: MARKER_TEXT_COLOR,
+                markerTextSize: 18,
             },
             'x',
         );
 
-        expect({ iconColor: data.iconColor, iconSize: data.iconSize }).toEqual({
-            iconColor: BASE_ICON_COLOR,
-            iconSize: 'calc(24px * 200 / 100)',
-        });
+        expect([markerFields(states[0]), markerFields(markBaseStyle.inactive)]).toEqual([BASE_FIELDS, BASE_FIELDS]);
     });
 });

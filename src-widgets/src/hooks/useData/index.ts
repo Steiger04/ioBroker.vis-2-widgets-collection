@@ -11,7 +11,7 @@
  *
  * **Key Features**:
  * - Declarative fallback chains using `resolvePriority()`
- * - Optional caller-supplied marker layer (`useData(idName, { markerLayer })`)
+ * - Optional caller-supplied marker layer (`useData(idName, { markerLayer })`), applied to marks only
  * - Full API compatibility with legacy `useData`
  * - Optimized dependency tracking for React memoization
  * - Comprehensive TypeScript type definitions
@@ -99,7 +99,7 @@ export { useStyleData };
 export type { StateItem, StyleData, UseDataResult } from './types';
 
 // Additional type exports for advanced usage
-export type { MarkerLayer, PriorityOption } from './types';
+export type { MarkBaseStyle, MarkerLayer, PriorityOption } from './types';
 export type { UseDataOptions } from './useData';
 
 // Utility function exports (optional - for advanced customization)

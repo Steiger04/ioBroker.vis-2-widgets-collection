@@ -69,8 +69,8 @@ The single reading of a Raw value as an instant and its local calendar day, in t
 _Avoid_: Datums-Parser (there used to be five), date normalisation, Datumserkennung (that is the Detected type)
 
 **Tabellen-Chrome**:
-The presentation shell of the table — outer frame, header bar (elevation, background, bottom line, text style), row and cell borders, even/odd row backgrounds, density-derived heights — resolved in exactly one widget-local place from raw widget data plus the theme. Frozen legacy presentation, pinned by tests; cell content (Format type rendering, conditional styles) is not chrome.
-_Avoid_: Tabellen-Styles (unsaid which), mixing chrome rules with cell formatting
+The presentation shell of the table — outer frame, header bar (elevation, background, bottom line, text style), row and cell borders, even/odd row backgrounds, density-derived heights — resolved in exactly one widget-local place (`JsonTableCollectionWidget/chrome.ts`) from raw widget data plus the theme. The colours of frame, lines and header are colour contracts (ADR-0004, the Slider's **Chrome-Farbvertrag** pattern): the fields declare `jsonTableColorContracts` (`lib/jsonTableColorContracts.ts`) — terminal `divider` for the four lines (outer frame, header bottom line, cell and row borders), `paper` for the header bar, `text` (+ vis-2 CSS colour) for the header text, no fallback fields — and the chrome resolves the same contracts: the lines as a solid colour (`resolveEffectiveSolidColor`: a gradient draws its Repräsentative Vollfarbe, a value without one counts as unset), the header bar as is (gradients allowed; an invalid value counts as unset). Two documented divergences from the swatch: under `noCard` the header bar stays transparent and flat instead of the terminal `paper`, and the header text inherits at runtime when unset (its contract only drives the swatch). The header bar follows the RAW `noCard`, not `wrappedContent` (`noCard || usedInWidget`): inside another widget (Widget-im-Widget) the sticky bar keeps its paper and shadow, so it stays opaque and the rows never scroll visibly underneath it. Everything else — heights, the row stripes, elevation — stays frozen legacy presentation, pinned by tests; cell content (Format type rendering, conditional styles) is not chrome.
+_Avoid_: Tabellen-Styles (unsaid which), mixing chrome rules with cell formatting, deriving the header bar from `wrappedContent`, a local `divider`/`paper` fallback beside the contract
 
 # ECharts Collection Widget
 
@@ -462,8 +462,16 @@ The dimmer/value slider of the collection (thumb, track, rail, marks, min/max ic
 ## Language
 
 **Chrome-Farbvertrag**:
-The color cascade of the slider's chrome parts (thumb, track, rail, marks) — DECLARED by the field definitions (`sliderFields` → `sliderColorContracts`: `fallbackFields` + terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`) and RESOLVED in exactly one runtime place (`buildSliderChromeStyles` via `resolveEffectiveColor`, ADR-0004). Background slots keep their raw value (gradients allowed); border/shadow slots go solid via `extractColorFromValue`. Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine.
+The color cascade of the slider's chrome parts (thumb, track, rail, marks) — DECLARED by the field definitions (`sliderFields` → `sliderColorContracts`: `fallbackFields` + terminal `primary`, e.g. `thumbBorderColor → thumbColor → sliderColor → primary`) and RESOLVED in exactly one runtime place (`buildSliderChromeStyles` via `resolveEffectiveColor`, ADR-0004). Background slots keep their raw value (gradients allowed); border/shadow slots go solid via `extractColorFromValue`. Deliberately distinct from the State-/Text-Vertrag: label chains (valueLabel, markLabel) resolve through the state-resolver system (`useData`/StyleData per state), NOT through the chrome contracts — different responsibility, different engine. The markLabel chain carries the **Marker-Ebene**, the valueLabel chain does not.
 _Avoid_: Slider-Farbregeln, Farbkaskade (unsaid WHICH contract), mixing chrome slots with label/state colors
+
+**Marke**:
+A mark on the slider's rail, with its label and icon — either a Zustandsmarke (one per numeric state row, from useData's `states`) or an erzeugte Zwischenmarke (the min/max bounds and `markStep` divisions `buildSliderMarks` adds around the states). Both render alike; a Zwischenmarke simply has no state row of its own.
+_Avoid_: Tick, mark without saying which kind where the difference matters
+
+**Marker-Ebene**:
+The widget-level style every **Marke** takes where its state sets none of its own — the `marker*` fields (`markerTextColor`, `markerTextSize`, `markerIconColor`, `markerIconSize`), passed by the slider to useData (`useData('oid', { markerLayer })`). It sits uniformly between the per-state value and the base value, in all eight chains carrying it (text colour, active text colour, font/value size, icon size/width/height, icon colour) and in the base resolution of a Zwischenmarke too: per-state → marker → base. useData applies it to `states` and to the marks' base style (`markBaseStyle`) only. Everything else resolves without it — the active style `data`, hence the **Eck-Icon**, the value label and the header/footer.
+_Avoid_: Slider-Resolver (the retired mechanism that found it by type detection), Marker-Default (it is a tier between two others, not a default)
 
 # Gauge Collection Widget
 

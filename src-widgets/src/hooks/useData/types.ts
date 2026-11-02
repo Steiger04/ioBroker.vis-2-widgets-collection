@@ -199,13 +199,15 @@ export interface PropertyResolver<T> {
 export type IndexedProperty<T, P extends string> = T extends Record<`${P}${number}`, infer V> ? V : never;
 
 /**
- * The marker layer: an optional tier between the per-state values and the base
- * values of the resolver chains.
+ * The marker layer (CONTEXT "Marker-Ebene"): the widget-level style every mark
+ * takes where its state sets none of its own — a tier between the per-state
+ * values and the base values of the resolver chains.
  *
  * A widget passes it explicitly via `useData(idName, { markerLayer })`; the core
- * never derives it from the widget data. Without it, the chains resolve as if
- * the tier did not exist. Each value is inserted at a fixed position per chain
- * (see `createPropertyResolvers()`).
+ * never derives it from the widget data. It applies to marks only: useData
+ * resolves `states` and `markBaseStyle` with it, the active style `data` and
+ * `resolveStyleData` without. Each chain carrying it places it behind the
+ * per-state tier and before the base (see `createPropertyResolvers()`).
  */
 export interface MarkerLayer {
     /** Icon size in percent of the 24px default icon. */
@@ -228,13 +230,13 @@ export interface MarkerLayer {
  * returning the resolved property value with proper fallback chain logic.
  *
  * @remarks
- * Defines 46 resolver functions across 5 categories: Icon Properties (23),
- * Text Properties (3), Size Properties (6), Content Properties (4),
- * Background Properties (8), and Marker Layer pass-throughs (4).
+ * Defines 42 resolver functions across 5 categories: Icon Properties (22),
+ * Text Properties (3), Size Properties (5), Content Properties (4) and
+ * Background Properties (8).
  * @since 2.2.0
  */
 export interface PropertyResolvers {
-    // Icon Properties (23 resolvers)
+    // Icon Properties (22 resolvers)
     icon: (ext: string | number, includeActive: boolean) => string;
     iconActive: (ext: string | number, includeActive: boolean) => string;
     iconSize: (ext: string | number, includeActive: boolean) => string;
@@ -263,7 +265,7 @@ export interface PropertyResolvers {
     textColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
     textColorCm: (ext: string | number, includeActive: boolean) => string;
 
-    // Size Properties (6 resolvers)
+    // Size Properties (5 resolvers)
     fontSize: (ext: string | number, includeActive: boolean) => string | null;
     headerSize: (ext: string | number, includeActive: boolean) => string | null;
     footerSize: (ext: string | number, includeActive: boolean) => string | null;
@@ -285,12 +287,6 @@ export interface PropertyResolvers {
     frameBackgroundColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
     frameBackground: (ext: string | number, includeActive: boolean) => string;
     frameBackgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
-
-    // Marker Layer pass-throughs (4 resolvers) — the raw values of the passed marker layer
-    markerIconSize: (ext: string | number, includeActive: boolean) => number | undefined;
-    markerTextColor: (ext: string | number, includeActive: boolean) => string | undefined;
-    markerTextSize: (ext: string | number, includeActive: boolean) => number | undefined;
-    markerIconColor: (ext: string | number, includeActive: boolean) => string | undefined;
 }
 
 /**
@@ -345,12 +341,29 @@ export type StateStyleData = Pick<
 };
 
 /**
+ * The base style of a mark (`ext=''`) with the marker layer — what a generated
+ * mark between the states renders with.
+ */
+export interface MarkBaseStyle {
+    /** The base mark style, `includeActive=false`. */
+    inactive: StyleData;
+    /** The base mark style, `includeActive=true` (the active overlay's source). */
+    active: StyleData;
+}
+
+/**
  * Return type for useData hook.
  * Matches the return type structure of useData for API compatibility.
  */
 export interface UseDataResult {
-    /** Array of computed state items with resolved properties */
+    /** Array of computed state items with resolved properties, marker layer included */
     states: StateStyleData[];
+
+    /**
+     * The marks' base style with the marker layer, for marks without a state row
+     * (see {@link MarkBaseStyle}); without a marker layer, the plain base style.
+     */
+    markBaseStyle: MarkBaseStyle;
 
     /** Mapping of state values to string labels for widget-specific use */
     widgetStates: Record<string, string>;
@@ -361,7 +374,7 @@ export interface UseDataResult {
     /** Maximum numeric value (for slider/number types) or null */
     maxValue: number | null;
 
-    /** Resolved style/presentation data for current state */
+    /** Resolved style/presentation data for current state (without the marker layer) */
     data: StyleData;
 
     /**
@@ -374,8 +387,7 @@ export interface UseDataResult {
      * {@link StateStyleData.fieldNumber}) — index the list with
      * {@link UseDataResult.activePosition} instead. Matching goes through
      * `sameStateValue`; with duplicate values the first state wins.
-     * Deliberately 1-based — the slider consumer relies on truthiness, and the first
-     * field number must stay truthy.
+     * Deliberately 1-based, so the first field number stays truthy.
      */
     activeFieldNumber: number | undefined;
 
@@ -396,7 +408,8 @@ export interface UseDataResult {
 
     /**
      * Memoized style data resolver function.
-     * Computes StyleData for a given state extension and active flag.
+     * Computes StyleData for a given state extension and active flag, without the
+     * marker layer.
      *
      * @param ext - State extension: '' for base, numeric index (1-N) for state-specific
      * @param includeActive - Whether to include active-state properties in resolution

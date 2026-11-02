@@ -7,16 +7,29 @@
  * table's presentation shell: density-derived heights, the padded body, the outer
  * frame, the table's layout and row/cell borders, the sticky header bar, header cell
  * and text, and the even/odd row backgrounds (the Select/Button-Group chrome pattern).
- * Behaviour is frozen: every rule reproduces the legacy inline sx of the renderer
- * verbatim; the tests pin the results. Like the Button-Group-Chrome it is NOT a
- * colour contract — no field declares a fallback cascade; unset colours fall back to
- * the theme's divider or paper as the legacy code did. Cell content (Format type
- * rendering, conditional styles) and the column-resize affordance are not chrome and
- * stay in the renderer.
+ * Behaviour is frozen: every rule reproduces the legacy inline sx of the renderer (the one
+ * delta: an invalid header colour counts as unset, ADR-0004); the tests pin the results.
+ * The colours of frame, lines and header are colour contracts
+ * (ADR-0004, `lib/jsonTableColorContracts`): their fields declare the terminals the
+ * runtime has always fallen back to — `divider` for the four lines (resolved as a solid
+ * colour), `paper` for the header bar, `text` for the header text — and this module
+ * resolves the same contracts. Two documented divergences: with `noCard` the header bar
+ * stays transparent (the swatch shows paper), and the header text inherits when unset
+ * (its contract only drives the swatch). The row stripes are not contracts yet. Cell
+ * content (Format type rendering, conditional styles) and the column-resize affordance
+ * are not chrome and stay in the renderer.
  */
 
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import type { Theme } from '@mui/material/styles';
+
 import { gradientColor } from '../lib/helper/gradientColor';
+import {
+    resolveEffectiveColor,
+    resolveEffectiveSolidColor,
+    terminalColor,
+    type ColorFieldContract,
+} from '../lib/helper/resolveEffectiveColor';
+import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
 import type { JsonTableFieldsRxData } from '../types';
 
 /** Row height (px) per density. */
@@ -25,8 +38,8 @@ const DENSITY_ROW_HEIGHT: Record<string, number> = { compact: 36, standard: 52, 
 const DENSITY_HEADER_HEIGHT: Record<string, number> = { compact: 36, standard: 56, comfortable: 68 };
 
 /**
- * A plain sx object. Loosely typed on purpose: frozen legacy values include `null`
- * (extractColorFromValue's "no colour"), which MUI's sx skips like `undefined`.
+ * A plain sx object. Loosely typed on purpose: an unresolvable colour stays `undefined`,
+ * which MUI's sx skips.
  */
 type SxObject = Record<string, unknown>;
 
@@ -58,16 +71,13 @@ export type TableChromeSettings = Readonly<
         | 'evenRowColor'
         | 'oddRowColor'
     > & {
-        /** Card styling off (common field) — the header bar loses its paper and shadow. */
+        /**
+         * Card styling off (common field) — the header bar loses its paper and shadow. The RAW
+         * flag only: an embedded table (`wrappedContent` false) keeps its opaque header bar.
+         */
         noCard?: boolean;
     }
 >;
-
-/** The theme slice the chrome reads: the shadow ladder and the divider colour. */
-export type TableChromeTheme = Readonly<{
-    shadows: readonly string[];
-    palette: Readonly<{ divider: string }>;
-}>;
 
 /** The resolved Tabellen-Chrome. */
 export type TableChrome = Readonly<{
@@ -96,24 +106,43 @@ export type TableChrome = Readonly<{
 }>;
 
 /**
- * The header bar's surface: card paper with the configured elevation (default 6), or
- * transparent and flat with `noCard`; the bottom line as `::after` (stays visible while
- * the sticky bar scrolls); a gradient header colour as `background` over the base, a
- * solid one replacing its `backgroundColor`.
+ * A line colour (outer frame, header bottom line, cell and row borders): its field's
+ * divider contract resolved as a solid colour — explicit value, a gradient as its middle
+ * colour, else (unset or without a solid colour) the theme divider.
  */
-function headerSurfaceSx(settings: TableChromeSettings, theme: TableChromeTheme): SxObject {
+function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, theme: Theme): string | undefined {
+    return resolveEffectiveSolidColor(contract, settings, theme, undefined);
+}
+
+/**
+ * The header bar's surface: the `tableHeaderBgColor` contract over a base layer — card
+ * paper with the configured elevation (default 6), or transparent and flat with `noCard`;
+ * the bottom line as `::after` (stays visible while the sticky bar scrolls). A gradient
+ * header colour paints as `background` over the base, a solid one replaces its
+ * `backgroundColor`; an unset or invalid one leaves the base.
+ */
+function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject {
     const headerElevation = settings.tableHeaderElevation ?? 6;
     const headerBorderWidth = settings.headerBorderWidth ?? 0;
-    const headerBorderColorValue = extractColorFromValue(settings.headerBorderColor);
-    const headerBgColor = settings.tableHeaderBgColor;
 
-    const base: SxObject =
-        settings.noCard === true
-            ? { backgroundColor: 'transparent', boxShadow: 'none' }
-            : {
-                  backgroundColor: 'background.paper',
-                  boxShadow: headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
-              };
+    // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside
+    // another widget the sticky bar keeps its paper and shadow, so it stays opaque and the
+    // rows never scroll visibly underneath it.
+    const flat = settings.noCard === true;
+
+    // The header colour contract: explicit value → theme paper (terminal). Documented
+    // deviation under noCard: the bar stays transparent — the terminal yields to
+    // transparent, while the editor swatch keeps showing the paper.
+    const contract = flat
+        ? { ...jsonTableColorContracts.tableHeaderBgColor, terminal: 'transparent' as const }
+        : jsonTableColorContracts.tableHeaderBgColor;
+    const headerBgColor = resolveEffectiveColor(contract, settings, theme, undefined);
+
+    const base: SxObject = {
+        // The base layer is the terminal: the paper, or transparent under noCard
+        backgroundColor: terminalColor(contract.terminal, theme) || 'transparent',
+        boxShadow: !flat && headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
+    };
 
     if (headerBorderWidth > 0) {
         base['&::after'] = {
@@ -123,12 +152,12 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: TableChromeTheme)
             right: 0,
             bottom: 0,
             height: `${headerBorderWidth}px`,
-            backgroundColor: headerBorderColorValue || theme.palette.divider,
+            backgroundColor: lineColor(jsonTableColorContracts.headerBorderColor, settings, theme),
             pointerEvents: 'none',
         };
     }
 
-    const gradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
+    const gradientBg = gradientColor(headerBgColor);
     if (gradientBg) {
         return { ...base, background: gradientBg };
     }
@@ -141,10 +170,9 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: TableChromeTheme)
 /**
  * The table: fixed layout (auto with auto-size), row borders (default on, 1 px) and
  * cell borders (default off, 1 px) between the cells only — never after the last one,
- * so the outer frame stays the container's. An unset or unreadable colour falls back to
- * the theme's `divider`, a gradient to its middle colour.
+ * so the outer frame stays the container's. Both colours are line colours ({@link lineColor}).
  */
-function tableSx(settings: TableChromeSettings): SxObject {
+function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     const sx: SxObject = {
         tableLayout: settings.tableAutoSize === true ? 'auto' : 'fixed',
         width: '100%',
@@ -154,19 +182,17 @@ function tableSx(settings: TableChromeSettings): SxObject {
         sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
     } else {
         const hBorderWidth = settings.horizontalCellBorderWidth ?? 1;
-        const hBorderColorValue = extractColorFromValue(settings.horizontalCellBorderColor);
         sx['& .MuiTableCell-root'] = {
             borderBottom: `${hBorderWidth}px solid`,
-            borderBottomColor: hBorderColorValue || 'divider',
+            borderBottomColor: lineColor(jsonTableColorContracts.horizontalCellBorderColor, settings, theme),
         };
     }
 
     if (settings.tableShowCellBorders === true) {
         const vBorderWidth = settings.verticalCellBorderWidth ?? 1;
-        const vBorderColorValue = extractColorFromValue(settings.verticalCellBorderColor);
         sx['& .MuiTableCell-root:not(:last-child)'] = {
             borderRight: `${vBorderWidth}px solid`,
-            borderRightColor: vBorderColorValue || 'divider',
+            borderRightColor: lineColor(jsonTableColorContracts.verticalCellBorderColor, settings, theme),
         };
     }
 
@@ -176,9 +202,9 @@ function tableSx(settings: TableChromeSettings): SxObject {
 /**
  * The outer frame: a clipping flex column (its overflow hides the scrollbars at rounded
  * corners) with the configured border — only for a width above 0, style default solid,
- * an unset or unreadable colour the theme's `divider` — and radius.
+ * a line colour ({@link lineColor}) — and radius.
  */
-function frameSx(settings: TableChromeSettings): SxObject {
+function frameSx(settings: TableChromeSettings, theme: Theme): SxObject {
     const base: SxObject = {
         flex: 1,
         overflow: 'hidden',
@@ -188,12 +214,11 @@ function frameSx(settings: TableChromeSettings): SxObject {
 
     const borderWidth = settings.borderWidth;
     const borderStyle = settings.borderStyle || 'solid';
-    const borderColor = extractColorFromValue(settings.borderColor);
     const borderRadius = settings.borderRadius;
 
     if (borderWidth && borderWidth > 0) {
         base.border = `${borderWidth}px ${borderStyle}`;
-        base.borderColor = borderColor || 'divider';
+        base.borderColor = lineColor(jsonTableColorContracts.borderColor, settings, theme);
     }
     if (borderRadius) {
         base.borderRadius = borderRadius;
@@ -214,15 +239,17 @@ function rowBackgroundSx(colorValue: string | null): SxObject | undefined {
 /**
  * Resolves the Tabellen-Chrome.
  *
- * @param settings The raw widget data.
- * @param theme The effective MUI theme (only `shadows` and `palette.divider` are read).
+ * @param settings The raw widget data (the raw `noCard`, never `wrappedContent`).
+ * @param theme The effective MUI theme (the shadow ladder and the contract terminals).
  * @returns Every sx fragment of the table's presentation shell.
  */
-export function buildTableChrome(settings: TableChromeSettings, theme: TableChromeTheme): TableChrome {
+export function buildTableChrome(settings: TableChromeSettings, theme: Theme): TableChrome {
     const density = settings.tableDensity || 'standard';
     const rowHeight = Number(settings.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
     const headerHeight = Number(settings.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
 
+    // The header text contract (vis-2 CSS colour → theme text) drives only the editor
+    // swatch: at runtime an unset colour sets no `color`, so the header inherits it.
     const headerTextColor = settings.tableHeaderTextColor;
     const headerFontSize = settings.tableHeaderFontSize;
     // Applied to the header text too, so the Typography inside the cell cannot override it
@@ -245,9 +272,9 @@ export function buildTableChrome(settings: TableChromeSettings, theme: TableChro
             overflow: 'hidden',
             p: Number(settings.jsonTablePadding) || 0,
         },
-        frameSx: frameSx(settings),
+        frameSx: frameSx(settings, theme),
         scrollSx: { flex: 1, overflow: 'auto' },
-        tableSx: tableSx(settings),
+        tableSx: tableSx(settings, theme),
         headerBarSx: {
             position: 'sticky',
             top: 0,
