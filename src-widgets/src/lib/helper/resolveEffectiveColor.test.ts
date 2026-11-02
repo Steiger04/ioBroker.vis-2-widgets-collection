@@ -6,8 +6,9 @@ import type { ColorFieldContract } from './resolveEffectiveColor';
 const THEME = {
     palette: {
         primary: { main: '#pri' },
-        text: { primary: '#txt' },
+        text: { primary: '#txt', secondary: '#txs' },
         background: { paper: '#pap', default: '#bg' },
+        divider: '#div',
     },
 } as unknown as Theme;
 
@@ -23,6 +24,11 @@ describe('terminalColor', () => {
         expect(terminalColor('paper', THEME)).toBe('#pap');
         expect(terminalColor('transparent', THEME)).toBe('');
         expect(terminalColor(undefined, THEME)).toBe('');
+    });
+
+    it('maps the chrome terminals to the theme divider and the secondary text colour', () => {
+        expect(terminalColor('divider', THEME)).toBe('#div');
+        expect(terminalColor('textSecondary', THEME)).toBe('#txs');
     });
 });
 

@@ -19,6 +19,7 @@
 import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import useDebounce from './useDebounce';
 import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../types';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';
@@ -176,6 +177,13 @@ export interface UseValueStateReturn {
     hasBackendChange: boolean;
 
     /**
+     * Sperre (CONTEXT): the control must be disabled — the widget is display-only
+     * (`onlyDisplay`) or the BOUND object is not writable (`write === false`).
+     * Deliberately wider than the {@link UseValueStateReturn.updateValue} guard.
+     */
+    locked: boolean;
+
+    /**
      * Updates the local widget value and (optionally) schedules a backend write.
      *
      * @param value - New value (string/number/boolean). `null` is intentionally not supported.
@@ -188,7 +196,8 @@ export interface UseValueStateReturn {
  * Manages a value associated with an OID, including conversion and debounced writes.
  *
  * @param idName - Name of the OID property (e.g. `"oid"`, `"oid1"`, `"oid2"`).
- * @returns An object containing the current value, backend-change flag, and an update function.
+ * @returns An object containing the current value, backend-change flag, the Sperre (`locked`)
+ * and an update function.
  * @example
  * ```tsx
  * const { value, updateValue, hasBackendChange } = useValueState('oid');
@@ -213,6 +222,12 @@ const useValueState = (idName: string): UseValueStateReturn => {
     const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
 
     const value = getPropertyValue(idName);
+
+    // Sperre: decided against the object actually bound, not the root `write` copy.
+    const onlyDisplay = (widget.data as Partial<CommonObjectFieldsRxData>).onlyDisplay;
+    const objectWrite = oidObject?.write;
+    const locked = useMemo(() => isOidReadOnly({ onlyDisplay, write: objectWrite }), [onlyDisplay, objectWrite]);
+
     const prevStateRef = useRef<{
         lc: number | undefined;
         value: string | number | boolean | undefined | null;
@@ -258,6 +273,9 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
             // Never write to a read-only state, even if a widget forgets the UI guard
             // (lenient: only an explicit common.write === false blocks).
+            // The Sperre (`locked`, CONTEXT "Sperre") is deliberately WIDER than this
+            // guard: Light2's Hilfs-OIDs can carry a leaked `onlyDisplay` (ADR-0096,
+            // no heal) — a guard on `onlyDisplay` would stop their writes.
             if (oidObject?.write === false) {
                 return;
             }
@@ -296,6 +314,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
     return {
         value,
         hasBackendChange,
+        locked,
         updateValue,
     };
 };

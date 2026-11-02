@@ -15,7 +15,6 @@ import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 
 import type { ButtonGroupCollectionContextProps } from '../types';
@@ -29,7 +28,7 @@ function ButtonGroupCollection(): React.JSX.Element {
 
     const oidObject = widget.data.oidObject;
     const { data: styleData, states: buttonStates, activePosition } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
     const buttonGroupOrientation = widget.data.buttonGroupOrientation;
@@ -63,13 +62,13 @@ function ButtonGroupCollection(): React.JSX.Element {
                 <ToggleButtonGroup
                     exclusive
                     value={String(oidValue)}
-                    disabled={!isValidType || isOidReadOnly(widget.data)}
+                    disabled={locked}
                     fullWidth
                     orientation={buttonGroupOrientation}
                     sx={buildGroupChrome({
                         variant: buttonGroupVariant,
                         orientation: buttonGroupOrientation,
-                        buttonGroupColor: widget.data.buttonGroupColor,
+                        data: widget.data,
                         basePadding: widget.data.basePadding,
                         count: buttonStates.length,
                         theme,

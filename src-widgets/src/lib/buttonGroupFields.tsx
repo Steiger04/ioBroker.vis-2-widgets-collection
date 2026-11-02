@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/button-group-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { buttonGroupColorContract } from './buttonGroupColorContract';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -51,8 +52,13 @@ const buttonGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] =>
         ],
         default: 'horizontal',
     },
-    // Button group color with fallback to textColor
-    createColorField({ name: 'buttonGroupColor', label: 'button_group_color', fallbackFields: ['textColor'] }),
+    // Separator/border colour, solid-only. Its cascade is the one contract the
+    // Button-Group-Chrome resolves at runtime (ADR-0004): explicit value → theme text.
+    createColorField({
+        ...buttonGroupColorContract,
+        label: 'button_group_color',
+        noGradient: true,
+    }),
 ];
 
 export default buttonGroupFields;

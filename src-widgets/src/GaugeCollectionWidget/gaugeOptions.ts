@@ -23,6 +23,8 @@ import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
 import { resolveEffectiveColor, type ColorFieldContract, type StyleColor } from '../lib/helper/resolveEffectiveColor';
+// Type-only (erased at runtime): keeps the builder free of editor imports in the node test env.
+import type { ColorTerminal } from '../types/field-definitions/extended-field';
 
 /**
  * Field slice the builder reads. Structurally satisfied by both plain schema
@@ -39,9 +41,6 @@ export interface BuilderField {
     fallbackFields?: string[] | undefined;
     inheritTextStyle?: boolean | undefined;
 }
-
-// Re-declared locally to keep the builder free of editor imports in the node test env.
-type ColorTerminal = 'primary' | 'text' | 'paper' | 'transparent';
 
 /** Inputs the widget body owns (measured dimensions, current value, highlight zones). */
 export interface GaugeOptionsContext {

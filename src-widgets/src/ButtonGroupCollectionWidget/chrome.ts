@@ -9,20 +9,23 @@
  * box-shadow separators, the vertical per-button cap, the hover/selected
  * lightening with its gradient escape — is testable as pure data without
  * mounting the widget. Behaviour is frozen: every rule reproduces the legacy
- * inline computation verbatim; the tests pin the results. The module owns the
- * separator alpha constants (0.6) and their fallback cascade
- * (`buttonGroupColor → theme.palette.text.primary`) — the CONTEXT.md term
- * "Button-Group-Chrome" (deliberately NOT a field-declared colour contract
- * like the Slider's Chrome-Farbvertrag). The content boxes (icon/text) are
- * not chrome and stay in the JSX.
+ * inline computation verbatim; the tests pin the results — the CONTEXT.md term
+ * "Button-Group-Chrome". The separator/border colour is a colour contract
+ * (ADR-0004, the Slider's Chrome-Farbvertrag pattern): the `buttonGroupColor`
+ * field declares `buttonGroupColorContract` (explicit value → theme text) and
+ * this module resolves the same contract. The separator alpha (0.6) and the
+ * hover/selected tints stay frozen presentation. The content boxes (icon/text)
+ * are not chrome and stay in the JSX.
  */
 
 import type { CSSObject, Theme } from '@mui/material/styles';
 
+import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
 import { alphaOf, lightenOf } from '../lib/helper/colorDerivation';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
 
-/** Alpha applied to both the configured colour and the theme fallback. */
+/** Alpha applied to the separator's resolved colour (explicit value or theme text). */
 const SEPARATOR_ALPHA = 0.6;
 
 /** Input for {@link buildGroupChrome} — raw rxData fields plus theme and button count. */
@@ -31,13 +34,13 @@ export interface ButtonGroupChromeInput {
     variant: string | undefined;
     /** rxData.buttonGroupOrientation — `'vertical'` stacks and caps the buttons, anything else lays them out horizontally. */
     orientation: string | undefined;
-    /** rxData.buttonGroupColor — separator colour source; falls back to the theme's primary text colour. */
-    buttonGroupColor: string | null | undefined;
+    /** Widget data (rxData) the separator's colour contract (`buttonGroupColorContract`) resolves over. */
+    data: object;
     /** rxData.basePadding — truthy keeps the group's rounded ends (borderRadius), falsy squares them off. */
     basePadding: unknown;
     /** Number of rendered toggle buttons (drives the vertical per-button height cap). May be 0 (rule then matches nothing). */
     count: number;
-    /** MUI theme providing the separator fallback colour. */
+    /** MUI theme providing the contract's terminal (theme text). */
     theme: Theme;
 }
 
@@ -51,18 +54,21 @@ export interface ButtonGroupChromeInput {
  * @returns The group's sx object; spread onto `<ToggleButtonGroup sx={…}>`.
  */
 export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
-    const { variant, orientation, buttonGroupColor, basePadding, count, theme } = input;
+    const { variant, orientation, data, basePadding, count, theme } = input;
 
     const isVertical = orientation === 'vertical';
     const isOutlined = variant === 'outlined';
 
-    // Separator colour: configured group colour, else the theme's primary text
-    // (used for the inset box-shadow dividers in text mode and the border color
-    // in outlined mode). A gradient yields its midpoint colour; a value without
-    // a Repräsentative Vollfarbe draws no separator instead of throwing.
-    const separatorColor = buttonGroupColor
-        ? alphaOf(buttonGroupColor, SEPARATOR_ALPHA)
-        : alphaOf(theme.palette.text.primary, SEPARATOR_ALPHA);
+    // Separator colour (the inset box-shadow dividers in text mode, the border
+    // colour in outlined mode): the button-group colour contract — explicit
+    // `buttonGroupColor`, else the theme text — as a solid colour. A gradient
+    // yields its midpoint; a value without a Repräsentative Vollfarbe counts as
+    // unset. No vis-2 style stage (`undefined` textStyles): the contract does not
+    // inherit it. Only a theme text without a solid colour draws no separator.
+    const separatorColor = alphaOf(
+        resolveEffectiveSolidColor(buttonGroupColorContract, data as Record<string, unknown>, theme, undefined),
+        SEPARATOR_ALPHA,
+    );
 
     // Borderless mode: borders fully removed and inset box-shadows used for the
     // separator lines so they stay visible even when buttons have a background

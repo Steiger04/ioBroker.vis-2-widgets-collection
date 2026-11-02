@@ -13,7 +13,6 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
-import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import useInlineEdit from './useInlineEdit';
 
 import type { InputCollectionContextProps } from '../types';
@@ -29,7 +28,7 @@ import type { InputCollectionContextProps } from '../types';
  * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
  *
- * Read-only widgets (`onlyDisplay` or non-writable OID) never enter edit mode.
+ * Locked widgets (the binding's Sperre: `onlyDisplay` or non-writable OID) never enter edit mode.
  * Type conversion and debouncing are handled by `useValueState`.
  */
 const InputCollection: FC = () => {
@@ -46,6 +45,7 @@ const InputCollection: FC = () => {
     const {
         value: oidValue,
         hasBackendChange,
+        locked,
         editing,
         draft,
         enterEdit,
@@ -62,8 +62,7 @@ const InputCollection: FC = () => {
     const oidType = oidObject?.type;
     const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidType);
     const isNumber = oidType === 'number';
-    const isReadOnly = isOidReadOnly(widget.data);
-    const editable = !isReadOnly;
+    const editable = !locked;
 
     const textColor = data.textColor;
     const inputVariant = widget.data.inputVariant ?? 'standard';
