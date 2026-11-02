@@ -43,6 +43,27 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
     it.each(UNREADABLE.map(value => [String(value), value]))('%s has none → undefined', (_label, value) => {
         expect(solidOf(value)).toBeUndefined();
     });
+
+    it.each([' #ff0000 ', ' #ff0000', ' rgb(255, 0, 0)'])(
+        'a solid colour starting with whitespace (%s) has none — it is not trimmed, MUI never read it either',
+        value => {
+            expect(solidOf(value)).toBeUndefined();
+            expect(alphaOf(value, 0.5)).toBeUndefined();
+            expect(lightenOf(value, 0.5)).toBeUndefined();
+        },
+    );
+
+    it.each([
+        ['#ff0000 ', '#ff0000'],
+        ['rgb(255, 0, 0) ', 'rgb(255, 0, 0)'],
+    ])('trailing whitespace after a solid colour (%s) is ignored, as MUI ignored it', (value, expected) => {
+        expect(solidOf(value)).toBe(expected);
+        expect(alphaOf(value, 0.5)).toBe('rgba(255, 0, 0, 0.5)');
+    });
+
+    it('a gradient padded with whitespace still stands for its midpoint', () => {
+        expect(solidOf(` ${LINEAR} `)).toBe('rgb(128, 0, 128)');
+    });
 });
 
 describe('alphaOf', () => {

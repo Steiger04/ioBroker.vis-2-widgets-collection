@@ -243,6 +243,22 @@ describe('buildMenuItemChrome', () => {
         });
     });
 
+    it('paints a hex starting with whitespace but tints nothing on hover, as before the spec', () => {
+        // MUI's alpha() never read a value starting with whitespace, so the legacy hover stayed untinted.
+        const sx = buildMenuItemChrome(' #3399cc ') as Record<string, any>;
+
+        expect(sx.bgcolor).toBe(' #3399cc ');
+        expect(sx['&:hover']).toEqual({ background: undefined, bgcolor: undefined });
+        expect(sx['&.Mui-selected:hover']).toEqual({ background: undefined, bgcolor: undefined });
+    });
+
+    it('tints a hex with only trailing whitespace on hover, as before the spec', () => {
+        // MUI's alpha() read past trailing whitespace, so the legacy hover was tinted.
+        const sx = buildMenuItemChrome('#3399cc ') as Record<string, any>;
+
+        expect(sx['&:hover']).toEqual({ background: undefined, bgcolor: 'rgba(51, 153, 204, 0.5)' });
+    });
+
     it('paints a gradient without an extractable colour but tints nothing on hover — without throwing', () => {
         // Named stops: extractColorFromValue reads hex/rgb stops only, and MUI cannot parse a gradient.
         const gradient = 'linear-gradient(90deg, red 0%, blue 100%)';

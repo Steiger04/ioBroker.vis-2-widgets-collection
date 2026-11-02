@@ -17,21 +17,30 @@
 
 import { alpha, lighten } from '@mui/material/styles';
 
+import { isGradientColor } from './colorValidation';
 import { extractColorFromValue } from './extractColorFromValue';
 
 /**
  * The Repräsentative Vollfarbe of a color value.
  *
  * @param value - Any color value: hex, rgb(a), a gradient, a CSS color name/keyword/variable, or nothing.
- * @returns Hex and rgb(a) as given (trimmed); a gradient's interpolated color at 50 %;
- *   `undefined` for a color name, `transparent`, `var(…)`, a gradient without hex/rgb
- *   stops, `''` and `null`/`undefined`.
+ * @returns Hex and rgb(a) as given (trailing whitespace dropped); a gradient's interpolated
+ *   color at 50 %; `undefined` for a color name, `transparent`, `var(…)`, a gradient without
+ *   hex/rgb stops, a solid color starting with whitespace, `''` and `null`/`undefined`.
+ * @remarks
+ * A solid value is not trimmed at its start: MUI's color calculation, which the hover
+ * tints used before this module, never read one starting with whitespace (it threw, the
+ * Select's hover stayed untinted), but read past trailing whitespace. Keeping that line
+ * keeps the rendering of such legacy values identical.
  * @example
  * solidOf('#ff0000') // → '#ff0000'
  * solidOf('linear-gradient(90deg, #ff0000 0%, #0000ff 100%)') // → 'rgb(128, 0, 128)'
  * solidOf('transparent') // → undefined
  */
 export function solidOf(value: string | null | undefined): string | undefined {
+    if (typeof value === 'string' && /^\s/.test(value) && !isGradientColor(value)) {
+        return undefined;
+    }
     return extractColorFromValue(value) ?? undefined;
 }
 
