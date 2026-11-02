@@ -338,7 +338,8 @@ const SliderCollection: FC = () => {
                                 },
                                 '& .MuiSlider-markLabelActive': {
                                     [`&[data-index='${sliderMarksIndex}']`]: {
-                                        "& div[data-font='active']": {
+                                        // No tag: the mark text is a Typography, rendered as <p>.
+                                        "& [data-font='active']": {
                                             color: widget.data.textColorActive
                                                 ? `${widget.data.textColorActive} !important`
                                                 : undefined,

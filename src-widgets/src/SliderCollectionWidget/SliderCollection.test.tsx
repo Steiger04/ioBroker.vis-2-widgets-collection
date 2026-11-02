@@ -131,6 +131,15 @@ describe('SliderCollection mark label text', () => {
             MARKER_TEXT_COLOR,
         ]);
     });
+
+    // The value 50 selects the middle mark (0, 50, 100): textColorActive paints that mark only.
+    it('paints textColorActive on the selected mark only', () => {
+        expect(labelColors({ markerTextColor: MARKER_TEXT_COLOR, textColorActive: '#aa00aa' }).marks).toEqual([
+            MARKER_TEXT_COLOR,
+            '#aa00aa',
+            MARKER_TEXT_COLOR,
+        ]);
+    });
 });
 
 describe('SliderCollection mark label font size', () => {
@@ -176,6 +185,39 @@ describe('SliderCollection mark label font size', () => {
         expect(small).toEqual([small[0], small[0], small[0]]);
         expect(large).toEqual([large[0], large[0], large[0]]);
         expect(new Set([unset[0], small[0], large[0]]).size).toBe(3);
+    });
+
+    // The value 50 selects the middle mark (0, 50, 100): valueSizeActive sizes that mark's text only.
+    it('sizes the selected mark text with valueSizeActive', () => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-mark-active-size-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    valueSize: 100,
+                    valueSizeActive: 250,
+                },
+                50,
+            ),
+        );
+        const sizes = Array.from(container.querySelectorAll(".MuiSlider-markLabel [data-font='active']")).map(
+            m => getComputedStyle(m).fontSize,
+        );
+
+        expect(sizes).toHaveLength(3);
+        expect(sizes[0]).not.toBe('');
+        expect(sizes[2]).toBe(sizes[0]);
+        expect(sizes[1]).not.toBe(sizes[0]);
     });
 });
 
