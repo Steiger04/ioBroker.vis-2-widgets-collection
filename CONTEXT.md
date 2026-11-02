@@ -404,6 +404,14 @@ _Avoid_: Wizard dialog (the deleted modal), theme dialog
 One editing run of the Theme Studio, from opening to Save or discard: it owns the draft (seeded from the last known theme, rebased onto the stored theme while untouched), mirrors it to the canvas, knows whether it is dirty, and saves or discards it. Invariant: when the session ends — however it ends — the draft leaves the canvas. It lives independently of the widget palette: collapsing, filtering or hiding the palette, switching views or toggling Run does not end it. Distinguished from the Editor history (the undo stack beneath the draft) and from the per-widget save handoff (each widget retires the draft once the stored theme echoes it).
 _Avoid_: Studio-Sitzung, studio lifecycle, wizard state
 
+**Studio host**:
+The studio's own React root under `document.body` (ADR-0020 addendum 2026-11-02), created when the palette button opens the studio and unmounted when it closes — so every open starts a fresh Studio session, and the panel survives the palette collapsing, filtering, view switches and Run. The palette button only says "open" and passes the latest `socket` and host mode on; a second open brings the existing studio to the front. Because the panel stays open over the vis-2 editor, its shortcuts (Escape, undo/redo) act only on events inside the panel.
+_Avoid_: Portal (hangs on the button and unmounts with the palette), studio dialog
+
+**Collection CSS-variable prefix**:
+The prefix of the CSS variables a user theme with `cssVariables` emits on `:root`: `vis2c` (`--vis2c-palette-primary-main`), also for `cssVariables: true` and an empty prefix. `mui` belongs to the vis-2 editor's own `--mui-*` variables: the resolution replaces it, the studio validation rejects it at the prefix field. The collection theme sets no `color-scheme` on `:root` (it would override the editor's).
+_Avoid_: MUI prefix, `--mui-*` (the editor's namespace)
+
 **Preset card**:
 A curated theme preset rendered as mini colour swatches (background / paper / primary / secondary) plus a mode icon. The card matching the current palette is marked active.
 _Avoid_: Preset chip (the old blind dot)
@@ -429,7 +437,7 @@ The `frameBackground` field's inherit semantics (terminal `paper`, ADR-0004/0078
 _Avoid_: „erbt = transparent“ (only true for the inner background field)
 
 **Editor history**:
-The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input. One implementation (`useEditorHistory`) backs both working copies.
+The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input; a non-modal editor (the Studio panel) scopes the keys to its own element. One implementation (`useEditorHistory`) backs both working copies.
 _Avoid_: Snapshot list, timeline, draft history (that's the studio's working copy, not the mechanism)
 
 **Editor lifecycle**:
