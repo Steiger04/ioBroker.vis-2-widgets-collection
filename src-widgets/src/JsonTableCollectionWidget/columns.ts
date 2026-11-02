@@ -162,32 +162,17 @@ export function readJsonTable(value: unknown, saved: readonly ColumnConfigEntry[
 }
 
 /** The text key of an empty state — why no table is shown. */
-export type EmptyStateText =
-    | 'json_table_no_oid'
-    | 'json_table_invalid_type'
-    | 'json_table_no_data'
-    | 'json_table_all_columns_hidden';
+export type EmptyStateText = 'json_table_no_data' | 'json_table_all_columns_hidden';
 
 /**
- * Why no table is shown, in this order: no OID, an OID type that holds no JSON, no data
- * (an empty payload included, saved configuration or not), every Column hidden.
+ * Why no table is shown, in this order: no data (an empty payload included, saved
+ * configuration or not), every Column hidden. A missing OID or an OID type that holds no JSON
+ * never reaches the body: `CollectionBase` renders its own notice and no children then.
  *
- * @param oidType The OID's common type; `undefined` when no OID is selected.
- * @param validType Whether that type may hold the table's JSON.
  * @param columns The table's Columns.
  * @returns The empty state's text key; `null` when the table is shown.
  */
-export function emptyState(
-    oidType: string | undefined,
-    validType: boolean,
-    columns: readonly EffectiveColumn[],
-): EmptyStateText | null {
-    if (oidType === undefined) {
-        return 'json_table_no_oid';
-    }
-    if (!validType) {
-        return 'json_table_invalid_type';
-    }
+export function emptyState(columns: readonly EffectiveColumn[]): EmptyStateText | null {
     if (columns.length === 0) {
         return 'json_table_no_data';
     }

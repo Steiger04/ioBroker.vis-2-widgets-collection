@@ -177,7 +177,7 @@ const JsonTableCollection: FC = () => {
         () => readJsonTable(oidValue, columnConfig, widget.data.tableMaxDepth),
         [oidValue, columnConfig, widget.data.tableMaxDepth],
     );
-    const emptyText = emptyState(oidType, isValidType, tableColumns);
+    const emptyText = emptyState(tableColumns);
 
     // ── Tabellen-Chrome (frame, header bar, borders, row backgrounds, heights) ──
 
