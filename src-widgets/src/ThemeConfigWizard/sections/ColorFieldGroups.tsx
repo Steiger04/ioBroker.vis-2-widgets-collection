@@ -7,7 +7,9 @@
  * ({@link module:ThemeConfigWizard/studioColorFields}): a `SubGroup` per group, a
  * `ColorPickerField` per field. Each field shows the effective (resolved) colour until the user
  * overrides it — the colour the canvas widgets inherit from the editor theme — as swatch and as
- * editable hex text, and its validation error at the field. A derived field carries its marker ("derived from primary",
+ * editable hex text, and its validation error at the field. The swatch always shows the
+ * resolution (the canvas colour), also for a stored value the resolution drops; the hex text
+ * shows the stored value then. A derived field carries its marker ("derived from primary",
  * "follows primary") while the resolution derives it, and every field a `HelpHint` naming where
  * the colour shows up.
  */
@@ -62,6 +64,9 @@ function ColorFieldGroups({
                     <ColorPickerField
                         label={label}
                         value={stored ?? resolvedValue}
+                        // The swatch shows what the canvas paints (the resolution), even when it
+                        // drops a stored value; the hex text keeps the stored one to fix it.
+                        swatchValue={resolved ? resolvedValue : undefined}
                         overridden={stored !== undefined}
                         onChange={color => onChange(field.path, color || undefined)}
                         presets={colorPresets}

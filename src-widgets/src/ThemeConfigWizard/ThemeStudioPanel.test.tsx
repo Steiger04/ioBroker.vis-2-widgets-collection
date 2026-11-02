@@ -153,6 +153,51 @@ describe('ThemeStudioPanel draft lifetime', () => {
     });
 });
 
+describe('ThemeStudioPanel keyboard scope', () => {
+    // The studio stays open over the vis-2 editor (run mode, view switch): its keys must not
+    // swallow the editor's own Escape and undo outside the panel.
+    const press = (target: EventTarget, init: KeyboardEventInit): boolean => {
+        const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init });
+        act(() => {
+            target.dispatchEvent(event);
+        });
+        return event.defaultPrevented;
+    };
+
+    const closeButton = (): HTMLButtonElement | null =>
+        document.body.querySelector<HTMLButtonElement>('button[aria-label="theme_studio_close"]');
+
+    it('closes on Escape inside the panel, not on Escape elsewhere on the page', async () => {
+        await mountPanel(SEED);
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+
+        press(outside, { key: 'Escape' });
+        expect(closeButton()).not.toBeNull();
+
+        press(closeButton()!, { key: 'Escape' });
+        expect(closeButton()).toBeNull();
+        outside.remove();
+    });
+
+    it('undoes on Ctrl+Z inside the panel and leaves Ctrl+Z elsewhere to the page', async () => {
+        await mountPanel(SEED);
+        act(() => button('theme_wizard_reset').click());
+        await settle();
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+
+        expect(press(outside, { key: 'z', ctrlKey: true })).toBe(false);
+        await settle();
+        expect(getDraftTheme()).toEqual({});
+
+        expect(press(closeButton()!, { key: 'z', ctrlKey: true })).toBe(true);
+        await settle();
+        expect(getDraftTheme()).toEqual(SEED);
+        outside.remove();
+    });
+});
+
 /** Colour field label key per theme path (the stub echoes keys as labels). */
 const COLOR_FIELD_LABELS: Record<string, string> = {
     'palette.primary.main': 'theme_wizard_palette_primary',
@@ -223,6 +268,9 @@ describe('ThemeStudioPanel effective colours', () => {
         ['primary only', { palette: { primary: { main: '#ff0000' } } }],
         ['primary + text', { palette: { primary: { main: '#ff0000' }, text: { primary: '#222222' } } }],
         ['full', FULL],
+        // Stored but dropped by the resolution (MUI cannot compute with `red`): the canvas
+        // inherits, so the swatch must too — only the hex text keeps the stored value.
+        ['discarded primary', { palette: { primary: { main: 'red' } } }],
     ])('shows the resolved colour on every swatch (%s)', async (_name, seed) => {
         await mountPanel(seed);
         await expandColorSections();
@@ -398,13 +446,16 @@ describe('ThemeStudioPanel field errors', () => {
         expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
     });
 
-    it('reports the CSS variables prefix mui, reserved by the vis-2 editor, as a problem', async () => {
+    it('reports the CSS variables prefix mui, reserved by the vis-2 editor, at the prefix field', async () => {
         await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } } as UserTheme);
-        const alert = document.body.querySelector('.MuiAlert-standardError');
-        expect(alert?.textContent).toContain('cssVariables.cssVarPrefix: theme_studio_valid_css_var_prefix');
         expect(document.body.querySelector('button.MuiButton-colorError')?.textContent).toBe(
             'theme_studio_problems_one',
         );
+        await expandSections('theme_studio_section_advanced');
+        expect(document.body.querySelector('[data-theme-error] .MuiFormHelperText-root')?.textContent).toBe(
+            'theme_studio_valid_css_var_prefix',
+        );
+        expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
     });
 });
 
@@ -450,6 +501,15 @@ describe('ThemeStudioPanel hex input', () => {
         expect(hexInputOf('theme_wizard_palette_divider').value).toBe('#303030');
         expect(hexInputOf('theme_wizard_palette_primary').value).toBe(createChromeTheme('light').palette.primary.main);
         expect(document.body.querySelectorAll('input[data-hex-input]')).toHaveLength(11);
+    });
+
+    it('keeps a stored value the resolution drops in the hex text, while the swatch inherits', async () => {
+        await mountPanel({ palette: { primary: { main: 'red' } } });
+        await expandColorSections();
+        expect(hexInputOf('theme_wizard_palette_primary').value).toBe('red');
+        expect(displayedSwatches().get('theme_wizard_palette_primary')).toBe(
+            createChromeTheme('light').palette.primary.main,
+        );
     });
 
     it('writes a typed colour into the draft', async () => {

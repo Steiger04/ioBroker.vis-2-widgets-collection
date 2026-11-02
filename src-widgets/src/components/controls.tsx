@@ -194,7 +194,8 @@ export const OptionalNumberField: FC<{
 
 /**
  * Text input, caption-above (ADR-0019). The placeholder is always visible (no floating label
- * competes with it) — used e.g. to show an inherited value as ghost text.
+ * competes with it) — used e.g. to show an inherited value as ghost text. A helper text (e.g. a
+ * validation message) is linked to the input via `aria-describedby`.
  */
 export const TextField2: FC<{
     label: string;
@@ -204,21 +205,26 @@ export const TextField2: FC<{
     error?: boolean;
     helperText?: string;
     disabled?: boolean;
-}> = ({ label, value, onChange, placeholder, error, helperText, disabled }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            size="small"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            placeholder={placeholder}
-            error={error}
-            helperText={helperText}
-            disabled={disabled}
-            fullWidth
-        />
-    </Box>
-);
+}> = ({ label, value, onChange, placeholder, error, helperText, disabled }) => {
+    // MUI links the helper text to the input only when the field has an id.
+    const id = useId();
+    return (
+        <Box>
+            <FieldLabel>{label}</FieldLabel>
+            <TextField
+                id={helperText ? id : undefined}
+                size="small"
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                placeholder={placeholder}
+                error={error}
+                helperText={helperText}
+                disabled={disabled}
+                fullWidth
+            />
+        </Box>
+    );
+};
 
 // ── layout primitives ─────────────────────────────────────────────
 

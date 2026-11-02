@@ -14,16 +14,18 @@
  *
  * ADR-0020 chrome:
  * - **Undo/redo** — header buttons over the session's editor history (ADR-0038; the session
- *   also binds Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, skipped while typing in inputs).
+ *   also binds Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, skipped while typing in inputs). Like Escape,
+ *   the keys act only inside the panel — the studio is non-modal and stays open over the
+ *   vis-2 editor, whose own shortcuts keep working around it.
  * - **Honest dirty state** — the session's dirty flag (undo all the way back reads clean
  *   again), shown as a dot next to the title.
  * - **Resizable like an OS window** — 8 Resize grips (4 edges + 4 corners) plus header
  *   drag via {@link module:hooks/useFloatingPanel}; the geometry `{x, y, w, h|null}`
  *   persists as ONE localStorage entry (`h: null` = Auto height). Clamped live and on
  *   browser-window resize; the stored intent survives clamping.
- * - **Field-level validation** — colour errors render at their field; the footer
- *   counter scrolls to the first problem (expanding its section). Only errors without
- *   a field home (non-colour paths) and warnings keep a compact alert at the bottom.
+ * - **Field-level validation** — colour and CSS-variables-prefix errors render at their field;
+ *   the footer counter scrolls to the first problem (expanding its section). Only errors
+ *   without a field home and warnings keep a compact alert at the bottom.
  *
  * The panel chrome renders in the vis-2 editor's theme family (ADR-0038): it is editor chrome
  * like every configurator. The palette extension point exposes only the host MODE
@@ -66,6 +68,7 @@ import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
 import { getNestedValue } from '../lib/theme/themeUtils';
+import { isTargetInside } from '../lib/useEditorHistory';
 import PresetCards, { presetsSummary } from './PresetCards';
 import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
 import useStudioSession from './useStudioSession';
@@ -108,6 +111,12 @@ function sectionForPath(path: string): SectionKey {
     return 'erweitert';
 }
 
+/** Non-colour paths whose errors render at their own field (not in the bottom alert). */
+const FIELD_ERROR_PATHS: ReadonlySet<string> = new Set(['cssVariables.cssVarPrefix']);
+
+/** Whether an issue at `path` renders at a field: a colour field or a listed non-colour field. */
+const hasFieldHome = (path: string): boolean => Boolean(colorFieldForIssuePath(path)) || FIELD_ERROR_PATHS.has(path);
+
 /** Maps validator issue codes to localized message keys. */
 const VALIDATION_CODE_KEYS: Record<string, string> = {
     'invalid-color': 'theme_studio_valid_color',
@@ -134,14 +143,6 @@ const formatIssue = (issue: ThemeValidationIssue): string =>
  * (the studio host mounts the panel on open and unmounts it on close).
  */
 function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps): React.JSX.Element {
-    const session = useStudioSession(socket);
-    const { draft: themeObj, validation, dirty, loading, saving } = session;
-    const { edit, apply, discard, save } = session;
-    const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
-    // Panel-owned section expansion (only set once the user toggles or scroll-to-error forces one).
-    const [expandedMap, setExpandedMap] = useState<Partial<Record<SectionKey, boolean>>>({});
-    const bodyRef = useRef<HTMLDivElement>(null);
-
     // Window-style chrome: header drag + 8 Resize grips, geometry persisted as one entry
     // (ADR-0020 addendum). Default dock: top-right with a small margin.
     const { panelRef, geometry, activeDrag, dragHandleProps, edgeProps, cornerProps } = useFloatingPanel({
@@ -156,6 +157,16 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
             height: Generic.t('theme_studio_resize_height'),
         },
     });
+
+    // The studio is non-modal and stays open over the vis-2 editor: its keys (undo/redo here,
+    // Escape below) act only on events inside the panel.
+    const session = useStudioSession(socket, panelRef);
+    const { draft: themeObj, validation, dirty, loading, saving } = session;
+    const { edit, apply, discard, save } = session;
+    const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+    // Panel-owned section expansion (only set once the user toggles or scroll-to-error forces one).
+    const [expandedMap, setExpandedMap] = useState<Partial<Record<SectionKey, boolean>>>({});
+    const bodyRef = useRef<HTMLDivElement>(null);
 
     // Panel chrome follows the vis-2 host mode in the modern admin family (ADR-0038):
     // the editor itself renders modernDark/modernLight since the React-19 host update;
@@ -201,11 +212,8 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
         () => validation.issues.filter(issue => issue.severity === 'warning'),
         [validation.issues],
     );
-    // Errors without a colour-field home keep a compact alert at the bottom.
-    const nonFieldErrors = useMemo(
-        () => errorIssues.filter(issue => !colorFieldForIssuePath(issue.path)),
-        [errorIssues],
-    );
+    // Errors without a field home keep a compact alert at the bottom.
+    const nonFieldErrors = useMemo(() => errorIssues.filter(issue => !hasFieldHome(issue.path)), [errorIssues]);
 
     // Escape closes (with the same discard handling as the close button).
     const requestClose = useCallback((): void => {
@@ -217,17 +225,18 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
         onClose();
     }, [dirty, discard, onClose]);
 
-    // Keyboard: Escape closes (with the same discard handling as the close button); the
-    // undo/redo keys are bound by the session (ADR-0038).
+    // Keyboard: Escape inside the panel closes (with the same discard handling as the close
+    // button) — elsewhere it stays the vis-2 editor's; the undo/redo keys are bound by the
+    // session (ADR-0038), scoped the same way.
     useEffect(() => {
         const onKey = (event: KeyboardEvent): void => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && isTargetInside(event.target, panelRef.current)) {
                 requestClose();
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [requestClose]);
+    }, [requestClose, panelRef]);
 
     // Scroll-to-error: expand the owning section, then scroll the first marked
     // field (or the section itself) into view — after a tick so the lazily
@@ -298,7 +307,11 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
             <Paper
                 ref={panelRef}
                 elevation={8}
+                // Focusable without joining the tab order: a click on a bare spot of the panel
+                // moves the focus inside, so its scoped keys (Escape, undo/redo) apply.
+                tabIndex={-1}
                 sx={{
+                    outline: 'none',
                     position: 'fixed',
                     left: geometry.x,
                     top: geometry.y,
@@ -440,6 +453,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                                 <ErweitertSection
                                     theme={themeObj}
                                     onChange={handleChange}
+                                    errorFor={errorFor}
                                     {...sectionProps('erweitert')}
                                 />
                             </Box>

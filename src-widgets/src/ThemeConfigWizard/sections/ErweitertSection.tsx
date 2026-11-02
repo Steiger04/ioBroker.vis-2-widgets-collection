@@ -25,11 +25,18 @@ import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
 
 /** "Erweitert" section: spacing + CSS vars. */
-function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
+function ErweitertSection({
+    theme,
+    onChange,
+    expanded,
+    onExpandedChange,
+    errorFor,
+}: StudioSectionProps): React.JSX.Element {
     const spacing = getNestedValue<number>(theme, 'spacing') ?? 8;
     const cssVariables = getNestedValue<unknown>(theme, 'cssVariables');
     const cssEnabled = cssVariables === true || (typeof cssVariables === 'object' && cssVariables !== null);
     const cssPrefix = getNestedValue<string>(theme, 'cssVariables.cssVarPrefix') ?? '';
+    const prefixError = errorFor?.('cssVariables.cssVarPrefix');
 
     const handleCssToggle = (checked: boolean): void => {
         onChange('cssVariables', checked ? true : undefined);
@@ -77,12 +84,18 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
                 {/* One explanation in both states: it tells whether the switch is needed at all. */}
                 <InfoBox text={Generic.t('theme_studio_help_css_vars')} />
                 {cssEnabled ? (
-                    <Box sx={{ mt: 1.5 }}>
+                    <Box
+                        sx={{ mt: 1.5 }}
+                        // Scroll-to-error target, like the colour fields.
+                        data-theme-error={prefixError ? true : undefined}
+                    >
                         <TextField2
                             label={Generic.t('theme_wizard_css_var_prefix')}
                             value={cssPrefix}
                             placeholder={COLLECTION_CSS_VAR_PREFIX}
                             onChange={handlePrefixChange}
+                            error={Boolean(prefixError)}
+                            helperText={prefixError}
                         />
                     </Box>
                 ) : null}

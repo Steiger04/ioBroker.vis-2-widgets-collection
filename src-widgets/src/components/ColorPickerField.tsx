@@ -52,6 +52,13 @@ interface ColorPickerFieldProps {
      * Off by default.
      */
     hexInput?: boolean;
+    /**
+     * Colour the swatch shows while the user is not editing, when it differs from `value` — the
+     * theme studio passes the resolved colour, so a stored value the resolution drops shows the
+     * inherited colour (what the canvas paints) while the hex text keeps the stored one.
+     * Defaults to `value`.
+     */
+    swatchValue?: string;
 }
 
 /**
@@ -65,6 +72,7 @@ interface ColorPickerFieldProps {
  * @param props.presets - Theme-studio variant: preset swatches + inputs + eyedropper.
  * @param props.error - Field-level validation message.
  * @param props.hexInput - Shows the value as editable monospace text next to the swatch.
+ * @param props.swatchValue - Colour the swatch shows instead of the value (defaults to it).
  * @returns Rendered field UI.
  */
 function ColorPickerField({
@@ -75,6 +83,7 @@ function ColorPickerField({
     presets,
     error,
     hexInput,
+    swatchValue,
 }: ColorPickerFieldProps): React.JSX.Element {
     const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -98,6 +107,10 @@ function ColorPickerField({
     );
 
     const open = Boolean(anchorEl);
+
+    // The swatch follows a local edit at once (picker drag, typed hex); otherwise it shows
+    // the caller's swatch colour, if any.
+    const swatchColor = swatchValue !== undefined && cachedValue === value ? swatchValue : cachedValue;
 
     // Sync cachedValue when the external value prop changes
     useEffect(() => {
@@ -226,13 +239,13 @@ function ColorPickerField({
                         />
                     ) : null}
                     <Box
-                        data-swatch-color={cachedValue}
+                        data-swatch-color={swatchColor}
                         sx={{
                             width: 22,
                             height: 22,
                             borderRadius: '4px',
-                            background: cachedValue || 'transparent',
-                            border: cachedValue
+                            background: swatchColor || 'transparent',
+                            border: swatchColor
                                 ? `1px solid ${error ? theme.palette.error.main : theme.palette.divider}`
                                 : `1px dashed ${theme.palette.text.disabled}`,
                         }}

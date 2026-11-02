@@ -23,7 +23,7 @@
  * put it into a dependency array (same contract as `useEditorHistory`).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Connection } from '@iobroker/adapter-react-v5';
 
 import { THEME_STATE_ID } from '../lib/constants';
@@ -59,7 +59,8 @@ export interface StudioSession {
     apply: (next: (prev: UserTheme) => UserTheme) => void;
     /**
      * Writes the draft to the theme state. Resolves `true` on success (the session's work is
-     * done — the caller closes), `false` when refused or failed.
+     * done — the caller closes), `false` when refused, failed, or the draft was edited while
+     * the write was in flight (the newer edit is unsaved — the session stays open).
      */
     save: () => Promise<boolean>;
     /** Ends the session without saving: the draft leaves the canvas, no further pushes. */
@@ -86,8 +87,11 @@ interface CanvasMirror {
  * Runs one Studio session over the theme state.
  *
  * @param socket - ioBroker connection for reading and writing the theme state.
+ * @param keyScope - The studio panel element: the undo/redo keys only act on events inside
+ *   it. The studio is non-modal and stays open over the vis-2 editor, whose own undo must keep
+ *   working outside the panel. Without a scope the whole window is bound.
  */
-export function useStudioSession(socket: Connection): StudioSession {
+export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLElement | null>): StudioSession {
     // Instant open (ADR-0020): the last known theme seeds the draft synchronously; without
     // one the session shows a spinner until the first load answers.
     const [seed] = useState(getLastKnownTheme);
@@ -225,6 +229,16 @@ export function useStudioSession(socket: Connection): StudioSession {
             await socket.setState(THEME_STATE_ID, JSON.stringify(draft));
             setLastKnownTheme(draft);
             setSnapshot(draft);
+            // An edit made while the write was in flight is NOT saved: the session stays open
+            // (dirty against the new snapshot) and its end still owns the canvas.
+            if (isDirty(draftRef.current, draft)) {
+                return false;
+            }
+            // Edits during the write that ended on the saved value may have left an
+            // intermediate push on the canvas (or a pending one) — put the saved draft back,
+            // which is exactly what the save handoff matches.
+            cancelTrailing();
+            push(draft);
             mirrorRef.current.handedOff = true;
             return true;
         } catch (e: unknown) {
@@ -237,8 +251,8 @@ export function useStudioSession(socket: Connection): StudioSession {
     }, [canSave, cancelTrailing, push, draft, socket]);
 
     // The shared configurator undo/redo binding (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, ADR-0038) —
-    // one holder of the stack: the keyboard lives here too.
-    useEditorHistoryKeys(history, true);
+    // one holder of the stack: the keyboard lives here too, scoped to the panel.
+    useEditorHistoryKeys(history, true, keyScope);
 
     return {
         draft,

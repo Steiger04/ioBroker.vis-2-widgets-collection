@@ -254,6 +254,70 @@ describe('useStudioSession save', () => {
         expect(getDraftTheme()).toEqual({ ...SEED, spacing: 2 });
     });
 
+    it('does not hand off an edit made while the write is in flight: the session stays open and its end clears the canvas', async () => {
+        let finishWrite: () => void = () => {};
+        const fake = fakeSocket(
+            () =>
+                new Promise<void>(resolve => {
+                    finishWrite = resolve;
+                }),
+        );
+        const handle = start(fake.socket);
+        settle();
+        act(() => handle.result.current.edit('spacing', 4));
+
+        let saving: Promise<boolean> = Promise.resolve(true);
+        act(() => {
+            saving = handle.result.current.save();
+        });
+        act(() => handle.result.current.edit('spacing', 5));
+        let saved = true;
+        await act(async () => {
+            finishWrite();
+            saved = await saving;
+        });
+
+        expect(saved).toBe(false);
+        expect(handle.result.current.draft).toEqual({ ...SEED, spacing: 5 });
+        expect(handle.result.current.dirty).toBe(true);
+        handle.unmount();
+        session = null;
+        settle();
+        expect(getDraftTheme()).toBeNull();
+    });
+
+    it('still hands off when the edits during the write end on the saved value', async () => {
+        let finishWrite: () => void = () => {};
+        const fake = fakeSocket(
+            () =>
+                new Promise<void>(resolve => {
+                    finishWrite = resolve;
+                }),
+        );
+        const handle = start(fake.socket);
+        settle();
+        act(() => handle.result.current.edit('spacing', 4));
+
+        let saving: Promise<boolean> = Promise.resolve(false);
+        act(() => {
+            saving = handle.result.current.save();
+        });
+        act(() => handle.result.current.edit('spacing', 5));
+        settle();
+        act(() => handle.result.current.edit('spacing', 4));
+        let saved = false;
+        await act(async () => {
+            finishWrite();
+            saved = await saving;
+        });
+
+        expect(saved).toBe(true);
+        handle.unmount();
+        session = null;
+        settle();
+        expect(getDraftTheme()).toEqual({ ...SEED, spacing: 4 });
+    });
+
     it('refuses to save a clean draft', async () => {
         const fake = fakeSocket();
         const handle = start(fake.socket);

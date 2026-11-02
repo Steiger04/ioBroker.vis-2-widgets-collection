@@ -19,7 +19,7 @@
  * useState wrapper around it.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
 /** Maximum number of undo steps kept. */
 export const HISTORY_LIMIT = 50;
@@ -138,14 +138,28 @@ export const isEditableTarget = (target: EventTarget | null): boolean => {
 };
 
 /**
+ * True when a keyboard event's target lies inside `scope` — a non-modal editor handles its
+ * shortcuts only there, so the page around it keeps its own (e.g. the vis-2 editor's undo).
+ * An unmounted scope (`null`) contains nothing.
+ */
+export const isTargetInside = (target: EventTarget | null, scope: HTMLElement | null): boolean =>
+    scope !== null && target instanceof Node && scope.contains(target);
+
+/**
  * The configurators' shared Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y binding over an editor history —
  * the keyboard half of the undo/redo contract both configurators share (ADR-0038). While the
  * user types in an input the field's own native undo wins (see {@link isEditableTarget}).
  *
  * @param history - The history to drive.
  * @param active - Whether the owning editor is open (no listener while closed).
+ * @param scope - Optional element the binding is limited to (non-modal editors). Without one
+ *   the whole window is bound — right for a modal configurator that covers the page.
  */
-export function useEditorHistoryKeys<T>(history: EditorHistory<T>, active: boolean): void {
+export function useEditorHistoryKeys<T>(
+    history: EditorHistory<T>,
+    active: boolean,
+    scope?: RefObject<HTMLElement | null>,
+): void {
     const { undo, redo } = history;
     useEffect(() => {
         if (!active) {
@@ -153,6 +167,9 @@ export function useEditorHistoryKeys<T>(history: EditorHistory<T>, active: boole
         }
         const onKey = (event: KeyboardEvent): void => {
             if (isEditableTarget(event.target)) {
+                return;
+            }
+            if (scope && !isTargetInside(event.target, scope.current)) {
                 return;
             }
             const mod = event.ctrlKey || event.metaKey;
@@ -170,7 +187,7 @@ export function useEditorHistoryKeys<T>(history: EditorHistory<T>, active: boole
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [active, undo, redo]);
+    }, [active, undo, redo, scope]);
 }
 
 /**

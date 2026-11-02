@@ -55,6 +55,20 @@ describe('ErweitertSection CSS variables', () => {
         const input = handle.container.querySelector<HTMLInputElement>('input[type="text"]');
         expect([input?.value, input?.placeholder]).toEqual(['', 'vis2c']);
     });
+
+    it('shows a prefix error at the prefix field', () => {
+        handle = renderComponent<StudioSectionProps>(ErweitertSection, {
+            theme: { cssVariables: { cssVarPrefix: 'mui' } } as StudioSectionProps['theme'],
+            onChange: () => {},
+            expanded: true,
+            errorFor: path => (path === 'cssVariables.cssVarPrefix' ? 'reserved prefix' : undefined),
+        });
+        const input = handle.container.querySelector<HTMLInputElement>('input[type="text"]');
+        expect(input?.getAttribute('aria-invalid')).toBe('true');
+        const describedBy = input?.getAttribute('aria-describedby');
+        expect(describedBy && document.getElementById(describedBy)?.textContent).toBe('reserved prefix');
+        expect(handle.container.querySelector('[data-theme-error]')).not.toBeNull();
+    });
 });
 
 describe('ErweitertSection text direction', () => {
