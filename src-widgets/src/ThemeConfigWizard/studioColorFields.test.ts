@@ -135,6 +135,12 @@ describe('error path → field', () => {
         expect(colorFieldForIssuePath('palette.text.secondary')?.path).toBe('palette.text.secondary');
     });
 
+    it("maps a slot's own error to the slot's only field", () => {
+        // A broken `palette.<slot>.main` is reported at `palette.<slot>` (union type error).
+        expect(colorFieldForIssuePath('palette.primary')?.path).toBe('palette.primary.main');
+        expect(colorFieldForIssuePath('palette.info')?.path).toBe('palette.info.main');
+    });
+
     it('keeps errors without a single field home unmapped', () => {
         // Two fields share the parent — the error belongs to neither alone.
         expect(colorFieldForIssuePath('palette.text')).toBeUndefined();

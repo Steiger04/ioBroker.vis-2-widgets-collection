@@ -250,6 +250,24 @@ describe('ThemeStudioPanel effective colours', () => {
     });
 });
 
+describe('ThemeStudioPanel field errors', () => {
+    /** Label texts of the fields marked as erroneous. */
+    const fieldsWithError = (): string[] =>
+        Array.from(document.body.querySelectorAll<HTMLElement>('[data-theme-error]')).map(
+            field =>
+                field.querySelector('[data-swatch-color]')?.parentElement?.parentElement?.firstElementChild
+                    ?.textContent ?? '',
+        );
+
+    it("shows a broken slot's error at its colour field, not in the bottom alert", async () => {
+        // `dark` is no colour → neither union option fits → one type error at `palette.primary`.
+        await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
+        await expandColorSections();
+        expect(fieldsWithError()).toEqual(['theme_wizard_palette_primary']);
+        expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
+    });
+});
+
 describe('ThemeStudioPanel problem counter', () => {
     // Out-of-range corner radii are validation errors that MUI's createTheme tolerates.
     /** The footer's scroll-to-error button (the only error-coloured text button). */

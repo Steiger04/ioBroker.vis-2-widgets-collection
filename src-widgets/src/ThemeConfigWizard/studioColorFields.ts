@@ -119,11 +119,21 @@ const slotOf = (path: string): string => path.split('.').slice(0, 2).join('.');
 /**
  * The field a validation issue at `path` belongs to (its error renders there), if any.
  *
+ * @remarks
+ * Besides the field path itself, a slot (`palette.<slot>`) counts when it holds exactly one
+ * field: the validator reports a broken `palette.<slot>.main` at `palette.<slot>` (the slot is
+ * a union, and neither option fits). A slot shared by several fields (`palette.text`) and the
+ * palette itself stay unmapped.
  * @param path - Issue path as reported by the validator.
- * @returns The field whose path equals `path`, or `undefined`.
+ * @returns The field the issue belongs to, or `undefined`.
  */
 export function colorFieldForIssuePath(path: string): StudioColorField | undefined {
-    return STUDIO_COLOR_FIELDS.find(field => field.path === path);
+    const exact = STUDIO_COLOR_FIELDS.find(field => field.path === path);
+    if (exact || slotOf(path) !== path || !path.includes('.')) {
+        return exact;
+    }
+    const children = STUDIO_COLOR_FIELDS.filter(field => field.path.slice(0, field.path.lastIndexOf('.')) === path);
+    return children.length === 1 ? children[0] : undefined;
 }
 
 /**

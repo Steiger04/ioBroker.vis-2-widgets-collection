@@ -172,12 +172,14 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
         [resolvedTheme],
     );
 
-    // Field-level error lookup (first error per path wins).
+    // Field-level error lookup (first error per field wins). A slot's own error (e.g. a broken
+    // `palette.primary`) belongs to the slot's colour field.
     const issuesByPath = useMemo(() => {
         const map = new Map<string, string>();
         for (const issue of validation.issues) {
-            if (issue.severity === 'error' && issue.path && !map.has(issue.path)) {
-                map.set(issue.path, formatIssue(issue));
+            const fieldPath = colorFieldForIssuePath(issue.path)?.path ?? issue.path;
+            if (issue.severity === 'error' && fieldPath && !map.has(fieldPath)) {
+                map.set(fieldPath, formatIssue(issue));
             }
         }
         return map;
