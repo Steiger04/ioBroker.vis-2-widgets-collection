@@ -1,10 +1,11 @@
 /**
- * Hook that measures an element using `ResizeObserver` and exposes width/height/maxWidth.
+ * Hook that measures an element using `ResizeObserver` and exposes width/height.
  *
  * @module hooks/useElementDimensions
  * @remarks
- * `maxWidth` is derived from the element size and an optional slider size.
- * It is used by some widgets to keep slider controls within bounds.
+ * Generic measurement only — a widget's own bounds are derived at its call site (Light2's
+ * main-picker bound lives in its colorPickerMemos). Bodies inside CollectionBase read the
+ * frame's Content-Box ({@link module:hooks/useContentBox}) instead of measuring themselves.
  */
 
 import { useEffect, useState, useCallback, useMemo, type RefObject } from 'react';
@@ -17,16 +18,13 @@ export interface ElementDimensions {
     width: number | undefined;
     /** Current height in px (rounded), if measurable. */
     height: number | undefined;
-    /** Derived max width used by slider layouts, if measurable. */
-    maxWidth: number | undefined;
 }
 
 /**
  * Measures a DOM element and updates on resize.
  *
  * @param element - Element or ref to measure.
- * @param sliderSize - Optional slider size used for calculating `maxWidth` (default: 28).
- * @returns Current `width`, `height` and `maxWidth`.
+ * @returns Current `width` and `height`.
  * @example
  * ```tsx
  * const ref = useRef<HTMLDivElement>(null);
@@ -35,37 +33,25 @@ export interface ElementDimensions {
  * return <div ref={ref}>{width}×{height}</div>;
  * ```
  */
-const useElementDimensions = (
-    element: HTMLElement | RefObject<HTMLElement> | null | undefined,
-    sliderSize: number = 28,
-): ElementDimensions => {
+const useElementDimensions = (element: HTMLElement | RefObject<HTMLElement> | null | undefined): ElementDimensions => {
     const [dimensions, setDimensions] = useState<ElementDimensions>({
         width: undefined,
         height: undefined,
-        maxWidth: undefined,
     });
 
-    const updateDimensions = useCallback(
-        (entries: ResizeObserverEntry[]) => {
-            if (entries.length === 0) {
-                return;
-            }
+    const updateDimensions = useCallback((entries: ResizeObserverEntry[]) => {
+        if (entries.length === 0) {
+            return;
+        }
 
-            const entry = entries[0];
-            const { width: clientWidth, height: clientHeight } = entry.contentRect;
+        const entry = entries[0];
+        const { width: clientWidth, height: clientHeight } = entry.contentRect;
 
-            const width = Math.round(clientWidth);
-            const height = Math.round(clientHeight);
-            const maxWidth = width <= height + sliderSize + 12 ? width - sliderSize - 12 : height;
-
-            setDimensions({
-                width,
-                height,
-                maxWidth,
-            });
-        },
-        [sliderSize],
-    );
+        setDimensions({
+            width: Math.round(clientWidth),
+            height: Math.round(clientHeight),
+        });
+    }, []);
 
     const targetElement = useMemo(() => {
         if (!element) {
@@ -81,7 +67,7 @@ const useElementDimensions = (
 
     useEffect(() => {
         if (!targetElement) {
-            setDimensions({ width: undefined, height: undefined, maxWidth: undefined });
+            setDimensions({ width: undefined, height: undefined });
             return;
         }
 

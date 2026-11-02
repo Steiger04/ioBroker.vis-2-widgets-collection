@@ -10,10 +10,15 @@
 import { describe, expect, it } from 'vitest';
 import iro from '@jaames/iro';
 
-import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerMemos';
-import type { ElementDimensions } from '../../hooks/useElementDimensions';
+import {
+    getColorLightLayout,
+    getColorLightWidth,
+    getMarginBetweenPickers,
+    withMainPickerBound,
+    type PickerDimensions,
+} from './colorPickerMemos';
 
-const dims = (width?: number, height?: number, maxWidth?: number): ElementDimensions => ({
+const dims = (width?: number, height?: number, maxWidth?: number): PickerDimensions => ({
     width,
     height,
     maxWidth,
@@ -70,6 +75,30 @@ describe('getColorLightLayout', () => {
     it('returns an empty layout for an unknown UI component', () => {
         // colorLightUIComponent undefined (never configured) must not throw.
         expect(getColorLightLayout(1, undefined, 'rgb', 2000, 6500)).toEqual([]);
+    });
+});
+
+describe('withMainPickerBound (the main picker leaves room for the value slider)', () => {
+    it('keeps the measured box and bounds the picker by the height when the width has room to spare', () => {
+        // 400 > 300 + 28 + 12 → the height bounds it.
+        expect(withMainPickerBound({ width: 400, height: 300 }, 28)).toEqual(dims(400, 300, 300));
+    });
+
+    it('takes the slider and its 12px gap off a narrow width', () => {
+        // 300 <= 300 + 28 + 12 → 300 - 28 - 12 = 260.
+        expect(withMainPickerBound({ width: 300, height: 300 }, 28).maxWidth).toBe(260);
+        // A doubled slider width (2 × 28) widens the cut: 300 - 56 - 12 = 232.
+        expect(withMainPickerBound({ width: 300, height: 300 }, 56).maxWidth).toBe(232);
+    });
+
+    it('meets both rules at the edge (width = height + slider + gap)', () => {
+        expect(withMainPickerBound({ width: 340, height: 300 }, 28).maxWidth).toBe(300);
+    });
+
+    it('stays unbounded until the box is measured', () => {
+        expect(withMainPickerBound({ width: undefined, height: undefined }, 28)).toEqual(
+            dims(undefined, undefined, undefined),
+        );
     });
 });
 

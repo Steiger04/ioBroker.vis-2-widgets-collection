@@ -8,9 +8,13 @@ import { useContext, useEffect, useMemo, useRef, forwardRef } from 'react';
 import type { MutableRefObject, Ref } from 'react';
 import type iro from '@jaames/iro';
 import { Box } from '@mui/material';
-import { type ElementDimensions } from '../hooks/useElementDimensions';
 import type { Light2FieldsRxData } from '../types';
-import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
+import {
+    getColorLightLayout,
+    getColorLightWidth,
+    getMarginBetweenPickers,
+    type PickerDimensions,
+} from './colorPickerUtils/colorPickerMemos';
 import { CollectionContext } from '../components/CollectionProvider';
 
 import {
@@ -34,7 +38,7 @@ function setRef<T>(ref: Ref<T> | undefined, value: T): void {
 
 interface LightPickerProps {
     /** Host element dimensions used to compute picker layout. */
-    dimensions: ElementDimensions;
+    dimensions: PickerDimensions;
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'];
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
     colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];

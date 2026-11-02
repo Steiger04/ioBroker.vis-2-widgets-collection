@@ -44,7 +44,7 @@ const boundWidth = (width: number | undefined): number => width ?? UNMEASURED_WI
 
 /** Input for {@link buildSelectChrome}. */
 export interface SelectChromeInput {
-    /** Measured content-box width in px (useElementDimensions) — `undefined` until the first measurement. */
+    /** Content-Box width in px (useContentBox) — `undefined` until the first measurement. */
     width: number | undefined;
     /** rxData.arrowColor — the explicit arrow colour; an invalid one counts as unset. */
     arrowColor: string | null | undefined;
@@ -90,7 +90,7 @@ export function buildSelectChrome(input: SelectChromeInput): SxObject {
 
 /** Input for {@link buildMenuChrome}. */
 export interface MenuChromeInput {
-    /** Measured content-box width in px (useElementDimensions) — `undefined` until the first measurement. */
+    /** Content-Box width in px (useContentBox) — `undefined` until the first measurement. */
     width: number | undefined;
     /**
      * rxData.noCard — the EXPLICIT flag only, never `wrappedContent`: the popup is
