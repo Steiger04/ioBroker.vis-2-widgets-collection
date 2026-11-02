@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Vitest uses this file in preference to vite.config.ts, so the Module Federation
-// and top-level-await plugins (build-time only, they crash the node test env)
-// never load. Only the plugins tests actually need are wired here.
+// plugin (build-time only, it crashes the node test env) never loads. Only the plugins tests actually need are wired here.
 //
 // Isolation split (measured 2026-10-10, i5-2500K/4 cores): the pure .ts logic
 // tests share a worker's module cache (threads + isolate:false — warm full run
