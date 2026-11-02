@@ -41,6 +41,8 @@ const CornerIcon = ({ data }: CornerIconProps): React.ReactElement | null => {
         <SafeImg
             alt=""
             src={iconSrc}
+            // Inline style on purpose: SafeImg is a plain <img> that takes only `style` — no
+            // sx, no className — as the corner icon has always been styled (CollectionBaseImage).
             style={{
                 position: 'absolute',
                 top: `calc(0px - ${data.iconYOffsetCm})`,
