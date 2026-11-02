@@ -116,7 +116,7 @@ describe('SliderCollection mark label text', () => {
     };
 
     // The mark label container carries no colour of its own: the text must resolve one even with
-    // nothing configured, or it would fall back to MUI's secondary mark-label grey.
+    // nothing configured, or it would fall back to MUI's mark-label colours (text.secondary, text.primary when active).
     it('paints the colour the value label falls back to with no colour configured', () => {
         const { valueLabel, marks } = labelColors({});
 
