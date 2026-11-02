@@ -39,9 +39,14 @@ describe('resolveRadioColors — the unchecked icon resolves the field contract'
         expect(resolveRadioColors({}, '', THEME).unchecked).toBe('#sec');
     });
 
-    it('treats an invalid value as unset', () => {
-        expect(resolveRadioColors({ radioGroupUncheckedIconColor: 'not-a-colour' }, '', THEME).unchecked).toBe('#sec');
-    });
+    it.each(['red', 'var(--x)', 'transparent', ' #b0bec5 '])(
+        'draws a stored value the picker rejects (%s) raw, as before the spec',
+        radioGroupUncheckedIconColor => {
+            expect(resolveRadioColors({ radioGroupUncheckedIconColor }, '', THEME).unchecked).toBe(
+                radioGroupUncheckedIconColor,
+            );
+        },
+    );
 });
 
 describe('resolveRadioColors — the checked icon follows the state', () => {
@@ -68,11 +73,14 @@ describe('resolveRadioColors — disabled unchecked is a state rule, not the ter
         expect(resolveRadioColors({}, '', THEME).disabledUnchecked).toBe('#act');
     });
 
-    it('state rule: an invalid value counts as unset while disabled, too (action.active)', () => {
-        expect(resolveRadioColors({ radioGroupUncheckedIconColor: 'not-a-colour' }, '', THEME).disabledUnchecked).toBe(
-            '#act',
-        );
-    });
+    it.each(['red', 'var(--x)', 'transparent', ' #b0bec5 '])(
+        'state rule: a stored value the picker rejects (%s) is drawn raw while disabled, too, as before the spec',
+        radioGroupUncheckedIconColor => {
+            expect(resolveRadioColors({ radioGroupUncheckedIconColor }, '', THEME).disabledUnchecked).toBe(
+                radioGroupUncheckedIconColor,
+            );
+        },
+    );
 });
 
 describe('radioGroupUncheckedIconColor — the field declares the contract the unchecked icon resolves (ADR-0004)', () => {

@@ -15,19 +15,23 @@
  * `resolveRadioColors` keeps all of the Radio's colour rules in one place: the contract for
  * the unchecked icon plus two state rules on top — checked follows the state's icon colour,
  * and disabled unchecked draws `action.active` instead of the terminal (documented
- * divergence, ADR-0004 Nachtrag „Chrome-Slots").
+ * divergence, ADR-0004 addendum "Chrome-Slots"). The explicit value is drawn raw, as
+ * before the contract: a stored value the picker rejects (a colour name, `var(…)`,
+ * `transparent`) never crashed, so it keeps painting instead of counting as unset (the
+ * spec allows rendering changes only for values that used to crash).
  *
  * Kept free of components: the field list pulls editor components (Generic), which the
  * runtime and its node tests must not import.
  */
 import type { Theme } from '@mui/material';
-import { resolveEffectiveColor } from './helper/resolveEffectiveColor';
+import { terminalColor } from './helper/resolveEffectiveColor';
 import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { RadioGroupFieldsRxData } from '../types/field-definitions/radio-group-fields';
 
 /**
  * The unchecked icon colour cascade: explicit `radioGroupUncheckedIconColor` → theme
- * secondary text (terminal). An invalid explicit colour counts as unset.
+ * secondary text (terminal). For the swatch an invalid explicit colour counts as unset;
+ * the runtime draws it raw ({@link resolveRadioColors}).
  */
 export const radioUncheckedIconColorContract = {
     name: 'radioGroupUncheckedIconColor',
@@ -35,15 +39,12 @@ export const radioUncheckedIconColorContract = {
     terminal: 'textSecondary',
 } satisfies ColorFieldContract;
 
-/** The unchecked contract without its terminal — resolves to the valid explicit value or `''`. */
-const UNCHECKED_EXPLICIT_ONLY: ColorFieldContract = { ...radioUncheckedIconColorContract, terminal: undefined };
-
 /** The widget data the radio colour rules read. */
 export type RadioColorData = Pick<RadioGroupFieldsRxData, 'radioGroupUncheckedIconColor'>;
 
 /** The radio icon colours of one state, as concrete CSS colours. */
 export interface RadioColors {
-    /** Unchecked icon, enabled: the contract resolved. */
+    /** Unchecked icon, enabled: the explicit value as stored, else the contract's terminal. */
     unchecked: string;
     /** Checked icon: the state's resolved icon colour, else theme primary. */
     checked: string;
@@ -64,10 +65,10 @@ export function resolveRadioColors(
     activeIconColor: string | undefined,
     theme: Theme,
 ): RadioColors {
-    // The same cascade without its terminal: the valid explicit value, else ''.
-    const explicit = resolveEffectiveColor(UNCHECKED_EXPLICIT_ONLY, data, theme, undefined);
+    // The explicit stage raw, as before the contract — never validated away.
+    const explicit = data.radioGroupUncheckedIconColor || '';
     return {
-        unchecked: resolveEffectiveColor(radioUncheckedIconColorContract, data, theme, undefined),
+        unchecked: explicit || terminalColor(radioUncheckedIconColorContract.terminal, theme),
         checked: activeIconColor || theme.palette.primary.main,
         // State rule: disabled deliberately does not follow the terminal — MUI's own
         // disabled grey (`action.disabled`) is overridden by `action.active`, not by text.secondary.
