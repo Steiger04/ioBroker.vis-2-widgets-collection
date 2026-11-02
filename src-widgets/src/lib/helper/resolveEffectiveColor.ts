@@ -4,9 +4,12 @@
  * @module lib/helper/resolveEffectiveColor
  * @remarks
  * Declared by the field contract (`ExtendedField.terminal` /
- * `inheritTextStyle` / `fallbackFields`) and consumed by BOTH the editor
- * (`CollectionGradientColorPicker`, for the swatch) and the widget runtime
- * (`propertyResolvers`, for the terminal mapping via `terminalColor`).
+ * `inheritTextStyle` / `fallbackFields`). The editor swatch
+ * (`CollectionGradientColorPicker`), the Gauge's color options and most chrome
+ * contracts at runtime walk the whole cascade here; the state resolvers
+ * (`propertyResolvers`) and the chrome slots that paint a raw explicit value
+ * build their own chains and take only the terminal mapping (`terminalColor`) —
+ * who does which: `ExtendedField`'s module remarks.
  *
  * This is the FIELD CONTRACT (base layer) only — it knows nothing about
  * active/state/marker layers, which the widget resolvers apply on top. See
@@ -64,14 +67,20 @@ function validColor(value: unknown): string | undefined {
 }
 
 /**
- * The stages of the Auflösungskaskade as candidates, most specific first — the
- * one cascade both resolvers walk. Lazy, so a resolver stops at the first
- * candidate it accepts:
+ * The stages of the Auflösungskaskade as candidates — the one place they are
+ * spelled out. The cascade is layered general → specific (CONTEXT.md); the
+ * candidates come most specific first, so the first one a resolver accepts is
+ * the most specific set value. Lazy, so a resolver stops there. Both resolvers
+ * below walk it:
  * 1. explicit override (`data[field.name]`), if valid
  * 2. each valid `fallbackFields` value, in order (empty-string entries — the
  *    legacy `fallbackFields: ['']` convention — and invalid values are skipped)
- * 3. vis-2 widget CSS `color` (only when `field.inheritTextStyle`)
+ * 3. vis-2 widget CSS `color`, only when `field.inheritTextStyle` — not
+ *    validated, only skipped when empty
  * 4. terminal default ({@link terminalColor}) — always yielded, last
+ *
+ * "Valid" is the picker's validation (`validateColorInput`); empty or invalid
+ * values count as unset (Erben).
  *
  * @yields Each stage's color, most specific first; the last one is the terminal (`''` for transparent/none).
  */
@@ -104,13 +113,8 @@ function* cascadeCandidates(
 }
 
 /**
- * Resolves the effective (base-layer) color for a color field.
- *
- * Cascade (general → specific; most specific set value wins):
- * 1. explicit override (`data[field.name]`)
- * 2. first valid `fallbackFields` value
- * 3. vis-2 widget CSS `color` (only when `field.inheritTextStyle`)
- * 4. terminal default ({@link terminalColor})
+ * Resolves the effective (base-layer) color for a color field: the first
+ * stage of {@link cascadeCandidates}, i.e. the most specific one set.
  *
  * @param field - Field contract (name, fallbackFields, terminal, inheritTextStyle).
  * @param data  - Widget data map (explicit values + fallback sources).
@@ -132,8 +136,8 @@ export function resolveEffectiveColor(
  * Resolves the effective color of a slot that can only draw a solid color —
  * borders, separators, shadows, hover tints.
  *
- * Same Auflösungskaskade as {@link resolveEffectiveColor} (override → fallback
- * fields → vis-2 style → terminal), but each stage counts only with its
+ * Same Auflösungskaskade as {@link resolveEffectiveColor} ({@link cascadeCandidates}),
+ * but each stage counts only with its
  * Repräsentative Vollfarbe (`CONTEXT.md`, Farb- & Theme-Auflösung): a gradient
  * yields its midpoint color, and a stage without one (a color name, `transparent`,
  * `var(…)`, a gradient without hex/rgb stops) counts as inheriting (the
