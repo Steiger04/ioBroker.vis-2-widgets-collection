@@ -5,7 +5,8 @@
  * @remarks
  * DOM contract of the body on the preview context: the thumb is capped by the height
  * budget, the frame's Content-Box height (ADR-0098, injected through the test scene).
- * The travel math behind the cap is pinned as pure data in geometry.test.ts.
+ * The travel math behind the cap is pinned as pure data in geometry.test.ts. The Sperre
+ * cases pin the switch's `disabled` against the OID binding's `locked`.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -73,5 +74,27 @@ describe('SwitchCollection height budget (Content-Box)', () => {
         expect(height).toBe('40px');
         // No cap rule at all ('' or the initial 'none', whichever happy-dom reports).
         expect(['', 'none']).toContain(maxHeight);
+    });
+});
+
+describe('SwitchCollection Sperre', () => {
+    /** The switch's native checkbox input. */
+    const input = (container: HTMLElement): HTMLInputElement | null =>
+        container.querySelector<HTMLInputElement>('input.MuiSwitch-input');
+
+    it('leaves the switch enabled for a writable bound object', () => {
+        const { container } = mountBody(SwitchCollection, scene());
+
+        expect(input(container)?.disabled).toBe(false);
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'boolean', write: false } }],
+    ])('disables the switch for %s', (_case, data) => {
+        const { container } = mountBody(SwitchCollection, scene(data));
+
+        expect(input(container)?.disabled).toBe(true);
     });
 });

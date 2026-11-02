@@ -6,7 +6,8 @@
  * DOM contract of the renderer on the preview context (the Checkbox/Radio pattern). The
  * Marker-Ebene applies to marks only (CONTEXT "Marker-Ebene"): the value label follows
  * `textColorActive` → active state → base → theme text, never the marker text colour — even
- * while a state is active, where the retired local marker stage used to cut in.
+ * while a state is active, where the retired local marker stage used to cut in. The Sperre
+ * cases pin the slider's `disabled` against the OID binding's `locked`.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -77,5 +78,42 @@ describe('SliderCollection value label ignores the marker text colour', () => {
         // Guards against a vacuous match should happy-dom stop resolving the Emotion rules.
         expect(withoutMarker).not.toBe('');
         expect(valueLabelColor({ markerTextColor: MARKER_TEXT_COLOR })).toBe(withoutMarker);
+    });
+});
+
+describe('SliderCollection Sperre', () => {
+    /** The slider's native range input, mounted with the given widget data. */
+    const rangeInput = (data: Record<string, unknown>): HTMLInputElement | null => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-lock-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        return container.querySelector<HTMLInputElement>('input[type="range"]');
+    };
+
+    it('leaves the slider enabled for a writable bound object', () => {
+        expect(rangeInput({})?.disabled).toBe(false);
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        // The lock follows the bound object — no root `write` copy here.
+        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
+    ])('disables the slider for %s', (_case, data) => {
+        expect(rangeInput(data)?.disabled).toBe(true);
     });
 });
