@@ -152,6 +152,7 @@ function ColorPickerField({
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Box
+                        data-swatch-color={cachedValue}
                         sx={{
                             width: 22,
                             height: 22,

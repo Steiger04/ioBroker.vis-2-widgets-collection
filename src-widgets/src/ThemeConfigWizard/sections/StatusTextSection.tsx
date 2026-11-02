@@ -5,8 +5,9 @@
  * @remarks
  * The non-hero palette slots, split out of the old "Erweitert" grab-bag into their own
  * intent-named section: status colours (error/warning/info/success) and text colours
- * (primary/secondary). Each field shows the effective (resolved) value — MUI's mode-aware
- * default — until the user overrides it; validation errors render at the field. The
+ * (primary/secondary). Each field shows the effective (resolved) value — the colour the canvas
+ * widgets inherit from the editor theme — until the user overrides it; validation errors
+ * render at the field. The
  * collapsed summary reports how many of the six slots carry an explicit override.
  */
 

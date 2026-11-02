@@ -4,8 +4,9 @@
  * @module ThemeConfigWizard/sections/PaletteSection
  * @remarks
  * The hero colour controls (ADR-0020). Each field shows the effective (resolved) colour —
- * primary defaults to MUI's mode-aware value, secondary defaults to the derived (triadic)
- * value and is labeled "· derived" until set manually. The surface group (background
+ * an unset field shows the colour the canvas widgets inherit from the editor theme; with a
+ * primary set, an unset secondary shows the derived (triadic) value, labeled "· derived"
+ * until set manually. The surface group (background
  * default/paper + divider) lives here since ADR-0020 — the surfaces are the dark-mode
  * lever and do not belong in an "advanced" grab-bag. The colour mode defaults to "Auto"
  * (follow the vis-2 host); when Auto, the effective host mode is shown beneath the toggle.

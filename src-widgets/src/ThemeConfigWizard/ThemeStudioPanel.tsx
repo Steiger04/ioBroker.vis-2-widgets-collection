@@ -48,7 +48,6 @@ import {
     ThemeProvider,
     Tooltip,
     Typography,
-    createTheme,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -61,12 +60,11 @@ import EditorHistoryButtons from '../components/EditorHistoryButtons';
 import FloatingPanelGrips from '../components/FloatingPanelGrips';
 import { SubGroup } from '../components/controls';
 import useFloatingPanel, { PANEL_DEFAULT_W } from '../hooks/useFloatingPanel';
-import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { applyPreset, type ThemePreset } from '../lib/theme/presets';
+import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
-import { getNestedValue } from '../lib/theme/themeUtils';
 import PresetCards from './PresetCards';
 import useStudioSession from './useStudioSession';
 import ErweitertSection from './sections/ErweitertSection';
@@ -167,20 +165,14 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
     // (see lib/theme/chromeTheme). Independent of the theme being edited.
     const chromeTheme = useMemo(() => createChromeTheme(themeType), [themeType]);
 
-    // Resolved theme for display: same shape the runtime builds, but with the
-    // color mode resolved against the vis-2 host when set to "Auto", so every
-    // color field shows the effective value (MUI's mode-aware defaults for
-    // anything not explicitly overridden).
-    const resolvedTheme = useMemo<MuiTheme>(() => {
-        const storedMode = getNestedValue<string>(themeObj, 'palette.mode');
-        const mode: 'light' | 'dark' =
-            storedMode === 'light' || storedMode === 'dark' ? storedMode : themeType === 'dark' ? 'dark' : 'light';
-        const draftWithMode = withDerivedSecondary({ ...themeObj, palette: { ...themeObj.palette, mode } });
-        // Text follows the effective primary (resolved here so the field shows it),
-        // unless the user explicitly set a text color.
-        const resolvedPrimary = createTheme(draftWithMode).palette.primary.main;
-        return createTheme(withPrimaryAsText(draftWithMode, resolvedPrimary));
-    }, [themeObj, themeType]);
+    // Effective colours for the swatches: the canvas resolution itself, against the chrome
+    // theme as stand-in for the editor theme the canvas widgets receive (no overrides — they
+    // only touch typography). Inherited fields thus show the canvas colour, "Auto" resolves
+    // to the vis-2 mode, and text follows the effective primary exactly as on the canvas.
+    const resolvedTheme = useMemo<MuiTheme>(
+        () => resolveCollectionTheme(chromeTheme, {}, themeObj),
+        [chromeTheme, themeObj],
+    );
 
     // The pickers' preset swatch row: the current theme colours (decision 5).
     const colorPresets = useMemo<string[]>(() => {
