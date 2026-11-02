@@ -17,6 +17,7 @@ import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
+import { resolveRadioColors } from '../lib/radioColorContract';
 import type { RadioGroupCollectionContextProps } from '../types';
 import type { StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
@@ -93,6 +94,7 @@ function RadioGroupCollection(): React.ReactElement {
             data: { oidObject },
         },
         widget,
+        theme,
     } = context as RadioGroupCollectionContextProps;
     const { data, states } = useData('oid');
 
@@ -132,6 +134,7 @@ function RadioGroupCollection(): React.ReactElement {
                 }}
             >
                 {states.map((state, index) => {
+                    const radioColors = resolveRadioColors(widget.data, state.iconColor, theme);
                     return (
                         <FormControlLabel
                             key={`${String(state.value)}-${index}`}
@@ -172,9 +175,9 @@ function RadioGroupCollection(): React.ReactElement {
                                     }),
                                     '&.Mui-disabled': {
                                         '&.Mui-checked': {
-                                            color: state.iconColor || 'primary.main',
+                                            color: radioColors.checked,
                                         },
-                                        color: widget.data.radioGroupUncheckedIconColor || 'action.active',
+                                        color: radioColors.disabledUnchecked,
                                     },
                                 },
                                 '& .MuiFormControlLabel-label': {
@@ -199,7 +202,7 @@ function RadioGroupCollection(): React.ReactElement {
                                         />
                                     }
                                     sx={{
-                                        color: widget.data.radioGroupUncheckedIconColor,
+                                        color: radioColors.unchecked,
                                         width: '100%',
                                         height: '100%',
                                         maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
