@@ -63,9 +63,6 @@ export type BoundaryPickerSlice = Pick<
     | 'jsonRowPath'
     | 'jsonXPath'
 >;
-/** The chart-type picker's field ownership — the family-boundary crossing. */
-export type ChartTypePickerSlice = BoundaryPickerSlice;
-
 /** The props every boundary picker shares. */
 interface BoundaryPickerProps {
     state: BoundaryPickerSlice;
@@ -125,9 +122,6 @@ export const ChartTypePicker: FC<BoundaryPickerProps> = props => (
 );
 
 /** Per-widget data mode (chart-global, not per-series). */
-/** The mode select's field ownership — the JSON-boundary crossing. */
-export type ModeSelectSlice = BoundaryPickerSlice;
-
 export const ModeSelect: FC<BoundaryPickerProps> = props => (
     <Box>
         <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>
@@ -149,9 +143,6 @@ export const ModeSelect: FC<BoundaryPickerProps> = props => (
         </ToggleButtonGroup>
     </Box>
 );
-
-/** The payload-family select's field ownership — the payload-family crossing (ADR-0075). */
-export type JsonKindSelectSlice = BoundaryPickerSlice;
 
 /**
  * The payload-family toggle (ADR-0075): pinned UNDER the mode toggle, rendered only while the

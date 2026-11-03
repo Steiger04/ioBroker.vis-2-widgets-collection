@@ -143,7 +143,7 @@ The chart-level bar stacking mode (ADR-0084), authored in the head of the Series
 _Avoid_: Stapel-Typ, stacked bar as a diagram type, Achsen-Stack (ADR-0018's pixel arrangement of offset axes — the English "stack" there means Versatz, not stacking)
 
 **Stapelgruppe**:
-The per-series stacking group on the bar card's Darstellung tab, three-valued since ADR-0084 (the Erben-Override idiom): **erben** (default — follows the Stapelmodus, and the select NAMES what it resolves to), **Kein Stapel** (opted out of every stack) and **Gruppe A/B/C** (own stack, mode-independent — „3 stapeln, 1 separat" stays reachable). The effective stack name couples the axis in passing (builder-internal, never persisted): a stack never spans foreign scales, not even with explicit groups. Lines carry hand-set groups WITHOUT inherit and without coupling; the legacy `''` sentinel healed away on load.
+The per-series stacking group on the bar card's Stil tab, three-valued since ADR-0084 (the Erben-Override idiom): **erben** (default — follows the Stapelmodus, and the select NAMES what it resolves to), **Kein Stapel** (opted out of every stack) and **Gruppe A/B/C** (own stack, mode-independent — „3 stapeln, 1 separat" stays reachable). The effective stack name couples the axis in passing (builder-internal, never persisted): a stack never spans foreign scales, not even with explicit groups. Lines carry hand-set groups WITHOUT inherit and without coupling; the legacy `''` sentinel healed away on load.
 _Avoid_: Stack-Name (builder internal, not authored), Serie-Gruppierung, Versatz-Stack (ADR-0018 again — axes, not bars)
 
 **Summen-Anker**:
@@ -159,7 +159,7 @@ The tabellarische pie's colour law — the same category name wears the same col
 _Avoid_: Ring-Palette (mechanism, not the law), Farbsync
 
 **Ring-Karte**:
-The tabellarische pie's series card — structurally the Series card (Karten-Tabs Basis · Daten · JSON, move, duplicate, delete), but pie-honest: no colour, type, Darstellung or Werte authoring (Kategorie-Stabilität owns the colours; a ring is always a pie), a ring icon instead of the swatch, and the per-series Raw teaching the pie-ring catalog (ADR-0082).
+The tabellarische pie's series card — structurally the Series card (Karten-Tabs Basis · Daten · JSON, move, duplicate, delete), but pie-honest: no colour, type, Stil or Format authoring (Kategorie-Stabilität owns the colours; a ring is always a pie), a ring icon instead of the swatch, and the per-series Raw teaching the pie-ring catalog (ADR-0082).
 _Avoid_: Donut-Karte, Ring-Serie (the echarts series is the mechanism)
 
 **Summary line**:

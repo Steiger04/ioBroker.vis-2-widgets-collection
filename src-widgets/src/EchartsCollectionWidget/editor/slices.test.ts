@@ -27,7 +27,7 @@ import type { SeriesSlice } from './sections/SeriesSection';
 import type { HistorySeriesListSlice } from './sections/series/sources/history';
 import type { JsonSeriesListSlice } from './sections/series/sources/json';
 import type { PieSliceRowsSlice } from './sections/series/PieSliceRows';
-import type { ChartTypePickerSlice, ModeSelectSlice } from './controls';
+import type { BoundaryPickerSlice } from './controls';
 import type { TitleSlice } from './sections/TitleSection';
 import type { ToolboxSlice } from './sections/ToolboxSection';
 import type { TooltipSlice } from './sections/TooltipSection';
@@ -266,8 +266,8 @@ describe('section slices (ADR-0049)', () => {
             | 'jsonRowPath'
             | 'jsonXPath'
         >;
-        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Boundary>();
-        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Boundary>();
+        // One slice for all three boundary pickers (chart type, data mode, payload family).
+        expectTypeOf<BoundaryPickerSlice>().toEqualTypeOf<Boundary>();
     });
 
     it('EditorThemeSource equals the theme-resolution read footprint', () => {
@@ -321,13 +321,9 @@ describe('section slices (ADR-0049)', () => {
         // @ts-expect-error yAxes is not the pie slice rows' field
         pieRows({ yAxes: [] });
 
-        const chartTypePicker: SetEditor<ChartTypePickerSlice> = () => undefined;
+        const boundaryPicker: SetEditor<BoundaryPickerSlice> = () => undefined;
         // @ts-expect-error titleText is not a boundary picker's field
-        chartTypePicker({ titleText: 'no' });
-
-        const modeSelect: SetEditor<ModeSelectSlice> = () => undefined;
-        // @ts-expect-error animation is not a boundary picker's field
-        modeSelect({ animation: false });
+        boundaryPicker({ titleText: 'no' });
     });
 
     it('the read-only series surfaces reject foreign reads', () => {
@@ -349,8 +345,7 @@ describe('section slices (ADR-0049)', () => {
         const asPie: SetEditor<PieOptionsSlice> = railSet;
         const asSeries: SetEditor<SeriesSlice> = railSet;
         const asPieRows: SetEditor<PieSliceRowsSlice> = railSet;
-        const asChartTypePicker: SetEditor<ChartTypePickerSlice> = railSet;
-        const asModeSelect: SetEditor<ModeSelectSlice> = railSet;
+        const asBoundaryPicker: SetEditor<BoundaryPickerSlice> = railSet;
         const railState = {} as EditorState;
         const tooltipState: TooltipSlice = railState;
         const titleState: TitleSlice = railState;
@@ -365,8 +360,7 @@ describe('section slices (ADR-0049)', () => {
         const pieRowsState: PieSliceRowsSlice = railState;
         const jsonCardsState: JsonSeriesListSlice = railState;
         const cartesianListState: HistorySeriesListSlice = railState;
-        const chartTypePickerState: ChartTypePickerSlice = railState;
-        const modeSelectState: ModeSelectSlice = railState;
+        const boundaryPickerState: BoundaryPickerSlice = railState;
         // Reference everything so lint stays quiet — the assignments ARE the assertion.
         expectTypeOf([
             asTooltip,
@@ -380,8 +374,7 @@ describe('section slices (ADR-0049)', () => {
             asPie,
             asSeries,
             asPieRows,
-            asChartTypePicker,
-            asModeSelect,
+            asBoundaryPicker,
         ]).not.toBeAny();
         expectTypeOf([
             tooltipState,
@@ -397,8 +390,7 @@ describe('section slices (ADR-0049)', () => {
             pieRowsState,
             jsonCardsState,
             cartesianListState,
-            chartTypePickerState,
-            modeSelectState,
+            boundaryPickerState,
         ]).not.toBeAny();
     });
 });

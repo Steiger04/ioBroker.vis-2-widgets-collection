@@ -1,6 +1,6 @@
 /**
  * The series card (ADR-0100) — ONE card anatomy for the three Kartenquellen (Verlauf, JSON,
- * Tabelle): header (identity + actions) and the Karten-Tabs Basis · Daten · Stil · Format · JSON
+ * Tabellarisch): header (identity + actions) and the Karten-Tabs Basis · Daten · Stil · Format · JSON
  * (ADR-0073). The tab set, the header actions and the Basis gates come from the resolved
  * {@link CardCapabilities}; the source supplies identity, the source row, the Daten inputs and
  * the patch routing. Nothing here branches on the data path or the family.

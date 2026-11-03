@@ -15,7 +15,6 @@ import { act } from 'react';
 
 vi.hoisted(() => {
     const dict: Record<string, string> = {
-        echarts_grp_data: 'Data',
         echarts_aggregate: 'Aggregation',
         echarts_percentile: 'Percentile (%)',
         echarts_integral_unit: 'Unit (seconds)',

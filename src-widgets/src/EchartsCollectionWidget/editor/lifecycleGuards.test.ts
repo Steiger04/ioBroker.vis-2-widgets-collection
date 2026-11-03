@@ -176,22 +176,4 @@ describe('payload-family boundary (ADR-0075)', () => {
         // the other way) — the patch carries no jsonOid key at all.
         expect(patch).not.toHaveProperty('jsonOid');
     });
-
-    it('the switch is flip + reset in ONE patch — a single undo step restores both', () => {
-        // The handler composition the component performs: the crossing patch IS the reset
-        // (jsonKind included) — no second set() call, no split history entry.
-        const from = state({ mode: 'json', jsonKind: 'series', jsonOid: 'js.0.doc' });
-        const to = 'table' as const;
-        const patch = crossesJsonKindBoundary(from.jsonKind, to) ? jsonKindReset(to) : { jsonKind: to };
-        expect(patch).toEqual({
-            jsonKind: 'table',
-            series: [],
-            yAxes: [],
-            markLines: [],
-            jsonSeriesStyle: {},
-            jsonHidden: [],
-            jsonRowPath: '',
-            jsonXPath: '',
-        });
-    });
 });

@@ -6,9 +6,9 @@
  * @module EchartsCollectionWidget/editor/sections/series/cardCapabilities
  * @remarks
  * Two independent axes:
- *  - the **Kartenquelle** (Verlauf · JSON · Tabelle) owns what depends on the data path — the
+ *  - the **Kartenquelle** (Verlauf · JSON · Tabellarisch) owns what depends on the data path — the
  *    header actions and whether the Daten tab FETCHES (Verlauf: acquisition overrides) or only
- *    transforms (JSON, Tabelle: the payload needs no fetch, the pipeline still transforms);
+ *    transforms (JSON, Tabellarisch: the payload needs no fetch, the pipeline still transforms);
  *  - the **family profile** (ADR-0083, `FamilyEditorial.seriesCard`) owns what depends on the
  *    family — the pie rings (ADR-0082 decision 1) carry no type, no colour and three tabs.
  */
