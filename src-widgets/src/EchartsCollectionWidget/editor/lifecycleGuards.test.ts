@@ -35,14 +35,12 @@ import {
     healStableIds,
     jsonKindReset,
     loadedOidCount,
-    reconcileJsonAxesStep,
 } from './lifecycleGuards';
 
 const state = (overrides: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...overrides });
 
 /** Assert the step produced a patch and narrow it for field assertions (fields present by construction). */
-const asPatch = (result: { patch: EditorPatch; diedIndices: number[] } | EditorPatch | null): Required<EditorPatch> => {
-    const patch = result && 'patch' in result ? result.patch : result;
+const asPatch = (patch: EditorPatch | null): Required<EditorPatch> => {
     expect(patch).not.toBeNull();
     return patch as Required<EditorPatch>;
 };
@@ -87,117 +85,6 @@ describe('healStableIds', () => {
         const patch = asPatch(healStableIds(dirty));
         expect(patch.series[0]).toBe(cleanSeries);
         expect(patch.markLines[0]?.id).toBe('m0');
-    });
-});
-
-describe('reconcileJsonAxesStep', () => {
-    const jsonState = (overrides: Partial<EditorState>): EditorState => state({ mode: 'json', ...overrides });
-
-    it('returns null outside json mode', () => {
-        const live = state({ chartType: 'line', yAxes: [], jsonSeriesStyle: {} });
-        expect(reconcileJsonAxesStep(live, ['a'])).toBeNull();
-    });
-
-    it('returns null for non-cartesian families', () => {
-        expect(reconcileJsonAxesStep(jsonState({ chartType: 'pie' }), ['a'])).toBeNull();
-    });
-
-    it('returns null with no visible names', () => {
-        expect(reconcileJsonAxesStep(jsonState({ chartType: 'line' }), [])).toBeNull();
-    });
-
-    it('lands a fresh payload 1:1 — each name its own axis, alternating side + stagger', () => {
-        const fresh = jsonState({ chartType: 'line', yAxes: [], jsonSeriesStyle: {} });
-        const patch = asPatch(reconcileJsonAxesStep(fresh, ['temp', 'kw']));
-        expect(patch.yAxes).toHaveLength(2);
-        expect(patch.yAxes[0]).toMatchObject({ position: 'left', offset: 0 });
-        expect(patch.yAxes[1]).toMatchObject({ position: 'right', offset: 0 });
-        expect(patch.jsonSeriesStyle.temp?.yAxisIndex).toBe(0);
-        expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBe(1);
-    });
-
-    it('keeps a valid manual rebind (sticky — a swapped binding survives)', () => {
-        // The FIRST reconcile after a load bootstraps the axis owners (ADR-0068 — the swapped
-        // binding's incumbents: axis 0 ← kw, axis 1 ← temp); the re-fire over its own output
-        // is the sticky no-op it always was (bindings untouched, owner already current).
-        const rebound = jsonState({
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
-            jsonSeriesStyle: {
-                temp: { yAxisIndex: 1 }, // manually rebound away from the default 1:1
-                kw: { yAxisIndex: 0 },
-            },
-        });
-        const bootstrapped = asPatch(reconcileJsonAxesStep(rebound, ['temp', 'kw']));
-        expect(bootstrapped.jsonSeriesStyle).toEqual(rebound.jsonSeriesStyle); // sticky
-        expect(bootstrapped.yAxes[0]).toMatchObject({ owner: 'kw' });
-        expect(bootstrapped.yAxes[1]).toMatchObject({ owner: 'temp' });
-        expect(reconcileJsonAxesStep({ ...rebound, yAxes: bootstrapped.yAxes }, ['temp', 'kw'])).toBeNull();
-    });
-
-    it('drops the axis of a name that is no longer visible (payload-gone → death, ADR-0069)', () => {
-        // kw is gone from the payload (a HIDDEN name never reaches the step — the caller filters
-        // `jsonHidden` out of the visible names; its overlay index clears here as bookkeeping).
-        const withGone = jsonState({
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
-            jsonSeriesStyle: {
-                temp: { yAxisIndex: 0 },
-                kw: { yAxisIndex: 1 },
-            },
-        });
-        const step = reconcileJsonAxesStep(withGone, ['temp']); // kw payload-gone
-        const patch = asPatch(step);
-        expect(patch.yAxes).toHaveLength(1); // kw's axis DIED — dropped, not resting
-        expect(step?.diedIndices).toEqual([1]); // reported for the info-only snackbar
-        expect(patch.jsonSeriesStyle.temp?.yAxisIndex).toBe(0);
-        expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
-    });
-
-    it('a payload-vanish death records nothing on the re-fire (redo survives)', () => {
-        // ADR-0069: the vanish kills the axis INSIDE the reconcile — and the stringify
-        // idempotence guard covers it: it diffs the WHOLE yAxes + overlay, so the re-fire
-        // over the applied state is a null (no empty history entry destroys the redo branch).
-        const before = jsonState({
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
-            jsonSeriesStyle: {
-                temp: { yAxisIndex: 0 },
-                kw: { yAxisIndex: 1, name: 'kW' },
-            },
-        });
-        const step = reconcileJsonAxesStep(before, ['temp']); // kw gone from the payload
-        const patch = asPatch(step);
-        expect(patch.yAxes).toHaveLength(1); // the vanish death
-        expect(step?.diedIndices).toEqual([1]);
-        expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
-        const applied = state({ ...before, ...patch });
-        expect(reconcileJsonAxesStep(applied, ['temp'])).toBeNull(); // stable — no re-record
-    });
-
-    it('is idempotent over its own output (an undo re-fire records nothing — redo survives)', () => {
-        const fresh = jsonState({ chartType: 'line', yAxes: [], jsonSeriesStyle: {} });
-        const patch = asPatch(reconcileJsonAxesStep(fresh, ['temp', 'kw']));
-        const applied = state({ ...fresh, ...patch });
-        expect(reconcileJsonAxesStep(applied, ['temp', 'kw'])).toBeNull();
-    });
-
-    it('re-balances a manual offset when it fires — the offset survives only BETWEEN firings', () => {
-        // The ADR-0048 rationale in test form: reconcileJsonAxes ends in the unconditional
-        // auto-balance (ADR-0067, pensioning ADR-0028's pack), so a hand-tuned 42 px offset dies
-        // the moment the reconcile runs (a payload change). It survives unrelated edits ONLY
-        // because the owning effect's deps stay narrow — which is why the guards must not
-        // collapse into one heal pass over every state change.
-        const handTuned = jsonState({
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 42)],
-            jsonSeriesStyle: {
-                temp: { yAxisIndex: 0 },
-                kw: { yAxisIndex: 1 },
-            },
-        });
-        const patch = asPatch(reconcileJsonAxesStep(handTuned, ['temp', 'kw']));
-        expect(patch.yAxes[1]?.offset).toBe(0);
     });
 });
 
@@ -306,15 +193,5 @@ describe('payload-family boundary (ADR-0075)', () => {
             jsonRowPath: '',
             jsonXPath: '',
         });
-    });
-
-    it('reconcileJsonAxesStep is INERT in the table family (ADR-0075 decision 2)', () => {
-        const table = state({
-            mode: 'json',
-            jsonKind: 'table',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0)],
-        });
-        expect(reconcileJsonAxesStep(table, ['temp', 'kw'])).toBeNull();
     });
 });

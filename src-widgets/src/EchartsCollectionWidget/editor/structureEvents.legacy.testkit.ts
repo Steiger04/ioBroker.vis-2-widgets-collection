@@ -27,6 +27,7 @@ import {
     materializedAxisIndex,
     moveAxisPlace,
     ownerPatch,
+    reconcileJsonAxes,
     reindexJsonOverlay,
     remapMarkAxisIndices,
     sameFormatSurvivor,
@@ -37,7 +38,6 @@ import {
     crossesJsonKindBoundary,
     dataPathReset,
     jsonKindReset,
-    reconcileJsonAxesStep,
 } from './lifecycleGuards';
 import { familyBoundaryLoss, familySwitchSnippetLoss, jsonBoundaryLoss, jsonKindBoundaryLoss } from './validation';
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
@@ -73,6 +73,47 @@ export interface CharResult {
               loss: { series: number; axes: number; marks: number; dataPoint: boolean; templates: number };
           };
 }
+
+/** The pre-module lifecycleGuards.reconcileJsonAxesStep, frozen verbatim. */
+const reconcileJsonAxesStep = (
+    state: EditorState,
+    visibleNames: readonly string[],
+): { patch: EditorPatch; diedIndices: number[] } | null => {
+    if (
+        state.mode !== 'json' ||
+        // The table family owns its structure (ADR-0075 decision 2) — no payload reconcile,
+        // the same exclusion as the overlay/jsonHidden surfaces.
+        state.jsonKind === 'table' ||
+        (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter') ||
+        visibleNames.length === 0
+    ) {
+        return null;
+    }
+    const {
+        yAxes,
+        overlay: jsonSeriesStyle,
+        markLines,
+        diedIndices,
+    } = reconcileJsonAxes(
+        visibleNames,
+        state.jsonSeriesStyle,
+        state.yAxes,
+        state.jsonHidden,
+        state.markLines,
+        state.axisSlotMemory,
+    );
+    if (
+        JSON.stringify(yAxes) === JSON.stringify(state.yAxes) &&
+        JSON.stringify(jsonSeriesStyle) === JSON.stringify(state.jsonSeriesStyle) &&
+        !markLines
+    ) {
+        return null;
+    }
+    return {
+        patch: markLines ? { yAxes, jsonSeriesStyle, markLines } : { yAxes, jsonSeriesStyle },
+        diedIndices,
+    };
+};
 
 const isCartesianType = (t: EditorState['chartType']): boolean => t === 'line' || t === 'bar' || t === 'scatter';
 

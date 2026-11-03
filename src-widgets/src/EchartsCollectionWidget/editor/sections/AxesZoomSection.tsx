@@ -10,10 +10,10 @@
  * exists exactly while a series binds it, ADR-0069 — axes are born in the Series section: the
  * auto-bind, the reconcile append or the dropdown's „Neue Achse" entry). Above the Y-cards sits
  * the **X-Karte** (ADR-0035; `sections/axes/XCard.tsx`) — the single, non-deletable card for the
- * shared time axis (the old chart-level `xSplit` row lives on as its Splitlinien switch). This
- * file owns the ORCHESTRATION: the delete semantics (ADR-0025 — an axis' series rebind to a
- * same-format survivor, else axis 0 + advisory toast; ADR-0067 — every structural event
- * re-arranges the bound axes densely), the bound-series colour/name defaults per ADR-0018
+ * shared time axis (the old chart-level `xSplit` row lives on as its Splitlinien switch). The
+ * structural axis edits — side flip, delete, place move — are structure events (ADR-0099,
+ * `editor/structureEvents`); this file renders their notice (the ADR-0025 unit-mismatch
+ * toast) and owns the bound-series colour/name defaults per ADR-0018
  * (positional for Verlauf AND Tabellarisch — ADR-0075; serien-förmig JSON via the
  * visible-payload overlay), dataZoom (slider + inside as
  * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
@@ -29,35 +29,23 @@ import { InfoBox, LabeledSelect, SectionTabs, SubGroup, SwitchList, SwitchRow } 
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import type { OidPickerCtx } from '../OidPicker';
-import type {
-    EchartsAxisConfig,
-    EchartsMarkLine,
-    EchartsSeriesMeta,
-} from '../../../types/field-definitions/echarts-fields';
+import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
 import {
     axisCardOrder,
-    axisLayout,
     axisOptionLabel,
     axisPlace,
-    balanceAxes,
     binderIndexOf,
     boundAxisIndices,
     boundJsonAxisIndices,
     boundJsonAxisName,
-    boundJsonView,
     displayPosition,
     effectiveAxisColor,
     emittedAxisRanks,
-    insertAxisAtPlace,
     jsonBindingView,
-    jsonBoundAxisDeletePatch,
-    moveAxisPlace,
-    ownerPatch,
     positionalBinderName,
-    remapMarkAxisIndices,
-    sameFormatSurvivor,
 } from '../axisLayout';
+import { applyStructureEvent, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
@@ -76,6 +64,9 @@ import MarkCard from './axes/MarkCard';
  */
 export type AxesZoomSlice = Pick<
     EditorState,
+    // The structure-event view (ADR-0099) reads the family and the data point too.
+    | 'chartType'
+    | 'jsonOid'
     | 'mode'
     | 'jsonKind'
     | 'series'
@@ -193,140 +184,28 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     // order — the alignTicks gates on the card read the emitted index/total, not the configured
     // ones (the reference axis is the first emitted one).
     const emittedRanks = emittedAxisRanks(boundIdx);
-    /**
-     * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the
-     * family — the positional families pass the series list (a series without an index
-     * implicitly binds axis 0); serien-förmig JSON passes the visible overlay bindings through
-     * the STRICT sight (a cleared entry is unbound, never an implicit axis-0 binder). Handlers
-     * that change the overlay/hidden set pass their AFTER values; the defaults read the
-     * current state.
-     */
-    const balanceSight = (
-        overlay: Readonly<Record<string, EchartsSeriesMeta>> = state.jsonSeriesStyle,
-        hidden: readonly string[] = state.jsonHidden,
-    ): { yAxisIndex?: number }[] =>
-        isJsonSeries ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
+    // The structure events (ADR-0099): side flip, delete and place move return their complete
+    // follow-up (re-place, rebind/hide, re-index, balance) as ONE patch plus the notice.
+    const structure = (event: StructureEvent): void => {
+        const r = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames ?? [] }, event);
+        if (r.patch) {
+            set(r.patch);
+        }
+        if (r.advisory?.kind === 'unitMismatch') {
+            setToast(Generic.t('echarts_axis_rebind_unit_mismatch'));
+        }
+    };
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
-        // A REAL side-flip inserts the axis at its PLACE on the target side (ADR-0079, replacing
-        // ADR-0028's array-order repack): the rank travels, the displaced shift one outward, the
-        // source side closes, every personal offset deviation travels. The flip check runs
-        // through `displayPosition`, so re-selecting the value the card SHOWS is no flip:
-        // hand-tuned offsets survive. Any other edit (offset/name/colour/min-max/…) is plain
-        // fine-justure — no re-place either.
-        const target = patch.position;
-        if (target !== undefined && target !== displayPosition(axes[i], i)) {
-            const placed = insertAxisAtPlace(axes, i, target, state.axisSlotMemory);
-            if (placed) {
-                // The patch's OTHER keys ride along on the flipped axis — the merge contract is
-                // the pre-ADR-0079 one (single-key patches today, but nothing gets dropped).
-                set({ yAxes: placed.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) });
-                return;
-            }
+        // A side change is a structure event (ADR-0079 place insert); every other edit
+        // (offset/name/colour/min-max/…) is plain fine-adjustment.
+        if (patch.position !== undefined) {
+            structure({ type: 'flipAxisSide', index: i, patch });
+            return;
         }
         set({ yAxes: axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) });
     };
-    // Manual "add axis" is retired (ADR-0069): the button created an axis nothing bound — an
-    // unbound axis, which the new invariant drops on the spot. Axes are born in the Series
-    // section alone (the auto-bind, the reconcile append, the dropdown's „Neue Achse" entry).
-    const removeAxis = (i: number): void => {
-        // JSON serien-förmig: `state.series` is empty — the payload owns the series, and the axes
-        // follow the visible payload names via the reconcile. Removing an axis config directly
-        // would leave `jsonSeriesStyle.yAxisIndex` stale, so the builder clamps the orphaned
-        // series to axis 0 (the "wrong axis gone + line lingers" chaos). The only sane "delete
-        // this axis" here is to HIDE its bound payload series — ALL of them (jsonHidden,
-        // ADR-0011; 1:n means several names can bind one axis) — and the axis DIES with its last
-        // binder in the same patch (ADR-0069): dropped, overlay entries + marking anchors
-        // re-indexed, survivors re-arranged. The TABELLARISCH family takes the positional path
-        // below (its `state.series` is materialised — the hide-and-die branch would drop the
-        // axis over an empty name sight and rebind nothing).
-        if (isJsonSeries) {
-            const deletePatch = jsonBoundAxisDeletePatch(
-                jsonSeriesNames ?? [],
-                state.jsonSeriesStyle,
-                state.jsonHidden,
-                state.yAxes,
-                i,
-                state.markLines,
-                state.axisSlotMemory,
-            );
-            if (deletePatch) {
-                // Hiding EVERY visible payload name bound to the axis frees it — ALL binders, not
-                // the first (1:n is first-class; one leftover binder would keep the axis rendered:
-                // the button must do what it says) — and the freed axis is DROPPED (ADR-0069).
-                // One patch → one undo step, no snackbar (an explicit delete says what it does).
-                set(deletePatch);
-            } else {
-                // No bound payload series — drop the config and
-                // re-index the overlay entries around the removed slot: a stale-but-in-range
-                // index would otherwise silently rebind a payload series to the WRONG axis
-                // (out-of-range ones the reconcile heals with a fresh axis). The delete is a
-                // structural event: the surviving bound set re-arranges (ADR-0067). Marking
-                // anchors re-index with the config (B4): the deleted axis' anchor stays at the
-                // stack position it occupied (max(0, i-1)), higher anchors shift down.
-                const reindexed = Object.fromEntries(
-                    Object.entries(state.jsonSeriesStyle).map(([n, m]) => [
-                        n,
-                        typeof m.yAxisIndex === 'number' && m.yAxisIndex > i
-                            ? { ...m, yAxisIndex: m.yAxisIndex - 1 }
-                            : m,
-                    ]),
-                );
-                set({
-                    yAxes: balanceAxes(
-                        axes.filter((_a, idx) => idx !== i),
-                        balanceSight(reindexed, state.jsonHidden),
-                        state.axisSlotMemory,
-                    ),
-                    jsonSeriesStyle: reindexed,
-                    markLines: remapMarkAxisIndices(state.markLines, i, Math.max(0, i - 1)),
-                });
-            }
-            return;
-        }
-        // Verlauf + Tabellarisch (ADR-0025): deleting an axis NEVER deletes its bound series. They
-        // rebind to a surviving axis of the same `format` (the unit proxy), else axis 0 + an
-        // advisory unit-mismatch toast. Survivors re-index; the delete is a structural event, so
-        // the rebound bound set ends balanced (ADR-0067). Deleting the LAST axis while series
-        // remain must not leave them stale-indexed (every axis is bound, ADR-0069) — a fresh
-        // default axis takes the rebind instead, keeping the section consistent.
-        const deletedAxis = axes[i];
-        let survivors = axes.filter((_a, idx) => idx !== i);
-        const match = sameFormatSurvivor(deletedAxis?.format, survivors);
-        const freshFallback = !survivors.length;
-        if (freshFallback) {
-            survivors = [axisLayout(0)];
-        }
-        const target = match ?? 0; // index in survivors = the new yAxisIndex
-        // The mismatch toast warns about a CHOSEN fallback — with the fresh-axis fallback there
-        // was no survivor to mismatch against, so it stays silent (nothing to check against).
-        if (match === null && !freshFallback) {
-            setToast(Generic.t('echarts_axis_rebind_unit_mismatch'));
-        }
-        // The deleted axis' series rebind onto `target`; every stored index above the hole
-        // shifts down around it.
-        const rebound = state.series.map(s => {
-            const yi = s.yAxisIndex;
-            if (typeof yi !== 'number') {
-                return s;
-            }
-            if (yi === i) {
-                return { ...s, yAxisIndex: target }; // rebind to the same-format survivor
-            }
-            return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
-        });
-        // The owner rule keeps/assigns each survivor's display series (ADR-0068 — the rebound
-        // series respect an existing incumbent on the target axis; the surviving half of the
-        // retired resting-name patch).
-        const patched = ownerPatch(state.series, rebound, survivors) ?? survivors;
-        // Marking anchors re-index with the axes (B4): the deleted axis' markings follow the
-        // rebind target (their axis' series land there), higher anchors shift down — without
-        // the remap every marking above the hole silently pointed at the SHIFTED axis.
-        set({
-            yAxes: balanceAxes(patched, rebound, state.axisSlotMemory),
-            series: rebound,
-            markLines: remapMarkAxisIndices(state.markLines, i, target),
-        });
-    };
+    // Manual "add axis" is retired (ADR-0069): axes are born in the Series section alone.
+    const removeAxis = (i: number): void => structure({ type: 'deleteAxis', index: i });
 
     const setMark = (i: number, patch: Partial<EchartsMarkLine>): void =>
         set({ markLines: state.markLines.map((m, idx) => (idx === i ? { ...m, ...patch } : m)) });
@@ -437,12 +316,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                                     open={!!expanded[cardKey]}
                                     onToggle={() => toggleCard(cardKey)}
                                     onChange={patch => setAxis(i, patch)}
-                                    onMovePlace={dir => {
-                                        const moved = moveAxisPlace(axes, i, dir);
-                                        if (moved) {
-                                            set({ yAxes: moved });
-                                        }
-                                    }}
+                                    onMovePlace={dir => structure({ type: 'moveAxis', index: i, dir })}
                                     onRemove={() => removeAxis(i)}
                                     pickerCtx={pickerCtx}
                                     seriesColor={boundAxisColor(i)}

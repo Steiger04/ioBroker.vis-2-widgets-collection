@@ -20,7 +20,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
-import { jsonAxisDeathName, syncSlotMemory } from './axisLayout';
+import { syncSlotMemory } from './axisLayout';
+import { applyStructureEvent } from './structureEvents';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -28,7 +29,7 @@ import {
     type EditorPatch,
     type EditorState,
 } from './editorState';
-import { healStableIds, loadedOidCount, reconcileJsonAxesStep } from './lifecycleGuards';
+import { healStableIds, loadedOidCount } from './lifecycleGuards';
 import type { WidgetData } from '@iobroker/types-vis-2';
 
 /** The editor lifecycle's public surface — the modal's state machine minus its chrome. */
@@ -169,7 +170,8 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
  * The JSON-mode axis reconcile effect (ADR-0026 — JSON 1:n), split from the main lifecycle as
  * the SEAM for the socket-resolved names: they depend on the lifecycle's own state
  * (`jsonOid`, mode/family), so the modal composes them between `useJsonSeriesNames` and this
- * hook instead of passing them at lifecycle call time. The policy lives in the pure step; the
+ * hook instead of passing them at lifecycle call time. The policy lives in the pure
+ * `payloadChanged` structure event (`editor/structureEvents`, ADR-0099); the
  * firing condition here: keyed on the VISIBLE names content (not the array ref) + mode/type →
  * re-syncs only on real change, so manual axis edits + bindings are preserved while
  * names/mode/type are stable (the narrow deps ARE the clobber protection — ADR-0048).
@@ -192,18 +194,13 @@ export function useJsonAxisReconcile(
     const visibleJsonNames = jsonNames.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
-        const step = reconcileJsonAxesStep(state, visibleJsonNames);
-        if (step) {
-            set(step.patch);
-            if (step.diedIndices.length && onAxisDeath) {
-                // The pre-death label: the vanish death's binder is gone from the visible list,
-                // so the shared resolver extends the sight by the vanished overlay keys.
-                onAxisDeath(
-                    step.diedIndices.map(i =>
-                        jsonAxisDeathName(state.yAxes[i], i, visibleJsonNames, state.jsonSeriesStyle, state.jsonHidden),
-                    ),
-                );
-            }
+        // The payloadChanged structure event (ADR-0099) — the reconcile policy lives in the module.
+        const r = applyStructureEvent({ ...state, payloadNames: jsonNames }, { type: 'payloadChanged' });
+        if (r.patch) {
+            set(r.patch);
+        }
+        if (r.advisory?.kind === 'axisDeath' && onAxisDeath) {
+            onAxisDeath(r.advisory.names);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);

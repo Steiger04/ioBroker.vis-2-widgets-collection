@@ -23,13 +23,22 @@ import {
     axisLayout,
     balanceAxes,
     boundJsonView,
+    displayPosition,
     effectiveAxisName,
+    insertAxisAtPlace,
     isOneToOneBound,
     jsonAxisDeathName,
+    jsonBoundAxisDeletePatch,
+    jsonShowPatch,
     materializedAxisIndex,
+    moveAxisPlace,
+    ownerPatch,
+    reconcileJsonAxes,
     reindexJsonOverlay,
+    remapMarkAxisIndices,
+    sameFormatSurvivor,
 } from './axisLayout';
-import type { EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
+import type { EchartsAxisConfig, EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
 import type { EditorPatch, EditorSeries, EditorState } from './editorState';
 
 /**
@@ -64,12 +73,26 @@ export type StructureEvent =
      * Bind a series to `axis` — a value ≥ the axis count is „Neue Achse" (append + bind). The
      * positional paths address the series by `index`, serien-förmig JSON by payload `name`.
      */
-    | { type: 'rebindSeries'; index?: number; name?: string; axis: number };
+    | { type: 'rebindSeries'; index?: number; name?: string; axis: number }
+    /** Serien-förmig JSON: suppress a payload series by name (`jsonHidden`) — restorable. */
+    | { type: 'hideSeries'; name: string }
+    /** Serien-förmig JSON: un-hide a payload series — a valid axis immediately (re-birth, ADR-0069). */
+    | { type: 'showSeries'; name: string }
+    /** Delete axis `index` explicitly — its series rebind (positional) or hide (name-keyed). */
+    | { type: 'deleteAxis'; index: number }
+    /** An axis edit carrying `position` — a real side flip re-places the axis (ADR-0079). */
+    | { type: 'flipAxisSide'; index: number; patch: Partial<EchartsAxisConfig> }
+    /** Move axis `index` one place within its side (ADR-0079). */
+    | { type: 'moveAxis'; index: number; dir: -1 | 1 }
+    /** The payload's series names changed (serien-förmig JSON) — the axis reconcile (ADR-0026). */
+    | { type: 'payloadChanged' };
 
 /** A notice for the modal (ADR-0099 decision 3) — rendered by the one notice host. */
 export type StructureAdvisory =
     /** Axes died as a side effect (ADR-0069); `undoable: false` where undo is futile (payload vanish). */
-    { kind: 'axisDeath'; names: string[]; undoable: boolean };
+    | { kind: 'axisDeath'; names: string[]; undoable: boolean }
+    /** An axis delete rebound its series onto axis 0 — no survivor shares the format (ADR-0025). */
+    | { kind: 'unitMismatch' };
 
 /** The complete follow-up of one event. */
 export interface StructureResult {
@@ -206,6 +229,180 @@ const rebindSeries = (v: StructureView, e: Extract<StructureEvent, { type: 'rebi
     );
 };
 
+// ── hide / show (serien-förmig JSON) ────────────────────────────────
+
+/**
+ * Hide a payload series (`jsonHidden` deny-list): hiding the LAST binder of an axis kills it
+ * (ADR-0069) — overlay entries + marking anchors re-index around the hole, survivors re-arrange.
+ */
+const hideSeries = (v: StructureView, e: Extract<StructureEvent, { type: 'hideSeries' }>): StructureResult => {
+    const hidden = [...v.jsonHidden, e.name];
+    const r = axesFollowBinders(
+        namedBinders(v, v.jsonSeriesStyle, v.jsonHidden),
+        namedBinders(v, v.jsonSeriesStyle, hidden),
+        v.yAxes,
+        v.markLines,
+        undefined,
+        v.axisSlotMemory,
+    );
+    return result(
+        {
+            jsonHidden: hidden,
+            yAxes: r.yAxes,
+            jsonSeriesStyle: r.diedIndices.length
+                ? reindexJsonOverlay(v.jsonSeriesStyle, r.reindex)
+                : v.jsonSeriesStyle,
+            markLines: r.markLines,
+        },
+        r.diedIndices,
+        deathAdvisory(v, r.diedIndices),
+    );
+};
+
+/** Un-hide + reconcile in ONE step: sticky axis when it survived the hide, else a fresh one (re-birth). */
+const showSeries = (v: StructureView, e: Extract<StructureEvent, { type: 'showSeries' }>): StructureResult =>
+    result(
+        jsonShowPatch(v.payloadNames, v.jsonSeriesStyle, v.yAxes, v.jsonHidden, e.name, v.markLines, v.axisSlotMemory),
+    );
+
+// ── axis events ─────────────────────────────────────────────────────
+
+/**
+ * Explicit axis delete. Name-keyed: hide EVERY visible binder, the axis dies with them (one
+ * patch, no notice — an explicit delete says what it does); without a binder the config drops
+ * and the overlay re-indexes around the hole. Positional (ADR-0025): the series never die —
+ * they rebind to a same-format survivor, else axis 0 + the unit-mismatch notice; deleting the
+ * last axis while series remain rebinds them onto a fresh default axis.
+ */
+const deleteAxis = (v: StructureView, e: Extract<StructureEvent, { type: 'deleteAxis' }>): StructureResult => {
+    const i = e.index;
+    const axes = v.yAxes;
+    if (isNamed(v)) {
+        const hideAll = jsonBoundAxisDeletePatch(
+            v.payloadNames,
+            v.jsonSeriesStyle,
+            v.jsonHidden,
+            axes,
+            i,
+            v.markLines,
+            v.axisSlotMemory,
+        );
+        if (hideAll) {
+            return result(hideAll, [i]);
+        }
+        // No bound payload series: a stale-but-in-range index would silently rebind a payload
+        // series to the WRONG axis — re-index the overlay; the anchors keep their stack place.
+        const reindexed = Object.fromEntries(
+            Object.entries(v.jsonSeriesStyle).map(([n, m]) => [
+                n,
+                typeof m.yAxisIndex === 'number' && m.yAxisIndex > i ? { ...m, yAxisIndex: m.yAxisIndex - 1 } : m,
+            ]),
+        );
+        return result(
+            {
+                yAxes: balanceAxes(
+                    axes.filter((_a, idx) => idx !== i),
+                    namedBinders(v, reindexed, v.jsonHidden),
+                    v.axisSlotMemory,
+                ),
+                jsonSeriesStyle: reindexed,
+                markLines: remapMarkAxisIndices(v.markLines, i, Math.max(0, i - 1)),
+            },
+            [i],
+        );
+    }
+    let survivors = axes.filter((_a, idx) => idx !== i);
+    const match = sameFormatSurvivor(axes[i]?.format, survivors);
+    const freshFallback = !survivors.length;
+    if (freshFallback) {
+        survivors = [axisLayout(0)];
+    }
+    const target = match ?? 0; // index in survivors = the new yAxisIndex
+    const rebound = v.series.map(s => {
+        const yi = s.yAxisIndex;
+        if (typeof yi !== 'number') {
+            return s;
+        }
+        if (yi === i) {
+            return { ...s, yAxisIndex: target };
+        }
+        return { ...s, yAxisIndex: yi > i ? yi - 1 : yi };
+    });
+    // The owner rule keeps/assigns each survivor's display series (ADR-0068).
+    const patched = ownerPatch(v.series, rebound, survivors) ?? survivors;
+    return result(
+        {
+            yAxes: balanceAxes(patched, rebound, v.axisSlotMemory),
+            series: rebound,
+            markLines: remapMarkAxisIndices(v.markLines, i, target),
+        },
+        [i],
+        // The mismatch warns about a CHOSEN fallback — a fresh axis had nothing to mismatch.
+        match === null && !freshFallback ? { kind: 'unitMismatch' } : undefined,
+    );
+};
+
+/**
+ * A REAL side flip inserts the axis at its PLACE on the target side (ADR-0079): the rank
+ * travels, the displaced shift outward. Re-selecting the side the card SHOWS is no flip; the
+ * patch's other keys ride along either way.
+ */
+const flipAxisSide = (v: StructureView, e: Extract<StructureEvent, { type: 'flipAxisSide' }>): StructureResult => {
+    const i = e.index;
+    const target = e.patch.position;
+    const placed =
+        target !== undefined && target !== displayPosition(v.yAxes[i], i)
+            ? insertAxisAtPlace(v.yAxes, i, target, v.axisSlotMemory)
+            : undefined;
+    return result({ yAxes: (placed ?? v.yAxes).map((a, idx) => (idx === i ? { ...a, ...e.patch } : a)) });
+};
+
+/** One place up/down within the side — `null` at the boundary (no undo step). */
+const moveAxis = (v: StructureView, e: Extract<StructureEvent, { type: 'moveAxis' }>): StructureResult => {
+    const moved = moveAxisPlace(v.yAxes, e.index, e.dir);
+    return result(moved ? { yAxes: moved } : null);
+};
+
+// ── payload ─────────────────────────────────────────────────────────
+
+/**
+ * The payload reconcile (ADR-0026 — JSON 1:n): a fresh payload lands 1:1, a valid binding
+ * stays sticky, a name VANISHING from the payload kills its axis (ADR-0069). Only the VISIBLE
+ * names drive it. `null` patch outside json-cartesian serien-förmig, without visible names or
+ * over an already-consistent state — the idempotence guard that keeps an undo re-fire from
+ * recording an empty step (the redo branch survives). The death notice is not undoable: the
+ * next reconcile over the same payload would re-kill the axis.
+ */
+const payloadChanged = (v: StructureView): StructureResult => {
+    const visible = v.payloadNames.filter(n => !v.jsonHidden.includes(n));
+    if (!isNamed(v) || !isCartesian(v) || visible.length === 0) {
+        return result(null);
+    }
+    const r = reconcileJsonAxes(visible, v.jsonSeriesStyle, v.yAxes, v.jsonHidden, v.markLines, v.axisSlotMemory);
+    if (
+        JSON.stringify(r.yAxes) === JSON.stringify(v.yAxes) &&
+        JSON.stringify(r.overlay) === JSON.stringify(v.jsonSeriesStyle) &&
+        !r.markLines
+    ) {
+        return result(null);
+    }
+    const patch: EditorPatch = r.markLines
+        ? { yAxes: r.yAxes, jsonSeriesStyle: r.overlay, markLines: r.markLines }
+        : { yAxes: r.yAxes, jsonSeriesStyle: r.overlay };
+    // The pre-death label: the vanished binder is gone from the visible list — the resolver
+    // extends the sight by the vanished overlay keys.
+    const advisory: StructureAdvisory | undefined = r.diedIndices.length
+        ? {
+              kind: 'axisDeath',
+              undoable: false,
+              names: r.diedIndices.map(idx =>
+                  jsonAxisDeathName(v.yAxes[idx], idx, visible, v.jsonSeriesStyle, v.jsonHidden),
+              ),
+          }
+        : undefined;
+    return result(patch, r.diedIndices, advisory);
+};
+
 /**
  * Apply one structure event to the view.
  *
@@ -223,5 +420,17 @@ export const applyStructureEvent = (view: StructureView, event: StructureEvent):
             return removeSeries(view, event);
         case 'rebindSeries':
             return rebindSeries(view, event);
+        case 'hideSeries':
+            return hideSeries(view, event);
+        case 'showSeries':
+            return showSeries(view, event);
+        case 'deleteAxis':
+            return deleteAxis(view, event);
+        case 'flipAxisSide':
+            return flipAxisSide(view, event);
+        case 'moveAxis':
+            return moveAxis(view, event);
+        case 'payloadChanged':
+            return payloadChanged(view);
     }
 };

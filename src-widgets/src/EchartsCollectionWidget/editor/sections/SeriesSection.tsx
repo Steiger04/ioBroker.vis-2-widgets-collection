@@ -32,14 +32,6 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import {
-    axesFollowBinders,
-    boundJsonView,
-    effectiveAxisName,
-    jsonAxisDeathName,
-    jsonShowPatch,
-    reindexJsonOverlay,
-} from '../axisLayout';
 import { applyStructureEvent, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
@@ -148,21 +140,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // The ADR-0069 axis-death snackbar: a death by side effect reports the lost axis(es) with an
     // undo action (non-blocking; one set() = the undoable step). Explicit deletes stay silent.
     const [axisDeath, setAxisDeath] = useState<string[] | null>(null);
-    const reportDeathsFor = (diedIndices: readonly number[]): void => {
-        if (!diedIndices.length) {
-            return;
-        }
-        setAxisDeath(
-            diedIndices.map(idx =>
-                // Family-scoped (ADR-0075): only the SERIEN-FÖRMIG family reports through the
-                // payload-name sight — the tabellarisch death names its axis like Verlauf, via
-                // the positional series (column-name default included).
-                isJson && state.jsonKind === 'series'
-                    ? jsonAxisDeathName(state.yAxes[idx], idx, jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden)
-                    : effectiveAxisName(state.yAxes[idx], idx, series),
-            ),
-        );
-    };
 
     // OID → text facts (ADR-0058, parity Build B): resolve each NEWLY bound OID's object once
     // and prefill/clean the series' text fields (bool texts, enum state names). Runs on load too
@@ -260,55 +237,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 [name]: { ...state.jsonSeriesStyle[name], ...patch },
             },
         });
-    // The JSON binding sight (shared pure helpers, local adapters closing over the names):
-    // `boundBindings` is the STRICT sight — DEFINED indices only, a cleared entry is unbound,
-    // never an implicit axis-0 binder. It feeds {@link axesFollowBinders} for both halves.
-    const boundBindings = (
-        overlay: Readonly<Record<string, EchartsSeriesMeta>>,
-        hidden: readonly string[],
-    ): { yAxisIndex?: number }[] => boundJsonView(jsonSeriesNames ?? [], overlay, hidden);
-    // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
-    // owns the series; hiding only suppresses it (chart + legend) — restorable. Hiding the LAST
-    // binder of an axis kills it (ADR-0069): the overlay entries + marking anchors re-index around
-    // the hole, the survivors re-arrange (ADR-0067). One set() = one undo step — the snackbar
-    // carries the death.
-    const hideJson = (name: string): void => {
-        const hidden = [...state.jsonHidden, name];
-        const r = axesFollowBinders(
-            boundBindings(state.jsonSeriesStyle, state.jsonHidden),
-            boundBindings(state.jsonSeriesStyle, hidden),
-            state.yAxes,
-            state.markLines,
-            undefined,
-            state.axisSlotMemory,
-        );
-        set({
-            jsonHidden: hidden,
-            yAxes: r.yAxes,
-            jsonSeriesStyle: r.diedIndices.length
-                ? reindexJsonOverlay(state.jsonSeriesStyle, r.reindex)
-                : state.jsonSeriesStyle,
-            markLines: r.markLines,
-        });
-        reportDeathsFor(r.diedIndices);
-    };
-    const showJson = (name: string): void => {
-        // Un-hide + reconcile in ONE step (B3): the reconcile guarantees the shown name a VALID
-        // yAxisIndex immediately — sticky when its axis survived the hide, else a FRESH appended
-        // axis (ADR-0069: the axis died with its last binder; a re-show is a re-birth with
-        // default config, not a resurrection).
-        set(
-            jsonShowPatch(
-                jsonSeriesNames ?? [],
-                state.jsonSeriesStyle,
-                state.yAxes,
-                state.jsonHidden,
-                name,
-                state.markLines,
-                state.axisSlotMemory,
-            ),
-        );
-    };
+    // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name — restorable.
+    // Hiding the LAST binder of an axis kills it (ADR-0069, the snackbar carries the death); a
+    // re-show is a re-birth with a valid axis in the same step (B3).
+    const hideJson = (name: string): void => structure({ type: 'hideSeries', name });
+    const showJson = (name: string): void => structure({ type: 'showSeries', name });
     // Rebind a JSON payload series by name (ADR-0026 JSON 1:n) — the same rebindSeries event;
     // the module's name-keyed adapter writes the overlay entry.
     const rebindJsonAxis = (name: string, newYi: number): void =>

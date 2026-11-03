@@ -79,6 +79,9 @@ describe('section slices (ADR-0049)', () => {
         expectTypeOf<AxesZoomSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
+                // The structure-event view (ADR-0099) reads the family and the data point.
+                | 'chartType'
+                | 'jsonOid'
                 | 'mode'
                 | 'jsonKind'
                 | 'series'

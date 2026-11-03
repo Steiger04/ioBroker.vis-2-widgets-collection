@@ -43,6 +43,12 @@ const MODULE_EVENTS: ReadonlySet<CharEvent['type']> = new Set([
     'duplicateSeries',
     'removeSeries',
     'rebindSeries',
+    'hideSeries',
+    'showSeries',
+    'deleteAxis',
+    'flipAxisSide',
+    'moveAxis',
+    'payloadChanged',
 ]);
 
 /** The implementation under characterisation (the module's `died` is pinned separately). */
