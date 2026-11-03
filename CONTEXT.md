@@ -127,7 +127,7 @@ One tab of a section body's tab row (ADR-0073) — the uniform bundling level in
 _Avoid_: Unterseite, Tab-Panel, drawer
 
 **Karten-Tab**:
-One tab inside a Series, Y-axis or X card body (ADR-0073) — Rail → Section → Card → Tab is the deliberate fourth navigation level (revising ADR-0019's "no fourth expand level", which banned nested disclosure, not tabs). The Series card's `Daten` tab hosts the per-series acquisition knobs (the Erben-Override of the Data source Voreinstellung); JSON cards drop the `Daten` tab (no fetch).
+One tab inside a Series, Y-axis or X card body (ADR-0073) — Rail → Section → Card → Tab is the deliberate fourth navigation level (revising ADR-0019's "no fourth expand level", which banned nested disclosure, not tabs). The Series card's `Daten` tab is present for every Kartenquelle: Verlauf hosts the per-series acquisition knobs there (the Erben-Override of the Data source Voreinstellung) beside the transforms; JSON and Tabellarisch have no fetch, so their `Daten` tab carries only the transforms (ADR-0100 — replaces the former separate „Transformation" tab of ADR-0073).
 _Avoid_: nested accordion, vierter Accordion-Level, Sub-group (that's the fine grouping INSIDE a tab)
 
 **Zeitfenster**:
@@ -159,7 +159,7 @@ The tabellarische pie's colour law — the same category name wears the same col
 _Avoid_: Ring-Palette (mechanism, not the law), Farbsync
 
 **Ring-Karte**:
-The tabellarische pie's series card — structurally the Series card (Karten-Tabs, move, delete), but pie-honest: no colour, type, Darstellung or Werte authoring (Kategorie-Stabilität owns the colours; a ring is always a pie), a ring icon instead of the swatch, and the per-series Raw teaching the pie-ring catalog (ADR-0082).
+The tabellarische pie's series card — structurally the Series card (Karten-Tabs Basis · Daten · JSON, move, duplicate, delete), but pie-honest: no colour, type, Darstellung or Werte authoring (Kategorie-Stabilität owns the colours; a ring is always a pie), a ring icon instead of the swatch, and the per-series Raw teaching the pie-ring catalog (ADR-0082).
 _Avoid_: Donut-Karte, Ring-Serie (the echarts series is the mechanism)
 
 **Summary line**:
@@ -171,7 +171,7 @@ The inheritance pattern of the per-series data settings (ADR-0072, adapter `line
 _Avoid_: global setting (that is the Voreinstellung's role), per-series setting without inherit (the rejected full-move model), fallback (mechanism, not concept)
 
 **Series card**:
-A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, bundled into **Karten-Tabs** (Basis | Daten | Darstellung | Werte | Erweitert, ADR-0072/0073; JSON cards drop Daten). The Basis tab leads with the OID, name, colour, type, axis binding and the per-series **history instance** (ADR-0039: each OID can store its history in a different adapter; Auto = the datapoint's own config decides, else the server). The Daten tab carries the acquisition knobs as Erben-Overrides: aggregation with its params, Diff (tristate), X offset (seconds or the ±1m…±2y calendar keys) beside the transforms (formula, Y offset, NULL handling, Keine Zukunft); Darstellung keeps the Linie/Balken/Fläche Sub-groups plus „Nur in Legende".
+A series item in the Series section — ONE card anatomy (`SeriesCard`, ADR-0100) for every **Kartenquelle**: a quiet card whose header (swatch, name, source subtitle, actions) expands inline to the per-series knobs, bundled into **Karten-Tabs** **Basis · Daten · Stil · Format · JSON** (en: Basics · Data · Style · Format · JSON; formerly Basis | Daten | Darstellung | Werte | Erweitert, ADR-0072/0073). The header actions follow the source: Verlauf and Tabellarisch ↑↓ reorder, duplicate, delete; serien-förmig JSON only the restorable hide (eye, „Serie ausblenden") — the payload owns its series. The type select appears from two (visible) series on. The Basis tab leads with the OID, name, colour, type, axis binding and the per-series **history instance** (ADR-0039: each OID can store its history in a different adapter; Auto = the datapoint's own config decides, else the server). The Daten tab carries the acquisition knobs as Erben-Overrides: aggregation with its params, Diff (tristate), X offset (seconds or the ±1m…±2y calendar keys) beside the transforms (formula, Y offset, NULL handling, Keine Zukunft); Stil keeps the Linie/Balken/Fläche Sub-groups plus „Nur in Legende"; Format the value display (Werte).
 _Avoid_: Accordion item (v2), row
 
 **Kartenquelle (card source)**:

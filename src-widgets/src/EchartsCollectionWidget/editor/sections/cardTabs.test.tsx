@@ -26,7 +26,9 @@ vi.mock('@mui/icons-material', () => ({
     KeyboardArrowDown: () => null,
     KeyboardArrowUp: () => null,
     ContentCopy: () => null,
+    DonutLarge: () => null,
     Restore: () => null,
+    VisibilityOff: () => null,
 }));
 vi.mock('../colorFields', () => ({ default: () => null, ColorListField: () => null }));
 // Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &
@@ -47,7 +49,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import AxisCard from './axes/AxisCard';
 import XCard from './axes/XCard';
 import { HistorySeriesList } from './series/sources/history';
-import JsonSeriesCards from './series/JsonSeriesCards';
+import { JsonSeriesList } from './series/sources/json';
 import { DEFAULT_EDITOR_STATE } from '../editorState';
 
 /** Mount any component; returns the live container. */
@@ -138,7 +140,7 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
     });
 
     it('Series card (JSON): the Daten tab carries only the transforms, Format stays its own', () => {
-        const el = mount(JsonSeriesCards, {
+        const el = mount(JsonSeriesList, {
             state: state({
                 chartType: 'line',
                 mode: 'json',
@@ -172,7 +174,7 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
         // The serien-förmig pie rows carry no tabs — the Verlauf rows' anatomy: the payload owns
         // the name, the user styles colour, and the per-slice raw rides INSIDE the row. The
         // builder always applied m.raw here; until ADR-0082 the editor never reached it.
-        const el = mount(JsonSeriesCards, {
+        const el = mount(JsonSeriesList, {
             state: state({
                 chartType: 'pie',
                 mode: 'json',

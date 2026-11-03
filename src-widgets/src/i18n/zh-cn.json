@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "上移系列",
     "echarts_editor_series_name": "名称",
     "echarts_editor_series_remove": "删除系列",
+    "echarts_editor_series_hide": "隐藏系列",
     "echarts_editor_series_type": "类型",
     "echarts_editor_series_y_column": "Y 列",
     "echarts_editor_series_yaxis": "Y 轴",

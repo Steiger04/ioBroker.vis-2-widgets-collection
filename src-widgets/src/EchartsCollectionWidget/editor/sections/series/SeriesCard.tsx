@@ -20,6 +20,7 @@ import {
     DonutLarge as DonutIcon,
     KeyboardArrowDown as DownIcon,
     KeyboardArrowUp as UpIcon,
+    VisibilityOff as HideIcon,
 } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
@@ -67,11 +68,13 @@ export interface SeriesCardContext {
     labelColorFallback: string;
     /** The Stapelmodus — the bar stack-group select's inherit target (ADR-0084). */
     stackMode: EchartsStackMode;
-    /** The chart-level data settings — the Daten tab's Erben-Override targets (ADR-0072). */
-    chart: Pick<
-        EditorState,
-        'aggregate' | 'percentileValue' | 'integralUnit' | 'integralInterpolation' | 'ignoreNull' | 'chartType'
-    >;
+    /** The chart type + the NULL select's inherit target (every source's Daten tab). */
+    chart: Pick<EditorState, 'ignoreNull' | 'chartType'>;
+    /**
+     * The fetching source's Erben-Override targets (ADR-0072) — the chart-level acquisition
+     * defaults; read only where the capabilities resolve a FETCHING Daten tab (Verlauf).
+     */
+    fetch?: Pick<EditorState, 'aggregate' | 'percentileValue' | 'integralUnit' | 'integralInterpolation'>;
 }
 
 /** The Basis-tab share the source supplies (source row, Verlauf instance, JSON name semantics). */
@@ -106,6 +109,8 @@ export interface SeriesCardProps {
     onMove?: (dir: -1 | 1) => void;
     onDuplicate?: () => void;
     onRemove?: () => void;
+    /** The restorable hide (serien-förmig JSON — the payload owns the series, B4). */
+    onHide?: () => void;
     basis?: SeriesCardBasisSource;
     /** The catalog slot of the JSON tab (ADR-0042). */
     rawSlot: SeriesTemplateSlot;
@@ -128,6 +133,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     onMove,
     onDuplicate,
     onRemove,
+    onHide,
     basis,
     rawSlot,
     rawHint,
@@ -152,14 +158,14 @@ const SeriesCard: FC<SeriesCardProps> = ({
             />
         ),
         daten: () =>
-            caps.dataTab === 'fetch' ? (
+            caps.dataTab === 'fetch' && ctx.fetch ? (
                 <SeriesDataFields
                     meta={meta}
                     onPatch={onPatch}
-                    chartAggregate={ctx.chart.aggregate}
-                    chartPercentile={ctx.chart.percentileValue}
-                    chartIntegralUnit={ctx.chart.integralUnit}
-                    chartIntegralInterpolation={ctx.chart.integralInterpolation}
+                    chartAggregate={ctx.fetch.aggregate}
+                    chartPercentile={ctx.fetch.percentileValue}
+                    chartIntegralUnit={ctx.fetch.integralUnit}
+                    chartIntegralInterpolation={ctx.fetch.integralInterpolation}
                     chartNullMode={ctx.chart.ignoreNull}
                     isBarChart={ctx.chart.chartType === 'bar'}
                 />
@@ -245,6 +251,18 @@ const SeriesCard: FC<SeriesCardProps> = ({
                             sx={{ p: 0.25 }}
                         >
                             <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    )}
+                    {has('hide') && onHide && (
+                        // An eye, not a trash can (B4): the series is restorable from the
+                        // hidden-series chips — nothing is deleted.
+                        <IconButton
+                            size="small"
+                            onClick={onHide}
+                            aria-label={Generic.t('echarts_editor_series_hide')}
+                            sx={{ p: 0.25 }}
+                        >
+                            <HideIcon fontSize="small" />
                         </IconButton>
                     )}
                 </>

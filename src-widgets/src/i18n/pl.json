@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "Przesuń serię w górę",
     "echarts_editor_series_name": "Nazwa",
     "echarts_editor_series_remove": "Usuń serię",
+    "echarts_editor_series_hide": "Ukryj serię",
     "echarts_editor_series_type": "Typ",
     "echarts_editor_series_y_column": "Kolumna Y",
     "echarts_editor_series_yaxis": "Oś Y",

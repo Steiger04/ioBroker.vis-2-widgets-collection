@@ -102,6 +102,7 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
         labelColorFallback,
         stackMode: state.stackMode,
         chart: state,
+        fetch: state,
     };
     const historyOnly = state.mode === 'history';
     return (

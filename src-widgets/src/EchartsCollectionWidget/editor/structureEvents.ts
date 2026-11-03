@@ -29,6 +29,7 @@ import {
     effectiveAxisName,
     jsonAxisDeathName,
     materializedAxisIndex,
+    positionalBinderName,
     sideOrder,
     sideSlotValues,
 } from './axisSight';
@@ -70,7 +71,8 @@ export type StructureEvent =
     /** A new series — Verlauf/Kreis by OID, Tabellarisch by Y column. `id` is the caller's fresh stable id. */
     | { type: 'addSeries'; id: string; oid?: string; yPath?: string }
     /** Copy series `index` right behind it; `copySuffix` is the translated „Kopie" marker. */
-    | { type: 'duplicateSeries'; id: string; index: number; copySuffix: string }
+    /** `fallbackName`: the translated position title („Serie 2") for a source without a display name. */
+    | { type: 'duplicateSeries'; id: string; index: number; copySuffix: string; fallbackName: string }
     | { type: 'removeSeries'; index: number }
     /**
      * Bind a series to `axis` — a value ≥ the axis count is „Neue Achse" (append + bind). The
@@ -763,7 +765,13 @@ const duplicateSeries = (
 ): StructureResult => {
     const i = e.index;
     const source = v.series[i];
-    const copy: EditorSeries = { ...source, id: e.id, name: `${source.name || `Series ${i + 1}`} (${e.copySuffix})` };
+    // The copy's name follows the card title chain (authored name → yPath column → translated
+    // position fallback) — a table copy reads „hum (Kopie)", never an English `Series N`.
+    const copy: EditorSeries = {
+        ...source,
+        id: e.id,
+        name: `${positionalBinderName(source) || e.fallbackName} (${e.copySuffix})`,
+    };
     const series = [...v.series.slice(0, i + 1), copy, ...v.series.slice(i + 1)];
     if (!isCartesian(v)) {
         return result({ series });

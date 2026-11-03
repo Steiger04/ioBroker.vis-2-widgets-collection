@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "Переместить серию вверх",
     "echarts_editor_series_name": "Имя",
     "echarts_editor_series_remove": "Удалить серию",
+    "echarts_editor_series_hide": "Скрыть серию",
     "echarts_editor_series_type": "Тип",
     "echarts_editor_series_y_column": "Столбец Y",
     "echarts_editor_series_yaxis": "Ось Y",

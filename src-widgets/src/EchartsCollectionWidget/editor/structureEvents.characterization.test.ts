@@ -332,7 +332,13 @@ describe('addSeries', () => {
 
 describe('duplicateSeries', () => {
     it('dense (1:1): the copy gets its own fresh axis', () => {
-        const r = apply(HIST, { type: 'duplicateSeries', id: 'sr-copy', index: 0, copySuffix: 'Kopie' });
+        const r = apply(HIST, {
+            type: 'duplicateSeries',
+            id: 'sr-copy',
+            index: 0,
+            copySuffix: 'Kopie',
+            fallbackName: 'Serie 1',
+        });
         expect(everyAxisBound(after(HIST, r))).toBe(true);
         expect(r).toMatchInlineSnapshot(`
           {
@@ -385,7 +391,13 @@ describe('duplicateSeries', () => {
     });
 
     it('shared: the copy joins the source axis', () => {
-        const r = apply(HIST_SHARED, { type: 'duplicateSeries', id: 'sr-copy', index: 1, copySuffix: 'Kopie' });
+        const r = apply(HIST_SHARED, {
+            type: 'duplicateSeries',
+            id: 'sr-copy',
+            index: 1,
+            copySuffix: 'Kopie',
+            fallbackName: 'Serie 2',
+        });
         expect(everyAxisBound(after(HIST_SHARED, r))).toBe(true);
         expect(r).toMatchInlineSnapshot(`
           {
@@ -439,16 +451,44 @@ describe('duplicateSeries', () => {
         `);
     });
 
-    it('unnamed source: the copy name falls back to "Series N"', () => {
+    // Ticket 12 (configurator review, ADR-0100 decision 4) changed this marked value
+    // deliberately: the copy name follows the card title chain — the table source's yPath
+    // column, else the caller's translated position fallback — never an English `Series N`.
+    it('unnamed table source: the copy name is the yPath column (the card title)', () => {
         expect(
-            apply(TABLE, { type: 'duplicateSeries', id: 'sr-copy', index: 1, copySuffix: 'Kopie' }).patch?.series?.[2]
-                .name,
-        ).toBe('Series 2 (Kopie)');
+            apply(TABLE, {
+                type: 'duplicateSeries',
+                id: 'sr-copy',
+                index: 1,
+                copySuffix: 'Kopie',
+                fallbackName: 'Serie 2',
+            }).patch?.series?.[2].name,
+        ).toBe('hum (Kopie)');
+    });
+
+    it('unnamed source without a column: the translated position fallback', () => {
+        const unnamed = { ...HIST, series: HIST.series.map(s => ({ ...s, name: '' })) };
+        expect(
+            apply(unnamed, {
+                type: 'duplicateSeries',
+                id: 'sr-copy',
+                index: 0,
+                copySuffix: 'Kopie',
+                fallbackName: 'Serie 1',
+            }).patch?.series?.[1].name,
+        ).toBe('Serie 1 (Kopie)');
     });
 
     it('Kreis: a plain copy, no axis', () => {
-        expect(apply(PIE, { type: 'duplicateSeries', id: 'sr-copy', index: 0, copySuffix: 'Kopie' }))
-            .toMatchInlineSnapshot(`
+        expect(
+            apply(PIE, {
+                type: 'duplicateSeries',
+                id: 'sr-copy',
+                index: 0,
+                copySuffix: 'Kopie',
+                fallbackName: 'Serie 1',
+            }),
+        ).toMatchInlineSnapshot(`
           {
             "patch": {
               "series": [
@@ -1624,7 +1664,7 @@ describe('changeFamily / changeMode / changeJsonKind', () => {
 describe('undo guarantee — every event yields exactly one patch (or none)', () => {
     const cases: [string, CharView, CharEvent][] = [
         ['add', HIST, { type: 'addSeries', id: 'n', oid: 'n.0' }],
-        ['duplicate', HIST, { type: 'duplicateSeries', id: 'c', index: 0, copySuffix: 'K' }],
+        ['duplicate', HIST, { type: 'duplicateSeries', id: 'c', index: 0, copySuffix: 'K', fallbackName: 'S' }],
         ['remove', HIST, { type: 'removeSeries', index: 0 }],
         ['rebind', HIST, { type: 'rebindSeries', index: 0, axis: 1 }],
         ['rebind json', JSON_SERIES, { type: 'rebindSeries', name: 'P', axis: 1 }],

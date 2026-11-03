@@ -24,6 +24,7 @@ vi.mock('@mui/icons-material', () => ({
     KeyboardArrowUp: () => null,
     ContentCopy: () => null,
     Restore: () => null,
+    VisibilityOff: () => null,
 }));
 vi.mock('../../../colorFields', () => ({ default: () => null, ColorListField: () => null }));
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));

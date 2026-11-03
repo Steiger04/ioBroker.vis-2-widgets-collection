@@ -66,7 +66,8 @@ export const SOURCE_CAPS: Record<CardSource, { actions: readonly CardAction[]; d
     // The payload owns identity + count: no move, no duplicate, no real delete — only the
     // restorable hide (jsonHidden deny-list).
     json: { actions: ['hide'], dataTab: 'transform' },
-    table: { actions: ['move', 'remove'], dataTab: 'transform' },
+    // The table family owns its structure (ADR-0075): real delete, and duplicate like Verlauf.
+    table: { actions: ['move', 'duplicate', 'remove'], dataTab: 'transform' },
 };
 
 /**

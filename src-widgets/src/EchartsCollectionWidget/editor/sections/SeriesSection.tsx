@@ -13,7 +13,8 @@
  *    delete) expanding to the type-sensitive knob SubGroups.
  *  - pie — {@link PieSliceRows}: name + OID + colour + delete rows. (The OID picker was missing in
  *    v2 — slices could never bind data.)
- *  - json (cartesian + pie) — {@link JsonSeriesCards}: one card per payload series.
+ *  - json (cartesian + pie) — {@link JsonSeriesList}: one card per payload series.
+ *  - tabellarisch — {@link TableSeriesList}: one card per authored yPath binding.
  *
  * Validation issues surface as a compact warning list on top (they are item-scoped). An axis death
  * by side effect (series-delete, rebind, JSON hide) reports as an advisory to the modal's notice
@@ -37,8 +38,8 @@ import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { HistorySeriesList } from './series/sources/history';
 import PieSliceRows from './series/PieSliceRows';
-import JsonSeriesCards from './series/JsonSeriesCards';
-import TableSeriesCards from './series/TableSeriesCards';
+import { JsonSeriesList } from './series/sources/json';
+import { TableSeriesList } from './series/sources/table';
 import type { JsonTableColumn } from '../../../hooks/useJsonTableAnalysis';
 
 /**
@@ -217,6 +218,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             id: nextStableId('sr-'), // fresh identity — don't share the source series' id (React key clash)
             index: i,
             copySuffix: Generic.t('echarts_editor_series_copy_suffix'),
+            // An unnamed source without a column titles „Serie N" — the copy follows (ADR-0100).
+            fallbackName: Generic.t('echarts_series_title_fallback', String(i + 1)),
         });
     // Tabellarisch (ADR-0075): a series is appended only on COLUMN choice („keine Serie vor
     // Spaltenwahl"), bound via `yPath` — the same addSeries event.
@@ -267,25 +270,25 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 </Box>
             )}
             {isJsonTable && (
-                <TableSeriesCards
+                <TableSeriesList
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
                     labelColorFallback={labelColorFallback}
                     columns={tableColumns ?? []}
                     schemaError={tableSchemaError}
-                    showAxis={!isPie}
                     expanded={expanded}
                     onToggleCard={toggleCard}
                     onUpdate={update}
                     onRemove={remove}
                     onMove={move}
+                    onDuplicate={duplicate}
                     onAddWithColumn={addWithColumn}
                     onRebindAxis={rebindAxis}
                 />
             )}
             {isJson && !isJsonTable && (
-                <JsonSeriesCards
+                <JsonSeriesList
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}

@@ -190,6 +190,7 @@
     "echarts_editor_series_move_up": "Move series up",
     "echarts_editor_series_name": "Name",
     "echarts_editor_series_remove": "Remove series",
+    "echarts_editor_series_hide": "Hide series",
     "echarts_editor_series_type": "Type",
     "echarts_editor_series_yaxis": "Y axis",
     "echarts_editor_title": "Chart configuration",

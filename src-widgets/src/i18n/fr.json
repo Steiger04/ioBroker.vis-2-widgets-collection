@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "Déplacer la série vers le haut",
     "echarts_editor_series_name": "Nom",
     "echarts_editor_series_remove": "Supprimer la série",
+    "echarts_editor_series_hide": "Masquer la série",
     "echarts_editor_series_type": "Type",
     "echarts_editor_series_y_column": "Colonne Y",
     "echarts_editor_series_yaxis": "Axe Y",

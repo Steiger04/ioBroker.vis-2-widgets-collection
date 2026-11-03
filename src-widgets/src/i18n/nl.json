@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "Reeks omhoog verplaatsen",
     "echarts_editor_series_name": "Naam",
     "echarts_editor_series_remove": "Serie verwijderen",
+    "echarts_editor_series_hide": "Reeks verbergen",
     "echarts_editor_series_type": "Type",
     "echarts_editor_series_y_column": "Y-kolom",
     "echarts_editor_series_yaxis": "Y-as",

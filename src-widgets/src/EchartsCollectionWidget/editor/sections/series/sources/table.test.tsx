@@ -1,11 +1,11 @@
 /**
- * Render tests for the tabellarische series cards (ADR-0075 ticket 04) — the card chrome
- * (title default = the path's last segment, subtitle = the full path, move/delete but NO
- * duplicate/hide), the add affordance (pick a column → the card appends; none before) and the
- * duplicate-name InfoBox. The handler SEMANTICS (axis death, balance) ride the dispatcher's
+ * Render tests for the tabellarisch Kartenquelle (ADR-0075 ticket 04, ADR-0100) — the card
+ * chrome (title default = the path's last segment, subtitle = the full path, move/duplicate/
+ * delete but NO hide), the add affordance (pick a column → the card appends; none before) and
+ * the duplicate-name InfoBox. The handler SEMANTICS (axis death, balance) ride the dispatcher's
  * structure-event surface (ADR-0099) — not re-tested here.
  *
- * @module EchartsCollectionWidget/editor/sections/series/tableSeriesCards.test
+ * @module EchartsCollectionWidget/editor/sections/series/sources/table.test
  * @remarks
  * The identity-t stub surfaces label keys verbatim (the sectionTabs precedent).
  */
@@ -20,15 +20,15 @@ vi.hoisted(() => {
 });
 // The expanded card mounts the colour pickers (Basis + Darstellung) — they build a collection
 // theme off the host theme, which a headless mount cannot provide (the sectionTabs precedent).
-vi.mock('../../colorFields', () => ({
+vi.mock('../../../colorFields', () => ({
     default: () => null,
     ColorListField: () => null,
 }));
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import TableSeriesCards from './TableSeriesCards';
-import { DEFAULT_EDITOR_STATE, type EditorState } from '../../editorState';
-import { axisLayout } from '../../structureEvents';
+import { TableSeriesList } from './table';
+import { DEFAULT_EDITOR_STATE, type EditorState } from '../../../editorState';
+import { axisLayout } from '../../../structureEvents';
 
 /** Mount any component; returns the live container. */
 const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => {
@@ -71,9 +71,9 @@ const tableState = (over: Partial<EditorState> = {}): EditorState => ({
     ...over,
 });
 
-describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
+describe('TableSeriesList — the card chrome (ADR-0075 ticket 04)', () => {
     it('title defaults to the path LAST segment; the subtitle carries the full path', () => {
-        const el = mount(TableSeriesCards, {
+        const el = mount(TableSeriesList, {
             state: tableState({ series: [{ id: 's0', oid: '', yPath: 'meta.room', yAxisIndex: 0 }] }),
             pickerCtx: {},
             slot: () => '#111',
@@ -84,6 +84,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
             onUpdate: () => undefined,
             onRemove: () => undefined,
             onMove: () => undefined,
+            onDuplicate: () => undefined,
             onAddWithColumn: () => undefined,
             onRebindAxis: () => undefined,
         });
@@ -95,7 +96,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
     });
 
     it('the empty state shows the add picker as the CTA — no card before the column choice', () => {
-        const empty = mount(TableSeriesCards, {
+        const empty = mount(TableSeriesList, {
             state: tableState({ series: [] }),
             pickerCtx: {},
             slot: () => '#111',
@@ -106,6 +107,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
             onUpdate: () => undefined,
             onRemove: () => undefined,
             onMove: () => undefined,
+            onDuplicate: () => undefined,
             onAddWithColumn: () => undefined,
             onRebindAxis: () => undefined,
         });
@@ -115,7 +117,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
     });
 
     it('duplicate display names raise the F11-style InfoBox', () => {
-        const el = mount(TableSeriesCards, {
+        const el = mount(TableSeriesList, {
             state: tableState({
                 series: [
                     { id: 's0', oid: '', yPath: 'temp', name: 'PV', yAxisIndex: 0 },
@@ -131,6 +133,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
             onUpdate: () => undefined,
             onRemove: () => undefined,
             onMove: () => undefined,
+            onDuplicate: () => undefined,
             onAddWithColumn: () => undefined,
             onRebindAxis: () => undefined,
         });
@@ -141,7 +144,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
         // The axis labels resolve through the same positional sight as the Verlauf cards:
         // an unnamed table series defaults to the yPath column's last segment — never the
         // "Series N" fallback (the pre-fix symptom: "1 · Series 1" on a fully mapped series).
-        const el = mount(TableSeriesCards, {
+        const el = mount(TableSeriesList, {
             state: tableState({
                 series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
                 yAxes: [axisLayout(0)],
@@ -155,6 +158,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
             onUpdate: () => undefined,
             onRemove: () => undefined,
             onMove: () => undefined,
+            onDuplicate: () => undefined,
             onAddWithColumn: () => undefined,
             onRebindAxis: () => undefined,
         });
@@ -163,7 +167,7 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
     });
 });
 
-describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bewusst)', () => {
+describe('TableSeriesList — pie rings (ADR-0082 ticket 01: ring cards pie-bewusst)', () => {
     const handlers = {
         pickerCtx: {},
         slot: () => '#111',
@@ -174,17 +178,17 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
         onUpdate: () => undefined,
         onRemove: () => undefined,
         onMove: () => undefined,
+        onDuplicate: () => undefined,
         onAddWithColumn: () => undefined,
         onRebindAxis: () => undefined,
     };
 
     it('a pie ring card shows Basis | Daten | JSON — the cartesian-only knobs are gone', () => {
-        const el = mount(TableSeriesCards, {
+        const el = mount(TableSeriesList, {
             state: tableState({
                 chartType: 'pie',
                 series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
             }),
-            showAxis: false,
             ...handlers,
         });
         expect(el.textContent).toContain('echarts_card_tab_basis');
@@ -200,11 +204,14 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
         expect(el.querySelector('[data-testid="ring-swatch"]')).not.toBeNull();
     });
 
-    it('a cartesian card keeps the full tab inventory — the gate is pie-only (byte-stable)', () => {
-        const el = mount(TableSeriesCards, {
+    it('a cartesian card keeps the full tab inventory — the gate is pie-only (type from two series on)', () => {
+        const el = mount(TableSeriesList, {
             state: tableState({
                 chartType: 'line',
-                series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
+                series: [
+                    { id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 },
+                    { id: 's1', oid: '', yPath: 'meta.room', yAxisIndex: 0 },
+                ],
             }),
             ...handlers,
         });
@@ -213,5 +220,63 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
         expect(el.textContent).toContain('echarts_editor_series_color');
         expect(el.textContent).toContain('echarts_editor_series_type');
         expect(el.querySelector('[data-testid="ring-swatch"]')).toBeNull();
+    });
+});
+
+describe('TableSeriesList — aligned with the other sources (ADR-0100 decision 4)', () => {
+    const handlers = {
+        pickerCtx: {},
+        slot: () => '#111',
+        labelColorFallback: '#222',
+        columns,
+        expanded: {} as Record<number, boolean>,
+        onToggleCard: () => undefined,
+        onUpdate: () => undefined,
+        onRemove: () => undefined,
+        onMove: () => undefined,
+        onAddWithColumn: () => undefined,
+        onRebindAxis: () => undefined,
+    };
+
+    it('offers duplicate like Verlauf and routes it with the card index', () => {
+        const onDuplicate = vi.fn();
+        const el = mount(TableSeriesList, {
+            state: tableState({
+                series: [
+                    { id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 },
+                    { id: 's1', oid: '', yPath: 'meta.room', yAxisIndex: 1 },
+                ],
+            }),
+            ...handlers,
+            onDuplicate,
+        });
+        const dups = el.querySelectorAll('button[aria-label="echarts_editor_series_duplicate"]');
+        expect(dups).toHaveLength(2);
+        act(() => {
+            dups[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        expect(onDuplicate).toHaveBeenCalledWith(1);
+        // never the serien-förmig hide — the table family owns its structure
+        expect(el.querySelector('button[aria-label="echarts_editor_series_hide"]')).toBeNull();
+    });
+
+    it('a single series shows no type select (the picker IS its type)', () => {
+        const el = mount(TableSeriesList, {
+            state: tableState({ series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }] }),
+            ...handlers,
+            expanded: { 0: true },
+            onDuplicate: () => undefined,
+        });
+        expect(el.textContent).not.toContain('echarts_editor_series_type');
+    });
+
+    it('a series without name and yPath titles with the translated fallback', () => {
+        const el = mount(TableSeriesList, {
+            state: tableState({ series: [{ id: 's0', oid: '', yAxisIndex: 0 }] }),
+            ...handlers,
+            onDuplicate: () => undefined,
+        });
+        expect(el.textContent).toContain('echarts_series_title_fallback');
+        expect(el.textContent).not.toContain('Series 1');
     });
 });

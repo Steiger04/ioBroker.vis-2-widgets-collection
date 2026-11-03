@@ -32,10 +32,10 @@ describe('resolveCardCapabilities', () => {
         expect(caps.tabs).toEqual(CARD_TAB_ORDER);
     });
 
-    it('Tabelle × cartesian: transform-only Daten, move + remove', () => {
+    it('Tabelle × cartesian: transform-only Daten, move + duplicate + remove (ADR-0100 decision 4)', () => {
         const caps = resolveCardCapabilities('table', cartesian, 2);
         expect(caps.dataTab).toBe('transform');
-        expect(caps.actions).toEqual(['move', 'remove']);
+        expect(caps.actions).toEqual(['move', 'duplicate', 'remove']);
     });
 
     it('the type override shows from two series on — in every source', () => {

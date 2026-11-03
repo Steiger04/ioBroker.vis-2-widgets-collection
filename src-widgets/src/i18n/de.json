@@ -190,6 +190,7 @@
     "echarts_editor_series_move_up": "Serie nach oben verschieben",
     "echarts_editor_series_name": "Name",
     "echarts_editor_series_remove": "Serie entfernen",
+    "echarts_editor_series_hide": "Serie ausblenden",
     "echarts_editor_series_type": "Typ",
     "echarts_editor_series_yaxis": "Y-Achse",
     "echarts_editor_title": "Diagramm-Konfiguration",

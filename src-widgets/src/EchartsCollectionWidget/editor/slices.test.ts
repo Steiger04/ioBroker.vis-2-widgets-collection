@@ -25,7 +25,7 @@ import type { PieOptionsSlice } from './sections/FamilySections';
 import type { LegendSlice } from './sections/LegendSection';
 import type { SeriesSlice } from './sections/SeriesSection';
 import type { HistorySeriesListSlice } from './sections/series/sources/history';
-import type { JsonSeriesCardsSlice } from './sections/series/JsonSeriesCards';
+import type { JsonSeriesListSlice } from './sections/series/sources/json';
 import type { PieSliceRowsSlice } from './sections/series/PieSliceRows';
 import type { ChartTypePickerSlice, ModeSelectSlice } from './controls';
 import type { TitleSlice } from './sections/TitleSection';
@@ -222,7 +222,7 @@ describe('section slices (ADR-0049)', () => {
         // ADR-0082 decision 3: the whole-pie raw left the slice rows for the family section —
         // the slice view no longer touches the pie blob.
         expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'mode'>>();
-        expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
+        expectTypeOf<JsonSeriesListSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
                 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull' | 'stackMode'
@@ -332,7 +332,7 @@ describe('section slices (ADR-0049)', () => {
 
     it('the read-only series surfaces reject foreign reads', () => {
         // No setter props — their honesty is the read side (writes go through dispatcher callbacks).
-        expectTypeOf<JsonSeriesCardsSlice>().not.toHaveProperty('animation');
+        expectTypeOf<JsonSeriesListSlice>().not.toHaveProperty('animation');
         expectTypeOf<HistorySeriesListSlice>().not.toHaveProperty('animation');
     });
 
@@ -363,7 +363,7 @@ describe('section slices (ADR-0049)', () => {
         const pieState: PieOptionsSlice = railState;
         const seriesState: SeriesSlice = railState;
         const pieRowsState: PieSliceRowsSlice = railState;
-        const jsonCardsState: JsonSeriesCardsSlice = railState;
+        const jsonCardsState: JsonSeriesListSlice = railState;
         const cartesianListState: HistorySeriesListSlice = railState;
         const chartTypePickerState: ChartTypePickerSlice = railState;
         const modeSelectState: ModeSelectSlice = railState;

@@ -198,6 +198,7 @@
     "echarts_editor_series_move_up": "Sposta serie su",
     "echarts_editor_series_name": "Nome",
     "echarts_editor_series_remove": "Rimuovi serie",
+    "echarts_editor_series_hide": "Nascondi serie",
     "echarts_editor_series_type": "Tipo",
     "echarts_editor_series_y_column": "Colonna Y",
     "echarts_editor_series_yaxis": "Asse Y",
