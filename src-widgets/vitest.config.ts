@@ -44,6 +44,8 @@ const DOM_TS_TESTS = [
     'src/EchartsCollectionWidget/editor/lifecycleGuards.test.ts',
     'src/EchartsCollectionWidget/editor/rawLevels.test.ts',
     'src/EchartsCollectionWidget/editor/validation.test.ts',
+    // The structure-event characterisation reaches validation.ts (legacy loss chips) — same chain.
+    'src/EchartsCollectionWidget/editor/structureEvents.characterization.test.ts',
 ];
 
 export default defineConfig({
