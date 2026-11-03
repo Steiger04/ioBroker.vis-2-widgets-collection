@@ -502,17 +502,14 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     // category: share = value / group sum, sum ≤ 0 → 0 (the example's defensive formula —
     // negative totals are the documented fragility, the InfoBox says it), gaps stay gaps. The
     // ABSOLUTE values ride `percentAbsolute` for the tooltip (share AND absolute, decision 4).
-    // Verlauf only — the JSON families are Folgevorhaben (decision 8: they carry the blob field
-    // unevaluated). Opted-out ('none') and non-bar series keep their absolute values; a lone
+    // Every cartesian data mode (addendum 3, superseding decision 8's Verlauf scope): the builder
+    // stacks in JSON too, so the shares must be computed there as well — per data INDEX, the
+    // same alignment echarts stacks by (table rows, payload points, Verlauf buckets). Opted-out ('none') and non-bar series keep their absolute values; a lone
     // group in percent mode is always 100 % (the example IS the one-group special case). Like
     // the sum anchor (Addendum 1 item 3), the denominator counts the VISIBLE stack only —
     // deselected members leave it (Legenden-Folge honesty; the assembly re-runs on every
     // legend click, so a re-selected member renormalizes).
-    if (
-        family === 'cartesian' &&
-        mode === 'history' &&
-        normalizeStackMode(companions.chartConfig.stackMode) === 'percent'
-    ) {
+    if (family === 'cartesian' && normalizeStackMode(companions.chartConfig.stackMode) === 'percent') {
         const cart = presentation as PresentationBase & CartesianFragment;
         const axisCount = cart.yAxes.length ? cart.yAxes.length : 1;
         const groups = new Map<string, number[]>();

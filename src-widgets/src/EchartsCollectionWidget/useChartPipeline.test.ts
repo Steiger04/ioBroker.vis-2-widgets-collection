@@ -1472,7 +1472,7 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
         expect(series[2].data[0]).toBe(30);
     });
 
-    it('JSON families carry the blob field unevaluated — no normalization (Folgevorhaben, decision 8)', () => {
+    it('JSON families normalize too — the builder stacks there, so the shares follow (addendum 3)', () => {
         const { option } = assemblePipelineResult(
             makeInput('cartesian', 'json', {
                 jsonParsed: {
@@ -1494,6 +1494,7 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
             }),
         );
         const series = option.series as { name: string; data: [number, number][] }[];
-        expect(series[0].data[0][1]).toBe(10); // untouched
+        expect(series[0].data[0][1]).toBeCloseTo(0.25);
+        expect(series[1].data[0][1]).toBeCloseTo(0.75);
     });
 });

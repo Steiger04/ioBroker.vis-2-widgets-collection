@@ -138,8 +138,6 @@ describe('section slices (ADR-0049)', () => {
                 | 'integralInterpolation'
                 | 'barInterval'
                 | 'barDiff'
-                | 'stackMode'
-                | 'stackSum'
                 | 'aggregate'
                 | 'count'
                 | 'refreshMs'
@@ -213,8 +211,9 @@ describe('section slices (ADR-0049)', () => {
                 | 'integralInterpolation'
                 // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
                 | 'ignoreNull'
-                // ADR-0084: the bar card's inherit entry names the Stapelmodus resolution.
+                // ADR-0084 addendum 3: the Stapelmodus head writes both; the cards inherit the mode.
                 | 'stackMode'
+                | 'stackSum'
             >
         >();
     });
@@ -224,7 +223,10 @@ describe('section slices (ADR-0049)', () => {
         // the slice view no longer touches the pie blob.
         expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'mode'>>();
         expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
-            Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull'>
+            Pick<
+                EditorState,
+                'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull' | 'stackMode'
+            >
         >();
         expectTypeOf<CartesianSeriesListSlice>().toEqualTypeOf<
             Pick<

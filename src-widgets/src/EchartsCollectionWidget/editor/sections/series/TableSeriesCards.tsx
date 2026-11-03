@@ -48,7 +48,8 @@ import { snippetPatch } from '../../snippetComposition';
  */
 export type TableSeriesCardsSlice = Pick<
     EditorState,
-    'jsonOid' | 'chartType' | 'jsonKind' | 'series' | 'yAxes' | 'ignoreNull'
+    // stackMode: the bar knobs' inherit target (ADR-0084 addendum 3 — the mode applies here too).
+    'jsonOid' | 'chartType' | 'jsonKind' | 'series' | 'yAxes' | 'ignoreNull' | 'stackMode'
 >;
 
 interface TableSeriesCardsProps {
@@ -282,6 +283,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                                   pickerCtx={pickerCtx}
                                                   colorFallback={slot(i)}
                                                   labelColorFallback={labelColorFallback}
+                                                  stackMode={state.stackMode}
                                               />,
                                               <SeriesValueFormatFields
                                                   key="values"

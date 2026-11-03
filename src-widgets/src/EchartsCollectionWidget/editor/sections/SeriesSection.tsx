@@ -24,6 +24,7 @@ import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { InfoBox } from '../../../components/controls';
+import StackModeHead from './series/StackModeHead';
 import { useEditorTheme } from '../useEditorTheme';
 import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
 import { applyOidTextFacts, oidTextPrefill } from '../oidTextFacts';
@@ -72,8 +73,10 @@ export type SeriesSlice = Pick<
     | 'integralInterpolation'
     // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
     | 'ignoreNull'
-    // ADR-0084: the Stapelmodus rides down for the bar card's inherit entry (what erben resolves).
+    // ADR-0084 addendum 3: the Stapelmodus head (bar charts, every data mode) writes the mode +
+    // Summen-Anker; the mode also rides down as the bar cards' inherit target.
     | 'stackMode'
+    | 'stackSum'
 >;
 
 interface SeriesSectionProps {
@@ -250,6 +253,14 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     return (
         <Box>
             {issues.length > 0 && <IssueList issues={issues} />}
+            {/* Balken-Stapelmodus (ADR-0084 addendum 3): chart-wide, above the cards that inherit
+                from it — bar charts in every cartesian data mode. */}
+            {state.chartType === 'bar' && (
+                <StackModeHead
+                    state={state}
+                    set={set}
+                />
+            )}
             {isHistory && !isJson && (
                 <Box sx={{ mb: 1.5 }}>
                     <InfoBox text={Generic.t('echarts_instance_auto_hint')} />
