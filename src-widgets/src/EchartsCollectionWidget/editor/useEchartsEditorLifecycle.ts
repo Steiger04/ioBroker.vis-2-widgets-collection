@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
-import { syncSlotMemory, applyStructureEvent, type StructureAdvisory } from './structureEvents';
+import { syncSlotMemory, dispatchStructureEvent, type StructureAdvisory } from './structureEvents';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -194,13 +194,7 @@ export function useJsonAxisReconcile(
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
         // The payloadChanged structure event (ADR-0099) — the reconcile policy lives in the module.
-        const r = applyStructureEvent({ ...state, payloadNames: jsonNames }, { type: 'payloadChanged' });
-        if (r.patch) {
-            set(r.patch);
-        }
-        if (r.advisory && onAdvisory) {
-            onAdvisory(r.advisory);
-        }
+        dispatchStructureEvent({ ...state, payloadNames: jsonNames }, { type: 'payloadChanged' }, set, onAdvisory);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
     return visibleJsonNames;

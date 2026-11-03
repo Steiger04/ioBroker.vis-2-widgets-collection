@@ -45,7 +45,7 @@ import {
     jsonBindingView,
     positionalBinderName,
 } from '../axisSight';
-import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
+import { dispatchStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
@@ -186,17 +186,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     const emittedRanks = emittedAxisRanks(boundIdx);
     // The structure events (ADR-0099): side flip, delete and place move return their complete
     // follow-up (re-place, rebind/hide, re-index, balance) as ONE patch plus the notice.
-    const structure = (event: StructureEvent): void => {
-        const r = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames ?? [] }, event);
-        if (r.patch) {
-            set(r.patch);
-        }
-        // The axis-delete rebind fallback (ADR-0025): a deleted axis' series went to axis 0
-        // because no survivor shares the format — the host warns of a likely unit mismatch.
-        if (r.advisory && onAdvisory) {
-            onAdvisory(r.advisory);
-        }
-    };
+    // The axis-delete rebind fallback (ADR-0025) reports through the same notice: a deleted
+    // axis' series went to axis 0 because no survivor shares the format (likely unit mismatch).
+    const structure = (event: StructureEvent): void =>
+        dispatchStructureEvent({ ...state, payloadNames: jsonSeriesNames ?? [] }, event, set, onAdvisory);
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         // A side change is a structure event (ADR-0079 place insert); every other edit
         // (offset/name/colour/min-max/…) is plain fine-adjustment.

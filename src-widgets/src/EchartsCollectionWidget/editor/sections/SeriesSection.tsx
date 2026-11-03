@@ -33,7 +33,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
+import { dispatchStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { HistorySeriesList } from './series/sources/history';
@@ -179,15 +179,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // The structure events (ADR-0099): the module returns the complete follow-up — axis
     // coupling, death, balance, per data path — as ONE patch (one set() = one undo step) plus
     // the notice; the handlers below never branch on the data path or the family.
-    const structure = (event: StructureEvent): void => {
-        const r = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames }, event);
-        if (r.patch) {
-            set(r.patch);
-        }
-        if (r.advisory && onAdvisory) {
-            onAdvisory(r.advisory);
-        }
-    };
+    const structure = (event: StructureEvent): void =>
+        dispatchStructureEvent({ ...state, payloadNames: jsonSeriesNames }, event, set, onAdvisory);
     // Series-leave kills the axis without a remaining binder (ADR-0069).
     const remove = (i: number): void => structure({ type: 'removeSeries', index: i });
     // The per-series Y-axis dropdown (ADR-0025); a value ≥ yAxes.length is „Neue Achse" (ADR-0069).

@@ -1105,3 +1105,28 @@ export const applyStructureEvent = (view: StructureView, event: StructureEvent):
                 : result({ jsonKind: event.to });
     }
 };
+
+/**
+ * Run one structure event and hand its outcome on — the ONE dispatch idiom of every caller
+ * (boundary pickers, Series and Axes sections, the payload reconcile): the patch goes to `set()`
+ * as a single undo step, the notice to the modal's notice host.
+ *
+ * @param view - The structural state plus the live payload names.
+ * @param event - The event (data).
+ * @param set - The working-copy setter (skipped when the event changes nothing).
+ * @param onAdvisory - The notice host's receiver; without one the notice is dropped.
+ */
+export const dispatchStructureEvent = (
+    view: StructureView,
+    event: StructureEvent,
+    set: (patch: EditorPatch) => void,
+    onAdvisory?: (advisory: StructureAdvisory) => void,
+): void => {
+    const r = applyStructureEvent(view, event);
+    if (r.patch) {
+        set(r.patch);
+    }
+    if (r.advisory && onAdvisory) {
+        onAdvisory(r.advisory);
+    }
+};

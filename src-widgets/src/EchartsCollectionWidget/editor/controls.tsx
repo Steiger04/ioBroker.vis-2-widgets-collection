@@ -14,7 +14,7 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import Generic from '../../Generic';
 import { FieldLabel } from '../../components/controls';
 import { chartTypePickerEntries } from '../families/editorial';
-import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from './structureEvents';
+import { dispatchStructureEvent, type StructureAdvisory, type StructureEvent } from './structureEvents';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsJsonKind, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -74,15 +74,8 @@ interface BoundaryPickerProps {
 }
 
 /** Run a picker's structure event: flip (+ reset) in ONE set(), the loss handed on. */
-const applyPick = ({ state, set, payloadNames = [], onAdvisory }: BoundaryPickerProps, event: StructureEvent): void => {
-    const r = applyStructureEvent({ ...state, payloadNames }, event);
-    if (r.patch) {
-        set(r.patch);
-    }
-    if (r.advisory && onAdvisory) {
-        onAdvisory(r.advisory);
-    }
-};
+const applyPick = ({ state, set, payloadNames = [], onAdvisory }: BoundaryPickerProps, event: StructureEvent): void =>
+    dispatchStructureEvent({ ...state, payloadNames }, event, set, onAdvisory);
 
 export const ChartTypePicker: FC<BoundaryPickerProps> = props => (
     <Box>

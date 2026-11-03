@@ -8,12 +8,12 @@
  * the event-specific policies (moved here from the former `lifecycleGuards.reconcileJsonAxesStep`
  * suite — replace, don't layer).
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type { EditorPatch } from './editorState';
 import { axisOptionLabel } from './axisSight';
-import { applyStructureEvent, type StructureView } from './structureEvents';
+import { applyStructureEvent, dispatchStructureEvent, type StructureView } from './structureEvents';
 
 /** A minimal serien-förmig JSON line view; overrides win. */
 const view = (overrides: Partial<StructureView>): StructureView => ({
@@ -425,5 +425,32 @@ describe('died — the dropped axes of an event', () => {
     it('a place move at the side boundary is no step at all', () => {
         const v = view({ mode: 'history', yAxes: [axis('a0', 'left', 0)] });
         expect(applyStructureEvent(v, { type: 'moveAxis', index: 0, dir: -1 })).toEqual({ patch: null, died: [] });
+    });
+});
+
+describe('dispatchStructureEvent — the one caller idiom', () => {
+    it('a crossing sets its patch once and hands the notice to the host', () => {
+        const set = vi.fn();
+        const onAdvisory = vi.fn();
+        const v = view({ jsonOid: 'js.0.doc' });
+        dispatchStructureEvent(v, { type: 'changeMode', to: 'history' }, set, onAdvisory);
+        expect(set).toHaveBeenCalledTimes(1);
+        expect(set).toHaveBeenCalledWith(applyStructureEvent(v, { type: 'changeMode', to: 'history' }).patch);
+        expect(onAdvisory).toHaveBeenCalledTimes(1);
+        expect(onAdvisory.mock.calls[0][0]).toMatchObject({ kind: 'dataPathReset' });
+    });
+
+    it('an event that changes nothing neither sets nor notifies (no empty undo step)', () => {
+        const set = vi.fn();
+        const onAdvisory = vi.fn();
+        dispatchStructureEvent(view({ mode: 'history' }), { type: 'payloadChanged' }, set, onAdvisory);
+        expect(set).not.toHaveBeenCalled();
+        expect(onAdvisory).not.toHaveBeenCalled();
+    });
+
+    it('without a notice host the patch still lands', () => {
+        const set = vi.fn();
+        dispatchStructureEvent(view({ jsonOid: 'js.0.doc' }), { type: 'changeMode', to: 'history' }, set);
+        expect(set).toHaveBeenCalledTimes(1);
     });
 });
