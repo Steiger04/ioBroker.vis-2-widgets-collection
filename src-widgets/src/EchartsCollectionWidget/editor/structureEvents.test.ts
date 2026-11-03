@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type { EditorPatch } from './editorState';
+import { axisOptionLabel } from './axisSight';
 import { applyStructureEvent, type StructureView } from './structureEvents';
 
 /** A minimal serien-förmig JSON line view; overrides win. */
@@ -122,6 +123,206 @@ describe('payloadChanged — the JSON axis reconcile (ADR-0026, ADR-0069)', () =
             jsonSeriesStyle: { temp: { yAxisIndex: 0 }, kw: { yAxisIndex: 1 } },
         });
         expect(asPatch(payload(handTuned, ['temp', 'kw'])).yAxes[1]?.offset).toBe(0);
+    });
+});
+
+describe('payloadChanged — the reconcile cases beyond the characterisation table', () => {
+    // Ported from the dissolved axisLayout suite (reconcileJsonAxes) to the event interface.
+    const run = (v: StructureView): ReturnType<typeof applyStructureEvent> =>
+        applyStructureEvent(v, { type: 'payloadChanged' });
+
+    it('a merged 1:n binding stays sticky — the freed axis DIES', () => {
+        const r = run(
+            view({
+                payloadNames: ['A', 'B'],
+                jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 0 } },
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+            }),
+        );
+        const patch = asPatch(r);
+        expect(patch.jsonSeriesStyle.B?.yAxisIndex).toBe(0); // sticky — NOT reset to 1
+        expect(patch.yAxes).toHaveLength(1);
+        expect(r.died).toEqual([1]);
+    });
+
+    it('heals a stale yAxisIndex (beyond the axis array) with a FRESH axis — never a claim', () => {
+        const r = run(
+            view({ payloadNames: ['A'], jsonSeriesStyle: { A: { yAxisIndex: 5 } }, yAxes: [{ position: 'left' }] }),
+        );
+        const patch = asPatch(r);
+        expect(patch.jsonSeriesStyle.A?.yAxisIndex).toBe(0); // the fresh axis, post-compaction
+        expect(patch.yAxes).toHaveLength(1);
+        expect(r.died).toEqual([0]);
+    });
+
+    it('a new payload name gets its own fresh axis, not axis 0; a deliberate 1:n binding survives', () => {
+        const fresh = asPatch(
+            run(
+                view({
+                    payloadNames: ['A', 'B'],
+                    jsonSeriesStyle: { A: { yAxisIndex: 0 } },
+                    yAxes: [{ position: 'left' }],
+                }),
+            ),
+        );
+        expect(fresh.jsonSeriesStyle.B?.yAxisIndex).toBe(1);
+        expect(fresh.yAxes).toHaveLength(2);
+        const oneToN = run(
+            view({
+                payloadNames: ['A', 'B', 'C'],
+                jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 0 }, C: { yAxisIndex: 1 } },
+                yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
+            }),
+        );
+        expect(oneToN.died).toEqual([]);
+        expect((oneToN.patch?.yAxes ?? [axis('a0', 'left', 0), axis('a1', 'right', 0)]).length).toBe(2);
+    });
+
+    it('a payload tick snaps a hand-flipped layout back to the standard interleaving (ADR-0067)', () => {
+        const r0 = asPatch(run(view({ payloadNames: ['A', 'B', 'C'] })));
+        const handFlipped = r0.yAxes.map((a, i) => (i === 1 || i === 2 ? { ...a, position: 'left' as const } : a));
+        const r1 = asPatch(
+            run(view({ payloadNames: ['A', 'B', 'C'], jsonSeriesStyle: r0.jsonSeriesStyle, yAxes: handFlipped })),
+        );
+        expect(r1.yAxes.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
+            { p: 'left', o: 80 },
+        ]);
+    });
+
+    it('a vanished name re-indexes the overlay and the marking anchors around the dead axis', () => {
+        const r = run(
+            view({
+                payloadNames: ['A', 'C'],
+                jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Power' }, C: { yAxisIndex: 2 } },
+                yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'left', 80)],
+                markLines: [{ yAxisIndex: 1 }, { yAxisIndex: 2 }],
+            }),
+        );
+        const patch = asPatch(r);
+        expect(patch.jsonSeriesStyle.B?.yAxisIndex).toBeUndefined();
+        expect(patch.jsonSeriesStyle.C?.yAxisIndex).toBe(1);
+        expect(patch.yAxes.map(a => a.id)).toEqual(['a0', 'a2']);
+        expect(patch.markLines).toEqual([{ yAxisIndex: 0 }, { yAxisIndex: 1 }]); // predecessor + shift
+        expect(r.advisory).toEqual({ kind: 'axisDeath', undoable: false, names: ['Power'] });
+    });
+
+    it('a HIDDEN name is outside the sight — the reconcile heals a resting-era blob', () => {
+        const r = run(
+            view({
+                payloadNames: ['temp', 'kw'],
+                jsonHidden: ['kw'],
+                jsonSeriesStyle: {
+                    temp: { yAxisIndex: 0 },
+                    kw: { yAxisIndex: 1, name: 'Kilowatt' },
+                    Hum: { yAxisIndex: 2 },
+                },
+                yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'left', 80)],
+            }),
+        );
+        const patch = asPatch(r);
+        expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
+        expect(patch.jsonSeriesStyle.Hum?.yAxisIndex).toBeUndefined();
+        expect(patch.yAxes.map(a => a.id)).toEqual(['a0']);
+        expect(r.died).toEqual([1, 2]);
+    });
+
+    it('a fresh name + the vanish of the axis-0 binder: the fresh axis compacts onto rank 0 (strict sight)', () => {
+        const patch = asPatch(
+            run(
+                view({
+                    payloadNames: ['Neu'],
+                    jsonSeriesStyle: { Gone: { yAxisIndex: 0, name: 'Alte' } },
+                    yAxes: [axis('a0', 'left', 0)],
+                }),
+            ),
+        );
+        expect(patch.jsonSeriesStyle.Neu?.yAxisIndex).toBe(0);
+        expect(patch.jsonSeriesStyle.Gone?.yAxisIndex).toBeUndefined();
+        expect(patch.yAxes).toHaveLength(1);
+        expect(patch.yAxes[0].id).not.toBe('a0');
+    });
+
+    it('raw survives on sticky axes; a fresh axis starts WITHOUT raw (ADR-0037)', () => {
+        const RAW = '{ "minorTick": { "show": true } }';
+        const patch = asPatch(
+            run(
+                view({
+                    payloadNames: ['PV', 'TEMP', 'NEW'],
+                    jsonSeriesStyle: { PV: { yAxisIndex: 0 }, TEMP: { yAxisIndex: 1 }, NEW: { yAxisIndex: 2 } },
+                    yAxes: [
+                        { id: 'a0', name: 'kW', raw: RAW },
+                        { id: 'a1', name: '°C', position: 'right', raw: RAW },
+                    ],
+                }),
+            ),
+        );
+        expect(patch.yAxes[0].raw).toBe(RAW);
+        expect(patch.yAxes[1].raw).toBe(RAW);
+        expect(patch.yAxes[2].raw).toBeUndefined();
+    });
+});
+
+describe('showSeries — the sticky case and idempotence (B3)', () => {
+    it('no interim reconcile: the kept index survives, nothing else changes; a re-run is stable', () => {
+        const v = view({
+            payloadNames: ['A', 'B'],
+            jsonHidden: ['B'],
+            jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } },
+            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
+        });
+        const patch = asPatch(applyStructureEvent(v, { type: 'showSeries', name: 'B' }));
+        expect(patch.jsonHidden).toEqual([]);
+        expect(patch.jsonSeriesStyle.B?.yAxisIndex).toBe(1);
+        expect(patch.yAxes.map(a => a.id)).toEqual(['a0', 'a1']);
+        const again = asPatch(applyStructureEvent({ ...v, ...patch }, { type: 'showSeries', name: 'B' }));
+        expect(again.yAxes.map(a => a.id)).toEqual(['a0', 'a1']); // no fresh axis, no churn
+    });
+});
+
+describe('rebindSeries — the axis owner „Namensgeber" (ADR-0068)', () => {
+    const baseAxes: EchartsAxisConfig[] = [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'left', 80)];
+    const hist = (series: StructureView['series'], yAxes = baseAxes): StructureView =>
+        view({ mode: 'history', series, yAxes });
+
+    it("the user regression: rebinding S2 onto S3's axis NEVER renames it — the vacated axis dies", () => {
+        const series = [
+            { id: 's1', oid: 'a', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', oid: 'b', yAxisIndex: 1, name: 'S2' },
+            { id: 's3', oid: 'c', yAxisIndex: 2, name: 'S3' },
+        ];
+        const patch = asPatch(applyStructureEvent(hist(series), { type: 'rebindSeries', index: 1, axis: 2 }));
+        expect(patch.yAxes.map(a => a.id)).toEqual(['a0', 'a2']);
+        expect(patch.yAxes[1]).toMatchObject({ owner: 's3' });
+        expect(axisOptionLabel(1, patch.yAxes[1], patch.series)).toBe('2 · S3');
+        expect(patch.series.map(s => s.yAxisIndex)).toEqual([0, 1, 1]);
+    });
+
+    it('the owner leaving hands the name to the first remaining binder', () => {
+        const series = [
+            { id: 's1', oid: 'a', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', oid: 'b', yAxisIndex: 1, name: 'S2' },
+            { id: 's3', oid: 'c', yAxisIndex: 1, name: 'S3' },
+        ];
+        const axes = [baseAxes[0], { ...baseAxes[1], owner: 's2' }];
+        const patch = asPatch(applyStructureEvent(hist(series, axes), { type: 'rebindSeries', index: 1, axis: 0 }));
+        expect(patch.yAxes[1]).toMatchObject({ owner: 's3' });
+    });
+
+    it('a GAIN on an owner-less axis names the arriving binder („Neue Achse")', () => {
+        const series = [
+            { id: 's1', oid: 'a', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', oid: 'b', yAxisIndex: 0, name: 'S2' },
+        ];
+        const patch = asPatch(
+            applyStructureEvent(hist(series, [{ ...baseAxes[0], owner: 's1' }]), {
+                type: 'rebindSeries',
+                index: 1,
+                axis: 1,
+            }),
+        );
+        expect(patch.yAxes[1]).toMatchObject({ owner: 's2' });
     });
 });
 

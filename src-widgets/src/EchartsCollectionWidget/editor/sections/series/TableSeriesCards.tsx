@@ -38,7 +38,7 @@ import {
     SeriesTransformFields,
     SeriesValueFormatFields,
 } from './CartesianSeriesCard';
-import { axisOptionLabel, positionalBinderName } from '../../axisLayout';
+import { axisOptionLabel, positionalBinderName } from '../../axisSight';
 import { SeriesRawOverride, Swatch, EmptyState } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 

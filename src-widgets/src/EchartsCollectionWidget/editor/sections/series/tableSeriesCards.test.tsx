@@ -3,7 +3,7 @@
  * (title default = the path's last segment, subtitle = the full path, move/delete but NO
  * duplicate/hide), the add affordance (pick a column → the card appends; none before) and the
  * duplicate-name InfoBox. The handler SEMANTICS (axis death, balance) ride the dispatcher's
- * existing axisLayout surface — not re-tested here.
+ * structure-event surface (ADR-0099) — not re-tested here.
  *
  * @module EchartsCollectionWidget/editor/sections/series/tableSeriesCards.test
  * @remarks
@@ -28,7 +28,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import TableSeriesCards from './TableSeriesCards';
 import { DEFAULT_EDITOR_STATE, type EditorState } from '../../editorState';
-import { axisLayout } from '../../axisLayout';
+import { axisLayout } from '../../structureEvents';
 
 /** Mount any component; returns the live container. */
 const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => {

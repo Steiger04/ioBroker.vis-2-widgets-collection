@@ -67,7 +67,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
-import { axisOptionLabel, displayAxisIndex } from '../../axisLayout';
+import { axisOptionLabel, displayAxisIndex } from '../../axisSight';
 import type { HistoryInstancesSight } from '../../useHistoryInstances';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';

@@ -34,7 +34,7 @@ import {
     TextField2,
 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
-import { displayAxisIndex } from '../../axisLayout';
+import { displayAxisIndex } from '../../axisSight';
 import {
     DEFAULT_MARK_FILL,
     edgeLabelOf,

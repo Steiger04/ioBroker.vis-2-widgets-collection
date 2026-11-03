@@ -31,7 +31,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import AxesZoomSection from './AxesZoomSection';
 import Generic from '../../../Generic';
-import { axisLayout } from '../axisLayout';
+import { axisLayout } from '../structureEvents';
 import { DEFAULT_EDITOR_STATE, type EditorState } from '../editorState';
 
 /** Mount any component; returns the live container. */

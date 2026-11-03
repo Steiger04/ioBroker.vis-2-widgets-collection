@@ -30,7 +30,8 @@ beforeEach(() => {
     ids.n = 0;
 });
 
-import { axisLayout, boundAxisIndices, boundJsonAxisIndices } from './axisLayout';
+import { boundAxisIndices, boundJsonAxisIndices } from './axisSight';
+import { axisLayout } from './structureEvents';
 import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './editorState';
 import { applyStructureEvent, type StructureEvent } from './structureEvents';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';

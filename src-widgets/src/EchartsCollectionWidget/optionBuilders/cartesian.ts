@@ -29,7 +29,7 @@ import type {
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
-import { axisPosition } from '../editor/axisLayout';
+import { axisPosition } from '../editor/axisSight';
 import {
     buildLegend,
     DEFAULT_MARK_FILL,

@@ -44,7 +44,7 @@ import {
     emittedAxisRanks,
     jsonBindingView,
     positionalBinderName,
-} from '../axisLayout';
+} from '../axisSight';
 import { applyStructureEvent, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';

@@ -20,8 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
-import { syncSlotMemory } from './axisLayout';
-import { applyStructureEvent } from './structureEvents';
+import { syncSlotMemory, applyStructureEvent } from './structureEvents';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,

@@ -6,7 +6,7 @@
  * @remarks
  * Card lists render one card per item and must reconcile by stable identity, not array index —
  * `key={i}` unmounts the WRONG card when a middle item is deleted. This module replaced three
- * generators with identical internals (identity.ts, seriesIdentity.ts, axisLayout's id helpers)
+ * generators with identical internals (identity.ts, seriesIdentity.ts, the axis factory's id helpers)
  * that differed only in prefix; now one crypto check + one counter fallback is maintained here,
  * and every list passes its prefix (`sr-` series, `ax-` axes, default `id-` everything else). The
  * prefix only decorates the counter fallback — with `crypto.randomUUID` available it never

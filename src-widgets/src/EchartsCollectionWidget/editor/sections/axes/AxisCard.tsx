@@ -37,7 +37,7 @@ import ColorField from '../../colorFields';
 import GridStyleFields from './GridStyleFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsAxisConfig } from '../../../../types/field-definitions/echarts-fields';
-import { alignTicksDisabledByOverride, displayPosition, type AxisPlaceSight } from '../../axisLayout';
+import { alignTicksDisabledByOverride, displayPosition, type AxisPlaceSight } from '../../axisSight';
 import RawJsonSection from '../RawJsonSection';
 import { AXIS_CATALOG } from '../../axisTemplates';
 import { snippetPatch } from '../../snippetComposition';

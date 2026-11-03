@@ -30,7 +30,8 @@ import {
     normalizeLegendPos,
 } from '../presentation';
 import { withStableIds } from './stableId';
-import { boundJsonView, dropUnboundAxes, reindexJsonOverlay, type AxisSlotMemory } from './axisLayout';
+import { boundJsonView, type AxisSlotMemory } from './axisSight';
+import { dropUnboundAxes, reindexJsonOverlay } from './structureEvents';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
 import { FRAME_STYLES } from '../frameStyle';

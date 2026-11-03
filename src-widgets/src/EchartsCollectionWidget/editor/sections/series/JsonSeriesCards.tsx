@@ -27,7 +27,7 @@ import {
     SeriesTransformFields,
     SeriesValueFormatFields,
 } from './CartesianSeriesCard';
-import { axisOptionLabel, jsonBindingView } from '../../axisLayout';
+import { axisOptionLabel, jsonBindingView } from '../../axisSight';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
