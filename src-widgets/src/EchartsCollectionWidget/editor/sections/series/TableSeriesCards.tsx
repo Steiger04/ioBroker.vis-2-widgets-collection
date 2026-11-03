@@ -6,7 +6,7 @@
  * @remarks
  * The structural twin of the Verlauf card list (state.series positional — the history handlers
  * Add/Delete/Move/Rebind incl. axis death run unchanged through the dispatcher), with the OID
- * row swapped for the yPath ColumnAutocomplete ({@link CartesianBasisFields}' `sourceRow`
+ * row swapped for the yPath ColumnAutocomplete (the Basis tab's `sourceRow`
  * slot — the sub-components themselves untouched). What the serien-förmig view owns that this
  * one deliberately does NOT: duplicate, hide (jsonHidden deny-list) — the table family owns
  * its structure, every delete is REAL (decision 2). Pie rings (ADR-0082 decision 1) drop the
@@ -32,12 +32,10 @@ import type { OidPickerCtx } from '../../OidPicker';
 import { familyOf } from '../../../optionBuilder';
 import { seriesSlotOf } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
-import {
-    CartesianBasisFields,
-    CartesianSeriesKnobs,
-    SeriesTransformFields,
-    SeriesValueFormatFields,
-} from './CartesianSeriesCard';
+import { BasisTab } from './tabs/BasisTab';
+import { SeriesTransformFields } from './tabs/DatenTab';
+import { StilTab } from './tabs/StilTab';
+import { FormatTab } from './tabs/FormatTab';
 import { axisOptionLabel, positionalBinderName } from '../../axisSight';
 import { SeriesRawOverride, Swatch, EmptyState } from './shared';
 import { snippetPatch } from '../../snippetComposition';
@@ -240,7 +238,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                 }
                             >
                                 {[
-                                    <CartesianBasisFields
+                                    <BasisTab
                                         key="basis"
                                         meta={s}
                                         defaultType={defaultType}
@@ -275,7 +273,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                     ...(isPie
                                         ? []
                                         : [
-                                              <CartesianSeriesKnobs
+                                              <StilTab
                                                   key="presentation"
                                                   meta={s}
                                                   defaultType={defaultType}
@@ -285,7 +283,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                                   labelColorFallback={labelColorFallback}
                                                   stackMode={state.stackMode}
                                               />,
-                                              <SeriesValueFormatFields
+                                              <FormatTab
                                                   key="values"
                                                   meta={s}
                                                   onPatch={p => onUpdate(i, p)}

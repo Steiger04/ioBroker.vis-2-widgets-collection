@@ -136,3 +136,25 @@ describe('family slot summaries (goldmaster Neu == Alt, via sectionSummaries)', 
         expect(sectionSummaries(st({ chartType: 'pie' }), t).pieOptions).toBe('');
     });
 });
+
+describe('series card traits (ADR-0100 decision 2 — the family share of the card)', () => {
+    it('cartesian authors every tab, type, colour and axis', () => {
+        expect(FAMILY_EDITORIAL.cartesian.seriesCard).toEqual({
+            tabs: ['basis', 'daten', 'stil', 'format', 'json'],
+            type: true,
+            color: true,
+            axis: true,
+            ring: false,
+        });
+    });
+
+    it('pie rings: Basis · Daten · JSON, no type, no colour, no axis, ring identity (ADR-0082)', () => {
+        expect(FAMILY_EDITORIAL.pie.seriesCard).toEqual({
+            tabs: ['basis', 'daten', 'json'],
+            type: false,
+            color: false,
+            axis: false,
+            ring: true,
+        });
+    });
+});

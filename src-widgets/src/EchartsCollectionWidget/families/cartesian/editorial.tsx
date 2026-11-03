@@ -175,6 +175,14 @@ const healCartesianChartType = (
 
 /** The cartesian family's editorial half. */
 export const CARTESIAN_EDITORIAL: FamilyEditorial<'axesZoom'> = {
+    // The series card (ADR-0100): every tab, type/colour/axis authored.
+    seriesCard: {
+        tabs: ['basis', 'daten', 'stil', 'format', 'json'],
+        type: true,
+        color: true,
+        axis: true,
+        ring: false,
+    },
     railSlots: [
         {
             key: 'axesZoom',

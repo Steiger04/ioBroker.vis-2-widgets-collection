@@ -5,7 +5,7 @@
  * @remarks
  * The payload owns series identity (count + data); the name-keyed overlay (`jsonSeriesStyle`) owns
  * presentation. Cards share the cartesian internals with the history card
- * ({@link CartesianBasisFields}/{@link CartesianSeriesKnobs}) — minus the OID row. The trash on a
+ * (the `series/tabs/*` bodies) — minus the OID row. The trash on a
  * card header HIDES the series (jsonHidden deny-list, restorable via the chips row) — payload
  * series can never be truly deleted. Pie-json renders compact slice rows (name + colour, no
  * expand).
@@ -21,12 +21,10 @@ import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorState } from '../../editorState';
-import {
-    CartesianBasisFields,
-    CartesianSeriesKnobs,
-    SeriesTransformFields,
-    SeriesValueFormatFields,
-} from './CartesianSeriesCard';
+import { BasisTab } from './tabs/BasisTab';
+import { SeriesTransformFields } from './tabs/DatenTab';
+import { StilTab } from './tabs/StilTab';
+import { FormatTab } from './tabs/FormatTab';
 import { axisOptionLabel, jsonBindingView } from '../../axisSight';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
@@ -230,7 +228,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                     { key: 'advanced', label: Generic.t('echarts_card_tab_json') },
                                 ]}
                             >
-                                <CartesianBasisFields
+                                <BasisTab
                                     meta={m}
                                     defaultType={defaultType}
                                     onPatch={p =>
@@ -253,7 +251,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                     onPatch={p => onUpdateJson(name, p)}
                                     chartNullMode={state.ignoreNull}
                                 />
-                                <CartesianSeriesKnobs
+                                <StilTab
                                     meta={m}
                                     defaultType={defaultType}
                                     onPatch={p => onUpdateJson(name, p)}
@@ -262,7 +260,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                     labelColorFallback={labelColorFallback}
                                     stackMode={state.stackMode}
                                 />
-                                <SeriesValueFormatFields
+                                <FormatTab
                                     meta={m}
                                     onPatch={p => onUpdateJson(name, p)}
                                 />

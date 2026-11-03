@@ -9,7 +9,7 @@
  * — a series leaving its axis drops it when no binder remains — the bound-axes auto-balance of
  * ADR-0067, and the JSON overlay + hide/show deny-list of ADR-0011) and renders the
  * family-specific view:
- *  - cartesian — {@link CartesianSeriesList}: EditorCards (swatch, name, OID, ↑↓, duplicate,
+ *  - cartesian — {@link HistorySeriesList}: EditorCards (swatch, name, OID, ↑↓, duplicate,
  *    delete) expanding to the type-sensitive knob SubGroups.
  *  - pie — {@link PieSliceRows}: name + OID + colour + delete rows. (The OID picker was missing in
  *    v2 — slices could never bind data.)
@@ -35,7 +35,7 @@ import type { EditorSeries, EditorState, SetEditor } from '../editorState';
 import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
-import { CartesianSeriesList } from './series/CartesianSeriesCard';
+import { HistorySeriesList } from './series/sources/history';
 import PieSliceRows from './series/PieSliceRows';
 import JsonSeriesCards from './series/JsonSeriesCards';
 import TableSeriesCards from './series/TableSeriesCards';
@@ -311,7 +311,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 />
             )}
             {!isJson && isCartesian && (
-                <CartesianSeriesList
+                <HistorySeriesList
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}

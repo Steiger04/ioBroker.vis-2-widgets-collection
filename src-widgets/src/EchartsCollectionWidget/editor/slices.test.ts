@@ -24,7 +24,7 @@ import type { DataSourceSlice } from './sections/DataSourceSection';
 import type { PieOptionsSlice } from './sections/FamilySections';
 import type { LegendSlice } from './sections/LegendSection';
 import type { SeriesSlice } from './sections/SeriesSection';
-import type { CartesianSeriesListSlice } from './sections/series/CartesianSeriesCard';
+import type { HistorySeriesListSlice } from './sections/series/sources/history';
 import type { JsonSeriesCardsSlice } from './sections/series/JsonSeriesCards';
 import type { PieSliceRowsSlice } from './sections/series/PieSliceRows';
 import type { ChartTypePickerSlice, ModeSelectSlice } from './controls';
@@ -228,7 +228,7 @@ describe('section slices (ADR-0049)', () => {
                 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull' | 'stackMode'
             >
         >();
-        expectTypeOf<CartesianSeriesListSlice>().toEqualTypeOf<
+        expectTypeOf<HistorySeriesListSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
                 | 'chartType'
@@ -333,7 +333,7 @@ describe('section slices (ADR-0049)', () => {
     it('the read-only series surfaces reject foreign reads', () => {
         // No setter props — their honesty is the read side (writes go through dispatcher callbacks).
         expectTypeOf<JsonSeriesCardsSlice>().not.toHaveProperty('animation');
-        expectTypeOf<CartesianSeriesListSlice>().not.toHaveProperty('animation');
+        expectTypeOf<HistorySeriesListSlice>().not.toHaveProperty('animation');
     });
 
     it('the rail pass-through compiles: full state and full setter satisfy every slice', () => {
@@ -364,7 +364,7 @@ describe('section slices (ADR-0049)', () => {
         const seriesState: SeriesSlice = railState;
         const pieRowsState: PieSliceRowsSlice = railState;
         const jsonCardsState: JsonSeriesCardsSlice = railState;
-        const cartesianListState: CartesianSeriesListSlice = railState;
+        const cartesianListState: HistorySeriesListSlice = railState;
         const chartTypePickerState: ChartTypePickerSlice = railState;
         const modeSelectState: ModeSelectSlice = railState;
         // Reference everything so lint stays quiet — the assignments ARE the assertion.

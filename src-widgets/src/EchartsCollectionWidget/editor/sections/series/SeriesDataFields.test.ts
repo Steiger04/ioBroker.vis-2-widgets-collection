@@ -69,7 +69,7 @@ vi.hoisted(() => {
 });
 
 import { renderComponent, type RenderComponentHandle } from '../../../../lib/testing/testHarness';
-import { SeriesDataFields, xOffsetMode } from './CartesianSeriesCard';
+import { SeriesDataFields, xOffsetMode } from './tabs/DatenTab';
 
 // The card module's heavy leaves, stubbed to keep this a card-logic test: `shared` pulls
 // @iobroker/adapter-react-v5's SelectID, and the @mui/icons-material barrel costs minutes of

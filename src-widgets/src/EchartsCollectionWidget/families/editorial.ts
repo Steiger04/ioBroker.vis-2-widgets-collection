@@ -30,6 +30,7 @@ import type { IssueMap, ValidationIssue } from '../editor/issueTabs';
 import type { ValidateEditorInputs } from '../editor/validation';
 import type { TFunc } from '../editor/summaries';
 import type { StructureAdvisory } from '../editor/structureEvents';
+import type { SeriesCardTraits } from '../editor/sections/series/cardCapabilities';
 
 /**
  * The fat, uniform prop bundle every rail-slot renderer receives — deliberately the SUPERSET
@@ -82,6 +83,11 @@ export interface PickerEntry {
 export interface FamilyEditorial<K extends string = string> {
     railSlots: ReadonlyArray<RailSlot<K>>;
     picker: ReadonlyArray<PickerEntry>;
+    /**
+     * The family's share of the series card (ADR-0100 decision 2) — tabs, type/colour/axis
+     * gates, ring identity; the Kartenquelle supplies the data-path share.
+     */
+    seriesCard: SeriesCardTraits;
     validate?: (state: EditorState, inputs?: ValidateEditorInputs) => IssueMap;
     healChartType?: (
         chartType: Exclude<LegacyChartType, undefined>,

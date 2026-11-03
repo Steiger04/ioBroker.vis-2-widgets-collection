@@ -46,7 +46,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import AxisCard from './axes/AxisCard';
 import XCard from './axes/XCard';
-import { CartesianSeriesList } from './series/CartesianSeriesCard';
+import { HistorySeriesList } from './series/sources/history';
 import JsonSeriesCards from './series/JsonSeriesCards';
 import { DEFAULT_EDITOR_STATE } from '../editorState';
 
@@ -97,7 +97,7 @@ const noops = {
 
 describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
     it('Series card (Verlauf): Basis | Daten | Darstellung | Werte | Erweitert — full inventory', () => {
-        const el = mount(CartesianSeriesList, {
+        const el = mount(HistorySeriesList, {
             state: state({
                 chartType: 'line',
                 mode: 'history',

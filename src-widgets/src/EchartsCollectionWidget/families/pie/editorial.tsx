@@ -85,6 +85,15 @@ const PieOptionsSlot: FC<RailSlotProps> = ({ state, set, pickerCtx, focusTab, is
 
 /** The pie family's editorial half. */
 export const PIE_EDITORIAL: FamilyEditorial<'pieOptions'> = {
+    // The ring card (ADR-0082 decision 1, ADR-0100): Basis · Daten · JSON — no type, no colour
+    // (the category-stable palette paints the slices), no axis; the ring icon is the identity.
+    seriesCard: {
+        tabs: ['basis', 'daten', 'json'],
+        type: false,
+        color: false,
+        axis: false,
+        ring: true,
+    },
     railSlots: [
         {
             key: 'pieOptions',

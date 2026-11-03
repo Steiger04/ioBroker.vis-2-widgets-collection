@@ -233,7 +233,7 @@ export const effectiveAxisName = (
  * name. The number is what keeps the item identifiable — unnamed series can share effective
  * labels across axes, and the rebind death re-numbers every follower (ADR-0069). The number
  * prefix matches the marking card's axis options and the legacy fallback of
- * {@link CartesianBasisFields}.
+ * the series card's Basis tab (`sections/series/tabs/BasisTab`).
  */
 export const axisOptionLabel = (
     ai: number,
