@@ -34,16 +34,13 @@ import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
 import {
     axesFollowBinders,
-    axisLayout,
-    balanceAxes,
     boundJsonView,
     effectiveAxisName,
-    isOneToOneBound,
     jsonAxisDeathName,
     jsonShowPatch,
-    materializedAxisIndex,
     reindexJsonOverlay,
 } from '../axisLayout';
+import { applyStructureEvent, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -203,34 +200,22 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 });
         }
     }, [series, pickerCtx.socket, set]);
-    // Series-leave KILLS the axis (ADR-0069): deleting a series drops its bound axis when no
-    // surviving series remains on it — config gone, marking anchors re-indexed onto the stack
-    // predecessor, survivors re-numbered, the bound set re-arranged (ADR-0067), all in the ONE
-    // undoable step. Non-cartesian families carry no axis bindings — a plain series removal.
-    const remove = (i: number): void => {
-        const next = series.filter((_s, idx) => idx !== i);
-        if (!isCartesian) {
-            set({ series: next });
-            return;
+    // The structure events (ADR-0099): the module returns the complete follow-up — axis
+    // coupling, death, balance, per data path — as ONE patch (one set() = one undo step) plus
+    // the notice; the handlers below never branch on the data path or the family.
+    const structure = (event: StructureEvent): void => {
+        const r = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames }, event);
+        if (r.patch) {
+            set(r.patch);
         }
-        const r = axesFollowBinders(series, next, state.yAxes, state.markLines, undefined, state.axisSlotMemory);
-        set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
-        reportDeathsFor(r.diedIndices);
+        if (r.advisory?.kind === 'axisDeath') {
+            setAxisDeath(r.advisory.names);
+        }
     };
-    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). A value
-    // ≥ yAxes.length is the „Neue Achse" entry (ADR-0069) — the axis is appended and bound in
-    // the same step, the replacement of the retired „Achse hinzufügen" button. The VACATED axis
-    // dies when no binder remains: dropped, its marking anchors follow the series onto the
-    // rebind target, survivors re-index and re-arrange — one set() = one undo step.
-    const rebindAxis = (i: number, newYi: number): void => {
-        const append = newYi >= state.yAxes.length;
-        const yAxesNow = append ? [...state.yAxes, axisLayout(newYi)] : state.yAxes;
-        const from = materializedAxisIndex(series[i]);
-        const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
-        const r = axesFollowBinders(series, next, yAxesNow, state.markLines, { from, to: newYi }, state.axisSlotMemory);
-        set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
-        reportDeathsFor(r.diedIndices);
-    };
+    // Series-leave kills the axis without a remaining binder (ADR-0069).
+    const remove = (i: number): void => structure({ type: 'removeSeries', index: i });
+    // The per-series Y-axis dropdown (ADR-0025); a value ≥ yAxes.length is „Neue Achse" (ADR-0069).
+    const rebindAxis = (i: number, newYi: number): void => structure({ type: 'rebindSeries', index: i, axis: newYi });
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
         if (j < 0 || j >= series.length) {
@@ -247,67 +232,24 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         if (!oid || oid === 'nothing_selected') {
             return;
         }
-        // Strict 1:1 auto-axis (ADR-0018): a new cartesian series ALWAYS gets a fresh axis
-        // appended at the end. Binding to `yAxes.length` (the appended index) rather than the
-        // series count also keeps shared-setups consistent. Colour + name are NOT written — the
-        // axis inherits both from the bound series at runtime. The auto-balance (ADR-0067) then
-        // re-arranges every bound axis densely (the fresh axis included — its appended index may
-        // interleave differently than its slot).
-        const axIdx = state.yAxes.length;
-        const next = [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }];
-        const patch: Partial<SeriesSlice> = { series: next };
-        if (isCartesian) {
-            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory);
-        }
-        set(patch);
+        // Strict 1:1 auto-axis (ADR-0018) + auto-balance (ADR-0067) — the addSeries event.
+        structure({ type: 'addSeries', id: nextStableId('sr-'), oid });
     };
-    const duplicate = (i: number): void => {
-        const copy: EditorSeries = {
-            ...series[i],
+    // 1:1 auto-axis while dense, the source axis in a shared setup (ADR-0018).
+    const duplicate = (i: number): void =>
+        structure({
+            type: 'duplicateSeries',
             id: nextStableId('sr-'), // fresh identity — don't share the source series' id (React key clash)
-            name: `${series[i].name || `Series ${i + 1}`} (${Generic.t('echarts_editor_series_copy_suffix')})`,
-        };
-        const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];
-        if (isCartesian) {
-            // 1:1 auto-axis (ADR-0018) — but only while every series owns its axis (dense). A
-            // genuinely shared axis (2+ series on it) → the copy inherits the source's
-            // yAxisIndex instead, so duplicating never silently breaks a deliberate Shared-Axis
-            // setup. Either way a series-add is a structural event: the auto-balance (ADR-0067)
-            // runs over the resulting bound set.
-            if (isOneToOneBound(series)) {
-                // Colour + name inherit the copy at runtime — not written (ADR-0018).
-                const axIdx = state.yAxes.length;
-                copy.yAxisIndex = axIdx;
-                set({
-                    series: next,
-                    yAxes: balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory),
-                });
-            } else {
-                copy.yAxisIndex = series[i].yAxisIndex;
-                set({ series: next, yAxes: balanceAxes(state.yAxes, next, state.axisSlotMemory) });
-            }
-        } else {
-            set({ series: next });
-        }
-    };
-    // Tabellarisch (ADR-0075): the addWithOid twin — a series is appended only on COLUMN choice
-    // („keine Serie vor Spaltenwahl"), bound via `yPath` with `oid:''`, the SAME strict 1:1
-    // auto-axis (ADR-0018) + auto-balance; name stays unset (the default is the path's last
-    // segment at render).
+            index: i,
+            copySuffix: Generic.t('echarts_editor_series_copy_suffix'),
+        });
+    // Tabellarisch (ADR-0075): a series is appended only on COLUMN choice („keine Serie vor
+    // Spaltenwahl"), bound via `yPath` — the same addSeries event.
     const addWithColumn = (yPath: string): void => {
         if (!yPath) {
             return;
         }
-        const axIdx = state.yAxes.length;
-        const next = [
-            ...series,
-            { id: nextStableId('sr-'), oid: '', yPath, name: '', yAxisIndex: isCartesian ? axIdx : 0 },
-        ];
-        const patch: Partial<SeriesSlice> = { series: next };
-        if (isCartesian) {
-            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory);
-        }
-        set(patch);
+        structure({ type: 'addSeries', id: nextStableId('sr-'), yPath });
     };
     // JSON mode: per-series presentation lives in the name-keyed overlay (ADR-0011), not state.series.
     // The payload owns series identity (count + data); the overlay re-attaches style by name.
@@ -367,35 +309,10 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             ),
         );
     };
-    // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
-    // write the new yAxisIndex onto the overlay entry; a value ≥ yAxes.length is the „Neue Achse"
-    // entry (appended + bound in the same step, ADR-0069). The freed axis DIES when no binder
-    // remains — its marking anchors follow the series onto the rebind target — and the modal
-    // reconcile effect keeps every valid yAxisIndex sticky across payload changes. The
-    // auto-balance (ADR-0067) runs over the re-composed visible sight.
-    const rebindJsonAxis = (name: string, newYi: number): void => {
-        const append = newYi >= state.yAxes.length;
-        const yAxesNow = append ? [...state.yAxes, axisLayout(newYi)] : state.yAxes;
-        const overlay = {
-            ...state.jsonSeriesStyle,
-            [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
-        };
-        const cur = state.jsonSeriesStyle[name]?.yAxisIndex;
-        const r = axesFollowBinders(
-            boundBindings(state.jsonSeriesStyle, state.jsonHidden),
-            boundBindings(overlay, state.jsonHidden),
-            yAxesNow,
-            state.markLines,
-            typeof cur === 'number' ? { from: cur, to: newYi } : undefined,
-            state.axisSlotMemory,
-        );
-        set({
-            jsonSeriesStyle: r.diedIndices.length ? reindexJsonOverlay(overlay, r.reindex) : overlay,
-            yAxes: r.yAxes,
-            markLines: r.markLines,
-        });
-        reportDeathsFor(r.diedIndices);
-    };
+    // Rebind a JSON payload series by name (ADR-0026 JSON 1:n) — the same rebindSeries event;
+    // the module's name-keyed adapter writes the overlay entry.
+    const rebindJsonAxis = (name: string, newYi: number): void =>
+        structure({ type: 'rebindSeries', name, axis: newYi });
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the
     // auto-expanded skeleton); the user expands the card they edit.

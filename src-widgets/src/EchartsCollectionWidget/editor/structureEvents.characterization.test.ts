@@ -33,11 +33,26 @@ beforeEach(() => {
 import { axisLayout, boundAxisIndices, boundJsonAxisIndices } from './axisLayout';
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
 import { legacyApply, type CharEvent, type CharResult, type CharView } from './structureEvents.legacy.testkit';
+import { applyStructureEvent, type StructureEvent } from './structureEvents';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type * as StableIdModule from './stableId';
 
-/** The implementation under characterisation. */
-const apply = (v: CharView, e: CharEvent): CharResult => legacyApply(v, e);
+/** The events already served by the structure-event module (ADR-0099) — the rest still run the legacy fixture. */
+const MODULE_EVENTS: ReadonlySet<CharEvent['type']> = new Set([
+    'addSeries',
+    'duplicateSeries',
+    'removeSeries',
+    'rebindSeries',
+]);
+
+/** The implementation under characterisation (the module's `died` is pinned separately). */
+const apply = (v: CharView, e: CharEvent): CharResult => {
+    if (!MODULE_EVENTS.has(e.type)) {
+        return legacyApply(v, e);
+    }
+    const { patch, advisory } = applyStructureEvent(v, e as StructureEvent);
+    return advisory ? { patch, advisory } : { patch };
+};
 
 const ax = (i: number, extra: Partial<EchartsAxisConfig> = {}): EchartsAxisConfig => ({
     ...axisLayout(i),
