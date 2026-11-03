@@ -18,24 +18,29 @@ export type TFunc = (key: string, ...args: string[]) => string;
 
 const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, Math.max(0, n - 1))}…` : s);
 
-const joinNames = (names: (string | undefined)[], max = 2): string => {
-    const shown = names.filter(Boolean).slice(0, max);
-    const rest = names.filter(Boolean).length - shown.length;
-    return shown.join(', ') + (rest > 0 ? ` +${rest}` : '');
-};
-
 /**
  * Compute the summary line per section.
  *
  * @param state - Current editor state.
  * @param t - Translation function (Generic.t).
+ * @param jsonSeriesNames - Serien-förmig JSON: the payload's series names (the payload owns the
+ *  series there, `state.series` stays empty) — the Series digest counts the visible ones.
  * @returns Map of section key → summary text (empty string = nothing useful to say).
  */
-export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<SectionKey, string>> => {
+export const sectionSummaries = (
+    state: EditorState,
+    t: TFunc,
+    jsonSeriesNames: readonly string[] = [],
+): Partial<Record<SectionKey, string>> => {
     const out: Partial<Record<SectionKey, string>> = {};
 
-    // series
-    out.series = joinNames(state.series.map(s => s.name));
+    // series (B8, review 2026-11-03): the visible series count over the data path's own sight —
+    // serien-förmig JSON counts the payload names minus the hidden ones.
+    const seriesCount =
+        state.mode === 'json' && state.jsonKind !== 'table'
+            ? jsonSeriesNames.filter(n => !state.jsonHidden.includes(n)).length
+            : state.series.length;
+    out.series = seriesCount === 1 ? t('echarts_sum_series_one') : t('echarts_sum_series', String(seriesCount));
 
     // data source (cartesian/pie only) — the chart-level Voreinstellung digest (ADR-0072):
     // series with their own aggregate-cluster overrides append a counter; the line itself
@@ -58,12 +63,13 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
 
     // title (ADR-0021: its own section)
     const title = state.titleText.trim();
-    out.title = title ? trunc(title, 24) : '';
+    out.title = title ? trunc(title, 24) : t('echarts_sum_off');
 
-    // legend (ADR-0021: its own section; position + symbol digest, or "off")
+    // legend (ADR-0021: its own section; position + symbol digest, or "off") — the icon by its
+    // option label (B8), not the echarts symbol id
     if (state.legendShow) {
         const posLabel = t(`echarts_pos_${state.legendPos.replace(/([A-Z])/g, '_$1').toLowerCase()}`);
-        out.legend = state.legend.icon ? `${posLabel} · ${state.legend.icon}` : posLabel;
+        out.legend = state.legend.icon ? `${posLabel} · ${t(`echarts_legend_icon_${state.legend.icon}`)}` : posLabel;
     } else {
         out.legend = t('echarts_sum_off');
     }
@@ -87,12 +93,13 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
             : state.paletteSource === 'preset'
               ? state.palettePreset
               : t('echarts_palette_theme');
-    out.colors = paletteLabel + (state.darkMode !== 'auto' ? ` · ${state.darkMode}` : '');
+    out.colors = paletteLabel + (state.darkMode !== 'auto' ? ` · ${t(`echarts_dark_${state.darkMode}`)}` : '');
 
-    // behaviour
-    out.behavior = state.animation
-        ? `${state.renderer} · ${state.animationDuration}ms`
-        : `${state.renderer} · ${t('echarts_sum_off')}`;
+    // behaviour (B8): „Animation aus · Canvas" — the switch named, the renderer by its label
+    const animation = state.animation
+        ? t('echarts_sum_animation', String(state.animationDuration))
+        : t('echarts_sum_animation_off');
+    out.behavior = `${animation} · ${t(`echarts_renderer_${state.renderer}`)}`;
 
     // toolbox (ADR-0045): "off", or "on · n features · position"
     if (state.toolbox.show) {

@@ -81,7 +81,8 @@ export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<C
                     crossesFamilyBoundary(state.chartType, v) ? { chartType: v, ...dataPathReset() } : { chartType: v },
                 );
             }}
-            sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, width: '100%' }}
+            // B9 (review 2026-11-03): four columns — all four types fit one row at the 440 px rail
+            sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.5, width: '100%' }}
         >
             {CHART_TYPES.map(({ value, label, icon }) => (
                 <ToggleButton

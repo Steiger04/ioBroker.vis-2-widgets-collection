@@ -112,11 +112,11 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
             ...noops,
         });
         expect(tabLabels(el)).toEqual([
-            'echarts_grp_basis',
-            'echarts_grp_data',
-            'echarts_grp_presentation',
-            'echarts_tab_values',
-            'echarts_tab_advanced',
+            'echarts_card_tab_basis',
+            'echarts_card_tab_data',
+            'echarts_card_tab_style',
+            'echarts_card_tab_format',
+            'echarts_card_tab_json',
         ]);
         const all = allTabsText(el);
         for (const key of [
@@ -137,7 +137,7 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
         }
     });
 
-    it('Series card (JSON): no Daten tab — the transforms keep the slot, Werte stays its own', () => {
+    it('Series card (JSON): the Daten tab carries only the transforms, Format stays its own', () => {
         const el = mount(JsonSeriesCards, {
             state: state({
                 chartType: 'line',
@@ -155,11 +155,11 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
             ...noops,
         });
         expect(tabLabels(el)).toEqual([
-            'echarts_grp_basis',
-            'echarts_grp_transform',
-            'echarts_grp_presentation',
-            'echarts_tab_values',
-            'echarts_tab_advanced',
+            'echarts_card_tab_basis',
+            'echarts_card_tab_data',
+            'echarts_card_tab_style',
+            'echarts_card_tab_format',
+            'echarts_card_tab_json',
         ]);
         const all = allTabsText(el);
         expect(all).not.toContain('echarts_aggregate'); // no acquisition without a fetch

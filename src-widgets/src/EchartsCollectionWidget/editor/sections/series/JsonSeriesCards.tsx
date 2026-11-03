@@ -220,12 +220,13 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 position instead of vanishing; documented spec deviation, see
                                 spec.md). The Werte facts stay their own tab, like Verlauf. */}
                             <SectionTabs
+                                dense
                                 tabs={[
-                                    { key: 'basis', label: Generic.t('echarts_grp_basis') },
-                                    { key: 'transform', label: Generic.t('echarts_grp_transform') },
-                                    { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
-                                    { key: 'values', label: Generic.t('echarts_tab_values') },
-                                    { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                    { key: 'basis', label: Generic.t('echarts_card_tab_basis') },
+                                    { key: 'transform', label: Generic.t('echarts_card_tab_data') },
+                                    { key: 'presentation', label: Generic.t('echarts_card_tab_style') },
+                                    { key: 'values', label: Generic.t('echarts_card_tab_format') },
+                                    { key: 'advanced', label: Generic.t('echarts_card_tab_json') },
                                 ]}
                             >
                                 <CartesianBasisFields
@@ -244,6 +245,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                     yAxes={state.yAxes}
                                     axisDisplayNames={axisDisplayNames}
                                     nameClearsToUndefined
+                                    namePlaceholder={name}
                                 />
                                 <SeriesTransformFields
                                     meta={m}

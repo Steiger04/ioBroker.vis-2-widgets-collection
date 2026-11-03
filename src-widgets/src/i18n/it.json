@@ -227,12 +227,10 @@
     "echarts_grp_area": "Area",
     "echarts_grp_bar": "Barre",
     "echarts_grp_basis": "Base",
-    "echarts_grp_data": "Dati",
     "echarts_grp_labels": "Etichette",
     "echarts_grp_line": "Linea",
     "echarts_grp_presentation": "Presentazione",
     "echarts_grp_scale_ticks": "Scala e tacche",
-    "echarts_grp_transform": "Trasformazione",
     "echarts_ignore_null": "Valori nulli",
     "echarts_ignore_null_forward": "Riempi gap in avanti",
     "echarts_ignore_null_keep": "Mantieni gap",
@@ -1331,5 +1329,14 @@
     "theme_studio_valid_color_computable": "Usa qui hex, rgb() o hsl() — i widget non sono in grado di elaborare nomi di colori o transparent",
     "theme_studio_valid_css_var_prefix": "Il prefisso mui è riservato alle variabili dell'editor vis-2 — scegline un altro oppure lascialo vuoto (predefinito vis2c)",
     "theme_studio_valid_type": "Tipo di valore errato",
-    "theme_studio_google_font_placeholder": "es. Roboto, Lato"
+    "theme_studio_google_font_placeholder": "es. Roboto, Lato",
+    "echarts_sum_series_one": "1 serie",
+    "echarts_sum_series": "%s serie",
+    "echarts_sum_animation": "Animazione %s ms",
+    "echarts_sum_animation_off": "Animazione disattivata",
+    "echarts_card_tab_basis": "Base",
+    "echarts_card_tab_data": "Dati",
+    "echarts_card_tab_style": "Stile",
+    "echarts_card_tab_format": "Formato",
+    "echarts_card_tab_json": "JSON"
 }

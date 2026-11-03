@@ -96,3 +96,34 @@ describe('sectionSummaries — tabellarisch data source (ADR-0075 ticket 07)', (
         expect(sum.dataSource).toBe('JSON');
     });
 });
+
+describe('sectionSummaries — readable digests (B8, review 2026-11-03)', () => {
+    it('Series counts the visible series of the data path', () => {
+        const hist = sectionSummaries(
+            state({ mode: 'history', series: [{ oid: 'a.0' }, { oid: 'b.0' }, { oid: 'c.0' }] as never }),
+            t,
+        );
+        expect(hist.series).toBe('echarts_sum_series:3');
+        const one = sectionSummaries(state({ mode: 'history', series: [{ oid: 'a.0' }] as never }), t);
+        expect(one.series).toBe('echarts_sum_series_one');
+        // serien-förmig JSON: the payload owns the series — names minus the hidden ones
+        const json = sectionSummaries(state({ mode: 'json', jsonHidden: ['B'] }), t, ['A', 'B', 'C']);
+        expect(json.series).toBe('echarts_sum_series:2');
+    });
+
+    it('Title shows the shortened text, or „off" without one', () => {
+        expect(sectionSummaries(state({ titleText: 'Leistung Wechselrichter Süd-Dach' }), t).title).toBe(
+            'Leistung Wechselrichter…',
+        );
+        expect(sectionSummaries(state({ titleText: '  ' }), t).title).toBe('echarts_sum_off');
+    });
+
+    it('Behaviour names the animation switch and the renderer by its label', () => {
+        expect(sectionSummaries(state({ animation: false, renderer: 'canvas' }), t).behavior).toBe(
+            'echarts_sum_animation_off · echarts_renderer_canvas',
+        );
+        expect(sectionSummaries(state({ animation: true, animationDuration: 800, renderer: 'svg' }), t).behavior).toBe(
+            'echarts_sum_animation:800 · echarts_renderer_svg',
+        );
+    });
+});

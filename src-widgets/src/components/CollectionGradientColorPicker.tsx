@@ -46,12 +46,16 @@ import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from
  * @property {WidgetData} data - Current editor data map.
  * @property {(patch: WidgetData) => void} onDataChange - Callback invoked with partial updates.
  * @property {RxWidgetInfoCustomComponentProperties} props - vis-2 editor context (socket, theme, views, selected widget, …).
+ * @property {'standard' | 'outlined'} [inputVariant] - Text input variant. Default `standard` (the vis-2
+ *  attribute panel's underline look); the widget configurators pass `outlined` so the colour field
+ *  matches its outlined neighbours (review 2026-11-03, B10).
  */
 interface CollectionGradientColorPickerProps {
     field: ExtendedField;
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
     props: RxWidgetInfoCustomComponentProperties;
+    inputVariant?: 'standard' | 'outlined';
 }
 
 /**
@@ -80,6 +84,7 @@ function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): { c
  * @param props.data - Current editor data map.
  * @param props.onDataChange - Callback invoked with partial updates.
  * @param props.props - vis-2 editor context (socket, theme, views, selected widget, …).
+ * @param props.inputVariant - Text input variant (default `standard`).
  * @returns Rendered field UI.
  */
 function CollectionGradientColorPicker({
@@ -87,7 +92,9 @@ function CollectionGradientColorPicker({
     data,
     onDataChange,
     props,
+    inputVariant = 'standard',
 }: CollectionGradientColorPickerProps): React.JSX.Element {
+    const outlined = inputVariant === 'outlined';
     const fieldName: string = field.name!;
     const fieldValue = data[fieldName];
     const [cachedValue, setCachedValue] = useState<string>(fieldValue || '');
@@ -249,9 +256,17 @@ function CollectionGradientColorPicker({
     return (
         <>
             <ThemeProvider theme={hostTheme}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: outlined ? 'center' : 'flex-start',
+                        gap: 0.5,
+                        mt: outlined ? 0 : 1,
+                    }}
+                >
                     <TextField
-                        variant="standard"
+                        variant={inputVariant}
+                        size={outlined ? 'small' : undefined}
                         fullWidth
                         value={cachedValue}
                         error={error}
@@ -264,8 +279,7 @@ function CollectionGradientColorPicker({
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
-                                    paddingBottom: '2px',
-                                    fontSize: '80%',
+                                    ...(outlined ? {} : { paddingBottom: '2px', fontSize: '80%' }),
                                 } as React.CSSProperties,
                             },
                         }}
@@ -274,8 +288,8 @@ function CollectionGradientColorPicker({
                         <IconButton
                             onClick={handleClear}
                             title={Generic.t('clear_color')}
-                            size="large"
-                            sx={{ mt: -1, mr: -1.5 }}
+                            size={outlined ? 'small' : 'large'}
+                            sx={outlined ? undefined : { mt: -1, mr: -1.5 }}
                         >
                             <DeleteIcon />
                         </IconButton>
@@ -285,7 +299,7 @@ function CollectionGradientColorPicker({
                         onClick={(e: React.MouseEvent<HTMLDivElement>): void => setAnchorEl(e.currentTarget)}
                         title={Generic.t('choose_color')}
                         sx={{
-                            mt: cachedValue ? '4px' : '-2px',
+                            mt: outlined ? 0 : cachedValue ? '4px' : '-2px',
                             px: '4px',
                             py: cachedValue ? '4px' : '3px',
                             backgroundColor: effectiveColor

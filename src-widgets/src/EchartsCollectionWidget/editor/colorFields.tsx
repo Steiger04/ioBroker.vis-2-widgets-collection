@@ -63,6 +63,9 @@ const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allow
             data={data}
             onDataChange={onDataChange}
             props={props}
+            // One field variant across the configurator (B10, review 2026-11-03): the colour
+            // input matches the outlined TextField2/LabeledSelect neighbours.
+            inputVariant="outlined"
         />
     );
 };

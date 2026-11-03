@@ -227,12 +227,10 @@
     "echarts_grp_area": "Área",
     "echarts_grp_bar": "Barras",
     "echarts_grp_basis": "Básico",
-    "echarts_grp_data": "Datos",
     "echarts_grp_labels": "Etiquetas",
     "echarts_grp_line": "Líneas",
     "echarts_grp_presentation": "Presentación",
     "echarts_grp_scale_ticks": "Escala y marcas",
-    "echarts_grp_transform": "Transformación",
     "echarts_ignore_null": "Valores nulos",
     "echarts_ignore_null_forward": "Rellenar huecos hacia adelante",
     "echarts_ignore_null_keep": "Mantener huecos",
@@ -1331,5 +1329,14 @@
     "theme_studio_valid_color_computable": "Use aquí hex, rgb() o hsl() — los widgets no pueden calcular con nombres de colores o transparent",
     "theme_studio_valid_css_var_prefix": "El prefijo mui está reservado para las variables propias del editor vis-2 — elija otro o déjelo vacío (vis2c por defecto)",
     "theme_studio_valid_type": "Tipo de valor incorrecto",
-    "theme_studio_google_font_placeholder": "p. ej. Roboto, Lato"
+    "theme_studio_google_font_placeholder": "p. ej. Roboto, Lato",
+    "echarts_sum_series_one": "1 serie",
+    "echarts_sum_series": "%s series",
+    "echarts_sum_animation": "Animación %s ms",
+    "echarts_sum_animation_off": "Animación desactivada",
+    "echarts_card_tab_basis": "Básico",
+    "echarts_card_tab_data": "Datos",
+    "echarts_card_tab_style": "Estilo",
+    "echarts_card_tab_format": "Formato",
+    "echarts_card_tab_json": "JSON"
 }

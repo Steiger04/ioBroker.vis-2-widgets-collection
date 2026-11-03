@@ -84,14 +84,14 @@ describe('rail slots — keys, titles and the section inventory (goldmaster Neu 
         chartType => {
             expect(sectionInventory(chartType)).toEqual([
                 'dataSource',
-                'behavior',
-                'title',
                 'series',
                 'axesZoom',
+                'title',
                 'legend',
                 'tooltip',
                 'colors',
                 'toolbox',
+                'behavior',
             ]);
         },
     );
@@ -99,20 +99,20 @@ describe('rail slots — keys, titles and the section inventory (goldmaster Neu 
     it('the pie inventory carries pieOptions in the same slot position', () => {
         expect(sectionInventory('pie')).toEqual([
             'dataSource',
-            'behavior',
-            'title',
             'series',
             'pieOptions',
+            'title',
             'legend',
             'tooltip',
             'colors',
             'toolbox',
+            'behavior',
         ]);
     });
 });
 
 describe('family slot summaries (goldmaster Neu == Alt, via sectionSummaries)', () => {
-    it('cartesian axesZoom digests bounds, axis count and zoom', () => {
+    it('cartesian axesZoom digests „Y bounds · axis count · Zoom" (B8)', () => {
         expect(
             sectionSummaries(
                 st({
@@ -122,15 +122,17 @@ describe('family slot summaries (goldmaster Neu == Alt, via sectionSummaries)', 
                 }),
                 t,
             ).axesZoom,
-        ).toBe('0–100 · echarts_summary_axes(3) · slider+inside');
-        expect(sectionSummaries(st({ yAxes: [{ position: 'left' }] }), t).axesZoom).toBe('auto–auto');
+        ).toBe('Y 0–100 · echarts_summary_axes(3) · echarts_tab_zoom');
+        expect(sectionSummaries(st({ yAxes: [{ position: 'left' }] }), t).axesZoom).toBe('Y auto');
     });
 
-    it('pie pieOptions digests donut / rose / plain — byte-identical to the former family line', () => {
+    it('pie pieOptions digests donut / rose / plain — rose by its labels (B8)', () => {
         expect(sectionSummaries(st({ chartType: 'pie', pie: { innerRadius: 0.5 } }), t).pieOptions).toBe(
             'echarts_summary_donut(50%)',
         );
-        expect(sectionSummaries(st({ chartType: 'pie', pie: { rose: 'radius' } }), t).pieOptions).toBe('rose · radius');
+        expect(sectionSummaries(st({ chartType: 'pie', pie: { rose: 'radius' } }), t).pieOptions).toBe(
+            'echarts_pie_rose · echarts_rose_radius',
+        );
         expect(sectionSummaries(st({ chartType: 'pie' }), t).pieOptions).toBe('');
     });
 });

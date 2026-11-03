@@ -55,12 +55,15 @@ const PieGlyph: FC = () => (
     </Glyph>
 );
 
-/** The pie options summary line (ADR-0010): donut percent, or the rose mode, or nothing. */
+/**
+ * The pie options summary line (ADR-0010): donut percent, or the rose mode by its labels
+ * („Rose-Modus · Radius", B8), or nothing.
+ */
 const summarizePieOptions = (state: EditorState, t: TFunc): string =>
     state.pie.innerRadius
         ? t('echarts_summary_donut', `${Math.round((state.pie.innerRadius ?? 0) * 100)}%`)
         : state.pie.rose !== 'none'
-          ? `rose · ${state.pie.rose}`
+          ? `${t('echarts_pie_rose')} · ${t(`echarts_rose_${state.pie.rose}`)}`
           : '';
 
 /** The pie options rail slot — resolves the label colour's „Erbt" token for the section. */

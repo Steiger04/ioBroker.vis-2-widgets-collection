@@ -227,12 +227,10 @@
     "echarts_grp_area": "区域",
     "echarts_grp_bar": "柱状",
     "echarts_grp_basis": "基础",
-    "echarts_grp_data": "数据",
     "echarts_grp_labels": "标签",
     "echarts_grp_line": "折线",
     "echarts_grp_presentation": "展示",
     "echarts_grp_scale_ticks": "比例尺与刻度",
-    "echarts_grp_transform": "变换",
     "echarts_ignore_null": "空值",
     "echarts_ignore_null_forward": "前向填充空缺",
     "echarts_ignore_null_keep": "保留空缺",
@@ -1331,5 +1329,14 @@
     "theme_studio_valid_color_computable": "请在此处使用 hex、rgb() 或 hsl() — 部件无法处理颜色名称或 transparent",
     "theme_studio_valid_css_var_prefix": "前缀 mui 是为 vis-2 编辑器自身变量保留的 — 请选择其他前缀或留空（默认为 vis2c）",
     "theme_studio_valid_type": "值类型错误",
-    "theme_studio_google_font_placeholder": "例如：Roboto、Lato"
+    "theme_studio_google_font_placeholder": "例如：Roboto、Lato",
+    "echarts_sum_series_one": "1 个系列",
+    "echarts_sum_series": "%s 个系列",
+    "echarts_sum_animation": "动画 %s 毫秒",
+    "echarts_sum_animation_off": "动画关闭",
+    "echarts_card_tab_basis": "基础",
+    "echarts_card_tab_data": "数据",
+    "echarts_card_tab_style": "样式",
+    "echarts_card_tab_format": "格式",
+    "echarts_card_tab_json": "JSON"
 }

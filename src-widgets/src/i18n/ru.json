@@ -227,12 +227,10 @@
     "echarts_grp_area": "Область",
     "echarts_grp_bar": "Столбцы",
     "echarts_grp_basis": "Основные",
-    "echarts_grp_data": "Данные",
     "echarts_grp_labels": "Метки",
     "echarts_grp_line": "Линия",
     "echarts_grp_presentation": "Отображение",
     "echarts_grp_scale_ticks": "Шкала и деления",
-    "echarts_grp_transform": "Преобразование",
     "echarts_ignore_null": "Значения null",
     "echarts_ignore_null_forward": "Заполнять предыдущим значением",
     "echarts_ignore_null_keep": "Сохранять пробелы",
@@ -1331,5 +1329,14 @@
     "theme_studio_valid_color_computable": "Используйте здесь hex, rgb() или hsl() — виджеты не могут работать с названиями цветов или transparent",
     "theme_studio_valid_css_var_prefix": "Префикс mui зарезервирован для собственных переменных редактора vis-2 — выберите другой или оставьте поле пустым (по умолчанию vis2c)",
     "theme_studio_valid_type": "Неверный тип значения",
-    "theme_studio_google_font_placeholder": "напр. Roboto, Lato"
+    "theme_studio_google_font_placeholder": "напр. Roboto, Lato",
+    "echarts_sum_series_one": "1 серия",
+    "echarts_sum_series": "%s серий",
+    "echarts_sum_animation": "Анимация %s мс",
+    "echarts_sum_animation_off": "Анимация выключена",
+    "echarts_card_tab_basis": "Основные",
+    "echarts_card_tab_data": "Данные",
+    "echarts_card_tab_style": "Стиль",
+    "echarts_card_tab_format": "Формат",
+    "echarts_card_tab_json": "JSON"
 }

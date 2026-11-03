@@ -141,13 +141,18 @@ const validateCartesian = (state: EditorState): IssueMap => {
     return issues;
 };
 
-/** The cartesian axes & zoom summary line (ADR-0010): bounds · axis count · zoom. */
+/**
+ * The cartesian axes & zoom summary line (ADR-0010; readable form B8, review 2026-11-03):
+ * „Y auto · 3 Achsen · Zoom" — the first axis' bounds („auto" when neither is set), the axis
+ * count from two axes on, and a zoom marker when either zoom mode is on.
+ */
 const summarizeAxesZoom = (state: EditorState, t: TFunc): string => {
     const ax0 = state.yAxes[0];
-    const yBounds = ax0 ? `${ax0.min ?? 'auto'}–${ax0.max ?? 'auto'}` : 'auto–auto';
+    const yBounds =
+        ax0 && (ax0.min !== undefined || ax0.max !== undefined) ? `${ax0.min ?? 'auto'}–${ax0.max ?? 'auto'}` : 'auto';
     const axesN = state.yAxes.length > 1 ? ` · ${t('echarts_summary_axes', String(state.yAxes.length))}` : '';
-    const zoom = [state.dataZoomSlider ? 'slider' : '', state.dataZoomInside ? 'inside' : ''].filter(Boolean).join('+');
-    return yBounds + axesN + (zoom ? ` · ${zoom}` : '');
+    const zoom = state.dataZoomSlider || state.dataZoomInside ? ` · ${t('echarts_tab_zoom')}` : '';
+    return `Y ${yBounds}${axesN}${zoom}`;
 };
 
 /**

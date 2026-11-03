@@ -25,7 +25,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
-import { LabeledSelect, SectionTabs, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
+import { InfoBox, LabeledSelect, SectionTabs, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import type { OidPickerCtx } from '../OidPicker';
@@ -376,10 +376,15 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                     { key: 'zoom', label: Generic.t('echarts_tab_zoom'), issueCount: dots.zoom },
                 ]}
             >
-                <SubGroup
-                    title={Generic.t('echarts_axes')}
-                    hint={Generic.t('echarts_axes_hint')}
-                >
+                <SubGroup title={Generic.t('echarts_axes')}>
+                    {/* B6 (review 2026-11-03): a wrapping InfoBox, not the overline caption that
+                        cut the hint off ("Infotexte immer als InfoBox"). It explains the place
+                        arrows, so it shows only once there are axes to arrange. */}
+                    {axes.length > 0 && (
+                        <Box sx={{ mb: 1.5 }}>
+                            <InfoBox text={Generic.t('echarts_axes_hint')} />
+                        </Box>
+                    )}
                     {axes.length === 0 && (
                         <Box
                             sx={{
@@ -451,10 +456,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
 
                 {/* Markierungen (parity Build C stage 1, ADR-0061): one collapsible card per
                     marking — limit + style cluster + label cluster, anchored to a Y-axis. */}
-                <SubGroup
-                    title={Generic.t('echarts_marks')}
-                    hint={Generic.t('echarts_marks_hint')}
-                >
+                <SubGroup title={Generic.t('echarts_marks')}>
+                    <Box sx={{ mb: 1.5 }}>
+                        <InfoBox text={Generic.t('echarts_marks_hint')} />
+                    </Box>
                     {state.markLines.map((m, i) => (
                         <MarkCard
                             key={m.id ?? i}

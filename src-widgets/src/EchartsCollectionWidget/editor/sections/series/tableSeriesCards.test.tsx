@@ -178,7 +178,7 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
         onRebindAxis: () => undefined,
     };
 
-    it('a pie ring card shows Basis | Transformation | Erweitert — the cartesian-only knobs are gone', () => {
+    it('a pie ring card shows Basis | Daten | JSON — the cartesian-only knobs are gone', () => {
         const el = mount(TableSeriesCards, {
             state: tableState({
                 chartType: 'pie',
@@ -187,12 +187,12 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
             showAxis: false,
             ...handlers,
         });
-        expect(el.textContent).toContain('echarts_grp_basis');
-        expect(el.textContent).toContain('echarts_grp_transform');
-        expect(el.textContent).toContain('echarts_tab_advanced');
+        expect(el.textContent).toContain('echarts_card_tab_basis');
+        expect(el.textContent).toContain('echarts_card_tab_data');
+        expect(el.textContent).toContain('echarts_card_tab_json');
         // The two cartesian-only tab bodies never enter the tab row for pie
-        expect(el.textContent).not.toContain('echarts_grp_presentation');
-        expect(el.textContent).not.toContain('echarts_tab_values');
+        expect(el.textContent).not.toContain('echarts_card_tab_style');
+        expect(el.textContent).not.toContain('echarts_card_tab_format');
         // Basis (first tab, active on open): rings author no colour and no cartesian type
         expect(el.textContent).not.toContain('echarts_editor_series_color');
         expect(el.textContent).not.toContain('echarts_editor_series_type');
@@ -208,8 +208,8 @@ describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bew
             }),
             ...handlers,
         });
-        expect(el.textContent).toContain('echarts_grp_presentation');
-        expect(el.textContent).toContain('echarts_tab_values');
+        expect(el.textContent).toContain('echarts_card_tab_style');
+        expect(el.textContent).toContain('echarts_card_tab_format');
         expect(el.textContent).toContain('echarts_editor_series_color');
         expect(el.textContent).toContain('echarts_editor_series_type');
         expect(el.querySelector('[data-testid="ring-swatch"]')).toBeNull();

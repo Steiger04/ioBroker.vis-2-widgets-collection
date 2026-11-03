@@ -14,7 +14,7 @@
  * through the onChange patch / onRemove callbacks; the section owns the orchestration.
  */
 import type { FC } from 'react';
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import { ArrowDownward as DownIcon, ArrowUpward as UpIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
@@ -151,26 +151,36 @@ const AxisCard: FC<{
             actions={
                 <>
                     {/* The stepper's grey states (ADR-0079): at the place bounds and while the
-                        axis is alone on its side — mute everywhere, the aria-labels stay set
-                        (no tooltips by decision). */}
-                    <IconButton
-                        size="small"
-                        disabled={!sight || sight.sideTotal < 2 || sight.place <= 1}
-                        onClick={() => onMovePlace?.(-1)}
-                        aria-label={Generic.t('echarts_axis_move_up')}
-                        sx={{ p: 0.25 }}
-                    >
-                        <UpIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        disabled={!sight || sight.sideTotal < 2 || sight.place >= sight.sideTotal}
-                        onClick={() => onMovePlace?.(1)}
-                        aria-label={Generic.t('echarts_axis_move_down')}
-                        sx={{ p: 0.25 }}
-                    >
-                        <DownIcon fontSize="small" />
-                    </IconButton>
+                        axis is alone on its side — mute everywhere, the aria-labels stay set.
+                        B10 (review 2026-11-03) revises „no tooltips": ↑/↓ mean „closer to /
+                        further from the chart", not list order — the tooltip says so (the span
+                        keeps the tooltip alive on a disabled button). */}
+                    <Tooltip title={Generic.t('echarts_axis_move_up')}>
+                        <span>
+                            <IconButton
+                                size="small"
+                                disabled={!sight || sight.sideTotal < 2 || sight.place <= 1}
+                                onClick={() => onMovePlace?.(-1)}
+                                aria-label={Generic.t('echarts_axis_move_up')}
+                                sx={{ p: 0.25 }}
+                            >
+                                <UpIcon fontSize="small" />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title={Generic.t('echarts_axis_move_down')}>
+                        <span>
+                            <IconButton
+                                size="small"
+                                disabled={!sight || sight.sideTotal < 2 || sight.place >= sight.sideTotal}
+                                onClick={() => onMovePlace?.(1)}
+                                aria-label={Generic.t('echarts_axis_move_down')}
+                                sx={{ p: 0.25 }}
+                            >
+                                <DownIcon fontSize="small" />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
                     <IconButton
                         size="small"
                         onClick={onRemove}

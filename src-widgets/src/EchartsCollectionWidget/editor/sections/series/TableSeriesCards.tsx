@@ -221,19 +221,20 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                 The children↔tabs contract is POSITIONAL, so the two variants ship
                                 as arrays with matching counts. */}
                             <SectionTabs
+                                dense
                                 tabs={
                                     isPie
                                         ? [
-                                              { key: 'basis', label: Generic.t('echarts_grp_basis') },
-                                              { key: 'transform', label: Generic.t('echarts_grp_transform') },
-                                              { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                              { key: 'basis', label: Generic.t('echarts_card_tab_basis') },
+                                              { key: 'transform', label: Generic.t('echarts_card_tab_data') },
+                                              { key: 'advanced', label: Generic.t('echarts_card_tab_json') },
                                           ]
                                         : [
-                                              { key: 'basis', label: Generic.t('echarts_grp_basis') },
-                                              { key: 'transform', label: Generic.t('echarts_grp_transform') },
-                                              { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
-                                              { key: 'values', label: Generic.t('echarts_tab_values') },
-                                              { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                              { key: 'basis', label: Generic.t('echarts_card_tab_basis') },
+                                              { key: 'transform', label: Generic.t('echarts_card_tab_data') },
+                                              { key: 'presentation', label: Generic.t('echarts_card_tab_style') },
+                                              { key: 'values', label: Generic.t('echarts_card_tab_format') },
+                                              { key: 'advanced', label: Generic.t('echarts_card_tab_json') },
                                           ]
                                 }
                             >

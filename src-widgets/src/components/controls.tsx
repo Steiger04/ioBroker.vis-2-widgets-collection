@@ -681,11 +681,16 @@ export interface SectionTabsFocus {
  * its label as `aria-label`. `focus` is the one EXTERNAL steer (ADR-0073): a fresh token
  * selects that tab once — the row stays local, nothing persists.
  */
-export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode; focus?: SectionTabsFocus }> = ({
-    tabs,
-    children,
-    focus,
-}) => {
+export const SectionTabs: FC<{
+    tabs: SectionTab[];
+    children: ReactNode;
+    focus?: SectionTabsFocus;
+    /**
+     * Compact tabs for nested cards: drops MUI's 90 px tab minimum so a five-tab row with short
+     * labels fits a card inside the 440 px rail without scroll arrows (review 2026-11-03, B2).
+     */
+    dense?: boolean;
+}> = ({ tabs, children, focus, dense }) => {
     const [active, setActive] = useState(tabs[0]?.key ?? '');
     // The external jump: keyed on the PRIMITIVE token (not the object identity — callers build
     // the focus inline, so identity would re-fire on every parent render and snap the user
@@ -722,7 +727,16 @@ export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode; focus?: 
                 scrollButtons="auto"
                 // Dense sizing for the rail: a standard 48px+ tab row would eat a fifth of a
                 // 320 px rail before any field renders.
-                sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.8rem' } }}
+                sx={{
+                    minHeight: 36,
+                    '& .MuiTab-root': {
+                        minHeight: 36,
+                        py: 0.5,
+                        px: dense ? 1 : 1.5,
+                        fontSize: '0.8rem',
+                        ...(dense ? { minWidth: 0 } : {}),
+                    },
+                }}
             >
                 {tabs.map(t => (
                     <Tab

@@ -88,23 +88,24 @@ interface EchartsEditorSectionsProps {
  * The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021; Toolbox replaces the
  * retired chart-level Advanced JSON, ADR-0045).
  *
- * Order (top → bottom): data source → behavior → title → series → the family's rail slots
- * (cartesian: axes & zoom · pie: pie options, ADR-0083) → legend → tooltip → colors →
- * toolbox — the family slots take exactly the block right after the series.
+ * Order (top → bottom, ADR-0010 addendum 2026-11-03 — working order): data source → series →
+ * the family's rail slots (cartesian: axes & zoom · pie: pie options, ADR-0083) → title →
+ * legend → tooltip → colors → toolbox → behavior. The family slots take exactly the block
+ * right after the series; the rarely touched Verhalten closes the stack.
  *
  * Exported because the modal's footer problems button needs the same order to find the
  * FIRST section carrying issues (the scroll target matches what the user sees on screen).
  */
 export const sectionInventory = (chartType: EditorState['chartType']): SectionKey[] => [
     'dataSource',
-    'behavior',
-    'title',
     'series',
     ...editorialOf(chartType).railSlots.map(slot => slot.key),
+    'title',
     'legend',
     'tooltip',
     'colors',
     'toolbox',
+    'behavior',
 ];
 
 /** The base sections' i18n title keys — the family slots title via their profile's titleKey. */
@@ -171,7 +172,10 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     undo,
 }) => {
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
-    const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
+    const summaries = useMemo(
+        () => sectionSummaries(state, Generic.t.bind(Generic), jsonSeriesNames),
+        [state, jsonSeriesNames],
+    );
     // ADR-0042: activations the family switch would prune on Apply — advised below; the prune
     // itself rides Apply (nothing is dropped at switch time). The pre-ADR-0067 bound-OID loss
     // beside it is pensioned: a family crossing now RESETS the data path (chip at the picker).

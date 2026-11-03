@@ -227,12 +227,10 @@
     "echarts_grp_area": "Площинна",
     "echarts_grp_bar": "Стовпчикова",
     "echarts_grp_basis": "Основні",
-    "echarts_grp_data": "Дані",
     "echarts_grp_labels": "Мітки",
     "echarts_grp_line": "Лінійна",
     "echarts_grp_presentation": "Презентація",
     "echarts_grp_scale_ticks": "Масштаб та поділки",
-    "echarts_grp_transform": "Перетворення",
     "echarts_ignore_null": "Значення null",
     "echarts_ignore_null_forward": "Заповнити попереднім",
     "echarts_ignore_null_keep": "Зберегти прогалини",
@@ -1331,5 +1329,14 @@
     "theme_studio_valid_color_computable": "Використовуйте тут hex, rgb() або hsl() — віджети не можуть обчислювати назви кольорів або transparent",
     "theme_studio_valid_css_var_prefix": "Префікс mui зарезервовано для власних змінних редактора vis-2 — виберіть інший або залиште його порожнім (за замовчуванням vis2c)",
     "theme_studio_valid_type": "Неправильний тип значення",
-    "theme_studio_google_font_placeholder": "напр. Roboto, Lato"
+    "theme_studio_google_font_placeholder": "напр. Roboto, Lato",
+    "echarts_sum_series_one": "1 серія",
+    "echarts_sum_series": "%s серій",
+    "echarts_sum_animation": "Анімація %s мс",
+    "echarts_sum_animation_off": "Анімація вимкнена",
+    "echarts_card_tab_basis": "Основи",
+    "echarts_card_tab_data": "Дані",
+    "echarts_card_tab_style": "Стиль",
+    "echarts_card_tab_format": "Формат",
+    "echarts_card_tab_json": "JSON"
 }

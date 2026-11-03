@@ -174,6 +174,8 @@ export const CartesianBasisFields: FC<{
     instancesLoaded?: boolean;
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
     nameClearsToUndefined?: boolean;
+    /** Placeholder of the empty name field — JSON shows the payload name it falls back to (B10). */
+    namePlaceholder?: string;
     /**
      * Show the per-series Y-axis binding select. Shown in every cartesian data mode — incl. JSON,
      * where a manual rebind is sticky and the freed axis dies (ADR-0026/0069). The gate
@@ -198,6 +200,7 @@ export const CartesianBasisFields: FC<{
     historyInstances,
     instancesLoaded,
     nameClearsToUndefined,
+    namePlaceholder,
     showAxis = true,
 }) => (
     <Box>
@@ -236,6 +239,7 @@ export const CartesianBasisFields: FC<{
             <TextField2
                 label={Generic.t('echarts_editor_series_name')}
                 value={meta.name ?? ''}
+                placeholder={namePlaceholder}
                 onChange={v => onPatch({ name: nameClearsToUndefined ? v || undefined : v })}
             />
             {showColor && (
@@ -1202,12 +1206,13 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         Switching tabs unmounts the inactive content — every field writes into
                         the WORKING COPY on change, so nothing but DOM focus resets. */}
                     <SectionTabs
+                        dense
                         tabs={[
-                            { key: 'basis', label: Generic.t('echarts_grp_basis') },
-                            { key: 'daten', label: Generic.t('echarts_grp_data') },
-                            { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
-                            { key: 'values', label: Generic.t('echarts_tab_values') },
-                            { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                            { key: 'basis', label: Generic.t('echarts_card_tab_basis') },
+                            { key: 'daten', label: Generic.t('echarts_card_tab_data') },
+                            { key: 'presentation', label: Generic.t('echarts_card_tab_style') },
+                            { key: 'values', label: Generic.t('echarts_card_tab_format') },
+                            { key: 'advanced', label: Generic.t('echarts_card_tab_json') },
                         ]}
                     >
                         <CartesianBasisFields
