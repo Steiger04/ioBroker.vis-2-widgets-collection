@@ -90,6 +90,11 @@ reads them from there.
 
 - (steiger04) ECharts fixed: charts with numeric string states now plot — the shared intake reads prefix numbers, comma decimals and bool texts (unreadable becomes a gap, never a faked 0)
 - (steiger04) ECharts: per-series value mapping (raw value → number or deliberate gap), formula context symbols smin/smax/savg/sfirst/slast, smoothing window and running total extend the value chain; legend values now read the same final series the axis shows
+- (steiger04) ECharts configurator: corrected, consistent texts and terms in all languages (misleading hints fixed, one name per concept)
+- (steiger04) ECharts configurator: compact series card tabs (Basics · Data · Style · Format · JSON) that fit the side rail, a series count in the JSON summary and uniform colour fields
+- (steiger04) ECharts configurator: structural changes (switching family, data mode or payload family, deleting an axis, unit mismatch) are reported once in a snackbar with Undo instead of permanent warning chips; switching away from JSON now counts its series correctly
+- (steiger04) ECharts fixed: the bar stack mode is offered in every data mode, and "100 % stacked" now also normalizes JSON and table data (before, JSON stacked absolute values unnoticed)
+- (steiger04) ECharts configurator: history, JSON and table series share one series card — table series can be duplicated, JSON series are hidden via an eye icon ("Hide series"), the type select appears from two series on, and copies keep the visible series name
 
 ### 2.6.0 (2026-07-24)
 
