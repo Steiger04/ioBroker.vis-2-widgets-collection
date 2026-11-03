@@ -12,7 +12,7 @@
  * per-series raw resolves the ring catalog (`seriesSlotOf`).
  */
 import type { FC } from 'react';
-import { Alert, Box, Typography } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 
 import Generic from '../../../../../Generic';
 import type { EchartsCartesianType } from '../../../../../types/field-definitions/echarts-fields';
@@ -121,13 +121,9 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
 
     return (
         <Box>
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 1.5 }}
-            >
-                {Generic.t('echarts_table_series_hint')}
-            </Typography>
+            <Box sx={{ mb: 1.5 }}>
+                <InfoBox text={Generic.t('echarts_table_series_hint')} />
+            </Box>
             {!schemaError && duplicates.length > 0 && (
                 <Box sx={{ mb: 1.5 }}>
                     <InfoBox

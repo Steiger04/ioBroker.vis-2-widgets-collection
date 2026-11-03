@@ -110,13 +110,9 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
 
     return (
         <Box>
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 1.5 }}
-            >
-                {Generic.t('echarts_json_series_hint')}
-            </Typography>
+            <Box sx={{ mb: 1.5 }}>
+                <InfoBox text={Generic.t('echarts_json_series_hint')} />
+            </Box>
             {!jsonError && state.jsonOid && duplicateNames.length > 0 && (
                 <Box sx={{ mb: 1.5 }}>
                     <InfoBox
