@@ -20,9 +20,10 @@ export interface EditorNotice {
 const counted = (t: TFunc, key: string, n: number): string => (n === 1 ? t(`${key}_one`) : t(key, String(n)));
 
 /**
- * The loss sentence of a boundary crossing („3 Serien, 3 Achsen, JSON-Datenpunkt gelöscht") —
- * segments in the fixed order series · axes · markings · data point · templates; zero segments
- * are omitted. Nothing lost → `null` (no notice at all).
+ * The loss text of a boundary crossing („3 Serien gelöscht · 3 Achsen gelöscht · JSON-Datenpunkt
+ * gelöscht") — one COMPLETE clause per segment, so no language has to fit fragments into a
+ * fixed word order; segments in the fixed order series · axes · markings · data point ·
+ * templates, zero segments omitted. Nothing lost → `null` (no notice at all).
  */
 export function lossText(loss: StructureLoss, t: TFunc): string | null {
     const parts: string[] = [];
@@ -41,7 +42,7 @@ export function lossText(loss: StructureLoss, t: TFunc): string | null {
     if (loss.templates > 0) {
         parts.push(counted(t, 'echarts_loss_templates', loss.templates));
     }
-    return parts.length ? t('echarts_loss_deleted', parts.join(', ')) : null;
+    return parts.length ? parts.join(' · ') : null;
 }
 
 /**
