@@ -5,8 +5,8 @@
  * @remarks
  * The record is exhaustive over the family union at compile time; these pin the runtime
  * parity (record keys = family union) and the data-path behaviour the boundary machinery
- * delegates to: the family-boundary loss, the marks share the shared boundary functions
- * pull via `marksOf`, and the full-wipe reset patch (ADR-0067/0075 — byte-identical to the
+ * delegates to: the marks share the boundary loss pulls via `marksOf` (ADR-0099), and the
+ * full-wipe reset patch (ADR-0067/0075 — byte-identical to the
  * pre-registry `dataPathReset`). The editor-state seam itself is characterized by the
  * validation/lifecycleGuards suites; the fixtures here are deliberately lean structural
  * states — the profiles read the data-path slice only.
@@ -33,7 +33,6 @@ describe('FAMILY_CORES — record parity with the family union', () => {
 
     it('every family core exposes the data-path slice', () => {
         for (const core of Object.values(FAMILY_CORES)) {
-            expect(typeof core.dataPath.loss).toBe('function');
             expect(typeof core.dataPath.marksOf).toBe('function');
             expect(typeof core.dataPath.reset).toBe('function');
         }
@@ -48,26 +47,6 @@ describe('dataPath.marksOf — the marks share of the shared boundary functions'
 
     it('pie reports none even with markLines present', () => {
         expect(FAMILY_CORES.pie.dataPath.marksOf(dp())).toBe(0);
-    });
-});
-
-describe('dataPath.loss — what a chart-family crossing deletes (ADR-0067)', () => {
-    it('cartesian: authored series + axes + markings, plus a set JSON data point (F10)', () => {
-        expect(FAMILY_CORES.cartesian.dataPath.loss(dp({ jsonOid: 'a.b' }))).toEqual({
-            series: 3,
-            axes: 2,
-            marks: 2,
-            dataPoint: true,
-        });
-    });
-
-    it('pie: the series/axes set falls, markings never count, no data point set', () => {
-        expect(FAMILY_CORES.pie.dataPath.loss(dp())).toEqual({
-            series: 3,
-            axes: 2,
-            marks: 0,
-            dataPoint: false,
-        });
     });
 });
 

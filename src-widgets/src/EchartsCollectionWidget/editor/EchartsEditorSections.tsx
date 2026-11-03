@@ -26,16 +26,8 @@ import LegendSection from './sections/LegendSection';
 import ToolboxSection from './sections/ToolboxSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
-import {
-    familyBoundaryLoss,
-    type BoundaryLoss,
-    familySwitchSnippetLoss,
-    jsonBoundaryLoss,
-    jsonKindBoundaryLoss,
-    type BaseSectionKey,
-    type SectionIssues,
-    type SectionKey,
-} from './validation';
+import { applyStructureEvent, type StructureEvent, type StructureLoss } from './structureEvents';
+import { familySwitchSnippetLoss, type BaseSectionKey, type SectionIssues, type SectionKey } from './validation';
 import type { SectionTabsFocus } from '../../components/controls';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import type { OidPickerCtx } from './OidPicker';
@@ -144,8 +136,8 @@ const sectionTitle = (key: SectionKey): string => {
  * F10: the chip names the FULL reset scope — markings and a set JSON data point fall with the
  * series/axes; the two segment keys append only when their count is non-zero.
  */
-const BoundaryLossAlert: FC<{ lossKey: string; loss: BoundaryLoss }> = ({ lossKey, loss }) =>
-    loss.series > 0 || loss.axes > 0 || loss.marks > 0 || loss.dataPoint ? (
+const BoundaryLossAlert: FC<{ lossKey: string; loss?: StructureLoss }> = ({ lossKey, loss }) =>
+    loss && (loss.series > 0 || loss.axes > 0 || loss.marks > 0 || loss.dataPoint) ? (
         <Alert
             severity="warning"
             variant="outlined"
@@ -180,16 +172,16 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     // itself rides Apply (nothing is dropped at switch time). The pre-ADR-0067 bound-OID loss
     // beside it is pensioned: a family crossing now RESETS the data path (chip at the picker).
     const snippetLoss = familySwitchSnippetLoss(state);
-    // The family-boundary reset warning (ADR-0067): a non-blocking chip at the type picker,
-    // shown BEFORE the crossing — what the next family switch deletes from the current state.
-    const familyLoss = familyBoundaryLoss(state);
-    // The JSON-boundary reset warning (ADR-0067): a non-blocking chip at the mode toggle, shown
-    // BEFORE the crossing — what the next into/out-of-JSON switch deletes from the current state.
-    const boundaryLoss = jsonBoundaryLoss(state, jsonSeriesNames ?? []);
-    // The payload-family reset warning (ADR-0075): a non-blocking chip at the family toggle,
-    // shown BEFORE the crossing — what the next serien-förmig↔tabellarisch switch deletes
-    // (jsonOid never falls: the chip's dataPoint segment stays off).
-    const jsonKindLoss = jsonKindBoundaryLoss(state, jsonSeriesNames ?? []);
+    // The boundary reset warnings (ADR-0067/0075): non-blocking chips at the three pickers,
+    // shown BEFORE the crossing — a dry run of the crossing's structure event, so the chip
+    // reads the same loss the crossing derives from its reset patch (ADR-0099 decision 4).
+    const previewLoss = (event: StructureEvent): StructureLoss | undefined => {
+        const advisory = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames ?? [] }, event).advisory;
+        return advisory?.kind === 'dataPathReset' ? advisory.loss : undefined;
+    };
+    const familyLoss = previewLoss({ type: 'changeFamily', to: state.chartType === 'pie' ? 'line' : 'pie' });
+    const boundaryLoss = previewLoss({ type: 'changeMode', to: state.mode === 'json' ? 'history' : 'json' });
+    const jsonKindLoss = previewLoss({ type: 'changeJsonKind', to: state.jsonKind === 'table' ? 'series' : 'table' });
 
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
@@ -331,6 +323,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <ChartTypePicker
                         state={state}
                         set={set}
+                        payloadNames={jsonSeriesNames}
                     />
                     <BoundaryLossAlert
                         lossKey="echarts_family_boundary_loss"
@@ -341,6 +334,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <ModeSelect
                         state={state}
                         set={set}
+                        payloadNames={jsonSeriesNames}
                     />
                     <BoundaryLossAlert
                         lossKey="echarts_mode_boundary_loss"
@@ -354,6 +348,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         <JsonKindSelect
                             state={state}
                             set={set}
+                            payloadNames={jsonSeriesNames}
                         />
                         <BoundaryLossAlert
                             lossKey="echarts_json_kind_boundary_loss"

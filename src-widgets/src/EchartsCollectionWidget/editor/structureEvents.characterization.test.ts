@@ -2,16 +2,16 @@
  * Characterisation of the Struktur-Ereignisse (ADR-0099 decision 7; spec
  * echarts-configurator-review ticket 04): input state + event → the ONE `set()` patch and the
  * notice, pinned per data path (Verlauf · serien-förmig JSON · Tabellarisch · Kreis) BEFORE any
- * handler moves. The table runs against `apply` — the legacy handler fixture first, the
- * structure-event module once it lands; the pinned values must not move (the one marked
- * exception: the family-crossing loss in JSON, ticket 07).
+ * handler moved. Recorded against the legacy handler fixture (ticket 04), the table now runs
+ * against the structure-event module alone; the pinned values did not move — the one marked
+ * exception is the family-crossing loss in JSON (ticket 07, ADR-0099 decision 4).
  *
  * @module EchartsCollectionWidget/editor/structureEvents.characterization.test
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// DOM pool: the legacy fixture reaches validation.ts → the family editorial → the section
-// modules, which extend Generic (window.visRxWidget) — the summaries/lifecycleGuards precedent.
+// DOM pool: the editor-state fixture reaches the family editorial → the section modules,
+// which extend Generic (window.visRxWidget) — the summaries/lifecycleGuards precedent.
 vi.hoisted(() => {
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static t(key: string): string {
@@ -31,32 +31,23 @@ beforeEach(() => {
 });
 
 import { axisLayout, boundAxisIndices, boundJsonAxisIndices } from './axisLayout';
-import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { legacyApply, type CharEvent, type CharResult, type CharView } from './structureEvents.legacy.testkit';
+import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './editorState';
 import { applyStructureEvent, type StructureEvent } from './structureEvents';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type * as StableIdModule from './stableId';
 
-/** The events already served by the structure-event module (ADR-0099) — the rest still run the legacy fixture. */
-const MODULE_EVENTS: ReadonlySet<CharEvent['type']> = new Set([
-    'addSeries',
-    'duplicateSeries',
-    'removeSeries',
-    'rebindSeries',
-    'hideSeries',
-    'showSeries',
-    'deleteAxis',
-    'flipAxisSide',
-    'moveAxis',
-    'payloadChanged',
-]);
+/** The state the events read — the editor state plus the live payload names (serien-förmig JSON). */
+type CharView = EditorState & { payloadNames: readonly string[] };
+type CharEvent = StructureEvent;
+/** What the table pins: the one `set()` patch (null = no set) and its notice. */
+interface CharResult {
+    patch: EditorPatch | null;
+    advisory?: ReturnType<typeof applyStructureEvent>['advisory'];
+}
 
-/** The implementation under characterisation (the module's `died` is pinned separately). */
+/** The implementation under characterisation (the module's `died` is pinned in structureEvents.test). */
 const apply = (v: CharView, e: CharEvent): CharResult => {
-    if (!MODULE_EVENTS.has(e.type)) {
-        return legacyApply(v, e);
-    }
-    const { patch, advisory } = applyStructureEvent(v, e as StructureEvent);
+    const { patch, advisory } = applyStructureEvent(v, e);
     return advisory ? { patch, advisory } : { patch };
 };
 
@@ -1495,7 +1486,7 @@ describe('changeFamily / changeMode / changeJsonKind', () => {
         `);
     });
 
-    it('JSON line → pie: flip + reset; loss.series — MARKED: legacy counts 0 (ADR-0099), ticket 07 fixes it', () => {
+    it('JSON line → pie: flip + reset; loss.series counts the visible payload series (ADR-0099 fix)', () => {
         const r = apply(JSON_SERIES, { type: 'changeFamily', to: 'pie' });
         expect(r.patch).toMatchInlineSnapshot(`
           {
@@ -1511,10 +1502,11 @@ describe('changeFamily / changeMode / changeJsonKind', () => {
             "yAxes": [],
           }
         `);
-        // MARKED expectation (ticket 07 switches it to 3 — the visible payload series)
+        // Switched in ticket 07: the legacy count read state.series (0 in serien-förmig JSON)
+        // — the loss now derives from the reset patch over the visible payload series.
         expect(r.advisory).toEqual({
             kind: 'dataPathReset',
-            loss: { series: 0, axes: 3, marks: 1, dataPoint: true, templates: 0 },
+            loss: { series: 3, axes: 3, marks: 1, dataPoint: true, templates: 0 },
         });
     });
 

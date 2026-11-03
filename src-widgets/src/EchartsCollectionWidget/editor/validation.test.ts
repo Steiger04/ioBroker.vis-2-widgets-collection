@@ -1,7 +1,7 @@
 /**
  * Unit tests for the advisory validation engine (ADR-0010): {@link validateEditor} +
- * {@link familyBoundaryLoss}/{@link jsonBoundaryLoss} (ADR-0067) +
- * {@link familySwitchSnippetLoss} (ADR-0042).
+ * {@link familySwitchSnippetLoss} (ADR-0042). The boundary loss moved into the structure
+ * events (ADR-0099 — `structureEvents.test.ts`).
  *
  * @module EchartsCollectionWidget/editor/validation.test
  */
@@ -20,18 +20,8 @@ vi.hoisted(() => {
 });
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
-import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import {
-    familyBoundaryLoss,
-    familySwitchSnippetLoss,
-    firstIssueTabOf,
-    jsonBoundaryLoss,
-    jsonKindBoundaryLoss,
-    issueCountsByTab,
-    tabOfIssue,
-    validateEditor,
-} from './validation';
+import { familySwitchSnippetLoss, firstIssueTabOf, issueCountsByTab, tabOfIssue, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -142,58 +132,6 @@ describe('validateEditor', () => {
     });
 });
 
-describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)', () => {
-    // ADR-0067 pensions the familySwitchLoss survival model (cartesian→pie kept the series as
-    // slices): a family crossing now RESETS the whole data path, so the loss is the entire
-    // series/axis set of the current family — counted up front by the picker warning chip.
-
-    it('cartesian counts the authored series + axes that fall on any family exit', () => {
-        const loss = familyBoundaryLoss(
-            st({
-                chartType: 'line',
-                series: [{ oid: 'a' }, { oid: 'b' }],
-                yAxes: [{ position: 'left' }, { position: 'right' }],
-            }),
-        );
-        expect(loss).toEqual({ series: 2, axes: 2, marks: 0, dataPoint: false });
-    });
-
-    it('F10: cartesian markings count and a set jsonOid falls with the crossing', () => {
-        const loss = familyBoundaryLoss(
-            st({
-                chartType: 'line',
-                series: [{ oid: 'a' }],
-                yAxes: [{ position: 'left' }],
-                markLines: [
-                    { id: 'm0', upper: 50 },
-                    { id: 'm1', upper: 80 },
-                ],
-                jsonOid: 'dev.payload',
-            }),
-        );
-        expect(loss).toEqual({ series: 1, axes: 1, marks: 2, dataPoint: true });
-    });
-
-    it('F10: markings are cartesian-only — pie reports none even with markLines set', () => {
-        expect(familyBoundaryLoss(st({ chartType: 'pie', markLines: [{ id: 'm0', upper: 1 }] })).marks).toBe(0);
-    });
-
-    it('an empty data path loses nothing — zero/zero renders no chip', () => {
-        expect(familyBoundaryLoss(st({ chartType: 'line' }))).toEqual({
-            series: 0,
-            axes: 0,
-            marks: 0,
-            dataPoint: false,
-        });
-        expect(familyBoundaryLoss(st({ chartType: 'pie' }))).toEqual({
-            series: 0,
-            axes: 0,
-            marks: 0,
-            dataPoint: false,
-        });
-    });
-});
-
 describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
     // The chart-level term retired with the chart-U (ADR-0045); the radar section raw rides the
     // chartConfig blob inert across families (never a loss) — what remains are the series-level terms.
@@ -220,72 +158,6 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
     });
 });
 
-describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR-0067)', () => {
-    it('history/live counts the authored series + axes that fall on JSON entry', () => {
-        const loss = jsonBoundaryLoss(
-            st({
-                mode: 'history',
-                series: [{ oid: 'a' }, { oid: 'b' }],
-                yAxes: [{ position: 'left' }, { position: 'right' }, { position: 'left', offset: 80 }],
-            }),
-        );
-        expect(loss).toEqual({ series: 2, axes: 3, marks: 0, dataPoint: false });
-    });
-
-    it('json counts the VISIBLE payload series — hidden names never count', () => {
-        const loss = jsonBoundaryLoss(
-            st({
-                mode: 'json',
-                yAxes: [{ position: 'left' }, { position: 'right' }],
-                jsonHidden: ['B'],
-            }),
-            ['A', 'B', 'C'],
-        );
-        expect(loss).toEqual({ series: 2, axes: 2, marks: 0, dataPoint: false });
-    });
-
-    it('F10: leaving JSON with a set jsonOid loses the data point; markings count (json-cartesian)', () => {
-        const loss = jsonBoundaryLoss(
-            st({ mode: 'json', chartType: 'line', jsonOid: 'dev.payload', markLines: [{ id: 'm0', upper: 5 }] }),
-            ['A'],
-        );
-        expect(loss).toEqual({ series: 1, axes: 0, marks: 1, dataPoint: true });
-    });
-
-    it('json without live names falls back to the stored unhidden overlay entries', () => {
-        const loss = jsonBoundaryLoss(
-            st({
-                mode: 'json',
-                jsonSeriesStyle: { Temp: { yAxisIndex: 0 }, Power: { yAxisIndex: 1 } },
-                jsonHidden: ['Power'],
-            }),
-        );
-        expect(loss.series).toBe(1);
-    });
-
-    it('a live preview is AUTHORITATIVE — all names hidden means zero, stale overlay entries do not resurrect', () => {
-        const loss = jsonBoundaryLoss(
-            st({
-                mode: 'json',
-                jsonSeriesStyle: { Stale: { yAxisIndex: 0 } }, // not in the payload anymore
-                jsonHidden: ['A'],
-            }),
-            ['A'],
-        );
-        expect(loss.series).toBe(0);
-    });
-
-    it('an empty data path loses nothing — zero/zero renders no chip', () => {
-        expect(jsonBoundaryLoss(st({ mode: 'history' }))).toEqual({ series: 0, axes: 0, marks: 0, dataPoint: false });
-        expect(jsonBoundaryLoss(st({ mode: 'json', yAxes: [] }), [])).toEqual({
-            series: 0,
-            axes: 0,
-            marks: 0,
-            dataPoint: false,
-        });
-    });
-});
-
 describe('tab addressing (ADR-0073) — issue → section tab, purely from field placement', () => {
     it('tabOfIssue maps the placed issues; everything else addresses no tab', () => {
         expect(tabOfIssue({ key: 'echarts_val_yminmax' })).toBe('axes');
@@ -309,43 +181,6 @@ describe('firstIssueTabOf — the Problems-button glue (ADR-0073)', () => {
         expect(firstIssueTabOf({ series: [{ key: 'echarts_val_oid_missing' }] }, 'series')).toBeUndefined();
         expect(firstIssueTabOf({}, 'colors')).toBeUndefined();
         expect(firstIssueTabOf(undefined, 'colors')).toBeUndefined();
-    });
-});
-
-describe('jsonKindBoundaryLoss — what the next payload-family crossing deletes (ADR-0075)', () => {
-    it('tabellarisch counts the AUTHORED series (state.series)', () => {
-        const loss = jsonKindBoundaryLoss(
-            st({
-                mode: 'json',
-                jsonKind: 'table',
-                series: [
-                    { oid: '', yPath: 'a' },
-                    { oid: '', yPath: 'b' },
-                ],
-                yAxes: [{ position: 'left' }, { position: 'right' }],
-                markLines: [{ id: 'm0', upper: 5 }],
-            }),
-        );
-        expect(loss).toEqual({ series: 2, axes: 2, marks: 1, dataPoint: false });
-    });
-
-    it('serien-förmig counts the visible payload names like jsonBoundaryLoss', () => {
-        const loss = jsonKindBoundaryLoss(st({ mode: 'json', jsonKind: 'series', jsonHidden: ['B'] }), ['A', 'B', 'C']);
-        expect(loss.series).toBe(2);
-        expect(jsonKindBoundaryLoss(st({ mode: 'json' }), ['A'])).toEqual({
-            series: 1,
-            axes: 0,
-            marks: 0,
-            dataPoint: false,
-        });
-    });
-
-    it('the crossing KEEPS jsonOid — the dataPoint segment never shows (F10 scope minus the data point)', () => {
-        const loss = jsonKindBoundaryLoss(
-            st({ mode: 'json', jsonKind: 'table', jsonOid: 'js.0.table', series: [{ oid: '', yPath: 'a' }] }),
-        );
-        expect(loss.dataPoint).toBe(false); // the chip's "plus the JSON data point" stays off
-        expect(loss.series).toBe(1);
     });
 });
 
@@ -387,97 +222,6 @@ describe('validateEditor — tabellarisch (ADR-0075 ticket 04: yPath drift, no O
             tableColumns: cols,
         });
         expect(issues.series).toEqual([{ key: 'echarts_val_oid_missing', args: ['A'] }]);
-    });
-});
-
-describe('boundary-loss state matrix — the family-profile goldmaster (ADR-0083 ticket 01)', () => {
-    // Characterization over the CROSSED dimensions the chips read (both families × modes ×
-    // jsonKind × marks/data-point occupancy × name source): the expectations are literals
-    // derived from the pre-registry behaviour, so the delegation to the family cores
-    // (familyBoundaryLoss → the profile's dataPath.loss, the shared functions' marks share →
-    // dataPath.marksOf) proves itself Neu == Alt against this table — byte-identical, not
-    // merely green. The branch-specific describes above stay; this table pins the crossings.
-    const series = [{ oid: 'a' }, { oid: 'b' }, { oid: 'c' }];
-    const yAxes: EchartsAxisConfig[] = [{ position: 'left' }, { position: 'right' }];
-    const marks = [
-        { id: 'm0', upper: 50 },
-        { id: 'm1', upper: 80 },
-    ];
-    const overlay = { s1: {}, s2: {}, s3: {} };
-
-    interface MatrixCell {
-        label: string;
-        patch: Partial<EditorState>;
-        names?: string[];
-        familyBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
-        jsonBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
-        jsonKindBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
-    }
-
-    it.each(<MatrixCell[]>[
-        {
-            label: 'cartesian · history · series · 2 marks · jsonOid set',
-            patch: { chartType: 'line', mode: 'history', jsonKind: 'series', jsonOid: 'p.x' },
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
-            jsonBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
-            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: false },
-        },
-        {
-            label: 'pie · history · series · 2 marks · no jsonOid',
-            patch: { chartType: 'pie', mode: 'history', jsonKind: 'series' },
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
-            jsonBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
-            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
-        },
-        {
-            label: 'cartesian · json · series · no marks · jsonOid set · live names',
-            patch: { chartType: 'line', mode: 'json', jsonKind: 'series', markLines: [], jsonOid: 'p.x' },
-            names: ['s1', 's2', 's3'],
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
-            jsonBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: true },
-            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
-        },
-        {
-            label: 'pie · json · table · 2 marks · no jsonOid',
-            patch: { chartType: 'pie', mode: 'json', jsonKind: 'table' },
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
-            jsonBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
-            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
-        },
-        {
-            label: 'cartesian · json · table · 2 marks · jsonOid set',
-            patch: { chartType: 'bar', mode: 'json', jsonKind: 'table', jsonOid: 'p.x' },
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
-            jsonBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: true },
-            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
-        },
-        {
-            label: 'pie · json · series · no marks · jsonOid set · every name visible',
-            patch: {
-                chartType: 'pie',
-                mode: 'json',
-                jsonKind: 'series',
-                markLines: [],
-                jsonOid: 'p.x',
-                jsonHidden: [],
-            },
-            names: ['s1', 's2', 's3'],
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
-            jsonBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
-            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
-        },
-        {
-            label: 'cartesian · history · series · 2 marks · no jsonOid',
-            patch: { chartType: 'scatter', mode: 'history', jsonKind: 'series' },
-            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
-            jsonBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
-            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: false },
-        },
-    ])('%s', ({ patch, names, ...expected }) => {
-        const state = st({ series, yAxes, markLines: marks, jsonHidden: ['s2'], jsonSeriesStyle: overlay, ...patch });
-        expect(familyBoundaryLoss(state)).toEqual(expected.familyBoundaryLoss);
-        expect(jsonBoundaryLoss(state, names)).toEqual(expected.jsonBoundaryLoss);
-        expect(jsonKindBoundaryLoss(state, names)).toEqual(expected.jsonKindBoundaryLoss);
     });
 });
 

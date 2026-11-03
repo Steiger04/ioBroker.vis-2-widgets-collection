@@ -25,20 +25,6 @@ import type { FragmentOf, GeneratedInput } from '../optionBuilders/types';
 export type { EchartsChartFamily };
 
 /**
- * What a boundary crossing deletes — the numbers of the warning chip (ADR-0067 + F10: the
- * reset wipes more than series and axes, and the chip must say so — markings and a set JSON
- * data point fall with it too).
- */
-export interface FamilyBoundaryLoss {
-    series: number;
-    axes: number;
-    /** Cartesian markings (markLines) the reset wipes — markings are cartesian-only (F10). */
-    marks: number;
-    /** The JSON data point (`jsonOid`) falls with the crossing when one is set (F10). */
-    dataPoint: boolean;
-}
-
-/**
  * The data-path slice of the working state the family profiles read: a STRUCTURAL view — the
  * editor's `EditorState` satisfies it without the profiles importing the editor. The data
  * path is family-agnostic in its fields (every family carries series/axes/…), so one narrow
@@ -70,14 +56,12 @@ export interface DataPathResetPatch {
 }
 
 /**
- * The data-path share of a family profile: what a family-boundary crossing deletes
- * (`loss`), the marks count the family-orthogonal boundary functions pull (`marksOf`), and
- * the reset patch (`reset`). Ticket 01's slice of the core — see {@link FamilyCore}.
+ * The data-path share of a family profile: the markings the family shows (`marksOf` — the
+ * structure events count a crossing's marks loss through it, ADR-0099) and the reset patch
+ * (`reset`). Ticket 01's slice of the core — see {@link FamilyCore}.
  */
 export interface FamilyDataPath {
-    /** The family-boundary loss (ADR-0067) — the type-picker chip's numbers. */
-    loss: (state: DataPathState) => FamilyBoundaryLoss;
-    /** The cartesian-only marks share of the shared boundary functions (F10). */
+    /** The cartesian-only marks share of the boundary loss (F10). */
     marksOf: (state: DataPathState) => number;
     /** The structural-reset patch (ADR-0067) — the whole data path, both families identical today. */
     reset: () => DataPathResetPatch;

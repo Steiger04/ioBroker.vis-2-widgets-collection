@@ -9,10 +9,8 @@
  * it warns, it does not patronise. Anything that must be enforced belongs in `saveEditorState`
  * (normalisation), not here.
  */
-import { coreOf } from '../families/cores';
 import { familyOf } from '../families/kernel';
 import { editorialOf, type FAMILY_EDITORIAL } from '../families/editorial';
-import type { FamilyBoundaryLoss } from '../families/types';
 import { pruneSnippetIds } from './snippetComposition';
 import { SERIES_TEMPLATES, seriesSlotOf, type SeriesTemplateSlot } from './seriesTemplates';
 import type { EditorState } from './editorState';
@@ -126,70 +124,6 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
     }
 
     return issues;
-};
-
-/**
- * What a boundary crossing deletes — the numbers of the warning chip (ADR-0067 + F10: the reset
- * wipes more than series and axes, and the chip must say so — markings and a set JSON data point
- * fall with it too). The shape lives with the family profiles since ADR-0083
- * (`FamilyBoundaryLoss`); this alias keeps the editor-side import site stable.
- */
-export type BoundaryLoss = FamilyBoundaryLoss;
-
-/**
- * What a chart-FAMILY crossing (cartesian↔pie, ADR-0067) deletes from the current state —
- * the numbers of the type-picker warning chip. Delegates to the family profile's data-path
- * loss (ADR-0083): the crossing resets the whole data path, so the loss is the ENTIRE
- * series/axis set of the current family (the pre-ADR-0067 survival model — cartesian→pie
- * keeping the series as slices — is pensioned with it); line↔bar↔scatter cross nothing and
- * never ask. Zero across the board loses nothing — no chip.
- */
-export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => coreOf(state.chartType).dataPath.loss(state);
-
-/** How many names survive the deny-list — the VISIBLE payload series count both chips share. */
-const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
-    names.filter(n => !state.jsonHidden.includes(n)).length;
-
-/**
- * What the NEXT JSON-boundary crossing (into or out of JSON, ADR-0067) deletes from the current
- * state — the numbers of the mode-toggle warning chip. History/Live counts the authored series
- * and axes that fall on JSON entry; JSON counts the VISIBLE payload series (the live-resolved
- * names, falling back to the stored unhidden overlay entries when no payload preview exists) and
- * the axes. Zero across the board loses nothing — no chip. Verlauf↔Live crosses nothing and
- * never asks.
- */
-export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
-    // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
-    const marks = coreOf(state.chartType).dataPath.marksOf(state);
-    const dataPoint = !!state.jsonOid;
-    if (state.mode === 'json') {
-        // A live payload preview is authoritative (ALL visible names counted — zero when every
-        // name is hidden); the stored overlay entries are the fallback while no preview exists.
-        const series = jsonSeriesNames.length
-            ? unhiddenCount(state, jsonSeriesNames)
-            : unhiddenCount(state, Object.keys(state.jsonSeriesStyle));
-        return { series, axes: state.yAxes.length, marks, dataPoint };
-    }
-    return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint };
-};
-
-/**
- * What the NEXT payload-family crossing (serien-förmig↔tabellarisch, ADR-0075) deletes — the
- * numbers of the family-switch chip. Same F10 scope as the other boundary chips with ONE
- * difference: `dataPoint` is always `false` — the crossing KEEPS jsonOid (the same state, read
- * the other way). Tabellarisch counts the AUTHORED series (`state.series`); serien-förmig the
- * visible payload names exactly like {@link jsonBoundaryLoss}'s json arm.
- */
-export const jsonKindBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
-    // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
-    const marks = coreOf(state.chartType).dataPath.marksOf(state);
-    if (state.jsonKind === 'table') {
-        return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint: false };
-    }
-    const series = jsonSeriesNames.length
-        ? unhiddenCount(state, jsonSeriesNames)
-        : unhiddenCount(state, Object.keys(state.jsonSeriesStyle));
-    return { series, axes: state.yAxes.length, marks, dataPoint: false };
 };
 
 /**

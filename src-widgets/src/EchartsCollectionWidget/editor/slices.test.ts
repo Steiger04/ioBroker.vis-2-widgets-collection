@@ -247,17 +247,25 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('the pinned rail selectors equal their ownership', () => {
-        // + the data-path reset keys the family-crossing patch writes (ADR-0067)
-        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<
-            Pick<
-                EditorState,
-                'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
-            >
-        >();
-        // + the JSON-boundary data-path reset keys the crossing patch writes (ADR-0067)
-        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<
-            Pick<EditorState, 'mode' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'>
-        >();
+        // The three boundary pickers share one slice (ADR-0099): the crossing is a structure
+        // event — its view reads the structural fields, the reset writes the whole data path.
+        type Boundary = Pick<
+            EditorState,
+            | 'chartType'
+            | 'mode'
+            | 'jsonKind'
+            | 'series'
+            | 'yAxes'
+            | 'markLines'
+            | 'axisSlotMemory'
+            | 'jsonSeriesStyle'
+            | 'jsonHidden'
+            | 'jsonOid'
+            | 'jsonRowPath'
+            | 'jsonXPath'
+        >;
+        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Boundary>();
+        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Boundary>();
     });
 
     it('EditorThemeSource equals the theme-resolution read footprint', () => {
@@ -312,12 +320,12 @@ describe('section slices (ADR-0049)', () => {
         pieRows({ yAxes: [] });
 
         const chartTypePicker: SetEditor<ChartTypePickerSlice> = () => undefined;
-        // @ts-expect-error mode is not the chart-type picker's field
-        chartTypePicker({ mode: 'json' });
+        // @ts-expect-error titleText is not a boundary picker's field
+        chartTypePicker({ titleText: 'no' });
 
         const modeSelect: SetEditor<ModeSelectSlice> = () => undefined;
-        // @ts-expect-error chartType is not the mode select's field
-        modeSelect({ chartType: 'pie' });
+        // @ts-expect-error animation is not a boundary picker's field
+        modeSelect({ animation: false });
     });
 
     it('the read-only series surfaces reject foreign reads', () => {

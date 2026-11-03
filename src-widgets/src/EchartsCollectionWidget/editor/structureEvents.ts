@@ -38,6 +38,14 @@ import {
     remapMarkAxisIndices,
     sameFormatSurvivor,
 } from './axisLayout';
+import {
+    crossesFamilyBoundary,
+    crossesJsonBoundary,
+    crossesJsonKindBoundary,
+    dataPathReset,
+    jsonKindReset,
+} from './lifecycleGuards';
+import { coreOf } from '../families/cores';
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
 import type { EditorPatch, EditorSeries, EditorState } from './editorState';
 
@@ -85,14 +93,38 @@ export type StructureEvent =
     /** Move axis `index` one place within its side (ADR-0079). */
     | { type: 'moveAxis'; index: number; dir: -1 | 1 }
     /** The payload's series names changed (serien-förmig JSON) — the axis reconcile (ADR-0026). */
-    | { type: 'payloadChanged' };
+    | { type: 'payloadChanged' }
+    /** Pick a chart type — crossing the family boundary (cartesian↔pie) resets the data path (ADR-0067). */
+    | { type: 'changeFamily'; to: EditorState['chartType'] }
+    /** Pick a data mode — crossing the JSON boundary resets the data path (ADR-0067). */
+    | { type: 'changeMode'; to: EditorState['mode'] }
+    /** Pick a payload family — the crossing resets the derived structure, the data point stays (ADR-0075). */
+    | { type: 'changeJsonKind'; to: EditorState['jsonKind'] };
+
+/**
+ * What a data-path reset deleted (ADR-0067 F10, ADR-0042) — derived from the reset patch
+ * (before minus after) over the VISIBLE sight, so count and deletion cannot disagree.
+ */
+export interface StructureLoss {
+    /** Visible series (serien-förmig JSON: the unhidden payload series). */
+    series: number;
+    axes: number;
+    /** Markings the family shows (cartesian-only). */
+    marks: number;
+    /** The JSON data point (`jsonOid`) fell. */
+    dataPoint: boolean;
+    /** Active template activations (ADR-0042) on the fallen series. */
+    templates: number;
+}
 
 /** A notice for the modal (ADR-0099 decision 3) — rendered by the one notice host. */
 export type StructureAdvisory =
     /** Axes died as a side effect (ADR-0069); `undoable: false` where undo is futile (payload vanish). */
     | { kind: 'axisDeath'; names: string[]; undoable: boolean }
     /** An axis delete rebound its series onto axis 0 — no survivor shares the format (ADR-0025). */
-    | { kind: 'unitMismatch' };
+    | { kind: 'unitMismatch' }
+    /** A boundary crossing reset the data path — what fell with it. */
+    | { kind: 'dataPathReset'; loss: StructureLoss };
 
 /** The complete follow-up of one event. */
 export interface StructureResult {
@@ -403,6 +435,53 @@ const payloadChanged = (v: StructureView): StructureResult => {
     return result(patch, r.diedIndices, advisory);
 };
 
+// ── boundary crossings ──────────────────────────────────────────────
+
+/**
+ * The visible series of a view as identity keys plus their template activations: serien-förmig
+ * JSON reads the unhidden payload names (the stored overlay keys while no payload preview
+ * exists), every other path the authored series.
+ */
+const visibleSeries = (v: StructureView): { key: string; templates: number }[] => {
+    if (isNamed(v)) {
+        const names = v.payloadNames.length ? v.payloadNames : Object.keys(v.jsonSeriesStyle);
+        return names
+            .filter(n => !v.jsonHidden.includes(n))
+            .map(n => ({ key: `name:${n}`, templates: v.jsonSeriesStyle[n]?.snippets?.length ?? 0 }));
+    }
+    return v.series.map((s, i) => ({ key: `series:${s.id ?? i}`, templates: s.snippets?.length ?? 0 }));
+};
+
+/**
+ * The loss of a reset patch (ADR-0099 decision 4): what is visible before and gone after. The
+ * after view carries no payload names — every crossing invalidates the payload sight (the data
+ * point falls, or the mode/family that reads it changes).
+ */
+const lossOf = (before: StructureView, patch: EditorPatch): StructureLoss => {
+    const after: StructureView = { ...before, ...patch, payloadNames: [] };
+    const kept = new Set(visibleSeries(after).map(s => s.key));
+    const fallen = visibleSeries(before).filter(s => !kept.has(s.key));
+    return {
+        series: fallen.length,
+        axes: before.yAxes.filter(a => !after.yAxes.includes(a)).length,
+        // The family's marks share (ADR-0083: cartesian shows its markings, pie none).
+        marks: Math.max(
+            0,
+            coreOf(before.chartType).dataPath.marksOf(before) - coreOf(after.chartType).dataPath.marksOf(after),
+        ),
+        dataPoint: !!before.jsonOid && after.jsonOid !== before.jsonOid,
+        templates: fallen.reduce((sum, s) => sum + s.templates, 0),
+    };
+};
+
+/** A boundary crossing: flip + reset in ONE patch (one undo step), the loss derived from it. */
+const crossing = (v: StructureView, patch: EditorPatch): StructureResult =>
+    result(
+        patch,
+        v.yAxes.map((_a, i) => i).filter(i => !(patch.yAxes ?? v.yAxes).includes(v.yAxes[i])),
+        { kind: 'dataPathReset', loss: lossOf(v, patch) },
+    );
+
 /**
  * Apply one structure event to the view.
  *
@@ -432,5 +511,17 @@ export const applyStructureEvent = (view: StructureView, event: StructureEvent):
             return moveAxis(view, event);
         case 'payloadChanged':
             return payloadChanged(view);
+        case 'changeFamily':
+            return crossesFamilyBoundary(view.chartType, event.to)
+                ? crossing(view, { chartType: event.to, ...dataPathReset() })
+                : result({ chartType: event.to });
+        case 'changeMode':
+            return event.to !== view.mode && crossesJsonBoundary(view.mode, event.to)
+                ? crossing(view, { mode: event.to, ...dataPathReset() })
+                : result({ mode: event.to });
+        case 'changeJsonKind':
+            return crossesJsonKindBoundary(view.jsonKind, event.to)
+                ? crossing(view, jsonKindReset(event.to))
+                : result({ jsonKind: event.to });
     }
 };

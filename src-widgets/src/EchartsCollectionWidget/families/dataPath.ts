@@ -4,13 +4,12 @@
  * @module EchartsCollectionWidget/families/dataPath
  * @remarks
  * The ADR-0067/0075 reset semantics live HERE since the registry: both families share the
- * identical full-wipe patch and the identical loss shape, so the defaults below are written
- * once and the family variance plugs in through `marksOf` alone (cartesian counts its
- * markings, pie has none). The boundary machinery (lifecycleGuards, validation) delegates
- * here instead of copying a family check — the semantics moved INTO the profiles, the
- * behaviour stayed byte-identical.
+ * identical full-wipe patch, so the defaults below are written once and the family variance
+ * plugs in through `marksOf` alone (cartesian counts its markings, pie has none). The
+ * boundary machinery (lifecycleGuards, the structure events of ADR-0099) delegates here
+ * instead of copying a family check.
  */
-import type { DataPathResetPatch, DataPathState, FamilyBoundaryLoss, FamilyDataPath } from './types';
+import type { DataPathResetPatch, DataPathState, FamilyDataPath } from './types';
 
 /**
  * The data-path patch a structural boundary reset applies (ADR-0067): series/OIDs, Y-axes
@@ -37,18 +36,11 @@ export const fullDataPathReset = (): DataPathResetPatch => ({
 });
 
 /**
- * Assemble a family's data-path slice over its marks variance: the loss counts the whole
- * series/axis set of the current family plus whatever `marksOf` reports (the pre-ADR-0067
- * survival model — cartesian→pie keeping the series as slices — is pensioned with it), and
- * the reset is the shared full wipe.
+ * Assemble a family's data-path slice over its marks variance: `marksOf` reports the markings
+ * the family shows (the boundary loss derives from the reset patch in the structure events,
+ * ADR-0099, and counts the marks share through it), and the reset is the shared full wipe.
  */
 export const familyDataPath = (marksOf: (state: DataPathState) => number): FamilyDataPath => ({
-    loss: (state: DataPathState): FamilyBoundaryLoss => ({
-        series: state.series.length,
-        axes: state.yAxes.length,
-        marks: marksOf(state),
-        dataPoint: !!state.jsonOid,
-    }),
     marksOf,
     reset: fullDataPathReset,
 });

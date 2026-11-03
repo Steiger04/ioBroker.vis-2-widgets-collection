@@ -14,13 +14,7 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import Generic from '../../Generic';
 import { FieldLabel, InfoBox } from '../../components/controls';
 import { chartTypePickerEntries } from '../families/editorial';
-import {
-    crossesFamilyBoundary,
-    crossesJsonBoundary,
-    crossesJsonKindBoundary,
-    dataPathReset,
-    jsonKindReset,
-} from './lifecycleGuards';
+import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from './structureEvents';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsJsonKind, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -50,36 +44,63 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
  * load, so one of the four is always highlighted).
  */
 /**
- * The chart-type picker's field ownership (ADR-0049 slice) — the pinned rail selector AND the
- * family-boundary data-path reset (ADR-0067): the crossing patch carries the reset keys, so the
- * slice owns every field the handler writes.
+ * The field ownership of the three boundary pickers (ADR-0049 slice): the crossing is a
+ * structure event (ADR-0099) — its view reads the structural fields, and the reset patch
+ * writes the whole data path incl. the Zuordnung paths (ADR-0067/0075).
  */
-export type ChartTypePickerSlice = Pick<
+export type BoundaryPickerSlice = Pick<
     EditorState,
-    'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
+    | 'chartType'
+    | 'mode'
+    | 'jsonKind'
+    | 'series'
+    | 'yAxes'
+    | 'markLines'
+    | 'axisSlotMemory'
+    | 'jsonSeriesStyle'
+    | 'jsonHidden'
+    | 'jsonOid'
+    | 'jsonRowPath'
+    | 'jsonXPath'
 >;
+/** The chart-type picker's field ownership — the family-boundary crossing. */
+export type ChartTypePickerSlice = BoundaryPickerSlice;
 
-export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<ChartTypePickerSlice> }> = ({
-    state,
-    set,
-}) => (
+/** The props every boundary picker shares. */
+interface BoundaryPickerProps {
+    state: BoundaryPickerSlice;
+    set: SetEditor<BoundaryPickerSlice>;
+    /** The live payload names (serien-förmig JSON) — the loss counts the visible ones. */
+    payloadNames?: readonly string[];
+    /** The crossing's notice (the data-path loss) — rendered by the modal's notice host. */
+    onAdvisory?: (advisory: StructureAdvisory) => void;
+}
+
+/** Run a picker's structure event: flip (+ reset) in ONE set(), the loss handed on. */
+const applyPick = ({ state, set, payloadNames = [], onAdvisory }: BoundaryPickerProps, event: StructureEvent): void => {
+    const r = applyStructureEvent({ ...state, payloadNames }, event);
+    if (r.patch) {
+        set(r.patch);
+    }
+    if (r.advisory && onAdvisory) {
+        onAdvisory(r.advisory);
+    }
+};
+
+export const ChartTypePicker: FC<BoundaryPickerProps> = props => (
     <Box>
         <FieldLabel>{Generic.t('echarts_type')}</FieldLabel>
         <ToggleButtonGroup
             exclusive
             size="small"
-            value={state.chartType}
+            value={props.state.chartType}
             onChange={(_, v: EchartsChartType | null) => {
                 if (!v) {
                     return;
                 }
-                // Family boundary (ADR-0067): crossing cartesian↔pie (incl.
-                // json-cartesian→json-pie) deletes the whole data path IMMEDIATELY — type flip +
-                // reset in ONE patch, so undo restores both in a single step. line↔bar↔scatter
-                // share the series structure: plain flip, no reset.
-                set(
-                    crossesFamilyBoundary(state.chartType, v) ? { chartType: v, ...dataPathReset() } : { chartType: v },
-                );
+                // Family boundary (ADR-0067): cartesian↔pie resets the whole data path in the
+                // same step; line↔bar↔scatter is a plain flip — the changeFamily event decides.
+                applyPick(props, { type: 'changeFamily', to: v });
             }}
             // B9 (review 2026-11-03): four columns — all four types fit one row at the 440 px rail
             sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.5, width: '100%' }}
@@ -109,41 +130,29 @@ const MODE_HINTS: Record<EchartsMode, string> = {
 };
 
 /** Per-widget data mode (chart-global, not per-series). */
-/**
- * The mode select's field ownership (ADR-0049 slice) — the pinned rail selector AND the
- * JSON-boundary data-path reset (ADR-0067): the crossing patch carries the reset keys, so the
- * slice owns every field the handler writes.
- */
-export type ModeSelectSlice = Pick<
-    EditorState,
-    'mode' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
->;
+/** The mode select's field ownership — the JSON-boundary crossing. */
+export type ModeSelectSlice = BoundaryPickerSlice;
 
-export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectSlice> }> = ({ state, set }) => (
+export const ModeSelect: FC<BoundaryPickerProps> = props => (
     <Box>
         <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>
         <ToggleButtonGroup
             exclusive
             size="small"
-            value={state.mode}
+            value={props.state.mode}
             onChange={(_, v: EchartsMode | null) => {
                 if (!v) {
                     return;
                 }
-                // JSON boundary (ADR-0067): crossing into or out of JSON deletes the whole data
-                // path IMMEDIATELY — mode flip + reset in ONE patch, so undo restores both in a
-                // single step.
-                set(
-                    v !== state.mode && crossesJsonBoundary(state.mode, v)
-                        ? { mode: v, ...dataPathReset() }
-                        : { mode: v },
-                );
+                // JSON boundary (ADR-0067): into or out of JSON resets the whole data path in the
+                // same step (one undo step restores both).
+                applyPick(props, { type: 'changeMode', to: v });
             }}
         >
             <ToggleButton value="history">{Generic.t('echarts_mode_history')}</ToggleButton>
             <ToggleButton value="json">{Generic.t('echarts_mode_json')}</ToggleButton>
         </ToggleButtonGroup>
-        <InfoBox text={Generic.t(MODE_HINTS[state.mode])} />
+        <InfoBox text={Generic.t(MODE_HINTS[props.state.mode])} />
     </Box>
 );
 
@@ -152,54 +161,35 @@ const JSON_KIND_HINTS: Record<EchartsJsonKind, string> = {
     table: 'echarts_editor_json_kind_hint_table',
 };
 
-/**
- * The payload-family select's field ownership (ADR-0049 slice) — the pinned selector AND the
- * payload-family data-path reset (ADR-0075): the crossing patch carries the reset keys, so the
- * slice owns every field the handler writes.
- */
-export type JsonKindSelectSlice = Pick<
-    EditorState,
-    | 'mode'
-    | 'jsonKind'
-    | 'series'
-    | 'yAxes'
-    | 'markLines'
-    | 'jsonSeriesStyle'
-    | 'jsonHidden'
-    | 'jsonRowPath'
-    | 'jsonXPath'
->;
+/** The payload-family select's field ownership — the payload-family crossing (ADR-0075). */
+export type JsonKindSelectSlice = BoundaryPickerSlice;
 
 /**
  * The payload-family toggle (ADR-0075): pinned UNDER the mode toggle, rendered only while the
  * json mode is active (the family is a property OF the json data mode, never a third mode —
  * hidden entirely otherwise).
  */
-export const JsonKindSelect: FC<{ state: JsonKindSelectSlice; set: SetEditor<JsonKindSelectSlice> }> = ({
-    state,
-    set,
-}) =>
-    state.mode === 'json' ? (
+export const JsonKindSelect: FC<BoundaryPickerProps> = props =>
+    props.state.mode === 'json' ? (
         <Box>
             <FieldLabel>{Generic.t('echarts_editor_json_kind')}</FieldLabel>
             <ToggleButtonGroup
                 exclusive
                 size="small"
-                value={state.jsonKind}
+                value={props.state.jsonKind}
                 onChange={(_, v: EchartsJsonKind | null) => {
                     if (!v) {
                         return;
                     }
-                    // Payload-family boundary (ADR-0075): the crossing deletes the derived data
-                    // path but KEEPS jsonOid (the same state, read the other way) — kind flip +
-                    // reset in ONE patch, so undo restores both in a single step.
-                    set(crossesJsonKindBoundary(state.jsonKind, v) ? jsonKindReset(v) : { jsonKind: v });
+                    // Payload-family boundary (ADR-0075): the derived data path falls, jsonOid
+                    // stays (the same state, read the other way) — one step.
+                    applyPick(props, { type: 'changeJsonKind', to: v });
                 }}
             >
                 <ToggleButton value="series">{Generic.t('echarts_json_kind_series')}</ToggleButton>
                 <ToggleButton value="table">{Generic.t('echarts_json_kind_table')}</ToggleButton>
             </ToggleButtonGroup>
-            <InfoBox text={Generic.t(JSON_KIND_HINTS[state.jsonKind])} />
+            <InfoBox text={Generic.t(JSON_KIND_HINTS[props.state.jsonKind])} />
         </Box>
     ) : null;
 

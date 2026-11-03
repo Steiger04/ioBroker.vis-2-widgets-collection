@@ -125,6 +125,87 @@ describe('payloadChanged — the JSON axis reconcile (ADR-0026, ADR-0069)', () =
     });
 });
 
+describe('boundary crossings — the loss derives from the reset patch (ADR-0099 decision 4)', () => {
+    // Replaces the validation.ts boundary-loss matrix: one source for reset and count, read over
+    // the VISIBLE sight (serien-förmig JSON: the unhidden payload series).
+    const yAxes = [axis('a0', 'left', 0), axis('a1', 'right', 0)];
+    const markLines = [
+        { id: 'm0', upper: 50 },
+        { id: 'm1', upper: 80 },
+    ];
+    const hist = view({
+        mode: 'history',
+        series: [
+            { id: 's0', oid: 'a' },
+            { id: 's1', oid: 'b', snippets: ['t1', 't2'] },
+            { id: 's2', oid: 'c' },
+        ],
+        yAxes,
+        markLines,
+    });
+    const json = view({
+        yAxes,
+        markLines,
+        jsonOid: 'p.x',
+        jsonHidden: ['s2'],
+        jsonSeriesStyle: { s1: { snippets: ['t1'] }, s2: { snippets: ['t2'] }, s3: {} },
+        payloadNames: ['s1', 's2', 's3'],
+    });
+    const lossOf = (v: StructureView, e: Parameters<typeof applyStructureEvent>[1]): unknown => {
+        const a = applyStructureEvent(v, e).advisory;
+        return a?.kind === 'dataPathReset' ? a.loss : a;
+    };
+
+    it.each<[string, StructureView, Parameters<typeof applyStructureEvent>[1], unknown]>([
+        [
+            'Verlauf line → pie: every series, axis and marking; the templates of the series',
+            hist,
+            { type: 'changeFamily', to: 'pie' },
+            { series: 3, axes: 2, marks: 2, dataPoint: false, templates: 2 },
+        ],
+        [
+            'Verlauf pie → JSON: pie shows no markings',
+            { ...hist, chartType: 'pie' },
+            { type: 'changeMode', to: 'json' },
+            { series: 3, axes: 2, marks: 0, dataPoint: false, templates: 2 },
+        ],
+        [
+            'JSON line → pie: the VISIBLE payload series (the „0 Serien" fix), the data point falls',
+            json,
+            { type: 'changeFamily', to: 'pie' },
+            { series: 2, axes: 2, marks: 2, dataPoint: true, templates: 1 },
+        ],
+        [
+            'JSON without a payload preview counts the stored unhidden overlay entries',
+            { ...json, payloadNames: [] },
+            { type: 'changeMode', to: 'history' },
+            { series: 2, axes: 2, marks: 2, dataPoint: true, templates: 1 },
+        ],
+        [
+            'serien-förmig → tabellarisch keeps the data point',
+            json,
+            { type: 'changeJsonKind', to: 'table' },
+            { series: 2, axes: 2, marks: 2, dataPoint: false, templates: 1 },
+        ],
+        [
+            'tabellarisch → serien-förmig counts the authored series',
+            { ...hist, mode: 'json', jsonKind: 'table', jsonOid: 'p.x' },
+            { type: 'changeJsonKind', to: 'series' },
+            { series: 3, axes: 2, marks: 2, dataPoint: false, templates: 2 },
+        ],
+    ])('%s', (_label, v, e, expected) => {
+        expect(lossOf(v, e)).toEqual(expected);
+    });
+
+    it('a crossing drops every axis; a plain flip carries no notice', () => {
+        expect(applyStructureEvent(hist, { type: 'changeFamily', to: 'pie' }).died).toEqual([0, 1]);
+        expect(applyStructureEvent(hist, { type: 'changeFamily', to: 'bar' })).toEqual({
+            patch: { chartType: 'bar' },
+            died: [],
+        });
+    });
+});
+
 describe('died — the dropped axes of an event', () => {
     it('an explicit axis delete reports the deleted index, without a death notice', () => {
         const v = view({
