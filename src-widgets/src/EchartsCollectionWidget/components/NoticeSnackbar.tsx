@@ -3,12 +3,12 @@
  *
  * @module EchartsCollectionWidget/components/NoticeSnackbar
  * @remarks
- * The shared shell of the axis-death notices: the Series section's undo snackbar (rebind,
- * series-delete, JSON hide — the triggering `set` is one history step, so undo restores series +
- * axis + anchors together) and the modal's info-only vanish notice (no undo — the next reconcile
- * over the same payload re-kills the restored axis). Severity and message differ per site; the
- * chrome (6 s auto-hide, bottom-center, centred alert rows) is ONE shape. The AxesZoomSection
- * unit-mismatch toast predates this and stays as-is.
+ * The shell of the configurator's ONE notice host (ADR-0067 addendum 2026-11-03): the modal
+ * renders every structure-event advisory through it — axis death, unit mismatch, data-path loss
+ * (resolved by `editor/editorNotice`). The triggering `set` is one history step, so the undo
+ * action restores everything the step changed; the payload-vanish death stays info-only (the
+ * next reconcile would re-kill the restored axis). The chrome (6 s auto-hide, bottom-center,
+ * centred alert rows) is ONE shape.
  */
 import type { FC, ReactNode } from 'react';
 import { Alert, Snackbar } from '@mui/material';

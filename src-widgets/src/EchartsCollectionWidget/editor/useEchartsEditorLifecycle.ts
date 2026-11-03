@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
-import { syncSlotMemory, applyStructureEvent } from './structureEvents';
+import { syncSlotMemory, applyStructureEvent, type StructureAdvisory } from './structureEvents';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -178,9 +178,9 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
  * @param state - The lifecycle's current working copy.
  * @param jsonNames - The live payload series names (unfiltered — `jsonHidden` applies here).
  * @param set - The lifecycle's patch write path.
- * @param onAxisDeath - ADR-0069 safety net: called with the DISPLAY NAMES of the axes a pass
- * dropped (a payload name vanished). Info-only by design — undoing a vanish death is futile,
- * the next reconcile tick over the same payload re-kills the restored axis.
+ * @param onAdvisory - The modal's notice host (ADR-0067 addendum 2026-11-03): receives the pass's
+ * advisory — an ADR-0069 axis death (a payload name vanished), `undoable: false` by design:
+ * undoing a vanish death is futile, the next reconcile tick re-kills the restored axis.
  * @returns The visible names (jsonHidden applied) — the SINGLE derivation site; the modal's
  * preview meta reuses them instead of re-filtering.
  */
@@ -188,7 +188,7 @@ export function useJsonAxisReconcile(
     state: EditorState,
     jsonNames: readonly string[],
     set: (patch: EditorPatch) => void,
-    onAxisDeath?: (names: string[]) => void,
+    onAdvisory?: (advisory: StructureAdvisory) => void,
 ): readonly string[] {
     const visibleJsonNames = jsonNames.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
@@ -198,8 +198,8 @@ export function useJsonAxisReconcile(
         if (r.patch) {
             set(r.patch);
         }
-        if (r.advisory?.kind === 'axisDeath' && onAxisDeath) {
-            onAxisDeath(r.advisory.names);
+        if (r.advisory && onAdvisory) {
+            onAdvisory(r.advisory);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);

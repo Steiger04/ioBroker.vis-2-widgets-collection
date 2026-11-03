@@ -12,7 +12,7 @@ import type { FC } from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
-import { FieldLabel, InfoBox } from '../../components/controls';
+import { FieldLabel } from '../../components/controls';
 import { chartTypePickerEntries } from '../families/editorial';
 import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from './structureEvents';
 import type { SetEditor, EditorState } from './editorState';
@@ -124,11 +124,6 @@ export const ChartTypePicker: FC<BoundaryPickerProps> = props => (
     </Box>
 );
 
-const MODE_HINTS: Record<EchartsMode, string> = {
-    history: 'echarts_editor_mode_hint_history',
-    json: 'echarts_editor_mode_hint_json',
-};
-
 /** Per-widget data mode (chart-global, not per-series). */
 /** The mode select's field ownership — the JSON-boundary crossing. */
 export type ModeSelectSlice = BoundaryPickerSlice;
@@ -152,14 +147,8 @@ export const ModeSelect: FC<BoundaryPickerProps> = props => (
             <ToggleButton value="history">{Generic.t('echarts_mode_history')}</ToggleButton>
             <ToggleButton value="json">{Generic.t('echarts_mode_json')}</ToggleButton>
         </ToggleButtonGroup>
-        <InfoBox text={Generic.t(MODE_HINTS[props.state.mode])} />
     </Box>
 );
-
-const JSON_KIND_HINTS: Record<EchartsJsonKind, string> = {
-    series: 'echarts_editor_json_kind_hint_series',
-    table: 'echarts_editor_json_kind_hint_table',
-};
 
 /** The payload-family select's field ownership — the payload-family crossing (ADR-0075). */
 export type JsonKindSelectSlice = BoundaryPickerSlice;
@@ -189,7 +178,6 @@ export const JsonKindSelect: FC<BoundaryPickerProps> = props =>
                 <ToggleButton value="series">{Generic.t('echarts_json_kind_series')}</ToggleButton>
                 <ToggleButton value="table">{Generic.t('echarts_json_kind_table')}</ToggleButton>
             </ToggleButtonGroup>
-            <InfoBox text={Generic.t(JSON_KIND_HINTS[props.state.jsonKind])} />
         </Box>
     ) : null;
 

@@ -29,6 +29,7 @@ import type { SectionTabsFocus } from '../../components/controls';
 import type { IssueMap, ValidationIssue } from '../editor/issueTabs';
 import type { ValidateEditorInputs } from '../editor/validation';
 import type { TFunc } from '../editor/summaries';
+import type { StructureAdvisory } from '../editor/structureEvents';
 
 /**
  * The fat, uniform prop bundle every rail-slot renderer receives — deliberately the SUPERSET
@@ -49,6 +50,8 @@ export interface RailSlotProps {
     jsonSeriesNames?: string[];
     /** The effective X is a CATEGORY axis (ADR-0075 json-table) — hides the X-Karte's Time format. */
     xIsCategory?: boolean;
+    /** The modal's notice host (ADR-0067 addendum 2026-11-03) — structure-event advisories. */
+    onAdvisory?: (advisory: StructureAdvisory) => void;
 }
 
 /**

@@ -3,15 +3,16 @@
  *
  * @module EchartsCollectionWidget/editor/EchartsEditorSections
  * @remarks
- * Pinned selectors on top (chart type + data mode, plus the non-blocking family-switch warning
- * chip); below, the family-aware stack of collapsible SectionCards (the shared configurator
+ * Pinned selectors on top (chart type, data mode, payload family — the three selections only;
+ * the mode hints live in the Data source section and a crossing's loss reports AFTER the switch
+ * through the modal's undo snackbar, ADR-0067 addendum 2026-11-03); below, the family-aware stack of collapsible SectionCards (the shared configurator
  * section shell, ADR-0038). Every section starts collapsed on open with a summary line (reverses
  * the ADR-0010 "Series starts expanded" default). Validation rolls up into the section
  * headers (⚠ count). The modal can steer a section via `focusSection` (expand + scroll into
  * view) — used by the clickable preview placeholder and the footer's problems button.
  */
 import { useEffect, useMemo, useRef, useState, type FC } from 'react';
-import { Alert, Box } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../Generic';
 import { editorialOf, FAMILY_EDITORIAL, type RailSlotProps } from '../families/editorial';
@@ -26,8 +27,8 @@ import LegendSection from './sections/LegendSection';
 import ToolboxSection from './sections/ToolboxSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
-import { applyStructureEvent, type StructureEvent, type StructureLoss } from './structureEvents';
-import { familySwitchSnippetLoss, type BaseSectionKey, type SectionIssues, type SectionKey } from './validation';
+import type { StructureAdvisory } from './structureEvents';
+import type { BaseSectionKey, SectionIssues, SectionKey } from './validation';
 import type { SectionTabsFocus } from '../../components/controls';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import type { OidPickerCtx } from './OidPicker';
@@ -72,8 +73,11 @@ interface EchartsEditorSectionsProps {
      * column (or none/drifted — the index fallback). The X-Karte hides its Time format.
      */
     xIsCategory?: boolean;
-    /** The editor's undo — passed through to the Series section's ADR-0069 death snackbar. */
-    undo?: () => void;
+    /**
+     * The modal's notice host (ADR-0067 addendum 2026-11-03): every structure-event advisory of
+     * the pickers and sections (axis death, unit mismatch, data-path loss) lands here.
+     */
+    onAdvisory?: (advisory: StructureAdvisory) => void;
 }
 
 /**
@@ -129,26 +133,6 @@ const sectionTitle = (key: SectionKey): string => {
     return slotTitleKey !== undefined ? Generic.t(slotTitleKey) : Generic.t(BASE_SECTION_TITLES[key as BaseSectionKey]);
 };
 
-/**
- * The non-blocking boundary-reset warning chip (ADR-0067), shared by both crossing selectors —
- * the chart-type picker (family boundary) and the mode toggle (JSON boundary). Rendered while the
- * CURRENT state holds a data path the next crossing would delete; nothing to lose renders nothing.
- * F10: the chip names the FULL reset scope — markings and a set JSON data point fall with the
- * series/axes; the two segment keys append only when their count is non-zero.
- */
-const BoundaryLossAlert: FC<{ lossKey: string; loss?: StructureLoss }> = ({ lossKey, loss }) =>
-    loss && (loss.series > 0 || loss.axes > 0 || loss.marks > 0 || loss.dataPoint) ? (
-        <Alert
-            severity="warning"
-            variant="outlined"
-            sx={{ py: 0, mt: 1 }}
-        >
-            {Generic.t(lossKey, String(loss.series), String(loss.axes))}
-            {loss.marks > 0 && ` ${Generic.t('echarts_boundary_loss_marks', String(loss.marks))}`}
-            {loss.dataPoint && ` ${Generic.t('echarts_boundary_loss_datapoint')}`}
-        </Alert>
-    ) : null;
-
 const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     state,
     set,
@@ -161,28 +145,13 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     tableSchema,
     tableSchemaError,
     xIsCategory,
-    undo,
+    onAdvisory,
 }) => {
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
     const summaries = useMemo(
         () => sectionSummaries(state, Generic.t.bind(Generic), jsonSeriesNames),
         [state, jsonSeriesNames],
     );
-    // ADR-0042: activations the family switch would prune on Apply — advised below; the prune
-    // itself rides Apply (nothing is dropped at switch time). The pre-ADR-0067 bound-OID loss
-    // beside it is pensioned: a family crossing now RESETS the data path (chip at the picker).
-    const snippetLoss = familySwitchSnippetLoss(state);
-    // The boundary reset warnings (ADR-0067/0075): non-blocking chips at the three pickers,
-    // shown BEFORE the crossing — a dry run of the crossing's structure event, so the chip
-    // reads the same loss the crossing derives from its reset patch (ADR-0099 decision 4).
-    const previewLoss = (event: StructureEvent): StructureLoss | undefined => {
-        const advisory = applyStructureEvent({ ...state, payloadNames: jsonSeriesNames ?? [] }, event).advisory;
-        return advisory?.kind === 'dataPathReset' ? advisory.loss : undefined;
-    };
-    const familyLoss = previewLoss({ type: 'changeFamily', to: state.chartType === 'pie' ? 'line' : 'pie' });
-    const boundaryLoss = previewLoss({ type: 'changeMode', to: state.mode === 'json' ? 'history' : 'json' });
-    const jsonKindLoss = previewLoss({ type: 'changeJsonKind', to: state.jsonKind === 'table' ? 'series' : 'table' });
-
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
     const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});
@@ -220,6 +189,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     issues={sectionIssues}
                     jsonSeriesNames={jsonSeriesNames}
                     xIsCategory={xIsCategory}
+                    onAdvisory={onAdvisory}
                 />
             );
         }
@@ -235,7 +205,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         jsonError={jsonError}
                         tableColumns={tableColumns}
                         tableSchemaError={tableSchemaError}
-                        undo={undo}
+                        onAdvisory={onAdvisory}
                     />
                 );
             case 'dataSource':
@@ -317,57 +287,29 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
 
     return (
         <Box>
-            {/* Pinned selectors (ADR-0010): never collapsible, always visible. */}
+            {/* Pinned selectors (ADR-0010): never collapsible, always visible — the three
+                selections only (ADR-0010 addendum 2026-11-03: the rail shows sections on open). */}
             <Box sx={{ display: 'grid', gap: 2, mb: 1.5 }}>
-                <Box>
-                    <ChartTypePicker
-                        state={state}
-                        set={set}
-                        payloadNames={jsonSeriesNames}
-                    />
-                    <BoundaryLossAlert
-                        lossKey="echarts_family_boundary_loss"
-                        loss={familyLoss}
-                    />
-                </Box>
-                <Box>
-                    <ModeSelect
-                        state={state}
-                        set={set}
-                        payloadNames={jsonSeriesNames}
-                    />
-                    <BoundaryLossAlert
-                        lossKey="echarts_mode_boundary_loss"
-                        loss={boundaryLoss}
-                    />
-                </Box>
-                {state.mode === 'json' && (
-                    <Box>
-                        {/* The payload-family toggle (ADR-0075): pinned under the mode toggle —
-                            only while JSON is active (a property OF the json mode, not a mode). */}
-                        <JsonKindSelect
-                            state={state}
-                            set={set}
-                            payloadNames={jsonSeriesNames}
-                        />
-                        <BoundaryLossAlert
-                            lossKey="echarts_json_kind_boundary_loss"
-                            loss={jsonKindLoss}
-                        />
-                    </Box>
-                )}
-                {/* Snippet-prune advice (ADR-0042) — the ONLY family-switch warning left: the
-                    pre-ADR-0067 bound-OID loss share is pensioned (the family crossing resets the
-                    data path now, advised by the chip at the type picker above). */}
-                {snippetLoss > 0 && (
-                    <Alert
-                        severity="warning"
-                        variant="outlined"
-                        sx={{ py: 0 }}
-                    >
-                        <Box component="div">{Generic.t('echarts_family_loss_snippets', String(snippetLoss))}</Box>
-                    </Alert>
-                )}
+                <ChartTypePicker
+                    state={state}
+                    set={set}
+                    payloadNames={jsonSeriesNames}
+                    onAdvisory={onAdvisory}
+                />
+                <ModeSelect
+                    state={state}
+                    set={set}
+                    payloadNames={jsonSeriesNames}
+                    onAdvisory={onAdvisory}
+                />
+                {/* The payload-family toggle (ADR-0075): pinned under the mode toggle — only
+                    while JSON is active (a property OF the json mode, not a mode). */}
+                <JsonKindSelect
+                    state={state}
+                    set={set}
+                    payloadNames={jsonSeriesNames}
+                    onAdvisory={onAdvisory}
+                />
             </Box>
 
             {/* The section stack. */}

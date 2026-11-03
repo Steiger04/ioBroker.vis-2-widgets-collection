@@ -279,6 +279,10 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         ]}
                     >
                         <Box>
+                            {/* The mode hint (B5, ADR-0010 addendum 2026-11-03): one per data
+                             mode, here in the Data source section — the pinned zone carries the
+                             selections only. */}
+                            <InfoBox text={Generic.t('echarts_editor_mode_hint_history')} />
                             <FieldGrid>
                                 <LabeledSelect
                                     label={Generic.t('echarts_time_type')}
@@ -547,7 +551,9 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         onChange={oid => set({ jsonOid: oid })}
                         ctx={pickerCtx}
                     />
-                    <InfoBox text={Generic.t('echarts_editor_info_json')} />
+                    {/* The serien-förmig mode hint (B5) — names the payload shape + what the
+                     editor styles; replaces the bare data-point caption. */}
+                    <InfoBox text={Generic.t('echarts_editor_mode_hint_json')} />
                 </Box>
             )}
 
@@ -569,7 +575,8 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                             onChange={oid => set({ jsonOid: oid })}
                             ctx={pickerCtx}
                         />
-                        <InfoBox text={Generic.t('echarts_editor_info_json')} />
+                        {/* The tabellarisch payload-family hint (B5). */}
+                        <InfoBox text={Generic.t('echarts_editor_json_kind_hint_table')} />
                     </Box>
                     <Box>
                         <InfoBox

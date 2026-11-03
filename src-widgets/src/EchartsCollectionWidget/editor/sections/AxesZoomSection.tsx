@@ -12,15 +12,15 @@
  * the **X-Karte** (ADR-0035; `sections/axes/XCard.tsx`) — the single, non-deletable card for the
  * shared time axis (the old chart-level `xSplit` row lives on as its Splitlinien switch). The
  * structural axis edits — side flip, delete, place move — are structure events (ADR-0099,
- * `editor/structureEvents`); this file renders their notice (the ADR-0025 unit-mismatch
- * toast) and owns the bound-series colour/name defaults per ADR-0018
+ * `editor/structureEvents`); their notice (the ADR-0025 unit mismatch) goes to the modal's
+ * notice host, and this file owns the bound-series colour/name defaults per ADR-0018
  * (positional for Verlauf AND Tabellarisch — ADR-0075; serien-förmig JSON via the
  * visible-payload overlay), dataZoom (slider + inside as
  * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
  * cards).
  */
 import { Fragment, useState, type FC } from 'react';
-import { Alert, Box, Button, Divider, Snackbar, Typography } from '@mui/material';
+import { Box, Button, Divider, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
@@ -45,7 +45,7 @@ import {
     jsonBindingView,
     positionalBinderName,
 } from '../axisSight';
-import { applyStructureEvent, type StructureEvent } from '../structureEvents';
+import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
@@ -97,6 +97,8 @@ interface AxesZoomSectionProps {
     jsonSeriesNames?: string[];
     /** The effective X is a CATEGORY axis (ADR-0075 json-table) — hides the X-Karte's Time format. */
     xIsCategory?: boolean;
+    /** The modal's notice host (ADR-0067 addendum 2026-11-03) — the ADR-0025 unit-mismatch advisory. */
+    onAdvisory?: (advisory: StructureAdvisory) => void;
 }
 
 const AxesZoomSection: FC<AxesZoomSectionProps> = ({
@@ -107,6 +109,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     pickerCtx,
     jsonSeriesNames,
     xIsCategory,
+    onAdvisory,
 }) => {
     const axes = state.yAxes;
     // The payload-family gate (ADR-0075): only the SERIEN-FÖRMIG family binds axes through the
@@ -126,9 +129,6 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     const toggleCard = (key: string): void => setExpanded(e => ({ ...e, [key]: !e[key] }));
     // The X-Karte has its own expand flag (a single card, no list index).
     const [xExpanded, setXExpanded] = useState(false);
-    // Advisory toast for the axis-delete rebind fallback (ADR-0025): shown when a deleted axis'
-    // series are rebound to axis 0 because no survivor shares the format (a likely unit mismatch).
-    const [toast, setToast] = useState<string | null>(null);
     /**
      * Effective colour of the first series bound to axis i — the axis-colour default (ADR-0018).
      * Verlauf + Tabellarisch: the positional `state.series`. Serien-förmig JSON: the name-keyed
@@ -191,8 +191,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         if (r.patch) {
             set(r.patch);
         }
-        if (r.advisory?.kind === 'unitMismatch') {
-            setToast(Generic.t('echarts_axis_rebind_unit_mismatch'));
+        // The axis-delete rebind fallback (ADR-0025): a deleted axis' series went to axis 0
+        // because no survivor shares the format — the host warns of a likely unit mismatch.
+        if (r.advisory && onAdvisory) {
+            onAdvisory(r.advisory);
         }
     };
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
@@ -397,21 +399,6 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                     )}
                 </Box>
             </SectionTabs>
-            <Snackbar
-                open={!!toast}
-                autoHideDuration={5000}
-                onClose={() => setToast(null)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    severity="warning"
-                    variant="filled"
-                    onClose={() => setToast(null)}
-                    sx={{ alignItems: 'center' }}
-                >
-                    {toast}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 };

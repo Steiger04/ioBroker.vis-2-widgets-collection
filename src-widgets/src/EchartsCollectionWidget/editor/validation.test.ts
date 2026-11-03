@@ -1,7 +1,7 @@
 /**
- * Unit tests for the advisory validation engine (ADR-0010): {@link validateEditor} +
- * {@link familySwitchSnippetLoss} (ADR-0042). The boundary loss moved into the structure
- * events (ADR-0099 — `structureEvents.test.ts`).
+ * Unit tests for the advisory validation engine (ADR-0010): {@link validateEditor}. The boundary
+ * loss — incl. the ADR-0042 template count — moved into the structure events (ADR-0099 —
+ * `structureEvents.test.ts`).
  *
  * @module EchartsCollectionWidget/editor/validation.test
  */
@@ -21,7 +21,7 @@ vi.hoisted(() => {
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { familySwitchSnippetLoss, firstIssueTabOf, issueCountsByTab, tabOfIssue, validateEditor } from './validation';
+import { firstIssueTabOf, issueCountsByTab, tabOfIssue, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -129,32 +129,6 @@ describe('validateEditor', () => {
         );
         expect(issues.axesZoom).toBeUndefined();
         expect(issues.colors).toBeUndefined();
-    });
-});
-
-describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
-    // The chart-level term retired with the chart-U (ADR-0045); the radar section raw rides the
-    // chartConfig blob inert across families (never a loss) — what remains are the series-level terms.
-    it('pie target: slice-slot-stale cartesian activations count', () => {
-        const n = familySwitchSnippetLoss(
-            st({ chartType: 'pie', series: [{ oid: 'a', name: '', snippets: ['line-sampling', 'slice-itemstyle'] }] }),
-        );
-        expect(n).toBe(1);
-    });
-
-    it('valid activations cost nothing — cartesian line activations on a cartesian line target', () => {
-        const n = familySwitchSnippetLoss(
-            st({
-                chartType: 'line',
-                series: [{ oid: 'a', name: '', snippets: ['line-sampling'] }],
-            }),
-        );
-        expect(n).toBe(0);
-    });
-
-    it('no activations → zero for every family', () => {
-        expect(familySwitchSnippetLoss(st({ chartType: 'pie' }))).toBe(0);
-        expect(familySwitchSnippetLoss(st({ chartType: 'line' }))).toBe(0);
     });
 });
 

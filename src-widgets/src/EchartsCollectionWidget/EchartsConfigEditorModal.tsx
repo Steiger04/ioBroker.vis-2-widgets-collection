@@ -51,6 +51,8 @@ import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useJsonTableSchema } from './editor/useJsonTableSchema';
 import { useSplitPane } from './editor/useSplitPane';
 import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
+import { noticeOf } from './editor/editorNotice';
+import type { StructureAdvisory } from './editor/structureEvents';
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
 import type { Connection } from '@iobroker/adapter-react-v5';
@@ -101,10 +103,17 @@ function EchartsConfigEditorModal({
     const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
     // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names (the
     // policy + firing condition live in the lifecycle module) and returns the VISIBLE set — the
-    // single derivation site, reused by the preview meta below. The ADR-0069 vanish death reports
-    // info-only (undo is futile — the next reconcile over the same payload re-kills the axis).
-    const [vanishDeath, setVanishDeath] = useState<string[] | null>(null);
-    const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set, setVanishDeath);
+    // single derivation site, reused by the preview meta below. Its ADR-0069 vanish death reports
+    // through the notice host below (info-only — the next reconcile would re-kill the axis).
+    // The ONE notice host (ADR-0067 addendum 2026-11-03): every structure-event advisory —
+    // pickers, Series, Axes & Zoom, the reconcile — lands here; a new notice replaces the
+    // previous one (the token re-keys the snackbar, so its auto-hide restarts).
+    const [notice, setNotice] = useState<{ advisory: StructureAdvisory; token: number } | null>(null);
+    const pushAdvisory = useCallback(
+        (advisory: StructureAdvisory): void => setNotice(n => ({ advisory, token: (n?.token ?? 0) + 1 })),
+        [],
+    );
+    const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set, pushAdvisory);
     // Tabellarisch (ADR-0075): the schema sight over the SAME subscribed payload — the Series
     // section's yPath pickers and the drift validation both read this ONE subscription (the
     // serien-förmig preview above stays gated off in the table family).
@@ -125,7 +134,10 @@ function EchartsConfigEditorModal({
     useEffect(() => {
         setFocusSection(null);
         setMaximized(false);
+        setNotice(null);
     }, [loadToken]);
+    // Generic.t needs its `this` — never hand it over unbound (host crash).
+    const shownNotice = notice ? noticeOf(notice.advisory, (key, ...args) => Generic.t(key, ...args)) : null;
 
     const handleApply = useCallback(() => {
         onDataChange(apply());
@@ -319,7 +331,7 @@ function EchartsConfigEditorModal({
                                 tableSchema={tableSchema}
                                 tableSchemaError={tableSchema.error}
                                 xIsCategory={xIsCategory}
-                                undo={undo}
+                                onAdvisory={pushAdvisory}
                             />
                         </Box>
                         {/* Splitter (ADR-0019 signature element): the bare 1 px hairline — divider
@@ -443,14 +455,28 @@ function EchartsConfigEditorModal({
                 onCancel={() => setConfirmDiscardOpen(false)}
                 onConfirm={confirmDiscard}
             />
-            {/* ADR-0069 vanish-death notice (info-only, no undo — the next reconcile over the
-                same payload would re-kill the restored axis; the Series section owns the
-                undoable deaths' snackbar). */}
-            {vanishDeath && (
+            {/* The notice host (ADR-0067 addendum 2026-11-03): one snackbar for every advisory;
+                „Rückgängig" reverts the editor's last step — the one that raised the notice. */}
+            {shownNotice && notice && (
                 <NoticeSnackbar
-                    message={Generic.t('echarts_axis_died_info', vanishDeath.join(', '))}
-                    severity="info"
-                    onClose={() => setVanishDeath(null)}
+                    key={notice.token}
+                    message={shownNotice.message}
+                    severity={shownNotice.severity}
+                    onClose={() => setNotice(null)}
+                    action={
+                        shownNotice.undoable ? (
+                            <Button
+                                color="inherit"
+                                size="small"
+                                onClick={() => {
+                                    undo();
+                                    setNotice(null);
+                                }}
+                            >
+                                {Generic.t('echarts_undo')}
+                            </Button>
+                        ) : undefined
+                    }
                 />
             )}
         </ThemeProvider>

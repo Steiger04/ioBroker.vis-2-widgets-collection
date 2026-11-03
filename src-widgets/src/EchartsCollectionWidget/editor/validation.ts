@@ -9,10 +9,7 @@
  * it warns, it does not patronise. Anything that must be enforced belongs in `saveEditorState`
  * (normalisation), not here.
  */
-import { familyOf } from '../families/kernel';
 import { editorialOf, type FAMILY_EDITORIAL } from '../families/editorial';
-import { pruneSnippetIds } from './snippetComposition';
-import { SERIES_TEMPLATES, seriesSlotOf, type SeriesTemplateSlot } from './seriesTemplates';
 import type { EditorState } from './editorState';
 
 /** The rail's family-agnostic base section keys — hand-written, every family carries them. */
@@ -124,26 +121,4 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
     }
 
     return issues;
-};
-
-/**
- * Count the ACTIVE template activations (ADR-0042) a chart-family switch would prune on Apply.
- * The LAST family-switch loss advice (the bound-OID share died with ADR-0067's data-path reset):
- * between the switch and Apply the stale ids sit inert in the working copy, and the prune rides
- * Apply.
- *
- * ADR-0067 note: since the family crossing RESETS every series, the historical survivor model
- * below (slot-stale activations on survivors) can only bite on
- * a working copy that never actually crossed — the post-switch case is vacuous (no series left).
- * Kept verbatim per the ticket ("die Snippet-Prune-Warnung bleibt unberührt"); the slot-stale
- * machinery still guards the load path over hand-edited blobs.
- */
-export const familySwitchSnippetLoss = (state: EditorState): number => {
-    const family = familyOf(state.chartType);
-    const stale = (ids: string[] | undefined, slot: SeriesTemplateSlot): number =>
-        ids ? ids.length - pruneSnippetIds(SERIES_TEMPLATES[slot], ids).length : 0;
-    return state.series.reduce(
-        (total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s, state.jsonKind)),
-        0,
-    );
 };

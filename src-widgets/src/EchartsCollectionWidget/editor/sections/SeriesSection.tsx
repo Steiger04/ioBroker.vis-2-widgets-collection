@@ -16,14 +16,13 @@
  *  - json (cartesian + pie) — {@link JsonSeriesCards}: one card per payload series.
  *
  * Validation issues surface as a compact warning list on top (they are item-scoped). An axis death
- * by side effect (series-delete, rebind, JSON hide) reports through the ADR-0069 snackbar with an
- * undo action (the triggering `set` IS the undoable step).
+ * by side effect (series-delete, rebind, JSON hide) reports as an advisory to the modal's notice
+ * host — the ADR-0069 snackbar with undo (the triggering `set` IS the undoable step).
  */
 import { useEffect, useRef, useState, type FC } from 'react';
-import { Box, Button } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import NoticeSnackbar from '../../components/NoticeSnackbar';
 import { InfoBox } from '../../../components/controls';
 import { useEditorTheme } from '../useEditorTheme';
 import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
@@ -32,7 +31,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { applyStructureEvent, type StructureEvent } from '../structureEvents';
+import { applyStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -95,11 +94,11 @@ interface SeriesSectionProps {
     /** Tabellarisch: the schema's rows/JSON error surface. */
     tableSchemaError?: string;
     /**
-     * The editor's undo (ADR-0069 safety net) — powers the axis-death snackbar's action. The
-     * triggering `set` below is one history step, so undo restores series + axis + anchors
-     * together. Absent (tests, non-modal callers): the snackbar degrades to info-only.
+     * The modal's notice host (ADR-0067 addendum 2026-11-03) — receives the ADR-0069 axis-death
+     * advisory. The triggering `set` is one history step, so the host's undo restores series +
+     * axis + anchors together. Absent (tests, non-modal callers): no notice.
      */
-    undo?: () => void;
+    onAdvisory?: (advisory: StructureAdvisory) => void;
 }
 
 /** The non-Verlauf fallback sight — `loaded: true` so the missing-adapter hint never flashes. */
@@ -114,7 +113,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     jsonError,
     tableColumns,
     tableSchemaError,
-    undo,
+    onAdvisory,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -136,10 +135,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const series = state.series;
     const update = (i: number, patch: Partial<EditorSeries>): void =>
         set({ series: series.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
-
-    // The ADR-0069 axis-death snackbar: a death by side effect reports the lost axis(es) with an
-    // undo action (non-blocking; one set() = the undoable step). Explicit deletes stay silent.
-    const [axisDeath, setAxisDeath] = useState<string[] | null>(null);
 
     // OID → text facts (ADR-0058, parity Build B): resolve each NEWLY bound OID's object once
     // and prefill/clean the series' text fields (bool texts, enum state names). Runs on load too
@@ -185,8 +180,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         if (r.patch) {
             set(r.patch);
         }
-        if (r.advisory?.kind === 'axisDeath') {
-            setAxisDeath(r.advisory.names);
+        if (r.advisory && onAdvisory) {
+            onAdvisory(r.advisory);
         }
     };
     // Series-leave kills the axis without a remaining binder (ADR-0069).
@@ -319,27 +314,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     onDuplicate={duplicate}
                     onAddWithOid={addWithOid}
                     onRebindAxis={rebindAxis}
-                />
-            )}
-            {axisDeath && (
-                <NoticeSnackbar
-                    message={Generic.t('echarts_axis_died', axisDeath.join(', '))}
-                    severity="warning"
-                    onClose={() => setAxisDeath(null)}
-                    action={
-                        undo ? (
-                            <Button
-                                color="inherit"
-                                size="small"
-                                onClick={() => {
-                                    undo();
-                                    setAxisDeath(null);
-                                }}
-                            >
-                                {Generic.t('echarts_undo')}
-                            </Button>
-                        ) : undefined
-                    }
                 />
             )}
         </Box>
