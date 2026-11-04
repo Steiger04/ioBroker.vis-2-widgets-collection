@@ -45,7 +45,19 @@ export function useColorFieldBinding(
     );
     return {
         value: typeof stored === 'string' ? stored : null,
-        title: 'label' in field && field.label ? Generic.t(field.label) : undefined,
+        title: 'label' in field && field.label ? translateFieldLabel(field.label) : undefined,
         onChange,
     };
+}
+
+/**
+ * Translates a field label exactly once.
+ *
+ * @param label - Field label; the vis-2 host catalog has usually prefixed it with the set's i18n
+ *   prefix already (`i18nPrefix + label`), while `Generic.t` adds that prefix itself.
+ * @returns The translated label.
+ */
+function translateFieldLabel(label: string): string {
+    const prefix = Generic.getI18nPrefix();
+    return Generic.t(label.startsWith(prefix) ? label.slice(prefix.length) : label);
 }

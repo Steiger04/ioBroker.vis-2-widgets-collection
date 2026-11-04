@@ -169,6 +169,12 @@ describe('ContractColorField opens the Farbwähler', () => {
         expect(open(container)?.querySelector('[data-picker-title]')?.textContent).toBe('t:icon_color');
     });
 
+    it('translates a label the vis-2 host already prefixed only once', () => {
+        // The host catalog writes the set prefix into field.label (visWidgetsCatalog: i18nPrefix + label).
+        const { container } = mount({ label: 'vis_2_widgets_collection_icon_color' });
+        expect(open(container)?.querySelector('[data-picker-title]')?.textContent).toBe('t:icon_color');
+    });
+
     it('with the Collection theme colours as presets', () => {
         const presets = Array.from(
             open(mount({}).container)?.querySelectorAll<HTMLElement>('button[data-preset]') ?? [],
