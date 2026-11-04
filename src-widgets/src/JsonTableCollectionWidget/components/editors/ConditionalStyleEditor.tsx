@@ -36,7 +36,8 @@ import type { Connection } from '@iobroker/adapter-react-v5';
 import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../../lib/helper/gradientTextSx';
-import type { ColumnStyleRule } from '../../types';
+import type { ColumnFormatConfig, ColumnStyleRule } from '../../types';
+import { cellBaseTextColor, UNPAINTED_CELL_COLOR, type CellColorInheritance } from '../../utils/cellColors';
 import ConditionRuleBuilder from '../ConditionRuleBuilder';
 import type { JsonLogicRule } from '../../utils/jsonLogicEngine';
 
@@ -54,10 +55,16 @@ export interface ConditionalStyleEditorProps {
     onModeChange: (mode: 'first-match' | 'all-match') => void;
     /** Connection for the Collection theme presets of the Farbwähler (optional) */
     socket?: Connection;
+    /** The column's format: its static text colour is what a rule's text colour overrides */
+    format: ColumnFormatConfig | undefined;
+    /** What the table's cells inherit their text colour from (the text colour row's swatch) */
+    inheritance: CellColorInheritance;
 }
 
 /**
- * Renders conditional styling controls with rule builder and live preview.
+ * Renders conditional styling controls with rule builder and live preview. Without a value the
+ * colour rows show what a matching cell paints then: no background (transparent), the format's
+ * or the inherited text colour (`cellBaseTextColor`); the stored values stay empty.
  */
 function ConditionalStyleEditor({
     cellStyle,
@@ -66,6 +73,8 @@ function ConditionalStyleEditor({
     onStyleChange,
     onModeChange,
     socket,
+    format,
+    inheritance,
 }: ConditionalStyleEditorProps): React.JSX.Element {
     // Update a single style rule at a given index
     const updateStyleRule = useCallback(
@@ -275,6 +284,7 @@ function ConditionalStyleEditor({
                                 <ColorPickerField
                                     label={Generic.t('json_table_bg_color')}
                                     value={rule.backgroundColor || ''}
+                                    swatchValue={rule.backgroundColor || UNPAINTED_CELL_COLOR}
                                     overridden={!!rule.backgroundColor}
                                     onChange={c => updateStyleRule(idx, { backgroundColor: c || undefined })}
                                     allowGradient
@@ -283,6 +293,7 @@ function ConditionalStyleEditor({
                                 <ColorPickerField
                                     label={Generic.t('json_table_text_color')}
                                     value={rule.textColor || ''}
+                                    swatchValue={rule.textColor || cellBaseTextColor(format, inheritance)}
                                     overridden={!!rule.textColor}
                                     onChange={c => updateStyleRule(idx, { textColor: c || undefined })}
                                     allowGradient

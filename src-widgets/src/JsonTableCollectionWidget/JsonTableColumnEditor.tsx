@@ -18,9 +18,12 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../Generic';
+import { readWidgetStyleColor } from '../components/ContractColorField';
+import useCollectionTheme from '../hooks/useCollectionTheme';
 import JsonTableColumnEditorModal from './components/JsonTableColumnEditorModal';
 import { parseColumnConfig, utf8ToBase64 } from './utils/columnConfig';
 import type { ColumnConfigEntry } from './types';
+import type { CellColorInheritance } from './utils/cellColors';
 
 import type {
     RxWidgetInfoAttributesField,
@@ -49,6 +52,14 @@ function JsonTableColumnEditor(
 ): React.JSX.Element {
     const fieldName = field.name || 'columnConfig';
     const theme: VisTheme = props.context.theme;
+    // The table renders under the Collection theme and the widget's vis-2 CSS `color`; the
+    // colour rows of the editors show what its cells inherit from them (pattern ContractColorField).
+    const collectionTheme = useCollectionTheme(props.context.socket, theme);
+    const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
+    const inheritance = useMemo<CellColorInheritance>(
+        () => ({ theme: collectionTheme, styleColor }),
+        [collectionTheme, styleColor],
+    );
 
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -121,6 +132,7 @@ function JsonTableColumnEditor(
                 theme={theme}
                 data={data}
                 socket={props.context.socket}
+                inheritance={inheritance}
             />
         </Box>
     );

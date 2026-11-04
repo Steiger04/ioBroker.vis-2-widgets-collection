@@ -115,6 +115,18 @@ function staticStringStyle(fmt: ColumnFormatConfig): Record<string, unknown> {
     return textSx;
 }
 
+/**
+ * The text colour a column's format paints before its conditional rules: the string format's
+ * static text colour — only a `string` format applies its static style (see {@link FORMATTERS}).
+ * Undefined when the format paints none (the cell inherits the table text).
+ *
+ * @param fmt - The column's format (undefined: none configured).
+ * @returns The static text colour, or undefined.
+ */
+export function staticStringTextColor(fmt: ColumnFormatConfig | undefined): string | undefined {
+    return fmt?.type === 'string' ? (staticStringStyle(fmt).color as string | undefined) : undefined;
+}
+
 // ── Formatter descriptor registry ───────────────────────────────────
 
 /** One descriptor per format type. */
