@@ -29,6 +29,7 @@ import type {
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
+import { deriveAreaGradient } from '../seriesColorDerive';
 import { axisPosition } from '../editor/axisSight';
 import {
     buildLegend,
@@ -252,8 +253,10 @@ const buildCartesianSeriesEntry = (
         if (areaMode !== 'off') {
             const opacity = m?.areaOpacity ?? (areaMode === 'gradient' ? 0.8 : 0.15);
             if (areaMode === 'gradient') {
-                // D5: honour the CSS gradient angle/direction → echarts LinearGradient.
-                const grad = toEchartsLinearGradient(m?.areaGradient);
+                // D5: honour the CSS gradient angle/direction → echarts LinearGradient. Without a
+                // chosen gradient the area inherits the derived Flächen-Verlauf of the effective
+                // series colour (ADR-0101) — the same function feeds the editor's inherit preview.
+                const grad = toEchartsLinearGradient(m?.areaGradient) ?? deriveAreaGradient(color)?.echarts;
                 entry.areaStyle = grad ? { opacity, color: grad } : { opacity };
             } else {
                 entry.areaStyle = { opacity };
