@@ -13,8 +13,8 @@
  * The fake renders one button per entry of {@link FAKE_PICKS} (`button[data-pick="<name>"]`);
  * a click calls the received `onChange` with that fixed value, as a drag in the real picker
  * would. Unless `hidePresets` is set, it also renders the received presets (at most 18) as
- * `button[data-preset="<value>"]`; a click emits the preset unchanged. Every render records the received props in {@link libraryRenders}; read the latest with
- * {@link lastLibraryProps}. The hook export (`useColorPicker`) is not faked — a test that needs
+ * `button[data-preset="<value>"]`; a click emits the preset unchanged. Every render records the
+ * received props in {@link libraryRenders}; read the latest with {@link lastLibraryProps}. The hook export (`useColorPicker`) is not faked — a test that needs
  * the real hook spreads `await importOriginal()` into the factory instead.
  */
 import type React from 'react';
