@@ -1350,5 +1350,6 @@
     "echarts_card_tab_json": "JSON",
     "color_gradient_not_allowed": "Dégradé impossible ici",
     "color_invalid": "Couleur non valide",
-    "color_picker_close": "Fermer"
+    "color_picker_close": "Fermer",
+    "color_picker_alpha_hint": "Opacité en pourcentage (0–100)"
 }
