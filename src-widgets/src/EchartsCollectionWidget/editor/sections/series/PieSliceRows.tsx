@@ -78,6 +78,7 @@ const PieSliceRows: FC<PieSliceRowsProps> = ({ state, pickerCtx, slot, onUpdate,
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <ColorField
+                                        title={Generic.t('echarts_editor_series_color')}
                                         value={s.color}
                                         fallback={slot(i)}
                                         onChange={v => onUpdate(i, { color: v ?? undefined })}

@@ -146,7 +146,7 @@ describe('resolveEffectiveSolidColor', () => {
     } as unknown as Theme;
 
     const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
-    /** A valid gradient (validateColorInput accepts it) without a Repräsentative Vollfarbe. */
+    /** A valid gradient (the Regeln für Farbeingaben accept it) without a Repräsentative Vollfarbe. */
     const NAMED_GRADIENT = 'linear-gradient(red, blue)';
 
     const border = contract({ name: 'thumbBorderColor', terminal: 'primary', fallbackFields: ['sliderColor'] });

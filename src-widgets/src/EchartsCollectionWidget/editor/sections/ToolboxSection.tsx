@@ -192,6 +192,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                             <Box>
                                 <FieldLabel>{Generic.t('echarts_toolbox_icon_color')}</FieldLabel>
                                 <ColorField
+                                    title={Generic.t('echarts_toolbox_icon_color')}
                                     value={tb.iconColor ?? null}
                                     fallback={token.icon}
                                     onChange={v => patch({ iconColor: v ?? undefined })}
@@ -201,6 +202,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                             <Box>
                                 <FieldLabel>{Generic.t('echarts_toolbox_icon_hover_color')}</FieldLabel>
                                 <ColorField
+                                    title={Generic.t('echarts_toolbox_icon_hover_color')}
                                     value={tb.iconHoverColor ?? null}
                                     fallback={token.hover}
                                     onChange={v => patch({ iconHoverColor: v ?? undefined })}
@@ -217,6 +219,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                             <Box>
                                 <FieldLabel>{Generic.t('echarts_toolbox_border_color')}</FieldLabel>
                                 <ColorField
+                                    title={Generic.t('echarts_toolbox_border_color')}
                                     value={tb.borderColor ?? null}
                                     fallback={token.border}
                                     onChange={v => patch({ borderColor: v ?? undefined })}
@@ -240,6 +243,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                             <Box>
                                 <FieldLabel>{Generic.t('echarts_toolbox_background')}</FieldLabel>
                                 <ColorField
+                                    title={Generic.t('echarts_toolbox_background')}
                                     value={bgValue}
                                     onChange={v => patch({ backgroundColor: v ?? 'transparent' })}
                                     ctx={pickerCtx}

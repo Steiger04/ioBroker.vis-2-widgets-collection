@@ -136,6 +136,7 @@ export const BasisTab: FC<{
                 <Box>
                     <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
                     <ColorField
+                        title={Generic.t('echarts_editor_series_color')}
                         value={meta.color}
                         fallback={colorFallback}
                         onChange={v => onPatch({ color: v ?? undefined })}

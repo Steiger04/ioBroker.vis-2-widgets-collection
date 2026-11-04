@@ -163,6 +163,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                         <Box sx={{ flex: 1, minWidth: 0 }}>
                                             <ColorField
+                                                title={Generic.t('echarts_editor_series_color')}
                                                 value={m.color}
                                                 fallback={slot(i)}
                                                 onChange={v => onUpdateJson(name, { color: v ?? undefined })}

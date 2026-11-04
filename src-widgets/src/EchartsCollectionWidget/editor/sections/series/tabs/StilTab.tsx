@@ -132,6 +132,7 @@ const ColorScaleGroup: FC<{
                 <Box>
                     <FieldLabel>{Generic.t('echarts_series_color_scale_colors')}</FieldLabel>
                     <ColorField
+                        title={Generic.t('echarts_series_color_scale_colors')}
                         value={meta.colorScaleColors}
                         // Inherit swatch + picker start value = the derived scale the builder
                         // draws; the solid colour only when none can be derived.
@@ -317,6 +318,7 @@ export const StilTab: FC<{
                                 <Box>
                                     <FieldLabel>{Generic.t('echarts_series_area_gradient')}</FieldLabel>
                                     <ColorField
+                                        title={Generic.t('echarts_series_area_gradient')}
                                         value={meta.areaGradient}
                                         // Inherit swatch + picker start value = the derived
                                         // Flächen-Verlauf the builder draws (ADR-0101) — the
@@ -377,6 +379,7 @@ export const StilTab: FC<{
                         <Box>
                             <FieldLabel>{Generic.t('echarts_bar_label_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_bar_label_color')}
                                 value={meta.labelColor}
                                 fallback={labelColorFallback}
                                 onChange={v => onPatch({ labelColor: v ?? undefined })}

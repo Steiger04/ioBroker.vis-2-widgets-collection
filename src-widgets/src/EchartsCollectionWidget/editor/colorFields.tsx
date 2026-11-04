@@ -1,16 +1,21 @@
 /**
- * Color inputs for the echarts configurator, all routed through the project's
- * {@link CollectionGradientColorPicker} — the same picker the vis-2 attribute editors use.
+ * Color inputs for the echarts configurator, all rendered as the Textfeld-Zeile
+ * ({@link ColorTextFieldRow}) — the same row the vis-2 attribute panel uses (ADR-0102).
  *
  * @module EchartsCollectionWidget/editor/colorFields
  * @remarks
- * `CollectionGradientColorPicker` speaks the vis-2 attribute-field contract (`field`, `data`,
- * `onDataChange`, `props`), not `value`/`onChange`. These wrappers bridge that contract to the
- * modal's working-state model: a synthetic single-field `data`/`onDataChange` pair, an optional
- * `fallback` color shown when no explicit value is set (so a series colour inherits its palette
- * slot and the swatch still resolves), and a minimal `props` carrying just the socket + theme.
+ * The fields talk to the row in the modal's working-state terms: the explicit value, its change
+ * (`null` = back to inherit) and an optional `fallback` — the colour the field inherits (its
+ * palette slot, the theme token the builder draws, a derived scale). The swatch shows the stored
+ * value while it is a colour, else the fallback; there is no vis-2 attribute contract and no
+ * Auflösungskaskade here (ADR-0102: the configurator does not pretend to be an attribute field).
  *
- * The picker renders its OWN clear (trash) button when a colour is set (ADR-0004) — that single
+ * The row renders under the ambient MUI theme: the configurator modal provides the editor theme
+ * (`EchartsConfigEditorModal`'s `ThemeProvider`), so the row and its Farbwähler follow the
+ * configurator's light / dark mode. The editor socket reaches the Farbwähler for the Collection
+ * theme presets, read only while it is open.
+ *
+ * The row renders its OWN clear (trash) button when a colour is set (ADR-0004) — that single
  * affordance is the "remove colour / back to inherit" control. There is no second external trash:
  * the ADR-0018 per-field trash duplicated the picker's and has been removed.
  */
@@ -18,10 +23,9 @@ import type { FC } from 'react';
 import { Box, Button } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
-import CollectionGradientColorPicker from '../../components/CollectionGradientColorPicker';
+import ColorTextFieldRow from '../../components/ColorTextFieldRow';
 import Generic from '../../Generic';
-import type { ExtendedField } from '../../types/field-definitions/extended-field';
-import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
+import { applyColorInputRules } from '../../lib/helper/colorInputRules';
 import type { OidPickerCtx } from './OidPicker';
 
 interface ColorFieldProps {
@@ -29,7 +33,7 @@ interface ColorFieldProps {
     value: string | null | undefined;
     /** Called with the new explicit colour, or `null` when cleared back to inherit. */
     onChange: (value: string | null) => void;
-    /** Editor context (socket + theme), drilled to the picker. */
+    /** Editor context; its socket gives the Farbwähler the Collection theme presets. */
     ctx: OidPickerCtx;
     /** Optional colour shown in the swatch when no explicit value is set. */
     fallback?: string;
@@ -40,67 +44,63 @@ interface ColorFieldProps {
      * neither the input nor the picker swatch takes focus or clicks.
      */
     disabled?: boolean;
+    /** Farbwähler header title — the translated label the field sits under. */
+    title?: string;
 }
 
 /**
- * Single colour input backed by `CollectionGradientColorPicker`. The swatch resolves to the
- * `fallback` when the value is empty (the "inherit" state), and clearing returns to inherit.
+ * The colour the swatch shows: the stored value while it is a colour (Regeln für Farbeingaben,
+ * as typed, gradients allowed), else the fallback, else none (`''`, the dashed empty swatch).
+ *
+ * @param value - Stored explicit colour.
+ * @param fallback - The inherited colour.
+ * @returns The swatch colour.
  */
-const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allowGradient, disabled }) => {
-    const field = {
-        name: 'c',
-        noGradient: allowGradient !== true,
-        ...(fallback ? { fallbackFields: ['fallback'] } : {}),
-    } as ExtendedField;
-    const data = {
-        c: value ?? null,
-        ...(fallback ? { fallback } : {}),
-    } as WidgetData;
-    const onDataChange = (patch: WidgetData): void =>
-        onChange((patch as unknown as Record<string, unknown>).c as string | null);
-    const props = {
-        context: { theme: ctx.theme, socket: ctx.socket },
-    } as unknown as RxWidgetInfoCustomComponentProperties;
+function swatchColorOf(value: string | null | undefined, fallback: string | undefined): string {
+    for (const candidate of [value, fallback]) {
+        const result = applyColorInputRules(candidate, { source: 'typed', allowGradient: true });
+        if (result.kind === 'value') {
+            return result.value;
+        }
+    }
+    return '';
+}
 
-    const picker = (
-        <CollectionGradientColorPicker
-            field={field}
-            data={data}
-            onDataChange={onDataChange}
-            props={props}
-            // One field variant across the configurator (B10, review 2026-11-03): the colour
-            // input matches the outlined TextField2/LabeledSelect neighbours.
-            inputVariant="outlined"
-        />
-    );
-    // The shared picker has no disabled state of its own — `inert` takes the whole field out of
-    // focus and pointer reach, the MUI disabled opacity tells it (no new picker variant).
-    return disabled ? (
-        <Box
-            inert
-            aria-disabled
-            sx={{ opacity: theme => theme.palette.action.disabledOpacity }}
-        >
-            {picker}
-        </Box>
-    ) : (
-        picker
-    );
-};
+/**
+ * Single colour input: the outlined Textfeld-Zeile. The swatch resolves to the `fallback` when
+ * the value is empty (the "inherit" state), and clearing returns to inherit.
+ */
+const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allowGradient, disabled, title }) => (
+    <ColorTextFieldRow
+        value={value}
+        onChange={onChange}
+        effectiveColor={swatchColorOf(value, fallback)}
+        placeholder="inherit"
+        // One field variant across the configurator (B10, review 2026-11-03): the colour
+        // input matches the outlined TextField2/LabeledSelect neighbours.
+        variant="outlined"
+        allowGradient={allowGradient === true}
+        title={title}
+        disabled={disabled}
+        socket={ctx.socket}
+    />
+);
 
 interface ColorListFieldProps {
     /** `;`-separated colour list. */
     value: string;
     onChange: (value: string) => void;
     ctx: OidPickerCtx;
+    /** Farbwähler header title of every stop — the translated label of the list. */
+    title?: string;
 }
 
 /**
  * Multi-stop colour list (palette stops) — one ColorField per stop. Removing a
- * stop is done via the picker's own clear (clearing a stop's colour splices it; an empty-colour stop is
+ * stop is done via the row's own clear (clearing a stop's colour splices it; an empty-colour stop is
  * meaningless in a list) — there is no separate per-stop remove button.
  */
-const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx }) => {
+const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx, title }) => {
     const colors = value
         .split(';')
         .map(s => s.trim())
@@ -124,6 +124,7 @@ const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx }) => {
                     value={c}
                     onChange={v => set(i, v)}
                     ctx={ctx}
+                    title={title}
                 />
             ))}
             <Button

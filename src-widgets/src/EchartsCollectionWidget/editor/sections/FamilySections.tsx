@@ -131,6 +131,7 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({
                         <Box>
                             <FieldLabel>{Generic.t('echarts_pie_label_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_pie_label_color')}
                                 value={state.pie.labelColor}
                                 fallback={pieLabelColorOf(state.pie, textPrimary)}
                                 onChange={v => setPie({ labelColor: v ?? undefined })}

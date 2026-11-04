@@ -242,6 +242,7 @@ const XCard: FC<{
                     <Box sx={{ mb: 1.5 }}>
                         <FieldLabel>{Generic.t('echarts_axis_color')}</FieldLabel>
                         <ColorField
+                            title={Generic.t('echarts_axis_color')}
                             value={x.color ?? ''}
                             fallback={fallbackColor}
                             onChange={v => onChange({ color: v ?? undefined })}
@@ -323,6 +324,7 @@ const XCard: FC<{
                         <Box>
                             <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_axis_tick_color')}
                                 value={x.tickColor ?? ''}
                                 fallback={x.color ?? fallbackColor}
                                 onChange={v => onChange({ tickColor: v ?? undefined })}

@@ -36,6 +36,7 @@ const GridStyleFields: FC<GridStyleFieldsProps> = ({ color, width, lineType, div
         <Box>
             <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
             <ColorField
+                title={Generic.t('echarts_axis_grid_color')}
                 value={color}
                 fallback={dividerColor}
                 onChange={v => onChange({ gridColor: v ?? undefined })}
