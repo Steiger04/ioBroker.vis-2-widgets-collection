@@ -160,7 +160,7 @@
     "echarts_collection_widget": "Графік (ECharts)",
     "echarts_color_add": "Додати колір",
     "echarts_color_scale_area_hint": "Область зберігає свій градієнт, лінія слідує кольоровій шкалі.",
-    "echarts_color_scale_hint": "Замінює колір серії залежно від значення. Без власних кольорів шкала йде від світлого (низькі) через колір серії до темного (високі).",
+    "echarts_color_scale_hint": "Замінює колір серії залежно від значення. Без власного градієнта шкала йде від світлого (низькі) через колір серії до темного (високі).",
     "echarts_color_scale_inherit_axis": "Успадкувати (→ вісь: %s)",
     "echarts_color_scale_inherit_data": "Успадкувати (→ дані: %s)",
     "echarts_color_scale_inherit_data_unknown": "Успадкувати (→ дані)",

@@ -153,7 +153,7 @@
     "echarts_collection_widget": "Diagramm (ECharts)",
     "echarts_color_add": "Farbe hinzufügen",
     "echarts_color_scale_area_hint": "Die Fläche behält ihren Verlauf, die Linie folgt der Farbskala.",
-    "echarts_color_scale_hint": "Ersetzt die Serienfarbe nach Wert. Ohne eigene Farben verläuft die Skala von hell (niedrig) über die Serienfarbe zu dunkel (hoch).",
+    "echarts_color_scale_hint": "Ersetzt die Serienfarbe nach Wert. Ohne eigenen Verlauf reicht die Skala von hell (niedrig) über die Serienfarbe bis dunkel (hoch).",
     "echarts_color_scale_inherit_axis": "Erben (→ Achse: %s)",
     "echarts_color_scale_inherit_data": "Erben (→ Daten: %s)",
     "echarts_color_scale_inherit_data_unknown": "Erben (→ Daten)",

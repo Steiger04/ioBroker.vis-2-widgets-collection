@@ -160,7 +160,7 @@
     "echarts_collection_widget": "Diagram (ECharts)",
     "echarts_color_add": "Kleur toevoegen",
     "echarts_color_scale_area_hint": "Het vlak behoudt zijn verloop; de lijn volgt de kleurschaal.",
-    "echarts_color_scale_hint": "Vervangt de seriekleur op basis van de waarde. Zonder eigen kleuren loopt de schaal van licht (laag) via de seriekleur naar donker (hoog).",
+    "echarts_color_scale_hint": "Vervangt de seriekleur op basis van de waarde. Zonder eigen verloop loopt de schaal van licht (laag) via de seriekleur naar donker (hoog).",
     "echarts_color_scale_inherit_axis": "Overnemen (→ as: %s)",
     "echarts_color_scale_inherit_data": "Overnemen (→ data: %s)",
     "echarts_color_scale_inherit_data_unknown": "Overnemen (→ data)",

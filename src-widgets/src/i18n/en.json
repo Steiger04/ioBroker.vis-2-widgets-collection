@@ -153,7 +153,7 @@
     "echarts_collection_widget": "Chart (ECharts)",
     "echarts_color_add": "Add color",
     "echarts_color_scale_area_hint": "The area keeps its gradient; the line follows the color scale.",
-    "echarts_color_scale_hint": "Replaces the series color by value. Without own colors the scale runs from light (low) over the series color to dark (high).",
+    "echarts_color_scale_hint": "Replaces the series color by value. Without a custom gradient the scale runs from light (low) over the series color to dark (high).",
     "echarts_color_scale_inherit_axis": "Inherit (→ axis: %s)",
     "echarts_color_scale_inherit_data": "Inherit (→ data: %s)",
     "echarts_color_scale_inherit_data_unknown": "Inherit (→ data)",

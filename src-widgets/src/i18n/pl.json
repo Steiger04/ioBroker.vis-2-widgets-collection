@@ -160,7 +160,7 @@
     "echarts_collection_widget": "Wykres (ECharts)",
     "echarts_color_add": "Dodaj kolor",
     "echarts_color_scale_area_hint": "Obszar zachowuje swój gradient, linia podąża za skalą kolorów.",
-    "echarts_color_scale_hint": "Zastępuje kolor serii według wartości. Bez własnych kolorów skala biegnie od jasnego (niska) przez kolor serii do ciemnego (wysoka).",
+    "echarts_color_scale_hint": "Zastępuje kolor serii według wartości. Bez własnego gradientu skala biegnie od jasnego (niska) przez kolor serii do ciemnego (wysoka).",
     "echarts_color_scale_inherit_axis": "Dziedzicz (→ oś: %s)",
     "echarts_color_scale_inherit_data": "Dziedzicz (→ dane: %s)",
     "echarts_color_scale_inherit_data_unknown": "Dziedzicz (→ dane)",

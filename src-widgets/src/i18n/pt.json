@@ -160,7 +160,7 @@
     "echarts_collection_widget": "Gráfico (ECharts)",
     "echarts_color_add": "Adicionar cor",
     "echarts_color_scale_area_hint": "A área mantém o seu gradiente; a linha segue a escala de cores.",
-    "echarts_color_scale_hint": "Substitui a cor da série pelo valor. Sem cores próprias, a escala vai do claro (baixo) pela cor da série até ao escuro (alto).",
+    "echarts_color_scale_hint": "Substitui a cor da série pelo valor. Sem gradiente próprio, a escala vai do claro (baixo) pela cor da série até ao escuro (alto).",
     "echarts_color_scale_inherit_axis": "Herdar (→ eixo: %s)",
     "echarts_color_scale_inherit_data": "Herdar (→ dados: %s)",
     "echarts_color_scale_inherit_data_unknown": "Herdar (→ dados)",
