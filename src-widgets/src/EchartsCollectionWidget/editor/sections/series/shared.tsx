@@ -31,14 +31,17 @@ import SnippetChips, { activeSnippetEntries, useSnippetActions } from '../Snippe
 import type { ValidationIssue } from '../../validation';
 import type { OidPickerCtx } from '../../OidPicker';
 
-/** Read-only swatch showing a series' effective colour (explicit → palette slot). */
+/**
+ * Read-only swatch showing a series' effective colour (explicit → palette slot) — or, with an
+ * active Farbskala, its scale as a CSS gradient (hence `background`, not `backgroundColor`).
+ */
 export const Swatch: FC<{ color: string }> = ({ color }) => (
     <Box
         sx={{
             width: 16,
             height: 16,
             borderRadius: '4px',
-            backgroundColor: color,
+            background: color,
             border: '1px solid',
             borderColor: 'divider',
             flexShrink: 0,

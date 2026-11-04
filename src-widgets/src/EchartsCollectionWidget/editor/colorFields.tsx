@@ -35,13 +35,18 @@ interface ColorFieldProps {
     fallback?: string;
     /** Allow gradients (default false = solid only, matching echarts series colours). */
     allowGradient?: boolean;
+    /**
+     * Greyed out and inert (ADR-0019 „deaktiviert statt ausgeblendet"): the value stays visible,
+     * neither the input nor the picker swatch takes focus or clicks.
+     */
+    disabled?: boolean;
 }
 
 /**
  * Single colour input backed by `CollectionGradientColorPicker`. The swatch resolves to the
  * `fallback` when the value is empty (the "inherit" state), and clearing returns to inherit.
  */
-const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allowGradient }) => {
+const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allowGradient, disabled }) => {
     const field = {
         name: 'c',
         noGradient: allowGradient !== true,
@@ -57,7 +62,7 @@ const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allow
         context: { theme: ctx.theme, socket: ctx.socket },
     } as unknown as RxWidgetInfoCustomComponentProperties;
 
-    return (
+    const picker = (
         <CollectionGradientColorPicker
             field={field}
             data={data}
@@ -67,6 +72,19 @@ const ColorField: FC<ColorFieldProps> = ({ value, onChange, ctx, fallback, allow
             // input matches the outlined TextField2/LabeledSelect neighbours.
             inputVariant="outlined"
         />
+    );
+    // The shared picker has no disabled state of its own — `inert` takes the whole field out of
+    // focus and pointer reach, the MUI disabled opacity tells it (no new picker variant).
+    return disabled ? (
+        <Box
+            inert
+            aria-disabled
+            sx={{ opacity: theme => theme.palette.action.disabledOpacity }}
+        >
+            {picker}
+        </Box>
+    ) : (
+        picker
     );
 };
 

@@ -136,6 +136,8 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
                             </Box>
                         }
                         colorFallback={slot(i)}
+                        // The builder's name chain: the authored name, else the fetched name (the OID).
+                        previewName={s.name || s.oid}
                         index={i}
                         count={series.length}
                         open={!!expanded[i]}

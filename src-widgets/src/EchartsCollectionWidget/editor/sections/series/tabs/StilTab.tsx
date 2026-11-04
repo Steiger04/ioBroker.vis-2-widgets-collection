@@ -12,6 +12,7 @@ import { Box } from '@mui/material';
 import Generic from '../../../../../Generic';
 import type {
     EchartsAreaFill,
+    EchartsAxisConfig,
     EchartsBarLabelPos,
     EchartsCartesianType,
     EchartsSeriesMeta,
@@ -20,7 +21,9 @@ import type {
 import {
     FieldGrid,
     FieldLabel,
+    InfoBox,
     LabeledSelect,
+    OptionalNumberField,
     OptionalSliderField,
     SliderField,
     SubGroup,
@@ -30,7 +33,96 @@ import {
 } from '../../../../../components/controls';
 import ColorField from '../../../colorFields';
 import { deriveAreaGradient } from '../../../../seriesColorDerive';
+import {
+    colorScaleCss,
+    deriveColorScaleColors,
+    resolveColorScaleRange,
+    type ColorScaleBound,
+    type ValueExtent,
+} from '../../../../seriesColorScale';
+import { resolveHostLang } from '../../../../timeFormat';
 import type { OidPickerCtx } from '../../../OidPicker';
+
+/** The empty Min/Max placeholder (Erben-Override idiom): the source always, the value only when known. */
+const boundPlaceholder = (bound: ColorScaleBound): string => {
+    const fmt = (n: number): string =>
+        new Intl.NumberFormat(resolveHostLang(), { maximumFractionDigits: 3, useGrouping: false }).format(n);
+    if (bound.source === 'axis' && bound.value !== undefined) {
+        return Generic.t('echarts_color_scale_inherit_axis', fmt(bound.value));
+    }
+    return bound.value === undefined
+        ? Generic.t('echarts_color_scale_inherit_data_unknown')
+        : Generic.t('echarts_color_scale_inherit_data', fmt(bound.value));
+};
+
+/**
+ * The Farbskala SubGroup (ADR-0101) — type-independent like „Nur in Legende": switch, Min/Max
+ * (empty = inherit per bound from the bound axis, else the data) and the colour gradient
+ * (empty = the scale derived from the effective series colour). Off = the fields stay visible
+ * but disabled (ADR-0019). Placeholders and the colour preview come from the SAME pure
+ * resolution the builder runs (seriesColorScale), so the editor never shows another scale.
+ */
+const ColorScaleGroup: FC<{
+    meta: EchartsSeriesMeta;
+    onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
+    pickerCtx: OidPickerCtx;
+    seriesColor: string;
+    yAxes: readonly EchartsAxisConfig[];
+    dataExtent: ValueExtent | null;
+    /** The area knob is „Verlauf" — the area keeps its own gradient, only the line follows. */
+    areaGradient: boolean;
+}> = ({ meta, onPatch, pickerCtx, seriesColor, yAxes, dataExtent, areaGradient }) => {
+    const on = meta.colorScale === true;
+    // The builder's axis clamp: a stale index binds axis 0.
+    const yi = meta.yAxisIndex ?? 0;
+    const axis = yAxes[yi < yAxes.length ? yi : 0];
+    // Only the inherited bounds feed the placeholders — an entered bound shows as the value.
+    const range = resolveColorScaleRange(undefined, axis, dataExtent);
+    const derived = deriveColorScaleColors(seriesColor);
+    return (
+        <SubGroup title={Generic.t('echarts_grp_color_scale')}>
+            <SwitchList sx={{ mb: 1.5 }}>
+                <SwitchRow
+                    label={Generic.t('echarts_series_color_scale')}
+                    checked={on}
+                    // Sparse (ADR-0101 data model): off = the key is absent.
+                    onChange={v => onPatch({ colorScale: v ? true : undefined })}
+                />
+            </SwitchList>
+            <FieldGrid min={140}>
+                <OptionalNumberField
+                    label={Generic.t('echarts_series_color_scale_min')}
+                    value={meta.colorScaleMin}
+                    onChange={v => onPatch({ colorScaleMin: v })}
+                    placeholder={boundPlaceholder(range.min)}
+                    disabled={!on}
+                />
+                <OptionalNumberField
+                    label={Generic.t('echarts_series_color_scale_max')}
+                    value={meta.colorScaleMax}
+                    onChange={v => onPatch({ colorScaleMax: v })}
+                    placeholder={boundPlaceholder(range.max)}
+                    disabled={!on}
+                />
+                <Box>
+                    <FieldLabel>{Generic.t('echarts_series_color_scale_colors')}</FieldLabel>
+                    <ColorField
+                        value={meta.colorScaleColors}
+                        // Inherit swatch + picker start value = the derived scale the builder
+                        // draws; the solid colour only when none can be derived.
+                        fallback={derived ? colorScaleCss(derived) : seriesColor}
+                        onChange={v => onPatch({ colorScaleColors: v ?? undefined })}
+                        ctx={pickerCtx}
+                        allowGradient
+                        disabled={!on}
+                    />
+                </Box>
+            </FieldGrid>
+            <InfoBox text={Generic.t('echarts_color_scale_hint')} />
+            {on && areaGradient && <InfoBox text={Generic.t('echarts_color_scale_area_hint')} />}
+        </SubGroup>
+    );
+};
 
 /**
  * The type-sensitive cartesian knob cluster (line / area / bar SubGroups) — shared by the
@@ -53,7 +145,24 @@ export const StilTab: FC<{
      * unevaluated — inherit honestly resolves to „Kein Stapel" there).
      */
     stackMode?: EchartsStackMode;
-}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, labelColorFallback, stackMode }) => {
+    /** The chart's Y axes — the Farbskala bounds inherit the bound axis' fixed min/max. */
+    yAxes?: readonly EchartsAxisConfig[];
+    /**
+     * The series' loaded preview data extent — the Farbskala's data-inherited bounds name a value
+     * only when it is known; absent/`null` = source only, never an invented value.
+     */
+    dataExtent?: ValueExtent | null;
+}> = ({
+    meta,
+    defaultType,
+    onPatch,
+    pickerCtx,
+    colorFallback,
+    labelColorFallback,
+    stackMode,
+    yAxes = [],
+    dataExtent = null,
+}) => {
     // The builder's own type resolution (ADR-0008 r3 + ADR-0060): an explicit bar/scatter/line
     // override wins, else the chart's default — so a scatter override hides the line/area/bar
     // groups exactly like the builder emits nothing for them.
@@ -311,6 +420,15 @@ export const StilTab: FC<{
                     </FieldGrid>
                 </SubGroup>
             )}
+            <ColorScaleGroup
+                meta={meta}
+                onPatch={onPatch}
+                pickerCtx={pickerCtx}
+                seriesColor={meta.color ?? colorFallback}
+                yAxes={yAxes}
+                dataExtent={dataExtent}
+                areaGradient={renderedType === 'line' && meta.area === 'gradient'}
+            />
             {/* „Nur in Legende" is PRESENTATION, not acquisition (ADR-0072): it stays with the
                 type knobs — type-independent, so it renders for line/bar AND scatter, on the
                 Verlauf card and the JSON card alike. */}

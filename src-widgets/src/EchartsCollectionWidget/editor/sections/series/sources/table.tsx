@@ -156,6 +156,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
                                 meta={s}
                                 title={names[i]}
                                 subtitle={s.yPath || Generic.t('echarts_table_no_ypath')}
+                                previewName={names[i]}
                                 colorFallback={slot(i)}
                                 index={i}
                                 count={series.length}

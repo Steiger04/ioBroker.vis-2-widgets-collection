@@ -454,3 +454,39 @@ describe('dispatchStructureEvent — the one caller idiom', () => {
         expect(set).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('Farbskala fields across structure events (ADR-0101)', () => {
+    const scale = {
+        colorScale: true,
+        colorScaleMin: 0,
+        colorScaleMax: 40,
+        colorScaleColors: 'linear-gradient(90deg, #00ff00 0%, #ff0000 100%)',
+    };
+    const hist = view({
+        mode: 'history',
+        jsonKind: 'series',
+        series: [
+            { id: 'sr-a', oid: 'a.0', name: 'A', yAxisIndex: 0, ...scale },
+            { id: 'sr-b', oid: 'b.0', name: 'B', yAxisIndex: 1 },
+        ],
+        yAxes: [axis('ax-0', 'left', 0), axis('ax-1', 'right', 0)],
+    });
+
+    it('duplicating a series copies its Farbskala fields', () => {
+        const p = asPatch(
+            applyStructureEvent(hist, {
+                type: 'duplicateSeries',
+                id: 'sr-copy',
+                index: 0,
+                copySuffix: 'Kopie',
+                fallbackName: 'Serie 1',
+            }),
+        );
+        expect(p.series.find(s => s.id === 'sr-copy')).toMatchObject(scale);
+    });
+
+    it('rebinding a series to another axis keeps its Farbskala fields', () => {
+        const p = asPatch(applyStructureEvent(hist, { type: 'rebindSeries', index: 0, axis: 1 }));
+        expect(p.series.find(s => s.id === 'sr-a')).toMatchObject({ ...scale, yAxisIndex: expect.any(Number) });
+    });
+});

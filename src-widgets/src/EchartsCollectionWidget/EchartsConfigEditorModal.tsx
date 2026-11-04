@@ -53,6 +53,7 @@ import { useSplitPane } from './editor/useSplitPane';
 import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
 import { noticeOf } from './editor/editorNotice';
 import { useEditorNotice } from './editor/useEditorNotice';
+import { PreviewExtentsContext, sameExtents, type PreviewExtents } from './editor/previewExtents';
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
 import type { Connection } from '@iobroker/adapter-react-v5';
@@ -83,6 +84,13 @@ function EchartsConfigEditorModal({
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
     const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
+    // The preview's loaded data extents (ADR-0101) — the Farbskala placeholders read them through
+    // context; the previous object is kept while the content is equal (no rail re-render churn).
+    const [previewExtents, setPreviewExtents] = useState<PreviewExtents>({});
+    const handleSeriesExtents = useCallback(
+        (next: PreviewExtents) => setPreviewExtents(prev => (sameExtents(prev, next) ? prev : next)),
+        [],
+    );
 
     // The state machine (ADR-0048): working copy + history, load/rebase, the guard effects,
     // apply/reset, hasChanges and the undo/redo keyboard binding — all owned by the lifecycle
@@ -311,24 +319,26 @@ function EchartsConfigEditorModal({
                                 overflowY: 'auto',
                             }}
                         >
-                            <EchartsEditorSections
-                                state={state}
-                                set={set}
-                                issues={issues}
-                                pickerCtx={{
-                                    socket,
-                                    theme,
-                                    themeType: theme.palette.mode === 'dark' ? 'dark' : 'light',
-                                }}
-                                focusSection={focusSection}
-                                jsonSeriesNames={jsonPreview.names}
-                                jsonError={jsonPreview.error}
-                                tableColumns={tableSchema.columns}
-                                tableSchema={tableSchema}
-                                tableSchemaError={tableSchema.error}
-                                xIsCategory={xIsCategory}
-                                onAdvisory={pushAdvisory}
-                            />
+                            <PreviewExtentsContext.Provider value={previewExtents}>
+                                <EchartsEditorSections
+                                    state={state}
+                                    set={set}
+                                    issues={issues}
+                                    pickerCtx={{
+                                        socket,
+                                        theme,
+                                        themeType: theme.palette.mode === 'dark' ? 'dark' : 'light',
+                                    }}
+                                    focusSection={focusSection}
+                                    jsonSeriesNames={jsonPreview.names}
+                                    jsonError={jsonPreview.error}
+                                    tableColumns={tableSchema.columns}
+                                    tableSchema={tableSchema}
+                                    tableSchemaError={tableSchema.error}
+                                    xIsCategory={xIsCategory}
+                                    onAdvisory={pushAdvisory}
+                                />
+                            </PreviewExtentsContext.Provider>
                         </Box>
                         {/* Splitter (ADR-0019 signature element): the bare 1 px hairline — divider
                             grey at rest, primary on hover/focus/drag. No grip pill (removed on user
@@ -407,6 +417,7 @@ function EchartsConfigEditorModal({
                                     socket={socket}
                                     theme={theme}
                                     onPlaceholderClick={handlePlaceholderClick}
+                                    onSeriesExtents={handleSeriesExtents}
                                 />
                             </Box>
                         </Box>

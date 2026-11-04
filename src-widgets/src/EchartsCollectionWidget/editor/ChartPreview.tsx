@@ -8,7 +8,7 @@
  * and an honest empty state when no data is bound yet. The empty state is clickable (ADR-0010):
  * it steers the rail to the section that would fill it (series, or data source for JSON mode).
  */
-import { useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import type React from 'react';
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
@@ -20,6 +20,7 @@ import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholde
 import { resolveFrameCss } from '../frameStyle';
 import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
+import { previewSeriesExtents, type PreviewExtents } from './previewExtents';
 import type { SectionKey } from './validation';
 import type { EditorState } from './editorState';
 
@@ -32,9 +33,14 @@ interface ChartPreviewProps {
      * table Leerfall, its Zuordnung TAB, ADR-0075/0073) that would fill it.
      */
     onPlaceholderClick?: (key: SectionKey, tab?: string) => void;
+    /**
+     * Reports the loaded data extent per emitted series name whenever the preview option changes
+     * — the Farbskala placeholders name a data-inherited value only when it is known (ADR-0101).
+     */
+    onSeriesExtents?: (extents: PreviewExtents) => void;
 }
 
-const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
+const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick, onSeriesExtents }) => {
     // Legenden-Folge (ADR-0074): the preview owns its own local legend selection — a legend
     // click in the Preview stage hides the series' axis live, exactly like the live body
     // (preview parity). Ephemeral per modal session, never persisted into the editor state.
@@ -42,6 +48,9 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
     // The pipeline return (ADR-0046): error joins option/loading/hasData — the preview surfaces
     // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
     const { option, loading, hasData, error } = usePreviewOption(state, socket, theme, legendSelection);
+    useEffect(() => {
+        onSeriesExtents?.(hasData ? previewSeriesExtents(option) : {});
+    }, [option, hasData, onSeriesExtents]);
 
     const placeholderReason = emptyPlaceholderReason(
         state.mode,

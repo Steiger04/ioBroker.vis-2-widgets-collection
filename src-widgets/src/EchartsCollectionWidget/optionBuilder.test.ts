@@ -3776,7 +3776,15 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
         const run = (area: 'flat' | 'gradient'): Record<string, unknown> => {
             const option = buildGeneratedOption({
                 family: 'cartesian',
-                series: [{ name: 'A', data: [[1, 0], [2, 10]] }],
+                series: [
+                    {
+                        name: 'A',
+                        data: [
+                            [1, 0],
+                            [2, 10],
+                        ],
+                    },
+                ],
                 meta: [{ color: '#ff0000', colorScale: true, type: 'line', area }],
                 p: P,
             });

@@ -12,7 +12,7 @@
  * but DOM focus resets. An axis change is a structure event (ADR-0099): it routes through
  * `onRebindAxis`, every other Basis field patches in place.
  */
-import { Fragment, type ComponentProps, type FC, type ReactElement, type ReactNode } from 'react';
+import { Fragment, useContext, type ComponentProps, type FC, type ReactElement, type ReactNode } from 'react';
 import { Box, IconButton } from '@mui/material';
 import {
     ContentCopy as DuplicateIcon,
@@ -41,6 +41,8 @@ import { StilTab } from './tabs/StilTab';
 import { FormatTab } from './tabs/FormatTab';
 import { JsonTab } from './tabs/JsonTab';
 import { Swatch } from './shared';
+import { PreviewExtentsContext } from '../../previewExtents';
+import { colorScaleCss, resolveColorScaleColors } from '../../../seriesColorScale';
 
 /**
  * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
@@ -97,6 +99,11 @@ export interface SeriesCardProps {
     subtitle: ReactNode;
     /** The palette slot of this series — the colour inherit preview and the swatch fallback. */
     colorFallback: string;
+    /**
+     * The series' EMITTED name (the builder's resolution) — looks up its loaded preview extent
+     * for the Farbskala placeholders (ADR-0101). Absent = no lookup, the source only.
+     */
+    previewName?: string;
     /** Position in the list (the move buttons' bounds). */
     index: number;
     count: number;
@@ -124,6 +131,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     title,
     subtitle,
     colorFallback,
+    previewName,
     index,
     count,
     open,
@@ -139,6 +147,12 @@ const SeriesCard: FC<SeriesCardProps> = ({
     rawHint,
 }) => {
     const has = (action: CardCapabilities['actions'][number]): boolean => caps.actions.includes(action);
+    const extents = useContext(PreviewExtentsContext);
+    const seriesColor = meta.color ?? colorFallback;
+    // Kopf-Swatch (ADR-0101, honest): with an active Farbskala the chart draws the SCALE, not the
+    // series colour — the swatch shows the effective scale as a mini gradient (chosen or derived).
+    const scaleColors = meta.colorScale ? resolveColorScaleColors(meta.colorScaleColors, seriesColor) : null;
+    const swatchColor = scaleColors ? colorScaleCss(scaleColors) : seriesColor;
     const body: Record<CardTab, () => ReactElement> = {
         basis: () => (
             <BasisTab
@@ -185,6 +199,8 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 colorFallback={colorFallback}
                 labelColorFallback={ctx.labelColorFallback}
                 stackMode={ctx.stackMode}
+                yAxes={ctx.yAxes}
+                dataExtent={previewName ? (extents[previewName] ?? null) : null}
             />
         ),
         format: () => (
@@ -206,7 +222,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
         <EditorCard
             open={open}
             onToggle={onToggle}
-            swatch={caps.ring ? <RingSwatch /> : <Swatch color={meta.color ?? colorFallback} />}
+            swatch={caps.ring ? <RingSwatch /> : <Swatch color={swatchColor} />}
             title={title}
             subtitle={subtitle}
             actions={

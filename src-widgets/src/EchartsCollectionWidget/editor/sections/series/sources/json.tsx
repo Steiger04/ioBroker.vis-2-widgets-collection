@@ -201,6 +201,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
                             meta={m}
                             title={m.name || name}
                             subtitle={name}
+                            previewName={m.name || name}
                             colorFallback={slot(i)}
                             index={i}
                             count={visibleNames.length}
