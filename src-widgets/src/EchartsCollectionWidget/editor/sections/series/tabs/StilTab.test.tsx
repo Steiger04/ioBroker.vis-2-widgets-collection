@@ -19,9 +19,10 @@ vi.hoisted(() => {
     };
 });
 vi.mock('../../../colorFields', () => ({
-    default: (props: { value?: string; fallback?: string }) => (
+    default: (props: { value?: string; fallback?: string; title?: string }) => (
         <span
             data-testid="color-field"
+            data-title={props.title ?? ''}
             data-value={props.value ?? ''}
             data-fallback={props.fallback ?? ''}
         />
@@ -33,7 +34,7 @@ import { createRoot } from 'react-dom/client';
 import { StilTab } from './StilTab';
 import type { EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
 
-const mountStil = (meta: EchartsSeriesMeta, seriesColor = '#5470c6'): HTMLElement => {
+const mountStil = (meta: EchartsSeriesMeta, seriesColor = '#5470c6', chartCanvas = 'transparent'): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
@@ -44,7 +45,7 @@ const mountStil = (meta: EchartsSeriesMeta, seriesColor = '#5470c6'): HTMLElemen
                 onPatch: () => undefined,
                 pickerCtx: {} as never,
                 seriesColor,
-                labelColorFallback: '#222',
+                chartCanvas,
             }),
         );
     });
@@ -73,5 +74,31 @@ describe('StilTab — the Flächen-Verlauf field (ADR-0101)', () => {
     it('falls back to the solid series colour when it cannot derive a gradient', () => {
         const el = mountStil({ name: 'A', type: 'line', area: 'gradient' }, 'var(--accent)');
         expect(colorFields(el)[0].dataset.fallback).toBe('var(--accent)');
+    });
+});
+
+const barLabelField = (el: HTMLElement): HTMLElement | undefined =>
+    colorFields(el).find(f => f.dataset.title === 'echarts_bar_label_color');
+
+describe('StilTab — the bar label colour previews the echarts auto contrast (ADR-0080 decision 4)', () => {
+    it('inside (unset position = echarts default): a light bar gets the dark label', () => {
+        const el = mountStil({ name: 'A', type: 'bar', label: true }, '#ffeb3b');
+        expect(barLabelField(el)?.dataset.fallback).toBe('#333');
+    });
+
+    it('inside: a dark bar gets the light label', () => {
+        const el = mountStil({ name: 'A', type: 'bar', label: true, labelPosition: 'insideTop' }, '#222222');
+        expect(barLabelField(el)?.dataset.fallback).toBe('#ccc');
+    });
+
+    it('outside (top): the label follows the canvas mode, not the bar', () => {
+        const meta: EchartsSeriesMeta = { name: 'A', type: 'bar', label: true, labelPosition: 'top' };
+        expect(barLabelField(mountStil(meta, '#ffeb3b', 'transparent'))?.dataset.fallback).toBe('#333');
+        expect(barLabelField(mountStil(meta, '#ffeb3b', '#1e1e1e'))?.dataset.fallback).toBe('#ccc');
+    });
+
+    it('an authored label colour stays the field value', () => {
+        const el = mountStil({ name: 'A', type: 'bar', label: true, labelColor: '#ff0000' }, '#222222');
+        expect(barLabelField(el)?.dataset.value).toBe('#ff0000');
     });
 });

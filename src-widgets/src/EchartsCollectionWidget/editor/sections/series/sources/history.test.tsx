@@ -60,7 +60,7 @@ const base = (series: EditorSeries[], over: Record<string, unknown> = {}): Recor
     },
     pickerCtx: {},
     slot: () => '#111',
-    labelColorFallback: '#222',
+    chartCanvas: 'transparent',
     historyInstances: { instances: [], loaded: true },
     expanded: { 0: true },
     onToggleCard: () => undefined,

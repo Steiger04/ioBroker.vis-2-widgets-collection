@@ -45,6 +45,7 @@ const BASE: PresentationBase = {
         divider: '#d',
         textPrimary: '#tp',
         textSecondary: '#ts',
+        paper: '#pa',
     },
     themeDark: false,
 };

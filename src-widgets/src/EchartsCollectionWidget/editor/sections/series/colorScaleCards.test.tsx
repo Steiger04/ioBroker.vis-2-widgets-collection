@@ -81,7 +81,7 @@ const noops = {
 const common = {
     pickerCtx: {},
     slot: () => '#ff0000',
-    labelColorFallback: '#222',
+    chartCanvas: 'transparent',
     expanded: { 0: true },
     ...noops,
 };

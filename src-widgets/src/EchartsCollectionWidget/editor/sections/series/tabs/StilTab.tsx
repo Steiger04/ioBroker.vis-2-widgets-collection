@@ -32,6 +32,7 @@ import {
     TextField2,
 } from '../../../../../components/controls';
 import ColorField from '../../../colorFields';
+import { barLabelAutoColor } from '../../../../barLabelContrast';
 import { deriveAreaGradient } from '../../../../seriesColorDerive';
 import {
     colorScaleAxis,
@@ -166,8 +167,12 @@ export const StilTab: FC<{
      * the Flächen-Verlauf and Farbskala inherit previews derive from it.
      */
     seriesColor: string;
-    /** Theme text-primary — the BAR label colour's inherit preview (ADR-0027 one-hook rule). */
-    labelColorFallback: string;
+    /**
+     * The effective chart canvas (`effectiveChartCanvas`) — zrender's dark-mode input, which the
+     * BAR label colour's inherit preview (echarts' auto contrast, ADR-0080 decision 4) reads for
+     * an outside label.
+     */
+    chartCanvas: string;
     /**
      * The chart-level Stapelmodus (ADR-0084) — the BAR select's inherit entry names its
      * resolution (erben (→ Gestapelt)); absent = none (the JSON families carry the blob field
@@ -192,7 +197,7 @@ export const StilTab: FC<{
     onPatch,
     pickerCtx,
     seriesColor,
-    labelColorFallback,
+    chartCanvas,
     stackMode,
     yAxes = [],
     dataExtent = null,
@@ -381,7 +386,9 @@ export const StilTab: FC<{
                             <ColorField
                                 title={Generic.t('echarts_bar_label_color')}
                                 value={meta.labelColor}
-                                fallback={labelColorFallback}
+                                // Uncoloured bar labels stay on echarts' auto contrast (ADR-0080
+                                // decision 4) — the swatch shows that contrast per position.
+                                fallback={barLabelAutoColor(meta.labelPosition, seriesColor, chartCanvas)}
                                 onChange={v => onPatch({ labelColor: v ?? undefined })}
                                 ctx={pickerCtx}
                             />

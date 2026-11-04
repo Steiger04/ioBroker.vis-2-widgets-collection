@@ -69,8 +69,8 @@ export interface SeriesCardContext {
     yAxes: EchartsAxisConfig[];
     /** Effective axis option labels (ADR-0025, B1 numbering) — resolved once per list. */
     axisDisplayNames: string[];
-    /** Theme text-primary — the bar label colour's inherit preview. */
-    labelColorFallback: string;
+    /** The effective chart canvas — the bar label colour's auto-contrast inherit preview reads it. */
+    chartCanvas: string;
     /** The Stapelmodus — the bar stack-group select's inherit target (ADR-0084). */
     stackMode: EchartsStackMode;
     /** The chart type + the NULL select's inherit target (every source's Daten tab). */
@@ -233,7 +233,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 onPatch={onPatch}
                 pickerCtx={ctx.pickerCtx}
                 seriesColor={seriesColor}
-                labelColorFallback={ctx.labelColorFallback}
+                chartCanvas={ctx.chartCanvas}
                 stackMode={ctx.stackMode}
                 yAxes={ctx.yAxes}
                 dataExtent={dataExtent ?? null}

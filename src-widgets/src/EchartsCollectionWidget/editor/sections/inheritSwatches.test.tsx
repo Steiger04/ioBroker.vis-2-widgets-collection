@@ -38,12 +38,13 @@ vi.mock('../colorFields', () => ({
 const host = vi.hoisted(() => ({ mode: 'light' as 'light' | 'dark' }));
 vi.mock('../useEditorTheme', async () => {
     const { createTheme } = await import('@mui/material/styles');
+    const { resolveThemeTokens } = await import('../../echartsTheme');
     return {
-        useEditorTheme: () => ({
-            palette: ['#111', '#222'],
-            themeTokens: { textPrimary: '#1', textSecondary: '#2', divider: '#3' },
-            theme: createTheme({ palette: { mode: host.mode } }),
-        }),
+        // The tokens run through the real shared resolver (dark-mode-aware, honours `darkMode`).
+        useEditorTheme: (state: { darkMode?: 'light' | 'dark' | 'auto' }) => {
+            const theme = createTheme({ palette: { mode: host.mode } });
+            return { palette: ['#111', '#222'], themeTokens: resolveThemeTokens(theme, state.darkMode), theme };
+        },
     };
 });
 
@@ -87,11 +88,24 @@ const fallbacks = (type: (props: never) => unknown, over: Record<string, unknown
     return seen;
 };
 
-describe('inherit swatches without a theme token (ADR-0027, ticket 06)', () => {
-    it('tooltip background: the surface ECharts 6 paints (neutral00, white)', () => {
+describe('tooltip background swatch: the paper token (ADR-0027 addendum 2026-11-04, ticket 10)', () => {
+    it('shows the theme paper while the chart follows the host mode (light and dark)', () => {
         host.mode = 'light';
-        expect(fallbacks(TooltipSection).get('echarts_tooltip_bg')).toBe('#fff');
+        expect(fallbacks(TooltipSection, { darkMode: 'auto' }).get('echarts_tooltip_bg')).toBe('#fff');
+        host.mode = 'dark';
+        expect(fallbacks(TooltipSection, { darkMode: 'auto' }).get('echarts_tooltip_bg')).toBe('#121212');
+        expect(fallbacks(TooltipSection, { darkMode: 'dark' }).get('echarts_tooltip_bg')).toBe('#121212');
     });
+
+    it('shows the fixed canvas colour of a forced mode that differs from the host', () => {
+        host.mode = 'light';
+        expect(fallbacks(TooltipSection, { darkMode: 'dark' }).get('echarts_tooltip_bg')).toBe('#1e1e1e');
+        host.mode = 'dark';
+        expect(fallbacks(TooltipSection, { darkMode: 'light' }).get('echarts_tooltip_bg')).toBe('#ffffff');
+    });
+});
+
+describe('inherit swatches without a theme token (ADR-0027, ticket 06)', () => {
 
     it('chart background: transparent while the chart follows the host mode', () => {
         host.mode = 'light';
