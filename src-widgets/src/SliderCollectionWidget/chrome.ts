@@ -67,8 +67,8 @@ const contractOf = (field: string): ColorFieldContract => {
  * @param theme - Effective MUI theme (for the terminal defaults).
  * @returns The resolved chrome colors, one slot per styled part.
  * @remarks
- * Backgrounds keep their raw resolved value (validateColorInput accepts
- * gradients, and the thumb/track/rail/mark surfaces may render them). Border
+ * Backgrounds keep their raw resolved value (the cascade accepts every CSS
+ * colour and gradients, and the thumb/track/rail/mark surfaces render them). Border
  * and shadow slots need a solid, so they resolve through
  * `resolveEffectiveSolidColor`: a gradient yields its midpoint color, and a
  * stage without a Repräsentative Vollfarbe (a gradient with named stops)

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrome';
 import type { MenuChromeInput, SelectChromeInput } from './chrome';
@@ -159,8 +159,22 @@ describe('buildSelectChrome', () => {
 
     it('falls back to the active text colour for an invalid arrowColor — not to the MUI default', () => {
         expect(arrowColour({ arrowColor: 'not-a-colour', textColor: '#00aa00' })).toBe('#00aa00');
-        // Valid CSS but outside the colour contract (hex, rgb(a), gradients).
-        expect(arrowColour({ arrowColor: 'red', textColor: '#00aa00' })).toBe('#00aa00');
+    });
+
+    it('paints a typed CSS colour as stored: name, hsl(), var(--…) (Regeln für Farbeingaben)', () => {
+        // The browser's `CSS.supports('color', …)` — absent in node; a browser-like list.
+        vi.stubGlobal('CSS', {
+            supports: (_property: string, value?: string): boolean =>
+                /^(#[0-9a-f]{3,8}|rgba?\(.*\)|hsla?\(.*\)|var\(--.*\)|red)$/i.test(value ?? ''),
+        });
+        try {
+            for (const typed of ['red', 'hsl(0, 100%, 40%)', 'var(--accent)']) {
+                expect(arrowColour({ arrowColor: typed, textColor: '#00aa00' })).toBe(typed);
+            }
+            expect(arrowColour({ arrowColor: undefined, textColor: 'red' })).toBe('red');
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it('follows the arrow contract past an empty or invalid text colour: vis-2 CSS colour, else theme text', () => {

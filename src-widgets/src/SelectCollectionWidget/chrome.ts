@@ -23,6 +23,7 @@ import type { Theme } from '@mui/material';
 import type { MenuProps } from '@mui/material/Menu';
 
 import { alphaOf } from '../lib/helper/colorDerivation';
+import { isGradientColor } from '../lib/helper/colorValidation';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { resolveEffectiveColor, type StyleColor } from '../lib/helper/resolveEffectiveColor';
@@ -65,9 +66,10 @@ export interface SelectChromeInput {
  * measured content width minus 10 %, and colours the arrow through the arrow
  * contract (`arrowColorContract`, ADR-0004) — `arrowColor`, else the active
  * state's text colour, else the vis-2 CSS colour, else the theme text colour;
- * an invalid colour counts as unset. A gradient yields its 50 % colour; a value
- * without a hex/rgb colour (a vis-2 CSS colour by name) leaves the arrow to the
- * MUI default. The editor swatch resolves the same contract over the base
+ * an invalid colour counts as unset. A gradient yields its 50 % colour (one
+ * without hex/rgb stops leaves the arrow to the MUI default); any other colour
+ * paints as stored — CSS names, `hsl()`, `var(--…)` included (Regeln für
+ * Farbeingaben). The editor swatch resolves the same contract over the base
  * fields instead of the active text colour.
  *
  * @param input - Measured width, the explicit arrow colour, the active text colour, text styles and theme.
@@ -83,7 +85,7 @@ export function buildSelectChrome(input: SelectChromeInput): SxObject {
         maxWidth: `calc(${boundWidth(width)}px - 10%)`,
 
         '& .MuiSelect-icon': {
-            color: extractColorFromValue(arrow),
+            color: isGradientColor(arrow) ? extractColorFromValue(arrow) : arrow || null,
         },
     };
 }

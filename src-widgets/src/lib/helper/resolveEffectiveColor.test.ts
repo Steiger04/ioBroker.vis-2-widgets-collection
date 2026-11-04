@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Theme } from '@mui/material';
 import { resolveEffectiveColor, resolveEffectiveSolidColor, terminalColor } from './resolveEffectiveColor';
 import type { ColorFieldContract } from './resolveEffectiveColor';
@@ -91,6 +91,47 @@ describe('resolveEffectiveColor', () => {
 
     it('treats a missing terminal as transparent (legacy default)', () => {
         expect(resolveEffectiveColor(contract({ name: 'background' }), {}, THEME, undefined)).toBe('');
+    });
+});
+
+describe('resolveEffectiveColor reads stored values with the Regeln für Farbeingaben', () => {
+    // The browser's `CSS.supports('color', …)` — absent in node; a browser-like list for these cases.
+    beforeEach(() => {
+        vi.stubGlobal('CSS', {
+            supports: (_property: string, value?: string): boolean =>
+                /^(#[0-9a-f]{3,8}|rgba?\(.*\)|hsla?\(.*\)|var\(--.*\)|transparent|red)$/i.test(value ?? ''),
+        });
+    });
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    const field = contract({ name: 'iconColor', terminal: 'primary', fallbackFields: ['textColor'] });
+
+    it.each(['red', 'hsl(120, 50%, 50%)', 'var(--vis2c-palette-primary-main)', 'transparent', '#f008'])(
+        'takes a typed CSS colour %s as override, not as Erben',
+        typed => {
+            expect(resolveEffectiveColor(field, { iconColor: typed, textColor: '#5b5b5b' }, THEME)).toBe(typed);
+        },
+    );
+
+    it('takes a typed CSS colour in a fallback field', () => {
+        expect(resolveEffectiveColor(field, { textColor: 'hsl(0, 0%, 20%)' }, THEME)).toBe('hsl(0, 0%, 20%)');
+    });
+
+    it('stores trimmed: a padded value resolves to its trimmed text', () => {
+        expect(resolveEffectiveColor(field, { iconColor: '  red  ' }, THEME)).toBe('red');
+    });
+
+    it('still skips what is no colour', () => {
+        expect(resolveEffectiveColor(field, { iconColor: 'notacolor', textColor: 'red' }, THEME)).toBe('red');
+        expect(resolveEffectiveColor(field, { iconColor: 'notacolor' }, THEME)).toBe('#pri');
+    });
+
+    it('keeps gradients as before: a complete one overrides, a half-typed one is skipped', () => {
+        const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+        expect(resolveEffectiveColor(field, { iconColor: gradient }, THEME)).toBe(gradient);
+        expect(resolveEffectiveColor(field, { iconColor: 'linear-gradient(90deg, #ff0000 0%' }, THEME)).toBe('#pri');
     });
 });
 

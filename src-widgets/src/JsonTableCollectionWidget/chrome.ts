@@ -133,9 +133,10 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject 
     // deviation under noCard: the bar stays transparent — the terminal yields to
     // transparent, while the editor swatch keeps showing the paper.
     const terminal = flat ? 'transparent' : jsonTableColorContracts.tableHeaderBgColor.terminal;
-    // The explicit stage goes into the CSS raw, as before the contract: a stored value the
-    // picker rejects (a colour name, var(), transparent) never crashed, so it keeps painting
-    // instead of counting as unset (spec: identical rendering, only crashing values change).
+    // The explicit stage goes into the CSS raw, as before the contract: every colour the
+    // cascade reads (Regeln für Farbeingaben) paints as the swatch shows it; a legacy value
+    // that is no colour never crashed, so it keeps painting instead of counting as unset
+    // (spec: identical rendering, only crashing values change).
     const headerBgColor = settings.tableHeaderBgColor;
 
     const base: SxObject = {

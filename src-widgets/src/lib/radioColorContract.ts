@@ -16,9 +16,10 @@
  * the unchecked icon plus two state rules on top — checked follows the state's icon colour,
  * and disabled unchecked draws `action.active` instead of the terminal (documented
  * divergence, ADR-0004 addendum "Chrome-Slots"). The explicit value is drawn raw, as
- * before the contract: a stored value the picker rejects (a colour name, `var(…)`,
- * `transparent`) never crashed, so it keeps painting instead of counting as unset (the
- * spec allows rendering changes only for values that used to crash).
+ * before the contract: swatch and runtime agree for every colour (the cascade reads stored
+ * values with the Regeln für Farbeingaben — colour names, `var(…)`, `transparent` included);
+ * only a legacy value that is no colour at all keeps painting raw while the swatch counts it
+ * as unset (the spec allows rendering changes only for values that used to crash).
  *
  * Kept free of components: the field list pulls editor components (Generic), which the
  * runtime and its node tests must not import.
