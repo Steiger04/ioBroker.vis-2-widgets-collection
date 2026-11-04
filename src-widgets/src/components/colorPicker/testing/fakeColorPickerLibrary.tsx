@@ -12,9 +12,11 @@
  *
  * The fake renders one button per entry of {@link FAKE_PICKS} (`button[data-pick="<name>"]`);
  * a click calls the received `onChange` with that fixed value, as a drag in the real picker
- * would. Every render records the received props in {@link libraryRenders}; read the latest with
- * {@link lastLibraryProps}. The hook export (`useColorPicker`) is the library's real one (it is
- * pure state logic without canvas), so the Farbwähler's input row works against the fake.
+ * would. Unless `hidePresets` is set, it also renders the received presets (at most 18) as
+ * `button[data-preset="<value>"]`; a click emits the preset unchanged. Every render records the
+ * received props in {@link libraryRenders}; read the latest with {@link lastLibraryProps}. The
+ * hook export (`useColorPicker`) is the library's real one (it is pure state logic without
+ * canvas), so the Farbwähler's input row works against the fake.
  */
 import type React from 'react';
 import type * as ColorPickerLibrary from 'react-best-gradient-color-picker';
@@ -75,6 +77,18 @@ function FakeColorPicker(props: ColorPickerProps): React.JSX.Element {
                     {name}
                 </button>
             ))}
+            {/* Preset row as the library shows it: only without hidePresets, at most 18. */}
+            {!props.hidePresets &&
+                (props.presets ?? []).slice(0, 18).map((preset, index) => (
+                    <button
+                        key={`preset-${index}`}
+                        type="button"
+                        data-preset={preset}
+                        onClick={(): void => props.onChange(preset)}
+                    >
+                        {preset}
+                    </button>
+                ))}
         </div>
     );
 }
