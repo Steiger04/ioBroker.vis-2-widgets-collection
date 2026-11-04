@@ -16,7 +16,7 @@
  */
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient, type EchartsColorStop } from '../lib/helper/extractColorFromValue';
-import { mixRgba, parseSeriesColor, RGBA_BLACK, RGBA_WHITE, toRgbaString } from './seriesColorDerive';
+import { mixRgba, parseSeriesColor, RGBA_BLACK, RGBA_WHITE, toRgbaString, type Rgba } from './seriesColorDerive';
 import type { ChartSeries } from './optionBuilders/types';
 
 /** Share of white (low end) / black (high end) mixed into the series colour for the derived scale. */
@@ -46,11 +46,106 @@ export const chosenColorScaleStops = (css: string | null | undefined): EchartsCo
 };
 
 /**
- * Turn chosen stops into the evenly spaced colour list echarts' `inRange.color` expects.
- * THE seam for the stop positions (ticket 04): today the colours pass through evenly
- * distributed; resampling uneven offsets belongs here and nowhere else.
+ * Number of evenly spaced samples an uneven chosen gradient is resampled to. 21 = a 5 % grid:
+ * fine enough that a colour change visibly sits at the chosen stop position (a stop at 80 %
+ * lands exactly on a sample), small enough for a compact `inRange.color`.
  */
-export const colorScaleColorsFromStops = (stops: readonly EchartsColorStop[]): string[] => stops.map(s => s.color);
+export const COLOR_SCALE_SAMPLE_COUNT = 21;
+
+/** Tolerance for „the stop sits on its even position" (offsets are percent / 100 floats). */
+const EVEN_EPSILON = 1e-6;
+
+const clamp01 = (n: number): number => Math.min(1, Math.max(0, Number.isFinite(n) ? n : 0));
+
+/** Interpolate two colours in RGB AND alpha (`mixRgba` keeps the first colour's alpha). */
+const lerpRgba = (a: Rgba, b: Rgba, t: number): Rgba => {
+    const [r, g, bl] = mixRgba(a, b, t);
+    return [r, g, bl, a[3] + (b[3] - a[3]) * t];
+};
+
+/** Parsed stops: offsets clamped to 0–1, sorted ascending (stable — equal offsets keep CSS order). */
+interface ParsedStop {
+    offset: number;
+    rgba: Rgba;
+}
+
+/** Normalise stops for interpolation; `null` when a colour cannot be resolved. */
+const parseStops = (stops: readonly EchartsColorStop[]): ParsedStop[] | null => {
+    const parsed: ParsedStop[] = [];
+    for (const s of stops) {
+        const rgba = parseSeriesColor(s.color);
+        if (!rgba) {
+            return null;
+        }
+        parsed.push({ offset: clamp01(s.offset), rgba });
+    }
+    return parsed.sort((a, b) => a.offset - b.offset);
+};
+
+/** The colour at position `t` (0–1) of sorted, clamped stops — piecewise linear, flat outside. */
+const rgbaAt = (stops: readonly ParsedStop[], t: number): Rgba => {
+    const pos = clamp01(t);
+    if (pos <= stops[0].offset) {
+        return stops[0].rgba;
+    }
+    // The last stop at or before `pos` (equal offsets = a hard edge: the later stop wins).
+    let lower = 0;
+    while (lower + 1 < stops.length && stops[lower + 1].offset <= pos) {
+        lower++;
+    }
+    const upper = stops[lower + 1];
+    if (!upper) {
+        return stops[lower].rgba;
+    }
+    const from = stops[lower];
+    return lerpRgba(from.rgba, upper.rgba, (pos - from.offset) / (upper.offset - from.offset));
+};
+
+/**
+ * The colour at position `t` (0–1, clamped) of a stop list as an `rgba()` string — piecewise
+ * linear between the stops, the first/last colour outside them. Offsets are clamped to 0–1 and
+ * sorted first. `null` for no stops or an unresolvable colour.
+ */
+export const colorAtStopPosition = (stops: readonly EchartsColorStop[], t: number): string | null => {
+    const parsed = stops.length ? parseStops(stops) : null;
+    return parsed ? toRgbaString(rgbaAt(parsed, t)) : null;
+};
+
+/**
+ * The colour at position `t` (0–1, clamped) of an evenly spaced colour list (e.g. the resolved
+ * Farbskala, low → high) — `t = 0.5` is the middle colour of the scale. `null` for an empty list
+ * or an unresolvable colour.
+ */
+export const colorScaleColorAt = (colors: readonly string[], t: number): string | null => {
+    const last = colors.length - 1;
+    return colorAtStopPosition(
+        colors.map((color, i) => ({ offset: last > 0 ? i / last : 0, color })),
+        t,
+    );
+};
+
+/**
+ * Turn chosen stops into the evenly spaced colour list echarts' `inRange.color` expects
+ * (echarts always spreads `inRange.color` evenly over min…max). Offsets are clamped to 0–1 and
+ * sorted. Evenly placed stops pass their colours through unchanged; uneven ones are resampled
+ * piecewise linearly onto {@link COLOR_SCALE_SAMPLE_COUNT} even samples, so a stop at 80 % sits
+ * at 80 % of the value range. THE one place for this conversion (runtime and editor preview).
+ */
+export const colorScaleColorsFromStops = (stops: readonly EchartsColorStop[]): string[] => {
+    const sorted = stops.map(s => ({ offset: clamp01(s.offset), color: s.color })).sort((a, b) => a.offset - b.offset);
+    const last = sorted.length - 1;
+    const even = sorted.every((s, i) => Math.abs(s.offset - (last > 0 ? i / last : s.offset)) < EVEN_EPSILON);
+    if (even) {
+        return sorted.map(s => s.color);
+    }
+    const parsed = parseStops(sorted);
+    if (!parsed) {
+        return sorted.map(s => s.color);
+    }
+    return Array.from({ length: COLOR_SCALE_SAMPLE_COUNT }, (_, i) =>
+        toRgbaString(rgbaAt(parsed, i / (COLOR_SCALE_SAMPLE_COUNT - 1))),
+    );
+};
 
 /**
  * The effective Farbskala colours (low → high): the chosen gradient, else the derivation from

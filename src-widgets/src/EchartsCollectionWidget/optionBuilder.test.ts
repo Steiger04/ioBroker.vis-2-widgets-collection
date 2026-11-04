@@ -3642,7 +3642,37 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
         expect(vm[1].inRange.color).toEqual(['rgba(128, 128, 255, 1)', 'rgba(0, 0, 255, 1)', 'rgba(0, 0, 128, 1)']);
     });
 
-    it('passes chosen gradient colours through (evenly spaced in this ticket)', () => {
+    it('resamples a chosen gradient with uneven stop positions — a stop at 80 % sits at 80 % of the range', () => {
+        const run = (css: string): string[] =>
+            vmOf(
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 0],
+                                [2, 10],
+                            ],
+                        },
+                    ],
+                    meta: [{ color: '#ff0000', colorScale: true, colorScaleColors: css }],
+                    p: P,
+                }),
+            )![0].inRange.color;
+        const colors = run('linear-gradient(90deg, #00ff00 0%, #ffff00 80%, #ff0000 100%)');
+        // 21 even samples (5 % grid): 0 %, 40 %, 80 %, 90 %, 100 %.
+        expect(colors).toHaveLength(21);
+        expect(colors[0]).toBe('rgba(0, 255, 0, 1)');
+        expect(colors[8]).toBe('rgba(128, 255, 0, 1)');
+        expect(colors[16]).toBe('rgba(255, 255, 0, 1)');
+        expect(colors[18]).toBe('rgba(255, 128, 0, 1)');
+        expect(colors[20]).toBe('rgba(255, 0, 0, 1)');
+        // Stops without a position are spread evenly by the gradient parser → passed through.
+        expect(run('linear-gradient(90deg, #00ff00, #ffff00, #ff0000)')).toEqual(['#00ff00', '#ffff00', '#ff0000']);
+    });
+
+    it('passes evenly placed chosen gradient colours through unchanged', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [
