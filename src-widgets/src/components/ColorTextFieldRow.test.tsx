@@ -26,6 +26,7 @@ vi.mock(
 );
 
 import { act, type ComponentProps } from 'react';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
@@ -251,6 +252,38 @@ describe('ColorTextFieldRow swatch', () => {
         });
         expect(onChange).toHaveBeenCalledExactlyOnceWith('#0080ff66');
         expect(input.value).toBe('#0080ff66');
+    });
+});
+
+describe('ColorTextFieldRow theme presets', () => {
+    it('hands the socket to the Farbwähler, which reads the Collection theme only once open', async () => {
+        const getState = vi.fn(() =>
+            Promise.resolve({ val: JSON.stringify({ palette: { primary: { main: '#123456' } } }) } as ioBroker.State),
+        );
+        const socket = {
+            getState,
+            subscribeState: vi.fn(() => Promise.resolve()),
+            unsubscribeState: vi.fn(),
+        } as unknown as Connection;
+        const { swatch } = mount({ socket });
+        expect(getState).not.toHaveBeenCalled();
+
+        act(() => swatch().click());
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(getState).toHaveBeenCalled();
+        const presets = Array.from(document.body.querySelectorAll<HTMLElement>('button[data-preset]')).map(
+            el => el.dataset.preset,
+        );
+        expect(presets[0]).toBe('#123456');
+    });
+
+    it('shows no preset row without a socket', () => {
+        const { swatch } = mount();
+        act(() => swatch().click());
+        expect(lastLibraryProps().hidePresets).toBe(true);
     });
 });
 

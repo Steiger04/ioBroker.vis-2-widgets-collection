@@ -93,6 +93,7 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
                 placeholder="inherit"
                 allowGradient={field.noGradient !== true}
                 title={title}
+                socket={props.context.socket}
             />
         </ThemeProvider>
     );

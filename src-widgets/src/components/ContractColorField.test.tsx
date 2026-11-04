@@ -169,6 +169,13 @@ describe('ContractColorField opens the Farbwähler', () => {
         expect(open(container)?.querySelector('[data-picker-title]')?.textContent).toBe('t:icon_color');
     });
 
+    it('with the Collection theme colours as presets', () => {
+        const presets = Array.from(
+            open(mount({}).container)?.querySelectorAll<HTMLElement>('button[data-preset]') ?? [],
+        );
+        expect(presets.map(el => el.dataset.preset)).toContain('#1976d2');
+    });
+
     it('with Solid/Gradient unless the field is noGradient', () => {
         open(mount({}).container);
         expect(lastLibraryProps().hideColorTypeBtns).not.toBe(true);

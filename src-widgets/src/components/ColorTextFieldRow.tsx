@@ -17,7 +17,8 @@
  * - **Swatch** — shows `effectiveColor`; a click opens the Farbwähler (`colorPicker/CollectionColorPicker`)
  *   with `title` in its header, starting from the stored value, else the effective colour, else
  *   the ambient primary colour. Picks arrive debounced and normalized (`#rrggbb` / `#rrggbbaa`,
- *   gradients unchanged).
+ *   gradients unchanged). With `socket` the Farbwähler offers the Collection theme colours as
+ *   presets (read only while open).
  * - **Disabled** — the whole row is `inert` and dimmed (ADR-0019 „deaktiviert statt
  *   ausgeblendet"): value and swatch stay visible, nothing takes focus, clicks or opens.
  *
@@ -29,6 +30,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, TextField, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { VisTheme } from '@iobroker/types-vis-2';
 import Generic from '../Generic';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
@@ -52,6 +54,11 @@ export interface ColorTextFieldRowProps {
     title?: string;
     /** Greyed out and inert: the value stays visible, nothing reacts. */
     disabled?: boolean;
+    /**
+     * Connection the Farbwähler reads the Collection theme presets from (only while open);
+     * without it the Farbwähler shows no preset row.
+     */
+    socket?: Connection;
 }
 
 /** Message key for why the current text cannot be stored. */
@@ -72,6 +79,7 @@ const ERROR_MESSAGE: Record<ColorInputInvalidReason, string> = {
  * @param props.allowGradient - Whether gradients may be typed and picked.
  * @param props.title - Farbwähler header title.
  * @param props.disabled - Greyed out and inert.
+ * @param props.socket - Connection for the Farbwähler's Collection theme presets.
  * @returns The row (text field, trash while overridden, swatch) and its Farbwähler.
  */
 function ColorTextFieldRow({
@@ -83,6 +91,7 @@ function ColorTextFieldRow({
     allowGradient,
     title,
     disabled = false,
+    socket,
 }: ColorTextFieldRowProps): React.JSX.Element {
     const theme = useTheme();
     const outlined = variant === 'outlined';
@@ -244,6 +253,7 @@ function ColorTextFieldRow({
                 value={text || effectiveColor || theme.palette.primary.main}
                 onCommit={handlePick}
                 allowGradient={allowGradient}
+                socket={socket}
             />
         </>
     );
