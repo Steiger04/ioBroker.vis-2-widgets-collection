@@ -80,10 +80,7 @@ for (const name of widgets) {
  * Each reason says why no single terminal describes the runtime when the field is unset.
  * An entry that stops matching a terminal-less colour field fails the stale check below.
  */
-const EXCEPTIONS: Record<string, string> = {
-    'DialogCollectionWidget.dialogBackgroundColor':
-        'unset renders CSS `inherit`: the runtime inherits from the host element, which no theme terminal names',
-};
+const EXCEPTIONS: Record<string, string> = {};
 
 interface FieldLike {
     name?: string;
