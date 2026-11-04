@@ -295,12 +295,20 @@ The configurator's colour model — how a colour field resolves when no explicit
 _Avoid_: default colour (that is the resolved value, not a stored one), fallback (that is the mechanism, not the concept)
 
 **Theme token**:
-A semantic theme colour (`primary`/`success`/`warning`/`error`/`divider`/`textPrimary`/`textSecondary`…) resolved once and stamped onto `PresentationConfig.themeTokens`, dark-mode-aware. Consumed BY NAME by the family builders for the theme-derived defaults — the visualMap value ramp, the markLine and legend-border defaults, the pie slice-label colour (`labelColor ?? textPrimary`, always emitted — ADR-0080 addendum) — so these visible surfaces track the theme instead of being fixed hexes (ADR-0027).
+A semantic theme colour (`primary`/`success`/`warning`/`error`/`divider`/`textPrimary`/`textSecondary`…) resolved once and stamped onto `PresentationConfig.themeTokens`, dark-mode-aware. Consumed BY NAME by the family builders for the theme-derived defaults — the markLine and legend-border defaults, the pie slice-label colour (`labelColor ?? textPrimary`, always emitted — ADR-0080 addendum) — so these visible surfaces track the theme instead of being fixed hexes (ADR-0027).
 _Avoid_: theme colour (too generic), palette colour (the palette is the positional series assignment; tokens are semantic)
 
 **Inherit swatch**:
 The colour box in a `ColorField` that shows the field's **effective** colour — the value the canvas will actually render — when no explicit override is set. Backed by the picker's `fallback` (ADR-0004): palette slot, bound-series colour, or theme token. An inherit swatch that reads empty is a bug — it must preview the real inherited value.
 _Avoid_: colour preview, default swatch
+
+**Farbskala (value colour scale)**:
+A per-series mapping from the series' VALUES to colours between a min and a max of that series' own unit — the same value always gets the same colour, wherever it sits in the plot. Belongs to one series (line, bar or scatter), never to the whole chart: series on different axes need different ranges. A line is coloured along its values, a bar or point gets the one colour of its value. With no colours chosen it inherits a scale derived from the series' effective colour (light → series colour → dark, low to high); with no range entered each bound inherits the bound axis' fixed bound, else the series' own data range over everything loaded (zooming never recolours). The positions of the chosen colour stops are honoured within the range.
+_Avoid_: visualMap (that is the echarts component), Farbverlauf (that is the **Flächen-Verlauf**), chart colour scale (there is no chart-level one)
+
+**Flächen-Verlauf (area gradient)**:
+The gradient filling the area under a line series, anchored to the SHAPE of that area (its top edge gets the first colour, its bottom the last) — not to values. With no gradient chosen it inherits a three-stop vertical gradient of the series' effective colour fading from full (top) over half to transparent (bottom); it is never a flat fill in disguise. Where the series also has a **Farbskala**, the area keeps its Flächen-Verlauf and the line follows the scale.
+_Avoid_: Farbskala (value-anchored, see above), Flächenfüllung (that is the umbrella choice off / flat / gradient)
 
 **Option group**:
 An echarts configuration group — on a series `lineStyle`/`areaStyle`/`itemStyle`/`symbol`/`label`/`labelLayout`/states/markers, on an axis `axisLine`/`axisTick`/`axisLabel`/`splitLine`/…, at chart level the component (`title`, `tooltip`, …). Since ADR-0043 it is the category unit of the three template catalogs: the menu teaches the option space of its level instead of hiding it behind semantic umbrella headers. A category may also bundle SIBLING groups that only make sense together (markers, and since the 2026-10-19 completeness audit the v6 axis break under `break`: `breaks`+`breakArea`+`breakLabelLayout`).
