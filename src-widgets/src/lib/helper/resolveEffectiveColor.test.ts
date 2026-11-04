@@ -50,6 +50,23 @@ describe('terminalColor', () => {
     });
 });
 
+describe('terminalColor — onBackground', () => {
+    it("maps onBackground to MUI's common.onBackground: black in light mode, white in dark mode", () => {
+        // MUI 6.5.0 Switch.js, SwitchTrack `backgroundColor`: common.black (light) / common.white (dark)
+        expect(terminalColor('onBackground', createTheme({ palette: { mode: 'light' } }))).toBe('#000');
+        expect(terminalColor('onBackground', createTheme({ palette: { mode: 'dark' } }))).toBe('#fff');
+    });
+
+    it('computes onBackground from the theme mode and palette, without CSS variables (ADR-0078)', () => {
+        const custom = {
+            palette: { mode: 'dark', common: { black: '#b', white: '#w' } },
+            vars: { palette: { common: { onBackground: 'var(--never)' } } },
+        } as unknown as Theme;
+        expect(terminalColor('onBackground', custom)).toBe('#w');
+        expect(terminalColor('onBackground', { ...custom, palette: { ...custom.palette, mode: 'light' } })).toBe('#b');
+    });
+});
+
 describe('resolveEffectiveColor', () => {
     it('returns the explicit override when set', () => {
         const c = contract({ name: 'iconColor', terminal: 'primary' });

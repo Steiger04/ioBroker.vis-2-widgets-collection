@@ -81,8 +81,6 @@ for (const name of widgets) {
  * An entry that stops matching a terminal-less colour field fails the stale check below.
  */
 const EXCEPTIONS: Record<string, string> = {
-    'SwitchCollectionWidget.trackColor':
-        'unset means the MUI Switch default; the track colour depends on the switch state, no single terminal',
     'DialogCollectionWidget.dialogBackgroundColor':
         'unset renders CSS `inherit`: the runtime inherits from the host element, which no theme terminal names',
 };

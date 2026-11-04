@@ -53,8 +53,22 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: TRACK_SIZE_DEFAULT,
         step: 1,
     },
-    // Track color (no fallback to disable theme primary color)
-    createColorField({ name: 'trackColor', label: 'track_color', fallbackFields: [] }),
+    // Track colours, one per state: each field spreads the contract its track resolves at
+    // runtime (lib/switchColorContract, ADR-0004) — unset, the legacy trackColor, else the MUI
+    // Switch default. MUI's fixed track alpha is presentation: the swatch shows the colour without it.
+    createColorField({ ...switchColorContracts.trackColorTrue, label: 'track_color_true' }),
+    createColorField({ ...switchColorContracts.trackColorFalse, label: 'track_color_false' }),
+    // Legacy single track colour, read by both track contracts as their fallback field (stored data
+    // is never rewritten). Shown only while set, so it can be seen and removed with the trash;
+    // vis-2 evaluates `hidden` against the raw stored data. Visible, its swatch shows the stored
+    // value; `primary` names the colour of the checked track should a stored value be no colour.
+    createColorField({
+        name: 'trackColor',
+        label: 'track_color',
+        fallbackFields: [],
+        terminal: 'primary',
+        hidden: '!data.trackColor',
+    }),
 ];
 
 export default switchFields;
