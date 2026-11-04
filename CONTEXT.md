@@ -449,8 +449,12 @@ The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Swi
 _Avoid_: Editor controls, per-editor widgets
 
 **Erbt (frame background)**:
-The `frameBackground` field's inherit semantics (terminal `paper`, ADR-0004/0078): unset ⇒ the card/frame surface and its picker swatch show the effective theme's `palette.background.paper`. The inner `background` field stays transparent on inherit — the card colour shows through.
-_Avoid_: „erbt = transparent“ (only true for the inner background field)
+The `frameBackground` field's inherit semantics (terminal `paper`, ADR-0004/0078): unset ⇒ the card/frame surface and its picker swatch show the effective theme's `palette.background.paper`. The inner `background` field inherits `paper` too (**Erbt (content background)**), so an inner surface does not let a coloured frame background show through.
+_Avoid_: „erbt = transparent“ (only true without the card, see **Erbt (content background)**)
+
+**Erbt (content background)**:
+The `background` field's inherit semantics (terminal `paper`, ADR-0004, ticket 12) — one definition in `commonFields` for `background`, the per-state `background{n}` and `backgroundActive`: unset ⇒ in the card the inner paper (BASE-PAPER-1) keeps MUI's Paper default `palette.background.paper`, and the swatch shows that. Documented divergence (pattern table header `noCard`): under `noCard` or embedded (`wrappedContent` false) the inner surface paints `transparent` while the swatch shows `paper`. MUI's dark-mode overlay at `baseElevation > 0` is presentation. In the Button-Group the field paints the toggle buttons, unset with no background of their own — the paper behind them is what shows, so the same contract holds. The runtime resolver builds its own chain and yields `''`; only the swatch reads the contract.
+_Avoid_: „erbt transparent“ for `background` (true only without the card)
 
 **Editor history**:
 The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input; a non-modal editor (the Studio panel) scopes the keys to its own element. One implementation (`useEditorHistory`) backs both working copies.

@@ -32,6 +32,7 @@ vi.hoisted(() => {
 });
 
 import { act, createElement, useState, type ComponentProps, type FC } from 'react';
+import { useTheme } from '@mui/material/styles';
 
 import CollectionBase from './CollectionBase';
 import useContentBox, { type ContentBox } from '../hooks/useContentBox';
@@ -288,5 +289,61 @@ describe('CollectionBase Content-Box (ADR-0098)', () => {
         mountBody(Probe, withContentBox(frameScene(), { width: 300, height: 90 }));
 
         expect(seen).toStrictEqual({ width: undefined, height: undefined });
+    });
+});
+
+describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
+    /** The palette paper of the theme the frame renders in, read by a child of the frame. */
+    let themePaper: string | undefined;
+
+    const PaperProbe: FC = () => {
+        themePaper = useTheme().palette.background.paper;
+        return null;
+    };
+
+    /**
+     * Mounts the frame on the scene's widget data, inside its card (`wrappedContent`) or not —
+     * Generic derives `wrappedContent` from `noCard` / embedding, the scene stands in for it.
+     */
+    const mountBackgroundFrame = (data: Record<string, unknown>, wrappedContent: boolean): MountedCollectionBody => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            return createElement(CollectionBase, { data: styleData }, createElement(PaperProbe));
+        };
+        const scene = frameScene(data);
+        return mountBody(Frame, { ...scene, context: { ...scene.context, wrappedContent } } as PreviewScene);
+    };
+
+    /** The background the content slot (BASE-PAPER-1) paints. */
+    const contentBackground = ({ container }: MountedCollectionBody): string => {
+        const slot = container.querySelector('.BASE-PAPER-1');
+        expect(slot).not.toBeNull();
+        const style = getComputedStyle(slot!);
+        return style.background || style.backgroundColor;
+    };
+
+    beforeEach(() => {
+        themePaper = undefined;
+    });
+
+    it('in the card, without a value, paints the theme paper (MUI Paper default) — the swatch terminal', () => {
+        const frame = mountBackgroundFrame({}, true);
+
+        expect(themePaper).toBeTruthy();
+        expect(getComputedStyle(frame.container.querySelector('.BASE-PAPER-1')!).backgroundColor).toBe(themePaper);
+    });
+
+    it('in the card, the paper stays under a coloured frame background', () => {
+        const frame = mountBackgroundFrame({ frameBackground: '#336699' }, true);
+
+        expect(getComputedStyle(frame.container.querySelector('.BASE-PAPER-1')!).backgroundColor).toBe(themePaper);
+    });
+
+    it('without the card (noCard / embedded), without a value, paints transparent — the documented divergence', () => {
+        expect(contentBackground(mountBackgroundFrame({ noCard: true }, false))).toBe('transparent');
+    });
+
+    it.each([true, false])('an explicit value paints as set (card: %s)', wrappedContent => {
+        expect(contentBackground(mountBackgroundFrame({ background: '#aa0000' }, wrappedContent))).toBe('#aa0000');
     });
 });
