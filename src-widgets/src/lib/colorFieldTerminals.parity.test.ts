@@ -1,13 +1,14 @@
 /**
- * Parity test: every contract colour field declares a terminal (ADR-0004, Chrome-Slots addendum).
+ * Parity test: every contract colour field declares a terminal (ADR-0004, Chrome-Slots addendum
+ * and addendum 2026-11-04).
  *
  * @module lib/colorFieldTerminals.parity.test
  * @remarks
- * A colour field without a terminal is almost always a field whose editor swatch shows a
+ * A colour field without a terminal is a field whose editor swatch stays empty or shows a
  * different colour than the widget renders (kern-chrome-review K1: Button-Group separator,
- * table lines, Radio "unchecked"). This invariant makes that loud: every contract colour
- * field of every registered widget declares a `terminal`, or it is listed in
- * {@link EXCEPTIONS} with the reason why no single terminal describes its runtime.
+ * table lines, Radio "unchecked"). This invariant makes that loud, without exception: every
+ * contract colour field of every registered widget declares a `terminal`, so a new colour
+ * field without one fails here and no empty swatch can return.
  *
  * Scope — the "contract colour fields": every attribute field whose editor is the
  * `ContractColorField`, i.e. every product of `createColorField` (and of
@@ -74,13 +75,6 @@ const WIDGET_BODIES: Record<WidgetName, string> = {
 for (const name of widgets) {
     vi.doMock(`../${name}/${WIDGET_BODIES[name]}`, () => ({ default: () => null }));
 }
-
-/**
- * Contract colour fields that legitimately declare no terminal, keyed `Widget.field`.
- * Each reason says why no single terminal describes the runtime when the field is unset.
- * An entry that stops matching a terminal-less colour field fails the stale check below.
- */
-const EXCEPTIONS: Record<string, string> = {};
 
 interface FieldLike {
     name?: string;
@@ -160,16 +154,10 @@ describe('colour field terminals (every contract colour field declares a termina
         expect(keys.has('GaugeCollectionWidget.gaugeColorBarProgress')).toBe(true);
     });
 
-    it.each(widgets)('%s: every colour field declares a terminal or is a listed exception', name => {
+    it.each(widgets)('%s: every colour field declares a terminal', name => {
         const missing = scanned
-            .filter(field => field.widget === name && field.terminal === undefined && !(field.key in EXCEPTIONS))
+            .filter(field => field.widget === name && field.terminal === undefined)
             .map(field => field.key);
-        expect(missing, 'declare a terminal, or add the field to EXCEPTIONS with a reason').toEqual([]);
-    });
-
-    it('every exception still names a colour field without a terminal', () => {
-        const terminalLess = new Set(scanned.filter(field => field.terminal === undefined).map(field => field.key));
-        const stale = Object.keys(EXCEPTIONS).filter(key => !terminalLess.has(key));
-        expect(stale, 'remove the stale EXCEPTIONS entries').toEqual([]);
+        expect(missing, 'declare a terminal in the field contract').toEqual([]);
     });
 });
