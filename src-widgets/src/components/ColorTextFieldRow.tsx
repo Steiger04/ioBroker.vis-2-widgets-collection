@@ -205,7 +205,11 @@ function ColorTextFieldRow({
                     mt: outlined ? 0 : text ? '4px' : '-2px',
                     px: '4px',
                     py: text ? '4px' : '3px',
-                    backgroundColor: shown ? (light ? theme.palette.common.white : '#121212') : 'transparent',
+                    backgroundColor: shown
+                        ? light
+                            ? theme.palette.common.white
+                            : theme.palette.grey['900']
+                        : 'transparent',
                     borderRadius: '1px',
                     display: 'inline-block',
                     cursor: 'pointer',
