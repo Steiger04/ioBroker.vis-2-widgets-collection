@@ -292,8 +292,8 @@ const GRADIENT_RE = /\b(?:linear|radial|conic)-gradient\b/i;
  * Uses the browser-native `CSS.supports('color', value)` check (covers hex, rgb,
  * hsl, named colors, `transparent`, `currentColor`, …). Gradients are rejected
  * explicitly — they are valid backgrounds but invalid MUI palette colors. This
- * intentionally does NOT reuse `validateColorInput` from `lib/helper/colorValidation`,
- * which accepts gradients for widget backgrounds.
+ * intentionally does NOT reuse the Regeln für Farbeingaben (`lib/helper/colorInputRules`),
+ * which accept gradients for widget backgrounds.
  */
 export function isValidCssColor(value: unknown): boolean {
     if (typeof value !== 'string') {

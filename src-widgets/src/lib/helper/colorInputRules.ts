@@ -16,7 +16,7 @@
  *    `CSS.supports('color', …)`): colour names, `transparent`, `hsl()`, `var(--…)` included.
  *    Typed values are stored as typed (trimmed), never normalised.
  *
- * Replaces the regex validation (`colorValidation.validateColorInput`) in the editor and in the
+ * Replaced the former regex validation (`validateColorInput`, removed) in the editor and in the
  * Auflösungskaskade (`resolveEffectiveColor` reads stored values as `typed` with gradients
  * allowed), so every value the editor stores also takes effect in swatch and widget.
  */
