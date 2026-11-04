@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-// sliderFields pulls fieldFactories, which pulls CollectionGradientColorPicker,
+// sliderFields pulls fieldFactories, which pulls ContractColorField,
 // which pulls Generic, which extends window.visRxWidget — undefined outside the
 // vis-2 runtime. The contracts under test are independent of those components.
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import { buildSliderChromeStyles } from './chrome';

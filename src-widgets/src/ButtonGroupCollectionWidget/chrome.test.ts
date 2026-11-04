@@ -8,10 +8,10 @@ import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 import type { ButtonGroupChromeInput } from './chrome';
 
-// The field list renders CollectionDivider / CollectionGradientColorPicker, which pull
+// The field list renders CollectionDivider / ContractColorField, which pull
 // Generic (extends window.visRxWidget, absent outside vis-2). The parity test reads only
 // the field data.
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import buttonGroupFields from '../lib/buttonGroupFields';

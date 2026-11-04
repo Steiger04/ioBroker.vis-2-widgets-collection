@@ -12,7 +12,7 @@
  *
  * Three documented divergences between swatch and runtime: with `noCard` the header bar
  * stays transparent (the swatch shows paper); the header bar paints its explicit value raw,
- * so a legacy value the picker rejects keeps painting (the swatch counts it as unset); and
+ * so a legacy value that is no colour keeps painting (the swatch counts it as unset); and
  * the header text inherits at runtime when unset (its contract only drives the swatch).
  *
  * Kept free of components: the field list pulls editor components (Generic), which the

@@ -16,7 +16,7 @@ vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('./JsonTableCollection', () => ({ default: () => null }));
 vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 
 import JsonTableCollectionWidget from './JsonTableCollectionWidget';
 import jsonTableFields from '../lib/jsonTableFields';

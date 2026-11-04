@@ -39,7 +39,7 @@
  * ]);
  */
 
-import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
+import ContractColorField from '../components/ContractColorField';
 import CollectionDivider from '../components/CollectionDivider';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type {
@@ -101,7 +101,7 @@ export interface ColorFieldOptions {
      * `lib/helper/resolveEffectiveColor`). See `ExtendedField.fallbackFields` and ADR 0004.
      */
     fallbackFields?: string[];
-    /** When true, extracts solid color from gradients before saving */
+    /** Solid colours only: the Farbwähler hides Solid/Gradient, a typed gradient is an error. */
     noGradient?: boolean;
     /**
      * Terminal default — the most general end of the resolution cascade.
@@ -118,7 +118,9 @@ export interface ColorFieldOptions {
 }
 
 /**
- * Creates a color field definition for use with CollectionGradientColorPicker.
+ * Creates a contract colour field: a custom field rendered by the contract adapter
+ * (`components/ContractColorField`), which resolves the Auflösungskaskade and shows the
+ * Textfeld-Zeile (text field · trash · swatch opening the Farbwähler, ADR-0102).
  *
  * @param options - Field configuration options
  * @returns ExtendedField definition ready for use in field arrays
@@ -154,7 +156,7 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         type: 'custom',
         component: guardWidgetData(
             (field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
-                <CollectionGradientColorPicker
+                <ContractColorField
                     field={field}
                     data={data}
                     onDataChange={onDataChange}

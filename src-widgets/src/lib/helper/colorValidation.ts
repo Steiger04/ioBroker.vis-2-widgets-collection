@@ -17,7 +17,7 @@
  *
  * @remarks
  * These patterns are used consistently across:
- * - CollectionGradientColorPicker validation
+ * - the Regeln für Farbeingaben (`colorInputRules`: gradient detection, hex/rgb fallback)
  * - extractColorFromValue parsing
  * - gradientColor detection
  */

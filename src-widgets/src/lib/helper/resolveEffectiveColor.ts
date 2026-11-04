@@ -5,7 +5,7 @@
  * @remarks
  * Declared by the field contract (`ExtendedField.terminal` /
  * `inheritTextStyle` / `fallbackFields`). The editor swatch
- * (`CollectionGradientColorPicker`), the Gauge's color options and most chrome
+ * (`ContractColorField`, the Vertrags-Adapter), the Gauge's color options and most chrome
  * contracts at runtime walk the whole cascade here; the state resolvers
  * (`propertyResolvers`) and the chrome slots that paint a raw explicit value
  * build their own chains and take only the terminal mapping (`terminalColor`) —
@@ -24,7 +24,7 @@ import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { ColorTerminal, ExtendedField } from '../../types/field-definitions/extended-field';
 import { solidOf } from './colorDerivation';
-import { validateColorInput } from './colorValidation';
+import { applyColorInputRules } from './colorInputRules';
 
 /** Minimal shape needed to read the vis-2 widget CSS `color`. */
 export type StyleColor = Pick<WidgetStyleState, 'color'> | undefined;
@@ -57,13 +57,19 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
     }
 }
 
-/** A stored color value as the picker validates it (trimmed), or undefined when unset/invalid. */
+/**
+ * A stored color value read with the Regeln für Farbeingaben (`colorInputRules`, as typed,
+ * gradients allowed) — trimmed —, or undefined when unset or no colour. So every value the
+ * editor stores also takes effect: hex, `rgb()`, gradients and every CSS colour the browser
+ * accepts (`red`, `hsl()`, `var(--…)`, `transparent`). Where the field forbids gradients the
+ * editor never stores one; the cascade does not know `noGradient`.
+ */
 function validColor(value: unknown): string | undefined {
-    if (typeof value !== 'string' || value.trim() === '') {
+    if (typeof value !== 'string') {
         return undefined;
     }
-    const validation = validateColorInput(value);
-    return validation.isValid && validation.normalizedValue.trim() !== '' ? validation.normalizedValue : undefined;
+    const result = applyColorInputRules(value, { source: 'typed', allowGradient: true });
+    return result.kind === 'value' ? result.value : undefined;
 }
 
 /**
@@ -79,8 +85,9 @@ function validColor(value: unknown): string | undefined {
  *    validated, only skipped when empty
  * 4. terminal default ({@link terminalColor}) — always yielded, last
  *
- * "Valid" is the picker's validation (`validateColorInput`); empty or invalid
- * values count as unset (Erben).
+ * "Valid" is the editor's rule (Regeln für Farbeingaben, `colorInputRules`): any CSS
+ * colour the browser accepts, or a complete gradient; empty or invalid values count as
+ * unset (Erben).
  *
  * @yields Each stage's color, most specific first; the last one is the terminal (`''` for transparent/none).
  */

@@ -5,7 +5,8 @@
  * @module types/field-definitions/extended-field
  * @remarks
  * This type extends RxWidgetInfoAttributesField to support custom properties
- * used by CollectionGradientColorPicker and field definitions across the widget collection.
+ * used by the contract colour fields (`createColorField` → `ContractColorField`) and field
+ * definitions across the widget collection.
  *
  * Color resolution contract (ADR 0004): `fallbackFields`, `inheritTextStyle` and
  * `terminal` declare a field's Auflösungskaskade — layered general → specific
@@ -14,15 +15,17 @@
  * are documented once, at `cascadeCandidates` (`lib/helper/resolveEffectiveColor`).
  *
  * Who walks that cascade whole, through `resolveEffectiveColor` /
- * `resolveEffectiveSolidColor`: the picker swatch, the Gauge's color options and
+ * `resolveEffectiveSolidColor`: the editor swatch (`ContractColorField`), the Gauge's color options and
  * most chrome contract consumers (CONTEXT.md, Chrome-Farbvertrag). Others build
  * their own chain and share only the terminal mapping (`terminalColor`): the
  * state resolvers (`hooks/useData/propertyResolvers`), and the chrome slots that
  * paint the explicit value raw, as stored — the Radio's unchecked icon and the
  * table's header bar. The Button-Group separator takes the stored value raw
- * wherever a color calculation reads it, before it walks the cascade. So a stored
- * value the picker rejects can paint at runtime while the swatch skips it; each
- * such divergence is documented in the consumer's contract or chrome module.
+ * wherever a color calculation reads it, before it walks the cascade. The cascade
+ * reads stored values with the Regeln für Farbeingaben (any CSS colour the browser
+ * accepts, complete gradients), so only a value that is no colour at all (historic
+ * free text) can paint raw at runtime while the swatch skips it; each such
+ * divergence is documented in the consumer's contract or chrome module.
  *
  * The picker never writes a resolved value into data — only an explicit user
  * choice is persisted.
@@ -32,8 +35,7 @@
  *                    that is the terminal's job.
  * [terminal] - The color the cascade ends on (`'transparent'` when omitted).
  * [inheritTextStyle] - Enables the vis-2 style stage.
- * [noGradient] - When true, extracts solid color at 50% position from gradients before saving.
- *                User can still input/view gradients in UI, but only solid colors are persisted.
+ * [noGradient] - Solid colours only: no Solid/Gradient in the Farbwähler, a typed gradient is an error.
  *
  * @example
  * // Thumb color: own value → sliderColor → theme primary
@@ -44,7 +46,7 @@
  *     fallbackFields: ['sliderColor'],
  *     terminal: 'primary',
  *     component: (field, data, onDataChange, props) => (
- *         <CollectionGradientColorPicker field={field} data={data} onDataChange={onDataChange} props={props} />
+ *         <ContractColorField field={field} data={data} onDataChange={onDataChange} props={props} />
  *     ),
  * };
  *
@@ -56,7 +58,7 @@
  *     type: 'custom',
  *     noGradient: true,
  *     component: (field, data, onDataChange, props) => (
- *         <CollectionGradientColorPicker field={field} data={data} onDataChange={onDataChange} props={props} />
+ *         <ContractColorField field={field} data={data} onDataChange={onDataChange} props={props} />
  *     ),
  * };
  */
@@ -83,10 +85,9 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
     fallbackFields?: string[];
 
     /**
-     * When true, extracts solid color at 50% position from gradients before saving.
-     *
-     * User can still input/view gradients in UI, but only solid colors are persisted.
-     * This is useful for properties that only support solid colors (e.g., icon colors).
+     * Solid colours only (e.g. icon colours): the Farbwähler hides Solid/Gradient, and a gradient
+     * typed into the field is an error ("Verlauf hier nicht möglich") — never reduced to a solid
+     * (Regeln für Farbeingaben, ADR-0102).
      */
     noGradient?: boolean;
 
