@@ -14,7 +14,7 @@
  *   (pick / type / clear). The picker never "materializes" a resolved color into
  *   data merely because the popover was opened — "empty" stays a first-class
  *   "inherit" state.
- * - The clear (×) button appears only when an explicit override exists; clearing
+ * - The clear (trash) button appears only when an explicit override exists; clearing
  *   returns the field to "inherit".
  *
  * Typed text runs through the Regeln für Farbeingaben (`lib/helper/colorInputRules`,
@@ -24,23 +24,21 @@
  * input is marked with an error state and does not trigger `onDataChange`. Empty values are
  * normalized to null.
  *
- * Picker output is still the former path: `noGradient` extracts the solid color at 50%
- * before saving, so only solid colors are persisted (the user may still view gradients).
+ * The swatch opens the Farbwähler (`colorPicker/CollectionColorPicker`) with the field label as
+ * title; it commits picks debounced and normalized (solid `#rrggbb` / `#rrggbbaa`, gradient
+ * unchanged) and hides Solid/Gradient in `noGradient` fields, so no gradient reaches them.
  */
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, TextField, ThemeProvider } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
-import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
-import { validateColorInput } from '../lib/helper/colorValidation';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
-import FollowingPopover from './colorPicker/FollowingPopover';
+import CollectionColorPicker from './colorPicker/CollectionColorPicker';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from '@iobroker/types-vis-2';
 
 /**
@@ -111,9 +109,6 @@ function CollectionGradientColorPicker({
     // Track the last prop value to detect external changes only
     const lastPropValueRef = useRef<string | null | undefined>(fieldValue);
 
-    // Debounce timer for picker-originated onDataChange calls
-    const pickerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     // Editor chrome uses the vis-2 HOST theme. The attribute editor is a vis-2
     // surface — its text, placeholder ("erbt"), borders and popover must follow
     // vis-2, never the collection theme. What is configured here affects only the
@@ -135,115 +130,29 @@ function CollectionGradientColorPicker({
         [field, data, collectionTheme, styleColor],
     );
 
+    // Header title of the Farbwähler: the field label, as the attribute panel shows it.
+    const fieldTitle = 'label' in field && field.label ? Generic.t(field.label) : undefined;
+
     // Explicit override exists ⇔ a non-empty value is stored for this field.
     const overridden = typeof fieldValue === 'string' && fieldValue.trim() !== '';
 
-    // Clean up debounce timer on unmount
-    useEffect(() => {
-        return (): void => {
-            if (pickerDebounceRef.current !== null) {
-                clearTimeout(pickerDebounceRef.current);
-            }
-        };
-    }, []);
-
-    /**
-     * Handles picker-originated changes and the clear button (typed text: `handleTextChange`).
-     * Uses guard clauses for cleaner control flow.
-     *
-     * @param newValue - The new color value
-     * @param debounce - If true, debounce onDataChange (used for picker drag events)
-     */
-    const handleChange = useCallback(
-        (newValue: string | null | undefined, debounce = false): void => {
-            // Cancel any pending debounced update
-            if (pickerDebounceRef.current !== null) {
-                clearTimeout(pickerDebounceRef.current);
-                pickerDebounceRef.current = null;
-            }
-
-            // Guard 1: Handle null/undefined - treat as empty and clear error
-            if (newValue === null || newValue === undefined) {
-                setCachedValue('');
-                setErrorReason(null);
-                lastPropValueRef.current = null;
-                onDataChange({ [fieldName]: null });
-                return;
-            }
-
-            // Guard 2: Type check - reject non-string inputs with error state
-            if (typeof newValue !== 'string') {
-                setErrorReason('notAColor');
-                return;
-            }
-
-            // Guard 3: Handle empty string (after trimming) - clear value and error
-            const trimmedValue = newValue.trim();
-            if (trimmedValue === '') {
-                setCachedValue('');
-                setErrorReason(null);
-                lastPropValueRef.current = null;
-                onDataChange({ [fieldName]: null });
-                return;
-            }
-
-            // Validate non-empty string values
-            const validation = validateColorInput(newValue);
-
-            // Always update cachedValue to reflect user input (even if invalid)
-            setCachedValue(newValue);
-
-            // Guard 4: Handle invalid input - set error but do NOT call onDataChange
-            if (!validation.isValid) {
-                setErrorReason('notAColor');
-                return;
-            }
-
-            // Valid input - clear error
+    // The Farbwähler commits debounced and already normalized (Regeln für Farbeingaben, picked).
+    const handlePickerCommit = useCallback(
+        (picked: string): void => {
+            setCachedValue(picked);
             setErrorReason(null);
-
-            // Resolve the final value to persist
-            let finalValue: string | null;
-            if (field.noGradient === true) {
-                const extractedColor = extractColorFromValue(validation.normalizedValue);
-                if (extractedColor === null) {
-                    setErrorReason('notAColor');
-                    return;
-                }
-                finalValue = extractedColor;
-            } else {
-                finalValue = validation.normalizedValue || null;
-            }
-
-            // Update lastPropValueRef BEFORE onDataChange to prevent
-            // the sync effect from overwriting cachedValue during rapid updates
-            lastPropValueRef.current = finalValue;
-
-            if (debounce) {
-                // Debounce picker-originated changes to ensure the final drag
-                // value is always persisted (trailing edge fires after drag ends)
-                pickerDebounceRef.current = setTimeout(() => {
-                    pickerDebounceRef.current = null;
-                    onDataChange({ [fieldName]: finalValue });
-                }, 150);
-            } else {
-                onDataChange({ [fieldName]: finalValue });
-            }
+            // Update lastPropValueRef BEFORE onDataChange so the sync effect keeps the value
+            lastPropValueRef.current = picked;
+            onDataChange({ [fieldName]: picked });
         },
-        [fieldName, field.noGradient, onDataChange],
+        [fieldName, onDataChange],
     );
-
-    const handlePickerChange = useCallback((gradient: string): void => handleChange(gradient, true), [handleChange]);
 
     // Typed text runs through the Regeln für Farbeingaben (ADR-0102): any CSS colour the browser
     // accepts is stored as typed, a gradient only where the field allows it; invalid text is
     // marked and not stored, emptied text stores null (Erben).
     const handleTextChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>): void => {
-            if (pickerDebounceRef.current !== null) {
-                clearTimeout(pickerDebounceRef.current);
-                pickerDebounceRef.current = null;
-            }
             const text = event.target.value;
             const result = applyColorInputRules(text, { source: 'typed', allowGradient: field.noGradient !== true });
             if (result.kind === 'invalid') {
@@ -261,9 +170,13 @@ function CollectionGradientColorPicker({
         [fieldName, field.noGradient, onDataChange],
     );
 
-    const handleClear = useCallback((): void => handleChange(null), [handleChange]);
-
-    const open = Boolean(anchorEl);
+    // Clearing returns the field to "inherit".
+    const handleClear = useCallback((): void => {
+        setCachedValue('');
+        setErrorReason(null);
+        lastPropValueRef.current = null;
+        onDataChange({ [fieldName]: null });
+    }, [fieldName, onDataChange]);
 
     // Synchronize with external prop changes (e.g., undo/redo, preset loading)
     useEffect(() => {
@@ -361,21 +274,14 @@ function CollectionGradientColorPicker({
                     </Box>
                 </Box>
 
-                <FollowingPopover
-                    open={open}
+                <CollectionColorPicker
                     anchorEl={anchorEl}
                     onClose={(): void => setAnchorEl(null)}
-                    paperSx={{ p: '9px', borderRadius: '6px', backgroundColor: 'rgb(32,32,32)' }}
-                >
-                    <ColorPicker
-                        value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
-                        onChange={handlePickerChange}
-                        hidePresets
-                        hideInputs
-                        hideEyeDrop
-                        hideInputType
-                    />
-                </FollowingPopover>
+                    title={fieldTitle}
+                    value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
+                    onCommit={handlePickerCommit}
+                    allowGradient={field.noGradient !== true}
+                />
             </ThemeProvider>
         </>
     );

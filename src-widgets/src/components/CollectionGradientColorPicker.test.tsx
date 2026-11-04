@@ -21,8 +21,11 @@ vi.hoisted(() => {
     };
 });
 
-// happy-dom has no canvas: the library is replaced by an inert fake.
-vi.mock('react-best-gradient-color-picker', () => ({ default: (): null => null }));
+// happy-dom has no canvas: the library is replaced by the Farbwähler's test fake.
+vi.mock(
+    'react-best-gradient-color-picker',
+    async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
+);
 vi.mock('../hooks/useCollectionTheme', async () => {
     const { createTheme } = await import('@mui/material');
     const theme = createTheme();
@@ -34,6 +37,7 @@ import { act, type ComponentProps } from 'react';
 
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
+import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import CollectionGradientColorPicker from './CollectionGradientColorPicker';
 
@@ -49,6 +53,7 @@ const editorProps = {
 let handle: RenderComponentHandle<Props> | null = null;
 
 beforeEach(() => {
+    resetFakeLibrary();
     // Browser-like `CSS.supports('color', …)` for the cases used here.
     vi.stubGlobal('CSS', {
         supports: (_property: string, value?: string): boolean =>
@@ -59,6 +64,7 @@ beforeEach(() => {
 afterEach(() => {
     handle?.unmount();
     handle = null;
+    vi.useRealTimers();
     vi.unstubAllGlobals();
 });
 
@@ -132,5 +138,66 @@ describe('CollectionGradientColorPicker text field', () => {
         type(input, '   ');
         expect(onDataChange).toHaveBeenLastCalledWith({ bg: null });
         expect(isMarked(input)).toBe(false);
+    });
+});
+
+/** Opens the Farbwähler by clicking the swatch; returns its popover paper. */
+const openPicker = (container: HTMLElement): HTMLElement => {
+    act(() => container.querySelector<HTMLElement>('[title="choose_color"]')?.click());
+    const paper = document.body.querySelector<HTMLElement>('.MuiPopover-paper');
+    if (!paper) {
+        throw new Error('the Farbwähler did not open');
+    }
+    return paper;
+};
+
+describe('CollectionGradientColorPicker opens the Farbwähler', () => {
+    it('with the field label as title and a close ×', () => {
+        vi.useFakeTimers();
+        const { container } = mount({ label: 'bg_color' });
+        const paper = openPicker(container);
+        expect(paper.querySelector('[data-picker-title]')?.textContent).toBe('bg_color');
+        const close = paper.querySelector<HTMLElement>('button[aria-label="color_picker_close"]');
+        expect(close).not.toBeNull();
+        act(() => close?.click());
+        // Closed once the exit transition has run.
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
+        expect(document.body.querySelector('.MuiPopover-paper')).toBeNull();
+    });
+
+    it('keeps Solid/Gradient for a gradient field', () => {
+        const { container } = mount();
+        openPicker(container);
+        expect(lastLibraryProps().hideColorTypeBtns).not.toBe(true);
+    });
+
+    it('hides Solid/Gradient for a noGradient field', () => {
+        const { container } = mount({ noGradient: true });
+        openPicker(container);
+        expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
+    });
+
+    it('stores a pick normalized and shows it in the text field', () => {
+        vi.useFakeTimers();
+        const { input, container, onDataChange } = mount({ noGradient: true });
+        const paper = openPicker(container);
+        act(() => paper.querySelector<HTMLElement>('button[data-pick="translucent"]')?.click());
+        act(() => {
+            vi.advanceTimersByTime(150);
+        });
+        expect(onDataChange).toHaveBeenCalledExactlyOnceWith({ bg: '#0080ff66' });
+        expect(input.value).toBe('#0080ff66');
+    });
+
+    it('stores a picked gradient unchanged', () => {
+        const { container, onDataChange } = mount();
+        const paper = openPicker(container);
+        act(() => paper.querySelector<HTMLElement>('button[data-pick="gradient"]')?.click());
+        act(() => document.body.querySelector<HTMLElement>('button[aria-label="color_picker_close"]')?.click());
+        expect(onDataChange).toHaveBeenCalledExactlyOnceWith({
+            bg: 'linear-gradient(90deg, RGBA(255, 0, 0, 1) 0%, rgba(0, 0, 255, 1) 100%)',
+        });
     });
 });
