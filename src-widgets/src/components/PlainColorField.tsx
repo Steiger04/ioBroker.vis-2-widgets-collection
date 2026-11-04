@@ -17,12 +17,11 @@
  */
 
 import { ThemeProvider } from '@mui/material';
-import { useCallback } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
-import Generic from '../Generic';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
+import { useColorFieldBinding } from './useColorFieldBinding';
 
 /** Props for {@link PlainColorField} — the vis-2 custom-field contract. */
 export interface PlainColorFieldProps {
@@ -47,27 +46,19 @@ export interface PlainColorFieldProps {
  * @returns The field row under the vis-2 host theme.
  */
 function PlainColorField({ field, data, onDataChange, props }: PlainColorFieldProps): React.JSX.Element {
-    const fieldName: string = field.name!;
-    const stored = data[fieldName] as unknown;
-    const value = typeof stored === 'string' ? stored : null;
+    const { value, title, onChange } = useColorFieldBinding(field, data, onDataChange);
     // What the widget renders for an empty field (vis-2 showed it in the former `type: 'color'`).
     const schemaDefault = (field as { default?: unknown }).default;
     const effectiveColor = value || (typeof schemaDefault === 'string' ? schemaDefault : '');
-    const title = 'label' in field && field.label ? Generic.t(field.label) : undefined;
-
-    const handleChange = useCallback(
-        (next: string | null): void => onDataChange({ [fieldName]: next }),
-        [fieldName, onDataChange],
-    );
 
     return (
         <ThemeProvider theme={props.context.theme}>
             <ColorTextFieldRow
                 value={value}
-                onChange={handleChange}
+                onChange={onChange}
                 effectiveColor={effectiveColor}
                 placeholder="none"
-                // Always true for a Schlichtes Farbfeld (the fabric sets it) — read like the contract adapter.
+                // The factory always sets noGradient; read like in the contract adapter.
                 allowGradient={field.noGradient !== true}
                 title={title}
                 socket={props.context.socket}

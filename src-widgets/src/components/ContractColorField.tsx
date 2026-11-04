@@ -17,14 +17,14 @@
  */
 
 import { ThemeProvider } from '@mui/material';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
-import Generic from '../Generic';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import { resolveEffectiveColor, type StyleColor } from '../lib/helper/resolveEffectiveColor';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
+import { useColorFieldBinding } from './useColorFieldBinding';
 
 /** Props for {@link ContractColorField} — the vis-2 custom-field contract. */
 export interface ContractColorFieldProps {
@@ -67,7 +67,7 @@ function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): Sty
  * @returns The field row under the vis-2 host theme.
  */
 function ContractColorField({ field, data, onDataChange, props }: ContractColorFieldProps): React.JSX.Element {
-    const fieldName: string = field.name!;
+    const { value, title, onChange } = useColorFieldBinding(field, data, onDataChange);
     const hostTheme = props.context.theme;
     const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
     const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
@@ -76,19 +76,12 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
         () => resolveEffectiveColor(field, data, collectionTheme, styleColor),
         [field, data, collectionTheme, styleColor],
     );
-    const title = 'label' in field && field.label ? Generic.t(field.label) : undefined;
-    const stored = data[fieldName] as string | null | undefined;
-
-    const handleChange = useCallback(
-        (value: string | null): void => onDataChange({ [fieldName]: value }),
-        [fieldName, onDataChange],
-    );
 
     return (
         <ThemeProvider theme={hostTheme}>
             <ColorTextFieldRow
-                value={typeof stored === 'string' ? stored : null}
-                onChange={handleChange}
+                value={value}
+                onChange={onChange}
                 effectiveColor={effectiveColor}
                 placeholder="inherit"
                 allowGradient={field.noGradient !== true}
