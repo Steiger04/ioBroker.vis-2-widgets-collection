@@ -196,6 +196,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'palettePreset'
                 | 'paletteCustom'
                 | 'darkMode'
+                // The bar label colour's auto-contrast preview reads the canvas (ADR-0080).
+                | 'bgColor'
                 // ADR-0072: the Daten cluster's Erben-Override inherit targets (read-only).
                 | 'aggregate'
                 | 'percentileValue'

@@ -54,7 +54,7 @@ const mountStil = (
                 onPatch: () => undefined,
                 pickerCtx: {} as never,
                 seriesColor: opts.seriesColor ?? '#ff0000',
-                labelColorFallback: '#222',
+                chartCanvas: 'transparent',
                 yAxes: opts.yAxes ?? [{}],
                 dataExtent: opts.dataExtent ?? null,
                 colorScalePercent: opts.colorScalePercent,
@@ -215,7 +215,7 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
                 onPatch: p => setMeta(m => ({ ...m, ...p })),
                 pickerCtx: {} as never,
                 seriesColor: '#ff0000',
-                labelColorFallback: '#222',
+                chartCanvas: 'transparent',
                 yAxes: [{}],
             });
         };
