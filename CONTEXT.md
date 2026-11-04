@@ -552,6 +552,10 @@ _Avoid_: Tick, mark without saying which kind where the difference matters
 The widget-level style every **Marke** takes where its state sets none of its own — the `marker*` fields (`markerTextColor`, `markerTextSize`, `markerIconColor`, `markerIconSize`), passed by the slider to useData (`useData('oid', { markerLayer })`). It sits uniformly between the per-state value and the base value, in all eight chains carrying it (text colour, active text colour, font/value size, icon size/width/height, icon colour) and in the base resolution of a Zwischenmarke too: per-state → marker → base. useData applies it to `states` and to the marks' base style (`markBaseStyle`) only. Everything else resolves without it — the active style `data`, hence the **Eck-Icon**, the value label and the header/footer.
 _Avoid_: Slider-Resolver (the retired mechanism that found it by type detection), Marker-Default (it is a tier between two others, not a default)
 
+**Endsymbol**:
+The icon at either end of the rail (`iconMin`/`iconSmallMin`, `iconMax`/`iconSmallMax`), coloured by `startIconColor` / `endIconColor`. The colour follows the SOURCE icon (start = min, end = max), not its rendered position, which swaps with the orientation. The colour is applied through a forced mask, so every icon with an explicit value is coloured — an image icon (URL, path) as a silhouette too. Unset, only a Base64 icon falls back to the theme primary; an image icon stays uncoloured and keeps its own colours. This is a documented state rule (pattern Select arrow, ADR-0004): "uncoloured" is no colour a swatch can name, so the field's swatch (terminal `primary`) shows the colour a Base64 icon gets. Pinned by `SliderCollection.test.tsx`.
+_Avoid_: Eck-Icon (the frame's corner icon), Start-/End-Icon without saying min/max where orientation matters
+
 # Gauge Collection Widget
 
 The canvas-gauge of the collection (linear or radial instrument on a canvas, driven by a numeric OID). This glossary pins down the seam language introduced with the Options-Builder.
