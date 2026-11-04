@@ -351,18 +351,18 @@ export const StilTab: FC<{
                     <FieldGrid min={140}>
                         {/* Label cluster (parity Build D): the position select carries the adapter's
                             five options — picking "ohne" turns the switch off, picking a position
-                            turns it on; the two controls can never disagree. */}
+                            turns it on; the two controls can never disagree. The select follows the
+                            runtime (ADR-0056): an unset position is painted by echarts' bar default
+                            `inside`, so it shows "Inside, middle"; every pick stores its own
+                            position — "Above bar" stores `top` explicitly. */}
                         <LabeledSelect
                             label={Generic.t('echarts_bar_label_pos')}
-                            value={meta.label ? (meta.labelPosition ?? 'top') : ''}
+                            value={meta.label ? (meta.labelPosition ?? 'inside') : ''}
                             onChange={v =>
                                 onPatch(
                                     v === ''
                                         ? { label: false }
-                                        : {
-                                              label: true,
-                                              labelPosition: v === 'top' ? undefined : (v as EchartsBarLabelPos),
-                                          },
+                                        : { label: true, labelPosition: v as EchartsBarLabelPos },
                                 )
                             }
                             options={[
