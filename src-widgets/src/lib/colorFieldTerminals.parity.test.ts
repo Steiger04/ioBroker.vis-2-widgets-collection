@@ -80,10 +80,7 @@ for (const name of widgets) {
  * Each reason says why no single terminal describes the runtime when the field is unset.
  * An entry that stops matching a terminal-less colour field fails the stale check below.
  */
-const EXCEPTIONS: Record<string, string> = {
-    'SwitchCollectionWidget.trackColor':
-        'unset means the MUI Switch default; the track colour depends on the switch state, no single terminal',
-};
+const EXCEPTIONS: Record<string, string> = {};
 
 interface FieldLike {
     name?: string;
