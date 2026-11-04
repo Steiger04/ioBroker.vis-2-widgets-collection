@@ -7,8 +7,10 @@
  * align across stacked fields regardless of label length. A click on the row opens the
  * Farbwähler (`colorPicker/CollectionColorPicker`, ADR-0102) with the label as title; its
  * debounced, normalized picks reach `onChange`. The swatch always shows the effective (resolved)
- * color; the reset button (trash can) appears only when an explicit override exists (resetting
- * reverts to the resolved value).
+ * color on a checkerboard (`swatchCheckerboard`): an opaque colour covers it, a translucent one
+ * lies on it, `transparent` (or no colour) shows it alone. The Farbwähler starts on the value,
+ * else on the swatch colour, else on alpha 0 (`transparent`). The reset button (trash can)
+ * appears only when an explicit override exists (resetting reverts to the resolved value).
  *
  * Two flavours: the JsonTable editors keep Solid/Gradient (`allowGradient`) and get the Collection
  * theme colours read through `socket` as presets. The theme-studio variant (ADR-0020) is solid
@@ -26,6 +28,10 @@ import { useCallback, useEffect, useId, useState } from 'react';
 import type React from 'react';
 import Generic from '../Generic';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
+import { SWATCH_CHECKERBOARD } from './swatchCheckerboard';
+
+/** The colour of a swatch that names no colour: nothing painted, the checkerboard alone. */
+const TRANSPARENT = 'transparent';
 
 /** Props for {@link ColorPickerField}. */
 interface ColorPickerFieldProps {
@@ -219,16 +225,21 @@ function ColorPickerField({
                     ) : null}
                     <Box
                         data-swatch-color={swatchColor}
+                        data-swatch-checkerboard
                         sx={{
                             width: 22,
                             height: 22,
+                            overflow: 'hidden',
                             borderRadius: '4px',
-                            background: swatchColor || 'transparent',
-                            border: swatchColor
-                                ? `1px solid ${error ? theme.palette.error.main : theme.palette.divider}`
-                                : `1px dashed ${theme.palette.text.disabled}`,
+                            background: SWATCH_CHECKERBOARD,
+                            border: `1px solid ${error ? theme.palette.error.main : theme.palette.divider}`,
                         }}
-                    />
+                    >
+                        <Box
+                            data-swatch-fill
+                            sx={{ width: '100%', height: '100%', background: swatchColor || TRANSPARENT }}
+                        />
+                    </Box>
                     {overridden ? (
                         <IconButton
                             size="small"
@@ -257,7 +268,7 @@ function ColorPickerField({
                 anchorEl={anchorEl}
                 onClose={(): void => setAnchorEl(null)}
                 title={label}
-                value={cachedValue || '#ffffff'}
+                value={cachedValue || swatchColor || TRANSPARENT}
                 onCommit={handlePickerCommit}
                 allowGradient={allowGradient}
                 presets={presets}
