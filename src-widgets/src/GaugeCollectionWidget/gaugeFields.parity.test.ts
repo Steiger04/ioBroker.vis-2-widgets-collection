@@ -28,7 +28,7 @@ vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import gaugeFields from '../lib/gaugeFields';
-import { buildGaugeOptions } from './gaugeOptions';
+import { buildGaugeOptions, isEditorChrome } from './gaugeOptions';
 
 /**
  * Structural view of the field union — the schema type is a wide union whose
@@ -42,14 +42,6 @@ type FieldLike = {
     terminal?: ColorTerminal;
     plainColor?: boolean;
 };
-
-/**
- * Editor chrome without an option: dividers and editor-only custom components. Custom fields
- * that carry data re-enter through their marker — contract colour fields (`terminal`) and
- * Schlichte Farbfelder (`plainColor`, ADR-0102).
- */
-const isEditorChrome = (field: FieldLike): boolean =>
-    field.type === 'custom' && field.terminal === undefined && field.plainColor !== true;
 
 const fields = (): FieldLike[] => gaugeFields() as FieldLike[];
 

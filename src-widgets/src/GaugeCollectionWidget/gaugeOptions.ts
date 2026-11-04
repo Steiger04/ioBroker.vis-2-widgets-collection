@@ -130,6 +130,18 @@ function canvasColors(
     };
 }
 
+/**
+ * Editor chrome without an option: dividers and editor-only custom components. Custom fields
+ * that carry data re-enter through their marker — contract colour fields (`terminal`, from
+ * `createColorField`) and Schlichte Farbfelder (`plainColor`, from `createPlainColorField`).
+ *
+ * @param field - A field of the list.
+ * @returns Whether the field carries no gauge option.
+ */
+export function isEditorChrome(field: Pick<BuilderField, 'type' | 'terminal' | 'plainColor'>): boolean {
+    return field.type === 'custom' && field.terminal === undefined && field.plainColor !== true;
+}
+
 /** Schema default of a field, read from the injected definitions (single source). */
 function fieldDefault(fields: readonly BuilderField[], name: string): unknown {
     return fields.find(field => field.name === name)?.default;
@@ -230,10 +242,7 @@ export function buildGaugeOptions(
         if (!field.name || !field.type) {
             continue;
         }
-        // Dividers and editor-only custom components carry no option (color-contract
-        // fields from createColorField re-enter through their terminal marker, Schlichte
-        // Farbfelder from createPlainColorField through theirs).
-        if (field.type === 'custom' && field.terminal === undefined && field.plainColor !== true) {
+        if (isEditorChrome(field)) {
             continue;
         }
         if (SPECIAL_FIELDS.has(field.name)) {
