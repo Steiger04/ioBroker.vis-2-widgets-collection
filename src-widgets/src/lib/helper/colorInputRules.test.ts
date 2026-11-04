@@ -96,6 +96,25 @@ describe('applyColorInputRules — gradients', () => {
         ).toEqual(invalid);
     });
 
+    it.each([
+        'conic-gradient(red, blue)',
+        'repeating-linear-gradient(90deg, red 0 10px, blue 10px 20px)',
+        'repeating-radial-gradient(circle, red, blue 20%)',
+        'REPEATING-CONIC-GRADIENT(red, blue)',
+    ])('reports every other CSS gradient in a solid-only field as a gradient: %s', text => {
+        expect(applyColorInputRules(text, typed(false, nothing))).toEqual({
+            kind: 'invalid',
+            reason: 'gradientNotAllowed',
+        });
+    });
+
+    it('takes no conic or repeating gradient where gradients are allowed — the Farbwähler cannot edit it', () => {
+        expect(applyColorInputRules('conic-gradient(red, blue)', typed(true, nothing))).toEqual({
+            kind: 'invalid',
+            reason: 'notAColor',
+        });
+    });
+
     it('reports a half-typed gradient in a solid-only field as a gradient, not as a bad colour', () => {
         expect(applyColorInputRules('linear-gradient(', typed(false))).toEqual({
             kind: 'invalid',

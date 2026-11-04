@@ -9,7 +9,10 @@
  * stores nothing). Rules, in order:
  * 1. trimmed empty → `empty`;
  * 2. a gradient (`linear-gradient(…)` / `radial-gradient(…)`) → unchanged where the field allows
- *    gradients, otherwise `invalid` with reason `gradientNotAllowed` — never reduced to a solid;
+ *    gradients, otherwise `invalid` with reason `gradientNotAllowed` — never reduced to a solid.
+ *    Every other CSS gradient (`conic-`, `repeating-…-gradient(`) is `gradientNotAllowed` in a
+ *    solid-only field too; where gradients are allowed it stays `notAColor` (the Farbwähler and
+ *    the colour helpers read linear and radial gradients only);
  * 3. a picked solid colour a colour calculation can read (hex, `rgb()` / `rgba()`) → `#rrggbb`,
  *    with alpha < 1 `#rrggbbaa`;
  * 4. otherwise valid when the browser accepts it as a CSS colour (`isCssColor`, default
@@ -59,6 +62,12 @@ export function isBrowserCssColor(text: string): boolean {
     }
     return COLOR_PATTERNS.HEX.test(text) || COLOR_PATTERNS.RGB.test(text);
 }
+
+/**
+ * Any CSS gradient function — wider than `COLOR_PATTERNS.GRADIENT_PREFIX` (linear/radial), which
+ * other colour helpers rely on; only the error reason in a solid-only field uses it.
+ */
+const ANY_GRADIENT_PREFIX = /^(?:repeating-)?(?:linear|radial|conic)-gradient\(/i;
 
 /** `rgb()` / `rgba()` in comma or space syntax; alpha as number or percent. */
 const RGB_FUNCTION =
@@ -159,10 +168,10 @@ export function applyColorInputRules(text: string | null | undefined, options: C
         return { kind: 'empty' };
     }
 
+    if (!options.allowGradient && ANY_GRADIENT_PREFIX.test(trimmed)) {
+        return { kind: 'invalid', reason: 'gradientNotAllowed' };
+    }
     if (COLOR_PATTERNS.GRADIENT_PREFIX.test(trimmed)) {
-        if (!options.allowGradient) {
-            return { kind: 'invalid', reason: 'gradientNotAllowed' };
-        }
         return COLOR_PATTERNS.GRADIENT.test(trimmed)
             ? { kind: 'value', value: trimmed }
             : { kind: 'invalid', reason: 'notAColor' };
