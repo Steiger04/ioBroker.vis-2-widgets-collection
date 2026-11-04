@@ -46,7 +46,7 @@ vi.mock('./shared', () => ({
     ),
 }));
 
-import { act, createElement, type ReactElement } from 'react';
+import { act, createElement, useState, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HistorySeriesList } from './sources/history';
 import { JsonSeriesList } from './sources/json';
@@ -226,5 +226,58 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
         expect(placeholders).toEqual(
             expect.arrayContaining(['echarts_color_scale_inherit_data|3', 'echarts_color_scale_inherit_data|9']),
         );
+    });
+
+    it('switching the type line → bar → scatter on the card keeps the Farbskala fields (US 49)', () => {
+        const scale: EchartsSeriesMeta = {
+            colorScale: true,
+            colorScaleMin: 1,
+            colorScaleMax: 9,
+            colorScaleColors: 'linear-gradient(90deg, #00ff00 0%, #ff0000 100%)',
+        };
+        let latest: EchartsSeriesMeta = {};
+        const Harness = (): ReactElement => {
+            const [style, setStyle] = useState<Record<string, EchartsSeriesMeta>>({ A: { type: 'line', ...scale } });
+            latest = style.A;
+            return createElement(
+                JsonSeriesList as never,
+                {
+                    ...common,
+                    state: {
+                        ...DEFAULT_EDITOR_STATE,
+                        chartType: 'line',
+                        mode: 'json',
+                        jsonOid: 'javascript.0.chart',
+                        yAxes: [{ id: 'ax-1', position: 'left' }],
+                        jsonSeriesStyle: style,
+                        jsonHidden: [],
+                    },
+                    // Two payload series: the per-series type override shows from the second on.
+                    jsonSeriesNames: ['A', 'B'],
+                    onUpdateJson: (name: string, patch: Partial<EchartsSeriesMeta>) =>
+                        setStyle(s => ({ ...s, [name]: { ...s[name], ...patch } })),
+                } as never,
+            );
+        };
+        const el = render(createElement(Harness));
+        // The Basis tab's type select (MUI: a mousedown on the combobox opens the portalled menu).
+        const pick = (label: string): void => {
+            const box = Array.from(el.querySelectorAll<HTMLElement>('[role="combobox"]')).find(c =>
+                /echarts_type_/.test(c.textContent ?? ''),
+            )!;
+            act(() => {
+                box.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+            });
+            const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]'))
+                .filter(o => o.textContent === label)
+                .pop()!;
+            act(() => {
+                option.click();
+            });
+        };
+        pick('echarts_type_bar');
+        expect(latest).toMatchObject({ type: 'bar', ...scale });
+        pick('echarts_type_scatter');
+        expect(latest).toMatchObject({ type: 'scatter', ...scale });
     });
 });

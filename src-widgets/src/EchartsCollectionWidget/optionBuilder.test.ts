@@ -3827,6 +3827,102 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
         expect(run('flat')).not.toHaveProperty('color');
     });
 
+    describe('series index and axis binding (spec: hidden series keep their index; US 48, US 49)', () => {
+        const two: ChartSeries[] = [
+            {
+                name: 'A',
+                data: [
+                    [1, 1],
+                    [2, 2],
+                ],
+            },
+            {
+                name: 'B',
+                data: [
+                    [1, 150],
+                    [2, 250],
+                ],
+            },
+        ];
+        const twoAxes = [
+            { min: 0, max: 10 },
+            { min: 100, max: 300 },
+        ];
+
+        it.each([
+            ['„Nur in Legende“', { legendOnly: true }, {}],
+            ['a deselected legend entry', {}, { legendSelection: { A: false } }],
+        ] as const)('a series hidden via %s keeps the later scale on its own index and axis', (_how, hide, runtime) => {
+            const option = buildGeneratedOption({
+                family: 'cartesian',
+                series: two,
+                meta: [
+                    { color: '#ff0000', yAxisIndex: 0, ...hide },
+                    { color: '#0000ff', colorScale: true, yAxisIndex: 1 },
+                ],
+                p: { ...P, yAxes: twoAxes, ...runtime },
+            });
+            // The hidden series stays emitted — the scale's index is its config index, not a shifted one.
+            expect((option.series as unknown[]).length).toBe(2);
+            expect(vmOf(option)).toEqual([expect.objectContaining({ seriesIndex: 1, min: 100, max: 300 })]);
+        });
+
+        it('rebinding the series to another axis moves the inherited bounds with it (US 48)', () => {
+            const run = (yAxisIndex: number): VmEntry =>
+                vmOf(
+                    buildGeneratedOption({
+                        family: 'cartesian',
+                        series: [two[1]],
+                        meta: [{ color: '#0000ff', colorScale: true, yAxisIndex }],
+                        p: { ...P, yAxes: [{ min: 0, max: 1000 }, ...twoAxes] },
+                    }),
+                )![0];
+            expect(run(0)).toMatchObject({ min: 0, max: 1000 });
+            expect(run(2)).toMatchObject({ min: 100, max: 300 });
+            // An entered bound stays put across the rebind — only the inherited one follows.
+            const entered = vmOf(
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [two[1]],
+                    meta: [{ color: '#0000ff', colorScale: true, colorScaleMax: 500, yAxisIndex: 2 }],
+                    p: { ...P, yAxes: [{ min: 0, max: 1000 }, ...twoAxes] },
+                }),
+            )![0];
+            expect(entered).toMatchObject({ min: 100, max: 500 });
+        });
+
+        it('a type switch line → bar → scatter leaves the scale entry untouched (US 49)', () => {
+            const scale: EchartsSeriesMeta = {
+                color: '#0000ff',
+                colorScale: true,
+                colorScaleMin: 120,
+                colorScaleColors: 'linear-gradient(90deg, #00ff00 0%, #ff0000 100%)',
+            };
+            // The card's type select patches ONLY `type` into the series config (in place).
+            const entries = (['line', 'bar', 'scatter'] as const).map(
+                type =>
+                    vmOf(
+                        buildGeneratedOption({
+                            family: 'cartesian',
+                            series: [two[1]],
+                            meta: [{ ...scale, type }],
+                            p: P,
+                        }),
+                    )![0],
+            );
+            const expected = {
+                type: 'continuous',
+                seriesIndex: 0,
+                dimension: 1,
+                show: false,
+                min: 120,
+                max: 250,
+                inRange: { color: ['#00ff00', '#ff0000'] },
+            };
+            expect(entries).toEqual([expected, expected, expected]);
+        });
+    });
+
     describe('edge cases (ticket 05)', () => {
         const ramp: ChartSeries['data'] = [
             [1, 10],
