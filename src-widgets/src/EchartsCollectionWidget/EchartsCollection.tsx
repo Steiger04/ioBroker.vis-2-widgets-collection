@@ -22,7 +22,7 @@ import type { EchartsCollectionContextProps } from '../types';
 
 import EChart from './EChart';
 import { buildEchartsTheme, echartsPalette, effectiveDarkMode, resolveThemeTokens } from './echartsTheme';
-import { resolveFrameCss } from './frameStyle';
+import { frameInheritColor, resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
 import { useSubscribedValues } from './editor/useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
@@ -224,7 +224,7 @@ function EchartsCollection(): React.ReactElement {
                     style: data.frameStyle as string | undefined,
                     padding: data.framePadding,
                 },
-                theme.palette.divider,
+                frameInheritColor(theme),
             ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [dataKey, theme],

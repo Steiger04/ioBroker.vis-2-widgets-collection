@@ -17,9 +17,10 @@ import type { Connection } from '@iobroker/adapter-react-v5';
 import Generic from '../../Generic';
 import EChart from '../EChart';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
-import { resolveFrameCss } from '../frameStyle';
+import { frameInheritColor, resolveFrameCss } from '../frameStyle';
 import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
+import { useEditorTheme } from './useEditorTheme';
 import { previewSeriesExtents, type PreviewExtents } from './previewExtents';
 import type { SectionKey } from './validation';
 import type { EditorState } from './editorState';
@@ -48,6 +49,9 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
     // The pipeline return (ADR-0046): error joins option/loading/hasData — the preview surfaces
     // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
     const { option, loading, hasData, error } = usePreviewOption(state, socket, theme, legendSelection);
+    // The frame inherits the COLLECTION theme's divider (ADR-0027) — the same source the body and
+    // the frame-colour swatch read, not the vis-2 host theme the editor chrome runs under.
+    const { theme: collectionTheme } = useEditorTheme(state, socket, theme);
     useEffect(() => {
         onSeriesExtents?.(hasData ? previewSeriesExtents(option) : {});
     }, [option, hasData, onSeriesExtents]);
@@ -114,12 +118,12 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                 </Typography>
             )}
             {/* The authored chart frame previews live around the chart area (parity Build D) —
-                the same resolver the body applies, host-theme divider as the colour inherit. */}
+                the same resolver and inherit colour the body applies. */}
             <Box
                 sx={{
                     flex: 1,
                     minHeight: 0,
-                    ...(resolveFrameCss(state.frame, theme.palette.divider) ?? {}),
+                    ...(resolveFrameCss(state.frame, frameInheritColor(collectionTheme)) ?? {}),
                 }}
             >
                 {hasData && option ? (
