@@ -239,27 +239,6 @@ export const resolveColorScaleRange = (
 };
 
 /**
- * The colour in the MIDDLE of an evenly spaced scale (50 %) — the one colour a degenerate range
- * (Min = Max, or an inherited Min > Max) draws. Odd length: the middle element unchanged; even
- * length: the halfway mix of the two inner colours (alpha averaged). Unparseable inner colours
- * fall back to the lower one — never `undefined` for a non-empty list.
- */
-export const colorScaleMidColor = (colors: readonly string[]): string => {
-    const mid = (colors.length - 1) / 2;
-    if (Number.isInteger(mid)) {
-        return colors[mid];
-    }
-    const lo = colors[Math.floor(mid)];
-    const a = parseSeriesColor(lo);
-    const b = parseSeriesColor(colors[Math.ceil(mid)]);
-    if (!a || !b) {
-        return lo;
-    }
-    const m = mixRgba(a, b, 0.5);
-    return toRgbaString([m[0], m[1], m[2], (a[3] + b[3]) / 2]);
-};
-
-/**
  * The INPUT ERROR of a Farbskala (ticket 05): the scale is on and BOTH bounds are entered with
  * Min ≥ Max. Shared by the builder (no entry for the series), the validation (the series warning)
  * and the Stil tab (the field error) — one predicate, three surfaces. Inherited or mixed bounds
@@ -314,7 +293,8 @@ export const buildColorScaleEntry = (
     }
     const entry = { type: 'continuous', seriesIndex, dimension: 1, show: false };
     if (min.value >= max.value) {
-        const mid = [colorScaleMidColor(colors)];
+        // The middle (50 %) of the scale; an unresolvable list keeps its lower-middle colour.
+        const mid = [colorScaleColorAt(colors, 0.5) ?? colors[Math.floor((colors.length - 1) / 2)]];
         return {
             ...entry,
             min: Math.min(min.value, max.value),

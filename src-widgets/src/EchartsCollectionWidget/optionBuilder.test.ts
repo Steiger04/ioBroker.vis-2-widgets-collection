@@ -3873,15 +3873,14 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
                     {
                         color: '#ff0000',
                         colorScale: true,
-                        colorScaleColors:
-                            'linear-gradient(90deg, #000000 0%, #000000 33.33%, #ffffff 66.67%, #ffffff 100%)',
+                        colorScaleColors: 'linear-gradient(90deg, #000000 0%, #fefefe 100%)',
                     },
                 ],
             );
             expect(vm).toHaveLength(2);
             expect(vm![0]).toMatchObject({ min: 12, max: 12 });
             expect(vm![0].inRange.color).toEqual(['rgba(255, 0, 0, 1)']);
-            expect(vm![1].inRange.color).toEqual(['rgba(128, 128, 128, 1)']);
+            expect(vm![1].inRange.color).toEqual(['rgba(127, 127, 127, 1)']);
         });
 
         it('a mixed Min > Max (entry vs. inherited bound) is no input error — the middle colour, every value inside', () => {
