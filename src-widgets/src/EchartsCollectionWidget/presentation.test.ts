@@ -177,6 +177,7 @@ const TOKENS = {
     divider: '#d',
     textPrimary: '#tp',
     textSecondary: '#ts',
+    paper: '#pa',
 } as const;
 
 const legendP = (

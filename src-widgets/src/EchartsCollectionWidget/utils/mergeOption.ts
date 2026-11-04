@@ -5,7 +5,7 @@
  * @module EchartsCollectionWidget/utils/mergeOption
  * @remarks
  * The GUI owns all presentation (ADR-0007), so the layering is now two tiers:
- *  - `themeBase`     — MUI-derived presentation (text/axis colours, font) from buildEchartsTheme.
+ *  - `themeBase`     — MUI-derived presentation (text/axis colours, tooltip surface, font) from buildEchartsTheme.
  *  - `generated` (G) — data-driven option built by the family builders: the series DATA +
  *                      series names + coordinate system + axis types, PLUS the GUI-authored
  *                      presentation (per-series styling, chart-wide legend/tooltip/animation/
@@ -50,13 +50,15 @@ export const deepMerge = (
  * adapter deletes them at its pie site; we heal the seam — component PRESENCE is G-owned). These
  * keys floor ONLY when G emits them; style-only keys (color/textStyle/…) stay unconditional
  * floors. Kept to the keys the base actually carries: `legend`/`title` are safe because both
- * families' builders always emit them (`buildLegend` sends `show` + `data`).
+ * families' builders always emit them (`buildLegend` sends `show` + `data`). `tooltip` (the
+ * surface/text floor, ADR-0027 addendum 2026-11-04) is guarded although both families build one
+ * today — a family without a tooltip must not get one from the floor.
  */
-const COMPONENT_KEYS_FLOORED_ONLY_WHEN_GENERATED = ['xAxis', 'yAxis'] as const;
+const COMPONENT_KEYS_FLOORED_ONLY_WHEN_GENERATED = ['xAxis', 'yAxis', 'tooltip'] as const;
 
 /**
  * Layer the theme base UNDER the generated option (ADR-0007): G wins every collision, the theme
- * only floors the keys G does not emit — EXCEPT component-type keys (axes), which the base may
+ * only floors the keys G does not emit — EXCEPT component-type keys (axes, tooltip), which the base may
  * floor only when G emits the component (ADR-0007 addendum — a floor must not create a
  * component). `title.text` is injected from the live `titleText` field by the body after this
  * merge.

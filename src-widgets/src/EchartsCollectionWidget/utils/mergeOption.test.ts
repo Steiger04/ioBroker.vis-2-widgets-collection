@@ -85,3 +85,28 @@ describe('mergeGeneratedOverTheme — layering (ADR-0007/0045)', () => {
         expect(merged.textStyle).toEqual({ color: '#text' }); // style keys keep flooring
     });
 });
+
+describe('mergeGeneratedOverTheme — tooltip floor (ADR-0027 addendum 2026-11-04)', () => {
+    const base = {
+        textStyle: { color: '#text' },
+        tooltip: { backgroundColor: '#paper', textStyle: { color: '#ts' } },
+    } as unknown as EChartsOption;
+
+    it('floors the tooltip surface and text under a generated tooltip', () => {
+        const merged = mergeGeneratedOverTheme(G(), base);
+        expect(merged.tooltip).toEqual({ trigger: 'axis', backgroundColor: '#paper', textStyle: { color: '#ts' } });
+    });
+
+    it('a generated option without a tooltip gets none (a floor must not create a component)', () => {
+        const noTooltip = G();
+        delete (noTooltip as Record<string, unknown>).tooltip;
+        const merged = mergeGeneratedOverTheme(noTooltip, base) as Record<string, unknown>;
+        expect('tooltip' in merged).toBe(false);
+        expect(merged.textStyle).toEqual({ color: '#text' }); // style keys keep flooring
+    });
+
+    it('a generated tooltip background (GUI colour or raw JSON) wins against the floor', () => {
+        const merged = mergeGeneratedOverTheme(G({ tooltip: { trigger: 'item', backgroundColor: '#own' } }), base);
+        expect(merged.tooltip).toEqual({ trigger: 'item', backgroundColor: '#own', textStyle: { color: '#ts' } });
+    });
+});
