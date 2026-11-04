@@ -71,10 +71,11 @@ afterEach(() => {
 
 const mount = (
     data: WidgetData = {} as WidgetData,
+    fieldExtra: Partial<ExtendedField> = {},
 ): { container: HTMLElement; input: HTMLInputElement; onDataChange: ReturnType<typeof vi.fn> } => {
     const onDataChange = vi.fn();
     handle = renderComponent<Props>(PlainColorField, {
-        field: { name: 'gaugeColorBar', label: 'gauge_color_bar', type: 'custom' } as ExtendedField,
+        field: { name: 'gaugeColorBar', label: 'gauge_color_bar', type: 'custom', ...fieldExtra } as ExtendedField,
         data,
         onDataChange,
         props: editorProps,
@@ -115,6 +116,21 @@ describe('PlainColorField shows the stored value — no cascade', () => {
         const { container, input } = mount({ gaugeColorBar: 'red' } as WidgetData);
         expect(input.value).toBe('red');
         expect(swatchBackground(container)).toMatch(/^red$|rgb\(255, 0, 0\)/);
+    });
+
+    it.each([
+        ['a missing key', {}],
+        ['an empty value', { gaugeColorBar: '' }],
+    ])('with %s the swatch and the Farbwähler show the schema default, nothing is stored', (_case, data) => {
+        const { container, input, onDataChange } = mount(
+            data as WidgetData,
+            { default: '#cccccc' } as Partial<ExtendedField>,
+        );
+        expect(input.value).toBe('');
+        expect(swatchBackground(container)).toMatch(/^#cccccc$|rgb\(204, 204, 204\)/);
+        open(container);
+        expect(lastLibraryProps().value).toBe('#cccccc');
+        expect(onDataChange).not.toHaveBeenCalled();
     });
 
     it('does not read the Collection theme while the Farbwähler is closed', () => {

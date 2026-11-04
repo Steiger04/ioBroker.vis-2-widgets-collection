@@ -5,7 +5,8 @@
  * @module components/PlainColorField
  * @remarks
  * A Schlichtes Farbfeld has no Field-Vertrag (ADR-0102): no Auflösungskaskade, no "erbt". The
- * swatch shows exactly the stored value, an empty field means the widget's own built-in default.
+ * swatch shows exactly the stored value; an empty field means the widget's own built-in default —
+ * the schema default, so swatch and Farbwähler start from it (nothing is stored until a choice).
  * The adapter hands the stored value, the translated field name (Farbwähler title) and the socket
  * (Theme-Presets, read only while the Farbwähler is open) to the Textfeld-Zeile — always solid
  * only — and writes every change back as a one-field patch (`null` clears the field).
@@ -48,6 +49,9 @@ function PlainColorField({ field, data, onDataChange, props }: PlainColorFieldPr
     const fieldName: string = field.name!;
     const stored = data[fieldName] as unknown;
     const value = typeof stored === 'string' ? stored : null;
+    // What the widget renders for an empty field (vis-2 showed it in the former `type: 'color'`).
+    const schemaDefault = (field as { default?: unknown }).default;
+    const effectiveColor = value || (typeof schemaDefault === 'string' ? schemaDefault : '');
     const title = 'label' in field && field.label ? Generic.t(field.label) : undefined;
 
     const handleChange = useCallback(
@@ -60,7 +64,7 @@ function PlainColorField({ field, data, onDataChange, props }: PlainColorFieldPr
             <ColorTextFieldRow
                 value={value}
                 onChange={handleChange}
-                effectiveColor={value ?? ''}
+                effectiveColor={effectiveColor}
                 placeholder="none"
                 allowGradient={false}
                 title={title}
