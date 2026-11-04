@@ -55,8 +55,8 @@ interface HistorySeriesListProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of series i (the inherit fallback). */
     slot: (i: number) => string;
-    /** Theme text-primary — the bar label colour's inherit preview. */
-    labelColorFallback: string;
+    /** The effective chart canvas — the bar label colour's auto-contrast inherit preview reads it. */
+    chartCanvas: string;
     /**
      * The history-instance sight (list + load state — an empty list before `loaded` is LOADING,
      * not „none installed"; the missing-adapter hint gates on exactly that).
@@ -80,7 +80,7 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
     state,
     pickerCtx,
     slot,
-    labelColorFallback,
+    chartCanvas,
     historyInstances,
     expanded,
     onToggleCard,
@@ -102,7 +102,7 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
         defaultType,
         yAxes: state.yAxes,
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series)),
-        labelColorFallback,
+        chartCanvas,
         stackMode: state.stackMode,
         chart: state,
         fetch: state,

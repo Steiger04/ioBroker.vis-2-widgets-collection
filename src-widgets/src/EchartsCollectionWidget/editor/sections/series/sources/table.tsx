@@ -51,8 +51,8 @@ interface TableSeriesListProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of series i (the inherit fallback). */
     slot: (i: number) => string;
-    /** Theme text-primary — the bar label colour's inherit preview. */
-    labelColorFallback: string;
+    /** The effective chart canvas — the bar label colour's auto-contrast inherit preview reads it. */
+    chartCanvas: string;
     /** The chosen rows array's columns (the modal's useJsonTableSchema sight). */
     columns: readonly JsonTableColumn[];
     /** The schema's rows/JSON error (shown instead of a silent blank). */
@@ -74,7 +74,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
     state,
     pickerCtx,
     slot,
-    labelColorFallback,
+    chartCanvas,
     columns,
     schemaError,
     expanded,
@@ -97,7 +97,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
         defaultType,
         yAxes: state.yAxes,
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series)),
-        labelColorFallback,
+        chartCanvas,
         stackMode: state.stackMode,
         chart: state,
     };

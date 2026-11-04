@@ -44,8 +44,8 @@ interface JsonSeriesListProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of payload series i (the inherit fallback). */
     slot: (i: number) => string;
-    /** Theme text-primary — the bar label colour's inherit preview. */
-    labelColorFallback: string;
+    /** The effective chart canvas — the bar label colour's auto-contrast inherit preview reads it. */
+    chartCanvas: string;
     /** The payload series names, in payload order. Drives the card list. */
     jsonSeriesNames: string[];
     /** Parse error from the jsonOid payload (shown instead of a silent blank). */
@@ -65,7 +65,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
     state,
     pickerCtx,
     slot,
-    labelColorFallback,
+    chartCanvas,
     jsonSeriesNames,
     jsonError,
     expanded,
@@ -106,7 +106,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
         defaultType,
         yAxes: state.yAxes,
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, overlaySeries)),
-        labelColorFallback,
+        chartCanvas,
         stackMode: state.stackMode,
         chart: state,
     };
