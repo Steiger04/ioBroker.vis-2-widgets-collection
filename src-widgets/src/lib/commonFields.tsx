@@ -299,12 +299,17 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider dividerText="background" />,
         },
-        // Background color field (no fallback)
+        // Content background color field (no fallback). Terminal `paper`: with no value the
+        // card's inner paper (CollectionBase, BASE-PAPER-1) keeps MUI's Paper default
+        // `palette.background.paper`, so the swatch shows that. Documented divergence
+        // (ADR-0004, pattern table header `noCard`): under `noCard` / embedded the runtime
+        // paints `transparent`. Read by the swatch only — the runtime resolver
+        // (`propertyResolvers` `background`) has its own chain and stays `''`.
         createColorField({
             name: `background${groupName}`,
             label: 'background',
             fallbackFields: [],
-            terminal: 'transparent',
+            terminal: 'paper',
         }),
         {
             label: '',
