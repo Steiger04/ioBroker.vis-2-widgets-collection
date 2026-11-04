@@ -48,3 +48,94 @@ describe('commonFields — the content background swatch shows the card paper', 
         expect(resolveEffectiveColor(fieldOf('', 'background'), { background: '#336699' }, LIGHT)).toBe('#336699');
     });
 });
+
+/** The four colour fields every state and Active row carries, with their stock light terminal. */
+const STATE_COLORS: [string, string][] = [
+    ['iconColor', '#1976d2'],
+    ['textColor', 'rgba(0, 0, 0, 0.87)'],
+    ['background', '#fff'],
+    ['frameBackground', '#fff'],
+];
+
+/**
+ * The per-state field `name{index}` as vis-2 builds it: the `values` group's field list is
+ * deep-cloned per index and every field renamed `name + index` (`visWidgetsCatalog.tsx`), the
+ * rest of the definition — the contract included — carried over as declared.
+ */
+const stateFieldOf = (
+    name: string,
+    index: number,
+    settings: { markerLayer?: boolean } = {},
+): ExtendedField => {
+    const field = commonFields({ groupName: '', allFields: false, perState: true, ...settings }).find(
+        entry => (entry as { name?: string }).name === name,
+    ) as ExtendedField;
+    return { ...field, name: `${name}${index}` };
+};
+
+describe('commonFields — a state row without a value shows the base colour it inherits', () => {
+    it.each(STATE_COLORS)('%s{n} inherits the base field', name => {
+        const field = stateFieldOf(name, 2);
+
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000' }, LIGHT)).toBe('#aa0000');
+    });
+
+    it.each(STATE_COLORS)('%s{n} keeps its own value over the base', name => {
+        const field = stateFieldOf(name, 2);
+
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000', [`${name}2`]: '#00aa00' }, LIGHT)).toBe('#00aa00');
+    });
+
+    it.each(STATE_COLORS)('%s{n} with the base unset too shows the terminal as before', (name, terminal) => {
+        expect(resolveEffectiveColor(stateFieldOf(name, 2), {}, LIGHT)).toBe(terminal);
+    });
+
+    it('textColor{n} with the base unset shows the vis-2 widget colour before the terminal', () => {
+        expect(resolveEffectiveColor(stateFieldOf('textColor', 2), {}, LIGHT, { color: '#123456' })).toBe('#123456');
+    });
+
+    it('the base field itself declares no inheritance of its own', () => {
+        for (const [name] of STATE_COLORS) {
+            expect(fieldOf('', name).fallbackFields ?? [], name).toEqual([]);
+        }
+    });
+});
+
+describe('commonFields — the slider state rows put the Marker-Ebene before the base', () => {
+    it.each([
+        ['iconColor', 'markerIconColor'],
+        ['textColor', 'markerTextColor'],
+    ])('%s{n} shows %s over the base', (name, marker) => {
+        const field = stateFieldOf(name, 3, { markerLayer: true });
+
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000', [marker]: '#0000aa' }, LIGHT)).toBe('#0000aa');
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000' }, LIGHT)).toBe('#aa0000');
+    });
+
+    it.each([['background'], ['frameBackground']])('%s{n} has no marker tier and inherits the base', name => {
+        const field = stateFieldOf(name, 3, { markerLayer: true });
+
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000' }, LIGHT)).toBe('#aa0000');
+    });
+});
+
+describe('commonFields — an Active row without a value shows the base colour it inherits', () => {
+    it.each(STATE_COLORS)('%sActive inherits the base field', name => {
+        const field = fieldOf('Active', `${name}Active`);
+
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000' }, LIGHT)).toBe('#aa0000');
+        expect(resolveEffectiveColor(field, { [name]: '#aa0000', [`${name}Active`]: '#00aa00' }, LIGHT)).toBe(
+            '#00aa00',
+        );
+    });
+
+    it.each(STATE_COLORS)('%sActive with the base unset too shows the terminal as before', (name, terminal) => {
+        expect(resolveEffectiveColor(fieldOf('Active', `${name}Active`), {}, LIGHT)).toBe(terminal);
+    });
+
+    it('the Active row never reads the Marker-Ebene (it resolves the style `data`, not a mark)', () => {
+        const field = fieldOf('Active', 'iconColorActive');
+
+        expect(resolveEffectiveColor(field, { markerIconColor: '#0000aa' }, LIGHT)).toBe('#1976d2');
+    });
+});
