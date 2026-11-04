@@ -445,7 +445,7 @@
     "echarts_series_bar_width": "Ancho de barra (px/%)",
     "echarts_series_bar_width_ph": "p. ej., 20 o 30 %",
     "echarts_series_color_scale": "Colorear por valor",
-    "echarts_series_color_scale_colors": "Colores de la escala",
+    "echarts_series_color_scale_colors": "Degradado de la escala",
     "echarts_series_color_scale_max": "Escala máx.",
     "echarts_series_color_scale_min": "Escala mín.",
     "echarts_series_connect_nulls": "Conectar huecos",

@@ -456,7 +456,7 @@
     "echarts_series_bar_width": "Bar width (px/%)",
     "echarts_series_bar_width_ph": "e.g. 20 or 30%",
     "echarts_series_color_scale": "Color by value",
-    "echarts_series_color_scale_colors": "Scale colors",
+    "echarts_series_color_scale_colors": "Scale gradient",
     "echarts_series_color_scale_max": "Scale max",
     "echarts_series_color_scale_min": "Scale min",
     "echarts_series_connect_nulls": "Connect gaps",

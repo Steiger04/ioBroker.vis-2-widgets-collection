@@ -445,7 +445,7 @@
     "echarts_series_bar_width": "Szerokość słupka (px/%)",
     "echarts_series_bar_width_ph": "np. 20 lub 30 %",
     "echarts_series_color_scale": "Koloruj według wartości",
-    "echarts_series_color_scale_colors": "Kolory skali",
+    "echarts_series_color_scale_colors": "Gradient skali",
     "echarts_series_color_scale_max": "Skala maks.",
     "echarts_series_color_scale_min": "Skala min.",
     "echarts_series_connect_nulls": "Połącz luki",

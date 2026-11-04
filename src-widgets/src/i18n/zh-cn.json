@@ -445,7 +445,7 @@
     "echarts_series_bar_width": "柱宽 (px/%)",
     "echarts_series_bar_width_ph": "例如 20 或 30%",
     "echarts_series_color_scale": "按数值着色",
-    "echarts_series_color_scale_colors": "刻度颜色",
+    "echarts_series_color_scale_colors": "刻度渐变",
     "echarts_series_color_scale_max": "刻度最大值",
     "echarts_series_color_scale_min": "刻度最小值",
     "echarts_series_connect_nulls": "连接空缺",

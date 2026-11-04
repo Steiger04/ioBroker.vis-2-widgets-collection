@@ -445,7 +445,7 @@
     "echarts_series_bar_width": "Ширина столбца (px/%)",
     "echarts_series_bar_width_ph": "напр. 20 или 30 %",
     "echarts_series_color_scale": "Окрашивать по значению",
-    "echarts_series_color_scale_colors": "Цвета шкалы",
+    "echarts_series_color_scale_colors": "Градиент шкалы",
     "echarts_series_color_scale_max": "Шкала макс.",
     "echarts_series_color_scale_min": "Шкала мин.",
     "echarts_series_connect_nulls": "Соединять пробелы",

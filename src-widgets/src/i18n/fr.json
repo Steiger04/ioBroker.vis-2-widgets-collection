@@ -445,7 +445,7 @@
     "echarts_series_bar_width": "Largeur des barres (px/%)",
     "echarts_series_bar_width_ph": "p. ex. 20 ou 30 %",
     "echarts_series_color_scale": "Colorer selon la valeur",
-    "echarts_series_color_scale_colors": "Couleurs de l’échelle",
+    "echarts_series_color_scale_colors": "Dégradé de l’échelle",
     "echarts_series_color_scale_max": "Échelle max",
     "echarts_series_color_scale_min": "Échelle min",
     "echarts_series_connect_nulls": "Relier les espaces",

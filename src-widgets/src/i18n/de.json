@@ -456,7 +456,7 @@
     "echarts_series_bar_width": "Balkenbreite (px/%)",
     "echarts_series_bar_width_ph": "z. B. 20 oder 30 %",
     "echarts_series_color_scale": "Nach Wert färben",
-    "echarts_series_color_scale_colors": "Skalenfarben",
+    "echarts_series_color_scale_colors": "Skalen-Verlauf",
     "echarts_series_color_scale_max": "Skala max",
     "echarts_series_color_scale_min": "Skala min",
     "echarts_series_connect_nulls": "Lücken verbinden",
