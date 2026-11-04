@@ -92,7 +92,12 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider />,
     },
     // Dialog background color
-    createColorField({ name: 'dialogBackgroundColor', label: 'background_color', fallbackFields: [''] }),
+    createColorField({
+        name: 'dialogBackgroundColor',
+        label: 'background_color',
+        fallbackFields: [''],
+        terminal: 'transparent',
+    }),
     {
         label: '',
         type: 'custom',

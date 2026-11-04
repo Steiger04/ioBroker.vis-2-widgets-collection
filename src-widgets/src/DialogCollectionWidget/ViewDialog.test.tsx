@@ -125,6 +125,34 @@ describe('ViewDialog corner icon', () => {
     });
 });
 
+describe('ViewDialog dialog background', () => {
+    /** The background the Modal root paints behind the dialog (the MUI backdrop is its child). */
+    const modalBackground = (): string => {
+        const root = document.querySelector('.MuiModal-root');
+        expect(root).not.toBeNull();
+        return getComputedStyle(root!).background;
+    };
+
+    it('without an own value paints nothing — transparent, no CSS inherit of the body background', () => {
+        mountDialog({ dialogHeaderAsTitle: true });
+
+        expect(modalBackground()).not.toContain('inherit');
+        expect(modalBackground()).toBe('transparent');
+    });
+
+    it('an own value applies unchanged', () => {
+        mountDialog({ dialogHeaderAsTitle: true, dialogBackgroundColor: 'rgba(16, 21, 34, 0.8)' });
+
+        expect(modalBackground()).toBe('rgba(16, 21, 34, 0.8)');
+    });
+
+    it('keeps the MUI backdrop', () => {
+        mountDialog({ dialogHeaderAsTitle: true });
+
+        expect(document.querySelector('.MuiModal-root .MuiBackdrop-root')).not.toBeNull();
+    });
+});
+
 describe('ViewDialog frame background', () => {
     it.each(['transparent', 'red', 'var(--x)'])(
         'renders with a vis-2 background-color %s no tint calculation can read',

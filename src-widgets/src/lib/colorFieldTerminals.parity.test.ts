@@ -83,8 +83,6 @@ for (const name of widgets) {
 const EXCEPTIONS: Record<string, string> = {
     'SwitchCollectionWidget.trackColor':
         'unset means the MUI Switch default; the track colour depends on the switch state, no single terminal',
-    'DialogCollectionWidget.dialogBackgroundColor':
-        'unset renders CSS `inherit`: the runtime inherits from the host element, which no theme terminal names',
 };
 
 interface FieldLike {
