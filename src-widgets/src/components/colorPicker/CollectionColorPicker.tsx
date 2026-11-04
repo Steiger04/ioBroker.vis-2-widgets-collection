@@ -4,8 +4,10 @@
  * @module components/colorPicker/CollectionColorPicker
  * @remarks
  * A *controlled* popover: the field row owns the trigger and the open state (open ⇔ an anchor is
- * passed) and receives the chosen value through `onCommit`. This module is the only importer of
- * the picker library (`react-best-gradient-color-picker`), so an engine swap touches one place.
+ * passed) and receives the chosen value through `onCommit`. The picker library
+ * (`react-best-gradient-color-picker`) is used only inside its capsule, the directory
+ * `components/colorPicker/` — this module and its internal parts (`ColorInputRow` uses the
+ * library's `useColorPicker` hook) — so an engine swap touches one place.
  *
  * Inside: a header row (title left, close × right), the library with its configuration, the
  * library's preset row with its large preview, and the popover that follows its content

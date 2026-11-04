@@ -76,8 +76,9 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // unset. No vis-2 style stage (no textStyles): the contract does not
     // inherit it. Only a theme text without a solid colour draws no separator.
     // The explicit value counts as stored first, as before the contract: alpha()
-    // drew every value the colour calculation reads, also one the picker rejects
-    // (hsl(), a 4-digit hex) — such a value never crashed, so it keeps its colour.
+    // drew every value the colour calculation reads. Since the cascade reads stored
+    // values by the Regeln für Farbeingaben (hsl() and a 4-digit hex included), the
+    // contract reaches the same colour; the explicit-first read only keeps that order.
     const separatorColor = alphaOf(
         solidOf(data.buttonGroupColor) ?? resolveEffectiveSolidColor(buttonGroupColorContract, data, theme),
         SEPARATOR_ALPHA,
