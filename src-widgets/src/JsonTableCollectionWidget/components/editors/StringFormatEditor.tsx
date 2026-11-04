@@ -23,6 +23,7 @@ import {
 import type React from 'react';
 
 import Generic from '../../../Generic';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import ColorPickerField from '../../../components/ColorPickerField';
 import type { ColumnFormatConfig } from '../../types';
 import { formatStringValue } from '../../utils/formatters';
@@ -33,12 +34,14 @@ export interface StringFormatEditorProps {
     format: ColumnFormatConfig;
     /** Callback when format changes */
     onChange: (patch: Partial<ColumnFormatConfig>) => void;
+    /** Connection for the Collection theme presets of the Farbwähler (optional) */
+    socket?: Connection;
 }
 
 /**
  * Renders string formatting controls with live preview.
  */
-function StringFormatEditor({ format, onChange }: StringFormatEditorProps): React.JSX.Element {
+function StringFormatEditor({ format, onChange, socket }: StringFormatEditorProps): React.JSX.Element {
     return (
         <>
             <Typography
@@ -249,6 +252,7 @@ function StringFormatEditor({ format, onChange }: StringFormatEditorProps): Reac
                     value={format.stringTextColor ?? ''}
                     overridden={!!format.stringTextColor}
                     onChange={v => onChange({ type: 'string', stringTextColor: v || undefined })}
+                    socket={socket}
                 />
             </Stack>
 

@@ -10,7 +10,8 @@
  * color; the reset button (trash can) appears only when an explicit override exists (resetting
  * reverts to the resolved value).
  *
- * Two flavours: without `presets` the Farbwähler keeps Solid/Gradient (the JsonTable editors).
+ * Two flavours: without `presets` the Farbwähler keeps Solid/Gradient and offers the Collection
+ * theme colours read through `socket` (the JsonTable editors).
  * Passing `presets` makes it the theme-studio variant (ADR-0020): theme palette slots are solid
  * colours, so the Farbwähler stays solid and offers the presets (the current draft colours). The
  * studio's own field validation judges every value — this row passes picks and typed text on as
@@ -18,6 +19,7 @@
  * to the swatch (theme studio; off by default).
  */
 
+import type { Connection } from '@iobroker/adapter-react-v5';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useId, useState } from 'react';
@@ -40,6 +42,11 @@ interface ColorPickerFieldProps {
      * (no Solid/Gradient). Omit to keep gradients (JsonTable editors).
      */
     presets?: string[];
+    /**
+     * Connection the Farbwähler reads the Collection theme colours from as presets while open —
+     * only without `presets` (JsonTable editors). Without both, the preset row stays off.
+     */
+    socket?: Connection;
     /** Field-level validation message (ADR-0020) rendered under the row; also marks the row. */
     error?: string;
     /**
@@ -67,6 +74,7 @@ interface ColorPickerFieldProps {
  * @param props.label - Label displayed left of the swatch.
  * @param props.overridden - Whether an explicit override exists (shows reset button).
  * @param props.presets - Theme-studio variant: Farbwähler presets, solid only.
+ * @param props.socket - Connection for the Collection theme presets (without `presets`).
  * @param props.error - Field-level validation message.
  * @param props.hexInput - Shows the value as editable monospace text next to the swatch.
  * @param props.swatchValue - Colour the swatch shows instead of the value (defaults to it).
@@ -78,6 +86,7 @@ function ColorPickerField({
     label,
     overridden,
     presets,
+    socket,
     error,
     hexInput,
     swatchValue,
@@ -251,6 +260,7 @@ function ColorPickerField({
                 onCommit={handlePickerCommit}
                 allowGradient={!presets}
                 presets={presets}
+                socket={socket}
             />
         </Box>
     );

@@ -27,6 +27,7 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import { ExpandMore as ExpandMoreIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
@@ -60,6 +61,8 @@ interface ColumnDetailEditorProps {
     onChange: (updated: ColumnConfigEntry) => void;
     /** The Tabellen-Fähigkeiten resolved from the widget's raw data */
     capabilities: TableCapabilities;
+    /** Connection for the Collection theme presets of the Farbwähler (optional) */
+    socket?: Connection;
 }
 
 /**
@@ -70,6 +73,7 @@ function ColumnDetailEditor({
     discoveredColumn,
     onChange,
     capabilities,
+    socket,
 }: ColumnDetailEditorProps): React.JSX.Element {
     // Track which accordion sections are expanded
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -463,6 +467,7 @@ function ColumnDetailEditor({
                                 <StringFormatEditor
                                     format={column.format ?? { type: 'string' }}
                                     onChange={updateFormat}
+                                    socket={socket}
                                 />
                             )}
 
@@ -471,6 +476,7 @@ function ColumnDetailEditor({
                                 <ImageFormatEditor
                                     format={column.format ?? { type: 'image' }}
                                     onChange={updateFormat}
+                                    socket={socket}
                                 />
                             )}
 
@@ -551,6 +557,7 @@ function ColumnDetailEditor({
                             columnType={columnType}
                             onStyleChange={handleStyleChange}
                             onModeChange={handleStyleModeChange}
+                            socket={socket}
                         />
                     </AccordionDetails>
                 </Accordion>

@@ -10,9 +10,10 @@
  *
  * A click on the row opens the Farbwähler (`colorPicker/CollectionColorPicker`) with the label as
  * title; its picks reach `onChange`. The theme studio (with `presets`) keeps it solid and hands
- * the presets on, the JsonTable editors (without) keep gradients. The reset icon is the trash can.
+ * the presets on, the JsonTable editors (without) keep gradients and get the Collection theme
+ * colours through the socket. The reset icon is the trash can.
  * The Farbwähler itself (debounce, popover following its content) is tested over its own seam
- * (`colorPicker/CollectionColorPicker.test`); here a spy records the props it receives.
+ * (`colorPicker/CollectionColorPicker.test`); here the library fake shows what reaches it.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -31,25 +32,10 @@ vi.mock(
     async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
 );
 
-// Props the Farbwähler receives, newest last — a spy around the real module.
-const pickerRenders = vi.hoisted((): Array<Record<string, unknown>> => []);
-vi.mock('./colorPicker/CollectionColorPicker', async importOriginal => {
-    const actual = await importOriginal<typeof CollectionColorPickerModule>();
-    const { createElement } = await import('react');
-    return {
-        ...actual,
-        default: (props: CollectionColorPickerModule.CollectionColorPickerProps): React.JSX.Element => {
-            pickerRenders.push({ ...props });
-            return createElement(actual.default, props);
-        },
-    };
-});
-
+import type { Connection } from '@iobroker/adapter-react-v5';
 import { act, type ComponentProps } from 'react';
-import type React from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
-import type * as CollectionColorPickerModule from './colorPicker/CollectionColorPicker';
 import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
 import ColorPickerField from './ColorPickerField';
 
@@ -59,7 +45,6 @@ let handle: RenderComponentHandle<Props> | null = null;
 
 beforeEach(() => {
     resetFakeLibrary();
-    pickerRenders.length = 0;
 });
 
 afterEach(() => {
@@ -224,14 +209,9 @@ describe('ColorPickerField Farbwähler', () => {
         act(() => container.querySelector<HTMLElement>('[data-swatch-color]')?.click());
     };
 
-    /** Props of the latest Farbwähler render. */
-    const lastPickerProps = (): Record<string, unknown> => {
-        const last = pickerRenders[pickerRenders.length - 1];
-        if (!last) {
-            throw new Error('the Farbwähler was never rendered');
-        }
-        return last;
-    };
+    /** Preset colours the library shows. */
+    const shownPresets = (): string[] =>
+        Array.from(paper().querySelectorAll<HTMLElement>('button[data-preset]')).map(b => b.dataset.preset ?? '');
 
     it('opens on a click on the row, with the label as title', () => {
         const { container } = mount();
@@ -255,17 +235,30 @@ describe('ColorPickerField Farbwähler', () => {
     it('keeps gradients without presets (JsonTable editors)', () => {
         const { container } = mount();
         openPicker(container);
-        expect(lastPickerProps().allowGradient).toBe(true);
         expect(lastLibraryProps().hideColorTypeBtns).toBe(false);
+        expect(lastLibraryProps().hideGradientControls).toBe(false);
     });
 
-    it('stays solid and hands the presets on with presets (theme studio)', () => {
-        const presets = ['#ff0000', '#00ff00'];
-        const { container } = mount({ presets });
+    it('offers the Collection theme colours through the socket without presets', async () => {
+        const socket = {
+            getState: vi.fn(() =>
+                Promise.resolve({ val: JSON.stringify({ palette: { primary: { main: '#123456' } } }) }),
+            ),
+            subscribeState: vi.fn(() => Promise.resolve()),
+            unsubscribeState: vi.fn(),
+        } as unknown as Connection;
+        const { container } = mount({ socket });
         openPicker(container);
-        expect(lastPickerProps().allowGradient).toBe(false);
-        expect(lastPickerProps().presets).toEqual(presets);
+        await act(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
+        expect(shownPresets()[0]).toBe('#123456');
+    });
+
+    it('stays solid and shows the passed presets with presets (theme studio)', () => {
+        const { container } = mount({ presets: ['#ff0000', '#00ff00'] });
+        openPicker(container);
         expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
+        expect(lastLibraryProps().hideGradientControls).toBe(true);
+        expect(shownPresets()).toEqual(['#ff0000', '#00ff00']);
     });
 });
 

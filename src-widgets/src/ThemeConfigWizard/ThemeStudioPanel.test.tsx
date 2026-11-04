@@ -485,13 +485,18 @@ describe('ThemeStudioPanel Farbwähler', () => {
         act(() => label.click());
     };
 
-    it('opens solid, titled with the field label', async () => {
+    it('opens solid, titled with the field label, with the draft colours as presets', async () => {
         await mountPanel(SEED);
         await expandColorSections();
         openPickerOf('theme_wizard_palette_primary');
         expect(pickerPaper()?.querySelector('[data-picker-title]')?.textContent).toBe('theme_wizard_palette_primary');
         expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
         expect(lastLibraryProps().hideGradientControls).toBe(true);
+        // The seeded draft primary leads the presets.
+        const presets = Array.from(pickerPaper()?.querySelectorAll<HTMLElement>('button[data-preset]') ?? []).map(
+            preset => preset.dataset.preset,
+        );
+        expect(presets[0]).toBe('#ff0000');
     });
 
     it('closes only the Farbwähler on Escape, not the studio panel', async () => {
