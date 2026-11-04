@@ -29,7 +29,7 @@ vi.mock('../../../colorFields', () => ({
     ),
 }));
 
-import { act, createElement } from 'react';
+import { act, createElement, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { StilTab } from './StilTab';
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
@@ -136,6 +136,56 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
         expect(field.dataset.fallback).toBe(
             'linear-gradient(90deg, rgba(128, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 50%, rgba(0, 0, 128, 1) 100%)',
         );
+    });
+
+    it('flags an entered Min ≥ Max at the fields — the helper text names the consequence (ticket 05)', () => {
+        const KEY = 'echarts_val_color_scale_range';
+        const bad = group(mountStil({ type: 'line', colorScale: true, colorScaleMin: 30, colorScaleMax: 5 }))!;
+        expect(numberInputs(bad).map(i => i.getAttribute('aria-invalid'))).toEqual(['true', 'true']);
+        // ONE helper text for the pair, not a duplicate under each field.
+        expect(bad.querySelectorAll('.MuiFormHelperText-root')).toHaveLength(1);
+        expect(bad.querySelector('.MuiFormHelperText-root')!.textContent).toBe(KEY);
+        // Scale off or a bound inherited: no input error.
+        for (const meta of [
+            { type: 'line', colorScaleMin: 30, colorScaleMax: 5 },
+            { type: 'line', colorScale: true, colorScaleMin: 30 },
+        ] as EchartsSeriesMeta[]) {
+            const g = group(mountStil(meta))!;
+            expect(numberInputs(g).map(i => i.getAttribute('aria-invalid'))).toEqual(['false', 'false']);
+            expect(g.textContent).not.toContain(KEY);
+        }
+    });
+
+    it('drops the field error the moment the range becomes valid', () => {
+        const Harness = (): React.JSX.Element => {
+            const [meta, setMeta] = useState<EchartsSeriesMeta>({
+                type: 'line',
+                colorScale: true,
+                colorScaleMin: 30,
+                colorScaleMax: 5,
+            });
+            return createElement(StilTab, {
+                meta,
+                defaultType: 'line',
+                onPatch: p => setMeta(m => ({ ...m, ...p })),
+                pickerCtx: {} as never,
+                colorFallback: '#ff0000',
+                labelColorFallback: '#222',
+                yAxes: [{}],
+            });
+        };
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => createRoot(container).render(createElement(Harness)));
+        const max = numberInputs(group(container)!)[1];
+        expect(max.getAttribute('aria-invalid')).toBe('true');
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(max, '50');
+            max.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        const g = group(container)!;
+        expect(numberInputs(g).map(i => i.getAttribute('aria-invalid'))).toEqual(['false', 'false']);
+        expect(g.textContent).not.toContain('echarts_val_color_scale_range');
     });
 
     it('explains the area/line split only with Farbskala AND area „Verlauf"', () => {

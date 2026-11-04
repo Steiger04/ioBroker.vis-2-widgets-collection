@@ -26,7 +26,7 @@ import { seriesSlotOf } from '../../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../../editorState';
 import { axisOptionLabel, positionalBinderName } from '../../../axisSight';
 import { resolveCardCapabilities } from '../cardCapabilities';
-import SeriesCard, { type SeriesCardContext } from '../SeriesCard';
+import SeriesCard, { type SeriesCardContext, type SeriesCardFocus } from '../SeriesCard';
 import { EmptyState } from '../shared';
 
 /**
@@ -59,6 +59,8 @@ interface TableSeriesListProps {
     schemaError?: string;
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
+    /** The Karten-Tab jump for ONE card (ticket 05): card index + tab request. */
+    cardFocus?: SeriesCardFocus;
     onUpdate: (i: number, patch: Partial<EditorSeries>) => void;
     onRemove: (i: number) => void;
     onMove: (i: number, dir: -1 | 1) => void;
@@ -77,6 +79,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
     schemaError,
     expanded,
     onToggleCard,
+    cardFocus,
     onUpdate,
     onRemove,
     onMove,
@@ -162,6 +165,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
                                 count={series.length}
                                 open={!!expanded[i]}
                                 onToggle={() => onToggleCard(i)}
+                                focusTab={cardFocus?.index === i ? cardFocus.focus : undefined}
                                 onPatch={p => onUpdate(i, p)}
                                 onRebindAxis={yi => onRebindAxis(i, yi)}
                                 onMove={dir => onMove(i, dir)}

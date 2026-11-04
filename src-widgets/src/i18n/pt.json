@@ -1343,5 +1343,6 @@
     "echarts_card_tab_data": "Dados",
     "echarts_card_tab_style": "Estilo",
     "echarts_card_tab_format": "Formato",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "echarts_val_color_scale_range": "O mínimo deve ser menor que o máximo — nenhuma escala de cores é desenhada."
 }

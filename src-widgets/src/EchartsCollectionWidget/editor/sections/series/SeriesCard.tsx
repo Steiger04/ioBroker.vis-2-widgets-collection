@@ -30,7 +30,7 @@ import type {
     EchartsSeriesMeta,
     EchartsStackMode,
 } from '../../../../types/field-definitions/echarts-fields';
-import { EditorCard, SectionTabs } from '../../../../components/controls';
+import { EditorCard, SectionTabs, type SectionTabsFocus } from '../../../../components/controls';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorState } from '../../editorState';
@@ -42,6 +42,8 @@ import { FormatTab } from './tabs/FormatTab';
 import { JsonTab } from './tabs/JsonTab';
 import { Swatch } from './shared';
 import { PreviewExtentsContext } from '../../previewExtents';
+import { issueCountsByTab } from '../../issueTabs';
+import { seriesMetaIssues } from '../../seriesIssues';
 import { colorScaleCss, resolveColorScaleColors } from '../../../seriesColorScale';
 
 /**
@@ -77,6 +79,12 @@ export interface SeriesCardContext {
      * defaults; read only where the capabilities resolve a FETCHING Daten tab (Verlauf).
      */
     fetch?: Pick<EditorState, 'aggregate' | 'percentileValue' | 'integralUnit' | 'integralInterpolation'>;
+}
+
+/** A Karten-Tab jump addressed to ONE card of a list (ticket 05): the card index + the tab request. */
+export interface SeriesCardFocus {
+    index: number;
+    focus: SectionTabsFocus;
 }
 
 /** The Basis-tab share the source supplies (source row, Verlauf instance, JSON name semantics). */
@@ -122,6 +130,11 @@ export interface SeriesCardProps {
     /** The catalog slot of the JSON tab (ADR-0042). */
     rawSlot: SeriesTemplateSlot;
     rawHint?: string;
+    /**
+     * The external Karten-Tab jump (ADR-0073): the Problems button's request, routed by the
+     * series section to the first card carrying an issue on that tab. Absent = no jump.
+     */
+    focusTab?: SectionTabsFocus;
 }
 
 const SeriesCard: FC<SeriesCardProps> = ({
@@ -145,6 +158,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     basis,
     rawSlot,
     rawHint,
+    focusTab,
 }) => {
     const has = (action: CardCapabilities['actions'][number]): boolean => caps.actions.includes(action);
     const extents = useContext(PreviewExtentsContext);
@@ -153,6 +167,9 @@ const SeriesCard: FC<SeriesCardProps> = ({
     // series colour — the swatch shows the effective scale as a mini gradient (chosen or derived).
     const scaleColors = meta.colorScale ? resolveColorScaleColors(meta.colorScaleColors, seriesColor) : null;
     const swatchColor = scaleColors ? colorScaleCss(scaleColors) : seriesColor;
+    // The card's own ⚠ dots (ADR-0073 field placement): the SAME per-series check the validation
+    // counts in the section rollup — the card derives it from its meta, nothing is threaded down.
+    const issueCounts = issueCountsByTab(seriesMetaIssues(meta, title));
     const body: Record<CardTab, () => ReactElement> = {
         basis: () => (
             <BasisTab
@@ -288,7 +305,12 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 the positional children↔tabs contract can no longer drift. */}
             <SectionTabs
                 dense
-                tabs={caps.tabs.map(tab => ({ key: tab, label: Generic.t(CARD_TAB_LABELS[tab]) }))}
+                focus={focusTab}
+                tabs={caps.tabs.map(tab => ({
+                    key: tab,
+                    label: Generic.t(CARD_TAB_LABELS[tab]),
+                    issueCount: issueCounts[tab],
+                }))}
             >
                 {caps.tabs.map(tab => (
                     <Fragment key={tab}>{body[tab]()}</Fragment>

@@ -187,6 +187,22 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
         );
     });
 
+    it.each(SOURCES)(
+        '%s: an entered Min ≥ Max puts the ⚠ dot on the Stil tab — a valid range none (ticket 05)',
+        source => {
+            const dotTabs = (el: HTMLElement): string[] =>
+                Array.from(el.querySelectorAll('[data-issue-dot]')).map(
+                    d => d.closest('[role="tab"]')?.textContent ?? '',
+                );
+            const bad = card(source, { type: 'line', colorScale: true, colorScaleMin: 9, colorScaleMax: 1 });
+            expect(dotTabs(bad)).toEqual(['echarts_card_tab_style']);
+            expect(
+                dotTabs(card(source, { type: 'line', colorScale: true, colorScaleMin: 1, colorScaleMax: 9 })),
+            ).toEqual([]);
+            expect(dotTabs(card(source, { type: 'line', colorScaleMin: 9, colorScaleMax: 1 }))).toEqual([]);
+        },
+    );
+
     it.each(SOURCES)('%s: the data-inherited placeholder names the loaded preview value', source => {
         const el = card(source, { type: 'line', colorScale: true }, { A: { min: 3, max: 9 } });
         openStil(el);

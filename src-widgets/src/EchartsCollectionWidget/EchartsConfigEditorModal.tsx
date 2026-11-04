@@ -168,8 +168,9 @@ function EchartsConfigEditorModal({
     // headers, totalled in screen order. The button steers the rail to the first section
     // carrying issues — the same mechanism the preview placeholder uses.
     const issues = useMemo(
-        () => validateEditor(state, { tableColumns: tableSchema.columns }),
-        [state, tableSchema.columns],
+        // The payload names scope the serien-förmig overlay checks to the series that have a card.
+        () => validateEditor(state, { tableColumns: tableSchema.columns, jsonSeriesNames: jsonPreview.names }),
+        [state, tableSchema.columns, jsonPreview.names],
     );
     const issueSections = useMemo(
         () => sectionInventory(state.chartType).filter(key => (issues[key]?.length ?? 0) > 0),

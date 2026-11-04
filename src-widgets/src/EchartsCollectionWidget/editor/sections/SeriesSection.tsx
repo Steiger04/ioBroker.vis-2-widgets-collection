@@ -24,7 +24,7 @@ import { useEffect, useRef, useState, type FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { InfoBox } from '../../../components/controls';
+import { InfoBox, type SectionTabsFocus } from '../../../components/controls';
 import StackModeHead from './series/StackModeHead';
 import { useEditorTheme } from '../useEditorTheme';
 import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
@@ -36,6 +36,9 @@ import type { EditorSeries, EditorState, SetEditor } from '../editorState';
 import { dispatchStructureEvent, type StructureAdvisory, type StructureEvent } from '../structureEvents';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
+import type { SeriesCardFocus } from './series/SeriesCard';
+import { issueCountsByTab } from '../issueTabs';
+import { seriesMetaIssues } from '../seriesIssues';
 import { HistorySeriesList } from './series/sources/history';
 import PieSliceRows from './series/PieSliceRows';
 import { JsonSeriesList } from './series/sources/json';
@@ -103,6 +106,11 @@ interface SeriesSectionProps {
      * axis + anchors together. Absent (tests, non-modal callers): no notice.
      */
     onAdvisory?: (advisory: StructureAdvisory) => void;
+    /**
+     * The Problems-button jump's TAB (ADR-0073): the section has no tab row of its own — the
+     * request opens the FIRST card carrying an issue on that Karten-Tab and selects it there.
+     */
+    focusTab?: SectionTabsFocus;
 }
 
 /** The non-Verlauf fallback sight — `loaded: true` so the missing-adapter hint never flashes. */
@@ -118,6 +126,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     tableColumns,
     tableSchemaError,
     onAdvisory,
+    focusTab,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -246,6 +255,32 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
     const toggleCard = (i: number): void => setExpanded(e => ({ ...e, [i]: !e[i] }));
 
+    // The Karten-Tab jump (ADR-0101 ticket 05): resolved ONCE per request token against the card
+    // list as it stands (serien-förmig JSON: the visible payload series' overlay entries) — the
+    // first card whose own issues sit on the requested tab opens there. Keyed on the primitives,
+    // so a parent re-render never re-fires the jump (the SectionTabs one-shot contract).
+    const [cardFocus, setCardFocus] = useState<SeriesCardFocus | undefined>(undefined);
+    const focusKey = focusTab?.key;
+    const focusToken = focusTab?.token;
+    const cardMetas: (EchartsSeriesMeta | undefined)[] =
+        isJson && !isJsonTable
+            ? jsonSeriesNames.filter(n => !state.jsonHidden.includes(n)).map(n => state.jsonSeriesStyle[n])
+            : series;
+    const cardMetasRef = useRef(cardMetas);
+    cardMetasRef.current = cardMetas;
+    useEffect(() => {
+        if (focusKey === undefined || focusToken === undefined) {
+            return;
+        }
+        const index = cardMetasRef.current.findIndex(
+            m => (issueCountsByTab(seriesMetaIssues(m, ''))[focusKey] ?? 0) > 0,
+        );
+        if (index >= 0) {
+            setExpanded(e => ({ ...e, [index]: true }));
+            setCardFocus({ index, focus: { key: focusKey, token: focusToken } });
+        }
+    }, [focusKey, focusToken]);
+
     return (
         <Box>
             {issues.length > 0 && <IssueList issues={issues} />}
@@ -272,6 +307,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     schemaError={tableSchemaError}
                     expanded={expanded}
                     onToggleCard={toggleCard}
+                    cardFocus={cardFocus}
                     onUpdate={update}
                     onRemove={remove}
                     onMove={move}
@@ -290,6 +326,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     jsonError={jsonError}
                     expanded={expanded}
                     onToggleCard={toggleCard}
+                    cardFocus={cardFocus}
                     onUpdateJson={updateJson}
                     onRebindJsonAxis={rebindJsonAxis}
                     onHideJson={hideJson}
@@ -315,6 +352,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     historyInstances={isHistory ? historyInstances : NO_HISTORY_INSTANCES}
                     expanded={expanded}
                     onToggleCard={toggleCard}
+                    cardFocus={cardFocus}
                     onUpdate={update}
                     onRemove={remove}
                     onMove={move}

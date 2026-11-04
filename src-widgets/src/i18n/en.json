@@ -674,6 +674,7 @@
     "echarts_loss_datapoint": "JSON data point deleted",
     "echarts_loss_templates": "%s active templates deleted",
     "echarts_loss_templates_one": "1 active template deleted",
+    "echarts_val_color_scale_range": "Min must be below max — no color scale is drawn.",
     "echarts_val_oid_missing": "No OID bound",
     "echarts_val_stale_yaxis": "References an axis that no longer exists — it renders on axis 1.",
     "echarts_val_stack_timeaxis": "Without a bar interval, echarts stacks by data index instead of timestamp — diverging timestamps produce misassigned stacks.",

@@ -82,22 +82,24 @@ vi.mock('../../hooks/useCollectionTheme', () => {
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import EchartsEditorSections, { type FocusSectionRequest } from './EchartsEditorSections';
-import { DEFAULT_EDITOR_STATE } from './editorState';
-import type { SectionIssues } from './validation';
+import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
+import { firstIssueTabOf, validateEditor, type SectionIssues } from './validation';
 
 /** Mount the full section stack; returns the live container + a rerender for the focus prop. */
 const mountSections = (
     issues: SectionIssues,
     focus: FocusSectionRequest | null,
+    state: EditorState = { ...DEFAULT_EDITOR_STATE, chartType: 'line' },
 ): { container: HTMLElement; rerender: (next: FocusSectionRequest | null) => void } => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root: Root = createRoot(container);
     const props = {
-        state: { ...DEFAULT_EDITOR_STATE, chartType: 'line' },
+        state,
         set: () => undefined,
         issues,
-        pickerCtx: {},
+        // A bound OID makes the series section resolve its object once — never answered here.
+        pickerCtx: { socket: { getObject: () => new Promise(() => undefined) } },
         focusSection: focus,
     };
     const render = (f: FocusSectionRequest | null): void => {
@@ -179,5 +181,31 @@ describe('Problems-button tab jump (ADR-0073, spec ticket 08)', () => {
         expect(container.textContent).toContain('echarts_instance_auto_hint');
         // …and its header carries the ⚠ rollup chip (the tab dots' sibling, unchanged).
         expect(container.textContent).toContain('⚠ 1');
+    });
+
+    it('a Farbskala warning jump opens the AFFECTED series card on its Stil tab (ticket 05)', () => {
+        const state: EditorState = {
+            ...DEFAULT_EDITOR_STATE,
+            chartType: 'line',
+            series: [
+                { id: 's1', oid: 'a.0', name: 'A' },
+                { id: 's2', oid: 'b.0', name: 'B', colorScale: true, colorScaleMin: 9, colorScaleMax: 1 },
+            ],
+        };
+        const issues = validateEditor(state);
+        // The Problems button's glue: the series section's first issue addresses the Stil tab.
+        const tab = firstIssueTabOf(issues, 'series');
+        expect(tab).toBe('stil');
+        const { container } = mountSections(issues, { key: 'series', token: 1, tab }, state);
+        // Only B's card opened — ONE card tab row, its Stil tab selected and dotted.
+        const selected = Array.from(container.querySelectorAll('[role="tab"][aria-selected="true"]')).map(
+            t => t.textContent,
+        );
+        expect(selected).toEqual(['echarts_card_tab_style']);
+        expect(container.querySelector('[data-issue-dot]')?.closest('[role="tab"]')?.textContent).toBe(
+            'echarts_card_tab_style',
+        );
+        // The Stil body is mounted with the field error.
+        expect(container.textContent).toContain('echarts_val_color_scale_range');
     });
 });

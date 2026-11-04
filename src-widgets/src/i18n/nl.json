@@ -1343,5 +1343,6 @@
     "echarts_card_tab_data": "Gegevens",
     "echarts_card_tab_style": "Stijl",
     "echarts_card_tab_format": "Indeling",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "echarts_val_color_scale_range": "Min moet kleiner zijn dan max — er wordt geen kleurschaal getekend."
 }

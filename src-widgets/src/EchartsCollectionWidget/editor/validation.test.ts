@@ -161,6 +161,57 @@ describe('firstIssueTabOf — the Problems-button glue (ADR-0073)', () => {
     });
 });
 
+describe('validateEditor — Farbskala range (ADR-0101, ticket 05)', () => {
+    const KEY = 'echarts_val_color_scale_range';
+    const one = (meta: Partial<EditorState['series'][number]>): EditorState =>
+        st({ chartType: 'line', series: [{ oid: 'a.b.c', name: 'Temp', ...meta }] });
+
+    it('an entered Min ≥ Max with the scale on warns at the series — addressed to the Stil tab', () => {
+        const issues = validateEditor(one({ colorScale: true, colorScaleMin: 30, colorScaleMax: 5 }));
+        expect(issues.series).toEqual([{ key: KEY, args: ['Temp'] }]);
+        // Min = Max is the same input error.
+        expect(validateEditor(one({ colorScale: true, colorScaleMin: 7, colorScaleMax: 7 })).series).toHaveLength(1);
+        // Field placement (ADR-0073): the Min/Max fields live on the series card's Stil tab.
+        expect(tabOfIssue({ key: KEY })).toBe('stil');
+        expect(firstIssueTabOf(issues, 'series')).toBe('stil');
+    });
+
+    it('stays quiet with the scale off, a bound inherited, or a valid range', () => {
+        expect(validateEditor(one({ colorScaleMin: 30, colorScaleMax: 5 }))).toEqual({});
+        expect(validateEditor(one({ colorScale: true, colorScaleMax: 5 }))).toEqual({});
+        expect(validateEditor(one({ colorScale: true, colorScaleMin: 30 }))).toEqual({});
+        expect(validateEditor(one({ colorScale: true, colorScaleMin: 0, colorScaleMax: 5 }))).toEqual({});
+    });
+
+    it('unnamed series name their position; the pie family carries no Farbskala', () => {
+        const unnamed = st({
+            chartType: 'bar',
+            series: [
+                { oid: 'a', name: 'A' },
+                { oid: 'b', colorScale: true, colorScaleMin: 2, colorScaleMax: 1 },
+            ],
+        });
+        expect(validateEditor(unnamed).series).toEqual([{ key: KEY, args: ['2'] }]);
+        expect(validateEditor({ ...unnamed, chartType: 'pie' }).series).toBeUndefined();
+    });
+
+    it('JSON (serien-förmig): the visible payload series of the overlay are checked by name', () => {
+        const bad = { colorScale: true, colorScaleMin: 9, colorScaleMax: 1 };
+        const state = st({
+            chartType: 'line',
+            mode: 'json',
+            jsonSeriesStyle: { Temp: bad, Hidden: bad, Gone: bad, Power: { ...bad, name: 'Leistung' } },
+            jsonHidden: ['Hidden'],
+        });
+        const issues = validateEditor(state, { jsonSeriesNames: ['Temp', 'Hidden', 'Power'] });
+        // Hidden series render nothing; a stale overlay entry („Gone“) has no card.
+        expect(issues.series).toEqual([
+            { key: KEY, args: ['Temp'] },
+            { key: KEY, args: ['Leistung'] },
+        ]);
+    });
+});
+
 describe('validateEditor — tabellarisch (ADR-0075 ticket 04: yPath drift, no OID chorus)', () => {
     const cols = [
         { path: 'temp', type: 'number' },

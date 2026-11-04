@@ -62,6 +62,11 @@ export const firstIssueTabOf = (issues: SectionIssues | undefined, key: SectionK
  */
 export interface ValidateEditorInputs {
     tableColumns?: readonly { path: string; type?: string }[];
+    /**
+     * Serien-förmig JSON (ADR-0011): the payload's series names — the overlay entries that have a
+     * card. Absent = unknown (every overlay entry counts).
+     */
+    jsonSeriesNames?: readonly string[];
 }
 
 /**

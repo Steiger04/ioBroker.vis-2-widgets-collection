@@ -25,7 +25,7 @@ import type { SeriesTemplateSlot } from '../../../seriesTemplates';
 import type { EditorState } from '../../../editorState';
 import { axisOptionLabel, jsonBindingView } from '../../../axisSight';
 import { resolveCardCapabilities } from '../cardCapabilities';
-import SeriesCard, { type SeriesCardContext } from '../SeriesCard';
+import SeriesCard, { type SeriesCardContext, type SeriesCardFocus } from '../SeriesCard';
 import { JsonTab } from '../tabs/JsonTab';
 
 /**
@@ -52,6 +52,8 @@ interface JsonSeriesListProps {
     jsonError?: string;
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
+    /** The Karten-Tab jump for ONE card (ticket 05): card index + tab request. */
+    cardFocus?: SeriesCardFocus;
     onUpdateJson: (name: string, patch: Partial<EchartsSeriesMeta>) => void;
     /** Rebind a payload series to a different axis (sticky; the freed axis dies, ADR-0069). */
     onRebindJsonAxis: (name: string, yAxisIndex: number) => void;
@@ -68,6 +70,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
     jsonError,
     expanded,
     onToggleCard,
+    cardFocus,
     onUpdateJson,
     onRebindJsonAxis,
     onHideJson,
@@ -207,6 +210,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
                             count={visibleNames.length}
                             open={!!expanded[i]}
                             onToggle={() => onToggleCard(i)}
+                            focusTab={cardFocus?.index === i ? cardFocus.focus : undefined}
                             onPatch={p => onUpdateJson(name, p)}
                             onRebindAxis={yi => onRebindJsonAxis(name, yi)}
                             onHide={() => onHideJson(name)}

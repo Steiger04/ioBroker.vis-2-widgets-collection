@@ -206,6 +206,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         tableColumns={tableColumns}
                         tableSchemaError={tableSchemaError}
                         onAdvisory={onAdvisory}
+                        focusTab={focusTab}
                     />
                 );
             case 'dataSource':

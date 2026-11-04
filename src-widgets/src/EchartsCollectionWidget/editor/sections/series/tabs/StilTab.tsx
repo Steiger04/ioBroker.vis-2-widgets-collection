@@ -35,6 +35,7 @@ import ColorField from '../../../colorFields';
 import { deriveAreaGradient } from '../../../../seriesColorDerive';
 import {
     colorScaleCss,
+    colorScaleRangeInvalid,
     deriveColorScaleColors,
     resolveColorScaleRange,
     type ColorScaleBound,
@@ -79,6 +80,9 @@ const ColorScaleGroup: FC<{
     // Only the inherited bounds feed the placeholders — an entered bound shows as the value.
     const range = resolveColorScaleRange(undefined, axis, dataExtent);
     const derived = deriveColorScaleColors(seriesColor);
+    // The input error (ticket 05) — the SAME predicate the builder and the validation run: both
+    // fields flag, ONE helper text names the consequence (the AxisCard min≥max idiom).
+    const invalid = colorScaleRangeInvalid(meta);
     return (
         <SubGroup title={Generic.t('echarts_grp_color_scale')}>
             <SwitchList sx={{ mb: 1.5 }}>
@@ -96,6 +100,8 @@ const ColorScaleGroup: FC<{
                     onChange={v => onPatch({ colorScaleMin: v })}
                     placeholder={boundPlaceholder(range.min)}
                     disabled={!on}
+                    error={invalid}
+                    helperText={invalid ? Generic.t('echarts_val_color_scale_range') : undefined}
                 />
                 <OptionalNumberField
                     label={Generic.t('echarts_series_color_scale_max')}
@@ -103,6 +109,7 @@ const ColorScaleGroup: FC<{
                     onChange={v => onPatch({ colorScaleMax: v })}
                     placeholder={boundPlaceholder(range.max)}
                     disabled={!on}
+                    error={invalid}
                 />
                 <Box>
                     <FieldLabel>{Generic.t('echarts_series_color_scale_colors')}</FieldLabel>
