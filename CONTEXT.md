@@ -519,7 +519,7 @@ The declaration, attached to a color field, that fully describes its Auflösungs
 _Avoid_: Feld-Definition (broader — covers non-color fields too).
 
 **Schlichtes Farbfeld**:
-A color field without a Field-Vertrag: no Auflösungskaskade, so its swatch shows exactly the stored value and an empty field means the widget's own built-in default, not Erben. Edited with the same Farbwähler as every other color field (ADR-0102). Examples: the Gauge's canvas colors, the Dialog close-button color.
+A color field without a Field-Vertrag: no Auflösungskaskade, so its swatch shows exactly the stored value and an empty field means the widget's own built-in default (the schema default where it has one), not Erben — the text field shows no "erbt". Always solid only; color names, `transparent` and every other CSS color can be typed. Edited with the same Farbwähler as every other color field (ADR-0102), declared through its own factory (`createPlainColorField`), so the terminal parity test, which covers contract color fields only, never sees it. Name, label, default and visibility rule are those of the former vis-2 color input; stored values and bindings carry over. Examples: the Gauge's 25 canvas colors, the Dialog close-button color, the Light2 border color, the Slider marker-icon color.
 _Avoid_: Host-Farbfeld, `type: 'color'`-Feld (both name the former vis-2 rendering, not the concept); Vertragsloses Feld
 
 **Regeln für Farbeingaben**:
