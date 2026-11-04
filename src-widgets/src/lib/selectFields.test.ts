@@ -15,6 +15,7 @@ import { arrowColorContract } from './selectColorContract';
 // The field list renders CollectionDivider / ContractColorField, which pull
 // Generic (extends window.visRxWidget, absent outside vis-2). The predicates never render.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import selectFields from './selectFields';

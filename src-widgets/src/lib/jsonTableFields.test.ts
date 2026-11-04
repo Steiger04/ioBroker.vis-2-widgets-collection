@@ -14,6 +14,7 @@ import type { WidgetData } from '@iobroker/types-vis-2';
 // editor, which pull Generic (extends window.visRxWidget, absent outside vis-2). The
 // predicates never render.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 vi.mock('../JsonTableCollectionWidget/JsonTableColumnEditor', () => ({ default: () => null }));
 
