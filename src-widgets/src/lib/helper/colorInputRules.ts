@@ -66,16 +66,58 @@ const RGB_FUNCTION =
 /** `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`. */
 const HEX_COLOR = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
-const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
-const hexByte = (value: number): string =>
+/**
+ * Limits a number to a range.
+ *
+ * @param value - The number.
+ * @param min - Lower bound.
+ * @param max - Upper bound.
+ * @returns The number within `min..max`.
+ */
+export const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+
+/**
+ * One colour channel as two hex digits (rounded, clamped to 0..255).
+ *
+ * @param value - Channel value.
+ * @returns Two lowercase hex digits.
+ */
+export const hexByte = (value: number): string =>
     Math.round(clamp(value, 0, 255))
         .toString(16)
         .padStart(2, '0');
 
-/** `#rrggbb` for an opaque colour, else `#rrggbbaa`; alpha 0..1. */
-function toHex(r: number, g: number, b: number, alpha: number): string {
+/**
+ * The hex a solid colour is stored as: `#rrggbb` when its alpha byte is ff, else `#rrggbbaa`.
+ *
+ * @param r - Red 0..255.
+ * @param g - Green 0..255.
+ * @param b - Blue 0..255.
+ * @param alpha - Alpha 0..1.
+ * @returns The lowercase hex.
+ */
+export function rgbaToHex(r: number, g: number, b: number, alpha: number): string {
     const a = Math.round(clamp(alpha, 0, 1) * 255);
     return `#${hexByte(r)}${hexByte(g)}${hexByte(b)}${a === 255 ? '' : hexByte(a)}`;
+}
+
+/**
+ * Reads `#rgb` / `#rgba` / `#rrggbb` / `#rrggbbaa` (short forms expanded).
+ *
+ * @param text - Trimmed hex text with `#`.
+ * @returns Channels 0..255 and the alpha 0..1 — `undefined` without alpha digits —, or null.
+ */
+export function parseHexColor(text: string): { r: number; g: number; b: number; alpha?: number } | null {
+    const hex = HEX_COLOR.exec(text);
+    if (!hex) {
+        return null;
+    }
+    let digits = hex[1].toLowerCase();
+    if (digits.length <= 4) {
+        digits = [...digits].map(d => d + d).join('');
+    }
+    const byte = (i: number): number => parseInt(digits.slice(i * 2, i * 2 + 2), 16);
+    return { r: byte(0), g: byte(1), b: byte(2), ...(digits.length === 8 ? { alpha: byte(3) / 255 } : {}) };
 }
 
 /**
@@ -85,25 +127,15 @@ function toHex(r: number, g: number, b: number, alpha: number): string {
  * @returns The normalised hex, or undefined.
  */
 function normaliseSolid(text: string): string | undefined {
-    const hex = HEX_COLOR.exec(text);
+    const hex = parseHexColor(text);
     if (hex) {
-        let digits = hex[1].toLowerCase();
-        if (digits.length <= 4) {
-            digits = [...digits].map(d => d + d).join('');
-        }
-        const alpha = digits.length === 8 ? parseInt(digits.slice(6), 16) / 255 : 1;
-        return toHex(
-            parseInt(digits.slice(0, 2), 16),
-            parseInt(digits.slice(2, 4), 16),
-            parseInt(digits.slice(4, 6), 16),
-            alpha,
-        );
+        return rgbaToHex(hex.r, hex.g, hex.b, hex.alpha ?? 1);
     }
     const rgb = RGB_FUNCTION.exec(text);
     if (rgb) {
         const [, r, g, b, a, percent] = rgb;
         const alpha = a === undefined ? 1 : Number(a) / (percent ? 100 : 1);
-        return toHex(Number(r), Number(g), Number(b), alpha);
+        return rgbaToHex(Number(r), Number(g), Number(b), alpha);
     }
     return undefined;
 }

@@ -1,5 +1,5 @@
 /**
- * Input row of the Farbwähler: HEX (HEXA while alpha < 1) · R · G · B · A (ADR-0102).
+ * Input row of the Farbwähler: HEX (HEXA below an alpha byte of ff) · R · G · B · A (ADR-0102).
  *
  * @module components/colorPicker/ColorInputRow
  * @remarks
@@ -20,6 +20,7 @@ import { useState } from 'react';
 import type React from 'react';
 import { useColorPicker } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
+import { clamp, parseHexColor, rgbaToHex } from '../../lib/helper/colorInputRules';
 
 /** Props for {@link ColorInputRow}. */
 export interface ColorInputRowProps {
@@ -39,21 +40,10 @@ interface Rgba {
 
 /** A number as typed (integer or decimal, optional surrounding blanks). */
 const NUMBER_RE = /^\s*\d+(?:[.,]\d+)?\s*$/;
-/** Hex digits of #rgb / #rgba / #rrggbb / #rrggbbaa, the `#` optional. */
-const HEX_RE = /^\s*#?([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})\s*$/i;
-
-const clamp = (n: number, min: number, max: number): number => Math.min(max, Math.max(min, n));
 
 /** Parses a typed number (`,` as decimal separator too); `null` when it is none. */
 function parseNumber(text: string): number | null {
     return NUMBER_RE.test(text) ? Number(text.trim().replace(',', '.')) : null;
-}
-
-const hex2 = (n: number): string => Math.round(n).toString(16).padStart(2, '0');
-
-/** `#rrggbb`, or `#rrggbbaa` while alpha < 1. */
-function toHex({ r, g, b, a }: Rgba): string {
-    return `#${hex2(r)}${hex2(g)}${hex2(b)}${a < 1 ? hex2(a * 255) : ''}`;
 }
 
 /** The library's own colour notation. */
@@ -61,22 +51,18 @@ function toRgbaString({ r, g, b, a }: Rgba): string {
     return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
-/** Parses typed hex; a 3/6-digit hex keeps the current alpha. `null` when invalid. */
+/** Parses typed hex (the `#` optional); a 3/6-digit hex keeps the current alpha. `null` when invalid. */
 function parseHex(text: string, current: Rgba): Rgba | null {
-    const match = HEX_RE.exec(text);
-    if (!match) {
+    const trimmed = text.trim();
+    const hex = parseHexColor(trimmed.startsWith('#') ? trimmed : `#${trimmed}`);
+    if (!hex) {
         return null;
     }
-    let digits = match[1];
-    if (digits.length <= 4) {
-        digits = [...digits].map(d => d + d).join('');
-    }
-    const byte = (i: number): number => parseInt(digits.slice(i * 2, i * 2 + 2), 16);
     return {
-        r: byte(0),
-        g: byte(1),
-        b: byte(2),
-        a: digits.length === 8 ? Math.round((byte(3) / 255) * 1000) / 1000 : current.a,
+        r: hex.r,
+        g: hex.g,
+        b: hex.b,
+        a: hex.alpha === undefined ? current.a : Math.round(hex.alpha * 1000) / 1000,
     };
 }
 
@@ -167,6 +153,8 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
     const { rgbaArr, handleChange } = useColorPicker(value, onChange);
     const [r, g, b, a] = rgbaArr;
     const current: Rgba = { r, g, b, a };
+    // Same hex as the Regeln für Farbeingaben store for a pick (one source for the alpha byte).
+    const hex = rgbaToHex(r, g, b, a);
     // The hook writes the selected stop of a gradient, else the solid colour.
     const applyRgba = (next: Rgba): void => handleChange(toRgbaString(next));
     const channel =
@@ -183,8 +171,8 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
         >
             <ChannelField
                 channel="hex"
-                label={a < 1 ? 'HEXA' : 'HEX'}
-                shown={toHex(current)}
+                label={hex.length > 7 ? 'HEXA' : 'HEX'}
+                shown={hex}
                 parse={(text): Rgba | null => parseHex(text, current)}
                 onApply={applyRgba}
             />

@@ -247,6 +247,13 @@ describe('CollectionColorPicker input row', () => {
         expect(field('hex').value).toBe('#ff0000');
     });
 
+    it('shows a nearly opaque colour as the hex the Farbwähler stores', () => {
+        // Alpha 0.999 rounds to the byte ff: stored as #112233 (Regeln für Farbeingaben), so shown so.
+        mount({ value: 'rgba(17, 34, 51, 0.999)' });
+        expect(field('hex').value).toBe('#112233');
+        expect(labelOf('hex')).toBe('HEX');
+    });
+
     it('takes the alpha from an 8-digit hex and keeps it with a 6-digit one', () => {
         const { onCommit } = mount({ value: '#11223380' });
         expect(field('a').value).toBe('50');
