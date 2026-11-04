@@ -14,9 +14,11 @@
  *   `allowGradient`; invalid text is marked with its message and not stored; emptied text stores
  *   `null`. In the `inherit` placeholder mode an empty field shows "erbt".
  * - **Trash** — only while a value is stored; removes the override (`null`).
- * - **Swatch** — shows `effectiveColor`; a click opens the Farbwähler (`colorPicker/CollectionColorPicker`)
- *   with `title` in its header, starting from the stored value, else the effective colour, else
- *   the ambient primary colour. Picks arrive debounced and normalized (`#rrggbb` / `#rrggbbaa`,
+ * - **Swatch** — shows `effectiveColor` on a checkerboard (`swatchCheckerboard`): an opaque colour
+ *   covers it, a translucent one lies on it, `transparent` shows it alone; invalid text covers it
+ *   with the error hatch. A click opens the Farbwähler (`colorPicker/CollectionColorPicker`)
+ *   with `title` in its header, starting from the stored value, else the effective colour — on
+ *   alpha 0 (`transparent`) when that names none. Picks arrive debounced and normalized (`#rrggbb` / `#rrggbbaa`,
  *   gradients unchanged). With `socket` the Farbwähler offers the Collection theme colours as
  *   presets (read only while open).
  * - **Disabled** — the whole row is `inert` and dimmed (ADR-0019 „deaktiviert statt
@@ -35,6 +37,10 @@ import type { VisTheme } from '@iobroker/types-vis-2';
 import Generic from '../Generic';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
+import { SWATCH_CHECKERBOARD } from './swatchCheckerboard';
+
+/** The colour of a swatch that names no colour: nothing painted, the checkerboard alone. */
+const TRANSPARENT = 'transparent';
 
 /** Props for {@link ColorTextFieldRow}. */
 export interface ColorTextFieldRowProps {
@@ -42,7 +48,10 @@ export interface ColorTextFieldRowProps {
     value: string | null | undefined;
     /** Receives the value to store — typed (valid only), picked (normalized) or `null` (trash / emptied). */
     onChange: (value: string | null) => void;
-    /** Colour the swatch shows (`''` = none: dashed empty swatch). Contract fields: the resolved cascade. */
+    /**
+     * Colour the swatch shows, on the checkerboard — `transparent` shows the checkerboard alone;
+     * `''` paints nothing as well. Contract fields: the resolved cascade.
+     */
     effectiveColor: string;
     /** `inherit`: an empty field shows the "erbt" placeholder; `none`: no placeholder. */
     placeholder: 'inherit' | 'none';
@@ -150,7 +159,8 @@ function ColorTextFieldRow({
     }, [value]);
 
     const overridden = typeof value === 'string' && value.trim() !== '';
-    const shown = effectiveColor !== '';
+    // The swatch frame as the vis-2 attribute panel draws it.
+    const frameColor = light ? theme.palette.common.white : theme.palette.grey['900'];
 
     const row = (
         <Box
@@ -205,11 +215,7 @@ function ColorTextFieldRow({
                     mt: outlined ? 0 : text ? '4px' : '-2px',
                     px: '4px',
                     py: text ? '4px' : '3px',
-                    backgroundColor: shown
-                        ? light
-                            ? theme.palette.common.white
-                            : theme.palette.grey['900']
-                        : 'transparent',
+                    backgroundColor: frameColor,
                     borderRadius: '1px',
                     display: 'inline-block',
                     cursor: 'pointer',
@@ -217,22 +223,28 @@ function ColorTextFieldRow({
                     boxSizing: 'border-box',
                     border: error
                         ? `1px solid ${theme.palette.error.main}`
-                        : shown
-                          ? `1px solid ${light ? theme.palette.grey['400'] : theme.palette.common.black}`
-                          : `1px dashed ${light ? theme.palette.grey['400'] : theme.palette.text.secondary}`,
+                        : `1px solid ${light ? theme.palette.grey['400'] : theme.palette.common.black}`,
                     opacity: error ? 0.6 : 1,
                 }}
             >
                 <Box
-                    sx={{
-                        width: shown ? '36px' : '38px',
-                        height: shown ? '14px' : '18px',
-                        borderRadius: '2px',
-                        background: error
-                            ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)'
-                            : effectiveColor,
-                    }}
-                />
+                    data-swatch-checkerboard
+                    sx={{ width: '36px', height: '14px', borderRadius: '2px', background: SWATCH_CHECKERBOARD }}
+                >
+                    <Box
+                        data-swatch-fill
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: 'inherit',
+                            // Invalid text: the error hatch on the plain frame colour covers the
+                            // checkerboard, so the error never reads as a translucent colour.
+                            background: error
+                                ? `repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px), ${frameColor}`
+                                : effectiveColor || TRANSPARENT,
+                        }}
+                    />
+                </Box>
             </Box>
         </Box>
     );
@@ -254,7 +266,7 @@ function ColorTextFieldRow({
                 anchorEl={disabled ? null : anchorEl}
                 onClose={(): void => setAnchorEl(null)}
                 title={title}
-                value={text || effectiveColor || theme.palette.primary.main}
+                value={text || effectiveColor || TRANSPARENT}
                 onCommit={handlePick}
                 allowGradient={allowGradient}
                 socket={socket}
