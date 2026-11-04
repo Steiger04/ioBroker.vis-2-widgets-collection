@@ -44,7 +44,7 @@ import { Swatch } from './shared';
 import { PreviewExtentsContext } from '../../previewExtents';
 import { issueCountsByTab } from '../../issueTabs';
 import { seriesMetaIssues } from '../../seriesIssues';
-import { colorScaleCss, resolveColorScaleColors } from '../../../seriesColorScale';
+import { colorScaleCss, colorScaleRangeInvalid, resolveColorScaleColors } from '../../../seriesColorScale';
 
 /**
  * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
@@ -165,7 +165,11 @@ const SeriesCard: FC<SeriesCardProps> = ({
     const seriesColor = meta.color ?? colorFallback;
     // Kopf-Swatch (ADR-0101, honest): with an active Farbskala the chart draws the SCALE, not the
     // series colour — the swatch shows the effective scale as a mini gradient (chosen or derived).
-    const scaleColors = meta.colorScale ? resolveColorScaleColors(meta.colorScaleColors, seriesColor) : null;
+    // An entered Min ≥ Max draws no scale (the builder skips the entry), so the swatch stays plain.
+    const scaleColors =
+        meta.colorScale && !colorScaleRangeInvalid(meta)
+            ? resolveColorScaleColors(meta.colorScaleColors, seriesColor)
+            : null;
     const swatchColor = scaleColors ? colorScaleCss(scaleColors) : seriesColor;
     // The card's own ⚠ dots (ADR-0073 field placement): the SAME per-series check the validation
     // counts in the section rollup — the card derives it from its meta, nothing is threaded down.

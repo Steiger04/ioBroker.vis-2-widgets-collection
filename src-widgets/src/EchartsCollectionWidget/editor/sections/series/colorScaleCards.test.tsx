@@ -187,6 +187,11 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
         );
     });
 
+    it.each(SOURCES)('%s: an entered Min ≥ Max draws no scale — the header swatch keeps the series colour', source => {
+        const bad = card(source, { type: 'line', colorScale: true, colorScaleMin: 9, colorScaleMax: 1 });
+        expect(bad.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe('#ff0000');
+    });
+
     it.each(SOURCES)(
         '%s: an entered Min ≥ Max puts the ⚠ dot on the Stil tab — a valid range none (ticket 05)',
         source => {
