@@ -51,7 +51,7 @@ import { createRoot } from 'react-dom/client';
 import { HistorySeriesList } from './sources/history';
 import { JsonSeriesList } from './sources/json';
 import { TableSeriesList } from './sources/table';
-import { PreviewExtentsContext } from '../../previewExtents';
+import { PreviewExtentsContext, type PreviewExtents } from '../../previewExtents';
 import { DEFAULT_EDITOR_STATE } from '../../editorState';
 import type { EchartsSeriesMeta } from '../../../../types/field-definitions/echarts-fields';
 
@@ -89,11 +89,7 @@ const common = {
 type Source = 'history' | 'json' | 'table';
 
 /** One expanded card of the given source, bound to `meta`. */
-const card = (
-    source: Source,
-    meta: EchartsSeriesMeta,
-    extents: Record<string, { min: number; max: number }> = {},
-): HTMLElement => {
+const card = (source: Source, meta: EchartsSeriesMeta, extents: PreviewExtents = {}): HTMLElement => {
     const yAxes = [{ id: 'ax-1', position: 'left' as const }];
     const list =
         source === 'history'
@@ -195,6 +191,31 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
             'linear-gradient(90deg, rgba(128, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 50%, rgba(0, 0, 128, 1) 100%)',
         );
     });
+
+    it.each(SOURCES)(
+        '%s: a constant loaded series draws the middle colour only — so does the header swatch',
+        source => {
+            const el = card(source, { type: 'line', colorScale: true }, { A: { min: 12, max: 12 } });
+            expect(el.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe('rgba(255, 0, 0, 1)');
+        },
+    );
+
+    it.each(SOURCES)(
+        '%s: a loaded series without values draws no scale — the swatch keeps the series colour',
+        source => {
+            const empty = card(source, { type: 'line', colorScale: true }, { A: null });
+            expect(empty.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe('#ff0000');
+            // A completely entered range stands on its own — the chart draws it, so does the swatch.
+            const entered = card(
+                source,
+                { type: 'line', colorScale: true, colorScaleMin: 0, colorScaleMax: 10 },
+                { A: null },
+            );
+            expect(entered.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe(
+                'linear-gradient(90deg, rgba(255, 128, 128, 1) 0%, rgba(255, 0, 0, 1) 50%, rgba(128, 0, 0, 1) 100%)',
+            );
+        },
+    );
 
     it.each(SOURCES)('%s: an entered Min ≥ Max draws no scale — the header swatch keeps the series colour', source => {
         const bad = card(source, { type: 'line', colorScale: true, colorScaleMin: 9, colorScaleMax: 1 });

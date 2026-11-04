@@ -41,10 +41,10 @@ import { StilTab } from './tabs/StilTab';
 import { FormatTab } from './tabs/FormatTab';
 import { JsonTab } from './tabs/JsonTab';
 import { Swatch } from './shared';
-import { PreviewExtentsContext } from '../../previewExtents';
+import { PreviewExtentsContext, previewExtentOf } from '../../previewExtents';
 import { issueCountsByTab } from '../../issueTabs';
 import { seriesMetaIssues } from '../../seriesIssues';
-import { colorScaleCss, colorScaleRangeInvalid, resolveColorScaleColors } from '../../../seriesColorScale';
+import { colorScaleAxis, colorScaleCss, effectiveColorScale } from '../../../seriesColorScale';
 
 /**
  * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
@@ -165,14 +165,13 @@ const SeriesCard: FC<SeriesCardProps> = ({
     const has = (action: CardCapabilities['actions'][number]): boolean => caps.actions.includes(action);
     const extents = useContext(PreviewExtentsContext);
     const seriesColor = meta.color ?? colorFallback;
-    // Header swatch (ADR-0101, honest): with an active Farbskala the chart draws the SCALE, not the
-    // series colour — the swatch shows the effective scale as a mini gradient (chosen or derived).
-    // An entered Min ≥ Max draws no scale (the builder skips the entry), so the swatch stays plain.
-    const scaleColors =
-        meta.colorScale && !colorScaleRangeInvalid(meta)
-            ? resolveColorScaleColors(meta.colorScaleColors, seriesColor)
-            : null;
-    const swatchColor = scaleColors ? colorScaleCss(scaleColors) : seriesColor;
+    // What the preview knows about the series' values (unknown until it loaded them).
+    const dataExtent = previewName ? previewExtentOf(extents, previewName) : undefined;
+    // Header swatch (ADR-0101, honest): the swatch shows what the chart draws — the SAME effective
+    // scale the builder emits: the scale as a mini gradient, its middle colour for a degenerate
+    // range, the plain series colour when no scale is drawn. Unknown data invents nothing.
+    const scale = effectiveColorScale(meta, seriesColor, colorScaleAxis(ctx.yAxes, meta.yAxisIndex), dataExtent);
+    const swatchColor = scale ? (scale.degenerate ? scale.colors[0] : colorScaleCss(scale.colors)) : seriesColor;
     // The card's own ⚠ dots (ADR-0073 field placement): the SAME per-series check the validation
     // counts in the section rollup — the card derives it from its meta, nothing is threaded down.
     const issueCounts = issueCountsByTab(seriesMetaIssues(meta, title));
@@ -223,7 +222,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 labelColorFallback={ctx.labelColorFallback}
                 stackMode={ctx.stackMode}
                 yAxes={ctx.yAxes}
-                dataExtent={previewName ? (extents[previewName] ?? null) : null}
+                dataExtent={dataExtent ?? null}
             />
         ),
         format: () => (

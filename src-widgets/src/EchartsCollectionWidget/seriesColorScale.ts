@@ -263,15 +263,74 @@ export const colorScaleRangeInvalid = (
     finite(meta.colorScaleMax) &&
     meta.colorScaleMin >= meta.colorScaleMax;
 
+/** The Farbskala a series' chart actually draws ({@link effectiveColorScale}). */
+export interface EffectiveColorScale {
+    /** The colours low → high; a degenerate range draws ONE colour, the middle of the scale. */
+    colors: string[];
+    /** The resolved value range; `null` while a data-inherited bound is unknown (editor without preview data). */
+    range: ValueExtent | null;
+    /** Min ≥ Max from inherited or mixed bounds: every value draws the middle colour. */
+    degenerate: boolean;
+}
+
 /**
- * The `visualMap` entry of one series with an active Farbskala — `null` when the series has none
- * (switch off), nothing to colour with, or no resolvable range.
+ * The EFFECTIVE Farbskala of one series — what the chart draws, for the builder (the `visualMap`
+ * entry) and the editor (the header swatch) alike. `null` = no scale: the series draws its colour.
  *
  * Edge cases (ticket 05):
- * - an ENTERED Min ≥ Max ({@link colorScaleRangeInvalid}) → no entry (the validation warns);
- * - a series without finite values → no entry, unless its whole range is entered;
+ * - switch off, or an ENTERED Min ≥ Max ({@link colorScaleRangeInvalid}) → no scale (the validation
+ *   warns);
+ * - nothing to colour with (an unresolvable series colour and no chosen gradient) → no scale;
+ * - a series without finite values → no scale, unless its whole range is entered;
  * - a resolved Min ≥ Max from inherited or mixed bounds (a constant series, an entry beyond the
- *   data) → ONE colour, the middle of the scale, in- AND out-of-range (every value draws it).
+ *   data) → ONE colour, the middle of the scale (`degenerate`).
+ *
+ * @param meta - The series config.
+ * @param seriesColor - The series' effective colour (explicit → palette slot).
+ * @param axis - The Y axis config the series binds to ({@link colorScaleAxis}).
+ * @param extent - The series' loaded data extent: a {@link ValueExtent}; `null` = loaded without
+ *   any finite value; `undefined` = unknown (the editor before the preview loaded the series) —
+ *   then only the known bounds decide and nothing is invented: the configured scale, unless the
+ *   entered/axis bounds already collide.
+ */
+export const effectiveColorScale = (
+    meta: EchartsSeriesMeta | undefined,
+    seriesColor: string | null | undefined,
+    axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
+    extent: ValueExtent | null | undefined,
+): EffectiveColorScale | null => {
+    if (!meta?.colorScale || colorScaleRangeInvalid(meta)) {
+        return null;
+    }
+    const colors = resolveColorScaleColors(meta.colorScaleColors, seriesColor);
+    if (!colors) {
+        return null;
+    }
+    const { min, max } = resolveColorScaleRange(meta, axis, extent);
+    // Nothing to colour: no finite value and no range the user fully authored.
+    if (extent === null && !(min.source === 'entry' && max.source === 'entry')) {
+        return null;
+    }
+    if (min.value === undefined || max.value === undefined) {
+        // A data-inherited bound without known data (editor only): the scale as configured.
+        return { colors, range: null, degenerate: false };
+    }
+    if (min.value >= max.value) {
+        // The middle (50 %) of the scale; an unresolvable list keeps its lower-middle colour.
+        const mid = colorScaleColorAt(colors, 0.5) ?? colors[Math.floor((colors.length - 1) / 2)];
+        return {
+            colors: [mid],
+            range: { min: Math.min(min.value, max.value), max: Math.max(min.value, max.value) },
+            degenerate: true,
+        };
+    }
+    return { colors, range: { min: min.value, max: max.value }, degenerate: false };
+};
+
+/**
+ * The `visualMap` entry of one series — {@link effectiveColorScale} over the series' whole loaded
+ * data; `null` when the series draws no scale. A degenerate range paints its middle colour in-
+ * AND out-of-range, so no value falls into echarts' default out-of-range look.
  *
  * @param seriesIndex - The series' index in the emitted `series` array (= its meta index).
  * @param meta - The series config.
@@ -287,36 +346,23 @@ export const buildColorScaleEntry = (
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     data: ChartSeries['data'],
 ): ContinousVisualMapComponentOption | null => {
-    if (!meta?.colorScale || colorScaleRangeInvalid(meta)) {
-        return null;
-    }
-    const colors = resolveColorScaleColors(
-        meta.colorScaleColors,
+    const scale = effectiveColorScale(
+        meta,
         typeof seriesColor === 'string' ? seriesColor : undefined,
+        axis,
+        seriesValueExtent(data),
     );
-    if (!colors) {
+    if (!scale?.range) {
         return null;
     }
-    const extent = seriesValueExtent(data);
-    const { min, max } = resolveColorScaleRange(meta, axis, extent);
-    if (min.value === undefined || max.value === undefined) {
-        return null;
-    }
-    // Nothing to colour: no finite value and no range the user fully authored.
-    if (!extent && !(min.source === 'entry' && max.source === 'entry')) {
-        return null;
-    }
-    const entry: ContinousVisualMapComponentOption = { type: 'continuous', seriesIndex, dimension: 1, show: false };
-    if (min.value >= max.value) {
-        // The middle (50 %) of the scale; an unresolvable list keeps its lower-middle colour.
-        const mid = [colorScaleColorAt(colors, 0.5) ?? colors[Math.floor((colors.length - 1) / 2)]];
-        return {
-            ...entry,
-            min: Math.min(min.value, max.value),
-            max: Math.max(min.value, max.value),
-            inRange: { color: mid },
-            outOfRange: { color: mid },
-        };
-    }
-    return { ...entry, min: min.value, max: max.value, inRange: { color: colors } };
+    const entry: ContinousVisualMapComponentOption = {
+        type: 'continuous',
+        seriesIndex,
+        dimension: 1,
+        show: false,
+        min: scale.range.min,
+        max: scale.range.max,
+        inRange: { color: scale.colors },
+    };
+    return scale.degenerate ? { ...entry, outOfRange: { color: scale.colors } } : entry;
 };

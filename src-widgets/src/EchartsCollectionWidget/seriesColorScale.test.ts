@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { COLOR_SCALE_SAMPLE_COUNT, colorScaleColorAt, colorScaleColorsFromStops } from './seriesColorScale';
+import {
+    COLOR_SCALE_SAMPLE_COUNT,
+    colorScaleColorAt,
+    colorScaleColorsFromStops,
+    effectiveColorScale,
+} from './seriesColorScale';
 
 /** The evenly spaced sample position (0–1) of resampled colour `i`. */
 const at = (i: number): number => i / (COLOR_SCALE_SAMPLE_COUNT - 1);
@@ -101,5 +106,48 @@ describe('colorScaleColorAt — the colour at a position of an evenly spaced sca
         expect(colorScaleColorAt(['#00ff00', '#ff0000'], 2)).toBe('rgba(255, 0, 0, 1)');
         expect(colorScaleColorAt(['#00ff00'], 0.5)).toBe('rgba(0, 255, 0, 1)');
         expect(colorScaleColorAt([], 0.5)).toBeNull();
+    });
+});
+
+describe('effectiveColorScale — what the chart draws (ADR-0101, honest swatch)', () => {
+    const RED_SCALE = ['rgba(255, 128, 128, 1)', 'rgba(255, 0, 0, 1)', 'rgba(128, 0, 0, 1)'];
+
+    it('with an unknown data extent shows the configured scale — nothing is invented', () => {
+        expect(effectiveColorScale({ colorScale: true }, '#ff0000', undefined, undefined)).toEqual({
+            colors: RED_SCALE,
+            range: null,
+            degenerate: false,
+        });
+    });
+
+    it('collapses to the middle colour as soon as the KNOWN bounds collide, data unknown or not', () => {
+        // Min entered above the axis' fixed max: no data needed to know the range is degenerate.
+        expect(effectiveColorScale({ colorScale: true, colorScaleMin: 50 }, '#ff0000', { max: 10 }, undefined)).toEqual(
+            {
+                colors: ['rgba(255, 0, 0, 1)'],
+                range: { min: 10, max: 50 },
+                degenerate: true,
+            },
+        );
+        expect(effectiveColorScale({ colorScale: true }, '#ff0000', undefined, { min: 7, max: 7 })).toMatchObject({
+            colors: ['rgba(255, 0, 0, 1)'],
+            degenerate: true,
+        });
+    });
+
+    it('is null for no scale: switch off, entered Min ≥ Max, or loaded data without any finite value', () => {
+        expect(effectiveColorScale({}, '#ff0000', undefined, { min: 0, max: 1 })).toBeNull();
+        expect(
+            effectiveColorScale(
+                { colorScale: true, colorScaleMin: 9, colorScaleMax: 1 },
+                '#ff0000',
+                undefined,
+                undefined,
+            ),
+        ).toBeNull();
+        expect(effectiveColorScale({ colorScale: true }, '#ff0000', { min: 0, max: 40 }, null)).toBeNull();
+        expect(
+            effectiveColorScale({ colorScale: true, colorScaleMin: 0, colorScaleMax: 10 }, '#ff0000', undefined, null),
+        ).toEqual({ colors: RED_SCALE, range: { min: 0, max: 10 }, degenerate: false });
     });
 });

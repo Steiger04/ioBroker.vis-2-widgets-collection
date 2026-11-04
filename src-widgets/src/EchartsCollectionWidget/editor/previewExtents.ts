@@ -14,10 +14,23 @@ import { createContext } from 'react';
 
 import { seriesValueExtent, type ValueExtent } from '../seriesColorScale';
 
-/** Series name → loaded data extent. Empty = nothing loaded (or no preview). */
-export type PreviewExtents = Readonly<Record<string, ValueExtent>>;
+/**
+ * Series name → loaded data extent; `null` = the series is loaded but carries no finite value
+ * (the chart draws no scale for it). An absent name = unknown. Empty = nothing loaded (or no preview).
+ */
+export type PreviewExtents = Readonly<Record<string, ValueExtent | null>>;
 
 export const PreviewExtentsContext = createContext<PreviewExtents>({});
+
+const hasOwn = (o: object, key: string): boolean => Object.prototype.hasOwnProperty.call(o, key);
+
+/**
+ * What the preview knows about one series' values: its extent, `null` (loaded, no finite value)
+ * or `undefined` (unknown — not loaded, ambiguous name). Own keys only, so a series named like an
+ * object builtin never reads one.
+ */
+export const previewExtentOf = (extents: PreviewExtents, name: string): ValueExtent | null | undefined =>
+    hasOwn(extents, name) ? extents[name] : undefined;
 
 /** The extents of every uniquely named series of a (merged) preview option. */
 export const previewSeriesExtents = (option: unknown): PreviewExtents => {
@@ -25,7 +38,7 @@ export const previewSeriesExtents = (option: unknown): PreviewExtents => {
     if (!Array.isArray(series)) {
         return {};
     }
-    const out: Record<string, ValueExtent> = {};
+    const out: Record<string, ValueExtent | null> = {};
     const seen = new Set<string>();
     for (const s of series as { name?: unknown; data?: unknown }[]) {
         const name = s?.name;
@@ -37,9 +50,8 @@ export const previewSeriesExtents = (option: unknown): PreviewExtents => {
             continue;
         }
         seen.add(name);
-        const extent = Array.isArray(s.data) ? seriesValueExtent(s.data) : null;
-        if (extent) {
-            out[name] = extent;
+        if (Array.isArray(s.data)) {
+            out[name] = seriesValueExtent(s.data);
         }
     }
     return out;
@@ -51,5 +63,12 @@ export const sameExtents = (a: PreviewExtents, b: PreviewExtents): boolean => {
     if (ka.length !== Object.keys(b).length) {
         return false;
     }
-    return ka.every(k => b[k] !== undefined && a[k].min === b[k].min && a[k].max === b[k].max);
+    return ka.every(k => {
+        if (!hasOwn(b, k)) {
+            return false;
+        }
+        const x = a[k];
+        const y = b[k];
+        return x === null || y === null ? x === y : x.min === y.min && x.max === y.max;
+    });
 };
