@@ -167,6 +167,7 @@ const EdgeLabelFields: FC<{
             <Box>
                 <FieldLabel>{Generic.t('echarts_mark_label_color')}</FieldLabel>
                 <ColorField
+                    title={Generic.t('echarts_mark_label_color')}
                     value={isUpper ? m.labelUpperColor : m.labelLowerColor}
                     // The ONE ADR 0080 resolver, shared with the builder — the card never
                     // previews a colour the chart does not draw.
@@ -293,6 +294,7 @@ const MarkCard: FC<{
                     <Box>
                         <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
                         <ColorField
+                            title={Generic.t('echarts_editor_series_color')}
                             value={m.color}
                             fallback={dividerColor}
                             onChange={v => onChange({ color: v ?? undefined })}

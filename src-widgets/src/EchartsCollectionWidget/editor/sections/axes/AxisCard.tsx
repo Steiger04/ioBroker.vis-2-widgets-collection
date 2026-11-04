@@ -234,6 +234,7 @@ const AxisCard: FC<{
                         <Box>
                             <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_editor_series_color')}
                                 value={a.color ?? ''}
                                 fallback={seriesColor ?? ''}
                                 onChange={v => onChange({ color: v ?? undefined })}
@@ -349,6 +350,7 @@ const AxisCard: FC<{
                         <Box>
                             <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_axis_tick_color')}
                                 value={a.tickColor ?? ''}
                                 fallback={a.color ?? seriesColor ?? dividerColor}
                                 onChange={v => onChange({ tickColor: v ?? undefined })}

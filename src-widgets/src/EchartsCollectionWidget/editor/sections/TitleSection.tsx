@@ -126,6 +126,7 @@ const TitleSection: FC<TitleSectionProps> = ({ focusTab, issues, state, set, pic
                 <Box>
                     <FieldLabel>{Generic.t('echarts_title_color')}</FieldLabel>
                     <ColorField
+                        title={Generic.t('echarts_title_color')}
                         value={state.titleColor}
                         fallback={themeTokens.textPrimary}
                         onChange={v => set({ titleColor: v })}

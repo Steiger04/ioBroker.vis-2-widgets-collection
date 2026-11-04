@@ -169,6 +169,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                         <Box>
                             <FieldLabel>{Generic.t('echarts_legend_text_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_legend_text_color')}
                                 value={lg.color ?? null}
                                 fallback={themeTokens.textSecondary}
                                 onChange={v => patch({ color: v ?? undefined })}
@@ -222,6 +223,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                         <Box>
                             <FieldLabel>{Generic.t('echarts_legend_inactive_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_legend_inactive_color')}
                                 value={lg.inactiveColor ?? null}
                                 fallback={themeTokens.divider}
                                 onChange={v => patch({ inactiveColor: v ?? undefined })}
@@ -236,6 +238,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                         <Box>
                             <FieldLabel>{Generic.t('echarts_legend_background')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_legend_background')}
                                 value={bgValue}
                                 onChange={v => patch({ bgColor: v ?? 'transparent' })}
                                 ctx={pickerCtx}
@@ -244,6 +247,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                         <Box>
                             <FieldLabel>{Generic.t('echarts_legend_border_color')}</FieldLabel>
                             <ColorField
+                                title={Generic.t('echarts_legend_border_color')}
                                 value={lg.borderColor ?? null}
                                 fallback={themeTokens.divider}
                                 onChange={v => patch({ borderColor: v ?? undefined })}

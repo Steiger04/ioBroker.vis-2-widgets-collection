@@ -120,6 +120,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
                         <Box sx={{ gridColumn: '1 / -1' }}>
                             <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
                             <ColorListField
+                                title={Generic.t('echarts_palette_custom_colors')}
                                 value={state.paletteCustom}
                                 onChange={v => set({ paletteCustom: v })}
                                 ctx={pickerCtx}
@@ -143,6 +144,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
             <Box>
                 <FieldLabel>{Generic.t('echarts_background')}</FieldLabel>
                 <ColorField
+                    title={Generic.t('echarts_background')}
                     value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
                     onChange={v => set({ bgColor: v ?? 'transparent' })}
                     ctx={pickerCtx}
@@ -190,6 +192,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
                     <Box>
                         <FieldLabel>{Generic.t('echarts_frame_color')}</FieldLabel>
                         <ColorField
+                            title={Generic.t('echarts_frame_color')}
                             value={state.frame.color || null}
                             fallback={frameColorFallback}
                             onChange={v => set({ frame: { ...state.frame, color: v ?? '' } })}

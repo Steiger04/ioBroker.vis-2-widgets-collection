@@ -189,6 +189,7 @@ const TooltipSection: FC<TooltipSectionProps> = ({ focusTab, issues, state, set,
                         <FieldLabel>{Generic.t('echarts_tooltip_bg')}</FieldLabel>
                         {/* Null = unset → the theme's tooltip background (ADR-0054). */}
                         <ColorField
+                            title={Generic.t('echarts_tooltip_bg')}
                             value={state.tooltipBgColor || null}
                             onChange={v => set({ tooltipBgColor: v ?? '' })}
                             ctx={pickerCtx}
