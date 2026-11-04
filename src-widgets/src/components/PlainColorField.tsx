@@ -8,8 +8,9 @@
  * swatch shows exactly the stored value; an empty field means the widget's own built-in default —
  * the schema default, so swatch and Farbwähler start from it (nothing is stored until a choice).
  * The adapter hands the stored value, the translated field name (Farbwähler title) and the socket
- * (Theme-Presets, read only while the Farbwähler is open) to the Textfeld-Zeile — always solid
- * only — and writes every change back as a one-field patch (`null` clears the field).
+ * (Theme-Presets, read only while the Farbwähler is open) to the Textfeld-Zeile — solid only,
+ * through the field's `noGradient` — and writes every change back as a one-field patch (`null`
+ * clears the field).
  *
  * Unlike the Vertrags-Adapter (`ContractColorField`) it does not read the Collection theme on
  * mount. The row renders under the vis-2 HOST theme (the attribute editor is a vis-2 surface).
@@ -66,7 +67,8 @@ function PlainColorField({ field, data, onDataChange, props }: PlainColorFieldPr
                 onChange={handleChange}
                 effectiveColor={effectiveColor}
                 placeholder="none"
-                allowGradient={false}
+                // Always true for a Schlichtes Farbfeld (the fabric sets it) — read like the contract adapter.
+                allowGradient={field.noGradient !== true}
                 title={title}
                 socket={props.context.socket}
             />

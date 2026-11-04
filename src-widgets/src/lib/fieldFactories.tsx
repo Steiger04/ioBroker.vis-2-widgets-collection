@@ -226,11 +226,12 @@ export interface PlainColorFieldOptions {
 /**
  * Creates a Schlichtes Farbfeld (ADR-0102): a custom field rendered by
  * `components/PlainColorField` — the Textfeld-Zeile without "erbt", the swatch shows the stored
- * value, solid colours only, no Auflösungskaskade.
+ * value (else the schema default), solid colours only, no Auflösungskaskade.
  *
  * @remarks
- * Marked `plainColor: true` (and `noGradient: true`) so runtime consumers that walk a field list
- * read it like the former vis-2 `type: 'color'` field — stored value, else the schema default
+ * `noGradient: true` keeps the adapter solid only (read like on a contract field). Marked
+ * `plainColor: true` so runtime consumers that walk a field list read it like the former vis-2
+ * `type: 'color'` field — stored value, else the schema default
  * (`GaugeCollectionWidget/gaugeOptions`). It carries no `terminal`/`fallbackFields`, and its
  * component is not the contract adapter, so the terminal parity test does not cover it.
  * @param options - Field configuration options

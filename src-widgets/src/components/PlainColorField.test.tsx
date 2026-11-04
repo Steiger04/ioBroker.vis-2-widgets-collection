@@ -75,7 +75,13 @@ const mount = (
 ): { container: HTMLElement; input: HTMLInputElement; onDataChange: ReturnType<typeof vi.fn> } => {
     const onDataChange = vi.fn();
     handle = renderComponent<Props>(PlainColorField, {
-        field: { name: 'gaugeColorBar', label: 'gauge_color_bar', type: 'custom', ...fieldExtra } as ExtendedField,
+        field: {
+            name: 'gaugeColorBar',
+            label: 'gauge_color_bar',
+            type: 'custom',
+            noGradient: true,
+            ...fieldExtra,
+        } as ExtendedField,
         data,
         onDataChange,
         props: editorProps,
