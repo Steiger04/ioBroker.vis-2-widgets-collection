@@ -154,6 +154,9 @@ const SliderCollection: FC = () => {
     // the color of iconMin, endIconColor of iconMax — in BOTH orientations. The
     // default-primary fallback is checked against the source icon, so a single
     // configured icon keeps its color when orientation swaps its position.
+    // The primary fallback applies to a Base64 icon only: an image icon (URL, path)
+    // without a value stays uncoloured (its own colours), with a value it is coloured
+    // through the forced mask below. The swatch shows the Base64 colour (ADR-0004).
     const minIconColor = widget.data.startIconColor || (isBase64Icon(minIcon) ? theme.palette.primary.main : undefined);
     const maxIconColor = widget.data.endIconColor || (isBase64Icon(maxIcon) ? theme.palette.primary.main : undefined);
 

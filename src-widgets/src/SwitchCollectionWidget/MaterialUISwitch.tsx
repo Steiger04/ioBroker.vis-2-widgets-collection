@@ -38,12 +38,15 @@ const CALLBACK_ONLY_PROPS = new Set<PropertyKey>(['width', 'maxHeight', 'data', 
  * @remarks
  * The travel math and the checked input offset come from the pure functions in
  * {@link module:widgets/SwitchCollectionWidget/geometry} (tested there); this
- * callback only assembles CSS. The thumb colours come from `resolveSwitchColors`
- * ({@link module:lib/switchColorContract}, tested there): the same contracts the
- * thumb fields' swatches resolve, with the MUI Switch defaults and the Sperre
- * painted explicitly — MUI's own checked/disabled thumb colour (`currentColor`)
- * no longer decides. The icon overlay differs between the states only in its
- * fallback colour.
+ * callback only assembles CSS. The thumb and track colours and the track alpha come
+ * from `resolveSwitchColors` ({@link module:lib/switchColorContract}, tested there):
+ * the same contracts the colour fields' swatches resolve, with the MUI Switch
+ * defaults, the fixed track alpha and the Sperre painted explicitly — MUI's own
+ * checked/disabled thumb colour (`currentColor`) and track styling no longer decide.
+ * Both track rules hang off the switch base (`:not(.Mui-checked)` / `.Mui-checked`
+ * `+ .MuiSwitch-track`), which outranks MUI's `.Mui-checked` / `.Mui-disabled + track`
+ * rules by specificity, whatever the stylesheet order. The icon overlay differs
+ * between the states only in its fallback colour.
  */
 const MaterialUISwitch = styled(Switch, {
     shouldForwardProp: prop => !CALLBACK_ONLY_PROPS.has(prop),
@@ -54,6 +57,12 @@ const MaterialUISwitch = styled(Switch, {
     const colors = resolveSwitchColors(widget.data, theme, Boolean(disabled));
     const travel = resolveThumbTravel(thumbSize, maxHeight);
     const inputWidth = width || 0;
+
+    /** The track of one state: its colour (as stored, gradients too) and MUI's fixed alpha. */
+    const track = (state: { track: string; trackAlpha: number }): CSSObject => ({
+        background: state.track,
+        opacity: state.trackAlpha,
+    });
 
     /** The icon overlay pseudo-element; only the fallback colour varies by state. */
     const iconOverlay = (fallbackColor: string): CSSObject => ({
@@ -98,6 +107,8 @@ const MaterialUISwitch = styled(Switch, {
                 width: inputWidth,
             },
 
+            '&:not(.Mui-checked) + .MuiSwitch-track': track(colors.off),
+
             '&.Mui-checked': {
                 top: '50%',
                 left: '100%',
@@ -114,14 +125,8 @@ const MaterialUISwitch = styled(Switch, {
                     '&::before': iconOverlay(theme.palette.primary.dark),
                 },
 
-                '& + .MuiSwitch-track': {
-                    background: widget.data.trackColor,
-                },
+                '& + .MuiSwitch-track': track(colors.on),
             },
-        },
-
-        '& .MuiSwitch-track': {
-            background: widget.data.trackColor,
         },
 
         '& .MuiSwitch-thumb': {

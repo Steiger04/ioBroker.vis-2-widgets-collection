@@ -1333,6 +1333,8 @@
     "track_border_color": "Track Border Color",
     "track_border_width": "Track border width",
     "track_color": "Track color",
+    "track_color_false": "Track color (false)",
+    "track_color_true": "Track color (true)",
     "track_length": "Track Length",
     "track_size": "Track size",
     "unit": "Unit",

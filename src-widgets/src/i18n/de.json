@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Verlauf hier nicht möglich",
     "color_picker_invalid": "Keine gültige Farbe",
     "color_picker_close": "Schließen",
-    "color_picker_alpha_hint": "Deckkraft in Prozent (0–100)"
+    "color_picker_alpha_hint": "Deckkraft in Prozent (0–100)",
+    "track_color_false": "Trackfarbe (false)",
+    "track_color_true": "Trackfarbe (true)"
 }

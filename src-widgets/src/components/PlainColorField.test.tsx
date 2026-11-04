@@ -94,7 +94,7 @@ const mount = (
 };
 
 const swatchBackground = (container: HTMLElement): string => {
-    const inner = container.querySelector<HTMLElement>('[data-color-swatch]')?.firstElementChild as HTMLElement;
+    const inner = container.querySelector<HTMLElement>('[data-color-swatch] [data-swatch-fill]') as HTMLElement;
     return getComputedStyle(inner).background || inner.style.background;
 };
 
