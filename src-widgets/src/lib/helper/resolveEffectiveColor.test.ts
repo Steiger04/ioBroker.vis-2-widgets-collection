@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Theme } from '@mui/material';
+import { createTheme } from '@mui/material/styles';
 import { resolveEffectiveColor, resolveEffectiveSolidColor, terminalColor } from './resolveEffectiveColor';
 import type { ColorFieldContract } from './resolveEffectiveColor';
 
@@ -29,6 +30,23 @@ describe('terminalColor', () => {
     it('maps the chrome terminals to the theme divider and the secondary text colour', () => {
         expect(terminalColor('divider', THEME)).toBe('#div');
         expect(terminalColor('textSecondary', THEME)).toBe('#txs');
+    });
+
+    it("maps switchThumbOff to MUI 6.5.0's Switch thumb default: white in light mode, grey[300] in dark mode", () => {
+        // MUI 6.5.0 Switch.js, SwitchSwitchBase `color`: common.white (light) / grey[300] (dark)
+        expect(terminalColor('switchThumbOff', createTheme({ palette: { mode: 'light' } }))).toBe('#fff');
+        expect(terminalColor('switchThumbOff', createTheme({ palette: { mode: 'dark' } }))).toBe('#e0e0e0');
+    });
+
+    it('computes switchThumbOff from the theme mode and palette, without CSS variables (ADR-0078)', () => {
+        const custom = {
+            palette: { mode: 'dark', common: { white: '#w' }, grey: { 300: '#g300' } },
+            vars: { palette: { Switch: { defaultColor: 'var(--never)' } } },
+        } as unknown as Theme;
+        expect(terminalColor('switchThumbOff', custom)).toBe('#g300');
+        expect(terminalColor('switchThumbOff', { ...custom, palette: { ...custom.palette, mode: 'light' } })).toBe(
+            '#w',
+        );
     });
 });
 
