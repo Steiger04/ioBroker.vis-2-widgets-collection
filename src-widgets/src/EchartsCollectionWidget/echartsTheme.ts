@@ -39,6 +39,14 @@ const DARK_BG = '#1e1e1e';
 const LIGHT_BG = '#ffffff';
 
 /**
+ * The tooltip surface ECharts paints when the chart sets no `tooltip.backgroundColor`: ECharts 6
+ * `tokens.color.neutral00` (`echarts/lib/visual/tokens.js`, read by
+ * `echarts/lib/component/tooltip/TooltipModel.js`). The configurator's inherit swatch of the
+ * tooltip background shows it (ADR-0027 „Honest inherit swatches"); the chart itself never emits it.
+ */
+export const ECHARTS_TOOLTIP_DEFAULT_BG = '#fff';
+
+/**
  * Semantic theme colours the family builders consume for theme-derived defaults (ADR-0027).
  *
  * The palette colours (`primary`/`secondary`/`success`/…) come straight from the resolved theme
@@ -105,6 +113,26 @@ export const effectiveDarkMode = (
 };
 
 /**
+ * The chart canvas colour (ADR-0007 dark-mode): `transparent` while the chart follows the host
+ * mode (the host background shows through), the fixed light/dark canvas colour when a concrete
+ * `forceMode` override flips the mode away from the host — light text needs a dark canvas and
+ * vice versa. The single resolution shared by {@link buildEchartsTheme} (the `backgroundColor` of
+ * the theme base) and the configurator's inherit swatch of the chart background.
+ *
+ * @param theme - The theme the chart renders under (the collection theme).
+ * @param forceMode - The chart's dark-mode policy.
+ * @returns `transparent`, `#ffffff` or `#1e1e1e`.
+ */
+export const chartCanvasColor = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): string => {
+    const mode = theme.palette.mode;
+    const overridden = forceMode && forceMode !== 'auto' && forceMode !== mode;
+    if (!overridden) {
+        return 'transparent';
+    }
+    return effectiveDarkMode(forceMode, mode) === 'dark' ? DARK_BG : LIGHT_BG;
+};
+
+/**
  * Resolve the full semantic token set from a theme (ADR-0027). Pure — the caller passes the theme
  * the chart renders under (the collection theme), so editor + live resolve identically.
  */
@@ -135,11 +163,6 @@ export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 
  * @returns An echarts option fragment merged under the generated data option.
  */
 export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): EChartsOption => {
-    const p = theme.palette;
-    // Effective mode via the shared resolver (see effectiveDarkMode): the override wins when it
-    // is a concrete light/dark and differs from the host.
-    const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
-    const dark = effectiveDarkMode(forceMode, p.mode) === 'dark';
     // Text + divider tokens via the shared dark-mode-aware helper (ADR-0027): the chart base, the
     // builder defaults and the editor inherit swatches all read the same values.
     const { textPrimary: tp, textSecondary: ts, divider: dv } = effectiveTextTokens(theme, forceMode);
@@ -147,7 +170,8 @@ export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | '
     // dark/light chart (light text needs a dark canvas and vice versa) — not just recoloured text on
     // a transparent background. When following the host, stay transparent and inherit the host bg.
     // A user-set bgColor (≠ 'transparent') still wins: the body/preview overrides this after merge.
-    const backgroundColor = overridden ? (dark ? DARK_BG : LIGHT_BG) : 'transparent';
+    // The shared resolver (see chartCanvasColor) is also the configurator's inherit swatch.
+    const backgroundColor = chartCanvasColor(theme, forceMode);
     return {
         color: echartsPalette(theme),
         backgroundColor,

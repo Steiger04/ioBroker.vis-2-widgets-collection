@@ -5,8 +5,9 @@
  * @module EchartsCollectionWidget/editor/colorFields
  * @remarks
  * The fields talk to the row in the modal's working-state terms: the explicit value, its change
- * (`null` = back to inherit) and an optional `fallback` — the colour the field inherits (its
- * palette slot, the theme token the builder draws, a derived scale). The swatch shows the stored
+ * (`null` = back to inherit) and the required `fallback` — the colour the chart paints while the
+ * field inherits (its palette slot, the theme token the builder draws, a derived scale, the canvas
+ * colour, `transparent` for a surface the chart leaves unpainted). The swatch shows the stored
  * value while it is a colour, else the fallback; there is no vis-2 attribute contract and no
  * Auflösungskaskade here (ADR-0102: the configurator does not pretend to be an attribute field).
  *
@@ -35,8 +36,12 @@ interface ColorFieldProps {
     onChange: (value: string | null) => void;
     /** Editor context; its socket gives the Farbwähler the Collection theme presets. */
     ctx: OidPickerCtx;
-    /** Optional colour shown in the swatch when no explicit value is set. */
-    fallback?: string;
+    /**
+     * The colour the chart paints while the field inherits — shown in the swatch when no explicit
+     * value is set (ADR-0027 „Honest inherit swatches"). Required, so no field can forget it: a
+     * surface the chart leaves unpainted passes `'transparent'` (the checkerboard).
+     */
+    fallback: string;
     /** Allow gradients (default false = solid only, matching echarts series colours). */
     allowGradient?: boolean;
     /**
@@ -50,13 +55,13 @@ interface ColorFieldProps {
 
 /**
  * The colour the swatch shows: the stored value while it is a colour (Regeln für Farbeingaben,
- * as typed, gradients allowed), else the fallback, else none (`''`, the dashed empty swatch).
+ * as typed, gradients allowed), else the fallback, else none (`''`, the checkerboard alone).
  *
  * @param value - Stored explicit colour.
  * @param fallback - The inherited colour.
  * @returns The swatch colour.
  */
-function swatchColorOf(value: string | null | undefined, fallback: string | undefined): string {
+function swatchColorOf(value: string | null | undefined, fallback: string): string {
     return readStoredColor(value) ?? readStoredColor(fallback) ?? '';
 }
 
@@ -116,6 +121,8 @@ const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx, title }
                 <ColorField
                     key={i}
                     value={c}
+                    // A stop always holds its colour: the swatch shows the stop itself.
+                    fallback={c}
                     onChange={v => set(i, v)}
                     ctx={ctx}
                     title={title}

@@ -35,6 +35,7 @@ import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/t
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
 import { TOOLTIP_CATALOG } from '../tooltipTemplates';
 import ColorField from '../colorFields';
+import { ECHARTS_TOOLTIP_DEFAULT_BG } from '../../echartsTheme';
 import RawJsonSection from './RawJsonSection';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
@@ -191,6 +192,8 @@ const TooltipSection: FC<TooltipSectionProps> = ({ focusTab, issues, state, set,
                         <ColorField
                             title={Generic.t('echarts_tooltip_bg')}
                             value={state.tooltipBgColor || null}
+                            // Inherit swatch = the surface ECharts paints without a colour.
+                            fallback={ECHARTS_TOOLTIP_DEFAULT_BG}
                             onChange={v => set({ tooltipBgColor: v ?? '' })}
                             ctx={pickerCtx}
                         />
