@@ -1,6 +1,7 @@
 /**
- * The Switch's colour rules — the thumb contracts, declared once for the fields and the
- * runtime, plus the Sperre state rule the renderer applies on top.
+ * The Switch's colour rules — the thumb and track contracts, declared once for the fields
+ * and the runtime, plus the fixed track alpha and the Sperre state rule the renderer
+ * applies on top.
  *
  * @module lib/switchColorContract
  * @remarks
@@ -10,8 +11,15 @@
  * (`MaterialUISwitch`) resolves the same contract at runtime. For a chrome slot the field
  * follows the runtime: without a value the thumbs have always drawn MUI's Switch defaults,
  * so the contracts declare exactly these as terminals — thumb on `primary`, thumb off
- * `switchThumbOff` (`common.white` light / `grey[300]` dark). No fallback field and no
- * `inheritTextStyle`: the runtime reads neither another field nor the vis-2 CSS colour.
+ * `switchThumbOff` (`common.white` light / `grey[300]` dark), track on `primary`, track off
+ * `onBackground` (`common.black` light / `common.white` dark). No `inheritTextStyle`: the
+ * runtime never reads the vis-2 CSS colour. The legacy `trackColor` (one colour for both
+ * states) is the fallback field of both track contracts, so a stored value keeps drawing
+ * both tracks without rewriting user data (ADR-0004).
+ *
+ * The track alpha is frozen presentation, not contract (pattern Button-Group separator):
+ * MUI 6.5.0's fixed track opacity — off 0.38 light / 0.3 dark, on 0.5 — applies to every
+ * track colour, an explicit one too; the swatch shows the colour without it.
  *
  * `resolveSwitchColors` keeps all of the Switch's colour rules in one place. The explicit
  * value is drawn raw, as stored (ADR-0004 review fix P2: colour names, `transparent`,
@@ -43,15 +51,34 @@ export const switchColorContracts = {
         fallbackFields: [],
         terminal: 'switchThumbOff',
     },
+    /** Track while on: explicit `trackColorTrue` → legacy `trackColor` → theme primary (MUI's checked track). */
+    trackColorTrue: {
+        name: 'trackColorTrue',
+        fallbackFields: ['trackColor'],
+        terminal: 'primary',
+    },
+    /** Track while off: explicit `trackColorFalse` → legacy `trackColor` → MUI's `common.onBackground`. */
+    trackColorFalse: {
+        name: 'trackColorFalse',
+        fallbackFields: ['trackColor'],
+        terminal: 'onBackground',
+    },
 } satisfies Record<string, ColorFieldContract>;
 
 /** The widget data the switch colour rules read. */
-export type SwitchColorData = Pick<SwitchFieldsRxData, 'thumbColorTrue' | 'thumbColorFalse'>;
+export type SwitchColorData = Pick<
+    SwitchFieldsRxData,
+    'thumbColorTrue' | 'thumbColorFalse' | 'trackColorTrue' | 'trackColorFalse' | 'trackColor'
+>;
 
 /** The colours of one switch state, as CSS values. */
 export interface SwitchStateColors {
     /** The thumb: the explicit value as stored, else the contract's terminal (or the Sperre grey). */
     thumb: string;
+    /** The track: the explicit value (own field, then the legacy `trackColor`) as stored, else the terminal. */
+    track: string;
+    /** The track's CSS opacity — frozen presentation (MUI 6.5.0), the Sperre's alpha while locked. */
+    trackAlpha: number;
 }
 
 /** The switch colours per state. */
@@ -90,12 +117,29 @@ function lockedThumbDefaults(theme: Theme): { on: string; off: string } {
 }
 
 /**
+ * MUI 6.5.0's fixed track opacity (Switch.js, non-`vars` branch): `SwitchTrack` off 0.38 light /
+ * 0.3 dark, `.Mui-checked + track` 0.5; locked, `.Mui-disabled + track` 0.12 light / 0.2 dark in
+ * both states (the later rule of equal specificity wins over the checked one). Re-check on a
+ * MUI upgrade.
+ */
+function trackAlphas(theme: Theme, locked: boolean): { on: number; off: number } {
+    const light = theme.palette.mode === 'light';
+    if (locked) {
+        const alpha = light ? 0.12 : 0.2;
+        return { on: alpha, off: alpha };
+    }
+    return { on: 0.5, off: light ? 0.38 : 0.3 };
+}
+
+/**
  * Resolves the switch colours.
  *
- * Enabled, each thumb is its contract: the explicit value as stored, else the terminal. The
- * Sperre is a documented state rule on top (pattern Radio disabled): it reproduces MUI's own
- * disabled look explicitly — an unset thumb draws MUI's disabled grey instead of the
- * terminal, an explicit thumb colour keeps winning. The swatch shows the enabled state.
+ * Enabled, each thumb and track is its contract: the explicit value as stored (a track's own
+ * field, then the legacy `trackColor`), else the terminal; the track carries the fixed MUI
+ * alpha per state. The Sperre is a documented state rule on top (pattern Radio disabled): it
+ * reproduces MUI's own disabled look explicitly — an unset thumb draws MUI's disabled grey
+ * instead of the terminal, an explicit thumb colour keeps winning, the track colours stay and
+ * both tracks take MUI's disabled alpha. The swatch shows the enabled state.
  *
  * @param data - Widget data carrying the explicit switch colours.
  * @param theme - Effective MUI theme (the collection theme).
@@ -106,8 +150,17 @@ export function resolveSwitchColors(data: SwitchColorData, theme: Theme, locked:
     const lockedDefaults = locked ? lockedThumbDefaults(theme) : undefined;
     const stage = (contract: ColorFieldContract, lockedDefault: string | undefined): string =>
         rawStage(contract, data) ?? lockedDefault ?? terminalColor(contract.terminal, theme);
+    const alphas = trackAlphas(theme, locked);
     return {
-        on: { thumb: stage(switchColorContracts.thumbColorTrue, lockedDefaults?.on) },
-        off: { thumb: stage(switchColorContracts.thumbColorFalse, lockedDefaults?.off) },
+        on: {
+            thumb: stage(switchColorContracts.thumbColorTrue, lockedDefaults?.on),
+            track: stage(switchColorContracts.trackColorTrue, undefined),
+            trackAlpha: alphas.on,
+        },
+        off: {
+            thumb: stage(switchColorContracts.thumbColorFalse, lockedDefaults?.off),
+            track: stage(switchColorContracts.trackColorFalse, undefined),
+            trackAlpha: alphas.off,
+        },
     };
 }

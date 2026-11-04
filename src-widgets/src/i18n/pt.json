@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Gradiente não é possível aqui",
     "color_picker_invalid": "Cor inválida",
     "color_picker_close": "Fechar",
-    "color_picker_alpha_hint": "Opacidade em percentagem (0–100)"
+    "color_picker_alpha_hint": "Opacidade em percentagem (0–100)",
+    "track_color_false": "Cor da trilha (falso)",
+    "track_color_true": "Cor da trilha (verdadeiro)"
 }

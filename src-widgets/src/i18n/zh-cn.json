@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "此处不支持渐变",
     "color_picker_invalid": "无效的颜色",
     "color_picker_close": "关闭",
-    "color_picker_alpha_hint": "不透明度百分比（0–100）"
+    "color_picker_alpha_hint": "不透明度百分比（0–100）",
+    "track_color_false": "轨道颜色（关闭）",
+    "track_color_true": "轨道颜色（开启）"
 }

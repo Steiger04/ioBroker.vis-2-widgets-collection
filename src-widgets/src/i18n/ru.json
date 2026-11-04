@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Градиент здесь невозможен",
     "color_picker_invalid": "Недопустимый цвет",
     "color_picker_close": "Закрыть",
-    "color_picker_alpha_hint": "Непрозрачность в процентах (0–100)"
+    "color_picker_alpha_hint": "Непрозрачность в процентах (0–100)",
+    "track_color_false": "Цвет дорожки (выкл.)",
+    "track_color_true": "Цвет дорожки (вкл.)"
 }
