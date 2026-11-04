@@ -32,6 +32,7 @@ import type React from 'react';
 import { useCallback } from 'react';
 
 import Generic from '../../../Generic';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../../lib/helper/gradientTextSx';
@@ -51,6 +52,8 @@ export interface ConditionalStyleEditorProps {
     onStyleChange: (style: ColumnStyleRule[]) => void;
     /** Callback when evaluation mode changes */
     onModeChange: (mode: 'first-match' | 'all-match') => void;
+    /** Connection for the Collection theme presets of the Farbwähler (optional) */
+    socket?: Connection;
 }
 
 /**
@@ -62,6 +65,7 @@ function ConditionalStyleEditor({
     columnType,
     onStyleChange,
     onModeChange,
+    socket,
 }: ConditionalStyleEditorProps): React.JSX.Element {
     // Update a single style rule at a given index
     const updateStyleRule = useCallback(
@@ -273,12 +277,14 @@ function ConditionalStyleEditor({
                                     value={rule.backgroundColor || ''}
                                     overridden={!!rule.backgroundColor}
                                     onChange={c => updateStyleRule(idx, { backgroundColor: c || undefined })}
+                                    socket={socket}
                                 />
                                 <ColorPickerField
                                     label={Generic.t('json_table_text_color')}
                                     value={rule.textColor || ''}
                                     overridden={!!rule.textColor}
                                     onChange={c => updateStyleRule(idx, { textColor: c || undefined })}
+                                    socket={socket}
                                 />
                             </Stack>
 

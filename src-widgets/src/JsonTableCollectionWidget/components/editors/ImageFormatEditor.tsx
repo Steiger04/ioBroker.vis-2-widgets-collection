@@ -26,6 +26,7 @@ import { BrokenImage as BrokenImageIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../../Generic';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import ColorPickerField from '../../../components/ColorPickerField';
 import type { CellImageContent, ColumnFormatConfig, ImageObjectFit, ImageVariant } from '../../types';
 import { ImageGraphic } from '../TableCellRenderer';
@@ -47,12 +48,14 @@ export interface ImageFormatEditorProps {
     format: ColumnFormatConfig;
     /** Callback when format changes */
     onChange: (patch: Partial<ColumnFormatConfig>) => void;
+    /** Connection for the Collection theme presets of the Farbwähler (optional) */
+    socket?: Connection;
 }
 
 /**
  * Renders image/icon formatting controls with live preview.
  */
-function ImageFormatEditor({ format, onChange }: ImageFormatEditorProps): React.JSX.Element {
+function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps): React.JSX.Element {
     // Preview descriptor built from the current settings; reuses the real renderer.
     const previewDescriptor: CellImageContent = buildImageContent(SAMPLE_SVG, format);
 
@@ -138,12 +141,14 @@ function ImageFormatEditor({ format, onChange }: ImageFormatEditorProps): React.
                 value={format.imageBgColor ?? ''}
                 overridden={!!format.imageBgColor}
                 onChange={v => onChange({ type: 'image', imageBgColor: v || undefined })}
+                socket={socket}
             />
             <ColorPickerField
                 label={Generic.t('json_table_image_border_color')}
                 value={format.imageBorderColor ?? ''}
                 overridden={!!format.imageBorderColor}
                 onChange={v => onChange({ type: 'image', imageBorderColor: v || undefined })}
+                socket={socket}
             />
             <TextField
                 label={Generic.t('json_table_image_border_width')}
@@ -165,6 +170,7 @@ function ImageFormatEditor({ format, onChange }: ImageFormatEditorProps): React.
                 value={format.imageTint ?? ''}
                 overridden={!!format.imageTint}
                 onChange={v => onChange({ type: 'image', imageTint: v || undefined })}
+                socket={socket}
             />
             <Typography
                 variant="caption"

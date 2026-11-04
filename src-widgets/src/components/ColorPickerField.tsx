@@ -1,31 +1,31 @@
 /**
- * Compact color picker field with swatch preview and popover editor.
+ * Label row of a colour: label, optional hex text and swatch, opening the Farbwähler.
  *
  * @module components/ColorPickerField
  * @remarks
- * Renders a label and a clickable color swatch in a two-column grid (label left,
- * swatch right) so swatches align across stacked fields regardless of label
- * length. Clicking the swatch opens a popover with `react-best-gradient-color-picker`.
- * The swatch always shows the effective (resolved) color; the reset button
- * appears only when an explicit override exists (resetting reverts to the
- * resolved value). The popover is the shared FollowingPopover, which moves with its
- * content as sections of the picker unfold.
+ * Renders a label and a color swatch in a two-column grid (label left, swatch right) so swatches
+ * align across stacked fields regardless of label length. A click on the row opens the
+ * Farbwähler (`colorPicker/CollectionColorPicker`, ADR-0102) with the label as title; its
+ * debounced, normalized picks reach `onChange`. The swatch always shows the effective (resolved)
+ * color; the reset button (trash can) appears only when an explicit override exists (resetting
+ * reverts to the resolved value).
  *
- * Two flavours: the default keeps the picker minimal (visual picking only — used by
- * the JsonTable editors). Passing `presets` upgrades it to the theme-studio variant
- * (ADR-0020): hex/rgba inputs, the eyedropper and a preset swatch row (fed with the
- * current theme colours) become visible, and the solid/gradient toggle is hidden —
- * theme palette slots are solid colours. Independently, `hexInput` shows the value as
- * editable, copyable monospace text next to the swatch (theme studio; off by default).
+ * Two flavours: without `presets` the Farbwähler keeps Solid/Gradient and offers the Collection
+ * theme colours read through `socket` (the JsonTable editors).
+ * Passing `presets` makes it the theme-studio variant (ADR-0020): theme palette slots are solid
+ * colours, so the Farbwähler stays solid and offers the presets (the current draft colours). The
+ * studio's own field validation judges every value — this row passes picks and typed text on as
+ * they come. Independently, `hexInput` shows the value as editable, copyable monospace text next
+ * to the swatch (theme studio; off by default).
  */
 
-import ClearIcon from '@mui/icons-material/Clear';
+import type { Connection } from '@iobroker/adapter-react-v5';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import type React from 'react';
-import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
-import FollowingPopover from './colorPicker/FollowingPopover';
+import CollectionColorPicker from './colorPicker/CollectionColorPicker';
 
 /** Props for {@link ColorPickerField}. */
 interface ColorPickerFieldProps {
@@ -38,11 +38,15 @@ interface ColorPickerFieldProps {
     /** When true, an explicit override exists and the "reset to default" button is shown. */
     overridden?: boolean;
     /**
-     * Theme-studio variant (ADR-0020): preset swatches shown in the popover; also enables the
-     * hex/rgba inputs and the eyedropper, and hides the solid/gradient toggle. Omit for the
-     * minimal visual-only picker.
+     * Theme-studio variant (ADR-0020): preset colours of the Farbwähler, which then stays solid
+     * (no Solid/Gradient). Omit to keep gradients (JsonTable editors).
      */
     presets?: string[];
+    /**
+     * Connection the Farbwähler reads the Collection theme colours from as presets while open —
+     * only without `presets` (JsonTable editors). Without both, the preset row stays off.
+     */
+    socket?: Connection;
     /** Field-level validation message (ADR-0020) rendered under the row; also marks the row. */
     error?: string;
     /**
@@ -62,14 +66,15 @@ interface ColorPickerFieldProps {
 }
 
 /**
- * Minimal color picker field: label + swatch + popover, laid out as a grid row.
+ * Label row of a colour: label + swatch (+ hex text), opening the Farbwähler.
  *
  * @param props - Component props.
  * @param props.value - Effective color value to display.
  * @param props.onChange - Callback when color changes.
  * @param props.label - Label displayed left of the swatch.
  * @param props.overridden - Whether an explicit override exists (shows reset button).
- * @param props.presets - Theme-studio variant: preset swatches + inputs + eyedropper.
+ * @param props.presets - Theme-studio variant: Farbwähler presets, solid only.
+ * @param props.socket - Connection for the Collection theme presets (without `presets`).
  * @param props.error - Field-level validation message.
  * @param props.hexInput - Shows the value as editable monospace text next to the swatch.
  * @param props.swatchValue - Colour the swatch shows instead of the value (defaults to it).
@@ -81,6 +86,7 @@ function ColorPickerField({
     label,
     overridden,
     presets,
+    socket,
     error,
     hexInput,
     swatchValue,
@@ -89,7 +95,7 @@ function ColorPickerField({
     const errorId = useId();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-    // Local cached value for immediate UI feedback during picker drag
+    // Local cached value: shows a pick or typed value at once, before the caller's value follows.
     const [cachedValue, setCachedValue] = useState<string>(value);
 
     // Hex input text while editing; follows the displayed value (picker drags included).
@@ -97,11 +103,6 @@ function ColorPickerField({
     useEffect(() => {
         setHexText(cachedValue);
     }, [cachedValue]);
-
-    // Debounce timer for picker-originated onChange calls
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const open = Boolean(anchorEl);
 
     // The swatch follows a local edit at once (picker drag, typed hex); otherwise it shows
     // the caller's swatch colour, if any.
@@ -112,39 +113,19 @@ function ColorPickerField({
         setCachedValue(value);
     }, [value]);
 
-    // Clean up debounce timer on unmount
-    useEffect(() => {
-        return (): void => {
-            if (debounceRef.current !== null) {
-                clearTimeout(debounceRef.current);
-            }
-        };
-    }, []);
-
-    // Debounced handler for picker drag events
-    const handlePickerChange = useCallback(
+    // The Farbwähler commits debounced and normalized already.
+    const handlePickerCommit = useCallback(
         (color: string): void => {
             setCachedValue(color);
-
-            if (debounceRef.current !== null) {
-                clearTimeout(debounceRef.current);
-            }
-
-            debounceRef.current = setTimeout(() => {
-                debounceRef.current = null;
-                onChange(color);
-            }, 150);
+            onChange(color);
         },
         [onChange],
     );
 
     const handleReset = useCallback(
         (e: React.MouseEvent): void => {
+            // The reset sits on the row, whose click opens the Farbwähler.
             e.stopPropagation();
-            if (debounceRef.current !== null) {
-                clearTimeout(debounceRef.current);
-                debounceRef.current = null;
-            }
             onChange('');
         },
         [onChange],
@@ -156,10 +137,6 @@ function ColorPickerField({
         if (next === cachedValue) {
             setHexText(cachedValue);
             return;
-        }
-        if (debounceRef.current !== null) {
-            clearTimeout(debounceRef.current);
-            debounceRef.current = null;
         }
         if (next === '') {
             // A reset: the caller supplies the inherited value, show the current one meanwhile.
@@ -258,7 +235,7 @@ function ColorPickerField({
                             title={Generic.t('theme_studio_reset_color')}
                             sx={{ p: 0.25 }}
                         >
-                            <ClearIcon fontSize="inherit" />
+                            <DeleteIcon fontSize="inherit" />
                         </IconButton>
                     ) : null}
                 </Box>
@@ -275,29 +252,16 @@ function ColorPickerField({
                 </Typography>
             ) : null}
 
-            <FollowingPopover
-                open={open}
+            <CollectionColorPicker
                 anchorEl={anchorEl}
                 onClose={(): void => setAnchorEl(null)}
-                paperSx={{ p: '9px', borderRadius: '6px', backgroundColor: 'rgb(32,32,32)' }}
-            >
-                <ColorPicker
-                    value={cachedValue || '#ffffff'}
-                    onChange={handlePickerChange}
-                    hidePresets={!presets}
-                    presets={presets}
-                    hideInputs={!presets}
-                    hideEyeDrop={!presets}
-                    hideInputType={!presets}
-                    // Studio variant only: palette slots are solid colours, so the
-                    // gradient machinery stays hidden. The default (JsonTable) path
-                    // keeps every control it had before ADR-0020.
-                    hideColorTypeBtns={Boolean(presets)}
-                    hideGradientControls={Boolean(presets)}
-                    hideAdvancedSliders={Boolean(presets)}
-                    hideColorGuide={Boolean(presets)}
-                />
-            </FollowingPopover>
+                title={label}
+                value={cachedValue || '#ffffff'}
+                onCommit={handlePickerCommit}
+                allowGradient={!presets}
+                presets={presets}
+                socket={socket}
+            />
         </Box>
     );
 }
