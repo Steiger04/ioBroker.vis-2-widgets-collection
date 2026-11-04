@@ -91,7 +91,7 @@ const mount = (
 };
 
 const getComputedSwatch = (container: HTMLElement): string => {
-    const inner = container.querySelector<HTMLElement>('[data-color-swatch]')?.firstElementChild as HTMLElement;
+    const inner = container.querySelector<HTMLElement>('[data-color-swatch] [data-swatch-fill]') as HTMLElement;
     return getComputedStyle(inner).background || inner.style.background;
 };
 
@@ -109,6 +109,16 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         expect(getComputedSwatch(container).toLowerCase()).toMatch(/#1976d2|rgb\(25, 118, 210\)/);
         expect(input.value).toBe('');
         expect(input.placeholder).toBe('t:color_inherit');
+    });
+
+    it('shows the checkerboard alone for the transparent terminal and opens the Farbwähler on alpha 0', () => {
+        const { container } = mount({ name: 'background', terminal: 'transparent' });
+        const swatch = container.querySelector<HTMLElement>('[data-color-swatch]') as HTMLElement;
+        expect(swatch.querySelector('[data-swatch-checkerboard]')).not.toBeNull();
+        expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
+        expect(getComputedStyle(swatch).border).not.toContain('dashed');
+        act(() => swatch.click());
+        expect(lastLibraryProps().value).toBe('transparent');
     });
 
     it('shows a fallback field before the terminal', () => {

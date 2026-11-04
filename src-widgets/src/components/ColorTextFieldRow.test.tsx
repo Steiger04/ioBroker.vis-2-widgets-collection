@@ -25,7 +25,9 @@ vi.mock(
     async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
 );
 
+import { createTheme, ThemeProvider } from '@mui/material';
 import { act, type ComponentProps } from 'react';
+import type React from 'react';
 import type { Connection } from '@iobroker/adapter-react-v5';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
@@ -109,10 +111,21 @@ const type = (input: HTMLInputElement, value: string): void => {
 
 const isMarked = (input: HTMLInputElement): boolean => input.getAttribute('aria-invalid') === 'true';
 
-/** The swatch's inner colour box. */
-const swatchColor = (swatch: HTMLElement): string =>
-    getComputedStyle(swatch.firstElementChild as HTMLElement).background ||
-    (swatch.firstElementChild as HTMLElement).style.background;
+/** The swatch's colour layer (lies on the checkerboard). */
+const fill = (swatch: HTMLElement): HTMLElement => {
+    const el = swatch.querySelector<HTMLElement>('[data-swatch-fill]');
+    if (!el) {
+        throw new Error('no swatch fill rendered');
+    }
+    return el;
+};
+
+/** The colour the swatch paints. */
+const swatchColor = (swatch: HTMLElement): string => getComputedStyle(fill(swatch)).background;
+
+/** The checkerboard under the colour layer, or null when the swatch has none. */
+const checkerboard = (swatch: HTMLElement): HTMLElement | null =>
+    swatch.querySelector<HTMLElement>('[data-swatch-checkerboard]');
 
 /** The Farbwähler's popover paper, or null while closed. */
 const paper = (): HTMLElement | null => document.body.querySelector<HTMLElement>('.MuiPopover-paper');
@@ -230,6 +243,15 @@ describe('ColorTextFieldRow swatch', () => {
         expect(lastLibraryProps().value).toBe('#00ff00');
     });
 
+    it.each([
+        ['an inherited transparent', 'transparent'],
+        ['no named colour', ''],
+    ])('starts the Farbwähler on alpha 0 for %s — not on the primary colour', (_case, effectiveColor) => {
+        const { swatch } = mount({ value: null, effectiveColor });
+        act(() => swatch().click());
+        expect(lastLibraryProps().value).toBe('transparent');
+    });
+
     it('offers Solid/Gradient only where the row allows gradients', () => {
         const solidOnly = mount({ allowGradient: false });
         act(() => solidOnly.swatch().click());
@@ -252,6 +274,63 @@ describe('ColorTextFieldRow swatch', () => {
         });
         expect(onChange).toHaveBeenCalledExactlyOnceWith('#0080ff66');
         expect(input.value).toBe('#0080ff66');
+    });
+});
+
+describe('ColorTextFieldRow swatch on a checkerboard', () => {
+    /** Mounts the row under a dark ambient theme. */
+    const mountDark = (props: Partial<Props>): HTMLElement => {
+        const dark = createTheme({ palette: { mode: 'dark' } });
+        const Dark = (p: Props): React.JSX.Element => (
+            <ThemeProvider theme={dark}>
+                <ColorTextFieldRow {...p} />
+            </ThemeProvider>
+        );
+        current = { value: null, onChange: vi.fn(), effectiveColor: '', placeholder: 'inherit', allowGradient: true };
+        handle = renderComponent<Props>(Dark, { ...current, ...props });
+        const swatch = handle.container.querySelector<HTMLElement>('[data-color-swatch]');
+        if (!swatch) {
+            throw new Error('no swatch rendered');
+        }
+        return swatch;
+    };
+
+    it('lays the colour on a checkerboard', () => {
+        const { swatch } = mount({ effectiveColor: 'rgba(0, 128, 255, 0.4)' });
+        const board = checkerboard(swatch());
+        expect(getComputedStyle(board as HTMLElement).background).toContain('gradient');
+        expect(board?.contains(fill(swatch()))).toBe(true);
+        expect(swatchColor(swatch())).toContain('rgba(0, 128, 255, 0.4)');
+    });
+
+    it('shows the same checkerboard in a light and a dark editor', () => {
+        const light = getComputedStyle(
+            checkerboard(mount({ effectiveColor: '#0080ff66' }).swatch()) as HTMLElement,
+        ).background;
+        handle?.unmount();
+        handle = null;
+        const dark = getComputedStyle(
+            checkerboard(mountDark({ effectiveColor: '#0080ff66' })) as HTMLElement,
+        ).background;
+        expect(dark).toBe(light);
+    });
+
+    it.each([
+        ['an inherited transparent', 'transparent'],
+        ['no named colour', ''],
+    ])('shows the checkerboard alone for %s — no dashed empty swatch', (_case, effectiveColor) => {
+        const { swatch } = mount({ effectiveColor });
+        expect(checkerboard(swatch())).not.toBeNull();
+        expect(swatchColor(swatch())).toMatch(/^(transparent|)$/);
+        expect(getComputedStyle(swatch()).border).not.toContain('dashed');
+    });
+
+    it('keeps the invalid state recognizable on the checkerboard', () => {
+        const { input, swatch } = mount({ effectiveColor: '#00ff00' });
+        type(input, 'notacolor');
+        expect(swatch().getAttribute('data-invalid')).toBe('true');
+        // The error hatch replaces the colour (happy-dom drops the layered value, so assert the absence).
+        expect(swatchColor(swatch()).toLowerCase()).not.toMatch(/#00ff00|rgb\(0, 255, 0\)/);
     });
 });
 
