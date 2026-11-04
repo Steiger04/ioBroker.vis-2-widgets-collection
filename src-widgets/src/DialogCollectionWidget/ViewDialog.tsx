@@ -64,7 +64,9 @@ export default function ViewDialog({
                 justifyContent: 'center',
                 alignItems: 'center',
 
-                background: widget.data.dialogBackgroundColor || 'inherit',
+                // Explicit value raw, else the field's terminal `transparent`: unset paints
+                // nothing, so the view shows through the MUI backdrop (ADR-0004, 2026-11-04).
+                background: widget.data.dialogBackgroundColor || 'transparent',
             }}
         >
             <Box

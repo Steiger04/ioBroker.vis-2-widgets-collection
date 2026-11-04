@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material/styles';
 
-import { effectiveTextTokens, resolveThemeTokens, echartsPalette } from './echartsTheme';
+import { buildEchartsTheme, chartCanvasColor, effectiveTextTokens, resolveThemeTokens, echartsPalette } from './echartsTheme';
 
 /** Minimal light-mode theme — only the fields the token helpers read. */
 const lightTheme = {
@@ -21,6 +21,7 @@ const lightTheme = {
         text: { primary: '#tp', secondary: '#ts' },
         divider: '#d',
     },
+    typography: { fontFamily: 'f' },
 } as unknown as Theme;
 
 describe('resolveThemeTokens (ADR-0027)', () => {
@@ -73,5 +74,27 @@ describe('effectiveTextTokens', () => {
 describe('echartsPalette', () => {
     it('orders the palette primary-first then the accents', () => {
         expect(echartsPalette(lightTheme)).toEqual(['#p', '#s', '#w', '#su', '#i', '#e']);
+    });
+});
+
+describe('chartCanvasColor (ADR-0007 dark-mode)', () => {
+    const darkTheme = { ...lightTheme, palette: { ...lightTheme.palette, mode: 'dark' } } as unknown as Theme;
+
+    it('stays transparent while the chart follows the host mode', () => {
+        expect(chartCanvasColor(lightTheme)).toBe('transparent');
+        expect(chartCanvasColor(lightTheme, 'auto')).toBe('transparent');
+        expect(chartCanvasColor(lightTheme, 'light')).toBe('transparent');
+        expect(chartCanvasColor(darkTheme, 'dark')).toBe('transparent');
+    });
+
+    it('paints the fixed canvas colour of a forced mode that differs from the host', () => {
+        expect(chartCanvasColor(lightTheme, 'dark')).toBe('#1e1e1e');
+        expect(chartCanvasColor(darkTheme, 'light')).toBe('#ffffff');
+    });
+
+    it('is the canvas colour of the chart theme base', () => {
+        expect(buildEchartsTheme(lightTheme, 'dark').backgroundColor).toBe('#1e1e1e');
+        expect(buildEchartsTheme(darkTheme, 'light').backgroundColor).toBe('#ffffff');
+        expect(buildEchartsTheme(lightTheme).backgroundColor).toBe('transparent');
     });
 });
