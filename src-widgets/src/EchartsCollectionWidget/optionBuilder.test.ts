@@ -740,6 +740,66 @@ describe('buildGeneratedOption — cartesian', () => {
         });
     });
 
+    it('„Verlauf" without a chosen gradient draws the derived Flächen-Verlauf in the series colour (ADR-0101)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', type: 'line', area: 'gradient', color: '#5470c6' }],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as { areaStyle?: Record<string, unknown> };
+        expect(first.areaStyle).toEqual({
+            opacity: 0.8, // the gradient-mode default — the slider still applies on top
+            color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                    { offset: 0, color: 'rgba(84, 112, 198, 1)' },
+                    { offset: 0.5, color: 'rgba(84, 112, 198, 0.5)' },
+                    { offset: 1, color: 'rgba(84, 112, 198, 0)' },
+                ],
+            },
+        });
+    });
+
+    it('the derived Flächen-Verlauf follows the palette colour of a series without its own colour', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'A', type: 'line' },
+                { name: 'B', type: 'line', area: 'gradient', areaOpacity: 0.4 },
+            ],
+            p: { ...P, palette: ['#000000', 'rgb(10, 20, 30)'] },
+        });
+        const second = (option.series as unknown[])[1] as {
+            areaStyle?: { opacity: number; color: { colorStops: unknown[] } };
+        };
+        expect(second.areaStyle!.opacity).toBe(0.4);
+        expect(second.areaStyle!.color.colorStops).toEqual([
+            { offset: 0, color: 'rgba(10, 20, 30, 1)' },
+            { offset: 0.5, color: 'rgba(10, 20, 30, 0.5)' },
+            { offset: 1, color: 'rgba(10, 20, 30, 0)' },
+        ]);
+    });
+
+    it('„Flächig" keeps a colourless areaStyle even with a resolvable series colour', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', type: 'line', area: 'flat', color: '#5470c6' }],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as Record<string, unknown>;
+        expect(first.areaStyle).toEqual({ opacity: 0.15 });
+    });
+
     it('defaults smooth to false (matches ECharts Basic Line, not the smoothed example)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',

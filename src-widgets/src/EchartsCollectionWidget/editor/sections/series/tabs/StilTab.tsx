@@ -29,6 +29,7 @@ import {
     TextField2,
 } from '../../../../../components/controls';
 import ColorField from '../../../colorFields';
+import { deriveAreaGradient } from '../../../../seriesColorDerive';
 import type { OidPickerCtx } from '../../../OidPicker';
 
 /**
@@ -174,7 +175,14 @@ export const StilTab: FC<{
                                     <FieldLabel>{Generic.t('echarts_series_area_gradient')}</FieldLabel>
                                     <ColorField
                                         value={meta.areaGradient}
-                                        fallback={meta.color ?? colorFallback}
+                                        // Inherit swatch + picker start value = the derived
+                                        // Flächen-Verlauf the builder draws (ADR-0101) — the
+                                        // solid colour only when none can be derived.
+                                        fallback={
+                                            deriveAreaGradient(meta.color ?? colorFallback)?.css ??
+                                            meta.color ??
+                                            colorFallback
+                                        }
                                         onChange={v => onPatch({ areaGradient: v ?? undefined })}
                                         ctx={pickerCtx}
                                         allowGradient
