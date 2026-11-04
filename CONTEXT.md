@@ -495,7 +495,7 @@ The color an attribute actually takes on — the result of the Auflösungskaskad
 _Avoid_: Anzeigefarbe, Renderfarbe.
 
 **Erben**:
-The state of a color attribute that has no value of its own. Its effective color emerges solely from the Auflösungskaskade (terminal default / vis-2 style / fallback fields). A deliberate, first-class state — not „not yet initialized". Not the ECharts **Erben-Override** (per-series data settings against the chart-level Voreinstellung).
+The state of a color attribute that has no value of its own. Its effective color emerges solely from the Auflösungskaskade (terminal default / vis-2 style / fallback fields). A deliberate, first-class state — not „not yet initialized". Every editor shows the inherited Effektive Farbe — in the vis-2 attribute panel, the ECharts configurator and the JSON-Table editors alike; there is no inheriting color field whose inherited color stays unnamed (an inherited `transparent` is shown as transparent, not as an empty swatch). Not the ECharts **Erben-Override** (per-series data settings against the chart-level Voreinstellung).
 _Avoid_: Leer (misleading — sounds like „no color"); Default.
 
 **Expliziter Override**:
@@ -503,7 +503,7 @@ A color value the user chose consciously. Wins in the Auflösungskaskade; it is 
 _Avoid_: Set value, Benutzerfarbe.
 
 **Terminaler Default**:
-The most general end of the Auflösungskaskade — the color that applies when neither an override, nor a fallback, nor a vis-2 style is present. Fixed per attribute (e.g. text color → theme text color, icon color → theme primary).
+The most general end of the Auflösungskaskade — the color that applies when neither an override, nor a fallback, nor a vis-2 style is present. Fixed per attribute (e.g. text color → theme text color, icon color → theme primary). Named after general theme colors (primary, text, paper, divider, secondary text, the contrast color on the background, transparent); a widget-specific terminal exists only where the widget's own component draws a default that no general theme color names (the Switch's off-thumb). It names the color, not a fixed presentation the widget lays over it (a fixed alpha stays presentation — the Switch track, the Button-Group separator).
 _Avoid_: Basisfarbe (reserved for the theme configurator's base color).
 
 **Basisfarbe**:
@@ -647,7 +647,7 @@ The one color-picking popover every Collection editor opens from a color field �
 _Avoid_: Color Picker, Farbpicker; Swatch (that is only the preview box in the field row); Light2-Farbsteuerung (the end-user lamp control inside the Light2 widget is not an editor)
 
 **Textfeld-Zeile**:
-The field row of a color in the vis-2 attribute panel and the ECharts configurator (`components/ColorTextFieldRow`, ADR-0102): text field · trash · swatch, opening the **Farbwähler** from the swatch. It knows no field definition and no cascade — it gets the stored value, the colour its swatch shows (the Effektive Farbe, from the Vertrags-Adapter, the Schlichtes-Farbfeld-Adapter or the configurator's fallback) and whether an empty field shows "erbt". Typed text runs through the **Regeln für Farbeingaben**; the trash removes the value. Its sibling for Theme Studio and the JSON-Table editors is the label row (`ColorPickerField`: label, optional hex text, swatch; the whole row opens the Farbwähler).
+The field row of a color in the vis-2 attribute panel and the ECharts configurator (`components/ColorTextFieldRow`, ADR-0102): text field · trash · swatch, opening the **Farbwähler** from the swatch. It knows no field definition and no cascade — it gets the stored value, the colour its swatch shows (the Effektive Farbe, from the Vertrags-Adapter, the Schlichtes-Farbfeld-Adapter or the configurator's fallback) and whether an empty field shows "erbt". The swatch lies on a checkerboard, so a translucent color reads the same in a light and a dark editor and a transparent one shows the checkerboard alone. Typed text runs through the **Regeln für Farbeingaben**; the trash removes the value. Its sibling for Theme Studio and the JSON-Table editors is the label row (`ColorPickerField`: label, optional hex text, swatch; the whole row opens the Farbwähler).
 _Avoid_: Farbfeld (that is the field, not its row), Picker-Feld
 
 # Input Collection Widget
