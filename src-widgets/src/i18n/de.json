@@ -1349,5 +1349,6 @@
     "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt",
     "json_table_capabilities_status": "Tabellenfunktionen",
     "color_gradient_not_allowed": "Verlauf hier nicht möglich",
-    "color_invalid": "Keine gültige Farbe"
+    "color_invalid": "Keine gültige Farbe",
+    "color_picker_close": "Schließen"
 }

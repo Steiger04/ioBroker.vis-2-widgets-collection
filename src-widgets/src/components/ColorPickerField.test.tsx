@@ -8,12 +8,9 @@
  * commits an edited value on Enter or blur; Escape restores the value. The input is no part of
  * the swatch's click target: clicking into it must not open the picker popover.
  *
- * The popover follows its content (ADR-0102): when the content grows after opening (Color Guide,
- * Advanced sliders, gradient stops) it is repositioned at once so it stays fully visible; when the
- * content shrinks it stays put. happy-dom has no layout, so the tests stub the anchor's rect, the
- * paper's size and the ResizeObserver, and read the position MUI writes onto the paper.
+ * The following popover is tested over the Farbwähler seam (`colorPicker/CollectionColorPicker.test`).
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
     // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
@@ -180,121 +177,5 @@ describe('ColorPickerField swatch and error', () => {
         type(input, '#00ff00');
         press(input, 'Enter');
         expect(swatch()).toBe('#00ff00');
-    });
-});
-
-/** ResizeObserver stub: records the observed elements so a test can report a new content size. */
-const observers: { callback: ResizeObserverCallback; targets: Set<Element> }[] = [];
-
-class StubResizeObserver {
-    private readonly entry: { callback: ResizeObserverCallback; targets: Set<Element> };
-
-    constructor(callback: ResizeObserverCallback) {
-        this.entry = { callback, targets: new Set() };
-        observers.push(this.entry);
-    }
-
-    observe(target: Element): void {
-        this.entry.targets.add(target);
-    }
-
-    unobserve(target: Element): void {
-        this.entry.targets.delete(target);
-    }
-
-    disconnect(): void {
-        this.entry.targets.clear();
-    }
-}
-
-/** Layout the stubs report: the anchor's rect and the popover paper's height. */
-const layout = { anchorTop: 100, anchorHeight: 20, paperHeight: 200 };
-
-/** The content now measures `height`: the paper grows with it, every observer is told. */
-const resizeContent = (height: number): void => {
-    layout.paperHeight = height;
-    act(() => {
-        for (const { callback, targets } of observers) {
-            for (const target of targets) {
-                callback(
-                    [{ target, contentRect: { width: 220, height } } as unknown as ResizeObserverEntry],
-                    {} as ResizeObserver,
-                );
-            }
-        }
-    });
-};
-
-/** The top MUI wrote onto the popover paper. */
-const paperTop = (): string | undefined => document.body.querySelector<HTMLElement>('.MuiPopover-paper')?.style.top;
-
-/** Opens the picker by clicking the row. */
-const openPicker = (container: HTMLElement): void => {
-    act(() => container.querySelector<HTMLElement>('[data-swatch-color]')?.click());
-};
-
-describe('ColorPickerField popover follows its content', () => {
-    beforeEach(() => {
-        observers.length = 0;
-        layout.anchorTop = 100;
-        layout.paperHeight = 200;
-        vi.stubGlobal('ResizeObserver', StubResizeObserver);
-        vi.stubGlobal('innerHeight', 800);
-        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-            () =>
-                ({
-                    top: layout.anchorTop,
-                    bottom: layout.anchorTop + layout.anchorHeight,
-                    left: 100,
-                    right: 300,
-                    width: 200,
-                    height: layout.anchorHeight,
-                    x: 100,
-                    y: layout.anchorTop,
-                }) as DOMRect,
-        );
-        vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
-            return this.classList.contains('MuiPopover-paper') ? layout.paperHeight : 0;
-        });
-    });
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-        vi.unstubAllGlobals();
-    });
-
-    it('opens below the anchor when there is more room below', () => {
-        const { container } = mount();
-        openPicker(container);
-        // Anchor bottom 120 — the paper hangs from it.
-        expect(paperTop()).toBe('120px');
-    });
-
-    it('opens above the anchor when there is more room above', () => {
-        layout.anchorTop = 600;
-        const { container } = mount();
-        openPicker(container);
-        // Anchor top 600 minus the paper height 200.
-        expect(paperTop()).toBe('400px');
-    });
-
-    it('moves at once when the content grows after opening', () => {
-        const { container } = mount();
-        openPicker(container);
-        resizeContent(200);
-        expect(paperTop()).toBe('120px');
-        // 120 + 750 would end below the window (800 - 16 margin): MUI shifts it up to 784 - 750.
-        resizeContent(750);
-        expect(paperTop()).toBe('34px');
-    });
-
-    it('stays put when the content shrinks', () => {
-        layout.paperHeight = 750;
-        const { container } = mount();
-        openPicker(container);
-        resizeContent(750);
-        expect(paperTop()).toBe('34px');
-        resizeContent(200);
-        expect(paperTop()).toBe('34px');
     });
 });
