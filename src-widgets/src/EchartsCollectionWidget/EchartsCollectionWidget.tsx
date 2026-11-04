@@ -13,6 +13,55 @@ import EchartsCollection from './EchartsCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
+/**
+ * Core fields the chart frame never reads (ADR-0004: the field follows the runtime). The body
+ * renders `CollectionBase` with `cornerIcon={false}` (CONTEXT "Eck-Icon") and has no value
+ * text, so the icon block, the corner-icon switch and the value size have no consumer.
+ */
+const INERT_COMMON_FIELDS: ReadonlySet<string> = new Set([
+    'icon',
+    'iconSmall',
+    'iconSize',
+    'enableIconColorMask',
+    'iconColor',
+    'iconXOffset',
+    'iconYOffset',
+    'noHeaderIcon',
+    'valueSize',
+]);
+
+const hideAlways = (): boolean => true;
+
+/** A core-block section divider: a custom field without a data name (or the `allFieldsDivider` rule). */
+const isSectionDivider = (field: RxWidgetInfoAttributesField): boolean =>
+    (field as { type?: string }).type === 'custom' && (field.name === undefined || field.name === 'allFieldsDivider');
+
+/**
+ * `commonFields()` with the inert fields hidden — hidden, not removed, so the fields stay
+ * declared and stored values stay in the widget data untouched. A section divider is hidden
+ * with its section when every field of the section is inert (icon, value).
+ */
+const echartsCommonFields = (): RxWidgetInfoAttributesField[] => {
+    const fields = commonFields();
+    const isInert = (field: RxWidgetInfoAttributesField): boolean =>
+        field.name !== undefined && INERT_COMMON_FIELDS.has(field.name);
+
+    return fields.map((field, index) => {
+        if (isInert(field)) {
+            return { ...field, hidden: hideAlways };
+        }
+        if (isSectionDivider(field)) {
+            const next = fields.slice(index + 1);
+            const end = next.findIndex(isSectionDivider);
+            const section = end === -1 ? next : next.slice(0, end);
+            if (section.length > 0 && section.every(isInert)) {
+                return { ...field, hidden: hideAlways };
+            }
+        }
+        return field;
+    });
+};
+
 class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -26,7 +75,7 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields()],
+                    fields: echartsCommonFields(),
                 },
                 {
                     name: 'chart', // group name
