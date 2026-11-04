@@ -137,7 +137,8 @@ export function TableCellRenderer({ value, column, valueSize }: TableCellRendere
  * The Avatar root always carries the background colour and the optional border (which
  * follows the `variant` radius — a ring on circular, an edge on square). Three render
  * paths for the content (XSS-safe — never injected via innerHTML):
- * - UTF-8 glyph → `Avatar` with the glyph as content (tint via CSS `color`).
+ * - UTF-8 glyph → `Avatar` with the glyph as content (tint via CSS `color`; untinted it
+ *   inherits the cell's text colour).
  * - Any image (SVG or raster) with a tint → two layers: the root (bg + border) plus an
  *   inner masked overlay (`mask-image` + tint background, `mask-mode: alpha`). The tint
  *   colours the shape, the background shows around it; both clipped to the variant.
@@ -201,7 +202,10 @@ export function ImageGraphic({ descriptor }: { descriptor: CellImageContent }): 
                     ...rootSx,
                     fontSize: size,
                     lineHeight: 1,
-                    ...(tint ? { color: tint } : {}),
+                    // Untinted → the cell's text colour; otherwise MUI's image-less avatar
+                    // paints the glyph in its placeholder colour (palette.background.default).
+                    // `||` like the image path below: an empty tint means no tint.
+                    color: tint || 'inherit',
                 }}
             >
                 {src}
