@@ -25,6 +25,7 @@ import {
     ThemeProvider,
     Typography,
 } from '@mui/material';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -53,10 +54,8 @@ interface JsonTableColumnEditorModalProps {
     theme: VisTheme;
     /** Current widget data (for OID access) */
     data: WidgetData;
-    /** ioBroker socket for state queries */
-    socket: {
-        getState: (id: string) => Promise<{ val?: unknown } | null | undefined>;
-    };
+    /** ioBroker socket for state queries and the Farbwähler's Collection theme presets */
+    socket: Connection;
 }
 
 /**
@@ -340,6 +339,7 @@ function JsonTableColumnEditorModal({
                                     discoveredColumn={selectedDiscovered}
                                     onChange={handleColumnChange}
                                     capabilities={capabilities}
+                                    socket={socket}
                                 />
                             ) : (
                                 <Box
