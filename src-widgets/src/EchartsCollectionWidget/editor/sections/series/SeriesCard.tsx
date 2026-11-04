@@ -109,7 +109,8 @@ export interface SeriesCardProps {
     colorFallback: string;
     /**
      * The series' EMITTED name (the builder's resolution) — looks up its loaded preview extent
-     * for the Farbskala placeholders (ADR-0101). Absent = no lookup, the source only.
+     * for the Farbskala placeholders and header swatch (ADR-0101). Defaults to the title (JSON and
+     * tabellarisch: the card title IS the emitted name); Verlauf passes its own name chain.
      */
     previewName?: string;
     /** Position in the list (the move buttons' bounds). */
@@ -132,9 +133,10 @@ export interface SeriesCardProps {
     rawHint?: string;
     /**
      * The external Karten-Tab jump (ADR-0073): the Problems button's request, routed by the
-     * series section to the first card carrying an issue on that tab. Absent = no jump.
+     * series section to the first card carrying an issue on that tab — the card takes it only
+     * when it is addressed to its own {@link index}. Absent = no jump.
      */
-    focusTab?: SectionTabsFocus;
+    cardFocus?: SeriesCardFocus;
 }
 
 const SeriesCard: FC<SeriesCardProps> = ({
@@ -144,7 +146,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     title,
     subtitle,
     colorFallback,
-    previewName,
+    previewName = title,
     index,
     count,
     open,
@@ -158,7 +160,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     basis,
     rawSlot,
     rawHint,
-    focusTab,
+    cardFocus,
 }) => {
     const has = (action: CardCapabilities['actions'][number]): boolean => caps.actions.includes(action);
     const extents = useContext(PreviewExtentsContext);
@@ -217,7 +219,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 defaultType={ctx.defaultType}
                 onPatch={onPatch}
                 pickerCtx={ctx.pickerCtx}
-                colorFallback={colorFallback}
+                seriesColor={seriesColor}
                 labelColorFallback={ctx.labelColorFallback}
                 stackMode={ctx.stackMode}
                 yAxes={ctx.yAxes}
@@ -309,7 +311,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 the positional children↔tabs contract can no longer drift. */}
             <SectionTabs
                 dense
-                focus={focusTab}
+                focus={cardFocus?.index === index ? cardFocus.focus : undefined}
                 tabs={caps.tabs.map(tab => ({
                     key: tab,
                     label: Generic.t(CARD_TAB_LABELS[tab]),

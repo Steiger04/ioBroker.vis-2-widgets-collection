@@ -37,7 +37,7 @@ import type { ValueExtent } from '../../../../seriesColorScale';
 
 const mountStil = (
     meta: EchartsSeriesMeta,
-    opts: { yAxes?: EchartsAxisConfig[]; dataExtent?: ValueExtent | null; colorFallback?: string } = {},
+    opts: { yAxes?: EchartsAxisConfig[]; dataExtent?: ValueExtent | null; seriesColor?: string } = {},
 ): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -48,7 +48,7 @@ const mountStil = (
                 defaultType: 'line',
                 onPatch: () => undefined,
                 pickerCtx: {} as never,
-                colorFallback: opts.colorFallback ?? '#ff0000',
+                seriesColor: opts.seriesColor ?? '#ff0000',
                 labelColorFallback: '#222',
                 yAxes: opts.yAxes ?? [{}],
                 dataExtent: opts.dataExtent ?? null,
@@ -130,7 +130,7 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
     });
 
     it('previews the derived scale of the effective series colour in the colour field', () => {
-        const g = group(mountStil({ type: 'scatter', colorScale: true }, { colorFallback: '#0000ff' }))!;
+        const g = group(mountStil({ type: 'scatter', colorScale: true }, { seriesColor: '#0000ff' }))!;
         const field = scaleColorField(g);
         expect(field.dataset.value).toBe('');
         expect(field.dataset.fallback).toBe(
@@ -169,7 +169,7 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
                 defaultType: 'line',
                 onPatch: p => setMeta(m => ({ ...m, ...p })),
                 pickerCtx: {} as never,
-                colorFallback: '#ff0000',
+                seriesColor: '#ff0000',
                 labelColorFallback: '#222',
                 yAxes: [{}],
             });

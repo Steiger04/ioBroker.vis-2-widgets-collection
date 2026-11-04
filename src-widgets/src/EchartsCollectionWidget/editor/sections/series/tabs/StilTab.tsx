@@ -34,6 +34,7 @@ import {
 import ColorField from '../../../colorFields';
 import { deriveAreaGradient } from '../../../../seriesColorDerive';
 import {
+    colorScaleAxis,
     colorScaleCss,
     colorScaleRangeInvalid,
     deriveColorScaleColors,
@@ -75,11 +76,8 @@ const ColorScaleGroup: FC<{
     areaGradient: boolean;
 }> = ({ meta, onPatch, pickerCtx, seriesColor, yAxes, dataExtent, areaGradient }) => {
     const on = meta.colorScale === true;
-    // The builder's axis clamp: a stale index binds axis 0.
-    const yi = meta.yAxisIndex ?? 0;
-    const axis = yAxes[yi < yAxes.length ? yi : 0];
     // Only the inherited bounds feed the placeholders — an entered bound shows as the value.
-    const range = resolveColorScaleRange(undefined, axis, dataExtent);
+    const range = resolveColorScaleRange(undefined, colorScaleAxis(yAxes, meta.yAxisIndex), dataExtent);
     const derived = deriveColorScaleColors(seriesColor);
     // The input error (ticket 05) — the SAME predicate the builder and the validation run: both
     // fields flag, ONE helper text names the consequence (the AxisCard min≥max idiom).
@@ -143,8 +141,11 @@ export const StilTab: FC<{
     defaultType: EchartsCartesianType;
     onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
     pickerCtx: OidPickerCtx;
-    /** Palette-slot colour of this series — the area-gradient inherit preview (ADR-0027). */
-    colorFallback: string;
+    /**
+     * The series' effective colour (explicit → palette slot, ADR-0027), resolved once by the card —
+     * the Flächen-Verlauf and Farbskala inherit previews derive from it.
+     */
+    seriesColor: string;
     /** Theme text-primary — the BAR label colour's inherit preview (ADR-0027 one-hook rule). */
     labelColorFallback: string;
     /**
@@ -165,7 +166,7 @@ export const StilTab: FC<{
     defaultType,
     onPatch,
     pickerCtx,
-    colorFallback,
+    seriesColor,
     labelColorFallback,
     stackMode,
     yAxes = [],
@@ -295,11 +296,7 @@ export const StilTab: FC<{
                                         // Inherit swatch + picker start value = the derived
                                         // Flächen-Verlauf the builder draws (ADR-0101) — the
                                         // solid colour only when none can be derived.
-                                        fallback={
-                                            deriveAreaGradient(meta.color ?? colorFallback)?.css ??
-                                            meta.color ??
-                                            colorFallback
-                                        }
+                                        fallback={deriveAreaGradient(seriesColor)?.css ?? seriesColor}
                                         onChange={v => onPatch({ areaGradient: v ?? undefined })}
                                         ctx={pickerCtx}
                                         allowGradient
@@ -432,7 +429,7 @@ export const StilTab: FC<{
                 meta={meta}
                 onPatch={onPatch}
                 pickerCtx={pickerCtx}
-                seriesColor={meta.color ?? colorFallback}
+                seriesColor={seriesColor}
                 yAxes={yAxes}
                 dataExtent={dataExtent}
                 areaGradient={renderedType === 'line' && meta.area === 'gradient'}

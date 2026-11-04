@@ -145,7 +145,7 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
                         count={series.length}
                         open={!!expanded[i]}
                         onToggle={() => onToggleCard(i)}
-                        focusTab={cardFocus?.index === i ? cardFocus.focus : undefined}
+                        cardFocus={cardFocus}
                         onPatch={p => onUpdate(i, p)}
                         onRebindAxis={yi => onRebindAxis(i, yi)}
                         onMove={dir => onMove(i, dir)}

@@ -187,6 +187,15 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
         );
     });
 
+    it.each(SOURCES)('%s: the series’ own colour wins over the palette slot — plain and as the scale', source => {
+        const own = card(source, { type: 'line', color: '#0000ff' });
+        expect(own.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe('#0000ff');
+        const scaled = card(source, { type: 'line', color: '#0000ff', colorScale: true });
+        expect(scaled.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe(
+            'linear-gradient(90deg, rgba(128, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 50%, rgba(0, 0, 128, 1) 100%)',
+        );
+    });
+
     it.each(SOURCES)('%s: an entered Min ≥ Max draws no scale — the header swatch keeps the series colour', source => {
         const bad = card(source, { type: 'line', colorScale: true, colorScaleMin: 9, colorScaleMax: 1 });
         expect(bad.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe('#ff0000');

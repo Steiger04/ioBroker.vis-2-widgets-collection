@@ -30,7 +30,7 @@ import type {
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { deriveAreaGradient } from '../seriesColorDerive';
-import { buildColorScaleEntry } from '../seriesColorScale';
+import { buildColorScaleEntry, colorScaleAxis } from '../seriesColorScale';
 import { axisPosition } from '../editor/axisSight';
 import {
     buildLegend,
@@ -777,7 +777,8 @@ export const buildCartesianOption = (
     // indices never shift). Resolved against the CONFIGURED axis (before the remap below) and
     // the whole loaded series — zooming never recolours.
     const colorScales = entries.flatMap((e, i) => {
-        const vm = buildColorScaleEntry(i, meta[i], e.color as string, allAxes[e.yAxisIndex as number], series[i].data);
+        const axis = colorScaleAxis(allAxes, e.yAxisIndex as number);
+        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data);
         return vm ? [vm] : [];
     });
     // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the

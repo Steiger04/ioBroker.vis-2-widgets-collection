@@ -159,13 +159,12 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
                                 meta={s}
                                 title={names[i]}
                                 subtitle={s.yPath || Generic.t('echarts_table_no_ypath')}
-                                previewName={names[i]}
                                 colorFallback={slot(i)}
                                 index={i}
                                 count={series.length}
                                 open={!!expanded[i]}
                                 onToggle={() => onToggleCard(i)}
-                                focusTab={cardFocus?.index === i ? cardFocus.focus : undefined}
+                                cardFocus={cardFocus}
                                 onPatch={p => onUpdate(i, p)}
                                 onRebindAxis={yi => onRebindAxis(i, yi)}
                                 onMove={dir => onMove(i, dir)}

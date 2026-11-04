@@ -14,6 +14,7 @@
  *
  * @module EchartsCollectionWidget/seriesColorScale
  */
+import type { ContinousVisualMapComponentOption } from 'echarts';
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient, type EchartsColorStop } from '../lib/helper/extractColorFromValue';
 import { mixRgba, parseSeriesColor, RGBA_BLACK, RGBA_WHITE, toRgbaString, type Rgba } from './seriesColorDerive';
@@ -239,6 +240,16 @@ export const resolveColorScaleRange = (
 };
 
 /**
+ * The Y axis a series' Farbskala inherits its fixed bounds from — the builder's axis clamp
+ * (ADR-0012): no index binds axis 0, a stale index beyond the axes falls back to axis 0.
+ * `undefined` = no axes. ONE resolution for the builder and the Stil tab placeholders.
+ */
+export const colorScaleAxis = <A>(yAxes: readonly A[], yAxisIndex: number | undefined): A | undefined => {
+    const yi = yAxisIndex ?? 0;
+    return yAxes[yi < yAxes.length ? yi : 0];
+};
+
+/**
  * The INPUT ERROR of a Farbskala (ticket 05): the scale is on and BOTH bounds are entered with
  * Min ≥ Max. Shared by the builder (no entry for the series), the validation (the series warning)
  * and the Stil tab (the field error) — one predicate, three surfaces. Inherited or mixed bounds
@@ -264,21 +275,25 @@ export const colorScaleRangeInvalid = (
  *
  * @param seriesIndex - The series' index in the emitted `series` array (= its meta index).
  * @param meta - The series config.
- * @param seriesColor - The series' effective colour (explicit → palette slot).
+ * @param seriesColor - The series' effective colour as emitted (explicit → palette slot); a raw
+ *   override may set anything there — a non-string derives no scale.
  * @param axis - The Y axis config the series binds to.
  * @param data - The series' loaded data (the whole series, never the zoom window).
  */
 export const buildColorScaleEntry = (
     seriesIndex: number,
     meta: EchartsSeriesMeta | undefined,
-    seriesColor: string,
+    seriesColor: unknown,
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     data: ChartSeries['data'],
-): Record<string, unknown> | null => {
+): ContinousVisualMapComponentOption | null => {
     if (!meta?.colorScale || colorScaleRangeInvalid(meta)) {
         return null;
     }
-    const colors = resolveColorScaleColors(meta.colorScaleColors, seriesColor);
+    const colors = resolveColorScaleColors(
+        meta.colorScaleColors,
+        typeof seriesColor === 'string' ? seriesColor : undefined,
+    );
     if (!colors) {
         return null;
     }
@@ -291,7 +306,7 @@ export const buildColorScaleEntry = (
     if (!extent && !(min.source === 'entry' && max.source === 'entry')) {
         return null;
     }
-    const entry = { type: 'continuous', seriesIndex, dimension: 1, show: false };
+    const entry: ContinousVisualMapComponentOption = { type: 'continuous', seriesIndex, dimension: 1, show: false };
     if (min.value >= max.value) {
         // The middle (50 %) of the scale; an unresolvable list keeps its lower-middle colour.
         const mid = [colorScaleColorAt(colors, 0.5) ?? colors[Math.floor((colors.length - 1) / 2)]];

@@ -204,13 +204,12 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
                             meta={m}
                             title={m.name || name}
                             subtitle={name}
-                            previewName={m.name || name}
                             colorFallback={slot(i)}
                             index={i}
                             count={visibleNames.length}
                             open={!!expanded[i]}
                             onToggle={() => onToggleCard(i)}
-                            focusTab={cardFocus?.index === i ? cardFocus.focus : undefined}
+                            cardFocus={cardFocus}
                             onPatch={p => onUpdateJson(name, p)}
                             onRebindAxis={yi => onRebindJsonAxis(name, yi)}
                             onHide={() => onHideJson(name)}

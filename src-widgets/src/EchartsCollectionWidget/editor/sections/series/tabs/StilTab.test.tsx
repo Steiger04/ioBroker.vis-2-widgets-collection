@@ -33,7 +33,7 @@ import { createRoot } from 'react-dom/client';
 import { StilTab } from './StilTab';
 import type { EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
 
-const mountStil = (meta: EchartsSeriesMeta, colorFallback = '#5470c6'): HTMLElement => {
+const mountStil = (meta: EchartsSeriesMeta, seriesColor = '#5470c6'): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
@@ -43,7 +43,7 @@ const mountStil = (meta: EchartsSeriesMeta, colorFallback = '#5470c6'): HTMLElem
                 defaultType: 'line',
                 onPatch: () => undefined,
                 pickerCtx: {} as never,
-                colorFallback,
+                seriesColor,
                 labelColorFallback: '#222',
             }),
         );
@@ -55,19 +55,12 @@ const colorFields = (el: HTMLElement): HTMLElement[] =>
     Array.from(el.querySelectorAll<HTMLElement>('[data-testid="color-field"]'));
 
 describe('StilTab — the Flächen-Verlauf field (ADR-0101)', () => {
-    it('previews the derived Flächen-Verlauf of the palette colour when no gradient is chosen', () => {
+    it('previews the derived Flächen-Verlauf of the effective series colour when no gradient is chosen', () => {
         const el = mountStil({ name: 'A', type: 'line', area: 'gradient' });
         const [field] = colorFields(el);
         expect(field.dataset.value).toBe('');
         expect(field.dataset.fallback).toBe(
             'linear-gradient(180deg, rgba(84, 112, 198, 1) 0%, rgba(84, 112, 198, 0.5) 50%, rgba(84, 112, 198, 0) 100%)',
-        );
-    });
-
-    it('follows the series’ own colour over the palette colour', () => {
-        const el = mountStil({ name: 'A', type: 'line', area: 'gradient', color: 'rgb(10, 20, 30)' });
-        expect(colorFields(el)[0].dataset.fallback).toBe(
-            'linear-gradient(180deg, rgba(10, 20, 30, 1) 0%, rgba(10, 20, 30, 0.5) 50%, rgba(10, 20, 30, 0) 100%)',
         );
     });
 
