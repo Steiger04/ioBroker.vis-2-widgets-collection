@@ -19,11 +19,12 @@ const theme = {
     palette: { primary: { main: '#1976d2' }, text: { primary: 'rgba(0,0,0,0.87)' }, background: { paper: '#fff' } },
 } as unknown as Theme;
 
-// gaugeFields pulls fieldFactories → ContractColorField/CollectionDivider,
+// gaugeFields pulls fieldFactories → ContractColorField/PlainColorField/CollectionDivider,
 // which pull Generic, which extends window.visRxWidget — undefined outside the vis-2
 // runtime. The parity invariant reads only the field DATA, so mock the components
 // (same pattern as lib/fieldFactories.test.ts).
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import gaugeFields from '../lib/gaugeFields';
@@ -39,7 +40,16 @@ type FieldLike = {
     type?: string;
     default?: unknown;
     terminal?: ColorTerminal;
+    plainColor?: boolean;
 };
+
+/**
+ * Editor chrome without an option: dividers and editor-only custom components. Custom fields
+ * that carry data re-enter through their marker — contract colour fields (`terminal`) and
+ * Schlichte Farbfelder (`plainColor`, ADR-0102).
+ */
+const isEditorChrome = (field: FieldLike): boolean =>
+    field.type === 'custom' && field.terminal === undefined && field.plainColor !== true;
 
 const fields = (): FieldLike[] => gaugeFields() as FieldLike[];
 
@@ -80,9 +90,9 @@ function buildFullyPopulated(): Record<string, unknown> {
     const list = fields();
     const data: Record<string, unknown> = {};
     for (const field of list) {
-        // Mirrors the builder: custom-without-terminal is editor chrome (a divider);
-        // custom-with-terminal (color contract) is a real option field.
-        if (field.type && field.name && !(field.type === 'custom' && field.terminal === undefined)) {
+        // Mirrors the builder: editor chrome (a divider) carries no option; contract colour
+        // fields and Schlichte Farbfelder are real option fields.
+        if (field.type && field.name && !isEditorChrome(field)) {
             data[field.name] = sampleValue(field.type);
         }
     }
@@ -104,7 +114,7 @@ describe('gaugeFields ↔ Options-Builder parity', () => {
         const keys = new Set(Object.keys(options));
 
         for (const field of fields()) {
-            if (!field.type || !field.name || (field.type === 'custom' && field.terminal === undefined)) {
+            if (!field.type || !field.name || isEditorChrome(field)) {
                 continue; // dividers / editor-only components
             }
             const key = strip(field.name);
@@ -123,12 +133,7 @@ describe('gaugeFields ↔ Options-Builder parity', () => {
         const options = buildFullyPopulated();
         const expected = new Set(COMPUTED_KEYS);
         for (const field of fields()) {
-            if (
-                !field.type ||
-                !field.name ||
-                (field.type === 'custom' && field.terminal === undefined) ||
-                NON_OPTION_FIELDS.has(field.name)
-            ) {
+            if (!field.type || !field.name || isEditorChrome(field) || NON_OPTION_FIELDS.has(field.name)) {
                 continue;
             }
             expected.add(strip(field.name));

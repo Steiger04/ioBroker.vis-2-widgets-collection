@@ -16,11 +16,12 @@
  * `noGradient`, `terminal` and `inheritTextStyle` are all optional, and a bare
  * `createColorField({ name, label })` — the very case this test exists for — carries none.
  *
- * Deliberately NOT in scope: plain vis-2 `type: 'color'` fields (Gauge class C,
- * `dialogCloseButtonColor`, `colorLightBorderColor`, `markerIconColor`). They have no
- * cascade — the vis-2 colour input shows exactly the stored value — so there is no swatch
- * that could disagree with the runtime. Configurator-internal pickers (the ECharts editor)
- * are not attribute fields either.
+ * Deliberately NOT in scope: the Schlichte Farbfelder (`createPlainColorField`, ADR-0102 —
+ * Gauge class C, `dialogCloseButtonColor`, `colorLightBorderColor`, `markerIconColor`). They
+ * have no cascade — their swatch shows exactly the stored value — so there is no swatch that
+ * could disagree with the runtime. Their editor is a module of its own (`PlainColorField`,
+ * mocked separately below), so the scan does not recognise them. Configurator-internal pickers
+ * (the ECharts editor) are not attribute fields either.
  *
  * The roster is `widgetsRegistry.widgets`, introspected through each widget's
  * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does, and like it runs isolated
@@ -42,6 +43,7 @@ const { PickerSentinel } = vi.hoisted(() => ({ PickerSentinel: (): null => null 
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: PickerSentinel }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 // Custom editors referenced directly as field components: heavy module chains (TanStack,
 // ECharts editor), and called like vis-2 calls a field component they would run hooks.
@@ -151,6 +153,20 @@ describe('colour field terminals (every contract colour field declares a termina
                 'StateCollectionWidget.frameBackground',
             ]),
         );
+    });
+
+    it('leaves the Schlichte Farbfelder out (no cascade, so no terminal to declare)', () => {
+        const keys = new Set(scanned.map(field => field.key));
+        for (const key of [
+            'GaugeCollectionWidget.gaugeColorBar',
+            'DialogCollectionWidget.dialogCloseButtonColor',
+            'Light2CollectionWidget.colorLightBorderColor',
+            'SliderCollectionWidget.markerIconColor',
+        ]) {
+            expect(keys.has(key), key).toBe(false);
+        }
+        // … while the Gauge's contract colour fields are still scanned.
+        expect(keys.has('GaugeCollectionWidget.gaugeColorBarProgress')).toBe(true);
     });
 
     it.each(widgets)('%s: every colour field declares a terminal or is a listed exception', name => {

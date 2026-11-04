@@ -12,6 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import {
     createColorField,
     createDivider,
+    createPlainColorField,
     hiddenUnless,
     fontStyleOptions,
     fontWeightOptions,
@@ -95,20 +96,18 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         hidden: hiddenUnless('gaugeType', 'linear'),
     },
     createDivider('gauge_linear_coloring_options', { hidden: hiddenUnless('gaugeType', 'linear') }),
-    {
+    createPlainColorField({
         name: 'gaugeColorBarEnd',
-        type: 'color',
         label: 'gauge_color_bar_end',
         default: '',
         hidden: hiddenUnless('gaugeType', 'linear'),
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBarProgressEnd',
-        type: 'color',
         label: 'gauge_color_bar_progress_end',
         default: '',
         hidden: hiddenUnless('gaugeType', 'linear'),
-    },
+    }),
     createDivider('gauge_linear_element_positioning_options', { hidden: hiddenUnless('gaugeType', 'linear') }),
     {
         name: 'gaugeTickSide',
@@ -187,34 +186,30 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         hidden: hiddenUnless('gaugeType', 'radial'),
     },
     createDivider('gauge_radial_coloring_options', { hidden: hiddenUnless('gaugeType', 'radial') }),
-    {
+    createPlainColorField({
         name: 'gaugeColorNeedleCircleOuter',
-        type: 'color',
         label: 'gauge_color_needle_circle_outer',
         default: '#f0f0f0',
         hidden: hiddenUnless('gaugeType', 'radial'),
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorNeedleCircleOuterEnd',
-        type: 'color',
         label: 'gauge_color_needle_circle_outer_end',
         default: '#ccc',
         hidden: hiddenUnless('gaugeType', 'radial'),
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorNeedleCircleInner',
-        type: 'color',
         label: 'gauge_color_needle_circle_inner',
         default: '#e8e8e8',
         hidden: hiddenUnless('gaugeType', 'radial'),
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorNeedleCircleInnerEnd',
-        type: 'color',
         label: 'gauge_color_needle_circle_inner_end',
         default: '#f5f5f5',
         hidden: hiddenUnless('gaugeType', 'radial'),
-    },
+    }),
     createDivider('gauge_radial_needle_options', { hidden: hiddenUnless('gaugeType', 'radial') }),
     {
         name: 'gaugeNeedleCircleSize',
@@ -394,18 +389,16 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         default: false,
     },
     createDivider('gauge_coloring_options'),
-    {
+    createPlainColorField({
         name: 'gaugeColorPlate',
-        type: 'color',
         label: 'gauge_color_plate',
         default: 'rgba(0,0,0,0)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorPlateEnd',
-        type: 'color',
         label: 'gauge_color_plate_end',
         default: 'rgba(0,0,0,0)',
-    },
+    }),
     // Text-bearing colors (class A of the gauge color contract, ADR-0004): inherit the
     // vis-2 widget text color when set, theme text color otherwise — readable on dark themes.
     createColorField({
@@ -463,108 +456,91 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         noGradient: true,
         terminal: 'primary',
     }),
-    {
+    createPlainColorField({
         name: 'gaugeColorValueText',
-        type: 'color',
         label: 'gauge_color_value_text',
         default: '#444',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorValueTextShadow',
-        type: 'color',
         label: 'gauge_color_value_text_shadow',
         default: 'rgba(0,0,0,0.3)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderShadow',
-        type: 'color',
         label: 'gauge_color_border_shadow',
         default: 'rgba(0,0,0,0.5)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderOuter',
-        type: 'color',
         label: 'gauge_color_border_outer',
         default: '#ddd',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderOuterEnd',
-        type: 'color',
         label: 'gauge_color_border_outer_end',
         default: '#aaa',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderMiddle',
-        type: 'color',
         label: 'gauge_color_border_middle',
         default: '#eee',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderMiddleEnd',
-        type: 'color',
         label: 'gauge_color_border_middle_end',
         default: '#f0f0f0',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderInner',
-        type: 'color',
         label: 'gauge_color_border_inner',
         default: '#fafafa',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBorderInnerEnd',
-        type: 'color',
         label: 'gauge_color_border_inner_end',
         default: '#ccc',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorValueBoxRect',
-        type: 'color',
         label: 'gauge_color_value_box_rect',
         default: '#888',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorValueBoxRectEnd',
-        type: 'color',
         label: 'gauge_color_value_box_rect_end',
         default: '#666',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorValueBoxBackground',
-        type: 'color',
         label: 'gauge_color_value_box_background',
         default: '#babab2',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorValueBoxShadow',
-        type: 'color',
         label: 'gauge_color_value_box_shadow',
         default: 'rgba(0,0,0,1)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorNeedleShadowUp',
-        type: 'color',
         label: 'gauge_color_needle_shadow_up',
         default: 'rgba(2,255,255,0.2)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorNeedleShadowDown',
-        type: 'color',
         label: 'gauge_color_needle_shadow_down',
         default: 'rgba(188,143,143,0.45)',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBarStroke',
-        type: 'color',
         label: 'gauge_color_bar_stroke',
         default: '#222',
-    },
-    {
+    }),
+    createPlainColorField({
         name: 'gaugeColorBar',
-        type: 'color',
         label: 'gauge_color_bar',
         default: '#ccc',
-    },
+    }),
     createColorField({
         name: 'gaugeColorBarProgress',
         label: 'gauge_color_bar_progress',

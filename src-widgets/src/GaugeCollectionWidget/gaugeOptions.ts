@@ -38,6 +38,8 @@ export interface BuilderField {
     default?: unknown;
     /** Color-contract marker (set by `createColorField`); absent on plain fields. */
     terminal?: ColorTerminal | undefined;
+    /** Schlichtes-Farbfeld marker (set by `createPlainColorField`): read like a `type: 'color'` field. */
+    plainColor?: boolean | undefined;
     fallbackFields?: string[] | undefined;
     inheritTextStyle?: boolean | undefined;
 }
@@ -182,8 +184,9 @@ export function buildGaugeOptions(
             continue;
         }
         // Dividers and editor-only custom components carry no option (color-contract
-        // fields from createColorField re-enter through their terminal marker).
-        if (field.type === 'custom' && field.terminal === undefined) {
+        // fields from createColorField re-enter through their terminal marker, Schlichte
+        // Farbfelder from createPlainColorField through theirs).
+        if (field.type === 'custom' && field.terminal === undefined && field.plainColor !== true) {
             continue;
         }
         if (SPECIAL_FIELDS.has(field.name)) {
@@ -205,7 +208,8 @@ export function buildGaugeOptions(
             continue;
         }
 
-        switch (field.type) {
+        // Schlichte Farbfelder (ADR-0102) resolve like a colour field: stored value, else default.
+        switch (field.plainColor === true ? 'color' : field.type) {
             case 'number':
                 options[key] = resolveNumeric(data[field.name], Number(field.default ?? 0));
                 break;

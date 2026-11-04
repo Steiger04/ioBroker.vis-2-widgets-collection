@@ -4,7 +4,8 @@
  * @module lib/fieldFactories
  * @remarks
  * Provides the deep building blocks used across every `*Fields.tsx` file:
- * - color field factories (`createColorField`, `createColorFields`, `createSliderColorField`)
+ * - color field factories (`createColorField`, `createColorFields`, `createSliderColorField`) and
+ *   the Schlichtes-Farbfeld factory (`createPlainColorField`)
  * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
  * - `createDivider` for section dividers
@@ -40,6 +41,7 @@
  */
 
 import ContractColorField from '../components/ContractColorField';
+import PlainColorField from '../components/PlainColorField';
 import CollectionDivider from '../components/CollectionDivider';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type {
@@ -205,6 +207,68 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
  */
 export function createColorFields(fields: ColorFieldOptions[]): ExtendedField[] {
     return fields.map(createColorField);
+}
+
+/**
+ * Options for creating a Schlichtes Farbfeld — a colour field without a Field-Vertrag.
+ */
+export interface PlainColorFieldOptions {
+    /** Field name (e.g., 'gaugeColorBar') */
+    name: string;
+    /** Label translation key (e.g., 'gauge_color_bar') */
+    label: string;
+    /** Schema default; omitted when not given (an empty field then means the widget's built-in default). */
+    default?: string;
+    /** Hidden condition (string expression or function; vis-2 hands a function the raw widget data). */
+    hidden?: string | ((data: Record<string, unknown>, index?: number) => boolean);
+}
+
+/**
+ * Creates a Schlichtes Farbfeld (ADR-0102): a custom field rendered by
+ * `components/PlainColorField` — the Textfeld-Zeile without "erbt", the swatch shows the stored
+ * value, solid colours only, no Auflösungskaskade.
+ *
+ * @remarks
+ * Marked `plainColor: true` (and `noGradient: true`) so runtime consumers that walk a field list
+ * read it like the former vis-2 `type: 'color'` field — stored value, else the schema default
+ * (`GaugeCollectionWidget/gaugeOptions`). It carries no `terminal`/`fallbackFields`, and its
+ * component is not the contract adapter, so the terminal parity test does not cover it.
+ * @param options - Field configuration options
+ * @returns ExtendedField definition ready for use in field arrays
+ * @example
+ * createPlainColorField({ name: 'gaugeColorBar', label: 'gauge_color_bar', default: '#ccc' })
+ */
+export function createPlainColorField(options: PlainColorFieldOptions): ExtendedField {
+    const { name, label, default: defaultValue, hidden } = options;
+
+    const field: ExtendedField = {
+        name,
+        label,
+        type: 'custom',
+        plainColor: true,
+        noGradient: true,
+        component: guardWidgetData(
+            (field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+                <PlainColorField
+                    field={field}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            ),
+        ),
+    };
+
+    if (defaultValue !== undefined) {
+        (field as Record<string, unknown>).default = defaultValue;
+    }
+
+    if (hidden !== undefined) {
+        // Cast to bypass the readonly restriction, matching createColorField.
+        (field as Record<string, unknown>).hidden = hidden;
+    }
+
+    return field;
 }
 
 /**

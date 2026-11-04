@@ -10,6 +10,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
+import { createPlainColorField } from './fieldFactories';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -221,11 +222,10 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 3,
         step: 1,
     },
-    {
+    createPlainColorField({
         name: 'colorLightBorderColor',
         label: 'color_light_border_color',
-        type: 'color',
-    },
+    }),
     {
         name: 'colorLightPadding',
         type: 'number',

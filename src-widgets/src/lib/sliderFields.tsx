@@ -8,7 +8,12 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField, createOnlyDisplayField, createSliderColorField } from './fieldFactories';
+import {
+    createColorField,
+    createOnlyDisplayField,
+    createPlainColorField,
+    createSliderColorField,
+} from './fieldFactories';
 import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -267,12 +272,11 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider />,
         hidden: '!data.marks',
     } as const,
-    {
+    createPlainColorField({
         name: 'markerIconColor',
         label: 'marker_icon_color',
-        type: 'color',
         hidden: '!data.marks',
-    } as const,
+    }),
     {
         name: 'markerIconSize',
         label: 'marker_icon_size',

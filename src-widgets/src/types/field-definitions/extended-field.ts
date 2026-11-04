@@ -36,6 +36,7 @@
  * [terminal] - The color the cascade ends on (`'transparent'` when omitted).
  * [inheritTextStyle] - Enables the vis-2 style stage.
  * [noGradient] - Solid colours only: no Solid/Gradient in the Farbwähler, a typed gradient is an error.
+ * [plainColor] - Marks a Schlichtes Farbfeld (`createPlainColorField`): no contract at all.
  *
  * @example
  * // Thumb color: own value → sliderColor → theme primary
@@ -106,6 +107,13 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * fields without an explicit terminal).
      */
     terminal?: ColorTerminal;
+
+    /**
+     * Schlichtes Farbfeld marker (`createPlainColorField`, ADR-0102): a colour field without a
+     * Field-Vertrag — no cascade, the stored value or else the schema default. Runtime consumers
+     * that walk a field list read it like a vis-2 `type: 'color'` field.
+     */
+    plainColor?: boolean;
 
     /**
      * Whether the resolution cascade consults the vis-2 widget's CSS `color`

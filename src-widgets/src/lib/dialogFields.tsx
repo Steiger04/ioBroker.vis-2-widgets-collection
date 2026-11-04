@@ -10,7 +10,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
-import { createColorField } from './fieldFactories';
+import { createColorField, createPlainColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -121,11 +121,10 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         default: false,
     },
-    {
+    createPlainColorField({
         name: 'dialogCloseButtonColor',
         label: 'dialog_close_button_color',
-        type: 'color',
-    },
+    }),
     {
         label: '',
         type: 'custom',

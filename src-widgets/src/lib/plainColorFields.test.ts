@@ -14,9 +14,11 @@ import { describe, expect, it, vi } from 'vitest';
 // The field lists pull the field components, which pull Generic (extends window.visRxWidget,
 // absent outside vis-2). Only the field DATA is read here.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import dialogFields from './dialogFields';
+import { createColorField, createPlainColorField } from './fieldFactories';
 import gaugeFields from './gaugeFields';
 import light2Fields from './light2Fields';
 import sliderFields from './sliderFields';
@@ -27,7 +29,21 @@ interface FieldLike {
     type?: string;
     default?: unknown;
     hidden?: unknown;
+    plainColor?: boolean;
+    noGradient?: boolean;
+    terminal?: string;
+    component?: (...args: unknown[]) => unknown;
 }
+
+/** Calls a custom field's component the way vis-2 does and returns the element type. */
+const renderedBy = (field: FieldLike): unknown =>
+    (field.component?.(field, {}, () => undefined, {}) as { type?: unknown } | null)?.type;
+
+// The adapters, read off the factories themselves: the node project shares its module cache
+// across files (vitest `isolate: false`), so a sentinel of this file's mock may not be the one
+// the field lists were built with — the factories always are.
+const PLAIN_ADAPTER = renderedBy(createPlainColorField({ name: 'probe', label: 'probe' }) as FieldLike);
+const CONTRACT_ADAPTER = renderedBy(createColorField({ name: 'probe', label: 'probe' }) as FieldLike);
 
 /** Probe data for predicate hidden rules: every condition the 28 fields depend on. */
 const PROBES: Record<string, unknown>[] = [{}, { gaugeType: 'linear' }, { gaugeType: 'radial' }, { marks: true }];
@@ -144,4 +160,25 @@ describe('Schlichte Farbfelder — characterisation of the 28 former vis-2 colou
             hidden: hiddenRule(field.hidden),
         }).toEqual({ label: expected.label, default: expected.default, hidden: expected.hidden });
     });
+
+    it.each(PLAIN_COLOR_FIELDS)('$name is a Schlichtes Farbfeld: the collection adapter, solid only', expected => {
+        const field = findField(expected.list, expected.name);
+        expect(field.type).toBe('custom');
+        expect(renderedBy(field)).toBe(PLAIN_ADAPTER);
+        expect(renderedBy(field)).not.toBe(CONTRACT_ADAPTER);
+        expect(field.plainColor).toBe(true);
+        expect(field.noGradient).toBe(true);
+        expect(field.terminal).toBeUndefined();
+    });
+
+    it.each(Object.keys(LISTS) as Characteristic['list'][])(
+        '%sFields renders no colour field through vis-2 anymore',
+        list => {
+            expect(
+                LISTS[list]()
+                    .filter(field => field.type === 'color')
+                    .map(field => field.name),
+            ).toEqual([]);
+        },
+    );
 });

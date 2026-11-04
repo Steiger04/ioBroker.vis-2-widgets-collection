@@ -53,6 +53,8 @@ const FIELDS: BuilderField[] = [
         inheritTextStyle: true,
     },
     { name: 'gaugeColorNeedle', type: 'custom', terminal: 'primary' },
+    // Schlichtes Farbfeld (createPlainColorField product, ADR-0102): custom-rendered, no contract
+    { name: 'gaugeColorBar', type: 'custom', plainColor: true, default: '#ccc' },
 ];
 
 const CTX: GaugeOptionsContext = {
@@ -143,6 +145,17 @@ describe('buildGaugeOptions — color contract fields (ADR-0004)', () => {
 
     it('falls through an invalid explicit value to the cascade', () => {
         expect(build({ gaugeColorTitle: 'not-a-color' }).colorTitle).toBe('rgba(0,0,0,0.87)');
+    });
+});
+
+describe('buildGaugeOptions — Schlichte Farbfelder (ADR-0102)', () => {
+    it('resolve to their schema default while unset or empty', () => {
+        expect(build({}).colorBar).toBe('#ccc');
+        expect(build({ gaugeColorBar: '' }).colorBar).toBe('#ccc');
+    });
+
+    it('pass a stored value through as stored — no cascade', () => {
+        expect(build({ gaugeColorBar: 'transparent' }).colorBar).toBe('transparent');
     });
 });
 

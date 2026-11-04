@@ -7,12 +7,14 @@ import type { WidgetData } from '@iobroker/types-vis-2';
 // factory logic (predicates, options, createDivider shape) is independent of
 // those components, so mock them to isolate the unit under test.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import {
     createColorField,
     createDivider,
     createOnlyDisplayField,
+    createPlainColorField,
     guardWidgetData,
     hiddenIf,
     hiddenUnless,
@@ -86,6 +88,54 @@ describe('createDivider', () => {
     it('omits hidden when not given', () => {
         const field = createDivider('gauge_basic_options');
         expect((field as { hidden?: unknown }).hidden).toBeUndefined();
+    });
+});
+
+// A Schlichtes Farbfeld (ADR-0102): rendered by the collection's Farbwähler, without the
+// Auflösungskaskade — so it carries no Field-Vertrag and is told apart from contract fields.
+describe('createPlainColorField', () => {
+    type Rendered = { type: unknown; props: { field: unknown; data: unknown } };
+    const render = (field: unknown, data?: WidgetData): Rendered =>
+        (field as { component: (...args: unknown[]) => Rendered }).component(field, data, () => undefined, {});
+
+    it('builds a custom field rendered by the Schlichtes-Farbfeld adapter, not the contract adapter', () => {
+        const field = createPlainColorField({ name: 'gaugeColorBar', label: 'gauge_color_bar', default: '#ccc' });
+        expect(field).toMatchObject({ name: 'gaugeColorBar', label: 'gauge_color_bar', default: '#ccc' });
+        expect((field as { type?: string }).type).toBe('custom');
+        // Compared relatively: the node project shares its module cache (vitest `isolate: false`),
+        // so a sentinel of this file's mocks need not be the one fieldFactories was loaded with.
+        expect(render(field).type).not.toBe(render(createColorField({ name: 'iconColor', label: 'icon_color' })).type);
+        expect(render(field).props.field).toBe(field);
+    });
+
+    it('marks the field as Schlichtes Farbfeld, solid only, without a Field-Vertrag', () => {
+        const field = createPlainColorField({ name: 'gaugeColorBar', label: 'gauge_color_bar' });
+        expect(field.plainColor).toBe(true);
+        expect(field.noGradient).toBe(true);
+        expect(field.terminal).toBeUndefined();
+        expect(field.fallbackFields).toBeUndefined();
+        expect(field.inheritTextStyle).toBeUndefined();
+    });
+
+    it('omits default and hidden when not given (the vis-2 field had none)', () => {
+        const field = createPlainColorField({ name: 'dialogCloseButtonColor', label: 'dialog_close_button_color' });
+        expect('default' in field).toBe(false);
+        expect('hidden' in field).toBe(false);
+    });
+
+    it('passes the hidden rule through as given (string expression or predicate)', () => {
+        const predicate = hiddenUnless('gaugeType', 'linear');
+        expect(
+            (createPlainColorField({ name: 'a', label: 'a', hidden: '!data.marks' }) as { hidden?: unknown }).hidden,
+        ).toBe('!data.marks');
+        expect(
+            (createPlainColorField({ name: 'a', label: 'a', hidden: predicate }) as { hidden?: unknown }).hidden,
+        ).toBe(predicate);
+    });
+
+    it('guards the data map like every data-reading custom field', () => {
+        const field = createPlainColorField({ name: 'gaugeColorBar', label: 'gauge_color_bar' });
+        expect(render(field, undefined).props.data).toEqual({});
     });
 });
 
