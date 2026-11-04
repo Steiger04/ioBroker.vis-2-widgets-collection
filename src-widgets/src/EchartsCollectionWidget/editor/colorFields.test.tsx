@@ -122,12 +122,11 @@ const mount = (
     };
 };
 
-/** The swatch's inner colour box background. */
-const swatchColor = (swatch: HTMLElement): string =>
-    (
-        getComputedStyle(swatch.firstElementChild as HTMLElement).background ||
-        (swatch.firstElementChild as HTMLElement).style.background
-    ).toLowerCase();
+/** The swatch's colour layer background (it lies on the checkerboard). */
+const swatchColor = (swatch: HTMLElement): string => {
+    const fill = swatch.querySelector<HTMLElement>('[data-swatch-fill]') as HTMLElement;
+    return (getComputedStyle(fill).background || fill.style.background).toLowerCase();
+};
 
 /** The Farbwähler's popover paper, or null while closed. */
 const paper = (): HTMLElement | null => document.body.querySelector<HTMLElement>('.MuiPopover-paper');
@@ -157,9 +156,9 @@ describe('ECharts ColorField swatch', () => {
         expect(swatchColor(swatches()[0])).toContain('linear-gradient');
     });
 
-    it('shows the empty dashed swatch with neither a value nor a fallback', () => {
+    it('paints nothing on the checkerboard with neither a value nor a fallback', () => {
         const { swatches } = mount({ value: null });
-        expect(swatchColor(swatches()[0])).toBe('');
+        expect(swatchColor(swatches()[0])).toMatch(/^(transparent|)$/);
     });
 });
 
