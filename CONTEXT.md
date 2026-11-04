@@ -167,7 +167,7 @@ The single-line digest of effective values shown on a collapsed Section (`24h ·
 _Avoid_: Subtitle, hint text
 
 **Erben-Override**:
-The inheritance pattern of the per-series data settings (ADR-0072, adapter `line.aggregate || config.aggregate`): the Data source section holds the chart-level **Voreinstellung**, every series field starts at „erben (→ effective value)" and diverges explicitly — deletable back to inherit at any time. Boolean-shaped settings become tristates (Diff: erben | differenzieren | roh). Covers aggregation with its params, Diff and NULL handling; the Zeitfenster, Schrittweite/count, refresh and bar grid stay chart-level (one shared X axis, one poll loop).
+The inheritance pattern of the per-series data settings (ADR-0072, adapter `line.aggregate || config.aggregate`): the Data source section holds the chart-level **Voreinstellung**, every series field starts at „erben (→ effective value)" and diverges explicitly — deletable back to inherit at any time. Boolean-shaped settings become tristates (Diff: erben | differenzieren | roh). Covers aggregation with its params, Diff and NULL handling; the Zeitfenster, Schrittweite/count, refresh and bar grid stay chart-level (one shared X axis, one poll loop). Where a half-width field cannot fit the full wording (the Farbskala Min/Max), the empty field shows the short form „→ Daten: 6,54" and carries the full „Erben (→ …)" as tooltip.
 _Avoid_: global setting (that is the Voreinstellung's role), per-series setting without inherit (the rejected full-move model), fallback (mechanism, not concept)
 
 **Series card**:
@@ -303,7 +303,7 @@ The colour box in a `ColorField` that shows the field's **effective** colour —
 _Avoid_: colour preview, default swatch
 
 **Farbskala (value colour scale)**:
-A per-series mapping from the series' VALUES to colours between a min and a max of that series' own unit — the same value always gets the same colour, wherever it sits in the plot. Belongs to one series (line, bar or scatter), never to the whole chart: series on different axes need different ranges. A line is coloured along its values, a bar or point gets the one colour of its value. With no colours chosen it inherits a scale derived from the series' effective colour (light → series colour → dark, low to high); with no range entered each bound inherits the bound axis' fixed bound, else the series' own data range over everything loaded (zooming never recolours). The positions of the chosen colour stops are honoured within the range.
+A per-series mapping from the series' VALUES to colours between a min and a max of that series' own unit — the same value always gets the same colour, wherever it sits in the plot. Belongs to one series (line, bar or scatter), never to the whole chart: series on different axes need different ranges. A line is coloured along its values, a bar or point gets the one colour of its value. With no colours chosen it inherits a scale derived from the series' effective colour (light → series colour → dark, low to high); with no range entered each bound inherits the bound axis' fixed bound, else the series' own data range over everything loaded (zooming never recolours). The positions of the chosen colour stops are honoured within the range. On a percent-stacked bar the range is read in displayed percent (0–100), like its axis.
 _Avoid_: visualMap (that is the echarts component), Farbverlauf (that is the **Flächen-Verlauf**), chart colour scale (there is no chart-level one)
 
 **Flächen-Verlauf (area gradient)**:
