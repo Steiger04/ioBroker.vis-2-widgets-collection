@@ -56,6 +56,7 @@ import { useEditorNotice } from './editor/useEditorNotice';
 import { PreviewExtentsContext, sameExtents, type PreviewExtents } from './editor/previewExtents';
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
+import { issueCountLabel, previewHeaderMeta } from './editor/summaries';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
@@ -195,14 +196,12 @@ function EchartsConfigEditorModal({
     // width persisted across sessions. Pure layout — the form grid reflows via CSS only.
     const { railWidth, containerRef, dragging, handleProps } = useSplitPane();
 
-    // Preview-header meta: "{count} {countLabel} · {mode} · {renderer}" — a one-glance summary of
-    // what the preview currently shows.
-    const previewMeta = useMemo(() => {
-        const count = state.mode === 'json' ? visibleJsonNames.length : state.series.length;
-        const parts = [`${count} ${Generic.t('echarts_series')}`, Generic.t(`echarts_mode_${state.mode}`)];
-        parts.push(Generic.t(`echarts_renderer_${state.renderer}`));
-        return parts.join(' · ');
-    }, [state.mode, state.renderer, state.series.length, visibleJsonNames.length]);
+    // Preview-header meta: "{count} · {mode} · {renderer}" — a one-glance summary of what the
+    // preview currently shows (the table family counts its mapped series, not payload names).
+    const previewMeta = useMemo(
+        () => previewHeaderMeta(state, visibleJsonNames, (key, ...args) => Generic.t(key, ...args)),
+        [state, visibleJsonNames],
+    );
 
     const titleId = 'echarts-config-editor-title';
 
@@ -443,7 +442,7 @@ function EchartsConfigEditorModal({
                                 onClick={() => firstIssueSection && handlePlaceholderClick(firstIssueSection)}
                                 sx={{ textTransform: 'none' }}
                             >
-                                {Generic.t('theme_studio_problems', String(issueCount))}
+                                {issueCountLabel(issueCount, (key, ...args) => Generic.t(key, ...args))}
                             </Button>
                         ) : null}
                     </Box>

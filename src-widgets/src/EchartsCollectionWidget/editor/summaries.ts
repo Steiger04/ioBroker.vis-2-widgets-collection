@@ -19,6 +19,36 @@ export type TFunc = (key: string, ...args: string[]) => string;
 const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, Math.max(0, n - 1))}…` : s);
 
 /**
+ * The series count over the data path's own sight: serien-förmig JSON counts its visible payload
+ * names (the payload owns the series, `state.series` stays empty); history and the table family
+ * count the configured series (table rows map onto `state.series`).
+ */
+const visibleSeriesCount = (state: EditorState, visibleJsonNames: readonly string[]): number =>
+    state.mode === 'json' && state.jsonKind !== 'table' ? visibleJsonNames.length : state.series.length;
+
+/** „1 Serie" / „N Serien". */
+const seriesCountLabel = (count: number, t: TFunc): string =>
+    count === 1 ? t('echarts_sum_series_one') : t('echarts_sum_series', String(count));
+
+/**
+ * The preview header digest „{count} · {mode} · {renderer}" — what the preview currently shows.
+ *
+ * @param state - Current editor state.
+ * @param visibleJsonNames - Serien-förmig JSON: the payload names the chart draws (hidden ones removed).
+ * @param t - Translation function (Generic.t).
+ */
+export const previewHeaderMeta = (state: EditorState, visibleJsonNames: readonly string[], t: TFunc): string =>
+    [
+        seriesCountLabel(visibleSeriesCount(state, visibleJsonNames), t),
+        t(`echarts_mode_${state.mode}`),
+        t(`echarts_renderer_${state.renderer}`),
+    ].join(' · ');
+
+/** The problems counter of the modal footer — „1 Problem" / „N Probleme". */
+export const issueCountLabel = (count: number, t: TFunc): string =>
+    count === 1 ? t('theme_studio_problems_one') : t('theme_studio_problems', String(count));
+
+/**
  * Compute the summary line per section.
  *
  * @param state - Current editor state.
@@ -36,11 +66,13 @@ export const sectionSummaries = (
 
     // series (B8, review 2026-11-03): the visible series count over the data path's own sight —
     // serien-förmig JSON counts the payload names minus the hidden ones.
-    const seriesCount =
-        state.mode === 'json' && state.jsonKind !== 'table'
-            ? jsonSeriesNames.filter(n => !state.jsonHidden.includes(n)).length
-            : state.series.length;
-    out.series = seriesCount === 1 ? t('echarts_sum_series_one') : t('echarts_sum_series', String(seriesCount));
+    out.series = seriesCountLabel(
+        visibleSeriesCount(
+            state,
+            jsonSeriesNames.filter(n => !state.jsonHidden.includes(n)),
+        ),
+        t,
+    );
 
     // data source (cartesian/pie only) — the chart-level Voreinstellung digest (ADR-0072):
     // series with their own aggregate-cluster overrides append a counter; the line itself

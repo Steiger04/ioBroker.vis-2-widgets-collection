@@ -20,7 +20,7 @@ vi.hoisted(() => {
 });
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
-import { sectionSummaries, type TFunc } from './summaries';
+import { issueCountLabel, previewHeaderMeta, sectionSummaries, type TFunc } from './summaries';
 import { DEFAULT_EDITOR_STATE } from './editorState';
 
 /** The identity t with argument appending — a counter key surfaces its count visibly. */
@@ -125,5 +125,38 @@ describe('sectionSummaries — readable digests (B8, review 2026-11-03)', () => 
         expect(sectionSummaries(state({ animation: true, animationDuration: 800, renderer: 'svg' }), t).behavior).toBe(
             'echarts_sum_animation:800 · echarts_renderer_svg',
         );
+    });
+});
+
+describe('previewHeaderMeta — the preview header digest', () => {
+    it('counts the configured series of the table family — the payload names are no series there', () => {
+        // Regression: a table with one mapped series read „0 Serien" (the JSON-name count).
+        const table = state({
+            mode: 'json',
+            jsonKind: 'table',
+            renderer: 'canvas',
+            series: [{ id: 's1', oid: '', yPath: 'temp' }],
+        });
+        expect(previewHeaderMeta(table, [], t)).toBe(
+            'echarts_sum_series_one · echarts_mode_json · echarts_renderer_canvas',
+        );
+    });
+
+    it('counts the visible payload names of serien-förmig JSON and the series of the history mode', () => {
+        const json = state({ mode: 'json', renderer: 'svg' });
+        expect(previewHeaderMeta(json, ['A', 'B'], t)).toBe(
+            'echarts_sum_series:2 · echarts_mode_json · echarts_renderer_svg',
+        );
+        const history = state({ mode: 'history', renderer: 'canvas', series: [] });
+        expect(previewHeaderMeta(history, ['ignored'], t)).toBe(
+            'echarts_sum_series:0 · echarts_mode_history · echarts_renderer_canvas',
+        );
+    });
+});
+
+describe('issueCountLabel — the problems counter of the modal footer', () => {
+    it('uses the singular form for exactly one problem', () => {
+        expect(issueCountLabel(1, t)).toBe('theme_studio_problems_one');
+        expect(issueCountLabel(3, t)).toBe('theme_studio_problems:3');
     });
 });
