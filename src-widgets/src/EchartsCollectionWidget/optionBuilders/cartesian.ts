@@ -30,6 +30,7 @@ import type {
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { deriveAreaGradient } from '../seriesColorDerive';
+import { buildColorScaleEntry } from '../seriesColorScale';
 import { axisPosition } from '../editor/axisSight';
 import {
     buildLegend,
@@ -771,6 +772,14 @@ export const buildCartesianOption = (
         e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
+    // Farbskala pro Serie (ADR-0101): one invisible continuous visualMap entry per series with
+    // an active scale, `seriesIndex` = the series' own index (hidden series stay emitted, so the
+    // indices never shift). Resolved against the CONFIGURED axis (before the remap below) and
+    // the whole loaded series — zooming never recolours.
+    const colorScales = entries.flatMap((e, i) => {
+        const vm = buildColorScaleEntry(i, meta[i], e.color as string, allAxes[e.yAxisIndex as number], series[i].data);
+        return vm ? [vm] : [];
+    });
     // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the
     // editor with its config, absent from the chart (no phantom, no reserved grid space).
     // Legenden-Folge (ADR-0074) widens the criterion to ACTIVELY bound: a series whose legend
@@ -1240,6 +1249,11 @@ export const buildCartesianOption = (
             zoom.push({ type: 'slider', start: 0, end: 100, height: 18, bottom: 8 });
         }
         option.dataZoom = zoom;
+    }
+    // No active scale → no key at all; `visualMap` rides REPLACE_MERGE (ADR-0016/0036), so a
+    // switched-off scale or a shorter list leaves no stale entry behind.
+    if (colorScales.length) {
+        option.visualMap = colorScales;
     }
 
     return option as unknown as EChartsOption;

@@ -452,6 +452,23 @@ export interface EchartsSeriesMeta {
      * lands pre-deselected (`legend.selected`) — hidden until a legend click re-enables it.
      */
     legendOnly?: boolean;
+    /**
+     * Farbskala (ADR-0101): colour this series by value — the builder emits one invisible
+     * continuous `visualMap` entry targeting the series. Absent = off. Line, bar and scatter.
+     */
+    colorScale?: boolean;
+    /**
+     * Lower bound of the Farbskala. Absent = inherits: the bound Y axis' fixed min, else the
+     * series' data extent (resolved per bound, ADR-0101).
+     */
+    colorScaleMin?: number;
+    /** Upper bound of the Farbskala. Absent = inherits like {@link colorScaleMin}. */
+    colorScaleMax?: number;
+    /**
+     * Chosen Farbskala colours as a CSS `linear-gradient(...)`, low → high. Absent = inherits the
+     * scale derived from the effective series colour (light → series colour → dark).
+     */
+    colorScaleColors?: string;
     /** Show value labels. @default false */
     label?: boolean;
     /**

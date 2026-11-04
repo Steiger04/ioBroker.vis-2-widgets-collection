@@ -3565,3 +3565,227 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
         expect((legendFmt as (name: string) => string)('A')).toBe('A [25 %]');
     });
 });
+
+describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
+    type VmEntry = {
+        type: string;
+        seriesIndex: number;
+        dimension: number;
+        show: boolean;
+        min: number;
+        max: number;
+        inRange: { color: string[] };
+    };
+    const vmOf = (option: unknown): VmEntry[] | undefined => (option as { visualMap?: VmEntry[] }).visualMap;
+
+    it('emits one continuous, invisible entry per series with an active scale — none without', () => {
+        const series: ChartSeries[] = [
+            {
+                name: 'A',
+                data: [
+                    [1, 2],
+                    [2, 4],
+                ],
+            },
+            {
+                name: 'B',
+                data: [
+                    [1, 10],
+                    [2, 30],
+                ],
+            },
+        ];
+        const without = buildGeneratedOption({
+            family: 'cartesian',
+            series,
+            meta: [{ color: '#ff0000' }, { color: '#0000ff' }],
+            p: P,
+        });
+        expect(without).not.toHaveProperty('visualMap');
+
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series,
+            meta: [{ color: '#ff0000' }, { color: '#0000ff', colorScale: true }],
+            p: P,
+        });
+        const vm = vmOf(option);
+        expect(vm).toHaveLength(1);
+        expect(vm![0]).toMatchObject({ type: 'continuous', seriesIndex: 1, dimension: 1, show: false });
+    });
+
+    it('derives light → series colour → dark from the explicit colour and from a palette slot', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 0],
+                        [2, 10],
+                    ],
+                },
+                {
+                    name: 'B',
+                    data: [
+                        [1, 0],
+                        [2, 10],
+                    ],
+                },
+            ],
+            meta: [{ color: '#ff0000', colorScale: true }, { colorScale: true }],
+            p: { ...P, palette: ['#00ff00', '#0000ff'] },
+        });
+        const vm = vmOf(option)!;
+        expect(vm[0].inRange.color).toEqual(['rgba(255, 128, 128, 1)', 'rgba(255, 0, 0, 1)', 'rgba(128, 0, 0, 1)']);
+        // B has no own colour — its palette slot (#0000ff) is the series colour the scale derives from.
+        expect(vm[1].inRange.color).toEqual(['rgba(128, 128, 255, 1)', 'rgba(0, 0, 255, 1)', 'rgba(0, 0, 128, 1)']);
+    });
+
+    it('passes chosen gradient colours through (evenly spaced in this ticket)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 0],
+                        [2, 10],
+                    ],
+                },
+            ],
+            meta: [
+                {
+                    color: '#ff0000',
+                    colorScale: true,
+                    colorScaleColors: 'linear-gradient(90deg, #00ff00 0%, #ffff00 50%, #ff0000 100%)',
+                },
+            ],
+            p: P,
+        });
+        expect(vmOf(option)![0].inRange.color).toEqual(['#00ff00', '#ffff00', '#ff0000']);
+    });
+
+    it('resolves the range per bound: entry before axis before data — mixed origins included', () => {
+        const data: ChartSeries['data'] = [
+            [1, 5],
+            [2, 'x' as unknown as number],
+            [3, null],
+            [4, Number.NaN],
+            [5, 25],
+            [6, 15],
+        ];
+        const run = (m: EchartsSeriesMeta, axis: { min?: number; max?: number }): VmEntry =>
+            vmOf(
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data }],
+                    meta: [{ color: '#ff0000', colorScale: true, ...m }],
+                    p: { ...P, yAxes: [axis] },
+                }),
+            )![0];
+        // Data only: the finite extent — the string, null and NaN are ignored.
+        expect(run({}, {})).toMatchObject({ min: 5, max: 25 });
+        // Min from the axis, max from the data.
+        expect(run({}, { min: 0 })).toMatchObject({ min: 0, max: 25 });
+        // Both axis bounds.
+        expect(run({}, { min: 0, max: 40 })).toMatchObject({ min: 0, max: 40 });
+        // Entries win over the axis, per bound.
+        expect(run({ colorScaleMax: 30 }, { min: 0, max: 40 })).toMatchObject({ min: 0, max: 30 });
+        expect(run({ colorScaleMin: 10 }, {})).toMatchObject({ min: 10, max: 25 });
+    });
+
+    it('gives two series on two axes their own ranges', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                {
+                    name: 'Temp',
+                    data: [
+                        [1, 12],
+                        [2, 31],
+                    ],
+                },
+                {
+                    name: 'Power',
+                    data: [
+                        [1, 200],
+                        [2, 2800],
+                    ],
+                },
+            ],
+            meta: [
+                { color: '#ff0000', colorScale: true, yAxisIndex: 0 },
+                { color: '#0000ff', colorScale: true, yAxisIndex: 1 },
+            ],
+            p: {
+                ...P,
+                yAxes: [
+                    { min: 0, max: 40 },
+                    { min: 0, max: 3000 },
+                ],
+            },
+        });
+        const vm = vmOf(option)!;
+        expect(vm).toHaveLength(2);
+        expect(vm[0]).toMatchObject({ seriesIndex: 0, min: 0, max: 40 });
+        expect(vm[1]).toMatchObject({ seriesIndex: 1, min: 0, max: 3000 });
+    });
+
+    it('serves line, bar and scatter alike — the type knob does not touch the scale', () => {
+        const series: ChartSeries[] = ['L', 'B', 'S'].map(name => ({
+            name,
+            data: [
+                [1, 1],
+                [2, 9],
+            ],
+        }));
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series,
+            meta: [
+                { color: '#ff0000', colorScale: true, type: 'line' },
+                { color: '#ff0000', colorScale: true, type: 'bar' },
+                { color: '#ff0000', colorScale: true, type: 'scatter' },
+            ],
+            p: P,
+        });
+        expect(vmOf(option)!.map(v => v.seriesIndex)).toEqual([0, 1, 2]);
+        expect((option.series as { type: string }[]).map(s => s.type)).toEqual(['line', 'bar', 'scatter']);
+    });
+
+    it('reads plain category-bar values and emits nothing for a series without finite values', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [3, null, 7] },
+                { name: 'B', data: [null, null] },
+            ],
+            meta: [
+                { color: '#ff0000', colorScale: true, type: 'bar' },
+                { color: '#ff0000', colorScale: true, type: 'bar' },
+            ],
+            p: { ...P, cartesianType: 'bar', barCategories: [1000, 2000, 3000] },
+        });
+        const vm = vmOf(option)!;
+        expect(vm).toHaveLength(1);
+        expect(vm[0]).toMatchObject({ seriesIndex: 0, min: 3, max: 7 });
+    });
+
+    it('keeps the area gradient at „Verlauf“ and leaves a flat area to the scale', () => {
+        const run = (area: 'flat' | 'gradient'): Record<string, unknown> => {
+            const option = buildGeneratedOption({
+                family: 'cartesian',
+                series: [{ name: 'A', data: [[1, 0], [2, 10]] }],
+                meta: [{ color: '#ff0000', colorScale: true, type: 'line', area }],
+                p: P,
+            });
+            expect(vmOf(option)).toHaveLength(1);
+            return ((option.series as unknown[])[0] as { areaStyle: Record<string, unknown> }).areaStyle;
+        };
+        // „Verlauf“: the area owns its colour (the derived Flächen-Verlauf) — the line follows the scale.
+        expect(run('gradient').color).toMatchObject({ type: 'linear', x: 0, y: 0, x2: 0, y2: 1 });
+        // „Flächig“: no own colour — echarts fills the area with the scale's visual colour.
+        expect(run('flat')).not.toHaveProperty('color');
+    });
+});
