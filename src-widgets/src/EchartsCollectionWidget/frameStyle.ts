@@ -15,6 +15,8 @@
  * frame previews live (the view itself stays untested, project rule — only this decision
  * function is).
  */
+import type { Theme } from '@mui/material/styles';
+
 import type { EchartsFrameStyle } from '../types/field-definitions/echarts-fields';
 
 /** The eight CSS `border-style` values the adapter offers (and the select shows). */
@@ -52,11 +54,21 @@ export interface FrameCss {
 }
 
 /**
+ * The frame's inherit colour — the one source the body, the editor preview AND the configurator's
+ * inherit swatch read (ADR-0027 „Feld folgt der Laufzeit").
+ *
+ * @param theme - The collection theme the chart renders under.
+ * @returns The theme's divider. Deliberately NOT the dark-mode-aware token: the frame is container
+ * CSS outside the canvas (ADR-0056) and follows the host mode, also under a forced chart mode.
+ */
+export const frameInheritColor = (theme: Pick<Theme, 'palette'>): string => theme.palette.divider;
+
+/**
  * Resolve the frame config into container CSS.
  *
  * @param frame - The stored frame config (flat rxData scalars or the editor state's copy).
- * @param divider - The host theme's divider colour — the inherit default when no colour is set
- * (the adapter leaves CSS `currentColor`; the divider token is our equivalent subtle line).
+ * @param divider - The inherit default when no colour is set — {@link frameInheritColor} (the
+ * adapter leaves CSS `currentColor`; the divider is our equivalent subtle line).
  * @returns `null` when no frame renders (disabled, width unset/0 — the „ohne" switch point).
  */
 export const resolveFrameCss = (frame: FrameConfig, divider: string): FrameCss | null => {

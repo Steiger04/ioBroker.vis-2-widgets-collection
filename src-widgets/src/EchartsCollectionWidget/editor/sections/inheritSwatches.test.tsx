@@ -132,3 +132,17 @@ describe('inherit swatches without a theme token (ADR-0027, ticket 06)', () => {
         ).toBe('transparent');
     });
 });
+
+describe('frame colour inherit swatch (ADR-0027/ADR-0056, ticket 13)', () => {
+    // The frame is container CSS: body and preview paint the COLLECTION theme's divider, which
+    // follows the host mode — never the dark-mode-aware token of a forced chart mode.
+    it('shows the collection theme divider, also under a forced mode that differs from the host', () => {
+        host.mode = 'light';
+        expect(fallbacks(ColorsSection, { darkMode: 'auto' }).get('echarts_frame_color')).toBe('rgba(0, 0, 0, 0.12)');
+        expect(fallbacks(ColorsSection, { darkMode: 'dark' }).get('echarts_frame_color')).toBe('rgba(0, 0, 0, 0.12)');
+        host.mode = 'dark';
+        expect(fallbacks(ColorsSection, { darkMode: 'light' }).get('echarts_frame_color')).toBe(
+            'rgba(255, 255, 255, 0.12)',
+        );
+    });
+});

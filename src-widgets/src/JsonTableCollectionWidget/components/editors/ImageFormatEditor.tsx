@@ -32,6 +32,7 @@ import type { CellImageContent, ColumnFormatConfig, ImageObjectFit, ImageVariant
 import { ImageGraphic } from '../TableCellRenderer';
 import { buildImageContent } from '../../utils/cellFormatters';
 import { IMAGE_FORMAT_DEFAULTS } from '../../utils/columnConfig';
+import { UNPAINTED_CELL_COLOR } from '../../utils/cellColors';
 
 /**
  * URL-encoded SVG data URI used for the editor preview: a filled rectangle so the avatar
@@ -53,7 +54,9 @@ export interface ImageFormatEditorProps {
 }
 
 /**
- * Renders image/icon formatting controls with live preview.
+ * Renders image/icon formatting controls with live preview. Without a value the background,
+ * border and tint rows show transparent: the graphic then has no background, no border and
+ * its own colours (a glyph the cell's text colour); the stored values stay empty.
  */
 function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps): React.JSX.Element {
     // Preview descriptor built from the current settings; reuses the real renderer.
@@ -139,6 +142,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             <ColorPickerField
                 label={Generic.t('json_table_image_bg_color')}
                 value={format.imageBgColor ?? ''}
+                swatchValue={format.imageBgColor || UNPAINTED_CELL_COLOR}
                 overridden={!!format.imageBgColor}
                 onChange={v => onChange({ type: 'image', imageBgColor: v || undefined })}
                 allowGradient
@@ -147,6 +151,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             <ColorPickerField
                 label={Generic.t('json_table_image_border_color')}
                 value={format.imageBorderColor ?? ''}
+                swatchValue={format.imageBorderColor || UNPAINTED_CELL_COLOR}
                 overridden={!!format.imageBorderColor}
                 onChange={v => onChange({ type: 'image', imageBorderColor: v || undefined })}
                 allowGradient
@@ -170,6 +175,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             <ColorPickerField
                 label={Generic.t('json_table_image_tint')}
                 value={format.imageTint ?? ''}
+                swatchValue={format.imageTint || UNPAINTED_CELL_COLOR}
                 overridden={!!format.imageTint}
                 onChange={v => onChange({ type: 'image', imageTint: v || undefined })}
                 allowGradient

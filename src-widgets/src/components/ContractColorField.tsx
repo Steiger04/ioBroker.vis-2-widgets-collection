@@ -48,7 +48,7 @@ export interface ContractColorFieldProps {
  * @param props - vis-2 editor context.
  * @returns The widget style fragment carrying `color`, or undefined.
  */
-function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): StyleColor {
+export function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): StyleColor {
     const ctx = props.context as unknown as {
         views?: Record<string, { widgets?: Record<string, { style?: { color?: string } }> }>;
     };

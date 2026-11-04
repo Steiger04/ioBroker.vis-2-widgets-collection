@@ -27,6 +27,7 @@ import type { Connection } from '@iobroker/adapter-react-v5';
 import ColorPickerField from '../../../components/ColorPickerField';
 import type { ColumnFormatConfig } from '../../types';
 import { formatStringValue } from '../../utils/formatters';
+import { tableTextColor, type CellColorInheritance } from '../../utils/cellColors';
 
 /** Props for the StringFormatEditor component. */
 export interface StringFormatEditorProps {
@@ -36,12 +37,15 @@ export interface StringFormatEditorProps {
     onChange: (patch: Partial<ColumnFormatConfig>) => void;
     /** Connection for the Collection theme presets of the Farbwähler (optional) */
     socket?: Connection;
+    /** What the table's cells inherit their text colour from (the text colour row's swatch) */
+    inheritance: CellColorInheritance;
 }
 
 /**
- * Renders string formatting controls with live preview.
+ * Renders string formatting controls with live preview. Without a value the text colour row
+ * shows the table's text colour the cells inherit (`tableTextColor`); the stored value stays empty.
  */
-function StringFormatEditor({ format, onChange, socket }: StringFormatEditorProps): React.JSX.Element {
+function StringFormatEditor({ format, onChange, socket, inheritance }: StringFormatEditorProps): React.JSX.Element {
     return (
         <>
             <Typography
@@ -250,6 +254,7 @@ function StringFormatEditor({ format, onChange, socket }: StringFormatEditorProp
                 <ColorPickerField
                     label={Generic.t('json_table_string_text_color')}
                     value={format.stringTextColor ?? ''}
+                    swatchValue={format.stringTextColor || tableTextColor(inheritance)}
                     overridden={!!format.stringTextColor}
                     onChange={v => onChange({ type: 'string', stringTextColor: v || undefined })}
                     allowGradient

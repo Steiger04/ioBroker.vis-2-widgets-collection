@@ -64,7 +64,8 @@ interface ColorPickerFieldProps {
     /**
      * Colour the swatch shows while the user is not editing, when it differs from `value` — the
      * theme studio passes the resolved colour, so a stored value the resolution drops shows the
-     * inherited colour (what the canvas paints) while the hex text keeps the stored one.
+     * inherited colour (what the canvas paints) while the hex text keeps the stored one. The
+     * JsonTable editors pass the colour the table paints without a value (`cellColors`).
      * Defaults to `value`.
      */
     swatchValue?: string;
