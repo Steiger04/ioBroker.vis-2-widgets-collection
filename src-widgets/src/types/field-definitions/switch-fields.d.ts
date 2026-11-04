@@ -64,16 +64,42 @@ export interface SwitchFieldsRxData {
     trackSize?: number;
 
     /**
-     * Track color for both on and off states when no gradient is desired.
+     * Track color when the switch is on. Unset, the legacy {@link trackColor} applies, else the
+     * theme primary color (MUI's checked track).
      *
      * @example
      * ```typescript
      * const data: SwitchFieldsRxData = {
-     *     trackColor: 'rgba(255,255,255,0.25)'
+     *     trackColorTrue: '#4caf50'
      * };
      * ```
      * @remarks
-     * Provide a color with sufficient contrast against the background.
+     * Drawn with MUI's fixed track opacity (0.5; locked 0.12 light / 0.2 dark).
+     * @see {@link trackColorFalse}
+     */
+    trackColorTrue?: string;
+
+    /**
+     * Track color when the switch is off. Unset, the legacy {@link trackColor} applies, else
+     * black (light) / white (dark) — MUI's `common.onBackground`.
+     *
+     * @example
+     * ```typescript
+     * const data: SwitchFieldsRxData = {
+     *     trackColorFalse: '#9e9e9e'
+     * };
+     * ```
+     * @remarks
+     * Drawn with MUI's fixed track opacity (0.38 light / 0.3 dark; locked 0.12 / 0.2).
+     * @see {@link trackColorTrue}
+     */
+    trackColorFalse?: string;
+
+    /**
+     * Legacy track color for both on and off states.
+     *
+     * @deprecated Use {@link trackColorTrue} / {@link trackColorFalse}. Still read as their
+     * fallback (stored data is never rewritten); the attribute panel shows it only while set.
      */
     trackColor?: string;
 }
