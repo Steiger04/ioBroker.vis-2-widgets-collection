@@ -24,7 +24,7 @@ import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { ColorTerminal, ExtendedField } from '../../types/field-definitions/extended-field';
 import { solidOf } from './colorDerivation';
-import { applyColorInputRules } from './colorInputRules';
+import { readStoredColor } from './colorInputRules';
 
 /** Minimal shape needed to read the vis-2 widget CSS `color`. */
 export type StyleColor = Pick<WidgetStyleState, 'color'> | undefined;
@@ -65,11 +65,7 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
  * editor never stores one; the cascade does not know `noGradient`.
  */
 function validColor(value: unknown): string | undefined {
-    if (typeof value !== 'string') {
-        return undefined;
-    }
-    const result = applyColorInputRules(value, { source: 'typed', allowGradient: true });
-    return result.kind === 'value' ? result.value : undefined;
+    return readStoredColor(value) ?? undefined;
 }
 
 /**

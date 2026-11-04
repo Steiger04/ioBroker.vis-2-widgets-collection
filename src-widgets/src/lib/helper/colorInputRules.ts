@@ -187,3 +187,21 @@ export function applyColorInputRules(text: string | null | undefined, options: C
     const isCssColor = options.isCssColor ?? isBrowserCssColor;
     return isCssColor(trimmed) ? { kind: 'value', value: trimmed } : { kind: 'invalid', reason: 'notAColor' };
 }
+
+/**
+ * A stored colour value as it takes effect — read with the rules as typed, gradients allowed
+ * (the stored value is what the editor once accepted; `noGradient` is the editor's concern).
+ *
+ * @param value - Stored value (any type; only strings can be colours).
+ * @returns The trimmed colour, or null when unset or no colour.
+ * @example
+ * readStoredColor(' red ') // → 'red'
+ * readStoredColor('not-a-color') // → null
+ */
+export function readStoredColor(value: unknown): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const result = applyColorInputRules(value, { source: 'typed', allowGradient: true });
+    return result.kind === 'value' ? result.value : null;
+}

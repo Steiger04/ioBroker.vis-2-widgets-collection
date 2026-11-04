@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { applyColorInputRules, type ColorInputOptions } from './colorInputRules';
+import { applyColorInputRules, readStoredColor, type ColorInputOptions } from './colorInputRules';
 
 /** Stand-in for `CSS.supports('color', …)`: hex, rgb(a), hsl(a), names, `transparent`, `var()`. */
 const browserLike = (text: string): boolean =>
@@ -211,5 +211,19 @@ describe('applyColorInputRules — default CSS check', () => {
         } finally {
             (globalThis as { CSS?: unknown }).CSS = original;
         }
+    });
+});
+
+describe('readStoredColor — a stored value as it takes effect', () => {
+    it('reads a stored colour trimmed, a gradient included (node: hex / rgb(a) check)', () => {
+        expect(readStoredColor(' #abc ')).toBe('#abc');
+        expect(readStoredColor(GRADIENT)).toBe(GRADIENT);
+    });
+
+    it('is null for unset, non-string and non-colour values', () => {
+        expect(readStoredColor(undefined)).toBeNull();
+        expect(readStoredColor('')).toBeNull();
+        expect(readStoredColor(42)).toBeNull();
+        expect(readStoredColor('not-a-color')).toBeNull();
     });
 });

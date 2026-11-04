@@ -25,7 +25,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 
 import ColorTextFieldRow from '../../components/ColorTextFieldRow';
 import Generic from '../../Generic';
-import { applyColorInputRules } from '../../lib/helper/colorInputRules';
+import { readStoredColor } from '../../lib/helper/colorInputRules';
 import type { OidPickerCtx } from './OidPicker';
 
 interface ColorFieldProps {
@@ -57,13 +57,7 @@ interface ColorFieldProps {
  * @returns The swatch colour.
  */
 function swatchColorOf(value: string | null | undefined, fallback: string | undefined): string {
-    for (const candidate of [value, fallback]) {
-        const result = applyColorInputRules(candidate, { source: 'typed', allowGradient: true });
-        if (result.kind === 'value') {
-            return result.value;
-        }
-    }
-    return '';
+    return readStoredColor(value) ?? readStoredColor(fallback) ?? '';
 }
 
 /**
