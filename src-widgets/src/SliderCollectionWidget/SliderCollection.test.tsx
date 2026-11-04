@@ -224,6 +224,68 @@ describe('SliderCollection mark label font size', () => {
     });
 });
 
+// Characterisation of the end icon colours (ADR-0004, CONTEXT "Slider Collection Widget"): the
+// mask is forced, but the primary fallback only applies to a Base64 icon — an image icon (URL,
+// path) keeps its own colours until the user sets a value. The swatch shows the Base64 colour.
+describe('SliderCollection end icon colours', () => {
+    const BASE64_ICON =
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIvPg==';
+    const URL_ICON = '/vis-2.0/main/img/slider-end.png';
+    // The preview host theme: Theme('light') → palette.primary.main.
+    const PRIMARY = '#3399CC';
+
+    /** The inline style of the end icon showing `src`, mounted with the given data. */
+    const iconStyle = (src: string, data: Record<string, unknown>): CSSStyleDeclaration => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-icon-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    iconMin: BASE64_ICON,
+                    iconMax: URL_ICON,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const icon = Array.from(container.querySelectorAll('img')).find(img => img.getAttribute('src') === src);
+        if (!icon) {
+            throw new Error(`the slider rendered no end icon for ${src}`);
+        }
+        return icon.style;
+    };
+
+    it('paints a Base64 icon without a value in the primary colour', () => {
+        const style = iconStyle(BASE64_ICON, {});
+
+        expect(style.color.toLowerCase()).toBe(PRIMARY.toLowerCase());
+        expect(style.filter).toContain('drop-shadow');
+    });
+
+    it('leaves an image icon (URL) without a value uncoloured', () => {
+        const style = iconStyle(URL_ICON, {});
+
+        expect(style.color).toBe('');
+        expect(style.filter).toBe('');
+        expect(style.transform).toBe('');
+    });
+
+    it('paints an image icon (URL) with its own value through the forced mask', () => {
+        const style = iconStyle(URL_ICON, { endIconColor: '#aa0000' });
+
+        expect(style.color.toLowerCase()).toBe('#aa0000');
+        expect(style.filter).toContain('drop-shadow');
+    });
+});
+
 describe('SliderCollection Sperre', () => {
     /** The slider's native range input, mounted with the given widget data. */
     const rangeInput = (data: Record<string, unknown>): HTMLInputElement | null => {
