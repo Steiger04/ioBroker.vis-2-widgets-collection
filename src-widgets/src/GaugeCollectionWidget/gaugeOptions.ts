@@ -62,6 +62,11 @@ export interface GaugeOptionsContext {
     theme: Theme;
     /** vis-2 widget style fragment (cascade level 3: inherit the widget text color). */
     textStyles: StyleColor;
+    /**
+     * Resolves a CSS colour the canvas cannot paint (`var(…)`) in the widget's context; `null`
+     * when it does not resolve. Without it such colours count as unset (fallback/default).
+     */
+    resolveCssColor?: (value: string) => string | null;
 }
 
 /** Effective value range (explicit gauge fields win over the bound object's min/max). */
@@ -87,6 +92,43 @@ const SPECIAL_FIELDS = new Set([
     'gaugeMaxValue',
     'gaugeMajorTicks',
 ]);
+
+/** Whether canvas-gauges cannot paint a colour as it stands: a CSS variable needs resolving. */
+const needsResolving = (value: unknown): value is string => typeof value === 'string' && /var\(/i.test(value);
+
+/**
+ * Widget data and widget text style with every `var(…)` colour resolved for the canvas — an
+ * unresolvable one is unset, so the cascade (contract fields) or the schema default (Schlichte
+ * Farbfelder) applies as before the Farbwähler accepted typed CSS variables.
+ */
+function canvasColors(
+    fields: readonly BuilderField[],
+    data: Record<string, unknown>,
+    textStyles: StyleColor,
+    resolve: GaugeOptionsContext['resolveCssColor'],
+): { data: Record<string, unknown>; textStyles: StyleColor } {
+    const resolved = (value: string): string | undefined => resolve?.(value) ?? undefined;
+    const names = new Set<string>();
+    for (const field of fields) {
+        if (field.name && (field.terminal !== undefined || field.plainColor === true)) {
+            names.add(field.name);
+            field.fallbackFields?.forEach(name => names.add(name));
+        }
+    }
+    let result = data;
+    for (const name of names) {
+        const value = data[name];
+        if (needsResolving(value)) {
+            result = result === data ? { ...data } : result;
+            result[name] = resolved(value);
+        }
+    }
+    const textColor = textStyles?.color;
+    return {
+        data: result,
+        textStyles: needsResolving(textColor) ? { ...textStyles, color: resolved(textColor) } : textStyles,
+    };
+}
 
 /** Schema default of a field, read from the injected definitions (single source). */
 function fieldDefault(fields: readonly BuilderField[], name: string): unknown {
@@ -173,7 +215,12 @@ export function buildGaugeOptions(
     widgetData: object,
     ctx: GaugeOptionsContext,
 ): GaugeOptions {
-    const data = widgetData as Record<string, unknown>;
+    const { data, textStyles } = canvasColors(
+        fields,
+        widgetData as Record<string, unknown>,
+        ctx.textStyles,
+        ctx.resolveCssColor,
+    );
     const options: Record<string, unknown> = {
         gaugeType: resolveString(data.gaugeType, 'linear') === 'radial' ? 'radial' : 'linear',
     };
@@ -204,7 +251,7 @@ export function buildGaugeOptions(
                 terminal: field.terminal,
                 inheritTextStyle: field.inheritTextStyle,
             };
-            options[key] = resolveEffectiveColor(contract, data, ctx.theme, ctx.textStyles);
+            options[key] = resolveEffectiveColor(contract, data, ctx.theme, textStyles);
             continue;
         }
 

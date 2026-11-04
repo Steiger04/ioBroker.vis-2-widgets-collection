@@ -105,3 +105,21 @@ describe('GaugeCollection corner icon (Eck-Icon)', () => {
         expect(icon?.getAttribute('src')).toBe('warm.svg');
     });
 });
+
+describe('GaugeCollection CSS variables', () => {
+    it('hands the canvas the colour a var(…) resolves to in the widget, the default when it does not', () => {
+        document.documentElement.style.setProperty('--gauge-test-accent', 'rgb(10, 20, 30)');
+        try {
+            handedOver.options.length = 0;
+            mountBody(
+                GaugeCollection,
+                scene({ gaugeColorBar: 'var(--gauge-test-accent)', gaugeColorPlate: 'var(--gauge-test-missing)' }),
+            );
+            expect(lastOptions()?.colorBar).toBe('rgb(10, 20, 30)');
+            // Unresolvable: the schema default of the Schlichtes Farbfeld, as for an empty field.
+            expect(lastOptions()?.colorPlate).toBe('rgba(0,0,0,0)');
+        } finally {
+            document.documentElement.style.removeProperty('--gauge-test-accent');
+        }
+    });
+});

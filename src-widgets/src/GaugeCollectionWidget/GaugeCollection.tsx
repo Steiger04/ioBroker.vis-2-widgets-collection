@@ -13,7 +13,7 @@
  */
 
 import { Box } from '@mui/material';
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
@@ -30,21 +30,61 @@ import { buildHighlights, findSegment, resolveSegmentBackground, resolveSegmentF
 
 import type { GaugeOptions } from 'canvas-gauges';
 
-/** Builds the complete option set for a canvas size in px. */
-type BuildGaugeOptions = (size: { width: number; height: number }) => GaugeOptions;
+/** Builds the complete option set for a canvas size in px and the widget's CSS colour resolver. */
+type BuildGaugeOptions = (input: {
+    width: number;
+    height: number;
+    resolveCssColor: ((value: string) => string | null) | undefined;
+}) => GaugeOptions;
+
+/** Colour of the probe's parent: a probe that still shows it took no colour from its value. */
+const UNRESOLVED = 'rgb(1, 2, 3)';
+
+/**
+ * Resolves a CSS colour the canvas cannot paint (`var(…)`) at a probe inside the widget, so the
+ * variables of view and widget apply. An unresolvable value is invalid at computed-value time
+ * and inherits the parent's sentinel colour.
+ *
+ * @param probe - Hidden element inside the widget.
+ * @param value - CSS colour text.
+ * @returns The computed colour, or null when it does not resolve.
+ */
+function resolveCssColorAt(probe: HTMLElement, value: string): string | null {
+    probe.style.setProperty('color', value);
+    const computed = getComputedStyle(probe).color;
+    probe.style.removeProperty('color');
+    return computed && computed !== UNRESOLVED ? computed : null;
+}
 
 /**
  * The canvas, sized by the frame's Content-Box — a child of CollectionBase, where the box is
  * published. An unmeasured box counts as 0 × 0 (the adapter draws nothing below its minimum).
+ * A hidden probe next to it resolves CSS variables for the canvas (canvas-gauges paints no
+ * `var(…)`); until it is mounted such colours fall back like unset ones.
  */
 function SizedGauge({ buildOptions }: { buildOptions: BuildGaugeOptions }): React.JSX.Element {
     const { width, height } = useContentBox();
+    const [probe, setProbe] = useState<HTMLElement | null>(null);
+    const resolveCssColor = useMemo(
+        () => (probe ? (value: string): string | null => resolveCssColorAt(probe, value) : undefined),
+        [probe],
+    );
     const options = useMemo(
-        () => buildOptions({ width: width || 0, height: height || 0 }),
-        [buildOptions, width, height],
+        () => buildOptions({ width: width || 0, height: height || 0, resolveCssColor }),
+        [buildOptions, width, height, resolveCssColor],
     );
 
-    return <Gauge options={options} />;
+    return (
+        <>
+            <span
+                hidden
+                style={{ color: UNRESOLVED }}
+            >
+                <span ref={setProbe} />
+            </span>
+            <Gauge options={options} />
+        </>
+    );
 }
 
 /**
@@ -110,10 +150,11 @@ function GaugeCollection(): React.JSX.Element {
     // padding, value/unit/title) live behind this seam. The canvas size joins
     // inside the frame (SizedGauge).
     const buildOptions = useCallback<BuildGaugeOptions>(
-        ({ width, height }) =>
+        ({ width, height, resolveCssColor }) =>
             buildGaugeOptions(fields, widget.data, {
                 width,
                 height,
+                resolveCssColor,
                 value: oidValue,
                 unit: oidObject?.unit,
                 header: data.header,

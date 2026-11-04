@@ -159,6 +159,48 @@ describe('buildGaugeOptions — Schlichte Farbfelder (ADR-0102)', () => {
     });
 });
 
+describe('buildGaugeOptions — CSS variables the canvas cannot paint', () => {
+    const views: Record<string, string> = { 'var(--accent)': 'rgb(1, 2, 3)', 'var(--text)': 'rgb(4, 5, 6)' };
+    const resolveCssColor = (value: string): string | null => views[value] ?? null;
+    const withResolver = { ...CTX, resolveCssColor };
+
+    it('hands the resolved colour of a var(…) to the canvas', () => {
+        const options = build({ gaugeColorNeedle: 'var(--accent)', gaugeColorBar: 'var(--accent)' }, withResolver);
+        expect(options.colorNeedle).toBe('rgb(1, 2, 3)');
+        expect(options.colorBar).toBe('rgb(1, 2, 3)');
+    });
+
+    it('falls back as for an unset field when the variable does not resolve', () => {
+        const options = build({ gaugeColorNeedle: 'var(--missing)', gaugeColorBar: 'var(--missing)' }, withResolver);
+        // Contract field: the cascade goes on to its terminal; Schlichtes Farbfeld: its schema default.
+        expect(options.colorNeedle).toBe('#1976d2');
+        expect(options.colorBar).toBe('#ccc');
+    });
+
+    it('falls back without a resolver (no widget element yet)', () => {
+        const options = build({ gaugeColorNeedle: 'var(--accent)', gaugeColorBar: 'var(--accent)' });
+        expect(options.colorNeedle).toBe('#1976d2');
+        expect(options.colorBar).toBe('#ccc');
+    });
+
+    it('resolves a var(…) inherited from the vis-2 widget text colour', () => {
+        expect(build({}, { ...withResolver, textStyles: { color: 'var(--text)' } }).colorTitle).toBe('rgb(4, 5, 6)');
+        expect(build({}, { ...withResolver, textStyles: { color: 'var(--missing)' } }).colorTitle).toBe(
+            'rgba(0,0,0,0.87)',
+        );
+    });
+
+    it('leaves colours the canvas paints alone', () => {
+        const resolver = (): string => 'rgb(9, 9, 9)';
+        const options = build(
+            { gaugeColorNeedle: '#123456', gaugeColorBar: 'red' },
+            { ...CTX, resolveCssColor: resolver },
+        );
+        expect(options.colorNeedle).toBe('#123456');
+        expect(options.colorBar).toBe('red');
+    });
+});
+
 describe('buildGaugeOptions — prefix strip and specials', () => {
     it('maps gaugeX → x and skips editor-only custom fields', () => {
         const options = build({}) as Record<string, unknown>;
