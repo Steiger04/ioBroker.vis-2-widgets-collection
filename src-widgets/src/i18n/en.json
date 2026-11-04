@@ -54,6 +54,7 @@
     "color_light_temperature_oid": "Color temperature",
     "color_light_type": "Light type",
     "color_light_ui_component": "UI component",
+    "color_picker_alpha_hint": "Opacity in percent (0–100)",
     "color_picker_close": "Close",
     "color_wheel_lightness": "Wheel darken",
     "delay": "Delay",

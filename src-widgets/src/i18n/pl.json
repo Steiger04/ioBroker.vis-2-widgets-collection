@@ -1350,5 +1350,6 @@
     "echarts_card_tab_json": "JSON",
     "color_gradient_not_allowed": "Gradient nie jest tu możliwy",
     "color_invalid": "Nieprawidłowy kolor",
-    "color_picker_close": "Zamknij"
+    "color_picker_close": "Zamknij",
+    "color_picker_alpha_hint": "Krycie w procentach (0–100)"
 }

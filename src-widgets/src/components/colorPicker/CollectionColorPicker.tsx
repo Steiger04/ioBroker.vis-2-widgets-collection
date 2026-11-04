@@ -7,8 +7,12 @@
  * passed) and receives the chosen value through `onCommit`. This module is the only importer of
  * the picker library (`react-best-gradient-color-picker`), so an engine swap touches one place.
  *
- * Inside: a header row (title left, close × right), the library with its configuration, and the
- * popover that follows its content (`FollowingPopover`). Picks are shown at once and committed
+ * Inside: a header row (title left, close × right), the library with its configuration, the
+ * library's preset row with its large preview, and the popover that follows its content
+ * (`FollowingPopover`). Passed presets win; without them the Collection theme colours are read
+ * through `socket` by `ThemePresets` — mounted only while open, so closed pickers cost nothing. A
+ * preset click is a pick like any other (stored as its fixed value; to follow the theme, leave
+ * the field empty). Picks are shown at once and committed
  * live with a 150 ms debounce; a pending commit is flushed when the Farbwähler closes (×,
  * Escape, click outside, the field row taking the anchor away) and on unmount. A pick passes the
  * Regeln für Farbeingaben as `picked`: solid colours are stored as `#rrggbb` / `#rrggbbaa`,
@@ -22,6 +26,7 @@
  * (the popover is the topmost modal while open).
  */
 
+import type { Connection } from '@iobroker/adapter-react-v5';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
@@ -30,7 +35,9 @@ import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
+import ColorInputRow from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
+import ThemePresets from './ThemePresets';
 
 /** Debounce of the live commit while the user drags, in ms. */
 const COMMIT_DELAY_MS = 150;
@@ -50,15 +57,45 @@ export interface CollectionColorPickerProps {
     /** Whether the field takes gradients: shows Solid/Gradient and the gradient controls. */
     allowGradient: boolean;
     /**
-     * Preset colours (Ticket 05: preset row with large preview; without them the Farbwähler reads
-     * the Collection theme colours while open). Not shown yet.
+     * Preset colours of the preset row (with the library's large preview); they win over the
+     * Collection theme. An empty list switches the row off.
      */
     presets?: string[];
+    /**
+     * Connection the Collection theme is read from when no `presets` are passed — only while the
+     * Farbwähler is open. Without both, the preset row stays off.
+     */
+    socket?: Connection;
 }
+
+/** Most presets the library shows (two rows of nine). */
+const MAX_PRESETS = 18;
 
 /** Whether the browser offers the native EyeDropper API (the library's fallback is slow/broken). */
 function hasNativeEyeDropper(): boolean {
     return typeof window !== 'undefined' && 'EyeDropper' in window;
+}
+
+/**
+ * The presets the library gets: trimmed, without duplicates, gradients only where allowed.
+ *
+ * @param presets - Passed or theme presets.
+ * @param allowGradient - Field takes gradients.
+ * @returns At most {@link MAX_PRESETS} colours.
+ */
+function pickerPresets(presets: string[], allowGradient: boolean): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const raw of presets) {
+        const preset = raw.trim();
+        const key = preset.toLowerCase();
+        if (!preset || seen.has(key) || (!allowGradient && key.includes('gradient('))) {
+            continue;
+        }
+        seen.add(key);
+        result.push(preset);
+    }
+    return result.slice(0, MAX_PRESETS);
 }
 
 /**
@@ -67,16 +104,20 @@ function hasNativeEyeDropper(): boolean {
  * @param options - What the field allows and the ambient theme.
  * @param options.allowGradient - Field takes gradients.
  * @param options.theme - Ambient MUI theme of the surface.
+ * @param options.presets - Passed or theme presets; empty = preset row off.
  * @returns Library props (without value / onChange).
  */
 function libraryConfig({
     allowGradient,
     theme,
+    presets,
 }: {
     allowGradient: boolean;
     theme: Theme;
+    presets: string[];
 }): Omit<ColorPickerProps, 'value' | 'onChange'> {
     const dark = theme.palette.mode === 'dark';
+    const shownPresets = pickerPresets(presets, allowGradient);
     const muted = theme.palette.text.secondary;
     return {
         // Square, hue, alpha, Advanced sliders and Color Guide stay on (library defaults).
@@ -86,8 +127,9 @@ function libraryConfig({
         hideInputs: true,
         hideInputType: true,
         hideEyeDrop: !hasNativeEyeDropper(),
-        // Presets come with Ticket 05.
-        hidePresets: true,
+        // Without presets the row stays off — the library would show its demo colours.
+        hidePresets: shownPresets.length === 0,
+        presets: shownPresets,
         disableDarkMode: !dark,
         disableLightMode: dark,
         style: {
@@ -151,6 +193,8 @@ function PickerHeader({ title, onClose }: { title?: string; onClose: () => void 
  * @param props.value - Colour shown.
  * @param props.onCommit - Receives each chosen, normalized value.
  * @param props.allowGradient - Field takes gradients.
+ * @param props.presets - Preset colours (win over the Collection theme).
+ * @param props.socket - Connection for the Collection theme presets.
  * @returns The popover.
  */
 function CollectionColorPicker({
@@ -160,6 +204,8 @@ function CollectionColorPicker({
     value,
     onCommit,
     allowGradient,
+    presets,
+    socket,
 }: CollectionColorPickerProps): React.JSX.Element {
     const theme = useTheme();
     const open = anchorEl !== null;
@@ -224,6 +270,15 @@ function CollectionColorPicker({
     }, [open, flush]);
     useEffect(() => flush, [flush]);
 
+    // Passed presets win; without them the Collection theme supplies them (read only while open).
+    const renderLibrary = (libraryPresets: string[]): React.JSX.Element => (
+        <ColorPicker
+            {...libraryConfig({ allowGradient, theme, presets: libraryPresets })}
+            value={draft}
+            onChange={handlePick}
+        />
+    );
+
     return (
         <FollowingPopover
             open={open}
@@ -242,12 +297,21 @@ function CollectionColorPicker({
                 title={title}
                 onClose={handleClose}
             />
-            <ColorPicker
-                {...libraryConfig({ allowGradient, theme })}
+            {presets === undefined && socket ? (
+                <ThemePresets
+                    socket={socket}
+                    hostTheme={theme}
+                >
+                    {renderLibrary}
+                </ThemePresets>
+            ) : (
+                renderLibrary(presets ?? [])
+            )}
+            {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
+            <ColorInputRow
                 value={draft}
                 onChange={handlePick}
             />
-            {/* Input row HEX · R · G · B · A (Ticket 04) docks here: value={draft}, onChange={handlePick}. */}
         </FollowingPopover>
     );
 }

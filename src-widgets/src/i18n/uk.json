@@ -1350,5 +1350,6 @@
     "echarts_card_tab_json": "JSON",
     "color_gradient_not_allowed": "Градієнт тут неможливий",
     "color_invalid": "Недійсний колір",
-    "color_picker_close": "Закрити"
+    "color_picker_close": "Закрити",
+    "color_picker_alpha_hint": "Непрозорість у відсотках (0–100)"
 }
