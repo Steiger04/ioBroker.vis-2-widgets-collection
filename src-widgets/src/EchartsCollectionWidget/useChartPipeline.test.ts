@@ -1395,6 +1395,22 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
         expect((stacked.option.series as { data: (number | null)[] }[]).map(s => s.data[0])).toEqual([10, 20]);
     });
 
+    it('a Farbskala on a percent-stacked bar inherits the range of the displayed SHARES (ADR-0101, ticket 05)', () => {
+        const { option } = percentCase(
+            [
+                { name: 'A', data: [10, 30] },
+                { name: 'B', data: [30, 10] },
+            ],
+            [{ colorScale: true, color: '#ff0000' }, {}],
+        );
+        const vm = option.visualMap as { seriesIndex: number; min: number; max: number }[];
+        expect(vm).toHaveLength(1);
+        // A's shares are 25 % and 75 % — never the absolute 10…30.
+        expect(vm[0]).toMatchObject({ seriesIndex: 0 });
+        expect(vm[0].min).toBeCloseTo(0.25);
+        expect(vm[0].max).toBeCloseTo(0.75);
+    });
+
     it('the absolute values ride percentAbsolute for the tooltip; legend values read the SHARES', () => {
         const { option } = percentCase(
             [

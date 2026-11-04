@@ -3796,4 +3796,95 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
         // „Flächig“: no own colour — echarts fills the area with the scale's visual colour.
         expect(run('flat')).not.toHaveProperty('color');
     });
+
+    describe('edge cases (ticket 05)', () => {
+        const ramp: ChartSeries['data'] = [
+            [1, 10],
+            [2, 20],
+        ];
+        const build = (
+            series: ChartSeries[],
+            meta: EchartsSeriesMeta[],
+            yAxes: { min?: number; max?: number }[] = [],
+        ): VmEntry[] | undefined =>
+            vmOf(buildGeneratedOption({ family: 'cartesian', series, meta, p: { ...P, yAxes } }));
+
+        it('an entered Min ≥ Max emits no entry for that series — the others keep theirs', () => {
+            const vm = build(
+                [
+                    { name: 'A', data: ramp },
+                    { name: 'B', data: ramp },
+                    { name: 'C', data: ramp },
+                ],
+                [
+                    { color: '#ff0000', colorScale: true, colorScaleMin: 30, colorScaleMax: 5 },
+                    { color: '#ff0000', colorScale: true, colorScaleMin: 7, colorScaleMax: 7 },
+                    { color: '#ff0000', colorScale: true },
+                ],
+            );
+            expect(vm).toHaveLength(1);
+            expect(vm![0]).toMatchObject({ seriesIndex: 2, min: 10, max: 20 });
+        });
+
+        it('a constant series with an inherited range draws the middle scale colour only', () => {
+            const constant: ChartSeries['data'] = [
+                [1, 12],
+                [2, 12],
+            ];
+            const vm = build(
+                [
+                    { name: 'A', data: constant },
+                    { name: 'B', data: constant },
+                ],
+                [
+                    // Derived scale light → colour → dark: the middle IS the series colour.
+                    { color: '#ff0000', colorScale: true },
+                    // An even chosen list: the middle lies halfway between the two inner stops.
+                    {
+                        color: '#ff0000',
+                        colorScale: true,
+                        colorScaleColors:
+                            'linear-gradient(90deg, #000000 0%, #000000 33.33%, #ffffff 66.67%, #ffffff 100%)',
+                    },
+                ],
+            );
+            expect(vm).toHaveLength(2);
+            expect(vm![0]).toMatchObject({ min: 12, max: 12 });
+            expect(vm![0].inRange.color).toEqual(['rgba(255, 0, 0, 1)']);
+            expect(vm![1].inRange.color).toEqual(['rgba(128, 128, 128, 1)']);
+        });
+
+        it('a mixed Min > Max (entry vs. inherited bound) is no input error — the middle colour, every value inside', () => {
+            const vm = build(
+                [{ name: 'A', data: ramp }],
+                // Max entered at 5, Min inherited from the data (10) → 10 > 5.
+                [{ color: '#ff0000', colorScale: true, colorScaleMax: 5 }],
+            );
+            expect(vm).toHaveLength(1);
+            expect(vm![0].inRange.color).toEqual(['rgba(255, 0, 0, 1)']);
+            expect(vm![0].min).toBeLessThanOrEqual(vm![0].max);
+            // No value may fall out of range into echarts' default out-of-range look.
+            expect((vm![0] as unknown as { outOfRange: { color: string[] } }).outOfRange.color).toEqual([
+                'rgba(255, 0, 0, 1)',
+            ]);
+        });
+
+        it('a series without finite values emits nothing — unless its whole range is entered', () => {
+            const empty: ChartSeries['data'] = [
+                [1, null],
+                [2, Number.NaN],
+            ];
+            // Both axis bounds known, still no values → nothing to colour.
+            expect(
+                build([{ name: 'A', data: empty }], [{ color: '#ff0000', colorScale: true }], [{ min: 0, max: 40 }]),
+            ).toBeUndefined();
+            // A completely entered range stands on its own.
+            const vm = build(
+                [{ name: 'A', data: empty }],
+                [{ color: '#ff0000', colorScale: true, colorScaleMin: 0, colorScaleMax: 10 }],
+            );
+            expect(vm).toHaveLength(1);
+            expect(vm![0]).toMatchObject({ min: 0, max: 10 });
+        });
+    });
 });

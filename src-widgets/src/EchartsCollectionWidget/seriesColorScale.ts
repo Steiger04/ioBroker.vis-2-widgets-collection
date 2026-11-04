@@ -144,10 +144,49 @@ export const resolveColorScaleRange = (
 };
 
 /**
+ * The colour in the MIDDLE of an evenly spaced scale (50 %) — the one colour a degenerate range
+ * (Min = Max, or an inherited Min > Max) draws. Odd length: the middle element unchanged; even
+ * length: the halfway mix of the two inner colours (alpha averaged). Unparseable inner colours
+ * fall back to the lower one — never `undefined` for a non-empty list.
+ */
+export const colorScaleMidColor = (colors: readonly string[]): string => {
+    const mid = (colors.length - 1) / 2;
+    if (Number.isInteger(mid)) {
+        return colors[mid];
+    }
+    const lo = colors[Math.floor(mid)];
+    const a = parseSeriesColor(lo);
+    const b = parseSeriesColor(colors[Math.ceil(mid)]);
+    if (!a || !b) {
+        return lo;
+    }
+    const m = mixRgba(a, b, 0.5);
+    return toRgbaString([m[0], m[1], m[2], (a[3] + b[3]) / 2]);
+};
+
+/**
+ * The INPUT ERROR of a Farbskala (ticket 05): the scale is on and BOTH bounds are entered with
+ * Min ≥ Max. Shared by the builder (no entry for the series), the validation (the series warning)
+ * and the Stil tab (the field error) — one predicate, three surfaces. Inherited or mixed bounds
+ * that collide are no input error (they degrade to the middle colour instead).
+ */
+export const colorScaleRangeInvalid = (
+    meta: Pick<EchartsSeriesMeta, 'colorScale' | 'colorScaleMin' | 'colorScaleMax'> | undefined,
+): boolean =>
+    meta?.colorScale === true &&
+    finite(meta.colorScaleMin) &&
+    finite(meta.colorScaleMax) &&
+    meta.colorScaleMin >= meta.colorScaleMax;
+
+/**
  * The `visualMap` entry of one series with an active Farbskala — `null` when the series has none
- * (switch off), nothing to colour with, or no resolvable range (e.g. a series without finite
- * values and no complete authored range). Edge cases (Min ≥ Max, constant series) are decided
- * here (ticket 05).
+ * (switch off), nothing to colour with, or no resolvable range.
+ *
+ * Edge cases (ticket 05):
+ * - an ENTERED Min ≥ Max ({@link colorScaleRangeInvalid}) → no entry (the validation warns);
+ * - a series without finite values → no entry, unless its whole range is entered;
+ * - a resolved Min ≥ Max from inherited or mixed bounds (a constant series, an entry beyond the
+ *   data) → ONE colour, the middle of the scale, in- AND out-of-range (every value draws it).
  *
  * @param seriesIndex - The series' index in the emitted `series` array (= its meta index).
  * @param meta - The series config.
@@ -162,24 +201,32 @@ export const buildColorScaleEntry = (
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     data: ChartSeries['data'],
 ): Record<string, unknown> | null => {
-    if (!meta?.colorScale) {
+    if (!meta?.colorScale || colorScaleRangeInvalid(meta)) {
         return null;
     }
     const colors = resolveColorScaleColors(meta.colorScaleColors, seriesColor);
     if (!colors) {
         return null;
     }
-    const { min, max } = resolveColorScaleRange(meta, axis, seriesValueExtent(data));
+    const extent = seriesValueExtent(data);
+    const { min, max } = resolveColorScaleRange(meta, axis, extent);
     if (min.value === undefined || max.value === undefined) {
         return null;
     }
-    return {
-        type: 'continuous',
-        seriesIndex,
-        dimension: 1,
-        show: false,
-        min: min.value,
-        max: max.value,
-        inRange: { color: colors },
-    };
+    // Nothing to colour: no finite value and no range the user fully authored.
+    if (!extent && !(min.source === 'entry' && max.source === 'entry')) {
+        return null;
+    }
+    const entry = { type: 'continuous', seriesIndex, dimension: 1, show: false };
+    if (min.value >= max.value) {
+        const mid = [colorScaleMidColor(colors)];
+        return {
+            ...entry,
+            min: Math.min(min.value, max.value),
+            max: Math.max(min.value, max.value),
+            inRange: { color: mid },
+            outOfRange: { color: mid },
+        };
+    }
+    return { ...entry, min: min.value, max: max.value, inRange: { color: colors } };
 };
