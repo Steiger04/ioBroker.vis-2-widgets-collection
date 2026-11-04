@@ -254,6 +254,30 @@ describe('CollectionColorPicker input row', () => {
         expect(labelOf('hex')).toBe('HEX');
     });
 
+    it('leaves the fields empty for a value it cannot read, and a typed hex replaces it', () => {
+        const { onCommit } = mount({ value: 'var(--accent)' });
+        expect(field('hex').value).toBe('');
+        expect(field('r').value).toBe('');
+        expect(field('a').value).toBe('');
+        // A single channel cannot build a colour on an unreadable one (it would start from black).
+        expect(field('r').disabled).toBe(true);
+        type('hex', '#336699');
+        press(field('hex'), 'Enter');
+        advance(150);
+        expect(onCommit).toHaveBeenCalledExactlyOnceWith('#336699');
+        expect(field('r').value).toBe('51');
+        expect(field('r').disabled).toBe(false);
+    });
+
+    it('still shows a black value and a colour name it can read', () => {
+        mount({ value: 'black' });
+        expect(field('hex').value).toBe('#000000');
+        expect(field('r').disabled).toBe(false);
+        handle?.unmount();
+        mount({ value: 'red' });
+        expect(field('hex').value).toBe('#ff0000');
+    });
+
     it('takes the alpha from an 8-digit hex and keeps it with a 6-digit one', () => {
         const { onCommit } = mount({ value: '#11223380' });
         expect(field('a').value).toBe('50');

@@ -126,7 +126,7 @@ export function parseHexColor(text: string): { r: number; g: number; b: number; 
  * @param text - Trimmed colour text.
  * @returns The normalised hex, or undefined.
  */
-function normaliseSolid(text: string): string | undefined {
+export function normaliseSolid(text: string): string | undefined {
     const hex = parseHexColor(text);
     if (hex) {
         return rgbaToHex(hex.r, hex.g, hex.b, hex.alpha ?? 1);

@@ -20,7 +20,7 @@ import { useState } from 'react';
 import type React from 'react';
 import { useColorPicker } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
-import { clamp, parseHexColor, rgbaToHex } from '../../lib/helper/colorInputRules';
+import { clamp, normaliseSolid, parseHexColor, rgbaToHex } from '../../lib/helper/colorInputRules';
 
 /** Props for {@link ColorInputRow}. */
 export interface ColorInputRowProps {
@@ -66,6 +66,24 @@ function parseHex(text: string, current: Rgba): Rgba | null {
     };
 }
 
+/**
+ * Whether the library hook could not read the value. Its colour calculation (tinycolor) reports
+ * an unreadable value — `var(--…)`, an unknown name — as opaque black, so opaque black counts as
+ * unreadable unless the value itself is black.
+ *
+ * @param value - The Farbwähler's raw value.
+ * @param rgba - What the hook read.
+ * @returns Whether the row has no colour to show.
+ */
+function isUnreadable(value: string, rgba: Rgba): boolean {
+    const { r, g, b, a } = rgba;
+    if (r !== 0 || g !== 0 || b !== 0 || a !== 1 || value.includes('gradient')) {
+        return false;
+    }
+    const text = value.trim().toLowerCase();
+    return text !== 'black' && normaliseSolid(text) !== '#000000' && normaliseSolid(`#${text}`) !== '#000000';
+}
+
 /** Props of one channel field. */
 interface ChannelFieldProps {
     channel: 'hex' | 'r' | 'g' | 'b' | 'a';
@@ -75,6 +93,8 @@ interface ChannelFieldProps {
     /** Turns typed text into the new colour; `null` = invalid, nothing is applied. */
     parse: (text: string) => Rgba | null;
     onApply: (next: Rgba) => void;
+    /** Field cannot be edited (a single channel of an unreadable value). */
+    disabled?: boolean;
 }
 
 /**
@@ -86,9 +106,10 @@ interface ChannelFieldProps {
  * @param props.shown - Current value, formatted.
  * @param props.parse - Turns typed text into the new colour (`null` = invalid).
  * @param props.onApply - Receives the new colour.
+ * @param props.disabled - Field cannot be edited.
  * @returns The field.
  */
-function ChannelField({ channel, label, shown, parse, onApply }: ChannelFieldProps): React.JSX.Element {
+function ChannelField({ channel, label, shown, parse, onApply, disabled }: ChannelFieldProps): React.JSX.Element {
     // Raw text of an open edit; null = the field shows the current value.
     const [edit, setEdit] = useState<string | null>(null);
 
@@ -120,6 +141,7 @@ function ChannelField({ channel, label, shown, parse, onApply }: ChannelFieldPro
         <TextField
             size="small"
             label={label}
+            disabled={disabled}
             value={edit ?? shown}
             onChange={(event): void => setEdit(event.target.value)}
             onBlur={apply}
@@ -153,8 +175,12 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
     const { rgbaArr, handleChange } = useColorPicker(value, onChange);
     const [r, g, b, a] = rgbaArr;
     const current: Rgba = { r, g, b, a };
+    // Unreadable (e.g. `var(--…)`): empty fields; only a complete hex replaces the colour —
+    // a single channel would build on the black the hook reports.
+    const unreadable = isUnreadable(value, current);
     // Same hex as the Regeln für Farbeingaben store for a pick (one source for the alpha byte).
-    const hex = rgbaToHex(r, g, b, a);
+    const hex = unreadable ? '' : rgbaToHex(r, g, b, a);
+    const shownNumber = (n: number): string => (unreadable ? '' : String(n));
     // The hook writes the selected stop of a gradient, else the solid colour.
     const applyRgba = (next: Rgba): void => handleChange(toRgbaString(next));
     const channel =
@@ -179,23 +205,26 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
             <ChannelField
                 channel="r"
                 label="R"
-                shown={String(r)}
+                shown={shownNumber(r)}
                 parse={channel('r')}
                 onApply={applyRgba}
+                disabled={unreadable}
             />
             <ChannelField
                 channel="g"
                 label="G"
-                shown={String(g)}
+                shown={shownNumber(g)}
                 parse={channel('g')}
                 onApply={applyRgba}
+                disabled={unreadable}
             />
             <ChannelField
                 channel="b"
                 label="B"
-                shown={String(b)}
+                shown={shownNumber(b)}
                 parse={channel('b')}
                 onApply={applyRgba}
+                disabled={unreadable}
             />
             <Tooltip
                 title={Generic.t('color_picker_alpha_hint')}
@@ -205,7 +234,8 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
                     <ChannelField
                         channel="a"
                         label="A"
-                        shown={String(Math.round(a * 100))}
+                        shown={shownNumber(Math.round(a * 100))}
+                        disabled={unreadable}
                         parse={(text): Rgba | null => {
                             const n = parseNumber(text);
                             return n === null ? null : { ...current, a: clamp(n, 0, 100) / 100 };
