@@ -31,12 +31,19 @@ import type { Connection } from '@iobroker/adapter-react-v5';
 
 import type * as GoogleFonts from '../lib/theme/googleFonts';
 
+// happy-dom has no canvas: the picker library of the Farbwähler is replaced by the shared fake.
+vi.mock(
+    'react-best-gradient-color-picker',
+    async () => (await import('../components/colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
+);
+
 // Google Fonts load over the network — stand in one face per requested family.
 vi.mock('../lib/theme/googleFonts', async importOriginal => ({
     ...(await importOriginal<typeof GoogleFonts>()),
     loadGoogleFont: vi.fn((name: string) => Promise.resolve([{ weight: 400, data: `data:font/woff2;base64,${name}` }])),
 }));
 
+import { lastLibraryProps } from '../components/colorPicker/testing/fakeColorPickerLibrary';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { BUNDLED_FONTS, CUSTOM_FONT_VALUE } from '../lib/theme/fontCatalogue';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
@@ -456,6 +463,65 @@ describe('ThemeStudioPanel field errors', () => {
             'theme_studio_valid_css_var_prefix',
         );
         expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
+    });
+});
+
+describe('ThemeStudioPanel Farbwähler', () => {
+    const panelCloseButton = (): HTMLButtonElement | null =>
+        document.body.querySelector<HTMLButtonElement>('button[aria-label="theme_studio_close"]');
+
+    /** The open Farbwähler's paper, if any. */
+    const pickerPaper = (): HTMLElement | null =>
+        document.body.querySelector<HTMLElement>('.MuiPopover-paper:has([data-picker-header])');
+
+    /** Opens the Farbwähler of the colour field labelled `labelKey` via its row. */
+    const openPickerOf = (labelKey: string): void => {
+        const label = Array.from(document.body.querySelectorAll<HTMLElement>('p')).find(
+            element => element.textContent === labelKey,
+        );
+        if (!label) {
+            throw new Error(`no colour field "${labelKey}"`);
+        }
+        act(() => label.click());
+    };
+
+    it('opens solid, titled with the field label', async () => {
+        await mountPanel(SEED);
+        await expandColorSections();
+        openPickerOf('theme_wizard_palette_primary');
+        expect(pickerPaper()?.querySelector('[data-picker-title]')?.textContent).toBe('theme_wizard_palette_primary');
+        expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
+        expect(lastLibraryProps().hideGradientControls).toBe(true);
+    });
+
+    it('closes only the Farbwähler on Escape, not the studio panel', async () => {
+        await mountPanel(SEED);
+        await expandColorSections();
+        openPickerOf('theme_wizard_palette_primary');
+        const target = pickerPaper()?.querySelector<HTMLElement>('button[data-pick="solid"]');
+        expect(target).toBeTruthy();
+        act(() => {
+            target!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        });
+        // The popover leaves after its exit transition.
+        await settle();
+        await act(() => new Promise<void>(resolve => setTimeout(resolve, 400)));
+        expect(pickerPaper()).toBeNull();
+        expect(panelCloseButton()).not.toBeNull();
+    });
+
+    it('takes a pick into the draft and the hex text', async () => {
+        await mountPanel(SEED);
+        await expandColorSections();
+        openPickerOf('theme_wizard_palette_primary');
+        act(() => pickerPaper()?.querySelector<HTMLElement>('button[data-pick="translucent"]')?.click());
+        await settle();
+        expect(getDraftTheme()?.palette?.primary).toEqual({ main: '#0080ff66' });
+        expect(
+            document.body.querySelector<HTMLInputElement>(
+                'input[data-hex-input][aria-label="theme_wizard_palette_primary"]',
+            )?.value,
+        ).toBe('#0080ff66');
     });
 });
 

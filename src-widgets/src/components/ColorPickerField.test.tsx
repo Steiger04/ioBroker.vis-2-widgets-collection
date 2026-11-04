@@ -8,9 +8,13 @@
  * commits an edited value on Enter or blur; Escape restores the value. The input is no part of
  * the swatch's click target: clicking into it must not open the picker popover.
  *
- * The following popover is tested over the Farbwähler seam (`colorPicker/CollectionColorPicker.test`).
+ * A click on the row opens the Farbwähler (`colorPicker/CollectionColorPicker`) with the label as
+ * title; its picks reach `onChange`. The theme studio (with `presets`) keeps it solid and hands
+ * the presets on, the JsonTable editors (without) keep gradients. The reset icon is the trash can.
+ * The Farbwähler itself (debounce, popover following its content) is tested over its own seam
+ * (`colorPicker/CollectionColorPicker.test`); here a spy records the props it receives.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
     // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
@@ -21,21 +25,47 @@ vi.hoisted(() => {
     };
 });
 
-// happy-dom has no canvas: the picker library is replaced by an inert fake.
-vi.mock('react-best-gradient-color-picker', () => ({ default: () => null }));
+// happy-dom has no canvas: the picker library is replaced by the shared fake.
+vi.mock(
+    'react-best-gradient-color-picker',
+    async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
+);
+
+// Props the Farbwähler receives, newest last — a spy around the real module.
+const pickerRenders = vi.hoisted((): Array<Record<string, unknown>> => []);
+vi.mock('./colorPicker/CollectionColorPicker', async importOriginal => {
+    const actual = await importOriginal<typeof CollectionColorPickerModule>();
+    const { createElement } = await import('react');
+    return {
+        ...actual,
+        default: (props: CollectionColorPickerModule.CollectionColorPickerProps): React.JSX.Element => {
+            pickerRenders.push({ ...props });
+            return createElement(actual.default, props);
+        },
+    };
+});
 
 import { act, type ComponentProps } from 'react';
+import type React from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
+import type * as CollectionColorPickerModule from './colorPicker/CollectionColorPicker';
+import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
 import ColorPickerField from './ColorPickerField';
 
 type Props = ComponentProps<typeof ColorPickerField>;
 
 let handle: RenderComponentHandle<Props> | null = null;
 
+beforeEach(() => {
+    resetFakeLibrary();
+    pickerRenders.length = 0;
+});
+
 afterEach(() => {
     handle?.unmount();
     handle = null;
+    vi.useRealTimers();
 });
 
 /** Mounts the field; returns its container and the change spy. */
@@ -177,5 +207,83 @@ describe('ColorPickerField swatch and error', () => {
         type(input, '#00ff00');
         press(input, 'Enter');
         expect(swatch()).toBe('#00ff00');
+    });
+});
+
+describe('ColorPickerField Farbwähler', () => {
+    /** The open Farbwähler's paper (throws when closed). */
+    const paper = (): HTMLElement => {
+        const el = document.body.querySelector<HTMLElement>('.MuiPopover-paper');
+        if (!el) {
+            throw new Error('the Farbwähler is not open');
+        }
+        return el;
+    };
+
+    const openPicker = (container: HTMLElement): void => {
+        act(() => container.querySelector<HTMLElement>('[data-swatch-color]')?.click());
+    };
+
+    /** Props of the latest Farbwähler render. */
+    const lastPickerProps = (): Record<string, unknown> => {
+        const last = pickerRenders[pickerRenders.length - 1];
+        if (!last) {
+            throw new Error('the Farbwähler was never rendered');
+        }
+        return last;
+    };
+
+    it('opens on a click on the row, with the label as title', () => {
+        const { container } = mount();
+        act(() => container.querySelector<HTMLElement>('p')?.click());
+        expect(paper().querySelector('[data-picker-title]')?.textContent).toBe('Primary');
+        expect(paper().querySelector('[data-fake-library]')?.getAttribute('data-value')).toBe('#112233');
+    });
+
+    it('commits a pick to onChange and shows it in the swatch', () => {
+        vi.useFakeTimers();
+        const { container, onChange } = mount();
+        openPicker(container);
+        act(() => paper().querySelector<HTMLElement>('button[data-pick="translucent"]')?.click());
+        act(() => {
+            vi.advanceTimersByTime(150);
+        });
+        expect(onChange).toHaveBeenCalledExactlyOnceWith('#0080ff66');
+        expect(container.querySelector<HTMLElement>('[data-swatch-color]')?.dataset.swatchColor).toBe('#0080ff66');
+    });
+
+    it('keeps gradients without presets (JsonTable editors)', () => {
+        const { container } = mount();
+        openPicker(container);
+        expect(lastPickerProps().allowGradient).toBe(true);
+        expect(lastLibraryProps().hideColorTypeBtns).toBe(false);
+    });
+
+    it('stays solid and hands the presets on with presets (theme studio)', () => {
+        const presets = ['#ff0000', '#00ff00'];
+        const { container } = mount({ presets });
+        openPicker(container);
+        expect(lastPickerProps().allowGradient).toBe(false);
+        expect(lastPickerProps().presets).toEqual(presets);
+        expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
+    });
+});
+
+describe('ColorPickerField reset', () => {
+    const resetButton = (container: HTMLElement): HTMLButtonElement | null =>
+        container.querySelector<HTMLButtonElement>('button[title="theme_studio_reset_color"]');
+
+    it('shows a trash can only while overridden', () => {
+        expect(resetButton(mount().container)).toBeNull();
+        handle?.unmount();
+        const button = resetButton(mount({ overridden: true }).container);
+        expect(button?.querySelector('[data-testid="DeleteIcon"]')).not.toBeNull();
+    });
+
+    it('resets without opening the Farbwähler', () => {
+        const { container, onChange } = mount({ overridden: true });
+        act(() => resetButton(container)?.click());
+        expect(onChange).toHaveBeenCalledExactlyOnceWith('');
+        expect(popoverOpen()).toBe(false);
     });
 });
