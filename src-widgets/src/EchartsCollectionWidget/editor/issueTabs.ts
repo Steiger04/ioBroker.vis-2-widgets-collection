@@ -9,6 +9,7 @@
  * this leaf instead of the validation engine. The validation engine re-exports the trio, so
  * existing import sites stay stable.
  */
+import { COLOR_SCALE_RANGE_ISSUE } from './seriesIssues';
 
 /** One validation finding: an i18n key plus optional `%s` interpolation args. */
 export interface ValidationIssue {
@@ -28,7 +29,7 @@ export const tabOfIssue = (issue: ValidationIssue): string | undefined => {
             return 'axes'; // inside the Y-axis cards on the Achsen tab
         case 'echarts_val_stack_timeaxis':
             return 'fetch'; // the bar cluster on the Datenabruf tab (ADR-0084 decision 6)
-        case 'echarts_val_color_scale_range':
+        case COLOR_SCALE_RANGE_ISSUE:
             // A CARD tab (ADR-0101 ticket 05): the Farbskala Min/Max live on the series card's
             // Stil tab. The Series section has no tab row — it opens the first affected card there.
             return 'stil';

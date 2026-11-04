@@ -20,7 +20,7 @@ import AxesZoomSection from '../../editor/sections/AxesZoomSection';
 import { effectiveCartesianType, effectiveStackName } from '../../stackMode';
 import type { EditorState } from '../../editor/editorState';
 import type { IssueMap } from '../../editor/issueTabs';
-import { seriesMetaIssues } from '../../editor/seriesIssues';
+import { seriesCardMetas, seriesMetaIssues } from '../../editor/seriesIssues';
 import type { ValidateEditorInputs } from '../../editor/validation';
 import type { TFunc } from '../../editor/summaries';
 import type { FamilyEditorial } from '../editorial';
@@ -114,19 +114,12 @@ const validateCartesian = (state: EditorState, inputs?: ValidateEditorInputs): I
         });
     }
     // Farbskala input error (ADR-0101 ticket 05): an entered Min ≥ Max — per series, on the
-    // card's Stil tab. Serien-förmig JSON keeps the config in the name-keyed overlay: only the
-    // visible payload series have a card (hidden ones render nothing, stale entries no card).
-    const seriesFound =
-        state.mode === 'json' && state.jsonKind !== 'table'
-            ? (inputs?.jsonSeriesNames ?? Object.keys(state.jsonSeriesStyle))
-                  .filter(name => !state.jsonHidden.includes(name))
-                  .flatMap(name => {
-                      const m = state.jsonSeriesStyle[name];
-                      return m ? seriesMetaIssues(m, m.name || name) : [];
-                  })
-            : state.series.flatMap((s, i) => seriesMetaIssues(s, s.name || s.yPath || `${i + 1}`));
-    if (seriesFound.length) {
-        (issues.series ??= []).push(...seriesFound);
+    // card's Stil tab — over the SAME card list the series section's Karten-Tab jump resolves.
+    const seriesIssues = seriesCardMetas(state, inputs?.jsonSeriesNames).flatMap(c =>
+        seriesMetaIssues(c.meta, c.label),
+    );
+    if (seriesIssues.length) {
+        (issues.series ??= []).push(...seriesIssues);
     }
     if (state.yAxes.some(ax => typeof ax.min === 'number' && typeof ax.max === 'number' && ax.min >= ax.max)) {
         push('axesZoom', 'echarts_val_yminmax');

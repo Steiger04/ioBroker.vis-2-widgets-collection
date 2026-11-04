@@ -43,6 +43,7 @@ import {
 } from '../../../../seriesColorScale';
 import { resolveHostLang } from '../../../../timeFormat';
 import type { OidPickerCtx } from '../../../OidPicker';
+import { COLOR_SCALE_RANGE_ISSUE } from '../../../seriesIssues';
 
 /** The empty Min/Max placeholder (Erben-Override idiom): the source always, the value only when known. */
 const boundPlaceholder = (bound: ColorScaleBound): string => {
@@ -101,7 +102,7 @@ const ColorScaleGroup: FC<{
                     placeholder={boundPlaceholder(range.min)}
                     disabled={!on}
                     error={invalid}
-                    helperText={invalid ? Generic.t('echarts_val_color_scale_range') : undefined}
+                    helperText={invalid ? Generic.t(COLOR_SCALE_RANGE_ISSUE) : undefined}
                 />
                 <OptionalNumberField
                     label={Generic.t('echarts_series_color_scale_max')}

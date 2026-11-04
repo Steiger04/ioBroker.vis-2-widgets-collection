@@ -73,10 +73,10 @@ export interface ValidateEditorInputs {
  * Validate the working state.
  *
  * @param state - Current editor state.
- * @param table - The socket-resolved table schema (ADR-0075), when the family is tabellarisch.
+ * @param inputs - The socket-resolved facts (ADR-0075 table schema, serien-förmig payload names).
  * @returns Issues grouped by section (absent key = section is clean).
  */
-export const validateEditor = (state: EditorState, table?: ValidateEditorInputs): SectionIssues => {
+export const validateEditor = (state: EditorState, inputs?: ValidateEditorInputs): SectionIssues => {
     const issues: SectionIssues = {};
     const push = (section: SectionKey, key: string, ...args: string[]): void => {
         (issues[section] ??= []).push({ key, args: args.length ? args : undefined });
@@ -91,8 +91,8 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
         }
     });
 
-    if (isTable && table?.tableColumns?.length) {
-        const typeOf = (path: string): string | undefined => table.tableColumns!.find(c => c.path === path)?.type;
+    if (isTable && inputs?.tableColumns?.length) {
+        const typeOf = (path: string): string | undefined => inputs.tableColumns!.find(c => c.path === path)?.type;
         state.series.forEach(s => {
             if (!s.yPath) {
                 return; // an unset yPath is the authoring state — the picker owns that hint
@@ -115,7 +115,7 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
     // series→axis binding and Y min≥max checks (it may address base sections — series, data
     // source — beside its own slot). The profile's issues APPEND to the base
     // findings in profile order, so each section's list stays byte-identical.
-    const familyIssues = editorialOf(state.chartType).validate?.(state, table);
+    const familyIssues = editorialOf(state.chartType).validate?.(state, inputs);
     if (familyIssues) {
         for (const [section, list] of Object.entries(familyIssues) as [
             SectionKey,

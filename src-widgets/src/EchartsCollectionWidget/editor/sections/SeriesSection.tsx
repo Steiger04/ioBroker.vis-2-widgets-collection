@@ -38,7 +38,7 @@ import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import type { SeriesCardFocus } from './series/SeriesCard';
 import { issueCountsByTab } from '../issueTabs';
-import { seriesMetaIssues } from '../seriesIssues';
+import { seriesCardMetas, seriesMetaIssues } from '../seriesIssues';
 import { HistorySeriesList } from './series/sources/history';
 import PieSliceRows from './series/PieSliceRows';
 import { JsonSeriesList } from './series/sources/json';
@@ -262,10 +262,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const [cardFocus, setCardFocus] = useState<SeriesCardFocus | undefined>(undefined);
     const focusKey = focusTab?.key;
     const focusToken = focusTab?.token;
-    const cardMetas: (EchartsSeriesMeta | undefined)[] =
-        isJson && !isJsonTable
-            ? jsonSeriesNames.filter(n => !state.jsonHidden.includes(n)).map(n => state.jsonSeriesStyle[n])
-            : series;
+    const cardMetas = seriesCardMetas(state, jsonSeriesNames);
     const cardMetasRef = useRef(cardMetas);
     cardMetasRef.current = cardMetas;
     useEffect(() => {
@@ -273,7 +270,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             return;
         }
         const index = cardMetasRef.current.findIndex(
-            m => (issueCountsByTab(seriesMetaIssues(m, ''))[focusKey] ?? 0) > 0,
+            c => (issueCountsByTab(seriesMetaIssues(c.meta, c.label))[focusKey] ?? 0) > 0,
         );
         if (index >= 0) {
             setExpanded(e => ({ ...e, [index]: true }));
