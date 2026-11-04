@@ -50,7 +50,7 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
                     label: 'values',
                     indexFrom: 1,
                     indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false })],
+                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
                     hidden: (data: WidgetData) => !data.colorLightButton,
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md

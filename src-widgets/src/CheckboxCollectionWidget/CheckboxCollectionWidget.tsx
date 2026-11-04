@@ -41,7 +41,7 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
                     indexFrom: 1,
                     indexTo: 'values_count',
                     // indexTo: 2,
-                    fields: [...commonFields({ groupName: '', allFields: false })],
+                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],

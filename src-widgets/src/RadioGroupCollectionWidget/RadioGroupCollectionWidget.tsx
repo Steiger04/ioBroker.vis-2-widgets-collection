@@ -51,7 +51,7 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
                     label: 'values',
                     indexFrom: 1,
                     indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false })],
+                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],

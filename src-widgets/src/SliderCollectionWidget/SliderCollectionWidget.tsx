@@ -45,7 +45,7 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
                     label: 'values',
                     indexFrom: 1,
                     indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false })],
+                    fields: [...commonFields({ groupName: '', allFields: false, perState: true, markerLayer: true })],
                 },
             ],
             visDefaultStyle: {
