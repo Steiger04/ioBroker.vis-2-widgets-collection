@@ -27,15 +27,6 @@ import { useSubscribedValues } from './useSubscribedValues';
 /** Preview history is capped for responsiveness (the live widget uses the full count). */
 const PREVIEW_MAX_POINTS = 200;
 
-/** Flatten editor-state visualMap into the scalar keys the cartesian presentation fragment reads (yAxes passed separately). */
-const editorSrc = (state: EditorState): Record<string, unknown> => ({
-    ...(state as unknown as Record<string, unknown>),
-    visualMapEnabled: state.visualMap.enabled,
-    visualMapMin: state.visualMap.min,
-    visualMapMax: state.visualMap.max,
-    visualMapColors: state.visualMap.colors,
-});
-
 /** The pipeline return IS the preview result since ADR-0046 (option/loading/hasData/error). */
 export type PreviewResult = ChartPipelineResult;
 
@@ -71,7 +62,8 @@ export function usePreviewOption(
     // Values via direct socket subscription (plain-OID keyed) — the adapter's normalisation.
     const useValues = (oids: string[]): Record<string, unknown> => useSubscribedValues(oids, socket);
 
-    const src = useMemo(() => editorSrc(state), [state]);
+    // The editor state IS the presentation source (yAxes etc. passed separately as companions).
+    const src = state as unknown as Record<string, unknown>;
     const companions = useMemo(
         () => ({
             chartConfig: {

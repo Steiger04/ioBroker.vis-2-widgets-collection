@@ -1239,22 +1239,5 @@ export const buildCartesianOption = (
         option.dataZoom = zoom;
     }
 
-    if (p.visualMap?.enabled) {
-        // Value→colour ramp: the user's parsed scale, or the theme-derived default ramp when empty
-        // (ADR-0027). `colors` is always an array (parseColorScale never returns null), so the empty
-        // case is `.length === 0`, not nullish — a plain `??` would never fall through.
-        const ramp =
-            p.visualMap.colors && p.visualMap.colors.length
-                ? p.visualMap.colors
-                : [p.themeTokens.primary, p.themeTokens.success, p.themeTokens.warning, p.themeTokens.error];
-        option.visualMap = {
-            show: false,
-            min: p.visualMap.min ?? 0,
-            max: p.visualMap.max ?? 100,
-            inRange: { color: ramp },
-            dimension: 1,
-        };
-    }
-
     return option as unknown as EChartsOption;
 };

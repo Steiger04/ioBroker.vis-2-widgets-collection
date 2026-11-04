@@ -7,12 +7,12 @@
  * The cartesian fragment carries what only the cartesian builder reads: the inherited
  * cartesian type, the Y-axes (with the legacy axis-0 synthesis, ADR-0012), the X-Karte
  * (ADR-0035 — object/blob/legacy-xSplit resolution over the body-side decode), both dataZoom
- * toggles, the resolved markings, and the value→colour scale. The decode helpers stay
+ * toggles and the resolved markings. The decode helpers stay
  * body-side (`presentation.ts`); this module only composes — the pre-split
  * `toPresentationConfig` cartesian arm, moved into the profile byte-identically.
  */
 import type { EchartsAxisConfig, EchartsCartesianType } from '../../../types/field-definitions/echarts-fields';
-import { bool, num, parseColorScale, legacyAxis, decodeXAxisWithLegacy } from '../../presentation';
+import { bool, legacyAxis, decodeXAxisWithLegacy } from '../../presentation';
 import { normalizeStackMode } from '../../stackMode';
 import type { CartesianFragment } from '../../optionBuilders/types';
 import type { PresentationCompanions } from '../types';
@@ -40,8 +40,6 @@ export const cartesianPresentationFragment = (companions: PresentationCompanions
             ? (s.xAxis as CartesianFragment['xAxis'])
             : decodeXAxisWithLegacy(s.xAxis as string | undefined, bool(s.xSplit, false));
 
-    const visualMapEnabled = bool(s.visualMapEnabled, false);
-
     return {
         cartesianType,
         yAxes,
@@ -53,13 +51,5 @@ export const cartesianPresentationFragment = (companions: PresentationCompanions
         // two real modes pass; the builder resolves the rest as none (the editor load heals).
         stackMode: normalizeStackMode(companions.chartConfig.stackMode),
         ...(companions.chartConfig.stackSum === true ? { stackSum: true } : {}),
-        visualMap: visualMapEnabled
-            ? {
-                  enabled: true,
-                  min: num(s.visualMapMin) ?? 0,
-                  max: num(s.visualMapMax) ?? 100,
-                  colors: parseColorScale(s.visualMapColors as string | undefined),
-              }
-            : undefined,
     };
 };

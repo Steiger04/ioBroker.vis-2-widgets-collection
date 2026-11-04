@@ -251,14 +251,11 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         expect(all).toContain('echarts_tooltip_decimals'); // the tab keeps its remaining fields
     });
 
-    it('Colours (cartesian): Palette | Fläche | Rahmen | Farbskala — the scale tab rides the family', () => {
+    it('Colours (cartesian): Palette | Fläche | Rahmen — the chart-level colour scale is gone', () => {
+        // ADR-0101: the colour scale moved onto the series (Stil tab); the Colours section keeps
+        // exactly the three family-independent tabs.
         const el = mount(ColorsSection, { state: state(), set: () => undefined, pickerCtx: {} });
-        expect(tabLabels(el)).toEqual([
-            'echarts_tab_palette',
-            'echarts_tab_surface',
-            'echarts_tab_frame',
-            'echarts_tab_color_scale',
-        ]);
+        expect(tabLabels(el)).toEqual(['echarts_tab_palette', 'echarts_tab_surface', 'echarts_tab_frame']);
         const all = allTabsText(el);
         for (const key of [
             'echarts_palette_source',
@@ -266,15 +263,17 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
             'echarts_background',
             'echarts_frame_show',
             'echarts_frame_width',
-            'echarts_visualmap_enable',
-            'echarts_visualmap_min',
-            'echarts_visualmap_max',
+            'echarts_frame_style',
+            'echarts_frame_color',
+            'echarts_frame_padding',
         ]) {
             expect(all).toContain(key);
         }
+        // No leftover of the chart-level scale on any tab (no field, no hint).
+        expect(all).not.toContain('echarts_visualmap');
     });
 
-    it('Colours (pie): NO Farbskala tab — an empty tab is the one allowed drop (Leerfall rule)', () => {
+    it('Colours (pie): the same three tabs — the tab set no longer depends on the family', () => {
         const el = mount(ColorsSection, { state: state({ chartType: 'pie' }), set: () => undefined, pickerCtx: {} });
         expect(tabLabels(el)).toEqual(['echarts_tab_palette', 'echarts_tab_surface', 'echarts_tab_frame']);
     });

@@ -847,6 +847,22 @@ describe('editorState — parity Build D chart frame (ADR-0056)', () => {
 
 // ── payload family (ADR-0075): the Zuordnung scalars ride the round-trip ──
 
+describe('editorState — the chart-level colour scale is gone (ADR-0101)', () => {
+    // Stored widget data from before ADR-0101 — no migration, the keys are simply ignored.
+    const legacy = { visualMapEnabled: true, visualMapMin: 50, visualMapMax: 10, visualMapColors: '#f00; #0f0' };
+
+    it('stored visualMap* keys load without error and leave no trace in the editor state', () => {
+        const loaded = loadEditorState(legacy);
+        expect(loaded).not.toHaveProperty('visualMap');
+        expect(Object.keys(loaded).some(k => k.toLowerCase().includes('visualmap'))).toBe(false);
+    });
+
+    it('save writes no visualMap* key — neither a value nor a null delete (the old keys stay untouched)', () => {
+        const patch = saveEditorState(loadEditorState(legacy));
+        expect(Object.keys(patch).filter(k => k.startsWith('visualMap'))).toEqual([]);
+    });
+});
+
 describe('editorState — payload family round-trip (ADR-0075)', () => {
     it('jsonKind + rows/X paths survive save → load', () => {
         const state: EditorState = {

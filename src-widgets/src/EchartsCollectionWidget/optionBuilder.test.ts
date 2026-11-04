@@ -14,6 +14,7 @@ import {
     parseSeriesConfig,
 } from './optionBuilder';
 import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
+import { FAMILY_CORES } from './families/cores';
 import { SAMPLE_TS } from './timeFormat';
 import type { CartesianFragment, ChartSeries, PieFragment, PresentationBase } from './optionBuilders/types';
 import type { EchartsChartType, EchartsMarkLine, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
@@ -1523,15 +1524,20 @@ describe('buildGeneratedOption — theme-token defaults (ADR-0027)', () => {
         expect(first.markLine?.data[0].lineStyle.color).toBe('#d'); // P.themeTokens.divider
     });
 
-    it('the visualMap ramp defaults to the theme token ramp when no colours are set', () => {
+    it('emits no chart-level visualMap — stored visualMap* keys reach no output (ADR-0101)', () => {
+        // The full presentation path from legacy rxData: fragment (from the stored keys) → builder.
+        const fragment = FAMILY_CORES.cartesian.presentationFragment({
+            src: { visualMapEnabled: true, visualMapMin: 0, visualMapMax: 100, visualMapColors: '#f00; #0f0' },
+            chartConfig: {},
+            markLines: [],
+        });
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: { ...P, visualMap: { enabled: true, min: 0, max: 100, colors: [] } },
+            p: { ...P, ...fragment },
         });
-        const vm = (option as { visualMap?: { inRange?: { color: string[] } } }).visualMap;
-        expect(vm?.inRange?.color).toEqual(['#p', '#su', '#w', '#e']); // primary→success→warning→error
+        expect(option).not.toHaveProperty('visualMap');
     });
 });
 

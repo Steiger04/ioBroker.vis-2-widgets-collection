@@ -28,7 +28,6 @@ import type {
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import { asNullableIntake, intakeValue } from './historyLogic';
-import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
 import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
 import { THEME_PALETTES } from './themePalettes';
@@ -482,19 +481,6 @@ const parseCustomPalette = (raw: string | undefined): string[] =>
         .split(/[;,]/)
         .map(s => s.trim())
         .filter(Boolean);
-
-/**
- * Parse a visualMap colour scale into the ordered colour array echarts `inRange.color` needs.
- *
- * A value→colour scale IS a gradient, so the preferred source is a single CSS gradient string
- * (one gradient picker). The gradient is checked FIRST because it contains commas — the legacy
- * `;`/`,`-separated list split must not run on a gradient string. A legacy `;`-separated list
- * (older widgets) is still accepted as a fallback.
- */
-export const parseColorScale = (raw: string | undefined): string[] => {
-    const stops = extractGradientColors(raw);
-    return stops && stops.length ? stops : parseCustomPalette(raw);
-};
 
 /**
  * Resolve the active series palette from its source.

@@ -26,8 +26,6 @@ export const tabOfIssue = (issue: ValidationIssue): string | undefined => {
     switch (issue.key) {
         case 'echarts_val_yminmax':
             return 'axes'; // inside the Y-axis cards on the Achsen tab
-        case 'echarts_val_vmap_range':
-            return 'scale'; // the Farbskala tab (Colours)
         case 'echarts_val_stack_timeaxis':
             return 'fetch'; // the bar cluster on the Datenabruf tab (ADR-0084 decision 6)
         default:

@@ -20,7 +20,7 @@ vi.hoisted(() => {
 });
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
-import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
+import { DEFAULT_EDITOR_STATE, loadEditorState, type EditorState } from './editorState';
 import { firstIssueTabOf, issueCountsByTab, tabOfIssue, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
@@ -111,11 +111,14 @@ describe('validateEditor', () => {
         expect(validateEditor(st({ yAxes: [{ min: 5, max: 10 }] })).axesZoom).toBeUndefined();
     });
 
-    it('visualMap enabled + min ≥ max → colors issue; disabled → clean', () => {
-        const on = validateEditor(st({ visualMap: { enabled: true, min: 50, max: 50, colors: '' } }));
-        expect(on.colors?.[0].key).toBe('echarts_val_vmap_range');
-        const off = validateEditor(st({ visualMap: { enabled: false, min: 50, max: 50, colors: '' } }));
-        expect(off.colors).toBeUndefined();
+    it('stored chart-level colour scale keys (visualMap*, ADR-0101) raise no issue — they are ignored', () => {
+        // An inverted legacy range used to warn on the Colours section; the keys are dead now.
+        const legacy = loadEditorState({
+            visualMapEnabled: true,
+            visualMapMin: 50,
+            visualMapMax: 50,
+        });
+        expect(validateEditor({ ...legacy, series: [{ oid: 'a.b.c', name: 'A' }] })).toEqual({});
     });
 
     it('pie states never produce cartesian-only issues', () => {
@@ -124,18 +127,17 @@ describe('validateEditor', () => {
                 chartType: 'pie',
                 series: [{ oid: 'a.b.c', name: '' }],
                 yAxes: [{ min: 10, max: 5 }], // bad range, but pie skips cartesian checks
-                visualMap: { enabled: true, min: 9, max: 1, colors: '' },
             }),
         );
         expect(issues.axesZoom).toBeUndefined();
-        expect(issues.colors).toBeUndefined();
     });
 });
 
 describe('tab addressing (ADR-0073) — issue → section tab, purely from field placement', () => {
     it('tabOfIssue maps the placed issues; everything else addresses no tab', () => {
         expect(tabOfIssue({ key: 'echarts_val_yminmax' })).toBe('axes');
-        expect(tabOfIssue({ key: 'echarts_val_vmap_range' })).toBe('scale');
+        // The retired chart-level colour scale warning (ADR-0101) addresses no tab any more.
+        expect(tabOfIssue({ key: 'echarts_val_vmap_range' })).toBeUndefined();
         expect(tabOfIssue({ key: 'echarts_val_stack_timeaxis' })).toBe('fetch');
         expect(tabOfIssue({ key: 'echarts_val_oid_missing' })).toBeUndefined();
         expect(tabOfIssue({ key: 'echarts_val_stale_yaxis' })).toBeUndefined();
@@ -151,7 +153,8 @@ describe('tab addressing (ADR-0073) — issue → section tab, purely from field
 
 describe('firstIssueTabOf — the Problems-button glue (ADR-0073)', () => {
     it('derives the section first issue tab; clean or unplaceable sections address none', () => {
-        expect(firstIssueTabOf({ colors: [{ key: 'echarts_val_vmap_range' }] }, 'colors')).toBe('scale');
+        expect(firstIssueTabOf({ dataSource: [{ key: 'echarts_val_stack_timeaxis' }] }, 'dataSource')).toBe('fetch');
+        expect(firstIssueTabOf({ axesZoom: [{ key: 'echarts_val_yminmax' }] }, 'axesZoom')).toBe('axes');
         expect(firstIssueTabOf({ series: [{ key: 'echarts_val_oid_missing' }] }, 'series')).toBeUndefined();
         expect(firstIssueTabOf({}, 'colors')).toBeUndefined();
         expect(firstIssueTabOf(undefined, 'colors')).toBeUndefined();

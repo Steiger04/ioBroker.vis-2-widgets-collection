@@ -151,18 +151,10 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('ColorsSlice equals the colours section ownership', () => {
+        // No chartType: with the chart-level colour scale gone (ADR-0101) the section renders
+        // the same three tabs for every family — it no longer reads the chart type.
         expectTypeOf<ColorsSlice>().toEqualTypeOf<
-            Pick<
-                EditorState,
-                | 'chartType'
-                | 'paletteSource'
-                | 'palettePreset'
-                | 'paletteCustom'
-                | 'bgColor'
-                | 'darkMode'
-                | 'visualMap'
-                | 'frame'
-            >
+            Pick<EditorState, 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'frame'>
         >();
     });
 

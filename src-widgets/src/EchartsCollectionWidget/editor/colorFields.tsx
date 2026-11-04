@@ -78,7 +78,7 @@ interface ColorListFieldProps {
 }
 
 /**
- * Multi-stop colour list (palette stops / visualMap colour stops) — one ColorField per stop. Removing a
+ * Multi-stop colour list (palette stops) — one ColorField per stop. Removing a
  * stop is done via the picker's own clear (clearing a stop's colour splices it; an empty-colour stop is
  * meaningless in a list) — there is no separate per-stop remove button.
  */

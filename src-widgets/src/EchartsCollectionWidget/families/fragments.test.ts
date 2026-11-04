@@ -92,19 +92,13 @@ describe('cartesian presentationFragment — the cartesian share of the presenta
         expect(fragment().dataZoomInside).toBe(false);
     });
 
-    it('assembles the visualMap only while enabled — min/max defaulted, colours parsed', () => {
-        expect(fragment().visualMap).toBeUndefined();
-        expect(fragment({ src: { visualMapEnabled: true } }).visualMap).toEqual({
-            enabled: true,
-            min: 0,
-            max: 100,
-            colors: [],
+    it('carries no chart-level colour scale — stored visualMap* keys are ignored (ADR-0101)', () => {
+        const legacy = fragment({
+            src: { visualMapEnabled: true, visualMapMin: 5, visualMapMax: 55, visualMapColors: '#f00; #0f0' },
         });
-        expect(
-            fragment({
-                src: { visualMapEnabled: true, visualMapMin: 5, visualMapMax: 55, visualMapColors: '#f00; #0f0' },
-            }).visualMap,
-        ).toEqual({ enabled: true, min: 5, max: 55, colors: ['#f00', '#0f0'] });
+        expect(legacy).not.toHaveProperty('visualMap');
+        // The rest of the fragment is unaffected by the dead keys.
+        expect(legacy).toEqual(fragment());
     });
 });
 

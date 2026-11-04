@@ -80,15 +80,6 @@ export interface EditorSeries extends SeriesMeta {
     oid: string;
 }
 
-/** Visual-map editor state (value→colour scale). */
-export interface EditorVisualMap {
-    enabled: boolean;
-    min: number;
-    max: number;
-    /** `;`/`,`-separated colour stops. */
-    colors: string;
-}
-
 /**
  * Chart-frame editor state (parity Build D, ADR-0056) — the CSS border around the chart area.
  * Container styling, never an echarts option; `width` 0 while enabled renders no frame (the
@@ -221,7 +212,6 @@ export interface EditorState {
     darkMode: EchartsDarkMode;
     renderer: EchartsRenderer;
     markLines: EchartsMarkLine[];
-    visualMap: EditorVisualMap;
     /** Chart frame (parity Build D, ADR-0056) — persisted as flat `frame*` rxData scalars. */
     frame: EditorFrame;
     /** Toolbox GUI config (ADR-0045) — persisted as the base64 `toolboxConfig` blob. */
@@ -328,9 +318,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     darkMode: 'auto',
     renderer: 'canvas',
     markLines: [],
-    // visualMap colours empty by default → the builder inherits the theme-derived ramp
-    // (primary→success→warning→error, ADR-0027), and the editor swatch previews it.
-    visualMap: { enabled: false, min: 0, max: 100, colors: '' },
     // Frame off by default; width 1 so the first switch-on renders a visible hairline.
     frame: { enabled: false, width: 1, color: '', style: 'solid', padding: 0 },
     toolbox: {},
@@ -456,14 +443,6 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Normalise a stable `id` onto each series so React can reconcile series cards by identity,
     // not array index (fixes the wrong-card-unmounts bug on middle-series delete).
     series = withStableIds(series, 'sr-');
-
-    const vm = {
-        enabled: boolOr(data.visualMapEnabled, false),
-        min: numOr(data.visualMapMin, 0),
-        max: numOr(data.visualMapMax, 100),
-        // Empty default → the builder inherits the theme-derived ramp (ADR-0027); a stored value is kept.
-        colors: strOr(data.visualMapColors, ''),
-    };
 
     // Chart frame (parity Build D): flat rxData scalars; an unknown style value (hand-edited
     // rxData) heals to 'solid' right here — the resolver tolerates it either way.
@@ -606,7 +585,6 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         darkMode: (data.darkMode as EchartsDarkMode) ?? DEFAULT_EDITOR_STATE.darkMode,
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
-        visualMap: vm,
         frame,
         toolbox: decodeToolboxConfig(data.toolboxConfig as string),
         titleRaw: chartConfig.titleRaw ?? '',
@@ -764,10 +742,6 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         paletteCustom: state.paletteCustom,
         darkMode: state.darkMode,
         renderer: state.renderer,
-        visualMapEnabled: state.visualMap.enabled,
-        visualMapMin: state.visualMap.min,
-        visualMapMax: state.visualMap.max,
-        visualMapColors: state.visualMap.colors,
         frameEnabled: state.frame.enabled,
         frameWidth: state.frame.width,
         frameColor: state.frame.color,
@@ -802,6 +776,5 @@ export type {
     EchartsLegendPos,
     EchartsPieConfig,
     EchartsTitlePos,
-    EchartsVisualMapConfig,
     EchartsMarkLine,
 } from '../../types/field-definitions/echarts-fields';

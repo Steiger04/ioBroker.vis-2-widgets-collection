@@ -21,7 +21,6 @@ import type {
     EchartsStackMode,
     EchartsTooltipTrigger,
     EchartsToolboxConfig,
-    EchartsVisualMapConfig,
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 
@@ -109,7 +108,7 @@ export interface PresentationBase {
     bgColor: string;
     // resolved series palette (theme / preset / custom), applied per-series when no meta colour
     palette: string[];
-    // semantic theme colours for theme-derived defaults (visualMap ramp, markLine,
+    // semantic theme colours for theme-derived defaults (markLine,
     // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
     themeTokens: ThemeTokens;
     /**
@@ -167,7 +166,6 @@ export interface CartesianFragment {
      * timestamps), aligned with the emitted data by index.
      */
     percentAbsolute?: Record<string, (number | null)[]>;
-    visualMap?: EchartsVisualMapConfig;
 }
 
 /**

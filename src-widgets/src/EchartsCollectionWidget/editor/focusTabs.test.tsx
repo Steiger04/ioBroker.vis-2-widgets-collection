@@ -110,55 +110,66 @@ const mountSections = (
 };
 
 describe('Problems-button tab jump (ADR-0073, spec ticket 08)', () => {
-    const vmapIssues: SectionIssues = {
-        colors: [{ key: 'echarts_val_vmap_range' }],
+    // The Datenabruf tab (Data source, Verlauf) hosts the bar cluster — the stack time-axis
+    // advisory is placed there (ADR-0084 decision 6). It is the SECOND tab, so a jump is visible.
+    const fetchIssues: SectionIssues = {
+        dataSource: [{ key: 'echarts_val_stack_timeaxis' }],
     };
+    const tabByLabel = (container: HTMLElement, labelKey: string): Element | undefined =>
+        Array.from(container.querySelectorAll('[role="tab"]')).find(t => t.textContent?.includes(labelKey));
 
     it('a focus request WITH a tab selects that tab in the addressed section', () => {
-        const { container } = mountSections(vmapIssues, { key: 'colors', token: 1, tab: 'scale' });
-        // The Colours section's tab row: Farbskala (scale) must be the SELECTED tab.
-        const scaleTab = Array.from(container.querySelectorAll('[role="tab"]')).find(t =>
-            t.textContent?.includes('echarts_tab_color_scale'),
-        );
-        expect(scaleTab?.getAttribute('aria-selected')).toBe('true');
-        // ...and its content is mounted (the visualMap cluster shows).
-        expect(container.textContent).toContain('echarts_visualmap_enable');
+        const { container } = mountSections(fetchIssues, { key: 'dataSource', token: 1, tab: 'fetch' });
+        // The Data source section's tab row: Datenabruf (fetch) must be the SELECTED tab.
+        expect(tabByLabel(container, 'echarts_tab_data_fetch')?.getAttribute('aria-selected')).toBe('true');
+        // ...and its content is mounted (the acquisition defaults show).
+        expect(container.textContent).toContain('echarts_aggregate');
     });
 
     it('the ⚠ dot marks the issue tab; the header rollup chip still counts the section', () => {
         // Sections start collapsed — a (tab-less) focus expands the section so the dots render.
-        const { container } = mountSections(vmapIssues, { key: 'colors', token: 1 });
+        const { container } = mountSections(fetchIssues, { key: 'dataSource', token: 1 });
         const dot = container.querySelector('[data-issue-dot]');
         expect(dot).toBeTruthy();
-        expect(dot?.closest('[role="tab"]')?.textContent).toContain('echarts_tab_color_scale');
+        expect(dot?.closest('[role="tab"]')?.textContent).toContain('echarts_tab_data_fetch');
     });
 
     it('the jump is ONE-SHOT: a parent re-render with the same live focus does not snap back', () => {
         // Regression (ticket 08 review): the effect used to key on the focus OBJECT identity —
         // every modal re-render (any field edit) re-fired the jump after a manual tab switch.
-        const { container, rerender } = mountSections(vmapIssues, { key: 'colors', token: 1, tab: 'scale' });
-        // The user manually switches to Palette…
-        const paletteTab = Array.from(container.querySelectorAll('[role=tab]')).find(t =>
-            t.textContent?.includes('echarts_tab_palette'),
-        );
+        const { container, rerender } = mountSections(fetchIssues, { key: 'dataSource', token: 1, tab: 'fetch' });
+        // The user manually switches to Zeitfenster…
+        const windowTab = tabByLabel(container, 'echarts_tab_time_window');
         act(() => {
-            paletteTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            windowTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         });
-        expect(paletteTab?.getAttribute('aria-selected')).toBe('true');
+        expect(windowTab?.getAttribute('aria-selected')).toBe('true');
         // …a parent re-render with the SAME live focus request (same token, fresh objects)…
-        rerender({ key: 'colors', token: 1, tab: 'scale' });
-        // …must NOT snap back to Farbskala.
-        expect(paletteTab?.getAttribute('aria-selected')).toBe('true');
+        rerender({ key: 'dataSource', token: 1, tab: 'fetch' });
+        // …must NOT snap back to Datenabruf.
+        expect(windowTab?.getAttribute('aria-selected')).toBe('true');
     });
 
     it('a repeated request (fresh token) re-triggers the jump to the same tab', () => {
-        const { container, rerender } = mountSections(vmapIssues, null);
-        rerender({ key: 'colors', token: 1, tab: 'scale' });
-        rerender({ key: 'colors', token: 2, tab: 'scale' });
-        const scaleTab = Array.from(container.querySelectorAll('[role="tab"]')).find(t =>
-            t.textContent?.includes('echarts_tab_color_scale'),
-        );
-        expect(scaleTab?.getAttribute('aria-selected')).toBe('true');
+        const { container, rerender } = mountSections(fetchIssues, null);
+        rerender({ key: 'dataSource', token: 1, tab: 'fetch' });
+        rerender({ key: 'dataSource', token: 2, tab: 'fetch' });
+        expect(tabByLabel(container, 'echarts_tab_data_fetch')?.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('a jump to the retired Farbskala tab key lands on a valid Colours tab, never on an empty body', () => {
+        // ADR-0101 removed the chart-level colour scale tab ('scale'). A stale focus request
+        // (an old issue placement, a remembered jump) must still open the section on a real tab.
+        const { container } = mountSections({}, { key: 'colors', token: 1, tab: 'scale' });
+        const tabs = Array.from(container.querySelectorAll('[role="tab"]'));
+        expect(tabs.map(t => t.textContent?.trim())).toEqual([
+            'echarts_tab_palette',
+            'echarts_tab_surface',
+            'echarts_tab_frame',
+        ]);
+        // The fallback is the first tab — selected, with its content mounted.
+        expect(tabByLabel(container, 'echarts_tab_palette')?.getAttribute('aria-selected')).toBe('true');
+        expect(container.textContent).toContain('echarts_palette_source');
     });
 
     it('a focus request WITHOUT a tab expands the section; the tab-less card list needs no jump', () => {

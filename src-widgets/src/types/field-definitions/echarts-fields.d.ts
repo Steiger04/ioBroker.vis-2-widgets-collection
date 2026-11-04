@@ -697,15 +697,6 @@ export interface EchartsMarkLine {
     yAxisIndex?: number;
 }
 
-/** Continuous value→colour visual map. */
-export interface EchartsVisualMapConfig {
-    enabled?: boolean;
-    min?: number;
-    max?: number;
-    /** Colour stops low→high. @default blue→green→yellow→red */
-    colors?: string[];
-}
-
 /**
  * Legend styling config (ADR-0021) — stored as a base64 `legendConfig` blob. `legendShow` +
  * `legendPos` stay flat scalars (the always-on core, mirroring the `yAxes`-blob-beside-legacy-
@@ -1149,11 +1140,6 @@ export interface EchartsFieldsRxData {
 
     /** Threshold lines (cartesian), stored as a base64 `[...EchartsMarkLine]` blob. */
     markLines?: string;
-    /** Value→colour visual map (cartesian). */
-    visualMapMin?: number;
-    visualMapMax?: number;
-    visualMapColors?: string;
-    visualMapEnabled?: boolean;
 
     // ── Chart frame (parity Build D, ADR-0056) — container CSS, not an echarts option ──
 

@@ -301,18 +301,9 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'palettePreset', type: 'text', default: 'tableau', hidden: alwaysHidden },
     { name: 'paletteCustom', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'darkMode', type: 'text', default: 'auto', hidden: alwaysHidden },
-    // Cartesian extras: threshold blob + value→colour visual map.
+    // Cartesian extras: threshold blob.
     { name: 'markLines', type: 'text', default: '', hidden: alwaysHidden },
-    { name: 'visualMapEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },
-    { name: 'visualMapMin', type: 'number', default: 0, hidden: alwaysHidden },
-    { name: 'visualMapMax', type: 'number', default: 100, hidden: alwaysHidden },
-    {
-        name: 'visualMapColors',
-        type: 'text',
-        default: 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)',
-        hidden: alwaysHidden,
-    },
-    // Chart frame (parity Build D, ADR-0056): flat scalars, visualMap precedent. Container CSS
+    // Chart frame (parity Build D, ADR-0056): flat scalars. Container CSS
     // around the chart area (frameStyle.ts), never an echarts option.
     { name: 'frameEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'frameWidth', type: 'number', default: 1, hidden: alwaysHidden },

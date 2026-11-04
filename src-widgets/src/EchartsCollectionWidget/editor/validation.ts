@@ -107,8 +107,8 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
     }
 
     // The family branch is the profile's (ADR-0083): the cartesian editorial owns the stale
-    // series→axis binding, Y min≥max and visualMap range checks (it may address base sections
-    // — series and colours — beside its own slot). The profile's issues APPEND to the base
+    // series→axis binding and Y min≥max checks (it may address base sections — series, data
+    // source — beside its own slot). The profile's issues APPEND to the base
     // findings in profile order, so each section's list stays byte-identical.
     const familyIssues = editorialOf(state.chartType).validate?.(state, table);
     if (familyIssues) {

@@ -1,11 +1,11 @@
 /**
- * Colours section — palette, background, and the cartesian value→colour scale (ADR-0010).
+ * Colours section — palette, background and chart frame (ADR-0010).
  *
  * @module EchartsCollectionWidget/editor/sections/ColorsSection
  * @remarks
- * Everything colour in one place: the resolved-palette swatch preview + source dropdown (theme /
- * presets / custom), the chart background, and the continuous visualMap (cartesian only — it maps
- * the value axis to a colour gradient). visualMap min/max carry field-level validation.
+ * The chart-wide colours in one place: the resolved-palette swatch preview + source dropdown
+ * (theme / presets / custom), the chart background, and the chart frame. The value→colour scale
+ * is a per-series setting (ADR-0101, the series card's Stil tab) — not part of this section.
  */
 import type { FC } from 'react';
 import { Box } from '@mui/material';
@@ -17,10 +17,8 @@ import {
     FieldGrid,
     FieldLabel,
     LabeledSelect,
-    NumberField,
     SectionTabs,
     SliderField,
-    SubGroup,
     SwitchList,
     SwitchRow,
 } from '../../../components/controls';
@@ -33,12 +31,11 @@ import type { EditorState, SetEditor } from '../editorState';
 
 /**
  * The colours section's field ownership (ADR-0049 slice) — the palette trio + darkMode (the
- * theme hook's read footprint), the chart background, the chart frame (parity Build D), and the
- * cartesian value→colour scale.
+ * theme hook's read footprint), the chart background and the chart frame (parity Build D).
  */
 export type ColorsSlice = Pick<
     EditorState,
-    'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap' | 'frame'
+    'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'frame'
 >;
 
 interface ColorsSectionProps {
@@ -65,7 +62,6 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     // Frame colour inherit preview — the collection theme's divider (what the body defaults to).
     const frameColorFallback = themeTokens.divider;
-    const isCartesian = state.chartType !== 'pie';
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
         ...Object.keys(PALETTE_PRESETS).map(k => [`preset:${k}`, k] as [string, string]),
@@ -82,24 +78,18 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
         }
     };
 
-    const vmapInvalid = state.visualMap.enabled && state.visualMap.min >= state.visualMap.max;
-
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);
 
     return (
-        // Sektions-Tabs (ADR-0073): Palette | Fläche | Rahmen | Farbskala — the Farbskala tab
-        // is cartesian-only (visualMap maps the value axis); a tab with NO fields is the one
-        // allowed drop (the Leerfall rule — a tab with remaining fields stays).
+        // Sektions-Tabs (ADR-0073): Palette | Fläche | Rahmen — the same three tabs for every
+        // family (the chart-level Farbskala tab left with ADR-0101).
         <SectionTabs
             focus={focusTab}
             tabs={[
                 { key: 'palette', label: Generic.t('echarts_tab_palette'), issueCount: dots.palette },
                 { key: 'surface', label: Generic.t('echarts_tab_surface'), issueCount: dots.surface },
                 { key: 'frame', label: Generic.t('echarts_tab_frame'), issueCount: dots.frame },
-                ...(isCartesian
-                    ? [{ key: 'scale', label: Generic.t('echarts_tab_color_scale'), issueCount: dots.scale }]
-                    : []),
             ]}
         >
             <Box>
@@ -216,50 +206,6 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
                     />
                 </FieldGrid>
             </Box>
-            {isCartesian && (
-                <SubGroup
-                    title={Generic.t('echarts_visualmap')}
-                    hint={Generic.t('echarts_visualmap_hint')}
-                >
-                    <SwitchList sx={{ mb: 1.5 }}>
-                        <SwitchRow
-                            label={Generic.t('echarts_visualmap_enable')}
-                            checked={state.visualMap.enabled}
-                            onChange={v => set({ visualMap: { ...state.visualMap, enabled: v } })}
-                        />
-                    </SwitchList>
-                    <FieldGrid>
-                        <NumberField
-                            label={Generic.t('echarts_visualmap_min')}
-                            value={state.visualMap.min}
-                            onChange={v => set({ visualMap: { ...state.visualMap, min: v } })}
-                            error={vmapInvalid}
-                            helperText={vmapInvalid ? Generic.t('echarts_val_vmap_range') : undefined}
-                            disabled={!state.visualMap.enabled}
-                        />
-                        <NumberField
-                            label={Generic.t('echarts_visualmap_max')}
-                            value={state.visualMap.max}
-                            onChange={v => set({ visualMap: { ...state.visualMap, max: v } })}
-                            error={vmapInvalid}
-                            disabled={!state.visualMap.enabled}
-                        />
-                        {/* A value→colour scale is a gradient: one gradient picker supplies the whole
-                            scale; presentation parses it into the ordered colour array echarts needs.
-                            The inherit preview is the theme-derived default ramp (ADR-0027). */}
-                        <Box>
-                            <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
-                            <ColorField
-                                value={state.visualMap.colors}
-                                fallback={`linear-gradient(90deg, ${themeTokens.primary}, ${themeTokens.success}, ${themeTokens.warning}, ${themeTokens.error})`}
-                                onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
-                                ctx={pickerCtx}
-                                allowGradient
-                            />
-                        </Box>
-                    </FieldGrid>
-                </SubGroup>
-            )}
         </SectionTabs>
     );
 };
