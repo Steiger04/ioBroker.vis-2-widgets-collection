@@ -158,6 +158,33 @@ export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 
 };
 
 /**
+ * Content signature of every theme field the chart reads — the memo key of the live body's
+ * palette, tokens and theme base. vis-2 rebuilds the MUI theme on a mere editor move (a new ref
+ * with identical content), so keying on the `theme` REFERENCE would redraw the chart on every
+ * move; keying on this string recomputes only on a real theme change. Must list every field
+ * {@link echartsPalette}, {@link resolveThemeTokens} and {@link buildEchartsTheme} read — a
+ * missing one (e.g. `background.paper`, the tooltip floor) leaves the chart stale when only it
+ * changes. All fields are strings, safe to serialize.
+ */
+export const chartThemeSignature = (theme: Theme): string => {
+    const p = theme.palette;
+    return JSON.stringify({
+        mode: p.mode,
+        primary: p.primary.main,
+        secondary: p.secondary.main,
+        warning: p.warning.main,
+        success: p.success.main,
+        info: p.info.main,
+        error: p.error.main,
+        textPrimary: p.text.primary,
+        textSecondary: p.text.secondary,
+        divider: p.divider,
+        paper: p.background.paper,
+        fontFamily: theme.typography.fontFamily,
+    });
+};
+
+/**
  * Builds the echarts presentation base from the MUI theme.
  *
  * @param theme - Current MUI theme (resolved by CollectionProvider).

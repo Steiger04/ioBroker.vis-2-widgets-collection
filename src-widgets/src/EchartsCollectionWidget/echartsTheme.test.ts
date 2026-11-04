@@ -6,7 +6,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material/styles';
 
-import { buildEchartsTheme, chartCanvasColor, effectiveTextTokens, resolveThemeTokens, echartsPalette } from './echartsTheme';
+import {
+    buildEchartsTheme,
+    chartCanvasColor,
+    chartThemeSignature,
+    effectiveTextTokens,
+    resolveThemeTokens,
+    echartsPalette,
+} from './echartsTheme';
 
 /** Minimal light-mode theme — only the fields the token helpers read. */
 const lightTheme = {
@@ -154,5 +161,21 @@ describe('tooltip floor of the theme base (ADR-0027 addendum 2026-11-04)', () =>
         const tooltip = buildEchartsTheme(lightTheme).tooltip as Record<string, unknown>;
         expect(tooltip).not.toHaveProperty('borderColor');
         expect(tooltip).not.toHaveProperty('shadowColor');
+    });
+});
+
+describe('chartThemeSignature (the theme-base memo key of the live body)', () => {
+    const withPalette = (over: Record<string, unknown>): Theme =>
+        ({ ...lightTheme, palette: { ...lightTheme.palette, ...over } }) as unknown as Theme;
+
+    it('changes when only the paper colour changes — the tooltip floor must rebuild', () => {
+        expect(chartThemeSignature(withPalette({ background: { paper: '#other' } }))).not.toBe(
+            chartThemeSignature(lightTheme),
+        );
+    });
+
+    it('stays equal for a content-equal theme under a new reference (editor move, no redraw)', () => {
+        const copy = JSON.parse(JSON.stringify(lightTheme)) as Theme;
+        expect(chartThemeSignature(copy)).toBe(chartThemeSignature(lightTheme));
     });
 });
