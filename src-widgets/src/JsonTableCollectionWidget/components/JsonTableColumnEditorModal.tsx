@@ -37,6 +37,7 @@ import { tableCapabilities } from '../capabilities';
 import { depthWarningText, readJsonTable } from '../columns';
 import { translate } from '../translate';
 import type { ColumnConfigEntry } from '../types';
+import type { CellColorInheritance } from '../utils/cellColors';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
@@ -56,6 +57,8 @@ interface JsonTableColumnEditorModalProps {
     data: WidgetData;
     /** ioBroker socket for state queries and the Farbwähler's Collection theme presets */
     socket: Connection;
+    /** What the table's cells inherit their text colour from (the colour rows' swatches) */
+    inheritance: CellColorInheritance;
 }
 
 /**
@@ -75,6 +78,7 @@ function JsonTableColumnEditorModal({
     theme,
     data,
     socket,
+    inheritance,
 }: JsonTableColumnEditorModalProps): React.JSX.Element {
     // Working copy of columns (edited in-place, saved on "Save")
     const [editedColumns, setEditedColumns] = useState<ColumnConfigEntry[]>(columns);
@@ -340,6 +344,7 @@ function JsonTableColumnEditorModal({
                                     onChange={handleColumnChange}
                                     capabilities={capabilities}
                                     socket={socket}
+                                    inheritance={inheritance}
                                 />
                             ) : (
                                 <Box
