@@ -19,11 +19,11 @@ const theme = {
     palette: { primary: { main: '#1976d2' }, text: { primary: 'rgba(0,0,0,0.87)' }, background: { paper: '#fff' } },
 } as unknown as Theme;
 
-// gaugeFields pulls fieldFactories → CollectionGradientColorPicker/CollectionDivider,
+// gaugeFields pulls fieldFactories → ContractColorField/CollectionDivider,
 // which pull Generic, which extends window.visRxWidget — undefined outside the vis-2
 // runtime. The parity invariant reads only the field DATA, so mock the components
 // (same pattern as lib/fieldFactories.test.ts).
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import gaugeFields from '../lib/gaugeFields';

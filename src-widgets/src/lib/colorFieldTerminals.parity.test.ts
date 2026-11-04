@@ -10,7 +10,7 @@
  * {@link EXCEPTIONS} with the reason why no single terminal describes its runtime.
  *
  * Scope — the "contract colour fields": every attribute field whose editor is the
- * `CollectionGradientColorPicker`, i.e. every product of `createColorField` (and of
+ * `ContractColorField`, i.e. every product of `createColorField` (and of
  * `createColorFields` / `createSliderColorField`, which delegate to it). They are recognised
  * by what their `component` renders, NOT by their contract properties: `fallbackFields`,
  * `noGradient`, `terminal` and `inheritTextStyle` are all optional, and a bare
@@ -41,7 +41,7 @@ type WidgetName = (typeof widgets)[number];
 const { PickerSentinel } = vi.hoisted(() => ({ PickerSentinel: (): null => null }));
 
 vi.mock('../Generic', () => ({ default: class {} }));
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: PickerSentinel }));
+vi.mock('../components/ContractColorField', () => ({ default: PickerSentinel }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 // Custom editors referenced directly as field components: heavy module chains (TanStack,
 // ECharts editor), and called like vis-2 calls a field component they would run hooks.

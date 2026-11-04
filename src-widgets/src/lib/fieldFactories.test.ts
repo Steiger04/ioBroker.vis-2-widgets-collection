@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
-// fieldFactories pulls CollectionGradientColorPicker, which pulls Generic, which
+// fieldFactories pulls ContractColorField, which pulls Generic, which
 // extends window.visRxWidget — undefined outside the vis-2 runtime. The pure
 // factory logic (predicates, options, createDivider shape) is independent of
 // those components, so mock them to isolate the unit under test.
-vi.mock('../components/CollectionGradientColorPicker', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import {
