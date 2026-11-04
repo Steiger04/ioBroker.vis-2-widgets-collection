@@ -8,8 +8,8 @@
  * length. Clicking the swatch opens a popover with `react-best-gradient-color-picker`.
  * The swatch always shows the effective (resolved) color; the reset button
  * appears only when an explicit override exists (resetting reverts to the
- * resolved value). Uses the shared usePopoverPositioning hook for popover
- * positioning.
+ * resolved value). The popover is the shared FollowingPopover, which moves with its
+ * content as sections of the picker unfold.
  *
  * Two flavours: the default keeps the picker minimal (visual picking only — used by
  * the JsonTable editors). Passing `presets` upgrades it to the theme-studio variant
@@ -20,12 +20,12 @@
  */
 
 import ClearIcon from '@mui/icons-material/Clear';
-import { Box, IconButton, InputBase, Popover, Typography, useTheme } from '@mui/material';
+import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
-import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
+import FollowingPopover from './colorPicker/FollowingPopover';
 
 /** Props for {@link ColorPickerField}. */
 interface ColorPickerFieldProps {
@@ -100,12 +100,6 @@ function ColorPickerField({
 
     // Debounce timer for picker-originated onChange calls
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Dynamic popover placement + content resize tracking
-    const { anchorOrigin, transformOrigin, maxHeight, setContentRef, popoverActionRef } = usePopoverPositioning(
-        anchorEl,
-        Boolean(anchorEl),
-    );
 
     const open = Boolean(anchorEl);
 
@@ -281,50 +275,29 @@ function ColorPickerField({
                 </Typography>
             ) : null}
 
-            <Popover
-                action={popoverActionRef}
+            <FollowingPopover
                 open={open}
                 anchorEl={anchorEl}
                 onClose={(): void => setAnchorEl(null)}
-                anchorOrigin={anchorOrigin}
-                transformOrigin={transformOrigin}
-                slotProps={{
-                    paper: {
-                        elevation: 0,
-                        sx: {
-                            p: '9px',
-                            borderRadius: '6px',
-                            backgroundColor: 'rgb(32,32,32)',
-                            boxSizing: 'border-box',
-                            maxHeight,
-                            overflowX: 'hidden',
-                            overflowY: 'auto',
-                        },
-                    },
-                }}
+                paperSx={{ p: '9px', borderRadius: '6px', backgroundColor: 'rgb(32,32,32)' }}
             >
-                <Box
-                    ref={setContentRef}
-                    sx={{ borderRadius: '6px' }}
-                >
-                    <ColorPicker
-                        value={cachedValue || '#ffffff'}
-                        onChange={handlePickerChange}
-                        hidePresets={!presets}
-                        presets={presets}
-                        hideInputs={!presets}
-                        hideEyeDrop={!presets}
-                        hideInputType={!presets}
-                        // Studio variant only: palette slots are solid colours, so the
-                        // gradient machinery stays hidden. The default (JsonTable) path
-                        // keeps every control it had before ADR-0020.
-                        hideColorTypeBtns={Boolean(presets)}
-                        hideGradientControls={Boolean(presets)}
-                        hideAdvancedSliders={Boolean(presets)}
-                        hideColorGuide={Boolean(presets)}
-                    />
-                </Box>
-            </Popover>
+                <ColorPicker
+                    value={cachedValue || '#ffffff'}
+                    onChange={handlePickerChange}
+                    hidePresets={!presets}
+                    presets={presets}
+                    hideInputs={!presets}
+                    hideEyeDrop={!presets}
+                    hideInputType={!presets}
+                    // Studio variant only: palette slots are solid colours, so the
+                    // gradient machinery stays hidden. The default (JsonTable) path
+                    // keeps every control it had before ADR-0020.
+                    hideColorTypeBtns={Boolean(presets)}
+                    hideGradientControls={Boolean(presets)}
+                    hideAdvancedSliders={Boolean(presets)}
+                    hideColorGuide={Boolean(presets)}
+                />
+            </FollowingPopover>
         </Box>
     );
 }

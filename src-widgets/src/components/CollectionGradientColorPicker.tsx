@@ -25,7 +25,7 @@
  */
 
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/material';
+import { Box, IconButton, TextField, ThemeProvider } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
@@ -33,9 +33,9 @@ import Generic from '../Generic';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
 import { validateColorInput } from '../lib/helper/colorValidation';
-import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
+import FollowingPopover from './colorPicker/FollowingPopover';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from '@iobroker/types-vis-2';
 
 /**
@@ -130,12 +130,6 @@ function CollectionGradientColorPicker({
 
     // Explicit override exists ⇔ a non-empty value is stored for this field.
     const overridden = typeof fieldValue === 'string' && fieldValue.trim() !== '';
-
-    // Dynamic popover placement + content resize tracking
-    const { anchorOrigin, transformOrigin, maxHeight, setContentRef, popoverActionRef } = usePopoverPositioning(
-        anchorEl,
-        Boolean(anchorEl),
-    );
 
     // Clean up debounce timer on unmount
     useEffect(() => {
@@ -333,42 +327,21 @@ function CollectionGradientColorPicker({
                     </Box>
                 </Box>
 
-                <Popover
-                    action={popoverActionRef}
-                    slotProps={{
-                        paper: {
-                            elevation: 0,
-                            sx: {
-                                p: '9px',
-                                borderRadius: '6px',
-                                backgroundColor: 'rgb(32,32,32)',
-                                boxSizing: 'border-box',
-                                maxHeight,
-                                overflowX: 'hidden',
-                                overflowY: 'auto',
-                            },
-                        },
-                    }}
+                <FollowingPopover
                     open={open}
                     anchorEl={anchorEl}
                     onClose={(): void => setAnchorEl(null)}
-                    transformOrigin={transformOrigin}
-                    anchorOrigin={anchorOrigin}
+                    paperSx={{ p: '9px', borderRadius: '6px', backgroundColor: 'rgb(32,32,32)' }}
                 >
-                    <Box
-                        ref={setContentRef}
-                        sx={{ borderRadius: '6px' }}
-                    >
-                        <ColorPicker
-                            value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
-                            onChange={handlePickerChange}
-                            hidePresets
-                            hideInputs
-                            hideEyeDrop
-                            hideInputType
-                        />
-                    </Box>
-                </Popover>
+                    <ColorPicker
+                        value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
+                        onChange={handlePickerChange}
+                        hidePresets
+                        hideInputs
+                        hideEyeDrop
+                        hideInputType
+                    />
+                </FollowingPopover>
             </ThemeProvider>
         </>
     );
