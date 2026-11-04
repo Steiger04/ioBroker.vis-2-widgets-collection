@@ -13,7 +13,8 @@
  * through `socket` by `ThemePresets` — mounted only while open, so closed pickers cost nothing. A
  * preset click is a pick like any other (stored as its fixed value; to follow the theme, leave
  * the field empty). Picks are shown at once and committed
- * live with a 150 ms debounce; a pending commit is flushed when the Farbwähler closes (×,
+ * live: 150 ms after the first uncommitted pick, so a continuous drag commits at least every
+ * 150 ms (the latest pick each time); a pending commit is flushed when the Farbwähler closes (×,
  * Escape, click outside, the field row taking the anchor away) and on unmount. A pick passes the
  * Regeln für Farbeingaben as `picked`: solid colours are stored as `#rrggbb` / `#rrggbbaa`,
  * gradients unchanged.
@@ -39,7 +40,7 @@ import ColorInputRow from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
 import ThemePresets from './ThemePresets';
 
-/** Debounce of the live commit while the user drags, in ms. */
+/** Delay of the live commit after the first uncommitted pick, in ms — also its rate while dragging. */
 const COMMIT_DELAY_MS = 150;
 
 /** Props for {@link CollectionColorPicker}. */
@@ -246,11 +247,14 @@ function CollectionColorPicker({
         }
     }, []);
 
+    // The timer runs from the first uncommitted pick and is not restarted: while the user keeps
+    // dragging, the latest pick is committed at least every COMMIT_DELAY_MS.
     const handlePick = useCallback(
         (raw: string): void => {
             setDraft(raw);
             if (pendingRef.current !== null) {
-                clearTimeout(pendingRef.current.timer);
+                pendingRef.current.raw = raw;
+                return;
             }
             pendingRef.current = { raw, timer: setTimeout(flush, COMMIT_DELAY_MS) };
         },

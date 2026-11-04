@@ -151,15 +151,32 @@ describe('CollectionColorPicker commit', () => {
         vi.useFakeTimers();
     });
 
-    it('commits a pick 150 ms after the last change', () => {
+    it('commits a pick 150 ms after it', () => {
+        const { onCommit } = mount();
+        pick('solid');
+        advance(149);
+        expect(onCommit).not.toHaveBeenCalled();
+        advance(1);
+        expect(onCommit).toHaveBeenCalledExactlyOnceWith('#ff0000');
+    });
+
+    it('commits the latest pick at least every 150 ms while the user keeps dragging', () => {
         const { onCommit } = mount();
         pick('solid');
         advance(100);
         pick('translucent');
-        advance(149);
+        advance(49);
         expect(onCommit).not.toHaveBeenCalled();
+        // 150 ms after the first uncommitted pick — although the last change is only 50 ms old.
         advance(1);
         expect(onCommit).toHaveBeenCalledExactlyOnceWith('#0080ff66');
+        // Dragging on: picks every 50 ms keep committing.
+        for (let i = 0; i < 6; i++) {
+            pick(i % 2 === 0 ? 'solid' : 'translucent');
+            advance(50);
+        }
+        expect(onCommit).toHaveBeenCalledTimes(3);
+        expect(onCommit).toHaveBeenLastCalledWith('#0080ff66');
     });
 
     it('stores an opaque solid colour as #rrggbb', () => {
