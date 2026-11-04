@@ -6,7 +6,9 @@
  * Renders the MUI popover itself and observes its content (ADR-0102). When the content grows
  * after opening — Color Guide, Advanced sliders or gradient stops unfold — the popover is
  * repositioned at once so it stays fully visible; when the content shrinks it stays put, so a
- * collapsing section does not make it jump.
+ * collapsing section does not make it jump. MUI repositions the popover after every render (a
+ * pick re-renders it), so a shrunk popover is *held*: `anchorReference="none"` makes MUI leave
+ * the paper's top/left as they are. The next growth, a window resize or reopening lets go.
  *
  * The opening side follows the available space: below the anchor unless there is more room
  * above; a content that no longer fits on its side flips to the other one when that one is
@@ -73,6 +75,8 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
     const actionRef = useRef<PopoverActions>(null);
     // State, not a ref: the content mounts after the popover, and its arrival must re-run the effect.
     const [content, setContent] = useState<HTMLElement | null>(null);
+    // Held after a shrink: MUI keeps the paper where it is instead of re-placing it on each render.
+    const [held, setHeld] = useState(false);
 
     const applyPlacement = useCallback((next: Placement): void => {
         placementRef.current = next;
@@ -84,8 +88,12 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
         if (!open || !anchorEl) {
             return undefined;
         }
+        setHeld(false);
         applyPlacement(roomierSide(anchorEl));
-        const onResize = (): void => applyPlacement(roomierSide(anchorEl));
+        const onResize = (): void => {
+            setHeld(false);
+            applyPlacement(roomierSide(anchorEl));
+        };
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, [open, anchorEl, applyPlacement]);
@@ -105,8 +113,10 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
             const grew = last === null || width > last.width || height > last.height;
             last = { width, height };
             if (!grew) {
+                setHeld(true);
                 return;
             }
+            setHeld(false);
             const { above, below } = availableSpace(anchorEl);
             const current = placementRef.current;
             const currentSpace = current === 'bottom' ? below : above;
@@ -114,6 +124,7 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
             if (height > currentSpace - MARGIN && otherSpace > currentSpace) {
                 applyPlacement(current === 'bottom' ? 'top' : 'bottom');
             }
+            // A held popover is re-placed by the render that releases it.
             actionRef.current?.updatePosition();
         });
         observer.observe(content);
@@ -131,6 +142,7 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
             action={actionRef}
             open={open}
             anchorEl={anchorEl}
+            anchorReference={held ? 'none' : 'anchorEl'}
             onClose={onClose}
             anchorOrigin={anchorOrigin}
             transformOrigin={transformOrigin}

@@ -386,4 +386,29 @@ describe('CollectionColorPicker popover follows its content', () => {
         resizeContent(200);
         expect(paperTop()).toBe('34px');
     });
+
+    it('keeps its position after shrinking across re-renders, and follows the next growth', () => {
+        layout.paperHeight = 750;
+        mount();
+        resizeContent(750);
+        resizeContent(200);
+        // A pick re-renders the popover — MUI would place the smaller paper at the anchor (120px).
+        pick('solid');
+        expect(paperTop()).toBe('34px');
+        // Growing again repositions from the anchor: 120 + 300 fits below.
+        resizeContent(300);
+        expect(paperTop()).toBe('120px');
+    });
+
+    it('lets go of the held position when the window changes size', () => {
+        layout.paperHeight = 750;
+        mount();
+        resizeContent(750);
+        resizeContent(200);
+        act(() => {
+            window.dispatchEvent(new Event('resize'));
+        });
+        pick('solid');
+        expect(paperTop()).toBe('120px');
+    });
 });
