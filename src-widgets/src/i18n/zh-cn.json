@@ -1347,5 +1347,7 @@
     "echarts_card_tab_data": "数据",
     "echarts_card_tab_style": "样式",
     "echarts_card_tab_format": "格式",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "color_gradient_not_allowed": "此处不支持渐变",
+    "color_invalid": "无效的颜色"
 }

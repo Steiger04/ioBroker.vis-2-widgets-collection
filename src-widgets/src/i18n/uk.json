@@ -1347,5 +1347,7 @@
     "echarts_card_tab_data": "Дані",
     "echarts_card_tab_style": "Стиль",
     "echarts_card_tab_format": "Формат",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "color_gradient_not_allowed": "Градієнт тут неможливий",
+    "color_invalid": "Недійсний колір"
 }
