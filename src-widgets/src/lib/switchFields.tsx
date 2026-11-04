@@ -9,6 +9,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createOnlyDisplayField } from './fieldFactories';
+import { switchColorContracts } from './switchColorContract';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -33,9 +34,10 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: THUMB_SIZE_DEFAULT,
         step: 1,
     },
-    // Thumb colors (no fallback to disable theme primary color)
-    createColorField({ name: 'thumbColorTrue', label: 'thumb_color_true', fallbackFields: [] }),
-    createColorField({ name: 'thumbColorFalse', label: 'thumb_color_false', fallbackFields: [] }),
+    // Thumb colours: each field spreads the contract its thumb resolves at runtime
+    // (lib/switchColorContract, ADR-0004) — unset, the swatch shows the MUI Switch default.
+    createColorField({ ...switchColorContracts.thumbColorTrue, label: 'thumb_color_true' }),
+    createColorField({ ...switchColorContracts.thumbColorFalse, label: 'thumb_color_false' }),
     {
         type: 'custom',
         component: () => <CollectionDivider />,
