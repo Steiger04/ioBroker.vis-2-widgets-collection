@@ -88,6 +88,9 @@ reads them from there.
 
 ### **WORK IN PROGRESS**
 
+- (steiger04) **BREAKING** ECharts: the color scale (color by value) moved from the chart to each line, bar and scatter series (Style tab) — every series gets its own min/max and colors; the chart-level color scale tab is gone and its old settings are not migrated
+- (steiger04) ECharts: without own settings a series color scale runs light → series color → dark, follows color and palette changes, inherits min/max from the bound y-axis or the series data, and honours the stop positions of a chosen gradient; an entered min ≥ max is flagged on the series card
+- (steiger04) ECharts fixed: the area fill "Gradient" without a chosen gradient now draws a real gradient of the series color (full → half → transparent) instead of a flat fill
 - (steiger04) ECharts fixed: charts with numeric string states now plot — the shared intake reads prefix numbers, comma decimals and bool texts (unreadable becomes a gap, never a faked 0)
 - (steiger04) ECharts: per-series value mapping (raw value → number or deliberate gap), formula context symbols smin/smax/savg/sfirst/slast, smoothing window and running total extend the value chain; legend values now read the same final series the axis shows
 - (steiger04) ECharts configurator: corrected, consistent texts and terms in all languages (misleading hints fixed, one name per concept)
