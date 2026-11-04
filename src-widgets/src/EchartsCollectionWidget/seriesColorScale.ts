@@ -11,6 +11,10 @@
  * - **Range, per bound:** entry → the bound Y axis' fixed bound → the extent of all loaded
  *   finite Y values of the series ({@link resolveColorScaleRange}). Zoom never recolours: the
  *   extent covers the whole loaded series, not the zoom window.
+ * - **Unit (ticket 08):** a percent-stacked bar carries SHARES 0–1 (the pipeline normalized them,
+ *   ADR-0084) while its axis shows 0–100 %. The user enters and reads the bounds in displayed
+ *   percent; {@link resolveColorScaleRange} converts the entries to shares, the placeholders
+ *   convert back via {@link colorScaleDisplayValue} — ONE factor ({@link COLOR_SCALE_PERCENT_FACTOR}).
  *
  * @module EchartsCollectionWidget/seriesColorScale
  */
@@ -213,6 +217,16 @@ export interface ColorScaleRange {
 
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
+/** Displayed percent per share of a percent-stacked bar (100 % = share 1). */
+export const COLOR_SCALE_PERCENT_FACTOR = 100;
+
+/**
+ * A resolved bound (data units) as the user reads it: in displayed percent for a percent-stacked
+ * bar, else unchanged. The placeholders' side of the one unit conversion.
+ */
+export const colorScaleDisplayValue = (value: number, percent: boolean): number =>
+    percent ? value * COLOR_SCALE_PERCENT_FACTOR : value;
+
 /**
  * Resolve the Farbskala range PER BOUND: the entry wins, then the bound Y axis' fixed bound,
  * then the data extent. Mixed origins are normal (min from the axis, max from the data).
@@ -221,15 +235,18 @@ const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFi
  * @param axis - The Y axis the series binds to (its GUI min/max), absent = none.
  * @param extent - The series' loaded data extent; `null`/absent = unknown (the bound then names
  *   its data source without a value).
+ * @param percent - The series is a percent-stacked bar: the entries are displayed percent and
+ *   convert to shares; axis bounds and data are already shares. Every bound returns in data units.
  */
 export const resolveColorScaleRange = (
     meta: Pick<EchartsSeriesMeta, 'colorScaleMin' | 'colorScaleMax'> | undefined,
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     extent: ValueExtent | null | undefined,
+    percent = false,
 ): ColorScaleRange => {
     const bound = (entry: unknown, axisBound: unknown, dataBound: number | undefined): ColorScaleBound =>
         finite(entry)
-            ? { value: entry, source: 'entry' }
+            ? { value: percent ? entry / COLOR_SCALE_PERCENT_FACTOR : entry, source: 'entry' }
             : finite(axisBound)
               ? { value: axisBound, source: 'axis' }
               : { value: dataBound, source: 'data' };
@@ -292,12 +309,14 @@ export interface EffectiveColorScale {
  *   any finite value; `undefined` = unknown (the editor before the preview loaded the series) —
  *   then only the known bounds decide and nothing is invented: the configured scale, unless the
  *   entered/axis bounds already collide.
+ * @param percent - The series is a percent-stacked bar ({@link resolveColorScaleRange}).
  */
 export const effectiveColorScale = (
     meta: EchartsSeriesMeta | undefined,
     seriesColor: string | null | undefined,
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     extent: ValueExtent | null | undefined,
+    percent = false,
 ): EffectiveColorScale | null => {
     if (!meta?.colorScale || colorScaleRangeInvalid(meta)) {
         return null;
@@ -306,7 +325,7 @@ export const effectiveColorScale = (
     if (!colors) {
         return null;
     }
-    const { min, max } = resolveColorScaleRange(meta, axis, extent);
+    const { min, max } = resolveColorScaleRange(meta, axis, extent, percent);
     // Nothing to colour: no finite value and no range the user fully authored.
     if (extent === null && !(min.source === 'entry' && max.source === 'entry')) {
         return null;
@@ -338,6 +357,7 @@ export const effectiveColorScale = (
  *   override may set anything there — a non-string derives no scale.
  * @param axis - The Y axis config the series binds to.
  * @param data - The series' loaded data (the whole series, never the zoom window).
+ * @param percent - The series is a percent-stacked bar ({@link resolveColorScaleRange}).
  */
 export const buildColorScaleEntry = (
     seriesIndex: number,
@@ -345,12 +365,14 @@ export const buildColorScaleEntry = (
     seriesColor: unknown,
     axis: Pick<EchartsAxisConfig, 'min' | 'max'> | undefined,
     data: ChartSeries['data'],
+    percent = false,
 ): ContinousVisualMapComponentOption | null => {
     const scale = effectiveColorScale(
         meta,
         typeof seriesColor === 'string' ? seriesColor : undefined,
         axis,
         seriesValueExtent(data),
+        percent,
     );
     if (!scale?.range) {
         return null;

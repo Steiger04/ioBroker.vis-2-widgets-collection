@@ -169,32 +169,45 @@ export const OptionalNumberField: FC<{
     disabled?: boolean;
     /** Shown in the EMPTY field — e.g. the inherited Voreinstellung an unset value falls back to. */
     placeholder?: string;
-}> = ({ label, value, onChange, step = 1, error, helperText, disabled, placeholder }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            size="small"
-            type="number"
-            value={value ?? ''}
-            inputProps={{ step }}
-            error={error}
-            helperText={helperText}
-            disabled={disabled}
-            placeholder={placeholder}
-            onChange={e => {
-                const raw = e.target.value;
-                if (raw === '') {
-                    onChange(undefined);
-                    return;
-                }
-                const n = Number(raw);
-                onChange(Number.isFinite(n) ? n : undefined);
-            }}
-            fullWidth
-            sx={noSpinnerSx}
-        />
-    </Box>
-);
+    /**
+     * The placeholder's full wording for a SHORTENED placeholder — the EMPTY field's tooltip and
+     * part of its accessible name (`label, text`). An entered value drops both.
+     */
+    placeholderTitle?: string;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled, placeholder, placeholderTitle }) => {
+    const titled = placeholderTitle !== undefined;
+    const empty = value === undefined;
+    return (
+        <Box>
+            <FieldLabel>{label}</FieldLabel>
+            <TextField
+                size="small"
+                type="number"
+                value={value ?? ''}
+                inputProps={{
+                    step,
+                    ...(titled && empty ? { title: placeholderTitle } : {}),
+                    ...(titled ? { 'aria-label': empty ? `${label}, ${placeholderTitle}` : label } : {}),
+                }}
+                error={error}
+                helperText={helperText}
+                disabled={disabled}
+                placeholder={placeholder}
+                onChange={e => {
+                    const raw = e.target.value;
+                    if (raw === '') {
+                        onChange(undefined);
+                        return;
+                    }
+                    const n = Number(raw);
+                    onChange(Number.isFinite(n) ? n : undefined);
+                }}
+                fullWidth
+                sx={noSpinnerSx}
+            />
+        </Box>
+    );
+};
 
 /**
  * Text input, caption-above (ADR-0019). The placeholder is always visible (no floating label

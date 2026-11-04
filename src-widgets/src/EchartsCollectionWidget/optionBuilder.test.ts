@@ -4012,4 +4012,43 @@ describe('buildGeneratedOption — Farbskala pro Serie (ADR-0101)', () => {
             expect(vm![0]).toMatchObject({ min: 0, max: 10 });
         });
     });
+
+    it('reads the entries of a percent-stacked bar as displayed percent (ticket 08)', () => {
+        // The pipeline already normalized the bars to shares 0–1 (ADR-0084); the axis shows 0–100 %.
+        const shares: ChartSeries[] = [
+            {
+                name: 'A',
+                data: [
+                    [1, 0.1],
+                    [2, 0.9],
+                ],
+            },
+        ];
+        const scaled = { color: '#ff0000', colorScale: true, colorScaleMin: 20, colorScaleMax: 80 };
+        const percent = vmOf(
+            buildGeneratedOption({
+                family: 'cartesian',
+                series: shares,
+                meta: [scaled],
+                p: { ...P, cartesianType: 'bar', stackMode: 'percent' },
+            }),
+        );
+        expect(percent![0]).toMatchObject({ min: 0.2, max: 0.8 });
+        // Opted out of the stack, plain stacking, or a line: absolute values — entries as typed.
+        for (const [meta, stackMode] of [
+            [{ ...scaled, stack: 'none' }, 'percent'],
+            [scaled, 'stack'],
+            [{ ...scaled, type: 'line' }, 'percent'],
+        ] as const) {
+            const vm = vmOf(
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: shares,
+                    meta: [meta],
+                    p: { ...P, cartesianType: 'bar', stackMode },
+                }),
+            );
+            expect(vm![0]).toMatchObject({ min: 20, max: 80 });
+        }
+    });
 });

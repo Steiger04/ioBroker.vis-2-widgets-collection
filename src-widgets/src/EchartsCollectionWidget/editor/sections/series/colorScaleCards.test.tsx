@@ -89,7 +89,12 @@ const common = {
 type Source = 'history' | 'json' | 'table';
 
 /** One expanded card of the given source, bound to `meta`. */
-const card = (source: Source, meta: EchartsSeriesMeta, extents: PreviewExtents = {}): HTMLElement => {
+const card = (
+    source: Source,
+    meta: EchartsSeriesMeta,
+    extents: PreviewExtents = {},
+    extra: Partial<typeof DEFAULT_EDITOR_STATE> = {},
+): HTMLElement => {
     const yAxes = [{ id: 'ax-1', position: 'left' as const }];
     const list =
         source === 'history'
@@ -103,6 +108,7 @@ const card = (source: Source, meta: EchartsSeriesMeta, extents: PreviewExtents =
                           mode: 'history',
                           yAxes,
                           series: [{ id: 's1', oid: 'a.0', name: 'A', ...meta }],
+                          ...extra,
                       },
                       historyInstances: { instances: [], loaded: true },
                   } as never,
@@ -120,6 +126,7 @@ const card = (source: Source, meta: EchartsSeriesMeta, extents: PreviewExtents =
                             yAxes,
                             jsonSeriesStyle: { A: meta },
                             jsonHidden: [],
+                            ...extra,
                         },
                         jsonSeriesNames: ['A'],
                     } as never,
@@ -136,6 +143,7 @@ const card = (source: Source, meta: EchartsSeriesMeta, extents: PreviewExtents =
                             jsonOid: 'javascript.0.table',
                             yAxes,
                             series: [{ id: 's1', oid: '', yPath: 'A', ...meta }],
+                            ...extra,
                         },
                         columns: [],
                     } as never,
@@ -245,7 +253,52 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
             i => i.placeholder,
         );
         expect(placeholders).toEqual(
-            expect.arrayContaining(['echarts_color_scale_inherit_data|3', 'echarts_color_scale_inherit_data|9']),
+            expect.arrayContaining([
+                'echarts_color_scale_placeholder_data|3',
+                'echarts_color_scale_placeholder_data|9',
+            ]),
+        );
+    });
+
+    it.each(SOURCES)(
+        '%s: a percent-stacked bar names its data-inherited bounds in displayed percent (ticket 08)',
+        source => {
+            const extent = { A: { min: 0.125, max: 0.35 } };
+            const placeholders = (el: HTMLElement): string[] =>
+                Array.from(el.querySelectorAll<HTMLInputElement>('input[type="number"]')).map(i => i.placeholder);
+            const percent = card(source, { type: 'bar', colorScale: true }, extent, { stackMode: 'percent' });
+            openStil(percent);
+            expect(placeholders(percent)).toEqual(
+                expect.arrayContaining([
+                    'echarts_color_scale_placeholder_data|12.5',
+                    'echarts_color_scale_placeholder_data|35',
+                ]),
+            );
+            // Opted out of the stack: absolute values — the shares stay as they are.
+            const optedOut = card(source, { type: 'bar', colorScale: true, stack: 'none' }, extent, {
+                stackMode: 'percent',
+            });
+            openStil(optedOut);
+            expect(placeholders(optedOut)).toEqual(
+                expect.arrayContaining([
+                    'echarts_color_scale_placeholder_data|0.125',
+                    'echarts_color_scale_placeholder_data|0.35',
+                ]),
+            );
+        },
+    );
+
+    it.each(SOURCES)('%s: a percent-stacked bar reads entered bounds as percent for the header swatch', source => {
+        // Min 20 % + the data max (share 0.9 = 90 %): a real range, the scale draws. Read as a
+        // share, 20 would collide with 0.9 and degrade to the middle colour.
+        const el = card(
+            source,
+            { type: 'bar', colorScale: true, colorScaleMin: 20 },
+            { A: { min: 0.1, max: 0.9 } },
+            { stackMode: 'percent' },
+        );
+        expect(el.querySelector<HTMLElement>('[data-testid="swatch"]')!.dataset.color).toBe(
+            'linear-gradient(90deg, rgba(255, 128, 128, 1) 0%, rgba(255, 0, 0, 1) 50%, rgba(128, 0, 0, 1) 100%)',
         );
     });
 

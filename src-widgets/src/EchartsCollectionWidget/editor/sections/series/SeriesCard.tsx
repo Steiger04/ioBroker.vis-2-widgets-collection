@@ -45,6 +45,7 @@ import { PreviewExtentsContext, previewExtentOf } from '../../previewExtents';
 import { issueCountsByTab } from '../../issueTabs';
 import { seriesMetaIssues } from '../../seriesIssues';
 import { colorScaleAxis, colorScaleCss, effectiveColorScale } from '../../../seriesColorScale';
+import { effectiveCartesianType, isPercentStackedBar } from '../../../stackMode';
 
 /**
  * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
@@ -170,7 +171,20 @@ const SeriesCard: FC<SeriesCardProps> = ({
     // Header swatch (ADR-0101, honest): the swatch shows what the chart draws — the SAME effective
     // scale the builder emits: the scale as a mini gradient, its middle colour for a degenerate
     // range, the plain series colour when no scale is drawn. Unknown data invents nothing.
-    const scale = effectiveColorScale(meta, seriesColor, colorScaleAxis(ctx.yAxes, meta.yAxisIndex), dataExtent);
+    // A percent-stacked bar carries shares: its Farbskala bounds are displayed percent (ticket 08)
+    // — the builder's own predicate, so the card converts for exactly the series it does.
+    const colorScalePercent = isPercentStackedBar(
+        meta.stack,
+        effectiveCartesianType(meta.type, ctx.defaultType),
+        ctx.stackMode,
+    );
+    const scale = effectiveColorScale(
+        meta,
+        seriesColor,
+        colorScaleAxis(ctx.yAxes, meta.yAxisIndex),
+        dataExtent,
+        colorScalePercent,
+    );
     const swatchColor = scale ? (scale.degenerate ? scale.colors[0] : colorScaleCss(scale.colors)) : seriesColor;
     // The card's own ⚠ dots (ADR-0073 field placement): the SAME per-series check the validation
     // counts in the section rollup — the card derives it from its meta, nothing is threaded down.
@@ -223,6 +237,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
                 stackMode={ctx.stackMode}
                 yAxes={ctx.yAxes}
                 dataExtent={dataExtent ?? null}
+                colorScalePercent={colorScalePercent}
             />
         ),
         format: () => (

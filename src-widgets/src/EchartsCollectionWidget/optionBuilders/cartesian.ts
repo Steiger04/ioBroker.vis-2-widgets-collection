@@ -53,7 +53,13 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import { datumValueSlot, effectiveCartesianType, effectiveStackName, normalizeStackMode } from '../stackMode';
+import {
+    datumValueSlot,
+    effectiveCartesianType,
+    effectiveStackName,
+    isPercentStackedBar,
+    normalizeStackMode,
+} from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 
@@ -775,10 +781,17 @@ export const buildCartesianOption = (
     // Per-series colour scale (Farbskala, ADR-0101): one invisible continuous visualMap entry per series with
     // an active scale, `seriesIndex` = the series' own index (hidden series stay emitted, so the
     // indices never shift). Resolved against the CONFIGURED axis (before the remap below) and
-    // the whole loaded series — zooming never recolours.
+    // the whole loaded series — zooming never recolours. A percent-stacked bar carries shares
+    // (the pipeline's normalization, same predicate): its entered bounds are displayed percent.
+    const colorScaleStackMode = normalizeStackMode(p.stackMode);
     const colorScales = entries.flatMap((e, i) => {
         const axis = colorScaleAxis(allAxes, e.yAxisIndex as number);
-        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data);
+        const percent = isPercentStackedBar(
+            meta[i]?.stack,
+            effectiveCartesianType(meta[i]?.type, p.cartesianType),
+            colorScaleStackMode,
+        );
+        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data, percent);
         return vm ? [vm] : [];
     });
     // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the

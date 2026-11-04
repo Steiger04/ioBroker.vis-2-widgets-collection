@@ -37,7 +37,12 @@ import type { ValueExtent } from '../../../../seriesColorScale';
 
 const mountStil = (
     meta: EchartsSeriesMeta,
-    opts: { yAxes?: EchartsAxisConfig[]; dataExtent?: ValueExtent | null; seriesColor?: string } = {},
+    opts: {
+        yAxes?: EchartsAxisConfig[];
+        dataExtent?: ValueExtent | null;
+        seriesColor?: string;
+        colorScalePercent?: boolean;
+    } = {},
 ): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -52,6 +57,7 @@ const mountStil = (
                 labelColorFallback: '#222',
                 yAxes: opts.yAxes ?? [{}],
                 dataExtent: opts.dataExtent ?? null,
+                colorScalePercent: opts.colorScalePercent,
             }),
         );
     });
@@ -102,14 +108,14 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
         // Axis bounds: always known.
         const axis = group(mountStil({ type: 'line', colorScale: true }, { yAxes: [{ min: 0, max: 40 }] }))!;
         expect(numberInputs(axis).map(i => i.placeholder)).toEqual([
-            'echarts_color_scale_inherit_axis|0',
-            'echarts_color_scale_inherit_axis|40',
+            'echarts_color_scale_placeholder_axis|0',
+            'echarts_color_scale_placeholder_axis|40',
         ]);
         // Data without loaded preview data: the source, no invented value.
         const unknown = group(mountStil({ type: 'line', colorScale: true }))!;
         expect(numberInputs(unknown).map(i => i.placeholder)).toEqual([
-            'echarts_color_scale_inherit_data_unknown',
-            'echarts_color_scale_inherit_data_unknown',
+            'echarts_color_scale_placeholder_data_unknown',
+            'echarts_color_scale_placeholder_data_unknown',
         ]);
         // Mixed: min from the bound axis, max from the loaded data.
         const mixed = group(
@@ -119,8 +125,47 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
             ),
         )!;
         expect(numberInputs(mixed).map(i => i.placeholder)).toEqual([
-            'echarts_color_scale_inherit_axis|5',
-            'echarts_color_scale_inherit_data|12.5',
+            'echarts_color_scale_placeholder_axis|5',
+            'echarts_color_scale_placeholder_data|12.5',
+        ]);
+    });
+
+    it('carries the full Erben text as tooltip and accessible name of an empty bound (ticket 07)', () => {
+        const g = group(
+            mountStil(
+                { type: 'line', colorScale: true, yAxisIndex: 1 },
+                { yAxes: [{}, { min: 5 }], dataExtent: { min: 7, max: 12.5 } },
+            ),
+        )!;
+        const [min, max] = numberInputs(g);
+        expect(min.title).toBe('echarts_color_scale_inherit_axis|5');
+        expect(max.title).toBe('echarts_color_scale_inherit_data|12.5');
+        expect(min.getAttribute('aria-label')).toBe(
+            'echarts_series_color_scale_min, echarts_color_scale_inherit_axis|5',
+        );
+        expect(max.getAttribute('aria-label')).toBe(
+            'echarts_series_color_scale_max, echarts_color_scale_inherit_data|12.5',
+        );
+    });
+
+    it('drops the Erben tooltip once a bound is entered — the field then shows its own value', () => {
+        const g = group(mountStil({ type: 'line', colorScale: true, colorScaleMax: 30 }))!;
+        const [min, max] = numberInputs(g);
+        expect(min.title).toBe('echarts_color_scale_inherit_data_unknown');
+        expect(max.title).toBe('');
+        expect(max.getAttribute('aria-label')).toBe('echarts_series_color_scale_max');
+    });
+
+    it('shows the inherited bounds of a percent-stacked bar in displayed percent (ticket 08)', () => {
+        const g = group(
+            mountStil(
+                { type: 'bar', colorScale: true },
+                { dataExtent: { min: 0.125, max: 0.35 }, colorScalePercent: true },
+            ),
+        )!;
+        expect(numberInputs(g).map(i => i.placeholder)).toEqual([
+            'echarts_color_scale_placeholder_data|12.5',
+            'echarts_color_scale_placeholder_data|35',
         ]);
     });
 

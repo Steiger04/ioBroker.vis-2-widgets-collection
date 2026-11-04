@@ -36,6 +36,7 @@ import { deriveAreaGradient } from '../../../../seriesColorDerive';
 import {
     colorScaleAxis,
     colorScaleCss,
+    colorScaleDisplayValue,
     colorScaleRangeInvalid,
     deriveColorScaleColors,
     resolveColorScaleRange,
@@ -46,16 +47,28 @@ import { resolveHostLang } from '../../../../timeFormat';
 import type { OidPickerCtx } from '../../../OidPicker';
 import { COLOR_SCALE_RANGE_ISSUE } from '../../../seriesIssues';
 
-/** The empty Min/Max placeholder (Erben-Override idiom): the source always, the value only when known. */
-const boundPlaceholder = (bound: ColorScaleBound): string => {
+/**
+ * The empty Min/Max field's inherit texts (Erben-Override idiom): the source always, the value
+ * only when known — in the user's unit (displayed percent for a percent-stacked bar, ticket 08).
+ * The half-column field shows the SHORT form („→ Daten: 6,54", the empty field already reads as
+ * „erbt"); the full „Erben (→ Daten: 6,54)" rides as tooltip and accessible name (ticket 07).
+ */
+const boundTexts = (bound: ColorScaleBound, percent: boolean): { placeholder: string; title: string } => {
     const fmt = (n: number): string =>
-        new Intl.NumberFormat(resolveHostLang(), { maximumFractionDigits: 3, useGrouping: false }).format(n);
+        new Intl.NumberFormat(resolveHostLang(), { maximumFractionDigits: 3, useGrouping: false }).format(
+            colorScaleDisplayValue(n, percent),
+        );
+    const pick = (
+        kind: 'axis' | 'data' | 'data_unknown',
+        ...args: string[]
+    ): { placeholder: string; title: string } => ({
+        placeholder: Generic.t(`echarts_color_scale_placeholder_${kind}`, ...args),
+        title: Generic.t(`echarts_color_scale_inherit_${kind}`, ...args),
+    });
     if (bound.source === 'axis' && bound.value !== undefined) {
-        return Generic.t('echarts_color_scale_inherit_axis', fmt(bound.value));
+        return pick('axis', fmt(bound.value));
     }
-    return bound.value === undefined
-        ? Generic.t('echarts_color_scale_inherit_data_unknown')
-        : Generic.t('echarts_color_scale_inherit_data', fmt(bound.value));
+    return bound.value === undefined ? pick('data_unknown') : pick('data', fmt(bound.value));
 };
 
 /**
@@ -74,10 +87,14 @@ const ColorScaleGroup: FC<{
     dataExtent: ValueExtent | null;
     /** The area knob is „Verlauf" — the area keeps its own gradient, only the line follows. */
     areaGradient: boolean;
-}> = ({ meta, onPatch, pickerCtx, seriesColor, yAxes, dataExtent, areaGradient }) => {
+    /** A percent-stacked bar: the bounds read and inherit in displayed percent (ticket 08). */
+    percent: boolean;
+}> = ({ meta, onPatch, pickerCtx, seriesColor, yAxes, dataExtent, areaGradient, percent }) => {
     const on = meta.colorScale === true;
     // Only the inherited bounds feed the placeholders — an entered bound shows as the value.
-    const range = resolveColorScaleRange(undefined, colorScaleAxis(yAxes, meta.yAxisIndex), dataExtent);
+    const range = resolveColorScaleRange(undefined, colorScaleAxis(yAxes, meta.yAxisIndex), dataExtent, percent);
+    const minTexts = boundTexts(range.min, percent);
+    const maxTexts = boundTexts(range.max, percent);
     const derived = deriveColorScaleColors(seriesColor);
     // The input error (ticket 05) — the SAME predicate the builder and the validation run: both
     // fields flag, ONE helper text names the consequence (the AxisCard min≥max idiom).
@@ -97,7 +114,8 @@ const ColorScaleGroup: FC<{
                     label={Generic.t('echarts_series_color_scale_min')}
                     value={meta.colorScaleMin}
                     onChange={v => onPatch({ colorScaleMin: v })}
-                    placeholder={boundPlaceholder(range.min)}
+                    placeholder={minTexts.placeholder}
+                    placeholderTitle={minTexts.title}
                     disabled={!on}
                     error={invalid}
                     helperText={invalid ? Generic.t(COLOR_SCALE_RANGE_ISSUE) : undefined}
@@ -106,7 +124,8 @@ const ColorScaleGroup: FC<{
                     label={Generic.t('echarts_series_color_scale_max')}
                     value={meta.colorScaleMax}
                     onChange={v => onPatch({ colorScaleMax: v })}
-                    placeholder={boundPlaceholder(range.max)}
+                    placeholder={maxTexts.placeholder}
+                    placeholderTitle={maxTexts.title}
                     disabled={!on}
                     error={invalid}
                 />
@@ -161,6 +180,11 @@ export const StilTab: FC<{
      * only when it is known; absent/`null` = source only, never an invented value.
      */
     dataExtent?: ValueExtent | null;
+    /**
+     * The series is a percent-stacked bar (`isPercentStackedBar`, resolved by the card) —
+     * the Farbskala bounds are entered and shown in displayed percent (ticket 08).
+     */
+    colorScalePercent?: boolean;
 }> = ({
     meta,
     defaultType,
@@ -171,6 +195,7 @@ export const StilTab: FC<{
     stackMode,
     yAxes = [],
     dataExtent = null,
+    colorScalePercent = false,
 }) => {
     // The builder's own type resolution (ADR-0008 r3 + ADR-0060): an explicit bar/scatter/line
     // override wins, else the chart's default — so a scatter override hides the line/area/bar
@@ -433,6 +458,7 @@ export const StilTab: FC<{
                 yAxes={yAxes}
                 dataExtent={dataExtent}
                 areaGradient={renderedType === 'line' && meta.area === 'gradient'}
+                percent={colorScalePercent}
             />
             {/* „Nur in Legende" is PRESENTATION, not acquisition (ADR-0072): it stays with the
                 type knobs — type-independent, so it renders for line/bar AND scatter, on the

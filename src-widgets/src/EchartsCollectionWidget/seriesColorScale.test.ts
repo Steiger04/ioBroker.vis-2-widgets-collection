@@ -3,7 +3,9 @@ import {
     COLOR_SCALE_SAMPLE_COUNT,
     colorScaleColorAt,
     colorScaleColorsFromStops,
+    colorScaleDisplayValue,
     effectiveColorScale,
+    resolveColorScaleRange,
 } from './seriesColorScale';
 
 /** The evenly spaced sample position (0–1) of resampled colour `i`. */
@@ -149,5 +151,34 @@ describe('effectiveColorScale — what the chart draws (ADR-0101, honest swatch)
         expect(
             effectiveColorScale({ colorScale: true, colorScaleMin: 0, colorScaleMax: 10 }, '#ff0000', undefined, null),
         ).toEqual({ colors: RED_SCALE, range: { min: 0, max: 10 }, degenerate: false });
+    });
+});
+
+describe('the percent unit of a percent-stacked bar (ticket 08)', () => {
+    it('reads entries as displayed percent and resolves every bound in shares', () => {
+        const range = resolveColorScaleRange({ colorScaleMin: 20 }, { max: 0.75 }, { min: 0.1, max: 0.9 }, true);
+        expect(range).toEqual({
+            min: { value: 0.2, source: 'entry' },
+            max: { value: 0.75, source: 'axis' },
+        });
+        // Without the percent unit the entry stays as typed.
+        expect(resolveColorScaleRange({ colorScaleMin: 20 }, undefined, undefined, false).min.value).toBe(20);
+    });
+
+    it('shows a resolved share as displayed percent — other values unchanged', () => {
+        expect(colorScaleDisplayValue(0.35, true)).toBeCloseTo(35);
+        expect(colorScaleDisplayValue(0.35, false)).toBe(0.35);
+    });
+
+    it('collides percent entries with share data only after the conversion', () => {
+        // Min 20 % against a data max of 90 % (0.9): a real range, not degenerate.
+        const scale = effectiveColorScale(
+            { colorScale: true, colorScaleMin: 20 },
+            '#ff0000',
+            undefined,
+            { min: 0.1, max: 0.9 },
+            true,
+        );
+        expect(scale).toMatchObject({ range: { min: 0.2, max: 0.9 }, degenerate: false });
     });
 });

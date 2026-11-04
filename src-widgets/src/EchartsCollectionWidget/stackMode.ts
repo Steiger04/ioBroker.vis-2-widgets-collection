@@ -61,3 +61,20 @@ export const effectiveStackName = (
     // '' / undefined / foreign (unhealed body blobs) — the inherit branch.
     return mode === 'none' ? undefined : `total#${axisIndex}`;
 };
+
+/**
+ * Does a series render SHARES (0–1, displayed as 0–100 %)? The pipeline normalizes exactly
+ * these (ADR-0084 decision 4): a bar under stackMode 'percent' that resolves a stack (inherits
+ * the mode or names a group — not opted out). Lines and scatter never stack as percent. Shared
+ * by the builder and the editor so a value in display units (the Farbskala bounds, ADR-0101
+ * ticket 08) converts for exactly the series the pipeline normalized.
+ *
+ * @param stack - The series' three-valued stack config.
+ * @param type - The series' EFFECTIVE cartesian type ({@link effectiveCartesianType}).
+ * @param mode - The chart-level Stapelmodus.
+ */
+export const isPercentStackedBar = (
+    stack: string | undefined,
+    type: EchartsCartesianType,
+    mode: EchartsStackMode,
+): boolean => mode === 'percent' && type === 'bar' && effectiveStackName(stack, mode, 0) !== undefined;
