@@ -281,6 +281,7 @@ function CollectionGradientColorPicker({
                     value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
                     onCommit={handlePickerCommit}
                     allowGradient={field.noGradient !== true}
+                    socket={props.context.socket}
                 />
             </ThemeProvider>
         </>
