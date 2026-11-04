@@ -1,6 +1,7 @@
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { resolveSwitchColors } from '../lib/switchColorContract';
 import { THUMB_SIZE_DEFAULT } from '../lib/switchFields';
 import { resolveCheckedInputLeft, resolveThumbTravel } from './geometry';
 import type { SwitchCollectionContextProps } from '../types';
@@ -37,15 +38,20 @@ const CALLBACK_ONLY_PROPS = new Set<PropertyKey>(['width', 'maxHeight', 'data', 
  * @remarks
  * The travel math and the checked input offset come from the pure functions in
  * {@link module:widgets/SwitchCollectionWidget/geometry} (tested there); this
- * callback only assembles CSS. Behaviour frozen: the thumb-color fields fall
- * back to the MUI Switch defaults (checked thumb is primary.main anyway), the
- * icon overlay differs between the states only in its fallback colour.
+ * callback only assembles CSS. The thumb colours come from `resolveSwitchColors`
+ * ({@link module:lib/switchColorContract}, tested there): the same contracts the
+ * thumb fields' swatches resolve, with the MUI Switch defaults and the Sperre
+ * painted explicitly — MUI's own checked/disabled thumb colour (`currentColor`)
+ * no longer decides. The icon overlay differs between the states only in its
+ * fallback colour.
  */
 const MaterialUISwitch = styled(Switch, {
     shouldForwardProp: prop => !CALLBACK_ONLY_PROPS.has(prop),
-})<MaterialUISwitchProps>(({ width, maxHeight, data, widget, theme }) => {
+})<MaterialUISwitchProps>(({ width, maxHeight, data, widget, theme, disabled }) => {
     // Single source: the schema default in lib/switchFields.tsx
     const thumbSize = widget.data.thumbSize ?? THUMB_SIZE_DEFAULT;
+    // Sperre = the switch's `disabled` (SwitchCollection passes the OID binding's `locked`).
+    const colors = resolveSwitchColors(widget.data, theme, Boolean(disabled));
     const travel = resolveThumbTravel(thumbSize, maxHeight);
     const inputWidth = width || 0;
 
@@ -103,7 +109,7 @@ const MaterialUISwitch = styled(Switch, {
                 },
 
                 '& .MuiSwitch-thumb': {
-                    background: widget.data.thumbColorTrue,
+                    background: colors.on.thumb,
 
                     '&::before': iconOverlay(theme.palette.primary.dark),
                 },
@@ -119,7 +125,7 @@ const MaterialUISwitch = styled(Switch, {
         },
 
         '& .MuiSwitch-thumb': {
-            background: widget.data.thumbColorFalse,
+            background: colors.off.thumb,
 
             width: thumbSize,
             maxWidth: maxHeight,
