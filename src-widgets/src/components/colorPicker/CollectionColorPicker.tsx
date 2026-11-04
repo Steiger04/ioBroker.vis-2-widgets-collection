@@ -38,7 +38,7 @@ import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
-import ColorInputRow from './ColorInputRow';
+import ColorInputRow, { FOLLOW_PICKER_WIDTH } from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
 import ThemePresets from './ThemePresets';
 
@@ -158,7 +158,7 @@ function PickerHeader({ title, onClose }: { title?: string; onClose: () => void 
     return (
         <Box
             data-picker-header
-            sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, minHeight: 28 }}
+            sx={{ ...FOLLOW_PICKER_WIDTH, display: 'flex', alignItems: 'center', gap: 1, mb: 1, minHeight: 28 }}
         >
             {title ? (
                 <Typography

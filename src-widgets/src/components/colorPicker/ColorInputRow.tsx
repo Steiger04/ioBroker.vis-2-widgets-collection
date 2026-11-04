@@ -22,6 +22,14 @@ import { useColorPicker } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
 import { clamp, normaliseSolid, parseHexColor, rgbaToHex } from '../../lib/helper/colorInputRules';
 
+/**
+ * Rows around the library take its width instead of widening the popover: width 0 drops the row
+ * from the paper's shrink-to-fit width, min-width 100 % stretches it to the library's width again.
+ * Without it the intrinsic width of the five inputs (and a long header title) grows the paper up
+ * to the viewport.
+ */
+export const FOLLOW_PICKER_WIDTH = { width: 0, minWidth: '100%' } as const;
+
 /** Props for {@link ColorInputRow}. */
 export interface ColorInputRowProps {
     /** The Farbwähler's current raw value (solid colour or gradient). */
@@ -193,7 +201,13 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
     return (
         <Box
             data-picker-inputs
-            sx={{ display: 'grid', gridTemplateColumns: '2fr repeat(4, 1fr)', gap: '6px', mt: 1.5 }}
+            sx={{
+                ...FOLLOW_PICKER_WIDTH,
+                display: 'grid',
+                gridTemplateColumns: '2fr repeat(4, 1fr)',
+                gap: '6px',
+                mt: 1.5,
+            }}
         >
             <ChannelField
                 channel="hex"
