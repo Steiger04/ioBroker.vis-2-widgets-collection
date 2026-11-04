@@ -39,18 +39,10 @@ const DARK_BG = '#1e1e1e';
 const LIGHT_BG = '#ffffff';
 
 /**
- * The tooltip surface ECharts paints when the chart sets no `tooltip.backgroundColor`: ECharts 6
- * `tokens.color.neutral00` (`echarts/lib/visual/tokens.js`, read by
- * `echarts/lib/component/tooltip/TooltipModel.js`). The configurator's inherit swatch of the
- * tooltip background shows it (ADR-0027 „Honest inherit swatches"); the chart itself never emits it.
- */
-export const ECHARTS_TOOLTIP_DEFAULT_BG = '#fff';
-
-/**
  * Semantic theme colours the family builders consume for theme-derived defaults (ADR-0027).
  *
  * The palette colours (`primary`/`secondary`/`success`/…) come straight from the resolved theme
- * (the collection theme in both the live body and the editor); the text/divider tokens are
+ * (the collection theme in both the live body and the editor); the text/divider/paper tokens are
  * dark-mode-aware — they swap to the fixed light/dark token set when a `forceMode` override flips
  * the mode away from the host, so a forced-dark chart's defaults read dark too.
  */
@@ -65,35 +57,51 @@ export interface ThemeTokens {
     divider: string;
     /** Title-colour inherit default — dark-mode-aware. */
     textPrimary: string;
-    /** Legend-text-colour inherit default — dark-mode-aware. */
+    /** Legend-text-colour inherit default and the tooltip text floor — dark-mode-aware. */
     textSecondary: string;
+    /**
+     * The widget card surface — the tooltip-background floor and its inherit swatch
+     * (ADR-0027 addendum 2026-11-04). Dark-mode-aware: the theme's `palette.background.paper`,
+     * under a forced mode that differs from the host the fixed canvas colour the chart paints.
+     */
+    paper: string;
 }
 
-/** Fixed light/dark text+divider tokens used when a `forceMode` override flips the mode. */
-const FIXED_TEXT_DARK = {
+/** The dark-mode-aware token subset of {@link ThemeTokens} (text, divider, surface). */
+type ModeTokens = Pick<ThemeTokens, 'textPrimary' | 'textSecondary' | 'divider' | 'paper'>;
+
+/**
+ * Fixed light/dark tokens used when a `forceMode` override flips the mode. The `paper` surface is
+ * the same canvas constant the forced-mode chart paints ({@link chartCanvasColor}).
+ */
+const FIXED_TEXT_DARK: ModeTokens = {
     textPrimary: '#e0e0e0',
     textSecondary: 'rgba(255,255,255,0.7)',
     divider: 'rgba(255,255,255,0.18)',
+    paper: DARK_BG,
 };
-const FIXED_TEXT_LIGHT = {
+const FIXED_TEXT_LIGHT: ModeTokens = {
     textPrimary: 'rgba(0,0,0,0.87)',
     textSecondary: 'rgba(0,0,0,0.6)',
     divider: 'rgba(0,0,0,0.12)',
+    paper: LIGHT_BG,
 };
 
 /**
- * The effective text+divider tokens, honouring a `forceMode` override. Shared by
- * {@link buildEchartsTheme} and {@link resolveThemeTokens} so the chart base, the builder defaults
- * and the editor inherit swatches all agree on the same dark-mode-aware values (ADR-0027).
+ * The effective text, divider and surface (`paper`) tokens, honouring a `forceMode` override.
+ * Shared by {@link buildEchartsTheme} and {@link resolveThemeTokens} so the chart base, the builder
+ * defaults and the editor inherit swatches all agree on the same dark-mode-aware values (ADR-0027).
  */
-export const effectiveTextTokens = (
-    theme: Theme,
-    forceMode?: 'light' | 'dark' | 'auto',
-): { textPrimary: string; textSecondary: string; divider: string } => {
+export const effectiveTextTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): ModeTokens => {
     const p = theme.palette;
     const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
     if (!overridden) {
-        return { textPrimary: p.text.primary, textSecondary: p.text.secondary, divider: p.divider };
+        return {
+            textPrimary: p.text.primary,
+            textSecondary: p.text.secondary,
+            divider: p.divider,
+            paper: p.background.paper,
+        };
     }
     return forceMode === 'dark' ? FIXED_TEXT_DARK : FIXED_TEXT_LIGHT;
 };
@@ -150,6 +158,33 @@ export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 
 };
 
 /**
+ * Content signature of every theme field the chart reads — the memo key of the live body's
+ * palette, tokens and theme base. vis-2 rebuilds the MUI theme on a mere editor move (a new ref
+ * with identical content), so keying on the `theme` REFERENCE would redraw the chart on every
+ * move; keying on this string recomputes only on a real theme change. Must list every field
+ * {@link echartsPalette}, {@link resolveThemeTokens} and {@link buildEchartsTheme} read — a
+ * missing one (e.g. `background.paper`, the tooltip floor) leaves the chart stale when only it
+ * changes. All fields are strings, safe to serialize.
+ */
+export const chartThemeSignature = (theme: Theme): string => {
+    const p = theme.palette;
+    return JSON.stringify({
+        mode: p.mode,
+        primary: p.primary.main,
+        secondary: p.secondary.main,
+        warning: p.warning.main,
+        success: p.success.main,
+        info: p.info.main,
+        error: p.error.main,
+        textPrimary: p.text.primary,
+        textSecondary: p.text.secondary,
+        divider: p.divider,
+        paper: p.background.paper,
+        fontFamily: theme.typography.fontFamily,
+    });
+};
+
+/**
  * Builds the echarts presentation base from the MUI theme.
  *
  * @param theme - Current MUI theme (resolved by CollectionProvider).
@@ -160,12 +195,13 @@ export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 
  *   is actually drawn dark (light text needs a dark canvas). A user-set `bgColor` still overrides
  *   it — the body/preview forces it back after the merge.
  *   `'auto'`/`undefined` follows `theme.palette.mode` (the default, ADR-0007 dark-mode policy).
+ *   The tooltip floor (surface `paper`, text `textSecondary`) follows the same override.
  * @returns An echarts option fragment merged under the generated data option.
  */
 export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): EChartsOption => {
-    // Text + divider tokens via the shared dark-mode-aware helper (ADR-0027): the chart base, the
+    // Text, divider + paper tokens via the shared dark-mode-aware helper (ADR-0027): the chart base, the
     // builder defaults and the editor inherit swatches all read the same values.
-    const { textPrimary: tp, textSecondary: ts, divider: dv } = effectiveTextTokens(theme, forceMode);
+    const { textPrimary: tp, textSecondary: ts, divider: dv, paper } = effectiveTextTokens(theme, forceMode);
     // When the override flips the mode, paint a matching canvas so the chart reads as a coherent
     // dark/light chart (light text needs a dark canvas and vice versa) — not just recoloured text on
     // a transparent background. When following the host, stay transparent and inherit the host bg.
@@ -178,6 +214,12 @@ export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | '
         textStyle: { color: tp, fontFamily: theme.typography.fontFamily },
         title: { textStyle: { color: tp } },
         legend: { textStyle: { color: ts } },
+        // Tooltip floor (ADR-0027 addendum 2026-11-04): the card surface + the legend-text colour,
+        // so a dark chart gets a dark tooltip. In the FLOOR, not the built entry — the section raw
+        // folds under the built entry, so only here do the GUI colour and a raw `backgroundColor`
+        // both keep winning. No border/shadow: echarts keeps its own (incl. the series-coloured
+        // border of `trigger: 'item'`). Floored only when the family builds a tooltip (mergeOption).
+        tooltip: { backgroundColor: paper, textStyle: { color: ts } },
         xAxis: {
             axisLine: { lineStyle: { color: dv } },
             axisLabel: { color: ts },

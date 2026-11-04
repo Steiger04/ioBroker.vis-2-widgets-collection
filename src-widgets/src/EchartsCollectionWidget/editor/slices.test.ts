@@ -49,6 +49,10 @@ describe('section slices (ADR-0049)', () => {
                 | 'tooltipRaw'
                 | 'tooltipSnippets'
                 | 'xAxis'
+                | 'paletteSource'
+                | 'palettePreset'
+                | 'paletteCustom'
+                | 'darkMode'
             >
         >();
     });
