@@ -45,14 +45,6 @@ export const COLOR_PATTERNS = {
 } as const;
 
 /**
- * Color type classification.
- *
- * @remarks
- * Used to classify color values for appropriate handling.
- */
-export type ColorType = 'hex' | 'rgb' | 'gradient' | 'empty' | 'invalid';
-
-/**
  * Checks if a color value is a CSS gradient (linear or radial).
  *
  * @param value - Color string to validate
@@ -74,41 +66,4 @@ export function isGradientColor(value: string | null | undefined): boolean {
     }
 
     return COLOR_PATTERNS.GRADIENT_PREFIX.test(trimmedValue);
-}
-
-/**
- * Classifies a color value into its type.
- *
- * @param value - Color string to classify
- * @returns The color type classification
- * @example
- * classifyColor('#ff0000') // 'hex'
- * classifyColor('rgb(255, 0, 0)') // 'rgb'
- * classifyColor('linear-gradient(red, blue)') // 'gradient'
- * classifyColor('') // 'empty'
- * classifyColor('invalid') // 'invalid'
- */
-export function classifyColor(value: string | null | undefined): ColorType {
-    if (value == null || typeof value !== 'string') {
-        return 'invalid';
-    }
-
-    const trimmedValue = value.trim();
-    if (trimmedValue === '') {
-        return 'empty';
-    }
-
-    if (COLOR_PATTERNS.HEX.test(trimmedValue)) {
-        return 'hex';
-    }
-
-    if (COLOR_PATTERNS.RGB.test(trimmedValue)) {
-        return 'rgb';
-    }
-
-    if (COLOR_PATTERNS.GRADIENT.test(trimmedValue)) {
-        return 'gradient';
-    }
-
-    return 'invalid';
 }
