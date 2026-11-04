@@ -30,6 +30,7 @@ import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
 import Generic from '../../Generic';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
+import ColorInputRow from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
 
 /** Debounce of the live commit while the user drags, in ms. */
@@ -247,7 +248,11 @@ function CollectionColorPicker({
                 value={draft}
                 onChange={handlePick}
             />
-            {/* Input row HEX · R · G · B · A (Ticket 04) docks here: value={draft}, onChange={handlePick}. */}
+            {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
+            <ColorInputRow
+                value={draft}
+                onChange={handlePick}
+            />
         </FollowingPopover>
     );
 }

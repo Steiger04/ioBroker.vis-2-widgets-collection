@@ -13,11 +13,17 @@
  * The fake renders one button per entry of {@link FAKE_PICKS} (`button[data-pick="<name>"]`);
  * a click calls the received `onChange` with that fixed value, as a drag in the real picker
  * would. Every render records the received props in {@link libraryRenders}; read the latest with
- * {@link lastLibraryProps}. The hook export (`useColorPicker`) is not faked — a test that needs
- * the real hook spreads `await importOriginal()` into the factory instead.
+ * {@link lastLibraryProps}. The hook export (`useColorPicker`) is the library's real one (it is
+ * pure state logic without canvas), so the Farbwähler's input row works against the fake.
  */
 import type React from 'react';
-import type { ColorPickerProps } from 'react-best-gradient-color-picker';
+import type * as ColorPickerLibrary from 'react-best-gradient-color-picker';
+import { vi } from 'vitest';
+
+type ColorPickerProps = ColorPickerLibrary.ColorPickerProps;
+
+/** The real library module — only its canvas-free hook is passed on. */
+const actualLibrary = await vi.importActual<typeof ColorPickerLibrary>('react-best-gradient-color-picker');
 
 /** Fixed values the fake's buttons emit — the library's own output notation. */
 export const FAKE_PICKS = {
@@ -74,4 +80,4 @@ function FakeColorPicker(props: ColorPickerProps): React.JSX.Element {
 }
 
 /** Module shape for `vi.mock('react-best-gradient-color-picker', …)`. */
-export const fakeColorPickerLibrary = { default: FakeColorPicker };
+export const fakeColorPickerLibrary = { default: FakeColorPicker, useColorPicker: actualLibrary.useColorPicker };
