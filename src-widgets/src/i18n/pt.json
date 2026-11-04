@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "Ponto de dados JSON eliminado",
     "echarts_loss_templates": "%s modelos ativos eliminados",
     "echarts_loss_templates_one": "1 modelo ativo eliminado",
+    "echarts_val_color_scale_range": "O mínimo deve ser menor que o máximo — nenhuma escala de cores é desenhada.",
     "echarts_val_oid_missing": "Nenhum OID vinculado",
     "echarts_val_stale_yaxis": "Faz referência a um eixo que não existe mais — é renderizada no eixo 1.",
     "echarts_val_stack_timeaxis": "Sem um intervalo de barras, o echarts empilha por índice de dados em vez de por timestamp — timestamps divergentes produzem pilhas atribuídas incorretamente.",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "Dados",
     "echarts_card_tab_style": "Estilo",
     "echarts_card_tab_format": "Formato",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "O mínimo deve ser menor que o máximo — nenhuma escala de cores é desenhada."
+    "echarts_card_tab_json": "JSON"
 }

@@ -772,7 +772,7 @@ export const buildCartesianOption = (
         e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
-    // Farbskala pro Serie (ADR-0101): one invisible continuous visualMap entry per series with
+    // Per-series colour scale (Farbskala, ADR-0101): one invisible continuous visualMap entry per series with
     // an active scale, `seriesIndex` = the series' own index (hidden series stay emitted, so the
     // indices never shift). Resolved against the CONFIGURED axis (before the remap below) and
     // the whole loaded series — zooming never recolours.

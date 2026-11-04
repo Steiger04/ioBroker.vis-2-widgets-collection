@@ -674,6 +674,7 @@
     "echarts_loss_datapoint": "JSON-Datenpunkt gelöscht",
     "echarts_loss_templates": "%s aktive Vorlagen gelöscht",
     "echarts_loss_templates_one": "1 aktive Vorlage gelöscht",
+    "echarts_val_color_scale_range": "Min muss kleiner als Max sein — es wird keine Farbskala gezeichnet.",
     "echarts_val_oid_missing": "Keine OID gebunden",
     "echarts_val_stale_yaxis": "Verweist auf eine nicht mehr existierende Achse — erscheint auf Achse 1.",
     "echarts_val_stack_timeaxis": "Ohne Balken-Intervall stapelt echarts nach Datenindex statt nach Zeitstempel — abweichende Zeitstempel ergeben falsch zugeordnete Stapel.",
@@ -1343,6 +1344,5 @@
     "json_table_hideable": "Ausblendbar",
     "json_table_detected_type_hint": "Erkannt: {type}",
     "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt",
-    "json_table_capabilities_status": "Tabellenfunktionen",
-    "echarts_val_color_scale_range": "Min muss kleiner als Max sein — es wird keine Farbskala gezeichnet."
+    "json_table_capabilities_status": "Tabellenfunktionen"
 }

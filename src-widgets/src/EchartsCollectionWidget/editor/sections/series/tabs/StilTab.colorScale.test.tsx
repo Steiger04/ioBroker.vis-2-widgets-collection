@@ -1,6 +1,6 @@
 /**
  * Render tests for the Farbskala SubGroup of the Stil tab (ADR-0101): visible for line, bar and
- * scatter; Min/Max/Farben disabled while the switch is off (ADR-0019); the empty Min/Max
+ * scatter; Min/Max/colours disabled while the switch is off (ADR-0019); the empty Min/Max
  * placeholders name their inherit source (and the value only when it is known); the colour field
  * previews the derived scale; the area hint appears only with Farbskala AND area „Verlauf".
  *

@@ -163,7 +163,7 @@ const SeriesCard: FC<SeriesCardProps> = ({
     const has = (action: CardCapabilities['actions'][number]): boolean => caps.actions.includes(action);
     const extents = useContext(PreviewExtentsContext);
     const seriesColor = meta.color ?? colorFallback;
-    // Kopf-Swatch (ADR-0101, honest): with an active Farbskala the chart draws the SCALE, not the
+    // Header swatch (ADR-0101, honest): with an active Farbskala the chart draws the SCALE, not the
     // series colour — the swatch shows the effective scale as a mini gradient (chosen or derived).
     // An entered Min ≥ Max draws no scale (the builder skips the entry), so the swatch stays plain.
     const scaleColors =

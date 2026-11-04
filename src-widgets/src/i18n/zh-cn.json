@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "已删除 JSON 数据点",
     "echarts_loss_templates": "已删除 %s 个活动模板",
     "echarts_loss_templates_one": "已删除 1 个活动模板",
+    "echarts_val_color_scale_range": "最小值必须小于最大值 — 不绘制色阶。",
     "echarts_val_oid_missing": "未绑定 OID",
     "echarts_val_stale_yaxis": "引用了已不存在的轴——将渲染在轴 1 上。",
     "echarts_val_stack_timeaxis": "若未设置条形间隔，echarts 将按数据索引而非时间戳进行堆叠 — 不一致的时间戳会导致堆叠分配错误。",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "数据",
     "echarts_card_tab_style": "样式",
     "echarts_card_tab_format": "格式",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "最小值必须小于最大值 — 不绘制色阶。"
+    "echarts_card_tab_json": "JSON"
 }

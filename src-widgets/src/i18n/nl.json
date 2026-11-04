@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "JSON-gegevenspunt verwijderd",
     "echarts_loss_templates": "%s actieve sjablonen verwijderd",
     "echarts_loss_templates_one": "1 actief sjabloon verwijderd",
+    "echarts_val_color_scale_range": "Min moet kleiner zijn dan max — er wordt geen kleurschaal getekend.",
     "echarts_val_oid_missing": "Geen OID gebonden",
     "echarts_val_stale_yaxis": "Verwijst naar een as die niet meer bestaat — wordt op as 1 gerenderd.",
     "echarts_val_stack_timeaxis": "Zonder balkinterval stapelt echarts op gegevensindex in plaats van tijdstempel — afwijkende tijdstempels leiden tot verkeerd toegewezen stapels.",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "Gegevens",
     "echarts_card_tab_style": "Stijl",
     "echarts_card_tab_format": "Indeling",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "Min moet kleiner zijn dan max — er wordt geen kleurschaal getekend."
+    "echarts_card_tab_json": "JSON"
 }

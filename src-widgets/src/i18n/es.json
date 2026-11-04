@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "Punto de datos JSON eliminado",
     "echarts_loss_templates": "%s plantillas activas eliminadas",
     "echarts_loss_templates_one": "1 plantilla activa eliminada",
+    "echarts_val_color_scale_range": "El mínimo debe ser menor que el máximo — no se dibuja ninguna escala de colores.",
     "echarts_val_oid_missing": "Sin OID vinculado",
     "echarts_val_stale_yaxis": "Hace referencia a un eje que ya no existe — se renderiza en el eje 1.",
     "echarts_val_stack_timeaxis": "Sin un intervalo de barras, echarts apila por índice de datos en lugar de por marca de tiempo; las marcas de tiempo divergentes producen pilas mal asignadas.",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "Datos",
     "echarts_card_tab_style": "Estilo",
     "echarts_card_tab_format": "Formato",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "El mínimo debe ser menor que el máximo — no se dibuja ninguna escala de colores."
+    "echarts_card_tab_json": "JSON"
 }

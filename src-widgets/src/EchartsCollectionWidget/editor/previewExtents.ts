@@ -1,7 +1,7 @@
 /**
  * The preview's loaded data extents per series (ADR-0101) — the Farbskala placeholders name a
- * data-inherited bound's VALUE only when the preview has loaded the series (ehrliche
- * Platzhalter): the preview reports, the cards read it through one context.
+ * data-inherited bound's VALUE only when the preview has loaded the series (honest
+ * placeholders): the preview reports, the cards read it through one context.
  *
  * @module EchartsCollectionWidget/editor/previewExtents
  * @remarks

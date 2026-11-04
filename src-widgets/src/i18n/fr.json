@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "Point de données JSON supprimé",
     "echarts_loss_templates": "%s modèles actifs supprimés",
     "echarts_loss_templates_one": "1 modèle actif supprimé",
+    "echarts_val_color_scale_range": "Le min doit être inférieur au max — aucune échelle de couleurs n'est dessinée.",
     "echarts_val_oid_missing": "Aucun OID lié",
     "echarts_val_stale_yaxis": "Fait référence à un axe qui n'existe plus — rendu sur l'axe 1.",
     "echarts_val_stack_timeaxis": "Sans intervalle de barres, echarts empile par index de données au lieu de l'horodatage — des horodatages divergents produisent des empilements mal attribués.",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "Données",
     "echarts_card_tab_style": "Style",
     "echarts_card_tab_format": "Format",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "Le min doit être inférieur au max — aucune échelle de couleurs n'est dessinée."
+    "echarts_card_tab_json": "JSON"
 }

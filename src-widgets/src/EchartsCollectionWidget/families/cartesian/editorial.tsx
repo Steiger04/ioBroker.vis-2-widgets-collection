@@ -5,7 +5,8 @@
  * @remarks
  * The cartesian profile's editor half: the Axes & Zoom rail slot (the fat slot — its needs
  * define RailSlotProps), the line/bar/scatter picker glyphs, the cartesian validation branch
- * (stale series→axis bindings, Y min≥max — pushed onto series and the own slot), and the legacy chart-type heal ('cartesian' derives from the first series,
+ * (stale series→axis bindings, the Farbskala Min ≥ Max, Y min≥max — pushed onto series and the
+ * own slot), and the legacy chart-type heal ('cartesian' derives from the first series,
  * 'area'/'gauge'/'radar' become line).
  */
 import type { FC } from 'react';

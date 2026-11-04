@@ -660,6 +660,7 @@
     "echarts_loss_datapoint": "Точку даних JSON видалено",
     "echarts_loss_templates": "Видалено активних шаблонів: %s",
     "echarts_loss_templates_one": "Видалено 1 активний шаблон",
+    "echarts_val_color_scale_range": "Мінімум має бути меншим за максимум — колірна шкала не відображається.",
     "echarts_val_oid_missing": "Не прив'язано жодного OID",
     "echarts_val_stale_yaxis": "Посилається на вісь, якої більше немає — відображається по осі 1.",
     "echarts_val_stack_timeaxis": "Без інтервалу стовпчиків echarts створює стеки за індексом даних, а не за міткою часу — різні мітки часу призводять до неправильно призначених стеків.",
@@ -1343,6 +1344,5 @@
     "echarts_card_tab_data": "Дані",
     "echarts_card_tab_style": "Стиль",
     "echarts_card_tab_format": "Формат",
-    "echarts_card_tab_json": "JSON",
-    "echarts_val_color_scale_range": "Мінімум має бути меншим за максимум — колірна шкала не відображається."
+    "echarts_card_tab_json": "JSON"
 }
