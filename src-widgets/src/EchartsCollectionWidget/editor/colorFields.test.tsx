@@ -63,14 +63,18 @@ interface HostProps {
     onChange: (value: string | null) => void;
 }
 
-/** Renders the field under the editor theme, as the configurator modal does. */
-const Host: FC<HostProps> = ({ kind, ctx, onChange, value, ...rest }) => (
+/**
+ * Renders the field under the editor theme, as the configurator modal does. The fallback is
+ * required on the field (N4) — a test that does not care inherits an unpainted surface.
+ */
+const Host: FC<HostProps> = ({ kind, ctx, onChange, value, fallback = 'transparent', ...rest }) => (
     <ThemeProvider theme={ctx.theme}>
         {kind === 'field' ? (
             <ColorField
                 value={value}
                 onChange={onChange}
                 ctx={ctx}
+                fallback={fallback}
                 {...rest}
             />
         ) : (
@@ -156,8 +160,8 @@ describe('ECharts ColorField swatch', () => {
         expect(swatchColor(swatches()[0])).toContain('linear-gradient');
     });
 
-    it('paints nothing on the checkerboard with neither a value nor a fallback', () => {
-        const { swatches } = mount({ value: null });
+    it('paints nothing on the checkerboard while it inherits an unpainted surface (transparent)', () => {
+        const { swatches } = mount({ value: null, fallback: 'transparent' });
         expect(swatchColor(swatches()[0])).toMatch(/^(transparent|)$/);
     });
 });

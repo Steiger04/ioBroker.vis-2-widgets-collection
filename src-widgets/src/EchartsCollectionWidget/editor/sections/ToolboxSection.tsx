@@ -245,6 +245,8 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                                 <ColorField
                                     title={Generic.t('echarts_toolbox_background')}
                                     value={bgValue}
+                                    // The toolbox paints no background of its own.
+                                    fallback="transparent"
                                     onChange={v => patch({ backgroundColor: v ?? 'transparent' })}
                                     ctx={pickerCtx}
                                 />
