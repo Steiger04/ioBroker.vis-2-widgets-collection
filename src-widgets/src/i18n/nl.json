@@ -1347,5 +1347,7 @@
     "echarts_card_tab_data": "Gegevens",
     "echarts_card_tab_style": "Stijl",
     "echarts_card_tab_format": "Indeling",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "color_gradient_not_allowed": "Verloop hier niet mogelijk",
+    "color_invalid": "Geen geldige kleur"
 }

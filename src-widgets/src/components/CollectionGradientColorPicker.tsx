@@ -17,11 +17,15 @@
  * - The clear (×) button appears only when an explicit override exists; clearing
  *   returns the field to "inherit".
  *
- * `noGradient` (field flag): solid color is extracted at 50% before saving, so
- * only solid colors are persisted (the user may still view gradients).
+ * Typed text runs through the Regeln für Farbeingaben (`lib/helper/colorInputRules`,
+ * ADR-0102): every CSS colour the browser accepts (names, `hsl()`, `transparent`,
+ * `var(--…)`) is stored as typed; a gradient only where the field allows it — typed into a
+ * `noGradient` field it is an error with its own message. Validation is real-time; invalid
+ * input is marked with an error state and does not trigger `onDataChange`. Empty values are
+ * normalized to null.
  *
- * Validation is real-time; invalid input is marked with an error state and does
- * not trigger `onDataChange`. Empty values are normalized to null.
+ * Picker output is still the former path: `noGradient` extracts the solid color at 50%
+ * before saving, so only solid colors are persisted (the user may still view gradients).
  */
 
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -33,6 +37,7 @@ import Generic from '../Generic';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
 import { validateColorInput } from '../lib/helper/colorValidation';
+import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import FollowingPopover from './colorPicker/FollowingPopover';
@@ -98,7 +103,9 @@ function CollectionGradientColorPicker({
     const fieldName: string = field.name!;
     const fieldValue = data[fieldName];
     const [cachedValue, setCachedValue] = useState<string>(fieldValue || '');
-    const [error, setError] = useState<boolean>(false);
+    // Why the current text cannot be stored (null = storable); drives the error mark and message.
+    const [errorReason, setErrorReason] = useState<ColorInputInvalidReason | null>(null);
+    const error = errorReason !== null;
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     // Track the last prop value to detect external changes only
@@ -141,7 +148,7 @@ function CollectionGradientColorPicker({
     }, []);
 
     /**
-     * Handles color value changes with validation.
+     * Handles picker-originated changes and the clear button (typed text: `handleTextChange`).
      * Uses guard clauses for cleaner control flow.
      *
      * @param newValue - The new color value
@@ -158,7 +165,7 @@ function CollectionGradientColorPicker({
             // Guard 1: Handle null/undefined - treat as empty and clear error
             if (newValue === null || newValue === undefined) {
                 setCachedValue('');
-                setError(false);
+                setErrorReason(null);
                 lastPropValueRef.current = null;
                 onDataChange({ [fieldName]: null });
                 return;
@@ -166,7 +173,7 @@ function CollectionGradientColorPicker({
 
             // Guard 2: Type check - reject non-string inputs with error state
             if (typeof newValue !== 'string') {
-                setError(true);
+                setErrorReason('notAColor');
                 return;
             }
 
@@ -174,7 +181,7 @@ function CollectionGradientColorPicker({
             const trimmedValue = newValue.trim();
             if (trimmedValue === '') {
                 setCachedValue('');
-                setError(false);
+                setErrorReason(null);
                 lastPropValueRef.current = null;
                 onDataChange({ [fieldName]: null });
                 return;
@@ -188,19 +195,19 @@ function CollectionGradientColorPicker({
 
             // Guard 4: Handle invalid input - set error but do NOT call onDataChange
             if (!validation.isValid) {
-                setError(true);
+                setErrorReason('notAColor');
                 return;
             }
 
             // Valid input - clear error
-            setError(false);
+            setErrorReason(null);
 
             // Resolve the final value to persist
             let finalValue: string | null;
             if (field.noGradient === true) {
                 const extractedColor = extractColorFromValue(validation.normalizedValue);
                 if (extractedColor === null) {
-                    setError(true);
+                    setErrorReason('notAColor');
                     return;
                 }
                 finalValue = extractedColor;
@@ -228,9 +235,30 @@ function CollectionGradientColorPicker({
 
     const handlePickerChange = useCallback((gradient: string): void => handleChange(gradient, true), [handleChange]);
 
+    // Typed text runs through the Regeln für Farbeingaben (ADR-0102): any CSS colour the browser
+    // accepts is stored as typed, a gradient only where the field allows it; invalid text is
+    // marked and not stored, emptied text stores null (Erben).
     const handleTextChange = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>): void => handleChange(event.target.value),
-        [handleChange],
+        (event: React.ChangeEvent<HTMLInputElement>): void => {
+            if (pickerDebounceRef.current !== null) {
+                clearTimeout(pickerDebounceRef.current);
+                pickerDebounceRef.current = null;
+            }
+            const text = event.target.value;
+            const result = applyColorInputRules(text, { source: 'typed', allowGradient: field.noGradient !== true });
+            if (result.kind === 'invalid') {
+                setCachedValue(text);
+                setErrorReason(result.reason);
+                return;
+            }
+            const finalValue = result.kind === 'value' ? result.value : null;
+            setCachedValue(finalValue === null ? '' : text);
+            setErrorReason(null);
+            // Update lastPropValueRef BEFORE onDataChange so the sync effect keeps the typed text
+            lastPropValueRef.current = finalValue;
+            onDataChange({ [fieldName]: finalValue });
+        },
+        [fieldName, field.noGradient, onDataChange],
     );
 
     const handleClear = useCallback((): void => handleChange(null), [handleChange]);
@@ -243,7 +271,7 @@ function CollectionGradientColorPicker({
         if (fieldValue !== lastPropValueRef.current) {
             lastPropValueRef.current = fieldValue;
             setCachedValue(fieldValue || '');
-            setError(false);
+            setErrorReason(null);
         }
     }, [fieldValue]);
 
@@ -265,7 +293,13 @@ function CollectionGradientColorPicker({
                         value={cachedValue}
                         error={error}
                         placeholder={overridden ? '' : Generic.t('color_inherit')}
-                        helperText={error ? 'Invalid color format (use Hex, RGB, RGBA, or Gradient)' : ''}
+                        helperText={
+                            errorReason === 'gradientNotAllowed'
+                                ? Generic.t('color_gradient_not_allowed')
+                                : errorReason === 'notAColor'
+                                  ? Generic.t('color_invalid')
+                                  : ''
+                        }
                         onChange={handleTextChange}
                         slotProps={{
                             htmlInput: {

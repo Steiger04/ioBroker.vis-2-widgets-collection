@@ -1347,5 +1347,7 @@
     "echarts_card_tab_data": "Dados",
     "echarts_card_tab_style": "Estilo",
     "echarts_card_tab_format": "Formato",
-    "echarts_card_tab_json": "JSON"
+    "echarts_card_tab_json": "JSON",
+    "color_gradient_not_allowed": "Gradiente não é possível aqui",
+    "color_invalid": "Cor inválida"
 }

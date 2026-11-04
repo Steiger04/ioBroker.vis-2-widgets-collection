@@ -1347,5 +1347,7 @@
     "json_table_hideable": "Ausblendbar",
     "json_table_detected_type_hint": "Erkannt: {type}",
     "json_table_override_type_default_tooltip": "Diese Spalte überschreibt den Typstandard für {feature} – nie mehr, als die Tabelle erlaubt",
-    "json_table_capabilities_status": "Tabellenfunktionen"
+    "json_table_capabilities_status": "Tabellenfunktionen",
+    "color_gradient_not_allowed": "Verlauf hier nicht möglich",
+    "color_invalid": "Keine gültige Farbe"
 }
