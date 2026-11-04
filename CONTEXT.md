@@ -295,7 +295,7 @@ The configurator's colour model — how a colour field resolves when no explicit
 _Avoid_: default colour (that is the resolved value, not a stored one), fallback (that is the mechanism, not the concept)
 
 **Theme token**:
-A semantic theme colour (`primary`/`success`/`warning`/`error`/`divider`/`textPrimary`/`textSecondary`…) resolved once and stamped onto `PresentationConfig.themeTokens`, dark-mode-aware. Consumed BY NAME by the family builders for the theme-derived defaults — the markLine and legend-border defaults, the pie slice-label colour (`labelColor ?? textPrimary`, always emitted — ADR-0080 addendum) — so these visible surfaces track the theme instead of being fixed hexes (ADR-0027).
+A semantic theme colour (`primary`/`success`/`warning`/`error`/`divider`/`textPrimary`/`textSecondary`/`paper`…) resolved once and stamped onto `PresentationConfig.themeTokens`, dark-mode-aware. Consumed BY NAME by the family builders for the theme-derived defaults — the markLine and legend-border defaults, the pie slice-label colour (`labelColor ?? textPrimary`, always emitted — ADR-0080 addendum) — and by the chart's theme floor — the tooltip surface (`paper`) and its text (`textSecondary`) — so these visible surfaces track the theme instead of being fixed hexes (ADR-0027). `paper` is the surface the widget card shows (the theme's paper colour, or under a forced mode the same fixed light/dark canvas colour the chart paints).
 _Avoid_: theme colour (too generic), palette colour (the palette is the positional series assignment; tokens are semantic)
 
 **Inherit swatch**:
