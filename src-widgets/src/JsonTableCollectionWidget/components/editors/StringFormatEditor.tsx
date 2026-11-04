@@ -252,6 +252,7 @@ function StringFormatEditor({ format, onChange, socket }: StringFormatEditorProp
                     value={format.stringTextColor ?? ''}
                     overridden={!!format.stringTextColor}
                     onChange={v => onChange({ type: 'string', stringTextColor: v || undefined })}
+                    allowGradient
                     socket={socket}
                 />
             </Stack>

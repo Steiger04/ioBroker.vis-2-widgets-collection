@@ -9,9 +9,9 @@
  * the swatch's click target: clicking into it must not open the picker popover.
  *
  * A click on the row opens the Farbwähler (`colorPicker/CollectionColorPicker`) with the label as
- * title; its picks reach `onChange`. The theme studio (with `presets`) keeps it solid and hands
- * the presets on, the JsonTable editors (without) keep gradients and get the Collection theme
- * colours through the socket. The reset icon is the trash can.
+ * title; its picks reach `onChange`. The theme studio (`allowGradient={false}` + `presets`) keeps
+ * it solid and hands the presets on, the JsonTable editors (gradients by default) get the
+ * Collection theme colours through the socket. The reset icon is the trash can.
  * The Farbwähler itself (debounce, popover following its content) is tested over its own seam
  * (`colorPicker/CollectionColorPicker.test`); here the library fake shows what reaches it.
  */
@@ -232,7 +232,7 @@ describe('ColorPickerField Farbwähler', () => {
         expect(container.querySelector<HTMLElement>('[data-swatch-color]')?.dataset.swatchColor).toBe('#0080ff66');
     });
 
-    it('keeps gradients without presets (JsonTable editors)', () => {
+    it('keeps gradients by default (JsonTable editors)', () => {
         const { container } = mount();
         openPicker(container);
         expect(lastLibraryProps().hideColorTypeBtns).toBe(false);
@@ -253,8 +253,14 @@ describe('ColorPickerField Farbwähler', () => {
         expect(shownPresets()[0]).toBe('#123456');
     });
 
-    it('stays solid and shows the passed presets with presets (theme studio)', () => {
-        const { container } = mount({ presets: ['#ff0000', '#00ff00'] });
+    it('passed presets do not decide about gradients', () => {
+        const { container } = mount({ presets: ['#ff0000'] });
+        openPicker(container);
+        expect(lastLibraryProps().hideColorTypeBtns).toBe(false);
+    });
+
+    it('stays solid and shows the passed presets (theme studio)', () => {
+        const { container } = mount({ allowGradient: false, presets: ['#ff0000', '#00ff00'] });
         openPicker(container);
         expect(lastLibraryProps().hideColorTypeBtns).toBe(true);
         expect(lastLibraryProps().hideGradientControls).toBe(true);

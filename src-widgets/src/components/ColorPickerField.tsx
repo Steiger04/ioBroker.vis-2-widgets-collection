@@ -10,10 +10,10 @@
  * color; the reset button (trash can) appears only when an explicit override exists (resetting
  * reverts to the resolved value).
  *
- * Two flavours: without `presets` the Farbwähler keeps Solid/Gradient and offers the Collection
- * theme colours read through `socket` (the JsonTable editors).
- * Passing `presets` makes it the theme-studio variant (ADR-0020): theme palette slots are solid
- * colours, so the Farbwähler stays solid and offers the presets (the current draft colours). The
+ * Two flavours: the JsonTable editors keep Solid/Gradient (`allowGradient`) and get the Collection
+ * theme colours read through `socket` as presets. The theme-studio variant (ADR-0020) is solid
+ * (`allowGradient={false}`: theme palette slots are solid colours) and passes `presets` (the
+ * current draft colours). The
  * studio's own field validation judges every value — this row passes picks and typed text on as
  * they come. Independently, `hexInput` shows the value as editable, copyable monospace text next
  * to the swatch (theme studio; off by default).
@@ -37,10 +37,9 @@ interface ColorPickerFieldProps {
     label: string;
     /** When true, an explicit override exists and the "reset to default" button is shown. */
     overridden?: boolean;
-    /**
-     * Theme-studio variant (ADR-0020): preset colours of the Farbwähler, which then stays solid
-     * (no Solid/Gradient). Omit to keep gradients (JsonTable editors).
-     */
+    /** Whether the Farbwähler offers Solid/Gradient (JsonTable editors); default true. */
+    allowGradient?: boolean;
+    /** Preset colours of the Farbwähler (theme studio: the draft colours); win over `socket`. */
     presets?: string[];
     /**
      * Connection the Farbwähler reads the Collection theme colours from as presets while open —
@@ -73,7 +72,8 @@ interface ColorPickerFieldProps {
  * @param props.onChange - Callback when color changes.
  * @param props.label - Label displayed left of the swatch.
  * @param props.overridden - Whether an explicit override exists (shows reset button).
- * @param props.presets - Theme-studio variant: Farbwähler presets, solid only.
+ * @param props.allowGradient - Whether the Farbwähler offers Solid/Gradient (default true).
+ * @param props.presets - Farbwähler presets (theme studio).
  * @param props.socket - Connection for the Collection theme presets (without `presets`).
  * @param props.error - Field-level validation message.
  * @param props.hexInput - Shows the value as editable monospace text next to the swatch.
@@ -85,6 +85,7 @@ function ColorPickerField({
     onChange,
     label,
     overridden,
+    allowGradient = true,
     presets,
     socket,
     error,
@@ -258,7 +259,7 @@ function ColorPickerField({
                 title={label}
                 value={cachedValue || '#ffffff'}
                 onCommit={handlePickerCommit}
-                allowGradient={!presets}
+                allowGradient={allowGradient}
                 presets={presets}
                 socket={socket}
             />

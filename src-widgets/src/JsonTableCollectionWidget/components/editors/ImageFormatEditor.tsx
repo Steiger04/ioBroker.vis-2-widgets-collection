@@ -141,6 +141,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
                 value={format.imageBgColor ?? ''}
                 overridden={!!format.imageBgColor}
                 onChange={v => onChange({ type: 'image', imageBgColor: v || undefined })}
+                allowGradient
                 socket={socket}
             />
             <ColorPickerField
@@ -148,6 +149,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
                 value={format.imageBorderColor ?? ''}
                 overridden={!!format.imageBorderColor}
                 onChange={v => onChange({ type: 'image', imageBorderColor: v || undefined })}
+                allowGradient
                 socket={socket}
             />
             <TextField
@@ -170,6 +172,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
                 value={format.imageTint ?? ''}
                 overridden={!!format.imageTint}
                 onChange={v => onChange({ type: 'image', imageTint: v || undefined })}
+                allowGradient
                 socket={socket}
             />
             <Typography

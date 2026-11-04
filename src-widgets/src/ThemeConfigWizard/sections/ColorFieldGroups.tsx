@@ -73,6 +73,8 @@ function ColorFieldGroups({
                     swatchValue={resolved ? resolvedValue : undefined}
                     overridden={stored !== undefined}
                     onChange={color => onChange(field.path, color || undefined)}
+                    // Theme palette slots are solid colours (ADR-0020).
+                    allowGradient={false}
                     presets={colorPresets}
                     error={errorFor?.(field.path)}
                     hexInput

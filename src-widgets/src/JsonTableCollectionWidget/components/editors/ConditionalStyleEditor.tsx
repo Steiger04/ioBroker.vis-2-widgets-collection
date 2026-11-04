@@ -277,6 +277,7 @@ function ConditionalStyleEditor({
                                     value={rule.backgroundColor || ''}
                                     overridden={!!rule.backgroundColor}
                                     onChange={c => updateStyleRule(idx, { backgroundColor: c || undefined })}
+                                    allowGradient
                                     socket={socket}
                                 />
                                 <ColorPickerField
@@ -284,6 +285,7 @@ function ConditionalStyleEditor({
                                     value={rule.textColor || ''}
                                     overridden={!!rule.textColor}
                                     onChange={c => updateStyleRule(idx, { textColor: c || undefined })}
+                                    allowGradient
                                     socket={socket}
                                 />
                             </Stack>
