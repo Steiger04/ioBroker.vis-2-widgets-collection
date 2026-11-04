@@ -1348,8 +1348,8 @@
     "echarts_card_tab_style": "Stile",
     "echarts_card_tab_format": "Formato",
     "echarts_card_tab_json": "JSON",
-    "color_gradient_not_allowed": "Sfumatura non possibile qui",
-    "color_invalid": "Colore non valido",
+    "color_picker_gradient_not_allowed": "Sfumatura non possibile qui",
+    "color_picker_invalid": "Colore non valido",
     "color_picker_close": "Chiudi",
     "color_picker_alpha_hint": "Opacità in percentuale (0–100)"
 }

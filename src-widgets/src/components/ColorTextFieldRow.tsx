@@ -63,8 +63,8 @@ export interface ColorTextFieldRowProps {
 
 /** Message key for why the current text cannot be stored. */
 const ERROR_MESSAGE: Record<ColorInputInvalidReason, string> = {
-    gradientNotAllowed: 'color_gradient_not_allowed',
-    notAColor: 'color_invalid',
+    gradientNotAllowed: 'color_picker_gradient_not_allowed',
+    notAColor: 'color_picker_invalid',
 };
 
 /**

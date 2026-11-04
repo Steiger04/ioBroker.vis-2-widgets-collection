@@ -1348,8 +1348,8 @@
     "echarts_card_tab_style": "Stijl",
     "echarts_card_tab_format": "Indeling",
     "echarts_card_tab_json": "JSON",
-    "color_gradient_not_allowed": "Verloop hier niet mogelijk",
-    "color_invalid": "Geen geldige kleur",
+    "color_picker_gradient_not_allowed": "Verloop hier niet mogelijk",
+    "color_picker_invalid": "Geen geldige kleur",
     "color_picker_close": "Sluiten",
     "color_picker_alpha_hint": "Dekking in procent (0–100)"
 }

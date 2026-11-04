@@ -133,7 +133,7 @@ describe('ColorTextFieldRow typing runs the Regeln für Farbeingaben', () => {
         type(input, 'notacolor');
         expect(onChange).not.toHaveBeenCalled();
         expect(isMarked(input)).toBe(true);
-        expect(container.textContent).toContain('color_invalid');
+        expect(container.textContent).toContain('color_picker_invalid');
     });
 
     it('stores a typed gradient unchanged where the row allows it', () => {
@@ -147,8 +147,8 @@ describe('ColorTextFieldRow typing runs the Regeln für Farbeingaben', () => {
         type(input, 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)');
         expect(onChange).not.toHaveBeenCalled();
         expect(isMarked(input)).toBe(true);
-        expect(container.textContent).toContain('color_gradient_not_allowed');
-        expect(container.textContent).not.toContain('color_invalid');
+        expect(container.textContent).toContain('color_picker_gradient_not_allowed');
+        expect(container.textContent).not.toContain('color_picker_invalid');
     });
 
     it('stores null for an emptied field and clears the mark', () => {
