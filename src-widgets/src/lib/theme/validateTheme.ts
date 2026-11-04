@@ -20,6 +20,7 @@ import type { SchemaNode, UnknownKeyPolicy } from './themeSchema';
 import { THEME_OPTIONS_SCHEMA } from './themeSchema';
 import type { ThemeValidationIssue, ThemeValidationResult, UserTheme } from './themeTypes';
 import { isPlainObject } from './themeUtils';
+import { supportsCssColor } from '../helper/colorValidation';
 
 /**
  * Validates a plain object against the MUI `ThemeOptions` schema.
@@ -293,7 +294,8 @@ const GRADIENT_RE = /\b(?:linear|radial|conic)-gradient\b/i;
  * hsl, named colors, `transparent`, `currentColor`, …). Gradients are rejected
  * explicitly — they are valid backgrounds but invalid MUI palette colors. This
  * intentionally does NOT reuse the Regeln für Farbeingaben (`lib/helper/colorInputRules`),
- * which accept gradients for widget backgrounds.
+ * which accept gradients for widget backgrounds; only the browser check itself is shared
+ * (`supportsCssColor`), the fallback without it stays permissive.
  */
 export function isValidCssColor(value: unknown): boolean {
     if (typeof value !== 'string') {
@@ -303,9 +305,6 @@ export function isValidCssColor(value: unknown): boolean {
     if (!trimmed || GRADIENT_RE.test(trimmed)) {
         return false;
     }
-    if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function') {
-        return CSS.supports('color', trimmed);
-    }
-    // Defensive fallback — modern browsers always expose CSS.supports.
-    return true;
+    // Defensive fallback (no CSS.supports, e.g. node) — modern browsers always expose it.
+    return supportsCssColor(trimmed) ?? true;
 }

@@ -24,7 +24,7 @@
  * allowed), so every value the editor stores also takes effect in swatch and widget.
  */
 
-import { COLOR_PATTERNS } from './colorValidation';
+import { COLOR_PATTERNS, supportsCssColor } from './colorValidation';
 
 /** Where a colour text came from: typed into a text field, or picked in the Farbwähler. */
 export type ColorInputSource = 'typed' | 'picked';
@@ -56,11 +56,7 @@ export interface ColorInputOptions {
  * @returns Whether the text is a CSS colour.
  */
 export function isBrowserCssColor(text: string): boolean {
-    const css = (globalThis as { CSS?: { supports?: (property: string, value: string) => boolean } }).CSS;
-    if (typeof css?.supports === 'function') {
-        return css.supports('color', text);
-    }
-    return COLOR_PATTERNS.HEX.test(text) || COLOR_PATTERNS.RGB.test(text);
+    return supportsCssColor(text) ?? (COLOR_PATTERNS.HEX.test(text) || COLOR_PATTERNS.RGB.test(text));
 }
 
 /**

@@ -67,3 +67,18 @@ export function isGradientColor(value: string | null | undefined): boolean {
 
     return COLOR_PATTERNS.GRADIENT_PREFIX.test(trimmedValue);
 }
+
+/**
+ * The browser's own CSS colour check, `CSS.supports('color', text)` — the common base of the
+ * Regeln für Farbeingaben (`colorInputRules.isBrowserCssColor`) and the theme validation
+ * (`lib/theme/validateTheme.isValidCssColor`, ADR-0020). Where no `CSS.supports` exists (node)
+ * it has no answer; each caller keeps its own fallback (the rules: hex / `rgb()` only; the theme
+ * validation: accept).
+ *
+ * @param text - Trimmed colour text.
+ * @returns The browser's verdict, or undefined without `CSS.supports`.
+ */
+export function supportsCssColor(text: string): boolean | undefined {
+    const css = (globalThis as { CSS?: { supports?: (property: string, value: string) => boolean } }).CSS;
+    return typeof css?.supports === 'function' ? css.supports('color', text) : undefined;
+}
