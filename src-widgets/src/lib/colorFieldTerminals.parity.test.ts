@@ -26,7 +26,7 @@
  *
  * Second invariant, same scan: the per-state colour fields (`iconColor{n}`, `textColor{n}`,
  * `background{n}`, `frameBackground{n}` — the per-state field list the Zustandseditor of the
- * „Werte" group edits each row with, ADR-0104) declare their base field as fallback field, so a
+ * values group edits each row with, ADR-0104) declare their base field as fallback field, so a
  * state row without a value shows the base colour the widget paints for it (ADR-0004,
  * per-state variants; slider marks: Marker-Ebene first). The list is read from the group's
  * detail fields: each renders its per-state definition (`definition` of the element its

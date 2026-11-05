@@ -1,15 +1,15 @@
 /**
- * The Zustandseditor toolbar: the row actions — add, clone, delete, up, down, „Zeile leeren",
- * „aus common.states neu anlegen".
+ * The Zustandseditor toolbar: the row actions — add, clone, delete, up, down, "clear row",
+ * "recreate from common.states".
  *
  * @module components/StateEditor/StateEditorToolbar
  * @remarks
- * Sits in the value cell of the „Zeilen (n)" row (the `values_count` field), the search in front
+ * Sits in the value cell of the "Rows (n)" row (the `values_count` field), the search in front
  * of the buttons: it filters the list (shared through `stateRowListStore`) and locks up/down
  * while active. Each button writes one patch of the Zustandszeilen-Operationen through
  * {@link useStateRowActions}, which also moves the selection, and hands the focus to the list.
- * Add, clone and delete ask nothing — vis-2's undo takes them back; „Zeile leeren" and „neu
- * anlegen" ask first.
+ * Add, clone and delete ask nothing — vis-2's undo takes them back; "clear row" and "recreate"
+ * ask first.
  *
  * The buttons copy vis-2's group-head buttons (`Attributes/Widget/index.tsx`, the clone/delete/
  * up/down/add buttons of an indexed group): `@mui/icons-material` icons at their default 24 px

@@ -83,17 +83,17 @@ export type StateRowOperation =
     | { kind: 'clone'; row: number }
     /** Removes `row`; the following rows close up. */
     | { kind: 'delete'; row: number }
-    /** Zeile leeren: deletes every style key of `row`; `value{n}`/`alias{n}` stay. */
+    /** Clear row: deletes every style key of `row`; `value{n}`/`alias{n}` stay. */
     | { kind: 'clear'; row: number }
-    /** Aus common.states neu anlegen: one row per state of the OID, in its order; all rows replaced. */
+    /** Recreate from common.states: one row per state of the OID, in its order; all rows replaced. */
     | { kind: 'recreate' }
-    /** Aus common.states ergänzen: appends the states no row carries yet; existing rows stay. */
+    /** Supplement from common.states: appends the states no row carries yet; existing rows stay. */
     | { kind: 'supplement' };
 
 /** Actions a boolean OID refuses: its two rows are fixed (ADR-0104 §3). */
 const FIXED_ROW_KINDS: readonly StateRowOperation['kind'][] = ['add', 'clone', 'delete'];
 
-/** The keys „Zeile leeren" keeps: without its value a row is skipped at runtime (ADR-0104 §3). */
+/** The keys "clear row" keeps: without its value a row is skipped at runtime (ADR-0104 §3). */
 const STATE_KEYS: readonly string[] = ['value', 'alias'];
 
 /** A vis-2 custom-field patch: `null` deletes a key, a key not named keeps its value. */
@@ -176,7 +176,10 @@ const FIXED_ROW_STATES: readonly string[] = ['true', 'false'];
  * - Otherwise: the OID's `common.states` in their order.
  * - No states without an OID object.
  */
-const sourceStates = (data: WidgetData, config: StateRowsConfig): { states: [string, unknown][]; type: AllowedType } => {
+const sourceStates = (
+    data: WidgetData,
+    config: StateRowsConfig,
+): { states: [string, unknown][]; type: AllowedType } => {
     const oidObject = stateRowOidObject(data, config);
     const declared = oidObject?.commonStates || {};
     if (!oidObject) {
@@ -196,8 +199,8 @@ const sourceStates = (data: WidgetData, config: StateRowsConfig): { states: [str
 };
 
 /**
- * A row made from a state by „neu anlegen"/„ergänzen": only value and alias — rewriteRows names
- * every other key with `null`, so orphaned keys are overwritten. Unlike „Hinzufügen" it writes
+ * A row made from a state by "recreate"/"supplement": only value and alias — rewriteRows names
+ * every other key with `null`, so orphaned keys are overwritten. Unlike "add" it writes
  * no field defaults: every per-state default is `''` or `false`, which the runtime resolves like
  * an absent key (`resolvePriority` skips `''`/`null`; a mask `false` ends as `false`) and vis-2's
  * editor shows like one (`WidgetField`: an absent value without a truthy default is `''`) —
@@ -466,7 +469,7 @@ export const stateRowsIdentical = (datas: readonly WidgetData[], config: StateRo
 };
 
 /**
- * Whether the selected widgets store different values under one key — the „unterschiedlich"
+ * Whether the selected widgets store different values under one key — the "different"
  * mark of a detail field under multi-selection.
  *
  * @param datas The data of every selected widget.
@@ -540,7 +543,7 @@ export const stateRowsDifference = (
  * @param config Schema and OID property of the widgets.
  * @returns `false` for add/clone/delete on a boolean OID or fixed rows, for recreate without states to
  *   recreate from, and under multi-selection for every structural action unless the
- *   Zustandszeilen are identical — „Zeile leeren" only needs equal row counts and bindings,
+ *   Zustandszeilen are identical — "clear row" only needs equal row counts and bindings,
  *   because its patch carries `values_count` and the bindings, not the other rows.
  */
 export const stateRowOperationAllowed = (

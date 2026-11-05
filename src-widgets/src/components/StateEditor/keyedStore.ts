@@ -4,7 +4,7 @@
  *
  * @module components/StateEditor/keyedStore
  * @remarks
- * The fields of one „Werte" group are separate vis-2 custom fields (own React subtrees), so the
+ * The fields of one values group are separate vis-2 custom fields (own React subtrees), so the
  * row selection (`stateRowSelection`) and the search (`stateRowListStore`) live in module state
  * of the widget bundle, keyed by view + selected widgets (`stateRowSelectionKey`). Values last
  * until the page reloads; changing one writes no project data.

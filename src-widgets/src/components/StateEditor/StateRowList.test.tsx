@@ -57,7 +57,7 @@ type HostProps = {
     onPatch: (patch: WidgetData) => void;
 };
 
-/** vis-2's attribute panel for one „Werte" group of one selected widget. */
+/** vis-2's attribute panel for one values group of one selected widget. */
 function Host({ widget: initial, onPatch }: HostProps): React.JSX.Element {
     const [widget, setWidget] = useState(initial);
     const props = {
@@ -178,7 +178,7 @@ const press = (element: HTMLElement, key: string, init: KeyboardEventInit = {}):
 };
 
 describe('Zustandseditor list — search', () => {
-    it('filters the rows by Nr, value and alias, as a case-insensitive substring', () => {
+    it('filters the rows by no., value and alias, as a case-insensitive substring', () => {
         const { container } = mount();
 
         type(searchInput(container), 'cOm');
@@ -251,7 +251,7 @@ describe('Zustandseditor list — a new row the search would hide', () => {
         expect(selectedRow(container)).toBe('3');
     });
 
-    it('clone empties the search when only the Nr of the source matched', () => {
+    it('clone empties the search when only the no. of the source matched', () => {
         const { container } = mount();
         click(option(container, 4));
         type(searchInput(container), '4');
@@ -517,7 +517,7 @@ describe('Zustandseditor list — height', () => {
 });
 
 describe('Zustandseditor list — focus after a confirmed action', () => {
-    it('hands the focus to the list once the question of „Zeile leeren" closes', async () => {
+    it('hands the focus to the list once the question of "clear row" closes', async () => {
         const { container, patches } = mount();
         click(option(container, 2));
         tool(container, 'clear_row').focus();

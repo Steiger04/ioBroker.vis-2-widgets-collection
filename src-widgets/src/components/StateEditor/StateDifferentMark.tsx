@@ -1,17 +1,17 @@
 /**
- * The „unterschiedlich" marks of a multi-selection: on a detail field, and on a list row.
+ * The "different" marks of a multi-selection: on a detail field, and on a list row.
  *
  * @module components/StateEditor/StateDifferentMark
  * @remarks
  * vis-2 marks a field whose value differs between the selected widgets by the placeholder
- * „different" in its empty input (fork `Attributes/Widget/WidgetField.tsx`,
+ * "different" in its empty input (fork `Attributes/Widget/WidgetField.tsx`,
  * `placeholder={isDifferent ? t('different') : undefined}`). The Zustandseditor's detail field
- * cannot hand that flag through vis-2's `Editor` (its props are the hull's, whose name never
- * appears in vis-2's `isDifferent`), so the hull compares the selected widgets itself
+ * cannot hand that flag through vis-2's `Editor` (its props are the wrapper's, whose name never
+ * appears in vis-2's `isDifferent`), so the wrapper compares the selected widgets itself
  * (`stateRowKeyDiffers`) and writes the same word beside the field, in the placeholder's
  * colour (`text.disabled`) and the field's 80 % type (`commonStyles.fieldContent`).
  *
- * A list row has no room for a word (Nr · Wert · Alias · Icon in the value column), so a row
+ * A list row has no room for a word (no. · value · alias · icon in the value column), so a row
  * that differs (`stateRowDiffers`) carries a warning-coloured right edge, mirroring the
  * selection's left edge; the InfoBox above the list names the mark.
  */
@@ -21,7 +21,7 @@ import type React from 'react';
 import Generic from '../../Generic';
 
 /**
- * The word „unterschiedlich" beside a detail field whose value differs between the widgets.
+ * The word "different" beside a detail field whose value differs between the widgets.
  *
  * @returns The mark.
  */

@@ -5,7 +5,7 @@
  * @remarks
  * Copies vis-2's binding switch of an attribute row (fork `Attributes/Widget/index.tsx`
  * `renderFieldRow`): the `@mui/icons-material` Link icon at 16 px (`styles.bindIcon`) with the
- * tooltip „use field as binding", LinkOff with „deactivate binding" while the field is bound.
+ * tooltip "use field as binding", LinkOff with "deactivate binding" while the field is bound.
  * vis-2 floats it to the right end of the label cell; here it sits at the start of the value
  * cell, the closest place a custom field owns. A bound field is edited as a plain text field,
  * as vis-2's `WidgetBindingField` (a standard `TextField`) does — here through vis-2's own
@@ -43,7 +43,7 @@ export type StateFieldBinding = {
 /**
  * The binding of one detail field of the selected row.
  *
- * @param fieldProps The hull's custom-field props.
+ * @param fieldProps The wrapper's custom-field props.
  * @param definition The per-state field definition.
  * @param name The indexed name `name{n}` of the selected row; `null` without a row.
  * @returns See {@link StateFieldBinding}; bindings are read from the stored widgets — under

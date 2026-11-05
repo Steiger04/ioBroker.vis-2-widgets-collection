@@ -63,7 +63,7 @@ type HostProps = {
     onPatch: (patch: WidgetData) => void;
 };
 
-/** vis-2's attribute panel for one „Werte" group, writing every patch to all selected widgets. */
+/** vis-2's attribute panel for one values group, writing every patch to all selected widgets. */
 function Host({ widgets: initial, fieldData, params, onPatch }: HostProps): React.JSX.Element {
     const [widgets, setWidgets] = useState(initial);
     const ids = Object.keys(widgets);
@@ -281,7 +281,7 @@ describe('Zustandseditor toolbar — up and down', () => {
     });
 });
 
-describe('Zustandseditor toolbar — „Zeile leeren" and „neu anlegen" ask first', () => {
+describe('Zustandseditor toolbar — "clear row" and "recreate" ask first', () => {
     const dialogButton = (which: 'ok' | 'cancel'): HTMLElement => {
         const element = document.querySelector<HTMLElement>(`[data-state-editor-confirm="${which}"]`);
         if (!element) {
@@ -290,7 +290,7 @@ describe('Zustandseditor toolbar — „Zeile leeren" and „neu anlegen" ask fi
         return element;
     };
 
-    it('„Zeile leeren" asks, then deletes every style key of the row and keeps value and alias', () => {
+    it('"clear row" asks, then deletes every style key of the row and keeps value and alias', () => {
         const { container, patches } = mount(THREE_ROWS);
         selectRow(container, 2);
 
@@ -308,7 +308,7 @@ describe('Zustandseditor toolbar — „Zeile leeren" and „neu anlegen" ask fi
         expect(selectedRow(container)).toBe('2');
     });
 
-    it('cancelling „Zeile leeren" writes nothing', () => {
+    it('cancelling "clear row" writes nothing', () => {
         const { container, patches } = mount(THREE_ROWS);
 
         click(tool(container, 'clear_row'));
@@ -317,7 +317,7 @@ describe('Zustandseditor toolbar — „Zeile leeren" and „neu anlegen" ask fi
         expect(patches).toHaveLength(0);
     });
 
-    it('„neu anlegen" asks, then makes the rows from common.states anew and selects the first', () => {
+    it('"recreate" asks, then makes the rows from common.states anew and selects the first', () => {
         const { container, patches } = mount({
             ...THREE_ROWS,
             alias1: 'Aus',
@@ -341,7 +341,7 @@ describe('Zustandseditor toolbar — „Zeile leeren" and „neu anlegen" ask fi
         expect(selectedRow(container)).toBe('1');
     });
 
-    it('cancelling „neu anlegen" writes nothing', () => {
+    it('cancelling "recreate" writes nothing', () => {
         const { container, patches } = mount(THREE_ROWS);
 
         click(tool(container, 'recreate_rows'));
@@ -366,11 +366,11 @@ describe('Zustandseditor toolbar — what a widget refuses', () => {
     it('a widget with fixed rows refuses add, clone and delete whatever its OID type', () => {
         const { container } = mount(OWN_ROWS, { params: { fixedRows: true } });
 
-        // „neu anlegen" yields true/false whatever the OID declares, so it is always offered.
+        // "recreate" yields true/false whatever the OID declares, so it is always offered.
         expect(enabled(container)).toEqual(['move_row_down', 'clear_row', 'recreate_rows']);
     });
 
-    it('„neu anlegen" is off while the OID has no common.states; own rows can be added', () => {
+    it('"recreate" is off while the OID has no common.states; own rows can be added', () => {
         const { container } = mount(OWN_ROWS);
 
         expect(enabled(container)).toEqual(['add_row', 'clone_row', 'delete_row', 'move_row_down', 'clear_row']);
@@ -521,7 +521,7 @@ describe('Zustandseditor toolbar — multi-selection', () => {
         expect(patches).toHaveLength(0);
     });
 
-    it('hands the focus to the list after „Zeile leeren", the row action left under differing rows (Ticket 05)', async () => {
+    it('hands the focus to the list after "clear row", the row action left under differing rows (Ticket 05)', async () => {
         const { container, patches } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, alias3: 'Warm' } });
         selectRow(container, 2);
         tool(container, 'clear_row').focus();

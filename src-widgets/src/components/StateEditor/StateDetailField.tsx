@@ -1,16 +1,16 @@
 /**
  * A detail field of the Zustandseditor: one per-state field of the selected Zustandszeile, as a
- * native vis-2 attribute row (Bauform A, Ticket 03).
+ * native vis-2 attribute row (layout A, Ticket 03).
  *
  * @module components/StateEditor/StateDetailField
  * @remarks
  * Each per-state field definition (`commonFields({ perState: true })`, the single source) gets a
- * custom-field hull in the „Werte" group (`lib/stateEditorFields`). vis-2 renders the hull's
- * label in the native label cell; the hull renders the definition under the indexed name
- * `name{n}` of the selected row through vis-2's `Editor` prop — so the field looks and behaves
- * exactly like in the former group „Wert [n]", colour fields inherit through their own
- * `fallbackFields` (Marker-Ebene included), and every change is written by vis-2 into all
- * selected widgets. A row switch only changes the shared selection: no `onDataChange`, no vis-2
+ * custom-field wrapper, the Detail-Hülle, in the values group (`lib/stateEditorFields`). vis-2
+ * renders the wrapper's label in the native label cell; the wrapper renders the definition under
+ * the indexed name `name{n}` of the selected row through vis-2's `Editor` prop — so the field
+ * looks and behaves exactly like in the former group "Value [n]", colour fields inherit through
+ * their own `fallbackFields` (Marker-Ebene included), and every change is written by vis-2 into
+ * all selected widgets. A row switch only changes the shared selection: no `onDataChange`, no vis-2
  * recalculation.
  *
  * vis-2's `Editor` (fork `Attributes/Widget/WidgetField.tsx`, custom branch) is
@@ -24,7 +24,7 @@
  *
  * A per-state `hidden` rule that reads the Feldnummer (`enableIconColorMask`: neither URL icon nor
  * colour) cannot hide a row any more — it would make the layout jump between rows — so it locks
- * the field instead; rules on widget level hide the hull through vis-2 (no index there).
+ * the field instead; rules on widget level hide the wrapper through vis-2 (no index there).
  *
  * The binding switch of `name{n}` (`StateBindingSwitch`, Ticket 06) opens the value cell; a
  * bound field is rendered as a plain text field through the same `Editor`.
@@ -72,7 +72,7 @@ type IndexedPredicate = (data: Record<string, unknown>, index?: number) => boole
  *
  * @param definition The per-state field definition.
  * @param n The Feldnummer.
- * @returns The field of row `n` (without `hidden`, which the hull owns).
+ * @returns The field of row `n` (without `hidden`, which the wrapper owns).
  */
 export const stateRowField = (definition: RxWidgetInfoAttributesField, n: number): RxWidgetInfoAttributesField => {
     const { hidden: _hidden, ...rest } = definition as RxWidgetInfoAttributesField & { hidden?: unknown };
@@ -138,7 +138,7 @@ export type StateDetailFieldProps = StateEditorFieldProps & {
  *
  * @param fieldProps See {@link StateDetailFieldProps}.
  * @param fieldProps.definition The per-state field definition.
- * @returns The value cell content of the hull.
+ * @returns The value cell content of the wrapper.
  */
 function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps): React.JSX.Element {
     const { selected } = useStateEditor(fieldProps);
@@ -147,7 +147,7 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     const field = useMemo(() => (selected > 0 ? stateRowField(definition, selected) : null), [definition, selected]);
     const rule = (definition as { hidden?: unknown }).hidden;
     // Evaluated on every selected widget's stored data, locked only when it holds for all — as
-    // vis-2 hid the row in „Wert [n]" (`checkFunction`). The field data is vis-2's merged
+    // vis-2 hid the row in "Value [n]" (`checkFunction`). The field data is vis-2's merged
     // `commonValues` under multi-selection, where differing keys (two URL icons) are `null`.
     const stored = selectedWidgetDatas({ data, props });
     const locked =

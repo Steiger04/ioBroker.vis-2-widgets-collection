@@ -299,7 +299,7 @@ describe('delete — removes a row; the following rows close up', () => {
     });
 });
 
-describe('clear — Zeile leeren removes the styles, keeps the state', () => {
+describe('clear — clear row removes the styles, keeps the state', () => {
     it('deletes every style key of the row, legacy keys included; value and alias stay', () => {
         const cleared = after(THREE_ROWS, { kind: 'clear', row: 2 });
 
@@ -354,7 +354,7 @@ describe('boolean OIDs — exactly two rows', () => {
         },
     );
 
-    it('allows reordering and Zeile leeren', () => {
+    it('allows reordering and clear row', () => {
         expect(rowsOf(after(BOOLEAN_ROWS, { kind: 'move', from: 2, to: 1 }))).toEqual([
             [false, 'FALSE', 'red'],
             [true, 'TRUE', 'green'],
@@ -384,7 +384,7 @@ describe('boolean OIDs — exactly two rows', () => {
     });
 });
 
-describe('recreate — aus common.states neu anlegen', () => {
+describe('recreate — from common.states', () => {
     /** The user reordered, renamed and styled the rows; Eco was deleted. */
     const EDITED = {
         ...THREE_ROWS,
@@ -489,7 +489,10 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
     });
 
     it('takes the alias from common.states[true|false] where the OID declares it', () => {
-        const partial = { ...NUMBER_SWITCH, colorLightSwitchOidObject: { type: 'boolean', commonStates: { true: 'An' } } };
+        const partial = {
+            ...NUMBER_SWITCH,
+            colorLightSwitchOidObject: { type: 'boolean', commonStates: { true: 'An' } },
+        };
 
         expect(rowsOf(after(partial, { kind: 'recreate' }, LIGHT2))).toEqual([
             [true, 'An', undefined],
@@ -512,7 +515,7 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
     });
 });
 
-describe('supplement — aus common.states ergänzen (re-picking the OID)', () => {
+describe('supplement — from common.states (re-picking the OID)', () => {
     it('appends the missing states; the existing rows keep order, alias and styles', () => {
         const edited = { ...THREE_ROWS, values_count: 2, value1: 2, alias1: 'Warm', value2: 0, alias2: 'Aus' };
         const supplemented = after(edited, { kind: 'supplement' });
@@ -605,7 +608,7 @@ describe('stateRowsIdentical — may one patch restructure all selected widgets?
     });
 });
 
-describe('stateRowKeyDiffers — the „unterschiedlich" mark of a detail field', () => {
+describe('stateRowKeyDiffers — the "different" mark of a detail field', () => {
     it('a single widget never differs', () => {
         expect(stateRowKeyDiffers([THREE_ROWS], 'iconColor1')).toBe(false);
     });
@@ -697,7 +700,7 @@ describe('stateRowOperationAllowed — what the toolbar offers', () => {
         }
     });
 
-    it('offers Zeile leeren across differing styles, as long as the row counts and bindings agree', () => {
+    it('offers clear row across differing styles, as long as the row counts and bindings agree', () => {
         expect(stateRowOperationAllowed('clear', [THREE_ROWS, { ...THREE_ROWS, iconColor3: 'pink' }], CONFIG)).toBe(
             true,
         );

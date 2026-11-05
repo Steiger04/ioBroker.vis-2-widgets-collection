@@ -1,5 +1,5 @@
 /**
- * Light2's switch-OID pick: the two Zustandszeilen of the button mode (Tastenmodus).
+ * Light2's switch-OID pick: the two Zustandszeilen of the button mode.
  *
  * @module lib/light2Fields.test
  * @remarks

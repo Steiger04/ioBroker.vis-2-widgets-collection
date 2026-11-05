@@ -1,6 +1,6 @@
 /**
  * Zustandseditor detail fields (T4, Ticket 03): the fields of the selected Zustandszeile as native
- * vis-2 attribute rows (Bauform A).
+ * vis-2 attribute rows (layout A).
  *
  * @module components/StateEditor/StateDetailField.test
  * @remarks
@@ -173,7 +173,7 @@ const THREE_ROWS: WidgetData = {
     alias3: 'Comfort',
 };
 
-/** The labels of the per-state rows in today's order („Wert [n]"), dividers as ''. */
+/** The labels of the per-state rows in today's order ("Value [n]"), dividers as ''. */
 const DETAIL_LABELS = [
     '',
     'icon',
@@ -238,10 +238,10 @@ const mountSelected = (
     return { container: handle.container, onDataChange };
 };
 
-/** The rows below the Kopfzeile: the detail of the selected row. */
+/** The rows below the Gewählte Zeile row: the detail of the selected row. */
 const detailRows = (container: HTMLElement): HTMLElement[] => {
     const rows = [...container.querySelectorAll<HTMLElement>('tbody > tr')];
-    const header = rows.findIndex(row => row.querySelector('[data-state-row-header]'));
+    const header = rows.findIndex(row => row.querySelector('[data-selected-state-row]'));
     return header < 0 ? [] : rows.slice(header + 1);
 };
 const detailLabels = (container: HTMLElement): string[] =>
@@ -273,7 +273,7 @@ const type = (input: HTMLInputElement, value: string): void => {
 };
 
 describe('the detail of the selected row — native attribute rows', () => {
-    it('shows every per-state field as a labelled row, in the order and sections of „Wert [n]"', () => {
+    it('shows every per-state field as a labelled row, in the order and sections of "Value [n]"', () => {
         const { container } = mount(THREE_ROWS);
 
         expect(detailLabels(container)).toEqual(DETAIL_LABELS);
@@ -326,7 +326,7 @@ describe('the detail of the selected row — native attribute rows', () => {
     });
 });
 
-describe('hiding on widget level works as in „Wert [n]"', () => {
+describe('hiding on widget level works as in "Value [n]"', () => {
     it('without icon, header or footer their sections are gone', () => {
         const { container } = mount({ ...THREE_ROWS, noIcon: true, noHeader: true, noFooter: true });
 
@@ -375,7 +375,7 @@ describe('hiding on widget level works as in „Wert [n]"', () => {
     });
 });
 
-describe('colour fields inherit as in „Wert [n]" (ADR-0004)', () => {
+describe('colour fields inherit as in "Value [n]" (ADR-0004)', () => {
     it('render their own definition under the indexed name, inheriting the base field', () => {
         const { container } = mount(THREE_ROWS);
         selectRow(container, 2);
@@ -395,7 +395,7 @@ describe('colour fields inherit as in „Wert [n]" (ADR-0004)', () => {
     });
 });
 
-describe('„Icon-Farbmaske" is always shown, locked by the old rule', () => {
+describe('"Icon colour mask" is always shown, locked by the old rule', () => {
     const maskRow = (container: HTMLElement): HTMLElement =>
         detailRows(container).find(
             row => row.querySelector('td')?.textContent === 'enable_icon_color_mask',
@@ -489,11 +489,11 @@ describe('the image preview of the native label cell', () => {
     });
 });
 
-describe('multi-selection — fields whose values differ are marked „unterschiedlich"', () => {
+describe('multi-selection — fields whose values differ are marked "different"', () => {
     const differing = (container: HTMLElement): string[] =>
         [...container.querySelectorAll<HTMLElement>('[data-state-detail]')]
-            .filter(hull => hull.querySelector('[data-state-detail-different]'))
-            .map(hull => hull.dataset.stateDetail ?? '');
+            .filter(wrapper => wrapper.querySelector('[data-state-detail-different]'))
+            .map(wrapper => wrapper.dataset.stateDetail ?? '');
 
     it('marks exactly the fields of the selected row that differ, with vis-2s word', () => {
         const { container } = mountSelected({

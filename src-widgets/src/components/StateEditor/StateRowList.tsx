@@ -1,10 +1,10 @@
 /**
- * The Zustandseditor list: every Zustandszeile as one compact row — Griff · Nr · Wert · Alias ·
- * Icon — with search, keyboard, drag-and-drop and a height grip.
+ * The Zustandseditor list: every Zustandszeile as one compact row — grip · no. · value · alias ·
+ * icon — with search, keyboard, drag-and-drop and a height grip.
  *
  * @module components/StateEditor/StateRowList
  * @remarks
- * Its own attribute row with an empty label, in the value column (Spec „Listenfeld"). Rows are
+ * Its own attribute row with an empty label, in the value column (Spec, list field). Rows are
  * 28 px high; the list shows 8 rows (or what the height grip set, kept in `localStorage`) and
  * scrolls; the selected row is kept in view. Choosing a row changes only the shared selection
  * (`stateRowSelection`) — no `onDataChange`, so vis-2 does not recalculate.
@@ -18,8 +18,9 @@
  * - **Search** (typed in the toolbar, shared through `stateRowListStore`): filters the rows;
  *   while active, drag and Alt+↑/↓ are locked.
  *
- * Events are delegated to the list (rows carry `data-row`) and rows are positioned by index ×
- * row height, so the rows stay plain memoised items — open for a virtualised list.
+ * Events are delegated to the list (rows carry `data-row`), so the rows stay plain memoised
+ * items. They sit in normal flow, each exactly one row height tall; keeping the selected row in
+ * view computes its offset as index × row height instead of measuring it.
  */
 import { Box } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';

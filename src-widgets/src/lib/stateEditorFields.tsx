@@ -1,18 +1,18 @@
 /**
- * The „Werte" group of the 11 state widgets: the Zustandseditor (ADR-0104).
+ * The values group of the 11 state widgets: the Zustandseditor (ADR-0104).
  *
  * @module lib/stateEditorFields
  * @remarks
  * Replaces the indexed vis-2 group `values` (`indexFrom: 1, indexTo: 'values_count'`), which
  * vis-2 cloned per Feldnummer on every recalculation. The group is not indexed; it holds:
- * 1. `values_count` — the toolbar row with the label „Zeilen (n)", or the InfoBox
- *    „erst OID wählen". The group must own this key: vis-2 renders a group's body only while
+ * 1. `values_count` — the toolbar row with the label "Rows (n)", or the InfoBox
+ *    "pick an OID first". The group must own this key: vis-2 renders a group's body only while
  *    one of its named fields has a value (`hasValues`); unticking the group deletes it, like
  *    any vis-2 group (0 Zustandszeilen).
  * 2. the list of Zustandszeilen (own row, empty label);
- * 3. the Kopfzeile „Gewählte Zeile";
+ * 3. the Gewählte Zeile row;
  * 4. the detail of the selected row: per per-state field (`stateEditorSpec().perStateFields`, the
- *    single source) a hull rendering `name{n}` of the selected row as a native row
+ *    single source) a wrapper rendering `name{n}` of the selected row as a native row
  *    (`StateDetailField`), the section dividers as they are — all hidden without a row.
  * Each widget only swaps its group entry and passes its parameters ({@link StateEditorParams}).
  * Every field but `values_count` and the per-state dividers carries a `stateEditor:` name no
@@ -24,7 +24,7 @@
  */
 import StateDetailField from '../components/StateEditor/StateDetailField';
 import StateEditorRowsField from '../components/StateEditor/StateEditorRowsField';
-import StateRowHeader from '../components/StateEditor/StateRowHeader';
+import SelectedStateRow from '../components/StateEditor/SelectedStateRow';
 import StateRowList from '../components/StateEditor/StateRowList';
 import { guardWidgetData } from './fieldFactories';
 import { stateEditorSpec } from './stateEditorConfig';
@@ -34,14 +34,14 @@ import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
-/** Group-level options of the „Werte" group. */
+/** Group-level options of the values group. */
 export type StateEditorGroupOptions = {
     /** When the whole group is hidden (Light2: outside the button mode). */
     hidden?: RxWidgetInfoGroup['hidden'];
 };
 
 /**
- * Adds the „no row" rule to a per-state field's own widget-level `hidden` rule.
+ * Adds the "no row" rule to a per-state field's own widget-level `hidden` rule.
  *
  * @param noRows Hides while there is no row to show.
  * @param hidden The definition's own rule (vis-2 calls it without an index here).
@@ -61,7 +61,7 @@ const unlessRows = (noRows: (data: WidgetData) => boolean, hidden: unknown): Hid
 };
 
 /**
- * The detail of the selected row: a hull per per-state field, the dividers as they are.
+ * The detail of the selected row: a wrapper per per-state field, the dividers as they are.
  *
  * @param spec The widget's Zustandseditor spec.
  * @param noRows Hides the detail while there is no row.
@@ -79,7 +79,7 @@ const stateDetailFields = (
         }
         // A rule reading the Feldnummer locks the field instead (StateDetailField); only rules on
         // widget level hide the row — vis-2 passes no index outside an indexed group, so for
-        // `enableIconColorMask` the rule yields „visible".
+        // `enableIconColorMask` the rule yields "visible".
         const tooltip = (definition as { tooltip?: string }).tooltip;
         return {
             name: `stateEditor:${definition.name}`,
@@ -101,7 +101,7 @@ const stateDetailFields = (
     });
 
 /**
- * Builds the „Werte" group of a state widget.
+ * Builds the values group of a state widget.
  *
  * @param params The widget's parameters: OID property, Marker-Ebene, fixed two rows.
  * @param options Group-level options (visibility).
@@ -154,7 +154,7 @@ export const stateEditorGroup = (
             noBinding: true,
             hidden: noRows,
             component: guardWidgetData((_field, data, onDataChange, props) => (
-                <StateRowHeader
+                <SelectedStateRow
                     spec={spec}
                     data={data}
                     onDataChange={onDataChange}

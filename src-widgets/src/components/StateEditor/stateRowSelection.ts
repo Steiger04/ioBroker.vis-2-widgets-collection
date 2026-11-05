@@ -1,10 +1,10 @@
 /**
- * The Zustandseditor's shared row selection: which Zustandszeile the list, the Kopfzeile, the
- * toolbar and the detail fields of one „Werte" group are showing.
+ * The Zustandseditor's shared row selection, the Gewählte Zeile: which Zustandszeile the list,
+ * the Gewählte Zeile row, the toolbar and the detail fields of one values group are showing.
  *
  * @module components/StateEditor/stateRowSelection
  * @remarks
- * Module state of the widget bundle (Spec „Gemeinsame Zeilenauswahl"), keyed by view +
+ * Module state of the widget bundle (Spec, shared row selection), keyed by view +
  * selected widgets. A selection change writes no project data, so it triggers no vis-2
  * recalculation; it is remembered per key until the page reloads. Each field of the group is
  * its own vis-2 custom field (its own React subtree), so they share the selection through this

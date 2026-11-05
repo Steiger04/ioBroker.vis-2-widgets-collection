@@ -62,7 +62,7 @@ type HostProps = {
     onPatch: (patch: WidgetData) => void;
 };
 
-/** vis-2's attribute panel for one „Werte" group, writing every patch to all selected widgets. */
+/** vis-2's attribute panel for one values group, writing every patch to all selected widgets. */
 function Host({ widgets: initial, onPatch }: HostProps): React.JSX.Element {
     const [widgets, setWidgets] = useState(initial);
     const ids = Object.keys(widgets);
@@ -181,8 +181,8 @@ const tool = (container: HTMLElement, action: string): HTMLButtonElement => {
     }
     return element;
 };
-/** The detail hull of a per-state field (base name). */
-const hull = (container: HTMLElement, base: string): HTMLElement => {
+/** The detail wrapper of a per-state field (base name). */
+const wrapper = (container: HTMLElement, base: string): HTMLElement => {
     const element = container.querySelector<HTMLElement>(`[data-state-detail="${base}"]`);
     if (!element) {
         throw new Error(`no detail field ${base}`);
@@ -191,14 +191,14 @@ const hull = (container: HTMLElement, base: string): HTMLElement => {
 };
 /** The binding switch of a detail field, or `null`. */
 const bindingSwitch = (container: HTMLElement, base: string): HTMLButtonElement | null =>
-    hull(container, base).querySelector<HTMLButtonElement>('button[data-binding-switch]');
+    wrapper(container, base).querySelector<HTMLButtonElement>('button[data-binding-switch]');
 /** How a detail field is shown: `bound` (text field + LinkOff), `plain`, or `none` without switch. */
 const mode = (container: HTMLElement, base: string): string => {
     const button = bindingSwitch(container, base);
     return button ? (button.getAttribute('aria-pressed') === 'true' ? 'bound' : 'plain') : 'none';
 };
 const control = (container: HTMLElement, base: string): HTMLInputElement => {
-    const element = hull(container, base).querySelector<HTMLInputElement>('input[data-editor]');
+    const element = wrapper(container, base).querySelector<HTMLInputElement>('input[data-editor]');
     if (!element) {
         throw new Error(`no control for ${base}`);
     }
@@ -209,7 +209,7 @@ describe('the binding switch of a detail field', () => {
     it('sits at the start of the value cell of every field vis-2 offered a binding for, with its tooltip', () => {
         const { container } = mount(THREE_ROWS);
 
-        const header = hull(container, 'header');
+        const header = wrapper(container, 'header');
         expect(header.firstElementChild?.querySelector('button[data-binding-switch]')).not.toBeNull();
         expect(bindingSwitch(container, 'header')?.getAttribute('aria-label')).toBe('t:state_editor_binding_on');
         expect(bindingSwitch(container, 'header')?.querySelector('svg[data-testid="LinkIcon"]')).not.toBeNull();

@@ -14,7 +14,7 @@
  *   multi-selection the custom-field API writes the one patch into every selected widget
  *   (ADR-0104 §4).
  * - Reordering can be locked from outside (`reorderLocked`): the list locks it while its
- *   search filters the rows (Spec „Suche").
+ *   search filters the rows (Spec, search).
  */
 import { useCallback } from 'react';
 
@@ -48,7 +48,7 @@ export type StateRowActions = StateEditorState & {
 };
 
 /**
- * The row selected after an action (Spec „Auswahl nach Aktionen").
+ * The row selected after an action (Spec, selection after actions).
  *
  * @param op The action.
  * @param selected The row selected before it.

@@ -7,7 +7,7 @@
  * vis-2 keeps the bound data attributes of a widget in `data.bindings`, an array of attribute
  * names; a bound attribute is edited as a plain text field for `{…}` bindings (fork
  * `Attributes/Widget/index.tsx` `changeBinding`, `renderFieldRow` → `WidgetBindingField`). The
- * detail hulls are custom fields with `noBinding`, so vis-2 shows no switch for them — the
+ * detail wrappers are custom fields with `noBinding`, so vis-2 shows no switch for them — the
  * Zustandseditor maintains `data.bindings` for `name{n}` itself. Moving, cloning and deleting
  * rows rename these entries in the Zustandszeilen-Operationen (`lib/stateRows`).
  *
@@ -29,7 +29,7 @@ type BindableField = { type?: string; label?: string; noBinding?: boolean };
  * the widget must accept `'true'`); every other field unless `noBinding`.
  *
  * @param definition The per-state field definition.
- * @returns `true` when the field had a binding switch in vis-2's group „Wert [n]".
+ * @returns `true` when the field had a binding switch in vis-2's group "Value [n]".
  */
 export const stateFieldBindable = (definition: RxWidgetInfoAttributesField): boolean => {
     const { type, label, noBinding } = definition as BindableField;

@@ -1,12 +1,12 @@
 /**
- * The `values_count` field of the „Werte" group: label „Zeilen (n)", toolbar — or the InfoBox
- * „erst OID wählen".
+ * The `values_count` field of the values group: label "Rows (n)", toolbar — or the InfoBox
+ * "pick an OID first".
  *
  * @module components/StateEditor/StateEditorRowsField
  * @remarks
  * The group must own the key `values_count`: vis-2 renders a group's body only while one of its
  * named fields has a value (`hasValues`, `Attributes/Widget/index.tsx` `recalculateFields`).
- * So this field carries the name and the native label „Zeilen"; the row count joins the label
+ * So this field carries the name and the native label "Rows"; the row count joins the label
  * in the native label cell — vis-2 labels are static i18n keys (`I18n.t(field.label)`), so the
  * count is portalled into that cell (the row's first `<td>`). Where the cell cannot be found,
  * the count stays in the value cell. Under multi-selection with rows that differ between the
@@ -34,7 +34,7 @@ const ROWS_DIFFER_TEXTS: Record<StateRowsDifference, string> = {
 };
 
 /**
- * Renders the „Zeilen (n)" row of the Zustandseditor.
+ * Renders the "Rows (n)" row of the Zustandseditor.
  *
  * @param fieldProps See {@link StateEditorFieldProps}.
  * @returns The toolbar (or the InfoBox) and the count beside the native label.

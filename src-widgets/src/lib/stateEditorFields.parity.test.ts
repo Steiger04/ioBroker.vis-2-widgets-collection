@@ -1,5 +1,5 @@
 /**
- * Parity test (T3): the 11 state widgets edit their Zustandszeilen in the „Werte" group with the
+ * Parity test (T3): the 11 state widgets edit their Zustandszeilen in the values group with the
  * Zustandseditor — no indexed vis-2 group `values` is left (ADR-0104, Ticket 02).
  *
  * @module lib/stateEditorFields.parity.test
@@ -49,7 +49,7 @@ for (const name of ROSTER) {
     vi.doMock(`../${name}/${BODIES[name]}`, () => ({ default: () => null }));
 }
 
-/** The parameters each state widget passes to its Zustandseditor (Spec „Parameter je Widget"). */
+/** The parameters each state widget passes to its Zustandseditor (Spec, parameters per widget). */
 const STATE_WIDGETS: Record<string, Required<StateEditorParams>> = {
     ButtonGroupCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
     CheckboxCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
@@ -96,7 +96,12 @@ const valuesGroupOf = (name: string): GroupLike | undefined => groupsOf(name).fi
 /** The spec a widget's Zustandseditor renders with — read from the element its `values_count` field renders. */
 const specOf = (name: string): StateEditorSpec => {
     const [rows] = (valuesGroupOf(name) as GroupLike).fields;
-    const render = rows.component as (field: unknown, data: WidgetData, onDataChange: () => void, props: unknown) => {
+    const render = rows.component as (
+        field: unknown,
+        data: WidgetData,
+        onDataChange: () => void,
+        props: unknown,
+    ) => {
         props: { spec: StateEditorSpec };
     };
     return render(rows, {}, () => undefined, {}).props.spec;
@@ -106,7 +111,7 @@ const specOf = (name: string): StateEditorSpec => {
 const fallbacksOf = (spec: StateEditorSpec): unknown[] =>
     spec.perStateFields.map(field => [field.name, (field as { fallbackFields?: string[] }).fallbackFields]);
 
-describe('the „Werte" group replaces the indexed value group', () => {
+describe('the values group replaces the indexed value group', () => {
     it('no widget declares an indexed group over values_count any more', () => {
         const indexed = ROSTER.flatMap(name =>
             groupsOf(name)
@@ -138,8 +143,8 @@ describe('the „Werte" group replaces the indexed value group', () => {
         name => {
             const group = valuesGroupOf(name) as GroupLike;
             const spec = specOf(name);
-            // The section dividers stay as they are (unnamed, like in „Wert [n]"); the group carries
-            // copies with the „no row" rule, recognised by their component.
+            // The section dividers stay as they are (unnamed, like in "Value [n]"); the group carries
+            // copies with the "no row" rule, recognised by their component.
             const dividers = new Set<unknown>(
                 spec.perStateFields.filter(field => !field.name).map(field => (field as FieldLike).component),
             );
@@ -165,7 +170,7 @@ describe('the „Werte" group replaces the indexed value group', () => {
     );
 
     it.each(Object.keys(STATE_WIDGETS))(
-        '%s: the detail follows the Kopfzeile — one row per per-state field, label and tooltip kept',
+        '%s: the detail follows the Gewählte Zeile row — one row per per-state field, label and tooltip kept',
         name => {
             const group = valuesGroupOf(name) as GroupLike;
             const spec = specOf(name);
@@ -228,7 +233,7 @@ describe('the „Werte" group replaces the indexed value group', () => {
 });
 
 describe('the parameters at work', () => {
-    it('Light2 shows the group only in the button mode („Schalter (UI)")', () => {
+    it('Light2 shows the group only in the button mode ("Switch (UI)")', () => {
         const hidden = valuesGroupOf('Light2CollectionWidget')?.hidden as Predicate;
 
         expect(hidden({ colorLightButton: false })).toBe(true);
@@ -250,7 +255,7 @@ describe('the parameters at work', () => {
         expect(listHidden('Light2CollectionWidget')({ colorLightSwitchOidObject: { type: 'boolean' } })).toBe(false);
     });
 
-    it('the Kopfzeile waits for a row', () => {
+    it('the Gewählte Zeile row waits for a row', () => {
         const headerHidden = valuesGroupOf('StateCollectionWidget')?.fields[2].hidden as Predicate;
 
         expect(headerHidden({ oidObject: { type: 'number' }, ignoreCommonStates: false, values_count: 0 })).toBe(true);

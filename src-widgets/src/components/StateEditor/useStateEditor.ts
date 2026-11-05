@@ -3,8 +3,8 @@
  *
  * @module components/StateEditor/useStateEditor
  * @remarks
- * The list, the Kopfzeile, the toolbar (Ticket 04) and the detail fields (Ticket 03) are
- * separate vis-2 custom fields of the „Werte" group; each one calls this hook with the props
+ * The list, the Gewählte Zeile row, the toolbar (Ticket 04) and the detail fields (Ticket 03) are
+ * separate vis-2 custom fields of the values group; each one calls this hook with the props
  * vis-2 hands it, so they agree on rows and selected row without talking to each other.
  */
 import { useMemo } from 'react';
@@ -27,7 +27,7 @@ export type StateEditorFieldProps = {
     props: RxWidgetInfoCustomComponentProperties;
 };
 
-/** One Zustandszeile as the list and the Kopfzeile show it. */
+/** One Zustandszeile as the list and the Gewählte Zeile row show it. */
 export type StateRowSummary = {
     /** Feldnummer (1-based). */
     n: number;

@@ -1,12 +1,13 @@
 /**
- * The Zustandseditor Kopfzeile: ‹ n / Anzahl › and „Wert · Alias" of the selected row.
+ * The Gewählte Zeile row of the Zustandseditor: ‹ n / count › and "value · alias" of the selected
+ * row.
  *
- * @module components/StateEditor/StateRowHeader
+ * @module components/StateEditor/SelectedStateRow
  * @remarks
- * A native attribute row („Gewählte Zeile") above the detail fields (Ticket 03), so the user
+ * A native attribute row (label "Selected row") above the detail fields (Ticket 03), so the user
  * knows which row they edit even with the list scrolled away, and pages through 50–200 rows
  * without scrolling up. Paging changes only the shared selection — no `onDataChange`. The ‹ ›
- * icons keep their default 24 px, like vis-2's group-head icons (Spec „Aussehen").
+ * icons keep their default 24 px, like vis-2's group-head icons (Spec, appearance).
  */
 import { Box, IconButton } from '@mui/material';
 import PreviousIcon from '@mui/icons-material/ChevronLeft';
@@ -18,12 +19,12 @@ import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurfac
 import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 /**
- * Renders the Kopfzeile of the Zustandseditor.
+ * Renders the Gewählte Zeile row of the Zustandseditor.
  *
  * @param fieldProps See {@link StateEditorFieldProps}.
  * @returns The paging row.
  */
-function StateRowHeader(fieldProps: StateEditorFieldProps): React.JSX.Element {
+function SelectedStateRow(fieldProps: StateEditorFieldProps): React.JSX.Element {
     const { rows, selected, select } = useStateEditor(fieldProps);
     const row = rows[selected - 1];
     const previousLabel = Generic.t('state_editor_previous_row');
@@ -32,7 +33,7 @@ function StateRowHeader(fieldProps: StateEditorFieldProps): React.JSX.Element {
     return (
         <StateEditorSurface props={fieldProps.props}>
             <Box
-                data-state-row-header
+                data-selected-state-row
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minHeight: STATE_EDITOR_ROW_HEIGHT }}
             >
                 <IconButton
@@ -79,4 +80,4 @@ function StateRowHeader(fieldProps: StateEditorFieldProps): React.JSX.Element {
     );
 }
 
-export default StateRowHeader;
+export default SelectedStateRow;

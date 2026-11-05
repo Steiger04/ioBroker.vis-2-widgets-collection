@@ -1,5 +1,6 @@
 /**
- * Zustandseditor (T4, Ticket 02): the „Werte" group's list, Kopfzeile and shared row selection.
+ * Zustandseditor (T4, Ticket 02): the values group's list, Gewählte Zeile row and shared row
+ * selection.
  *
  * @module components/StateEditor/StateEditor.test
  * @remarks
@@ -156,9 +157,9 @@ const rowText = (row: HTMLElement): string[] =>
 const selectedRow = (container: HTMLElement): HTMLElement | undefined =>
     listRows(container).find(row => row.getAttribute('aria-selected') === 'true');
 const header = (container: HTMLElement): HTMLElement => {
-    const element = container.querySelector<HTMLElement>('[data-state-row-header]');
+    const element = container.querySelector<HTMLElement>('[data-selected-state-row]');
     if (!element) {
-        throw new Error('no Kopfzeile rendered');
+        throw new Error('no Gewählte Zeile row rendered');
     }
     return element;
 };
@@ -176,7 +177,7 @@ const click = (element: HTMLElement): void => {
 };
 
 describe('Zustandseditor list — the Zustandszeilen at a glance', () => {
-    it('lists every row with Nr, Wert, Alias and an icon hint for rows with an icon', () => {
+    it('lists every row with no., value, alias and an icon hint for rows with an icon', () => {
         const { container } = mount(THREE_ROWS);
 
         expect(listRows(container).map(rowText)).toEqual([
@@ -187,7 +188,7 @@ describe('Zustandseditor list — the Zustandszeilen at a glance', () => {
         expect(listRows(container).map(row => !!row.querySelector('[data-icon-hint]'))).toEqual([false, true, false]);
     });
 
-    it('shows the row count beside the native label „Zeilen"', () => {
+    it('shows the row count beside the native label "Rows"', () => {
         const { container } = mount(THREE_ROWS);
         const labelCell = container.querySelector('tr[data-field="values_count"] td');
 
@@ -209,7 +210,7 @@ describe('Zustandseditor list — the Zustandszeilen at a glance', () => {
 });
 
 describe('Zustandseditor selection — a row switch writes no project data', () => {
-    it('clicking a row selects it and the Kopfzeile follows', () => {
+    it('clicking a row selects it and the Gewählte Zeile follows', () => {
         const { container, onDataChange } = mount(THREE_ROWS);
 
         click(listRows(container)[1]);
@@ -273,22 +274,22 @@ describe('Zustandseditor selection — a row switch writes no project data', () 
 });
 
 describe('Zustandseditor without an OID object', () => {
-    it('shows the InfoBox „erst OID wählen" and neither list nor Kopfzeile', () => {
+    it('shows the InfoBox "pick an OID first" and neither list nor Gewählte Zeile row', () => {
         const { container } = mount({ oid: '', values_count: 0 });
 
         expect(container.querySelector('[data-info-box]')?.textContent).toBe('t:state_editor_pick_oid_first');
         expect(container.querySelector('[role="listbox"]')).toBeNull();
-        expect(container.querySelector('[data-state-row-header]')).toBeNull();
+        expect(container.querySelector('[data-selected-state-row]')).toBeNull();
     });
 });
 
 describe('Zustandseditor with no rows yet', () => {
-    it('shows an empty list and no Kopfzeile', () => {
+    it('shows an empty list and no Gewählte Zeile row', () => {
         const { container } = mount({ oid: 'a.0.level', oidObject: { type: 'number' }, values_count: 0 });
 
         expect(listRows(container)).toHaveLength(0);
         expect(container.querySelector('[role="listbox"]')?.textContent).toBe('t:state_editor_no_rows');
-        expect(container.querySelector('[data-state-row-header]')).toBeNull();
+        expect(container.querySelector('[data-selected-state-row]')).toBeNull();
     });
 });
 

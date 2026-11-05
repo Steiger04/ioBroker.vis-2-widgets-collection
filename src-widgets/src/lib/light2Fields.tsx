@@ -136,7 +136,7 @@ const loadStatesAsync = async (
     const object = data[fieldName] ? await socket.getObject(data[fieldName] as string) : undefined;
     if (!object?.common) {
         // Emptied or unresolvable: the switch behaves like every auxiliary ID (ADR-0096) — the
-        // shared OID handler drops its object; the rows stay, the Werte group asks for an OID.
+        // shared OID handler drops its object; the rows stay, the values group asks for an OID.
         await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
         changeData(data);
         return;

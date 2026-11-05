@@ -238,7 +238,7 @@ const commonObjectFields = (
 ): RxWidgetInfoAttributesField[] => {
     // The OID picker is always present; the unit section is optional and carries its own
     // leading divider so toggling it leaves no orphan divider. The Zustandszeilen are edited in
-    // the widget's „Werte" group (`lib/stateEditorFields`), not here (ADR-0104).
+    // the widget's values group (`lib/stateEditorFields`), not here (ADR-0104).
     const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes)];
 
     if (unit) {
