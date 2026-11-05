@@ -11,6 +11,8 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createPlainColorField } from './fieldFactories';
+import { stateEditorSpec } from './stateEditorConfig';
+import { applyStateRowOperation, stateRowCount } from './stateRows';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -25,18 +27,6 @@ const PowerSettingsNewIcon =
  * Only used internally by the field generator to type `data` while pre-filling values.
  */
 interface ExtendedWidgetData extends WidgetData {
-    values_count?: number;
-    value1?: boolean;
-    alias1?: string;
-    value2?: boolean;
-    alias2?: string;
-    iconSize?: number;
-    iconSmall1?: string;
-    iconColor1?: string;
-    iconSize1?: number;
-    iconSmall2?: string;
-    iconColor2?: string;
-    iconSize2?: number;
     colorLightButton?: boolean;
     colorLightDelayLongPress?: number;
     colorLightModalWidth?: number;
@@ -60,6 +50,49 @@ interface ExtendedWidgetData extends WidgetData {
     colorLightSaturationOid?: string;
     colorLightBrightnessOid?: string;
 }
+
+/** The Zustandszeilen of the button mode: they belong to the switch OID, always two (ADR-0104). */
+const SWITCH_ROWS = stateEditorSpec({ oidProperty: 'colorLightSwitchOid', fixedRows: true }).config;
+
+/** The look a seeded switch row gets: the power icon, red for ON, green for OFF. */
+const SWITCH_ROW_LOOK = { iconSmall: PowerSettingsNewIcon, iconSize: 100 };
+
+/**
+ * Seeds the two rows of the button mode, TRUE and FALSE — fixed, never from `common.states`.
+ *
+ * @param data The widget data, changed in place.
+ * @remarks
+ * Supplements like the main-OID pick (ADR-0104 §6, Nachtrag Ticket 02): rows already carrying
+ * `true`/`false` keep order, alias and styles; only a missing row is appended, with the power
+ * icon. The widget icon is hidden (`iconSize` 0) only when the rows are seeded from none.
+ */
+const seedSwitchRows = (data: WidgetData): void => {
+    const before = stateRowCount(data, SWITCH_ROWS);
+    // The source is always TRUE/FALSE: judged as a boolean OID without common.states.
+    const patch = applyStateRowOperation(
+        { ...data, colorLightSwitchOidObject: { type: 'boolean' } },
+        { kind: 'supplement' },
+        SWITCH_ROWS,
+    );
+    Object.entries(patch ?? {}).forEach(([key, value]) => {
+        if (value === null) {
+            delete data[key];
+        } else {
+            data[key] = value;
+        }
+    });
+
+    for (let n = before + 1; n <= (data.values_count as number); n++) {
+        Object.assign(data, {
+            [`iconSmall${n}`]: SWITCH_ROW_LOOK.iconSmall,
+            [`iconColor${n}`]: data[`value${n}`] === true ? 'red' : 'green',
+            [`iconSize${n}`]: SWITCH_ROW_LOOK.iconSize,
+        });
+    }
+    if (before === 0) {
+        data.iconSize = 0;
+    }
+};
 
 /**
  * Mapping of ioBroker state roles to the corresponding Light2 configuration field.
@@ -136,19 +169,7 @@ const loadStatesAsync = async (
                             }
 
                             if (targetField === 'colorLightSwitchOid') {
-                                extendedData.values_count = 2;
-                                extendedData.value1 = true;
-                                extendedData.alias1 = 'TRUE';
-                                extendedData.value2 = false;
-                                extendedData.alias2 = 'FALSE';
-
-                                extendedData.iconSize = 0;
-                                extendedData.iconSmall1 = PowerSettingsNewIcon;
-                                extendedData.iconColor1 = 'red';
-                                extendedData.iconSize1 = 100;
-                                extendedData.iconSmall2 = PowerSettingsNewIcon;
-                                extendedData.iconColor2 = 'green';
-                                extendedData.iconSize2 = 100;
+                                seedSwitchRows(data);
                             }
                         }
                     }),
