@@ -2,6 +2,7 @@
  * Regression tests for the stack plan at the ADR-0046 test surface {@link assemblePipelineResult}
  * (ADR-0103 K2): the 100 % shares and the percent surfaces of the rendered option follow the
  * legend selection under the EFFECTIVE series name — the name echarts keys the selection by.
+ * The legend values ride the same name (the legend formatter looks them up by it).
  *
  * @module EchartsCollectionWidget/useChartPipeline.stackPlan.test
  */
@@ -13,6 +14,7 @@ import { coreOf } from './families/cores';
 import type { ThemeTokens } from './echartsTheme';
 import type { EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 import { assemblePipelineResult, type AssemblePipelineInput } from './useChartPipeline';
+import { finishValueChain } from './valueChain';
 
 const tokens = {
     primary: '#1',
@@ -28,15 +30,16 @@ const tokens = {
 
 type Point = [number, number | null];
 
-/** A series-shaped JSON bar chart in 100 % mode (name-keyed overlay, runtime selection). */
+/** A series-shaped JSON bar chart, 100 % mode by default (name-keyed overlay, runtime selection). */
 const percentJson = (opts: {
     series: { name: string; data: Point[] }[];
     overlay?: Record<string, EchartsSeriesMeta>;
     selection?: Record<string, boolean>;
     legendShowValues?: boolean;
+    stackMode?: 'percent' | 'none';
 }): AssemblePipelineInput => {
     const src = { chartType: 'bar', legendShowValues: opts.legendShowValues ?? false };
-    const chartConfig = { stackMode: 'percent' as const };
+    const chartConfig = { stackMode: opts.stackMode ?? 'percent' };
     return {
         family: 'cartesian',
         mode: 'json',
@@ -158,5 +161,34 @@ describe('stack plan at the pipeline core — percent membership follows the sel
         );
         const [axis] = option.yAxis as { axisLabel?: { formatter?: (v: number) => string } }[];
         expect(axis.axisLabel?.formatter?.(7)).toBe('7 W');
+    });
+});
+
+describe('legend values — effective series names', () => {
+    it('a series renamed in the overlay shows its legend value', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: ABC,
+                overlay: { A: { name: 'Alpha' } },
+                legendShowValues: true,
+                stackMode: 'none',
+            }),
+        );
+        const formatter = (option.legend as { formatter: (n: string) => string }).formatter;
+        expect(['Alpha', 'B', 'C'].map(formatter)).toEqual(['Alpha [5]', 'B [1]', 'C [4]']);
+    });
+
+    it('a pie slice renamed by its meta carries its legend value under the slice name', () => {
+        const { patch } = finishValueChain({
+            series: [
+                { name: 'a', data: [[1, 3]] },
+                { name: 'b', data: [[1, 4]] },
+            ],
+            meta: [{ name: 'Alpha' }, undefined],
+            family: 'pie',
+            fetch: {},
+            legend: { showValues: true },
+        });
+        expect(patch.legendValues).toEqual({ Alpha: 3, b: 4 });
     });
 });

@@ -128,7 +128,7 @@ export interface ValueChainPatch {
     xCategories?: string[];
     /** The pre-normalization values of the percent-normalized series by EFFECTIVE name (ADR-0084 tooltip). */
     percentAbsolute?: Record<string, (number | null)[]>;
-    /** The legend values by series name (ADR-0054). */
+    /** The legend values by the name the legend lists (ADR-0054). */
     legendValues?: Record<string, number | null>;
 }
 
@@ -251,14 +251,20 @@ const sliceStage = (windowed: readonly ChartSeries[], names: readonly string[]):
     }));
 
 /**
- * The legend values (ADR-0054, ticket 04's one-value-one-truth decision): per series, by name,
- * the last NON-NULL value — points and plain arrays alike; a trailing gap is no value (the
- * formatter renders the bare name). Read over the FINAL series, so the legend shows exactly
- * what the axis sees (post offset/formula, bucketing/diff, smoothing/cumulative, share).
+ * The legend values (ADR-0054, ticket 04's one-value-one-truth decision): per series, by the name
+ * the LEGEND lists, the last NON-NULL value — points and plain arrays alike; a trailing gap is no
+ * value (the formatter renders the bare name). Read over the FINAL series, so the legend shows
+ * exactly what the axis sees (post offset/formula, bucketing/diff, smoothing/cumulative, share).
+ * The key is the builder's display name — cartesian {@link effectiveSeriesName}, pie the meta
+ * name else the payload name — never the payload name an overlay may have renamed.
  */
-const legendValuesOf = (series: readonly ChartSeries[]): Record<string, number | null> => {
+const legendValuesOf = (
+    series: readonly ChartSeries[],
+    meta: readonly ValueChainMeta[],
+    family: EchartsChartFamily,
+): Record<string, number | null> => {
     const out: Record<string, number | null> = {};
-    for (const s of series) {
+    series.forEach((s, idx) => {
         // Points or plain values only — the pie rings pass their series BEFORE the slice split.
         const data = s.data as SeriesPoint[] | (number | null)[];
         let v: number | null = null;
@@ -269,8 +275,9 @@ const legendValuesOf = (series: readonly ChartSeries[]): Record<string, number |
                 break;
             }
         }
-        out[s.name] = v;
-    }
+        const m = meta[idx];
+        out[family === 'pie' ? m?.name || s.name : effectiveSeriesName(m, s, idx)] = v;
+    });
     return out;
 };
 
@@ -312,7 +319,7 @@ export const finishValueChain = (input: ValueChainInput): ValueChainResult => {
         series = sliceStage(windowed, table.sliceNames);
     }
     if (legend.showValues) {
-        patch.legendValues = legendValuesOf(legendBasis);
+        patch.legendValues = legendValuesOf(legendBasis, meta, family);
     }
     return { series, patch };
 };
