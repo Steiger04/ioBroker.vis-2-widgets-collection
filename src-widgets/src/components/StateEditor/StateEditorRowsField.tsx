@@ -9,18 +9,20 @@
  * So this field carries the name and the native label „Zeilen"; the row count joins the label
  * in the native label cell — vis-2 labels are static i18n keys (`I18n.t(field.label)`), so the
  * count is portalled into that cell (the row's first `<td>`). Where the cell cannot be found,
- * the count stays in the value cell.
+ * the count stays in the value cell. Under multi-selection with rows that differ between the
+ * widgets, an InfoBox below the toolbar explains why the structural actions are locked.
  */
 import { useRef } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
 import Generic from '../../Generic';
+import { stateRowsIdentical } from '../../lib/stateRows';
 import { InfoBox } from '../controls';
 import StateEditorSurface from './StateEditorSurface';
 import StateEditorToolbar from './StateEditorToolbar';
 import { useLabelCell } from './useLabelCell';
-import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 /**
  * Renders the „Zeilen (n)" row of the Zustandseditor.
@@ -33,13 +35,24 @@ function StateEditorRowsField(fieldProps: StateEditorFieldProps): React.JSX.Elem
     const anchor = useRef<HTMLDivElement>(null);
     const labelCell = useLabelCell(anchor);
     const count = <span data-state-editor-count>{` (${rows.length})`}</span>;
+    // Multi-selection: one patch goes into every widget, so structural actions need identical
+    // rows (ADR-0104 §4) — the toolbar locks them, this InfoBox says why.
+    const rowsDiffer = !stateRowsIdentical(selectedWidgetDatas(fieldProps), fieldProps.spec.config);
 
     return (
         <StateEditorSurface props={fieldProps.props}>
             <div ref={anchor}>
                 {labelCell ? createPortal(count, labelCell) : count}
                 {hasOidObject ? (
-                    <StateEditorToolbar {...fieldProps} />
+                    <>
+                        <StateEditorToolbar {...fieldProps} />
+                        {rowsDiffer ? (
+                            <InfoBox
+                                tone="warning"
+                                text={Generic.t('state_editor_rows_differ')}
+                            />
+                        ) : null}
+                    </>
                 ) : (
                     <InfoBox text={Generic.t('state_editor_pick_oid_first')} />
                 )}

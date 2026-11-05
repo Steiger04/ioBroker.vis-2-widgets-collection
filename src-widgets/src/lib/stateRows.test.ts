@@ -22,6 +22,8 @@ import {
     applyStateRowOperation,
     mergeStateRowPatch,
     stateRowCount,
+    stateRowDiffers,
+    stateRowKeyDiffers,
     stateRowOperationAllowed,
     stateRowSchema,
     stateRowsIdentical,
@@ -523,6 +525,48 @@ describe('stateRowsIdentical — may one patch restructure all selected widgets?
         const unbound = { ...THREE_ROWS, bindings: ['header'] };
 
         expect(stateRowsIdentical([unbound, { ...unbound, bindings: ['footer'] }], CONFIG)).toBe(true);
+    });
+});
+
+describe('stateRowKeyDiffers — the „unterschiedlich" mark of a detail field', () => {
+    it('a single widget never differs', () => {
+        expect(stateRowKeyDiffers([THREE_ROWS], 'iconColor1')).toBe(false);
+    });
+
+    it('differs where one selected widget stores another value', () => {
+        const other = { ...THREE_ROWS, iconColor3: 'pink' };
+
+        expect(stateRowKeyDiffers([THREE_ROWS, THREE_ROWS, other], 'iconColor3')).toBe(true);
+        expect(stateRowKeyDiffers([THREE_ROWS, other], 'iconColor1')).toBe(false);
+    });
+
+    it('a key one widget lacks differs from a set one, an absent key equals an absent one', () => {
+        expect(stateRowKeyDiffers([THREE_ROWS, { ...THREE_ROWS, footer1: 'x' }], 'footer1')).toBe(true);
+        expect(stateRowKeyDiffers([THREE_ROWS, { ...THREE_ROWS }], 'footer1')).toBe(false);
+    });
+});
+
+describe('stateRowDiffers — the mark of a list row', () => {
+    it('a single widget never differs', () => {
+        expect(stateRowDiffers([THREE_ROWS], 1, CONFIG)).toBe(false);
+    });
+
+    it('marks only the rows whose keys differ', () => {
+        const other = { ...THREE_ROWS, iconHover3: '#333' };
+
+        expect([1, 2, 3].map(n => stateRowDiffers([THREE_ROWS, other], n, CONFIG))).toEqual([false, false, true]);
+    });
+
+    it('marks a row another widget does not have', () => {
+        const shorter = { ...THREE_ROWS, values_count: 2 };
+
+        expect([1, 2, 3].map(n => stateRowDiffers([THREE_ROWS, shorter], n, CONFIG))).toEqual([false, false, true]);
+    });
+
+    it('marks a row whose field is bound in one widget only', () => {
+        const unbound = { ...THREE_ROWS, bindings: ['header'] };
+
+        expect([1, 2, 3].map(n => stateRowDiffers([THREE_ROWS, unbound], n, CONFIG))).toEqual([false, true, false]);
     });
 });
 

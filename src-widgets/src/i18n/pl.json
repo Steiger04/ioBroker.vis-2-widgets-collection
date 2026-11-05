@@ -1367,5 +1367,7 @@
     "state_editor_move_row_down": "[TODO] Move row down",
     "state_editor_move_row_up": "[TODO] Move row up",
     "state_editor_recreate_rows": "[TODO] Recreate from common.states",
-    "state_editor_recreate_rows_confirm": "[TODO] Replace all rows with the states of the object ID? Order, aliases and styles of the current rows are lost."
+    "state_editor_recreate_rows_confirm": "[TODO] Replace all rows with the states of the object ID? Order, aliases and styles of the current rows are lost.",
+    "state_editor_different": "[TODO] different",
+    "state_editor_rows_differ": "[TODO] The rows of the selected widgets differ (marked on the right). Moving, adding, cloning, deleting and recreating rows works only on identical rows — edit the widgets one by one."
 }

@@ -487,3 +487,35 @@ describe('the image preview of the native label cell', () => {
         expect(iconLabel().querySelector('img')?.getAttribute('src')).toBe('../vis-2.0/main/lamp.png');
     });
 });
+
+describe('multi-selection — fields whose values differ are marked „unterschiedlich"', () => {
+    const differing = (container: HTMLElement): string[] =>
+        [...container.querySelectorAll<HTMLElement>('[data-state-detail]')]
+            .filter(hull => hull.querySelector('[data-state-detail-different]'))
+            .map(hull => hull.dataset.stateDetail ?? '');
+
+    it('marks exactly the fields of the selected row that differ, with vis-2s word', () => {
+        const { container } = mountSelected({
+            w1: { ...THREE_ROWS, iconColor2: '#f00' },
+            w2: { ...THREE_ROWS, header2: 'Saving', iconColor2: '#0f0' },
+        });
+
+        expect(differing(container)).toEqual([]);
+        selectRow(container, 2);
+
+        expect(differing(container)).toEqual(['iconColor', 'header']);
+        expect(container.querySelector('[data-state-detail-different]')?.textContent).toBe('t:state_editor_different');
+    });
+
+    it('marks a field set in one widget only — vis-2s merged data misses a key the first widget lacks', () => {
+        const { container } = mountSelected({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, footer1: 'x' } });
+
+        expect(differing(container)).toEqual(['footer']);
+    });
+
+    it('marks nothing with one selected widget', () => {
+        const { container } = mount({ ...THREE_ROWS, footer1: 'x' });
+
+        expect(differing(container)).toEqual([]);
+    });
+});

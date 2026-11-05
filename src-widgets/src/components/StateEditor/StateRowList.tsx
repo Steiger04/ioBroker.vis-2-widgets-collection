@@ -15,8 +15,10 @@ import { useLayoutEffect, useRef } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { stateRowDiffers } from '../../lib/stateRows';
+import { stateRowDiffersProps, stateRowDiffersSx } from './StateDifferentMark';
 import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
-import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 /** Rows the list shows before it scrolls. */
 export const STATE_ROW_LIST_VISIBLE_ROWS = 8;
@@ -46,6 +48,9 @@ const keepInView = (list: HTMLElement, n: number, visibleHeight: number): void =
  */
 function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
     const { rows, selected, select } = useStateEditor(fieldProps);
+    // Multi-selection (Ticket 07): rows that differ between the selected widgets are marked.
+    const datas = selectedWidgetDatas(fieldProps);
+    const rowDiffers = (n: number): boolean => stateRowDiffers(datas, n, fieldProps.spec.config);
     const listRef = useRef<HTMLDivElement>(null);
     const visibleHeight = Math.min(Math.max(rows.length, 1), STATE_ROW_LIST_VISIBLE_ROWS) * STATE_EDITOR_ROW_HEIGHT;
 
@@ -87,12 +92,14 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
                 ) : (
                     rows.map(row => {
                         const isSelected = row.n === selected;
+                        const differs = rowDiffers(row.n);
                         return (
                             <Box
                                 key={row.n}
                                 id={`state-row-${row.n}`}
                                 role="option"
                                 aria-selected={isSelected}
+                                {...stateRowDiffersProps(differs)}
                                 onClick={() => select(row.n)}
                                 sx={{
                                     display: 'grid',
@@ -104,6 +111,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
                                     cursor: 'pointer',
                                     borderLeft: 2,
                                     borderLeftColor: isSelected ? 'primary.main' : 'transparent',
+                                    ...stateRowDiffersSx(differs),
                                     bgcolor: isSelected ? 'action.selected' : undefined,
                                     '&:hover': { bgcolor: isSelected ? 'action.selected' : 'action.hover' },
                                     '& > [data-col]': {

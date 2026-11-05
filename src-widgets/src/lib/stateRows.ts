@@ -409,6 +409,44 @@ export const stateRowsIdentical = (datas: readonly WidgetData[], config: StateRo
 };
 
 /**
+ * Whether the selected widgets store different values under one key — the „unterschiedlich"
+ * mark of a detail field under multi-selection.
+ *
+ * @param datas The data of every selected widget.
+ * @param key The indexed key, e.g. `iconColor2`.
+ * @returns `true` when a widget's value differs from the first one's; an absent key equals an
+ *   absent one, as in {@link stateRowsIdentical}.
+ */
+export const stateRowKeyDiffers = (datas: readonly WidgetData[], key: string): boolean => {
+    const [first, ...others] = datas;
+    return others.some(data => !sameValue(data[key], first[key]));
+};
+
+/**
+ * Whether row `n` differs between the selected widgets — the mark of a list row under
+ * multi-selection, showing where the rows run apart (and so why structural actions are locked).
+ *
+ * @param datas The data of every selected widget; the list shows the first one's rows.
+ * @param n The Feldnummer.
+ * @param config Schema and OID property of the widgets.
+ * @returns `true` when another widget has no row `n`, stores another value under one of its
+ *   keys, or binds one of its keys where the first widget does not (or the other way round).
+ */
+export const stateRowDiffers = (datas: readonly WidgetData[], n: number, config: StateRowsConfig): boolean => {
+    const [first, ...others] = datas;
+    const bound = (data: WidgetData, name: string): boolean => (data.bindings || []).includes(name);
+
+    return others.some(
+        data =>
+            stateRowCount(data, config) < n ||
+            config.schema.keys.some(key => {
+                const name = `${key}${n}`;
+                return !sameValue(data[name], first[name]) || bound(data, name) !== bound(first, name);
+            }),
+    );
+};
+
+/**
  * Whether the Zustandseditor offers an action for the selected widgets.
  *
  * @param kind The action.
