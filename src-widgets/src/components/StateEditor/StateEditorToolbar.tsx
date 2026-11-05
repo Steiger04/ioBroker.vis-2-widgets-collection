@@ -4,10 +4,12 @@
  *
  * @module components/StateEditor/StateEditorToolbar
  * @remarks
- * Sits in the value cell of the „Zeilen (n)" row (the `values_count` field); Ticket 05 puts the
- * search in front of the buttons. Each button writes one patch of the Zustandszeilen-Operationen
- * through {@link useStateRowActions}, which also moves the selection. Add, clone and delete ask
- * nothing — vis-2's undo takes them back; „Zeile leeren" and „neu anlegen" ask first.
+ * Sits in the value cell of the „Zeilen (n)" row (the `values_count` field), the search in front
+ * of the buttons: it filters the list (shared through `stateRowListStore`) and locks up/down
+ * while active. Each button writes one patch of the Zustandszeilen-Operationen through
+ * {@link useStateRowActions}, which also moves the selection, and hands the focus to the list.
+ * Add, clone and delete ask nothing — vis-2's undo takes them back; „Zeile leeren" and „neu
+ * anlegen" ask first.
  *
  * The buttons copy vis-2's group-head buttons (`Attributes/Widget/index.tsx`, the clone/delete/
  * up/down/add buttons of an indexed group): `@mui/icons-material` icons at their default 24 px
@@ -23,6 +25,7 @@ import {
     DialogContentText,
     DialogTitle,
     IconButton,
+    TextField,
     Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -32,13 +35,16 @@ import CloneIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ClearRowIcon from '@mui/icons-material/FormatClear';
 import RecreateIcon from '@mui/icons-material/RestartAlt';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
 import { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
+import { stateEditorSelectionKey } from './useStateEditor';
 import { useStateRowActions } from './useStateRowActions';
 
+import type { StateRowOperation } from '../../lib/stateRows';
 import type { StateEditorFieldProps } from './useStateEditor';
 
 /** vis-2's group-head button box (`styles.groupButton`). */
@@ -101,7 +107,7 @@ function ToolButton({ label, disabled, onClick, children }: ToolButtonProps): Re
 
 /** Props of {@link StateEditorToolbar}. */
 export type StateEditorToolbarProps = StateEditorFieldProps & {
-    /** Locks up/down — the list's search is active (Ticket 05). */
+    /** Locks up/down on top of the search, which locks them while it filters the list. */
     reorderLocked?: boolean;
 };
 
@@ -113,19 +119,36 @@ export type StateEditorToolbarProps = StateEditorFieldProps & {
  * @returns The toolbar row and the question a confirmed action asks first.
  */
 function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbarProps): React.JSX.Element {
-    const { rows, selected, can, run } = useStateRowActions(fieldProps, { reorderLocked });
+    const selectionKey = stateEditorSelectionKey(fieldProps.props);
+    const [search, setSearch] = useStateRowSearch(selectionKey);
+    const actions = useStateRowActions(fieldProps, {
+        reorderLocked: !!reorderLocked || isStateRowSearchActive(search),
+    });
+    const { rows, selected, can } = actions;
     // The question stays filled while the dialog fades out; `asking` opens and closes it.
     const [question, setQuestion] = useState<ConfirmedAction>('clear');
     const [asking, setAsking] = useState(false);
+    const confirmed = useRef(false);
     const hasRow = selected > 0;
 
     const ask = (action: ConfirmedAction): void => {
+        confirmed.current = false;
         setQuestion(action);
         setAsking(true);
     };
+    // Each action hands the focus to the list: a focused button that turns disabled (down on
+    // the last row, delete of the last row) would drop it on <body>, where vis-2's Delete key
+    // deletes the widget.
+    const run = (op: StateRowOperation): void => {
+        actions.run(op);
+        focusStateRowList(selectionKey);
+    };
+    // A confirmed action hands the focus to the list once the dialog is gone — the dialog
+    // first restores it to the button that opened it.
     const confirm = (): void => {
+        confirmed.current = true;
         setAsking(false);
-        run(question === 'clear' ? { kind: 'clear', row: selected } : { kind: 'recreate' });
+        actions.run(question === 'clear' ? { kind: 'clear', row: selected } : { kind: 'recreate' });
     };
 
     return (
@@ -133,6 +156,16 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
             data-state-editor-toolbar
             sx={{ display: 'flex', alignItems: 'center', minHeight: STATE_EDITOR_ROW_HEIGHT }}
         >
+            <TextField
+                variant="standard"
+                size="small"
+                type="search"
+                value={search}
+                placeholder={Generic.t('state_editor_search')}
+                onChange={event => setSearch(event.target.value)}
+                slotProps={{ htmlInput: { 'aria-label': Generic.t('state_editor_search') } }}
+                sx={{ flex: '1 1 64px', minWidth: 40, mr: 0.5, '& .MuiInputBase-root': { fontSize: 'inherit' } }}
+            />
             <ToolButton
                 label={Generic.t('state_editor_add_row')}
                 disabled={!can('add')}
@@ -187,6 +220,15 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
                 onClose={() => setAsking(false)}
                 aria-labelledby="state-editor-confirm-title"
                 aria-describedby="state-editor-confirm-text"
+                slotProps={{
+                    transition: {
+                        onExited: () => {
+                            if (confirmed.current) {
+                                focusStateRowList(selectionKey);
+                            }
+                        },
+                    },
+                }}
             >
                 <DialogTitle id="state-editor-confirm-title">{Generic.t(QUESTIONS[question].name)}</DialogTitle>
                 <DialogContent>

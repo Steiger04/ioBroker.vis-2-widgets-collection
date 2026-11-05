@@ -93,6 +93,15 @@ export const selectedWidgetDatas = ({ data, props }: Pick<StateEditorFieldProps,
     return stored.length > 0 && stored.every(Boolean) ? (stored as WidgetData[]) : [data];
 };
 
+/**
+ * The key one Zustandseditor's fields share their selection, search and list focus under.
+ *
+ * @param props The vis-2 editor context.
+ * @returns `stateRowSelectionKey` of the selected view and widgets.
+ */
+export const stateEditorSelectionKey = (props: RxWidgetInfoCustomComponentProperties): string =>
+    stateRowSelectionKey(props.selectedView, (props.selectedWidgets ?? []) as string[]);
+
 /** The state every Zustandseditor field works from. */
 export type StateEditorState = {
     /** The OID object of the widget's OID property is known (the pick has run). */
@@ -103,6 +112,8 @@ export type StateEditorState = {
     selected: number;
     /** Selects a row; writes no project data. */
     select: (row: number) => void;
+    /** The key the selection, search and list focus are shared under (`stateRowSelectionKey`). */
+    selectionKey: string;
 };
 
 /**
@@ -123,7 +134,7 @@ export const useStateEditor = ({
     const data = selectedWidgetDatas({ data: fieldData, props })[0];
     const count = stateRowCount(data, spec.config);
     const rows = useMemo(() => stateRowSummaries(data, count), [data, count]);
-    const key = stateRowSelectionKey(props.selectedView, (props.selectedWidgets ?? []) as string[]);
+    const key = stateEditorSelectionKey(props);
     const [selected, select] = useStateRowSelection(key, count);
 
     return {
@@ -131,5 +142,6 @@ export const useStateEditor = ({
         rows,
         selected,
         select,
+        selectionKey: key,
     };
 };

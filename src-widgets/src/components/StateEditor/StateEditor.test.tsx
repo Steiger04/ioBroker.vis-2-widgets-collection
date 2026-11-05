@@ -152,7 +152,7 @@ const listRows = (container: HTMLElement): HTMLElement[] => [
     ...container.querySelectorAll<HTMLElement>('[role="listbox"] [role="option"]'),
 ];
 const rowText = (row: HTMLElement): string[] =>
-    [...row.querySelectorAll<HTMLElement>('[data-col]')].map(cell => cell.textContent ?? '');
+    [...row.querySelectorAll<HTMLElement>('[data-col]:not([data-col="grip"])')].map(cell => cell.textContent ?? '');
 const selectedRow = (container: HTMLElement): HTMLElement | undefined =>
     listRows(container).find(row => row.getAttribute('aria-selected') === 'true');
 const header = (container: HTMLElement): HTMLElement => {
