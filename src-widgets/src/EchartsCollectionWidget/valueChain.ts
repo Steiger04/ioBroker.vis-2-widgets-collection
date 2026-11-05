@@ -35,7 +35,7 @@ import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
 import { effectiveCartesianType, resolveStackPlan, shares } from './stackMode';
-import { resolveAxisPlan } from './axisResolution';
+import { effectiveSeriesName, resolveAxisPlan } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
 export type ValueChainMeta = EchartsSeriesMeta | undefined;
@@ -214,9 +214,11 @@ const percentStage = (
     const names = series.map(s => s.name);
     // Only the bindings, the active flags and the remap matter here — the axis configs (owner,
     // geometry) are the builder's; `axisCount` placeholders resolve the same emitted indices.
+    // The selection is keyed by the EFFECTIVE (display) name — the name echarts lists, not the
+    // payload name an overlay may have renamed.
     const axes = resolveAxisPlan({
         axes: Array.from({ length: stack.axisCount }, () => ({})),
-        entries: meta.map((m, i) => ({ yAxisIndex: m?.yAxisIndex, name: names[i] })),
+        entries: meta.map((m, i) => ({ yAxisIndex: m?.yAxisIndex, name: effectiveSeriesName(m, series[i], i) })),
         meta,
         series,
         selection,
