@@ -40,7 +40,6 @@ import { coreOf } from './families/cores';
 import { familyOf } from './families/kernel';
 import {
     buildTitleOption,
-    legendActiveOf,
     markBoundOids,
     resolveMarkLines,
     toPresentationBase,
@@ -56,12 +55,12 @@ import {
     type SeriesPoint,
     type SeriesValueMap,
 } from './historyLogic';
-import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
-import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
-import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
-import { datumValueSlot, effectiveCartesianType, effectiveStackName, normalizeStackMode } from './stackMode';
+import { makeBarPlan, type BarFetchExtras } from './barBuckets';
+import { normalizeStackMode } from './stackMode';
+import { finishValueChain, transformChainSeries } from './valueChain';
 import { chartBackgroundOverride, type ThemeTokens } from './echartsTheme';
 import type {
+    EchartsAggregate,
     EchartsAxisConfig,
     EchartsFontStyle,
     EchartsFontWeight,
@@ -238,55 +237,6 @@ export const hasMergedData = (option: EChartsOption): boolean => {
     });
 };
 
-/**
- * The FINAL-series legend values (ticket 04's one-value-one-truth decision): per series, by
- * name — every branch reads the last NON-NULL value (points and plain arrays alike, the same
- * rule the bucketed twin below applies; a trailing gap is no value, the formatter renders the
- * bare name). The legend thus reads exactly what the axis sees (post offset/formula AND post
- * smoothing/cumulative); the former pre-transform read (a formula series' legend showing its
- * raw value) is retired CONSCIOUSLY.
- */
-const finalLegendValues = (series: readonly ChartSeries[]): Record<string, number | null> => {
-    const out: Record<string, number | null> = {};
-    for (const s of series) {
-        // narrowed from the ChartSeries union — the callers pass points/plain only (the pie
-        // block injects its legend values BEFORE the slice objects exist).
-        const data = s.data as SeriesPoint[] | (number | null)[];
-        let v: number | null = null;
-        for (let i = data.length - 1; i >= 0; i--) {
-            const val = Array.isArray(data[i]) ? (data[i] as SeriesPoint)[1] : (data[i] as number | null);
-            if (val !== null) {
-                v = val;
-                break;
-            }
-        }
-        out[s.name] = v;
-    }
-    return out;
-};
-
-/**
- * Legend values over FINAL bucket data (category bars, ADR-0065 + K2): the last non-null bucket
- * of each series — the value the bars and tooltip show, the diff already applied. A series of
- * only null buckets resolves to null (the legend formatter renders the bare name).
- */
-const bucketedLegendValues = (
-    series: readonly { name: string; data: (number | null)[] }[],
-): Record<string, number | null> => {
-    const out: Record<string, number | null> = {};
-    for (const s of series) {
-        let v: number | null = null;
-        for (let i = s.data.length - 1; i >= 0; i--) {
-            if (s.data[i] !== null) {
-                v = s.data[i]!;
-                break;
-            }
-        }
-        out[s.name] = v;
-    }
-    return out;
-};
-
 /** The unified error surface: JSON parse > Verlauf fetch > per-series — null when clean. */
 export const pipelineError = (
     mode: string,
@@ -346,9 +296,11 @@ export interface AssemblePipelineInput {
 }
 
 /**
- * The pure build core (ADR-0046 test surface): the Verlauf-JSON series dispatch, the theme
- * merge, the title fold (incl. raw-without-text, ADR-0044), the background injection, and
- * `hasData` (the MERGED option). The hook is a thin composition over this + the fetch hook.
+ * The pure build core (ADR-0046 test surface): the series and meta pick per data mode, the
+ * value chain ({@link finishValueChain}, ADR-0103 K1) with its presentation patch, the family
+ * dispatch, the theme merge, the title fold (incl. raw-without-text, ADR-0044), the background
+ * injection, and `hasData` (the MERGED option). The hook is a thin composition over this + the
+ * fetch hook.
  */
 export const assemblePipelineResult = (input: AssemblePipelineInput): { option: EChartsOption; hasData: boolean } => {
     const {
@@ -371,8 +323,8 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     const table = mode === 'json' && jsonTable !== undefined;
     // Legenden-Folge (ADR-0074): the runtime selection rides the presentation copy — buildLegend
     // emits `selected` from it and the cartesian builder gates axis emission on it. Injected
-    // HERE (view state owned by the host), never from the field map. (The legend VALUES are
-    // resolved further down — over the FINAL series, ticket 04's one-value-one-truth decision.)
+    // HERE (view state owned by the host), never from the field map. (The legend VALUES come
+    // from the value chain's final stage — over the FINAL series, one value, one truth.)
     const presentationWithSelection = input.legendSelection
         ? { ...presentation, legendSelection: input.legendSelection }
         : presentation;
@@ -396,222 +348,42 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             : table
               ? companions.series
               : series.map(s => companions.jsonSeriesStyle[s.name] ?? {});
-    // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
-    // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
-    // over every mode's points. Point-typed here — EXCEPT the table family's category/index
-    // branch (plain per-row values, ADR-0075) and the category bars below (ADR-0065).
-    const now = input.now ?? Date.now();
-    const plainTableData = table && jsonTable.xKind !== 'time';
-    const transformed = series.map((s, i) => ({
-        name: s.name,
-        data: plainTableData
-            ? transformPlainValues(s.data as (number | null)[], meta[i])
-            : transformSeriesData(
-                  meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
-                  meta[i],
-              ),
-    }));
-    // Category bars (ADR-0065): bucket the transformed points onto the fetch's shared grid
-    // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
-    // and ride the categories into the presentation copy — the builder switches to a
-    // category x axis and the series data becomes plain bucket arrays.
-    let presentationFinal = presentationWithSelection;
-    let bucketed: ChartSeries[] = transformed;
-    // Pie tabellarisch builds its slice series from `transformed` below — the general window
-    // stone would be dead work there (the block overwrites `bucketed` wholesale).
-    const pieTableSlices = table && family === 'pie' && jsonTable.sliceNames?.length;
-    if (barCategories?.length) {
-        let cats = barCategories;
-        const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
-        // Per-series effective aggregate (ADR-0072): an override reshapes BOTH the entry's
-        // server request (the fetch seam, ticket 01) and this client-side reduction — a max
-        // series reduces max inside an average chart. Non-reducible aggregates
-        // (onchange/minmax/count/none/percentile/integral) → last value (adapter parity,
-        // bucketizeSeries' default branch). effectiveAggregate/effectiveDiff are the SHARED
-        // Erben-Override resolvers (seriesDataOverrides.ts) — the series card renders from the
-        // same semantics it fetches and reduces with.
-        const chartAggregate = src.aggregate as Parameters<typeof bucketizeSeries>[2];
-        // Per-series diff tristate (ADR-0072): only diff series lose their first category —
-        // when EVERY series diffs, the axis drops the sacrificial bucket (ADR-0065 behaviour
-        // unchanged); in a mixed chart the axis keeps it: a diff series pads a leading null
-        // (no predecessor there), a raw series' first value simply stays standing. The window
-        // widening stays tied to the CHART-level barDiff: the one extra bucket it may have
-        // bought for non-diff series is harmless for exactly that reason, and an all-diff
-        // chart without it pays with its first AUTHORED bucket (the diff's first bucket is
-        // meaningless without a predecessor — adapter parity, under-shoot accepted).
-        const seriesDiffs = meta.map(m => effectiveDiff(m, barDiff));
-        const allDiff = seriesDiffs.length > 0 && seriesDiffs.every(Boolean);
-        bucketed = transformed.map((s, i) => {
-            // Bar buckets are history/cartesian-only — the point-typed path (the plain-values
-            // table branch above never reaches here; ADR-0065 vs. ADR-0075).
-            const vals = bucketizeSeries(
-                s.data as SeriesPoint[],
-                cats,
-                effectiveAggregate(meta[i], chartAggregate),
-                endBound,
-            );
-            if (!seriesDiffs[i]) {
-                return { name: s.name, data: vals };
-            }
-            const diffs = applyBarDiff(vals);
-            return { name: s.name, data: allDiff ? diffs : [null, ...diffs] };
-        });
-        // The window transforms are the value chain's FINAL stone (ticket 04): on category
-        // bars they act on the BUCKETS — the values the axis, tooltips and labels show.
-        // (Plain arrays by construction here — the ChartSeries union still allows points.)
-        bucketed = bucketed.map((s, i) => ({
-            name: s.name,
-            data: applyWindowTransforms(s.data as (number | null)[], meta[i]),
-        }));
-        if (allDiff) {
-            cats = cats.slice(1); // the diff's first bucket has no predecessor
-        }
-        presentationFinal = { ...presentationWithSelection, barCategories: cats };
-        // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff and
-        // window transforms included) value the chart actually shows. Reading the raw history
-        // series here made the legend contradict the bars (a meter reading against its diff).
-        if (presentation.legendShowValues) {
-            presentationFinal = {
-                ...presentationFinal,
-                // Bucketed bars carry plain arrays by construction (the ChartSeries union
-                // still allows points for the time-axis path) — narrowed for the resolver.
-                legendValues: bucketedLegendValues(
-                    bucketed.map(s => ({ name: s.name, data: s.data as (number | null)[] })),
-                ),
-            };
-        }
-    } else if (!pieTableSlices) {
-        // The same final stone for every non-bar path (time-axis points, table points/plain):
-        // after the transform seam, right before the builder and the legend read the series.
-        // (Pie slice data never reaches here — the pie block below owns that path.)
-        bucketed = bucketed.map((s, i) => ({
-            name: s.name,
-            data: applyWindowTransforms(s.data as SeriesPoint[] | (number | null)[], meta[i]),
-        }));
-    }
-    // Table categories (ADR-0075): the per-row labels ride the presentation copy beside
-    // `barCategories` (two category flavours stay separate — timestamp buckets vs. string
-    // labels). The pipeline supplies data + labels here; the axis itself is the cartesian
-    // builder's switch (ADR-0075 ticket 05).
-    if (table && jsonTable.xKind !== 'time') {
-        presentationFinal = { ...presentationFinal, xCategories: jsonTable.categories ?? [] };
-    }
-    // Balken-Stapelmodus 100 % (ADR-0084 decision 4): the value chain's LAST stone — after every
-    // transform, right before the builder and the legend read the series. Each effective stack
-    // group (the SHARED stackMode resolver — same names the builder stamps) normalizes per
-    // category: share = value / group sum, sum ≤ 0 → 0 (the example's defensive formula —
-    // negative totals are the documented fragility, the InfoBox says it), gaps stay gaps. The
-    // ABSOLUTE values ride `percentAbsolute` for the tooltip (share AND absolute, decision 4).
-    // Every cartesian data mode (addendum 3, superseding decision 8's Verlauf scope): the builder
-    // stacks in JSON too, so the shares must be computed there as well — per data INDEX, the
-    // same alignment echarts stacks by (table rows, payload points, Verlauf buckets). Opted-out ('none') and non-bar series keep their absolute values; a lone
-    // group in percent mode is always 100 % (the example IS the one-group special case). Like
-    // the sum anchor (Addendum 1 item 3), the denominator counts the VISIBLE stack only —
-    // deselected members leave it (Legenden-Folge honesty; the assembly re-runs on every
-    // legend click, so a re-selected member renormalizes).
-    if (family === 'cartesian' && normalizeStackMode(companions.chartConfig.stackMode) === 'percent') {
-        const cart = presentation as PresentationBase & CartesianFragment;
-        const axisCount = cart.yAxes.length ? cart.yAxes.length : 1;
-        const groups = new Map<string, number[]>();
-        meta.forEach((m, i) => {
-            if (effectiveCartesianType(m?.type, cart.cartesianType) !== 'bar') {
-                return;
-            }
-            const name = bucketed[i]?.name;
-            const active =
-                typeof name === 'string' ? legendActiveOf(input.legendSelection, name, m?.legendOnly === true) : true;
-            if (!active) {
-                return; // invisible — keeps its absolute data, contributes to no denominator
-            }
-            const yi = typeof m?.yAxisIndex === 'number' ? m.yAxisIndex : 0;
-            const stack = effectiveStackName(m?.stack, 'percent', yi >= axisCount ? 0 : yi);
-            if (!stack) {
-                return; // opted out — absolute values stay
-            }
-            const list = groups.get(stack);
-            if (list) {
-                list.push(i);
-            } else {
-                groups.set(stack, [i]);
-            }
-        });
-        const absolutes: Record<string, (number | null)[]> = {};
-        for (const members of groups.values()) {
-            const length = members.reduce((max, i) => Math.max(max, bucketed[i]?.data.length ?? 0), 0);
-            const sums: number[] = [];
-            for (let c = 0; c < length; c++) {
-                let sum: number | null = null;
-                for (const i of members) {
-                    const v = datumValueSlot(bucketed[i]?.data[c]);
-                    if (v !== null) {
-                        sum = (sum ?? 0) + v;
-                    }
-                }
-                sums.push(sum ?? 0);
-            }
-            for (const i of members) {
-                const s = bucketed[i];
-                absolutes[s.name] = s.data.map(d => datumValueSlot(d));
-                // Narrowed from the ChartSeries union: a series' data is homogeneous by
-                // construction (points OR plain values — the map preserves whichever it finds).
-                bucketed[i] = {
-                    name: s.name,
-                    data: s.data.map((d, c): SeriesPoint | number | null => {
-                        const share = datumValueSlot(d);
-                        if (share === null) {
-                            return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
-                        }
-                        const value = sums[c] > 0 ? share / sums[c] : 0; // sum ≤ 0 → 0 (defensive)
-                        return Array.isArray(d) ? [d[0], value] : value;
-                    }) as SeriesPoint[] | (number | null)[],
-                };
-            }
-        }
-        if (Object.keys(absolutes).length) {
-            presentationFinal = { ...presentationFinal, percentAbsolute: absolutes };
-            // Legend values over the NORMALIZED buckets on EVERY path (review catch: the
-            // bucket-path resolver above ran pre-normalization, and the generic block below is
-            // !barCategories-guarded — the legend lied `A [1000 %]` instead of `A [25 %]`).
-            if (presentation.legendShowValues) {
-                presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(bucketed) };
-            }
-        }
-    }
-    // Legend values (ticket 04 Pflicht-Entscheidung, the Empfehlung taken): ONE value, ONE
-    // truth — the legend reads the SAME final series the axis sees. The former pre-transform
-    // read is retired CONSCIOUSLY: a formula series' legend value changes with this (it now
-    // shows f(val + yOffset), formerly the raw val). At percent (ADR-0084) the final value IS
-    // the share — the legend renders it as `x,x %` through the percent-marked facts.
-    if (presentation.legendShowValues && !barCategories?.length && !pieTableSlices) {
-        presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(bucketed) };
-    }
-    // Pie tabellarisch (ADR-0075 decision 5): each yPath series becomes ONE echarts pie series
-    // with N row slices — concentric rings (the builder's radius bands). Built HERE at the
-    // seam over the TRANSFORMED + WINDOWED values (the offset/formula seam holds for slice
-    // values too); the cartesian axis work above never applies (pie has no axes).
-    if (pieTableSlices && jsonTable.sliceNames) {
-        const names = jsonTable.sliceNames;
-        const windowedSeries = transformed.map((s, i) => ({
-            name: s.name,
-            // narrowed from the ChartSeries union — slice objects never exist before this block
-            data: applyWindowTransforms(s.data, meta[i]),
-        }));
-        if (presentation.legendShowValues) {
-            presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(windowedSeries) };
-        }
-        bucketed = windowedSeries.map(s => ({
-            name: s.name,
-            data: s.data.map((d, i) => ({
-                // names align 1:1 with every series' rows by construction — the literal is the
-                // defensive fallback for a misaligned sight, never a reachable path.
-                name: names[i] ?? `Zeile ${i + 1}`,
-                value: Array.isArray(d) ? d[1] : d,
-            })),
-        }));
-    }
+    // The Wert-Kette (ADR-0077, ADR-0103 K1) — its own module: the transform stage (offset,
+    // formula, „Keine Zukunft", ADR-0059/0060), then the FINAL stage (bucketing + diff, window
+    // transforms, table categories, 100 %, pie rings, legend values — computed once, at the
+    // end). Point-typed EXCEPT the table family's category/index branch (plain per-row values).
+    const transformed = transformChainSeries(series, meta, {
+        plain: table && jsonTable.xKind !== 'time',
+        now: input.now ?? Date.now(),
+    });
+    const cart = presentation as PresentationBase & CartesianFragment;
+    const chain = finishValueChain({
+        series: transformed,
+        meta,
+        family,
+        fetch: {
+            barCategories,
+            barWindowEnd,
+            barDiff,
+            aggregate: src.aggregate as EchartsAggregate | undefined,
+        },
+        table: table
+            ? { xKind: jsonTable.xKind, categories: jsonTable.categories, sliceNames: jsonTable.sliceNames }
+            : undefined,
+        stack:
+            family === 'cartesian'
+                ? {
+                      mode: normalizeStackMode(companions.chartConfig.stackMode),
+                      defaultType: cart.cartesianType,
+                      axisCount: cart.yAxes.length ? cart.yAxes.length : 1,
+                  }
+                : undefined,
+        legend: { showValues: presentation.legendShowValues, selection: input.legendSelection },
+    });
+    const presentationFinal = { ...presentationWithSelection, ...chain.patch };
     // TS cannot correlate the runtime family with the presentation union's arm at this one
     // seam — the dispatch inside buildGeneratedOption routes to the matching family core.
-    const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal } as GeneratedInput);
+    const g = buildGeneratedOption({ family, series: chain.series, meta, p: presentationFinal } as GeneratedInput);
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
     const titleText = typeof src.titleText === 'string' ? src.titleText.trim() : '';
