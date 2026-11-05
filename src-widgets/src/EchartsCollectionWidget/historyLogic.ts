@@ -22,6 +22,7 @@
  */
 
 import type { EchartsOffsetKey } from '../types/field-definitions/echarts-fields';
+import { effectiveNullMode } from './seriesDataOverrides';
 
 export type IgnoreNull = 'keep' | 'forward' | 'zero';
 
@@ -321,7 +322,7 @@ export function entryRequestOptions(
  * doesn't discard the others — a failed series becomes `{ data: [], error }`. Each entry's
  * request diverges only where it authors an override — instance, aggregate + params, window
  * shift ({@link entryRequestOptions}) — and its `ignoreNull` overrides the chart-level gap
- * handling.
+ * handling (resolved by the shared Erben-Override rule, {@link effectiveNullMode}).
  */
 export async function fetchMultiSeries(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
@@ -342,7 +343,11 @@ export async function fetchMultiSeries(
         if (r.status === 'fulfilled') {
             return {
                 name,
-                data: toSeriesData(r.value.pts, entries[i].ignoreNull ?? ignoreNull, entries[i].valueMap),
+                data: toSeriesData(
+                    r.value.pts,
+                    effectiveNullMode({ nullMode: entries[i].ignoreNull }, ignoreNull),
+                    entries[i].valueMap,
+                ),
             };
         }
         return { name, data: [], error: String(r.reason ?? 'history fetch failed') };

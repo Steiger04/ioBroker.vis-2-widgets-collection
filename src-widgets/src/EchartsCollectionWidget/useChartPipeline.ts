@@ -46,6 +46,7 @@ import {
     type ChartConfigBlob,
 } from './presentation';
 import { parseJsonTableState, type JsonTableParseResult } from './jsonTableParse';
+import { effectiveNullMode, historyEntryOf } from './seriesDataOverrides';
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import {
@@ -429,28 +430,12 @@ export function useChartPipeline(
     const maxPoints = opts.maxPoints ?? BODY_MAX_HISTORY_POINTS;
 
     const usable = useMemo(() => usableSeries(companions.series), [companions]);
-    // History entries carry the per-series request overrides (ADR-0039 instance; ADR-0059
-    // X-offset window shift + per-series NULL handling; ADR-0072 aggregate + params). The
-    // offset rides as SPEC — numeric seconds AND calendar keys resolve per fetch at the fetch
-    // seam (historyLogic), never precomputed here: a relative window's resolved bounds move
-    // every fetch, so static ms would drift. Per-series values refetch via `entriesKey`; the
-    // chart defaults stay in `optsKey` (baseRequest untouched).
-    const entries = useMemo(
-        () =>
-            usable.map(s => ({
-                oid: s.oid,
-                name: s.name,
-                instance: s.instance,
-                ...(s.xOffset ? { xOffset: s.xOffset } : {}),
-                ...(s.aggregate ? { aggregate: s.aggregate } : {}),
-                ...(s.percentileValue !== undefined ? { percentile: s.percentileValue } : {}),
-                ...(s.integralUnit !== undefined ? { integralUnit: s.integralUnit } : {}),
-                ...(s.integralInterpolation ? { integralInterpolation: s.integralInterpolation } : {}),
-                ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
-                ...(s.valueMap ? { valueMap: s.valueMap } : {}),
-            })),
-        [usable],
-    );
+    // History entries carry the per-series request overrides, sparse (the Erben-Override
+    // module's `historyEntryOf`: instance, X-offset as SPEC, aggregate + params, NULL handling,
+    // value map). Per-series values refetch via `entriesKey`; the chart defaults stay in
+    // `optsKey` (baseRequest untouched). The memo identity stays HERE — a new array is a new
+    // request only when the usable series change.
+    const entries = useMemo(() => usable.map(s => historyEntryOf(s)), [usable]);
     // A static window (ADR-0063) turns the body's early refresh OFF alongside the polling — one
     // switch read by the subscription set and the refresh effect below.
     const earlyRefresh = opts.earlyRefresh === true && src.timeType !== 'static';
@@ -591,9 +576,9 @@ export function useChartPipeline(
     }, [companions.jsonSeriesStyle]);
     // The chart-level NULL-Behandlung as the JSON families' inherit default (ADR-0072 Erben-
     // Override rule): a Verlauf-authored gap setting persists across mode switches and now
-    // takes effect in JSON too — the card's inherit entry names this resolved value.
-    const srcIgnoreNull: IgnoreNull =
-        src.ignoreNull === 'forward' || src.ignoreNull === 'zero' ? src.ignoreNull : 'keep';
+    // takes effect in JSON too — the card's inherit entry names this resolved value. Resolved
+    // once (a stable primitive for the memos below) through the shared `effectiveNullMode`.
+    const srcIgnoreNull = effectiveNullMode(undefined, src.ignoreNull);
     // The series-shaped family's per-name EFFECTIVE null modes (the toter-Regler fix): the
     // overlay's override, else the chart-level setting. Absent in non-json modes (the Verlauf
     // path resolves its fill inside fetchMultiSeries, per entry).
@@ -601,7 +586,7 @@ export function useChartPipeline(
         if (mode !== 'json') {
             return undefined;
         }
-        return (name: string): IgnoreNull => companions.jsonSeriesStyle[name]?.nullMode ?? srcIgnoreNull;
+        return (name: string): IgnoreNull => effectiveNullMode(companions.jsonSeriesStyle[name], srcIgnoreNull);
     }, [mode, companions.jsonSeriesStyle, srcIgnoreNull]);
     // The family parses its payload exactly once — the series-shaped reader skips the table
     // documents entirely (normalizePoints would walk every row for nothing on live updates).
@@ -627,7 +612,7 @@ export function useChartPipeline(
                           ...(s.valueMap ? { valueMap: s.valueMap } : {}),
                           // The binding's EFFECTIVE NULL-Behandlung (toter-Regler fix): the
                           // per-series override, else the chart-level gap setting.
-                          nullMode: s.nullMode ?? srcIgnoreNull,
+                          nullMode: effectiveNullMode(s, srcIgnoreNull),
                       })),
                   })
                 : undefined,
