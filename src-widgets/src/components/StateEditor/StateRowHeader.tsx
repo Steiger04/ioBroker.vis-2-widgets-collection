@@ -5,7 +5,8 @@
  * @remarks
  * A native attribute row („Gewählte Zeile") above the detail fields (Ticket 03), so the user
  * knows which row they edit even with the list scrolled away, and pages through 50–200 rows
- * without scrolling up. Paging changes only the shared selection — no `onDataChange`.
+ * without scrolling up. Paging changes only the shared selection — no `onDataChange`. The ‹ ›
+ * icons keep their default 24 px, like vis-2's group-head icons (Spec „Aussehen").
  */
 import { Box, IconButton } from '@mui/material';
 import PreviousIcon from '@mui/icons-material/ChevronLeft';
@@ -42,7 +43,7 @@ function StateRowHeader(fieldProps: StateEditorFieldProps): React.JSX.Element {
                     onClick={() => select(selected - 1)}
                     sx={{ p: 0.25 }}
                 >
-                    <PreviousIcon fontSize="small" />
+                    <PreviousIcon />
                 </IconButton>
                 <Box
                     component="span"
@@ -58,7 +59,7 @@ function StateRowHeader(fieldProps: StateEditorFieldProps): React.JSX.Element {
                     onClick={() => select(selected + 1)}
                     sx={{ p: 0.25 }}
                 >
-                    <NextIcon fontSize="small" />
+                    <NextIcon />
                 </IconButton>
                 <Box
                     component="span"
