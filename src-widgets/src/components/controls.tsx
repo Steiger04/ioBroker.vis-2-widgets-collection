@@ -40,7 +40,7 @@ import { useEffect, useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';
 import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
-import { ExpandMore as ExpandIcon } from '@mui/icons-material';
+import ExpandIcon from '@mui/icons-material/ExpandMore';
 
 import HelpHint from './HelpHint';
 
