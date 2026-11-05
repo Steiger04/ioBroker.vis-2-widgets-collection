@@ -152,6 +152,18 @@ export const chartCanvasColor = (theme: Theme, forceMode?: 'light' | 'dark' | 'a
 };
 
 /**
+ * The user-set chart background that replaces the theme base's canvas: a stored colour other than
+ * `transparent`; unset, `''` and `transparent` inherit {@link chartCanvasColor}. The single rule
+ * shared by the chart pipeline (it writes the option's `backgroundColor`) and the canvas the
+ * configurator's bar-label preview hands zrender (`effectiveChartCanvas`).
+ *
+ * @param bgColor - The stored chart background.
+ * @returns The background that overrides the canvas, or `undefined` when the canvas is inherited.
+ */
+export const chartBackgroundOverride = (bgColor: string | undefined): string | undefined =>
+    bgColor && bgColor !== 'transparent' ? bgColor : undefined;
+
+/**
  * Resolve the full semantic token set from a theme (ADR-0027). Pure — the caller passes the theme
  * the chart renders under (the collection theme), so editor + live resolve identically.
  */

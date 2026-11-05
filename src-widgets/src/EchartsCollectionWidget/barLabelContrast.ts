@@ -19,12 +19,13 @@ import type { Theme } from '@mui/material/styles';
 import { DARK_LABEL_COLOR, DARK_MODE_THRESHOLD, LIGHT_LABEL_COLOR, LIGHTER_LABEL_COLOR } from 'zrender/lib/config.js';
 import { lum } from 'zrender/lib/tool/color.js';
 
-import { chartCanvasColor } from './echartsTheme';
+import { chartBackgroundOverride, chartCanvasColor } from './echartsTheme';
 import type { EchartsBarLabelPos } from '../types/field-definitions/echarts-fields';
 
 /**
- * The canvas colour the chart hands zrender: a user-set chart background (≠ `transparent`) wins,
- * else the theme base's canvas (`chartCanvasColor`) — the same order the pipeline applies.
+ * The canvas colour the chart hands zrender: a user-set chart background
+ * (`chartBackgroundOverride`, the pipeline's own rule) wins, else the theme base's canvas
+ * (`chartCanvasColor`).
  *
  * @param bgColor - The stored chart background (`''`/`transparent`/unset = inherit).
  * @param theme - The collection theme the chart renders under.
@@ -34,7 +35,7 @@ export const effectiveChartCanvas = (
     bgColor: string | undefined,
     theme: Theme,
     forceMode?: 'light' | 'dark' | 'auto',
-): string => (bgColor && bgColor !== 'transparent' ? bgColor : chartCanvasColor(theme, forceMode));
+): string => chartBackgroundOverride(bgColor) ?? chartCanvasColor(theme, forceMode);
 
 /** zrender's dark mode for a canvas colour (`ZRender.setBackgroundColor`). */
 const isZrenderDarkCanvas = (canvas: string): boolean => !!canvas && lum(canvas, 1) < DARK_MODE_THRESHOLD;
