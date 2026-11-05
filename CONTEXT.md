@@ -634,6 +634,14 @@ _Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formul
 The 1-based suffix of a state's field row (`value{i}`, `alias{i}`, `textColor{i}` …) — the key of the per-state style resolution (`resolveStyleData(i)`). useData carries it on every resolved state (`fieldNumber`) and resolves the active state by it (`activeFieldNumber` and the active style data `data`). It is NOT the state's position in the resolved state list: blank value rows are skipped, so after a gap the two diverge (blank `value2` → the state of `value3` sits at list position 1). Consumers that index the list — the Select's entry, the Button-Group's active button — take the 0-based `activePosition` instead.
 _Avoid_: Index without saying whether Feldnummer or list position, `index + 1` as a Feldnummer (holds only without gaps), activeIndex (the former name of the 1-based number)
 
+**Zustandszeile**:
+One discrete state of a widget together with everything configured for it — its value, alias and per-state styling — all sharing one **Feldnummer**. The ordered set of a widget's Zustandszeilen is what the **Zustandsmenge** counts.
+_Avoid_: Wertegruppe (that is vis-2's indexed attribute group that used to edit them), Wert (that is only the row's `value`), state row / value row
+
+**Zustandseditor**:
+The editor in the vis-2 attribute panel in which a widget's Zustandszeilen are listed, edited and reordered; labelled „Werte" in the UI.
+_Avoid_: Werte-Konfigurator, Werteliste (that is what it shows, not the editor)
+
 **OID-Rolle**:
 What an id field of a widget is to that widget — exactly one of **Haupt-OID**, Steuer ID (the Select's **Schreibziel**) or **Hilfs-OID** — decided once from the field, never guessed per call site. The role decides which widget data an OID pick may set: only the Haupt-OID owns the root fields (icon, writability, range, state rows).
 _Avoid_: OID-Typ (that is the state's value type), Feldname-Vergleich (that is the retired mechanism)
