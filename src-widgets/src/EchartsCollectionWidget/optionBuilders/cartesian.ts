@@ -53,8 +53,10 @@ import { applyRawOverride } from '../utils/mergeOption';
 import {
     effectiveCartesianType,
     isPercentStackedBar,
+    lineStackGroup,
     normalizeStackMode,
     resolveStackPlan,
+    stackPlanSeriesOf,
     stackSums,
 } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
@@ -234,12 +236,13 @@ const buildCartesianSeriesEntry = (
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   };
     }
-    if (m?.stack && m.stack !== 'none' && type === 'line') {
+    const lineGroup = lineStackGroup(m?.stack, type);
+    if (lineGroup) {
         // Hand-set LINE group (ADR-0084 decision 2: lines never inherit the mode — the plain
         // group name keeps the pre-0084 semantics, no axis coupling). Bars resolve through the
         // mode resolver in buildCartesianOption (the axis-coupled name, stamped AFTER the raw
         // fold so the GUI wins a raw collision); scatter never stacks.
-        entry.stack = m.stack;
+        entry.stack = lineGroup;
     }
 
     if (type === 'line') {
@@ -846,13 +849,14 @@ export const buildCartesianOption = (
     // Balken-Stapelmodus (ADR-0084): the stack plan (ADR-0103 K2) — the SAME membership the
     // value chain's shares read — resolves every bar's stack on its EMITTED axis (decision 3: a
     // stack can never span foreign scales, not even with explicit groups; the name is
-    // builder-internal, never persisted). Resolved AFTER the raw fold: a raw `type` counts, the
-    // GUI-authored resolution wins a raw `stack` collision; where the mode resolves NO stack
-    // (opted out, or mode off) a raw-authored stack stays effective — the escape hatch keeps
-    // its key (and its sum anchor).
+    // builder-internal, never persisted). The plan reads the series' stack fields after the raw
+    // fold through the SAME read as the value chain (`stackPlanSeriesOf`): the GUI-authored
+    // resolution wins a raw `stack` collision; where the mode resolves NO stack (opted out, or
+    // mode off) a raw-authored stack stays effective — the escape hatch keeps its key (and its
+    // sum anchor), and a key naming a 100 % stack joins its shares.
     const stackMode = normalizeStackMode(p.stackMode);
     const stackPlan = resolveStackPlan({
-        series: entries.map((e, i) => ({ type: e.type, stack: meta[i]?.stack, authored: e.stack })),
+        series: entries.map((_e, i) => stackPlanSeriesOf(meta[i], p.cartesianType)),
         names: entries.map(e => e.name as string),
         mode: stackMode,
         axes: plan,

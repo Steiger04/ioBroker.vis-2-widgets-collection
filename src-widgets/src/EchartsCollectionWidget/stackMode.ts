@@ -17,10 +17,15 @@
  * Lines do NOT inherit (hand-set groups only, plain names — unchanged pre-0084 semantics);
  * scatter never stacks.
  */
-import type { EchartsCartesianType, EchartsStackMode } from '../types/field-definitions/echarts-fields';
+import type {
+    EchartsCartesianType,
+    EchartsSeriesMeta,
+    EchartsStackMode,
+} from '../types/field-definitions/echarts-fields';
 import type { AxisPlan } from './axisResolution';
 import type { ChartSeries } from './optionBuilders/types';
 import type { SeriesPoint } from './historyLogic';
+import { parseRawOverride } from './utils/mergeOption';
 
 /** Tolerant stackMode read (blob/runtime side): only the two real modes pass, all else = none. */
 export const normalizeStackMode = (raw: unknown): EchartsStackMode =>
@@ -82,22 +87,47 @@ export const isPercentStackedBar = (
     mode: EchartsStackMode,
 ): boolean => mode === 'percent' && type === 'bar' && effectiveStackName(stack, mode, 0) !== undefined;
 
-/** One series as the stack plan reads it. */
+/**
+ * A LINE's hand-set stack group (ADR-0084 decision 2): lines never inherit the mode — the plain
+ * group name keeps the pre-0084 semantics, no axis coupling. Bars resolve through the stack plan,
+ * scatter never stacks. `undefined` = the series entry carries no GUI stack key.
+ */
+export const lineStackGroup = (stack: string | undefined, type: EchartsCartesianType): string | undefined =>
+    stack && stack !== 'none' && type === 'line' ? stack : undefined;
+
+/** One series as the stack plan reads it ({@link stackPlanSeriesOf}). */
 export interface StackPlanSeries {
-    /**
-     * The series' EFFECTIVE cartesian type ({@link effectiveCartesianType}); the builder passes its
-     * emitted entry's type, so a raw `type` override counts there.
-     */
+    /** The series' EFFECTIVE cartesian type ({@link effectiveCartesianType}). */
     type: unknown;
     /** The series' three-valued stack config (`meta.stack`). */
     stack?: string;
     /**
-     * A stack key the emitted entry already carries (a raw-authored `stack`, a line's hand-set
-     * group turned bar by a raw `type`) — it stays effective where the mode resolves no stack (the
-     * raw escape hatch keeps its key). Builder-only; never a percent member.
+     * The stack key the folded entry carries before the plan stamps it (a line's hand-set group,
+     * else a raw-authored `stack`) — it stays effective where the mode resolves no stack (the raw
+     * escape hatch keeps its key). A percent member only where it names a mode-resolved stack.
      */
     authored?: unknown;
 }
+
+/**
+ * The stack-relevant fields of one cartesian series AFTER its raw fold (ADR-0015) — the ONE read
+ * the builder and the value chain's percent stage feed {@link resolveStackPlan}, so the 100 %
+ * denominators and the stacks echarts draws come from the same fields. The GUI entry always
+ * carries `type`, `yAxisIndex` and `name`, so a raw override of these never wins the fold; only
+ * a raw `stack` is a free key — it rides as `authored` behind a line's hand-set group, exactly
+ * the key the folded entry carries.
+ */
+export const stackPlanSeriesOf = (
+    meta: Pick<EchartsSeriesMeta, 'type' | 'stack' | 'raw'> | undefined,
+    defaultType: EchartsCartesianType,
+): StackPlanSeries => {
+    const type = effectiveCartesianType(meta?.type, defaultType);
+    return {
+        type,
+        stack: meta?.stack,
+        authored: lineStackGroup(meta?.stack, type) ?? parseRawOverride(meta?.raw).stack,
+    };
+};
 
 /** The input of {@link resolveStackPlan}. */
 export interface StackPlanInput {
@@ -132,8 +162,9 @@ export interface StackPlan {
      */
     stackOf: readonly (string | undefined)[];
     /**
-     * Per series: renders SHARES (ADR-0084 decision 4) — a VISIBLE member of a 100 % stack; every
-     * percent surface formats it as percent.
+     * Per series: renders SHARES (ADR-0084 decision 4) — a VISIBLE member of a 100 % stack (a
+     * mode-resolved stack key, also where a raw-authored key joins it); every percent surface
+     * formats it as percent.
      */
     percent: readonly boolean[];
     /** The emitted axes that carry shares (a 0..1 scale labelled as percent). */
@@ -152,10 +183,19 @@ export interface StackPlan {
 export const resolveStackPlan = ({ series, names, mode, axes }: StackPlanInput): StackPlan => {
     const bar = series.map(s => s.type === 'bar');
     const stackOf = series.map((s, i) => (bar[i] ? effectiveStackName(s.stack, mode, axes.emittedOf[i]) : undefined));
-    // Percent membership = VISIBLE stack membership, like the shares' denominator: a deselected
-    // bar keeps its absolute values (it left the stack), so every surface — legend value, axis
-    // scale — formats it with its own series format, never as a share.
-    const percent = stackOf.map((name, i) => mode === 'percent' && name !== undefined && axes.active[i]);
+    // The key echarts stacks a bar by: the mode-resolved name, else its authored key.
+    const keyOf = series.map((s, i) =>
+        bar[i] ? (stackOf[i] ?? (typeof s.authored === 'string' ? s.authored : undefined)) : undefined,
+    );
+    // Percent membership = VISIBLE membership of a mode-resolved stack, like the shares'
+    // denominator: a deselected bar keeps its absolute values (it left the stack), so every
+    // surface — legend value, axis scale — formats it with its own series format, never as a
+    // share. A raw-authored key that names a mode-resolved stack joins it (echarts stacks it
+    // there, so it is normalized there); an authored stack of its own keeps its absolutes.
+    const modeKeys = new Set(stackOf.filter((key): key is string => key !== undefined));
+    const percent = keyOf.map(
+        (key, i) => mode === 'percent' && key !== undefined && modeKeys.has(key) && axes.active[i],
+    );
     const percentAxes = new Set<number>();
     percent.forEach((p, i) => {
         // Only an axis the bar truly binds (an active series always does — defensive).
@@ -165,9 +205,8 @@ export const resolveStackPlan = ({ series, names, mode, axes }: StackPlanInput):
         }
     });
     const byKey = new Map<string, number[]>();
-    series.forEach((s, i) => {
-        const key = stackOf[i] ?? (typeof s.authored === 'string' ? s.authored : undefined);
-        if (!bar[i] || key === undefined || !axes.active[i]) {
+    keyOf.forEach((key, i) => {
+        if (key === undefined || !axes.active[i]) {
             return; // not a bar, no stack, or invisible — contributes to no stack
         }
         const list = byKey.get(key);
@@ -232,7 +271,8 @@ export const stackSums = (plan: StackPlan, series: readonly ChartSeries[]): Stac
  * totals are the documented fragility, the InfoBox says it), gaps stay gaps. The ABSOLUTE values
  * come back keyed by {@link StackPlan.names} for the tooltip (share AND absolute). Per data INDEX,
  * the same alignment echarts stacks by (table rows, payload points, Verlauf buckets). Non-members
- * (opted out, non-bar, deselected) keep their absolute values; a lone member is always 100 %.
+ * (opted out, non-bar, deselected, an authored stack of its own) keep their absolute values; a
+ * lone member is always 100 %.
  * Outside the percent mode the series pass unchanged.
  */
 export const stackShares = (
@@ -247,6 +287,9 @@ export const stackShares = (
     // The denominators are the sum anchor's sums ({@link stackSums}) — a category no member
     // contributes to (null) divides like a zero sum.
     for (const { stack, sums: totals } of stackSums(plan, series)) {
+        if (!plan.percent[stack.members[0]]) {
+            continue; // an authored stack of its own (raw escape hatch) keeps its absolutes
+        }
         for (const i of stack.members) {
             const s = out[i];
             absolutes[plan.names[i]] = s.data.map(d => datumValueSlot(d));

@@ -79,6 +79,28 @@ export const mergeGeneratedOverTheme = (generated: EChartsOption, themeBase: ECh
 };
 
 /**
+ * The keys a raw echarts JSON override authors (ADR-0015): the parsed object, `{}` for an empty,
+ * invalid or non-object override (the validity is surfaced in the editor). The parse
+ * {@link applyRawOverride} folds — also read where a rule needs one raw key without building the
+ * entry (the stack plan's raw-authored stack key).
+ */
+export const parseRawOverride = (raw: string | undefined | null): Record<string, unknown> => {
+    const trimmed = (raw ?? '').trim();
+    if (!trimmed) {
+        return {};
+    }
+    try {
+        const v = JSON.parse(trimmed);
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+            return v as Record<string, unknown>;
+        }
+    } catch {
+        /* invalid raw override — ignored (the validity is surfaced in the editor) */
+    }
+    return {};
+};
+
+/**
  * Apply a per-series raw echarts JSON override (ADR-0015): parse `raw`, deep-merge it UNDER the
  * GUI-authored `entry` (the GUI wins every collision; the data points are force-set afterwards by
  * the caller). Invalid or non-object JSON is silently ignored. Used by the family builders to
@@ -87,19 +109,4 @@ export const mergeGeneratedOverTheme = (generated: EChartsOption, themeBase: ECh
 export const applyRawOverride = (
     entry: Record<string, unknown>,
     raw: string | undefined | null,
-): Record<string, unknown> => {
-    const trimmed = (raw ?? '').trim();
-    if (!trimmed) {
-        return entry;
-    }
-    let parsed: Record<string, unknown> = {};
-    try {
-        const v = JSON.parse(trimmed);
-        if (v && typeof v === 'object' && !Array.isArray(v)) {
-            parsed = v as Record<string, unknown>;
-        }
-    } catch {
-        /* invalid raw override — ignored (the validity is surfaced in the editor) */
-    }
-    return deepMerge(parsed, entry);
-};
+): Record<string, unknown> => ((raw ?? '').trim() ? deepMerge(parseRawOverride(raw), entry) : entry);

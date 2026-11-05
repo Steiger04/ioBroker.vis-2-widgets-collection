@@ -34,7 +34,7 @@ import type {
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
-import { effectiveCartesianType, resolveStackPlan, stackShares } from './stackMode';
+import { resolveStackPlan, stackPlanSeriesOf, stackShares } from './stackMode';
 import { effectiveSeriesName, pieSeriesName, resolveAxisPlan } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
@@ -225,7 +225,7 @@ const percentStage = (
         selection,
     });
     const plan = resolveStackPlan({
-        series: meta.map(m => ({ type: effectiveCartesianType(m?.type, stack.defaultType), stack: m?.stack })),
+        series: meta.map(m => stackPlanSeriesOf(m, stack.defaultType)),
         names,
         mode: 'percent',
         axes,
