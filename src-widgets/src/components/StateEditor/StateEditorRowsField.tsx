@@ -9,8 +9,8 @@
  * So this field carries the name and the native label "Rows"; the row count joins the label
  * in the native label cell — vis-2 labels are static i18n keys (`I18n.t(field.label)`), so the
  * count is portalled into that cell (the row's first `<td>`). Where the cell cannot be found,
- * the count stays in the value cell. Under multi-selection with rows that differ between the
- * widgets, an InfoBox below the toolbar explains why the structural actions are locked.
+ * the count stays in the value cell. Under multi-selection with rows (or source states) that
+ * differ between the widgets, an InfoBox below the toolbar explains why actions are locked.
  */
 import { useRef } from 'react';
 import type React from 'react';
@@ -31,6 +31,7 @@ const ROWS_DIFFER_TEXTS: Record<StateRowsDifference, string> = {
     rows: 'state_editor_rows_differ',
     count: 'state_editor_rows_differ_count',
     bindings: 'state_editor_rows_differ_bindings',
+    states: 'state_editor_rows_differ_states',
 };
 
 /**

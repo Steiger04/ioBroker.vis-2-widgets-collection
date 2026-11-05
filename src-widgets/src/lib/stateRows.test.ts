@@ -668,6 +668,12 @@ describe('stateRowsDifference — what the InfoBox can point to', () => {
             'bindings',
         );
     });
+
+    it('is states when identical rows come from objects declaring different states', () => {
+        const otherStates = { ...THREE_ROWS, oidObject: { type: 'number', commonStates: { 0: 'Off', 5: 'Boost' } } };
+
+        expect(stateRowsDifference([THREE_ROWS, otherStates], CONFIG)).toBe('states');
+    });
 });
 
 describe('stateRowOperationAllowed — what the toolbar offers', () => {
@@ -706,6 +712,22 @@ describe('stateRowOperationAllowed — what the toolbar offers', () => {
         );
         expect(stateRowOperationAllowed('clear', [THREE_ROWS, { ...THREE_ROWS, values_count: 4 }], CONFIG)).toBe(false);
         expect(stateRowOperationAllowed('clear', [THREE_ROWS, { ...THREE_ROWS, bindings: [] }], CONFIG)).toBe(false);
+    });
+
+    it('withholds recreate and supplement when identical rows come from different common.states', () => {
+        // The patch is computed from the first widget: a second OID would get the first one's states.
+        const otherOid = {
+            ...THREE_ROWS,
+            oid: 'zigbee.0.other.mode',
+            oidObject: { type: 'number', commonStates: { 0: 'Off', 1: 'Eco', 2: 'Comfort', 3: 'Boost' } },
+        };
+        const sameStates = { ...THREE_ROWS, oid: 'zigbee.0.twin.mode', oidObject: { ...NUMBER_OID } };
+
+        for (const kind of ['recreate', 'supplement'] as const) {
+            expect(stateRowOperationAllowed(kind, [THREE_ROWS, otherOid], CONFIG), kind).toBe(false);
+            expect(stateRowOperationAllowed(kind, [THREE_ROWS, sameStates], CONFIG), kind).toBe(true);
+        }
+        expect(stateRowOperationAllowed('move', [THREE_ROWS, otherOid], CONFIG)).toBe(true);
     });
 
     it('offers nothing without a widget', () => {

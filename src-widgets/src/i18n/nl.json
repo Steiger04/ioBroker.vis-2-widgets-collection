@@ -1377,5 +1377,6 @@
     "state_editor_resize_list": "Sleep om de hoogte van de lijst te wijzigen",
     "state_editor_search": "Zoeken",
     "state_editor_rows_differ_bindings": "De geselecteerde widgets binden verschillende velden. Verplaatsen, toevoegen, klonen, verwijderen en opnieuw aanmaken van rijen werkt alleen bij identieke rijen en bindingen — bewerk de widgets één voor één.",
-    "state_editor_rows_differ_count": "De geselecteerde widgets hebben een verschillend aantal rijen. Verplaatsen, toevoegen, klonen, verwijderen en opnieuw aanmaken van rijen werkt alleen bij identieke rijen — bewerk de widgets één voor één."
+    "state_editor_rows_differ_count": "De geselecteerde widgets hebben een verschillend aantal rijen. Verplaatsen, toevoegen, klonen, verwijderen en opnieuw aanmaken van rijen werkt alleen bij identieke rijen — bewerk de widgets één voor één.",
+    "state_editor_rows_differ_states": "De objecten van de geselecteerde widgets declareren verschillende statussen. Het opnieuw aanmaken van rijen vanuit common.states werkt alleen bij identieke statussen — bewerk de widgets één voor één."
 }

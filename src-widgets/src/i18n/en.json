@@ -1220,6 +1220,7 @@
     "state_editor_rows_differ": "The rows of the selected widgets differ (marked on the right). Moving, adding, cloning, deleting and recreating rows works only on identical rows — edit the widgets one by one.",
     "state_editor_rows_differ_bindings": "The selected widgets bind different fields. Moving, adding, cloning, deleting and recreating rows works only on identical rows and bindings — edit the widgets one by one.",
     "state_editor_rows_differ_count": "The selected widgets have a different number of rows. Moving, adding, cloning, deleting and recreating rows works only on identical rows — edit the widgets one by one.",
+    "state_editor_rows_differ_states": "The objects of the selected widgets declare different states. Recreating rows from common.states works only on identical states — edit the widgets one by one.",
     "state_editor_search": "Search",
     "state_editor_selected_row": "Selected row",
     "step": "Step",

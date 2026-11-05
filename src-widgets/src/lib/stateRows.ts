@@ -506,25 +506,36 @@ export const stateRowDiffers = (datas: readonly WidgetData[], n: number, config:
     );
 };
 
-/** Why the selected widgets' Zustandszeilen are not identical — see {@link stateRowsDifference}. */
-export type StateRowsDifference = 'rows' | 'count' | 'bindings';
+/** Actions that make rows from the OID's states (`sourceStates`). */
+const SOURCE_STATE_KINDS: readonly StateRowOperation['kind'][] = ['recreate', 'supplement'];
+
+/** Whether every selected widget makes rows from the same states, in the same order and type. */
+const sourceStatesAgree = (datas: readonly WidgetData[], config: StateRowsConfig): boolean => {
+    const first = JSON.stringify(sourceStates(datas[0], config));
+    return datas.every(data => JSON.stringify(sourceStates(data, config)) === first);
+};
+
+/** Why the selected widgets do not share every action — see {@link stateRowsDifference}. */
+export type StateRowsDifference = 'rows' | 'count' | 'bindings' | 'states';
 
 /**
- * Why the selected widgets' Zustandszeilen are not identical — what the InfoBox above the list
+ * Why the selected widgets do not share every action — what the InfoBox below the toolbar
  * can point to.
  *
  * @param datas The data of every selected widget; the list shows the first one's rows.
  * @param config Schema and OID property of the widgets.
- * @returns `null` when they are identical ({@link stateRowsIdentical}); `'rows'` when a row of
- *   the list is marked ({@link stateRowDiffers}); `'count'` when no row is marked but another
- *   widget has more rows; `'bindings'` when only bindings outside the shown rows disagree.
+ * @returns `null` when the Zustandszeilen are identical ({@link stateRowsIdentical}) and made from
+ *   the same states; `'states'` when only the source states differ (recreate/supplement locked);
+ *   `'rows'` when a row of the list is marked ({@link stateRowDiffers}); `'count'` when no row
+ *   is marked but another widget has more rows; `'bindings'` when only bindings outside the
+ *   shown rows disagree.
  */
 export const stateRowsDifference = (
     datas: readonly WidgetData[],
     config: StateRowsConfig,
 ): StateRowsDifference | null => {
     if (stateRowsIdentical(datas, config)) {
-        return null;
+        return sourceStatesAgree(datas, config) ? null : 'states';
     }
     const count = stateRowCount(datas[0], config);
     for (let n = 1; n <= count; n++) {
@@ -544,7 +555,9 @@ export const stateRowsDifference = (
  * @returns `false` for add/clone/delete on a boolean OID or fixed rows, for recreate without states to
  *   recreate from, and under multi-selection for every structural action unless the
  *   Zustandszeilen are identical — "clear row" only needs equal row counts and bindings,
- *   because its patch carries `values_count` and the bindings, not the other rows.
+ *   because its patch carries `values_count` and the bindings, not the other rows;
+ *   recreate/supplement also need the same source states, because their patch makes rows from
+ *   the first widget's `common.states` and would hand them to an OID declaring others.
  */
 export const stateRowOperationAllowed = (
     kind: StateRowOperation['kind'],
@@ -558,6 +571,9 @@ export const stateRowOperationAllowed = (
         return false;
     }
     if (kind === 'recreate' && datas.some(data => sourceStates(data, config).states.length === 0)) {
+        return false;
+    }
+    if (SOURCE_STATE_KINDS.includes(kind) && !sourceStatesAgree(datas, config)) {
         return false;
     }
     if (kind === 'clear') {

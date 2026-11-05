@@ -1377,5 +1377,6 @@
     "state_editor_resize_list": "拖动以更改列表高度",
     "state_editor_search": "搜索",
     "state_editor_rows_differ_bindings": "所选部件绑定了不同的字段。移动、添加、克隆、删除和重新创建行仅适用于相同的行和绑定——请逐个编辑部件。",
-    "state_editor_rows_differ_count": "所选部件的行数不同。移动、添加、克隆、删除和重新创建行仅适用于相同的行——请逐个编辑部件。"
+    "state_editor_rows_differ_count": "所选部件的行数不同。移动、添加、克隆、删除和重新创建行仅适用于相同的行——请逐个编辑部件。",
+    "state_editor_rows_differ_states": "所选小部件的对象声明了不同的状态。从 common.states 重新创建行仅适用于完全相同的状态——请逐个编辑这些小部件。"
 }
