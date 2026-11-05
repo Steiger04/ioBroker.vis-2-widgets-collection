@@ -140,15 +140,32 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
     // Each action hands the focus to the list: a focused button that turns disabled (down on
     // the last row, delete of the last row) would drop it on <body>, where vis-2's Delete key
     // deletes the widget.
-    // Add and clone select the new row: when the search would hide it, the search is emptied,
-    // so the list shows (and scrolls to) the row the detail now edits.
+    // The row selected after add, clone or delete stays visible while the search filters
+    // (Spec stories 10, 41): add and clone select the new row and empty the search when it
+    // would hide that row; delete selects the next row the search keeps behind the deleted one,
+    // else the previous one it keeps, and empties the search only when it keeps none — then the
+    // Spec rule (the following row, after the last one the previous) stands.
     const run = (op: StateRowOperation): void => {
         const patch = actions.run(op);
-        if (patch && (op.kind === 'add' || op.kind === 'clone') && isStateRowSearchActive(search)) {
-            const n = stateRowSelectionAfter(op, selected, patch);
+        if (
+            patch &&
+            isStateRowSearchActive(search) &&
+            (op.kind === 'add' || op.kind === 'clone' || op.kind === 'delete')
+        ) {
             const next = mergeStateRowPatch(selectedWidgetDatas(fieldProps)[0], patch);
-            if (filterStateRows(stateRowSummaries(next, n).slice(n - 1), search).length === 0) {
-                setSearch('');
+            const shown = filterStateRows(stateRowSummaries(next, Number(patch.values_count) || 0), search);
+            if (op.kind === 'delete') {
+                const visible = shown.find(row => row.n >= op.row) ?? shown.findLast(row => row.n < op.row);
+                if (visible) {
+                    actions.select(visible.n);
+                } else {
+                    setSearch('');
+                }
+            } else {
+                const n = stateRowSelectionAfter(op, selected, patch);
+                if (!shown.some(row => row.n === n)) {
+                    setSearch('');
+                }
             }
         }
         focusStateRowList(selectionKey);

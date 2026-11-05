@@ -251,6 +251,41 @@ describe('Zustandseditor list — a new row the search would hide', () => {
         expect(selectedRow(container)).toBe('3');
     });
 
+    it('delete selects the next row the search keeps, not the hidden following one', () => {
+        const { container } = mount();
+        click(option(container, 1));
+        type(searchInput(container), 'f'); // Off, Comfort
+
+        click(tool(container, 'delete_row'));
+
+        expect(searchInput(container).value).toBe('f');
+        expect(listRows(container)).toEqual(['2 2 Comfort']);
+        expect(selectedRow(container)).toBe('2');
+    });
+
+    it('delete selects the previous row the search keeps when none follows', () => {
+        const { container } = mount();
+        click(option(container, 3));
+        type(searchInput(container), 'f'); // Off, Comfort
+
+        click(tool(container, 'delete_row'));
+
+        expect(searchInput(container).value).toBe('f');
+        expect(selectedRow(container)).toBe('1');
+    });
+
+    it('delete empties the search when it keeps no row, and selects the following row', () => {
+        const { container } = mount();
+        click(option(container, 2));
+        type(searchInput(container), 'eco');
+
+        click(tool(container, 'delete_row'));
+
+        expect(searchInput(container).value).toBe('');
+        expect(listRows(container)).toHaveLength(3);
+        expect(selectedRow(container)).toBe('2');
+    });
+
     it('clone empties the search when only the no. of the source matched', () => {
         const { container } = mount();
         click(option(container, 4));
