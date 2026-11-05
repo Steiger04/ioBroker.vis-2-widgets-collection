@@ -1354,5 +1354,5 @@
     "color_picker_alpha_hint": "Opacidad en porcentaje (0–100)",
     "track_color_false": "Color de la pista (falso)",
     "track_color_true": "Color de la pista (verdadero)",
-    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
+    "echarts_series_symbol_label_hint": "Las etiquetas de línea se colocan en los símbolos; mientras la etiqueta esté activada, los símbolos permanecen visibles."
 }

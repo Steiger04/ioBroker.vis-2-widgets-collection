@@ -1354,5 +1354,5 @@
     "color_picker_alpha_hint": "Opacità in percentuale (0–100)",
     "track_color_false": "Colore traccia (falso)",
     "track_color_true": "Colore traccia (vero)",
-    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
+    "echarts_series_symbol_label_hint": "Le etichette della linea poggiano sui simboli: finché l'etichetta è attiva, i simboli restano visibili."
 }

@@ -1354,5 +1354,5 @@
     "color_picker_alpha_hint": "Opacidade em percentagem (0–100)",
     "track_color_false": "Cor da trilha (falso)",
     "track_color_true": "Cor da trilha (verdadeiro)",
-    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
+    "echarts_series_symbol_label_hint": "Os rótulos da linha ficam sobre os símbolos; enquanto o rótulo estiver ativado, os símbolos permanecem visíveis."
 }

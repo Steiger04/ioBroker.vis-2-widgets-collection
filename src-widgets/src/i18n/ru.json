@@ -1354,5 +1354,5 @@
     "color_picker_alpha_hint": "Непрозрачность в процентах (0–100)",
     "track_color_false": "Цвет дорожки (выкл.)",
     "track_color_true": "Цвет дорожки (вкл.)",
-    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
+    "echarts_series_symbol_label_hint": "Подписи линии привязаны к символам — пока подпись включена, символы остаются видимыми."
 }
