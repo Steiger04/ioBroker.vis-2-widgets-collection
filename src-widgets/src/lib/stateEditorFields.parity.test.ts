@@ -106,8 +106,33 @@ describe('the „Werte" group replaces the indexed value group', () => {
 
         expect(group.label).toBe('state_editor_group');
         expect(rows).toMatchObject({ name: 'values_count', type: 'custom', label: 'state_editor_rows' });
-        // The only named field of the group: vis-2's hasValues and group checkbox hang on it.
-        expect(group.fields.filter(field => field.name).map(field => field.name)).toEqual(['values_count']);
+        // The only field named after a data key: vis-2's hasValues and group checkbox hang on it.
+        // The others carry `stateEditor:` names no data key has (see the multi-selection test).
+        expect(
+            group.fields.filter(field => field.name && !field.name.startsWith('stateEditor:')).map(field => field.name),
+        ).toEqual(['values_count']);
+    });
+
+    it.each(Object.keys(STATE_WIDGETS))('%s: every Zustandseditor field stays when several widgets are selected', name => {
+        const group = valuesGroupOf(name) as GroupLike;
+        const spec = group.fields[0].stateEditor as StateEditorSpec;
+        const dividers = new Set<unknown>(spec.perStateFields.filter(field => !field.name));
+
+        // vis-2 counts `${group}.${field.name}` once per field of every selected widget
+        // (`visWidgetsCatalog.tsx` parseAttributes) and, with several widgets selected, keeps a
+        // field only when its count equals the number of widgets (`Attributes/Widget/index.tsx`
+        // recalculateFields) — two unnamed fields of one group share the name `undefined` and
+        // both vanish.
+        const counts = new Map<string, number>();
+        for (let widget = 0; widget < 2; widget++) {
+            group.fields.forEach(field => counts.set(String(field.name), (counts.get(String(field.name)) ?? 0) + 1));
+        }
+        const vanished = group.fields
+            .map((field, index) => ({ field, index }))
+            .filter(({ field }) => !dividers.has(field) && counts.get(String(field.name)) !== 2)
+            .map(({ field, index }) => `#${index} ${field.label ?? ''}`);
+
+        expect(vanished).toEqual([]);
     });
 
     it.each(Object.entries(STATE_WIDGETS))('%s: passes its parameters', (name, params) => {

@@ -13,6 +13,12 @@
  * 3. the Kopfzeile „Gewählte Zeile" — the detail fields of the selected row follow it
  *    (Ticket 03).
  * Each widget only swaps its group entry and passes its parameters ({@link StateEditorParams}).
+ * Every field but `values_count` and the per-state dividers carries a `stateEditor:` name no
+ * data key has: with several widgets selected, vis-2 keeps a field only when
+ * `${group}.${field.name}` was counted once per widget (`visWidgetsCatalog.tsx`
+ * parseAttributes, `Attributes/Widget/index.tsx` recalculateFields), so two unnamed fields of
+ * one group (both `undefined`) would vanish. The names are never written by the Zustandseditor;
+ * vis-2's group checkbox sets them to `null` like every field of a group it ticks.
  * The `values_count` field mirrors the resolved spec as `stateEditor` (introspected by the
  * parity tests; vis-2 ignores unknown keys).
  */
@@ -73,8 +79,10 @@ export const stateEditorGroup = (
     const fields: RxWidgetInfoAttributesField[] = [
         rowsField,
         {
+            name: 'stateEditor:list',
             type: 'custom',
             label: '',
+            noBinding: true,
             hidden: noOidObject,
             component: guardWidgetData((_field, data, onDataChange, props) => (
                 <StateRowList
@@ -86,6 +94,7 @@ export const stateEditorGroup = (
             )),
         },
         {
+            name: 'stateEditor:header',
             type: 'custom',
             label: 'state_editor_selected_row',
             noBinding: true,
