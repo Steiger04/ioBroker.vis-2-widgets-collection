@@ -63,11 +63,14 @@ const fallbacks = (type: (props: never) => unknown, over: Record<string, unknown
     const root = createRoot(container);
     act(() => {
         root.render(
-            createElement(type as never, {
-                state: { ...DEFAULT_EDITOR_STATE, ...over },
-                set: () => undefined,
-                pickerCtx: {},
-            } as never),
+            createElement(
+                type as never,
+                {
+                    state: { ...DEFAULT_EDITOR_STATE, ...over },
+                    set: () => undefined,
+                    pickerCtx: {},
+                } as never,
+            ),
         );
     });
     const seen = new Map<string, string | null>();
@@ -106,7 +109,6 @@ describe('tooltip background swatch: the paper token (ADR-0027 addendum 2026-11-
 });
 
 describe('inherit swatches without a theme token (ADR-0027, ticket 06)', () => {
-
     it('chart background: transparent while the chart follows the host mode', () => {
         host.mode = 'light';
         expect(fallbacks(ColorsSection, { darkMode: 'auto' }).get('echarts_background')).toBe('transparent');

@@ -1247,7 +1247,9 @@ describe('assemblePipelineResult — family × mode × jsonKind option-path pari
     // and the legend-text colour; the GUI colour and a raw `backgroundColor` keep winning, and
     // the GUI still beats the raw (ADR-0054 — emitted before the raw fold).
     describe('tooltip over the REAL theme base (ADR-0027 addendum 2026-11-04)', () => {
-        const tooltipOf = (presentation: Partial<AssemblePipelineInput['presentation']> = {}): Record<string, unknown> => {
+        const tooltipOf = (
+            presentation: Partial<AssemblePipelineInput['presentation']> = {},
+        ): Record<string, unknown> => {
             const { option } = assemblePipelineResult(
                 makeInput('cartesian', 'history', {
                     usable: [{ oid: 'a.0', name: 'A' }],
@@ -1272,9 +1274,9 @@ describe('assemblePipelineResult — family × mode × jsonKind option-path pari
 
         it('the GUI colour wins against the floor and against the raw', () => {
             expect(tooltipOf({ tooltipBgColor: '#gui' }).backgroundColor).toBe('#gui');
-            expect(tooltipOf({ tooltipBgColor: '#gui', tooltipRaw: '{"backgroundColor":"#raw"}' }).backgroundColor).toBe(
-                '#gui',
-            );
+            expect(
+                tooltipOf({ tooltipBgColor: '#gui', tooltipRaw: '{"backgroundColor":"#raw"}' }).backgroundColor,
+            ).toBe('#gui');
         });
     });
 

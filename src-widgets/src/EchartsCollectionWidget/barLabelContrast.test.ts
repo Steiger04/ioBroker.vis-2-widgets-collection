@@ -16,6 +16,8 @@ import { createTheme } from '@mui/material/styles';
 import { barLabelAutoColor, effectiveChartCanvas } from './barLabelContrast';
 import type { EchartsBarLabelPos } from '../types/field-definitions/echarts-fields';
 
+// echarts' `use` registers components on the global core — NOT React's use() hook.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use([BarChart, GridComponent, SVGRenderer]);
 
 /**

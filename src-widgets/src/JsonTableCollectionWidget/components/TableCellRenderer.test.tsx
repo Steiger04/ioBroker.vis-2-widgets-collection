@@ -43,9 +43,7 @@ const mountGraphic = (descriptor: CellImageContent): HTMLElement => {
     cell.style.color = CELL_TEXT;
     document.body.appendChild(cell);
     act(() => {
-        createRoot(cell).render(
-            createElement(ThemeProvider, { theme }, createElement(ImageGraphic, { descriptor })),
-        );
+        createRoot(cell).render(createElement(ThemeProvider, { theme }, createElement(ImageGraphic, { descriptor })));
     });
     const avatar = cell.querySelector<HTMLElement>('.MuiAvatar-root');
     expect(avatar).not.toBeNull();

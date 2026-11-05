@@ -58,11 +58,7 @@ const insideLabelFill = (barFill: string): string => {
  * @param barFill - The bar's effective fill (the series colour).
  * @param canvas - The effective chart canvas ({@link effectiveChartCanvas}).
  */
-export const barLabelAutoColor = (
-    position: EchartsBarLabelPos | undefined,
-    barFill: string,
-    canvas: string,
-): string =>
+export const barLabelAutoColor = (position: EchartsBarLabelPos | undefined, barFill: string, canvas: string): string =>
     position === 'top'
         ? isZrenderDarkCanvas(canvas)
             ? LIGHT_LABEL_COLOR
