@@ -5,21 +5,21 @@
  * @remarks
  * The column editor's colour rows (`ColorPickerField`) show without a value the colour the table
  * paints then. Like Theme Studio, the editor hands the row its value and that inherited colour
- * (`swatchValue`); the label row knows no cascade (ADR-0102), and the editor declares no
- * synthetic field contract. The inherited colour comes from the same source as the runtime,
+ * (`swatchValue`); the label row knows no cascade (ADR-0102), and the editor hands it no field
+ * contract. The inherited colour comes from the same source as the runtime,
  * never from a second calculation:
  * - a cell background, an image background, border or tint paints nothing:
  *   {@link UNPAINTED_CELL_COLOR} — the renderer's image background reads it too; the swatch
  *   shows the value, else that ({@link paintedCellColor});
  * - a cell's text inherits the table's text colour — the vis-2 widget CSS `color`, else the
- *   Collection theme's text colour: the inherited stages of the table text cascade
- *   (`jsonTableColorContracts.tableHeaderTextColor`, ADR-0004), {@link tableTextColor};
+ *   Collection theme's text colour: the cells' own inherited text contract
+ *   (`jsonTableCellTextColorContract`, ADR-0004), {@link tableTextColor};
  * - a conditional text colour overrides the format's static text colour first
  *   (`staticStringTextColor`, the runtime's static string style), {@link cellBaseTextColor}.
  */
 import type { Theme } from '@mui/material';
 import { resolveEffectiveColor, type StyleColor } from '../../lib/helper/resolveEffectiveColor';
-import { jsonTableColorContracts } from '../../lib/jsonTableColorContracts';
+import { jsonTableCellTextColorContract } from '../../lib/jsonTableColorContracts';
 import type { ColumnFormatConfig } from '../types';
 import { staticStringTextColor } from './cellFormatters';
 
@@ -46,19 +46,14 @@ export interface CellColorInheritance {
 }
 
 /**
- * The table's text colour — what header and cells inherit when they set none: the table text
- * cascade without an explicit value (vis-2 widget CSS `color`, else the theme text).
+ * The table's text colour — what the cells inherit when they set none: the cells' text contract
+ * (vis-2 widget CSS `color`, else the theme text), the same colour the header text inherits.
  *
  * @param inheritance - Collection theme and vis-2 widget style of the table.
  * @returns The inherited text colour.
  */
 export function tableTextColor(inheritance: CellColorInheritance): string {
-    return resolveEffectiveColor(
-        jsonTableColorContracts.tableHeaderTextColor,
-        {},
-        inheritance.theme,
-        inheritance.styleColor,
-    );
+    return resolveEffectiveColor(jsonTableCellTextColorContract, {}, inheritance.theme, inheritance.styleColor);
 }
 
 /**
