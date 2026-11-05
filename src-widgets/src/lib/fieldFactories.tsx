@@ -343,6 +343,17 @@ export const hiddenWhenFalsy =
     data =>
         !data[field];
 
+/**
+ * Hides a field when `data[field]` is truthy — the predicate form of vis-2's string
+ * condition `'data.<field>'` (a predicate can be combined with others, a string cannot).
+ *
+ * @example hiddenWhenTruthy('noIcon')
+ */
+export const hiddenWhenTruthy =
+    (field: string): HiddenPredicate =>
+    data =>
+        !!data[field];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared option constants
 //

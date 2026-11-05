@@ -19,6 +19,7 @@ import {
     hiddenIf,
     hiddenUnless,
     hiddenWhenFalsy,
+    hiddenWhenTruthy,
     fontStyleOptions,
     fontWeightOptions,
     sideOptions,
@@ -63,6 +64,23 @@ describe('hidden predicates', () => {
             ['write', false],
         ])('write=%j -> hidden=%s', (value, hidden) => {
             expect(pred({ write: value })).toBe(hidden);
+        });
+    });
+
+    // The predicate form of vis-2's string condition `'data.noIcon'` (truthiness of the result).
+    describe('hiddenWhenTruthy — hidden when field is truthy', () => {
+        const pred = hiddenWhenTruthy('noIcon');
+        it.each<[unknown, boolean]>([
+            [true, true],
+            [1, true],
+            ['true', true],
+            [false, false],
+            [0, false],
+            ['', false],
+            [null, false],
+            [undefined, false],
+        ])('noIcon=%j -> hidden=%s', (value, hidden) => {
+            expect(pred({ noIcon: value })).toBe(hidden);
         });
     });
 });
