@@ -406,11 +406,11 @@ describe('recreate — aus common.states neu anlegen', () => {
         const recreated = after(EDITED, { kind: 'recreate' });
 
         expect(rowsOf(recreated)).toEqual([
-            [0, 'Off', ''],
-            [1, 'Eco', ''],
-            [2, 'Comfort', ''],
+            [0, 'Off', undefined],
+            [1, 'Eco', undefined],
+            [2, 'Comfort', undefined],
         ]);
-        expect(recreated.header2).toBe('');
+        expect(recreated).not.toHaveProperty('header2');
         expect(recreated.bindings).toEqual([]);
     });
 
@@ -430,9 +430,36 @@ describe('recreate — aus common.states neu anlegen', () => {
         const light2 = { colorLightSwitchOidObject: { type: 'boolean' }, values_count: 0 };
 
         expect(rowsOf(after(light2, { kind: 'recreate' }, { ...CONFIG, oidProperty: 'colorLightSwitchOid' }))).toEqual([
-            [true, 'TRUE', ''],
-            [false, 'FALSE', ''],
+            [true, 'TRUE', undefined],
+            [false, 'FALSE', undefined],
         ]);
+    });
+});
+
+describe('recreate and supplement — a mass operation stores only value and alias', () => {
+    // Every per-state default is '' or false: the runtime resolves them like an absent key
+    // (resolvePriority skips '' and null) and vis-2's editor shows an absent key as ''.
+    const styleKeysOf = (patch: StateRowPatch, n: number): unknown[] =>
+        SCHEMA.keys.filter(key => key !== 'value' && key !== 'alias').map(key => patch[`${key}${n}`]);
+
+    it('recreate names every style key of a new row with null', () => {
+        const patch = patchOf(THREE_ROWS, { kind: 'recreate' });
+
+        expect(new Set(styleKeysOf(patch, 2))).toEqual(new Set([null]));
+        expect([patch.value2, patch.alias2]).toEqual([1, 'Eco']);
+    });
+
+    it('supplement names every style key of an appended row with null', () => {
+        const patch = patchOf({ ...THREE_ROWS, values_count: 2 }, { kind: 'supplement' });
+
+        expect(new Set(styleKeysOf(patch, 3))).toEqual(new Set([null]));
+        expect([patch.value3, patch.alias3]).toEqual([2, 'Comfort']);
+    });
+
+    it('add still writes the field defaults, as vis-2 did', () => {
+        const patch = patchOf(THREE_ROWS, { kind: 'add' });
+
+        expect([patch.iconColor4, patch.enableIconColorMask4]).toEqual(['', false]);
     });
 });
 
@@ -447,8 +474,8 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
 
     it('recreates true/false, never the states of a non-boolean switch', () => {
         expect(rowsOf(after(NUMBER_SWITCH, { kind: 'recreate' }, LIGHT2))).toEqual([
-            [true, 'TRUE', ''],
-            [false, 'FALSE', ''],
+            [true, 'TRUE', undefined],
+            [false, 'FALSE', undefined],
         ]);
     });
 
@@ -457,7 +484,7 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
 
         expect(rowsOf(after(half, { kind: 'supplement' }, LIGHT2))).toEqual([
             [false, 'Aus', undefined],
-            [true, 'TRUE', ''],
+            [true, 'TRUE', undefined],
         ]);
     });
 
@@ -465,8 +492,8 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
         const partial = { ...NUMBER_SWITCH, colorLightSwitchOidObject: { type: 'boolean', commonStates: { true: 'An' } } };
 
         expect(rowsOf(after(partial, { kind: 'recreate' }, LIGHT2))).toEqual([
-            [true, 'An', ''],
-            [false, 'FALSE', ''],
+            [true, 'An', undefined],
+            [false, 'FALSE', undefined],
         ]);
     });
 
@@ -474,8 +501,8 @@ describe('fixed rows — recreate and supplement yield exactly the rows true and
         const checkbox = { oidObject: { type: 'boolean', commonStates: { false: 'Zu', true: 'Offen' } } };
 
         expect(rowsOf(after(checkbox, { kind: 'recreate' }, { ...CONFIG, fixedRows: true }))).toEqual([
-            [false, 'Zu', ''],
-            [true, 'Offen', ''],
+            [false, 'Zu', undefined],
+            [true, 'Offen', undefined],
         ]);
     });
 
@@ -493,7 +520,7 @@ describe('supplement — aus common.states ergänzen (re-picking the OID)', () =
         expect(rowsOf(supplemented)).toEqual([
             [2, 'Warm', 'red'],
             [0, 'Aus', 'green'],
-            [1, 'Eco', ''],
+            [1, 'Eco', undefined],
         ]);
         expect(supplemented.backgroundColor2).toBe('#020202');
         expect(supplemented.header2).toBe('{lamp.eco}');

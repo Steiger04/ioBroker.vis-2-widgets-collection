@@ -97,30 +97,8 @@ async function pick(idName: string, data: WidgetData): Promise<WidgetData> {
     return emitted;
 }
 
-/**
- * The style keys a new Zustandszeile `n` carries: every per-state field with a declared default
- * (the Zustandszeilen-Operationen write it, or `null`, so orphaned keys are overwritten).
- */
-const newRowDefaults = (n: number): Record<string, unknown> =>
-    Object.fromEntries(
-        Object.entries({
-            icon: '',
-            iconSmall: '',
-            enableIconColorMask: false,
-            iconColor: '',
-            header: '',
-            footer: '',
-            textColor: '',
-            background: '',
-            frameBackground: '',
-        }).map(([key, value]) => [`${key}${n}`, value]),
-    );
-
-/** The main-OID pick of the read-only status state, as the editor stores it today. */
+/** The main-OID pick of the read-only status state, as the editor stores it today (rows: value and alias only). */
 const STATUS_PICKED = {
-    ...newRowDefaults(1),
-    ...newRowDefaults(2),
-    ...newRowDefaults(3),
     oid: STATUS,
     oidObject: {
         _id: STATUS,
@@ -180,9 +158,9 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
         const picked = await pick('oid', { oid: STATUS, values_count: 0 });
 
         expect(rowsOf(picked)).toEqual([
-            [0, 'Off', ''],
-            [1, 'Eco', ''],
-            [2, 'Comfort', ''],
+            [0, 'Off', undefined],
+            [1, 'Eco', undefined],
+            [2, 'Comfort', undefined],
         ]);
         expect(picked.ignoreCommonStates).toBe(false);
     });
@@ -207,7 +185,7 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
         expect(rowsOf(repicked)).toEqual([
             [2, 'Warm', 'blue'],
             [1, 'Eco', 'green'],
-            [3, 'Party', ''],
+            [3, 'Party', undefined],
         ]);
         expect(repicked.ignoreCommonStates).toBe(false);
     });
@@ -219,10 +197,10 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
         const repicked = await pick('oid', { ...legacy, oid: SCENE });
 
         expect(rowsOf(repicked)).toEqual([
-            [0, 'Off', ''],
-            [1, 'Eco', ''],
+            [0, 'Off', undefined],
+            [1, 'Eco', undefined],
             [2, 'Comfort', 'red'],
-            [3, 'Party', ''],
+            [3, 'Party', undefined],
         ]);
         expect(repicked.ignoreCommonStates).toBe(false);
     });
@@ -230,13 +208,13 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
     it('seeds a boolean OID without common.states with TRUE/FALSE, and keeps them on a re-pick', async () => {
         const picked = await pick('oid', { oid: POWER, values_count: 0 });
         expect(rowsOf(picked)).toEqual([
-            [true, 'TRUE', ''],
-            [false, 'FALSE', ''],
+            [true, 'TRUE', undefined],
+            [false, 'FALSE', undefined],
         ]);
 
         const styled = { ...picked, value1: false, alias1: 'Aus', value2: true, alias2: 'An', iconColor2: 'red' };
         expect(rowsOf(await pick('oid', styled))).toEqual([
-            [false, 'Aus', ''],
+            [false, 'Aus', undefined],
             [true, 'An', 'red'],
         ]);
     });
@@ -249,7 +227,7 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
             common: { name: 'Level', type: 'number', role: 'level', read: true, write: true },
         };
 
-        expect(rowsOf(await pick('oid', own))).toEqual([[7, 'Seven', '']]);
+        expect(rowsOf(await pick('oid', own))).toEqual([[7, 'Seven', undefined]]);
     });
 });
 

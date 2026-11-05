@@ -188,12 +188,16 @@ const sourceStates = (data: WidgetData, config: StateRowsConfig): { states: [str
     };
 };
 
-const stateRow = (config: StateRowsConfig, type: AllowedType, [key, label]: [string, unknown]): Row => ({
-    values: {
-        ...config.schema.defaults,
-        value: convertValueByType(key, type),
-        alias: String(label),
-    },
+/**
+ * A row made from a state by „neu anlegen"/„ergänzen": only value and alias — rewriteRows names
+ * every other key with `null`, so orphaned keys are overwritten. Unlike „Hinzufügen" it writes
+ * no field defaults: every per-state default is `''` or `false`, which the runtime resolves like
+ * an absent key (`resolvePriority` skips `''`/`null`; a mask `false` ends as `false`) and vis-2's
+ * editor shows like one (`WidgetField`: an absent value without a truthy default is `''`) —
+ * 200 states store 400 keys instead of ~2200 (ADR-0104 Nachtrag Review).
+ */
+const stateRow = (type: AllowedType, [key, label]: [string, unknown]): Row => ({
+    values: { value: convertValueByType(key, type), alias: String(label) },
     bound: new Set(),
 });
 
@@ -333,7 +337,7 @@ export const applyStateRowOperation = (
             return rewriteRows(
                 data,
                 config,
-                states.map(state => stateRow(config, type, state)),
+                states.map(state => stateRow(type, state)),
                 1,
             );
         }
@@ -343,7 +347,7 @@ export const applyStateRowOperation = (
             const carried = new Set(rows.map(row => String(row.values.value)));
             const { states, type } = sourceStates(data, config);
             const missing = states.filter(([key]) => !carried.has(key));
-            rows.push(...missing.map(state => stateRow(config, type, state)));
+            rows.push(...missing.map(state => stateRow(type, state)));
             return rewriteRows(data, config, rows, count + 1);
         }
     }
