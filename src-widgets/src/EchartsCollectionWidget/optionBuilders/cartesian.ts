@@ -43,8 +43,6 @@ import {
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
-    formatPercentValue,
-    formatSeriesValue,
     hasSeriesValueFormat,
     textFactsActive,
     type ChartValueFormat,
@@ -55,7 +53,13 @@ import { applyRawOverride } from '../utils/mergeOption';
 import { effectiveCartesianType, isPercentStackedBar, normalizeStackMode, resolveStackPlan, sums } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
-import { axisTickFormatter, percentTickFormatter, sumAnchorLabelFormatter } from './formatters';
+import {
+    axisTickFormatter,
+    percentLabelFormatter,
+    percentTickFormatter,
+    seriesLabelFormatter,
+    sumAnchorLabelFormatter,
+} from './formatters';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
     solid: 'solid',
@@ -204,7 +208,7 @@ const buildCartesianSeriesEntry = (
         // series colour so echarts' bg-contrast halo never runs, ADR 0080).
         const seriesFacts = factsOfMeta(m);
         const labelFmt = hasSeriesValueFormat(seriesFacts, chartFmt)
-            ? (v: unknown): string => formatSeriesValue(v, seriesFacts, chartFmt)
+            ? seriesLabelFormatter(seriesFacts, chartFmt)
             : undefined;
         entry.label =
             type === 'bar'
@@ -864,7 +868,7 @@ export const buildCartesianOption = (
             // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
             const label = e.label as Record<string, unknown> | undefined;
             if (label) {
-                label.formatter = (v: unknown): string => formatPercentValue(v, p.decimalComma);
+                label.formatter = percentLabelFormatter(p.decimalComma);
             }
         }
     });

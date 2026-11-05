@@ -2149,15 +2149,18 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
             tooltipDecimals: 1,
             decimalComma: true,
         });
-        const label = withKnobs.label as { formatter?: (v: unknown) => string };
+        // echarts calls a label formatter with its params object — `value` is the datum.
+        const label = withKnobs.label as { formatter?: (params: { value: unknown }) => string };
         expect(label.formatter).toBeTypeOf('function');
-        expect(label.formatter!(1.5)).toBe('1,5 W'); // decimals clamp + comma + unit
+        expect(label.formatter!({ value: [1, 1.5] })).toBe('1,5 W'); // decimals clamp + comma + unit
 
         // Gated like the tooltip's valueFormatter: no knob authored → echarts' own label default.
         expect(s0([{ label: true }]).label).not.toHaveProperty('formatter');
         // Comma alone is a knob too (ADR-0054 rule, same gate as the tooltip).
         const commaOnly = s0([{ label: true }], { decimalComma: true });
-        expect((commaOnly.label as { formatter: (v: unknown) => string }).formatter(2.5)).toBe('2,5');
+        expect(
+            (commaOnly.label as { formatter: (params: { value: unknown }) => string }).formatter({ value: 2.5 }),
+        ).toBe('2,5');
     });
 
     it('a line label ignores the bar POSITION knob, but resolves its colour explicitly (ADR 0080)', () => {
