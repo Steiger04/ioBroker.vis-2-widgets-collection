@@ -27,43 +27,26 @@ vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
 
-import { createTheme } from '@mui/material';
 import { act } from 'react';
 import type React from 'react';
 
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-} from '@iobroker/types-vis-2';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { resetStateRowListStore, setStateRowSearch } from './stateRowListStore';
 import { resetStateRowSelection, stateRowSelectionKey } from './stateRowSelection';
 
-const hostTheme = Object.assign(createTheme(), { name: 'light' });
-
 const editorProps = (selectedWidgets: string[] = ['w1'], view = 'v'): RxWidgetInfoCustomComponentProperties =>
     ({
-        context: { theme: hostTheme, socket: {}, views: {} },
+        context: { theme: vis2HostTheme, socket: {}, views: {} },
         selectedView: view,
         selectedWidgets,
         selectedWidget: selectedWidgets[0],
     }) as unknown as RxWidgetInfoCustomComponentProperties;
 
-type FieldLike = RxWidgetInfoAttributesField & {
-    label?: string;
-    hidden?: unknown;
-    component?: (
-        field: unknown,
-        data: WidgetData,
-        onDataChange: (patch: WidgetData) => void,
-        props: RxWidgetInfoCustomComponentProperties,
-    ) => React.JSX.Element;
-};
-
 type PanelProps = {
-    fields: readonly FieldLike[];
+    fields: readonly Vis2PanelField[];
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
     props: RxWidgetInfoCustomComponentProperties;
@@ -82,24 +65,13 @@ const rawDatas = (data: WidgetData, props: RxWidgetInfoCustomComponentProperties
 /** The group body as vis-2 renders it (`renderGroupBody` / `renderFieldRow`); a field is hidden when its predicate holds for every selected widget. */
 function Panel({ fields, data, onDataChange, props }: PanelProps): React.JSX.Element {
     return (
-        <table>
-            <tbody>
-                {fields.map((field, index) =>
-                    typeof field.hidden === 'function' &&
-                    rawDatas(data, props).every(raw => (field.hidden as (d: WidgetData) => boolean)(raw)) ? null : (
-                        <tr
-                            key={index}
-                            data-field={field.name ?? `#${index}`}
-                        >
-                            <td>
-                                <span>{field.label}</span>
-                            </td>
-                            <td>{field.component?.(field, data, onDataChange, props)}</td>
-                        </tr>
-                    ),
-                )}
-            </tbody>
-        </table>
+        <Vis2GroupBody
+            fields={fields}
+            data={data}
+            stored={rawDatas(data, props)}
+            onDataChange={onDataChange}
+            props={props}
+        />
     );
 }
 
@@ -146,7 +118,7 @@ const mount = (
     props = editorProps(),
 ): { container: HTMLElement; onDataChange: ReturnType<typeof vi.fn>; panel: PanelProps } => {
     const onDataChange = vi.fn();
-    const panel: PanelProps = { fields: stateEditorGroup().fields as FieldLike[], data, onDataChange, props };
+    const panel: PanelProps = { fields: stateEditorGroup().fields as Vis2PanelField[], data, onDataChange, props };
     handle = renderComponent(Panel, panel);
     return { container: handle.container, onDataChange, panel };
 };

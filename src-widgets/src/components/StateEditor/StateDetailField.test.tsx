@@ -29,61 +29,27 @@ vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
 
-import { createTheme } from '@mui/material';
 import { act, useState } from 'react';
 import type React from 'react';
 
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-} from '@iobroker/types-vis-2';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import type { StateEditorParams } from '../../lib/stateEditorConfig';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { resetStateRowSelection } from './stateRowSelection';
-
-const hostTheme = Object.assign(createTheme(), { name: 'light' });
 
 /** What the fake reads of the field vis-2's Editor gets. */
 type EditorField = { name: string; type?: string; fallbackFields?: string[] };
 type FakeEditorProps = { field: EditorField; disabled?: boolean };
 
-type FieldLike = RxWidgetInfoAttributesField & {
-    label?: string;
-    hidden?: unknown;
-    component?: (
-        field: unknown,
-        data: WidgetData,
-        onDataChange: (patch: WidgetData) => void,
-        props: RxWidgetInfoCustomComponentProperties,
-    ) => React.JSX.Element;
-};
-
 type PanelProps = {
-    fields: readonly FieldLike[];
+    fields: readonly Vis2PanelField[];
     /** The data vis-2 hands the fields: the widget's data, under multi-selection its `commonValues`. */
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
     /** The stored widgets under multi-selection (`context.views`); one widget `w1` without it. */
     widgets?: Record<string, WidgetData>;
-};
-
-/**
- * vis-2's `commonValues` of several widgets (`Attributes/Widget/index.tsx` recalculateFields):
- * the first widget's keys, every key that differs by `!==` in another widget set to `null`.
- */
-const commonValuesOf = (widgets: Record<string, WidgetData>): WidgetData => {
-    const [first, ...others] = Object.values(widgets);
-    const common: WidgetData = { ...first };
-    for (const other of others) {
-        for (const key of Object.keys(common)) {
-            if (common[key] !== other[key]) {
-                common[key] = null;
-            }
-        }
-    }
-    return common;
 };
 
 /**
@@ -126,34 +92,20 @@ function Panel({ fields, data, onDataChange, widgets }: PanelProps): React.JSX.E
     const ids = widgets ? Object.keys(widgets) : ['w1'];
     const views = widgets ? { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } } : {};
     const props = {
-        context: { theme: hostTheme, socket: {}, views, projectName: 'main', instance: 0, adapterName: 'vis-2' },
+        context: { theme: vis2HostTheme, socket: {}, views, projectName: 'main', instance: 0, adapterName: 'vis-2' },
         selectedView: 'v',
         selectedWidgets: ids,
         selectedWidget: ids[0],
         Editor,
     } as unknown as RxWidgetInfoCustomComponentProperties;
-    // vis-2 hides a field only when its rule holds for every selected widget (`checkFunction`).
-    const stored = widgets ? Object.values(widgets) : [data];
-
     return (
-        <table>
-            <tbody>
-                {fields.map((field, index) =>
-                    typeof field.hidden === 'function' &&
-                    stored.every(d => (field.hidden as (d: WidgetData, i?: number) => boolean)(d, undefined)) ? null : (
-                        <tr
-                            key={index}
-                            data-field={field.name ?? `#${index}`}
-                        >
-                            <td>
-                                <span>{field.label}</span>
-                            </td>
-                            <td>{field.component?.(field, data, onDataChange, props)}</td>
-                        </tr>
-                    ),
-                )}
-            </tbody>
-        </table>
+        <Vis2GroupBody
+            fields={fields}
+            data={data}
+            stored={widgets ? Object.values(widgets) : [data]}
+            onDataChange={onDataChange}
+            props={props}
+        />
     );
 }
 
@@ -217,7 +169,7 @@ const mount = (
     params: StateEditorParams = {},
 ): { container: HTMLElement; onDataChange: ReturnType<typeof vi.fn>; panel: PanelProps } => {
     const onDataChange = vi.fn();
-    const panel: PanelProps = { fields: stateEditorGroup(params).fields as FieldLike[], data, onDataChange };
+    const panel: PanelProps = { fields: stateEditorGroup(params).fields as Vis2PanelField[], data, onDataChange };
     handle = renderComponent(Panel, panel);
     return { container: handle.container, onDataChange, panel };
 };
@@ -229,8 +181,8 @@ const mountSelected = (
 ): { container: HTMLElement; onDataChange: ReturnType<typeof vi.fn> } => {
     const onDataChange = vi.fn();
     const panel: PanelProps = {
-        fields: stateEditorGroup(params).fields as FieldLike[],
-        data: commonValuesOf(widgets),
+        fields: stateEditorGroup(params).fields as Vis2PanelField[],
+        data: vis2CommonValues(widgets),
         onDataChange,
         widgets,
     };

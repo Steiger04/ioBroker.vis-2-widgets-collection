@@ -27,32 +27,15 @@ vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
 
-import { createTheme } from '@mui/material';
 import { act, useState } from 'react';
 import type React from 'react';
 
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-} from '@iobroker/types-vis-2';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import { resetStateRowSelection } from './stateRowSelection';
-
-const hostTheme = Object.assign(createTheme(), { name: 'light' });
-
-type FieldLike = RxWidgetInfoAttributesField & {
-    label?: string;
-    hidden?: unknown;
-    component?: (
-        field: unknown,
-        data: WidgetData,
-        onDataChange: (patch: WidgetData) => void,
-        props: RxWidgetInfoCustomComponentProperties,
-    ) => React.JSX.Element;
-};
 
 type EditorField = { name: string; type?: string };
 
@@ -68,15 +51,7 @@ function Host({ widgets: initial, onPatch }: HostProps): React.JSX.Element {
     const ids = Object.keys(widgets);
     // Several widgets: vis-2 hands the field its `commonValues` — a key differing by `!==` is
     // `null`, an object (`bindings`, `oidObject`) always (Attributes/Widget/index.tsx).
-    const data =
-        ids.length === 1
-            ? widgets[ids[0]]
-            : (Object.fromEntries(
-                  Object.entries(widgets[ids[0]]).map(([key, value]) => [
-                      key,
-                      ids.every(id => widgets[id][key] === value) ? value : null,
-                  ]),
-              ) as WidgetData);
+    const data = ids.length === 1 ? widgets[ids[0]] : vis2CommonValues(widgets);
     // A fresh Editor function on every render, exactly like vis-2's WidgetField.
     const Editor = ({ field, disabled }: { field: EditorField; disabled?: boolean }): React.JSX.Element => (
         <input
@@ -89,7 +64,7 @@ function Host({ widgets: initial, onPatch }: HostProps): React.JSX.Element {
     );
     const props = {
         context: {
-            theme: hostTheme,
+            theme: vis2HostTheme,
             socket: {},
             views: { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } },
             projectName: 'main',
@@ -107,22 +82,16 @@ function Host({ widgets: initial, onPatch }: HostProps): React.JSX.Element {
             Object.fromEntries(Object.entries(current).map(([id, d]) => [id, mergeStateRowPatch(d, patch)])),
         );
     };
-    const fields = stateEditorGroup().fields as FieldLike[];
+    const fields = stateEditorGroup().fields as Vis2PanelField[];
 
     return (
-        <table>
-            <tbody>
-                {fields.map((field, index) =>
-                    typeof field.hidden === 'function' &&
-                    ids.every(id => (field.hidden as (d: WidgetData) => boolean)(widgets[id])) ? null : (
-                        <tr key={index}>
-                            <td>{field.label}</td>
-                            <td>{field.component?.(field, data, onDataChange, props)}</td>
-                        </tr>
-                    ),
-                )}
-            </tbody>
-        </table>
+        <Vis2GroupBody
+            fields={fields}
+            data={data}
+            stored={ids.map(id => widgets[id])}
+            onDataChange={onDataChange}
+            props={props}
+        />
     );
 }
 

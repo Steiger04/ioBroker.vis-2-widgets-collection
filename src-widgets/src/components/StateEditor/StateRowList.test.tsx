@@ -24,33 +24,16 @@ vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
 
-import { createTheme } from '@mui/material';
 import { act, useState } from 'react';
 import type React from 'react';
 
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-} from '@iobroker/types-vis-2';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import { resetStateRowSelection } from './stateRowSelection';
 import { resetStateRowListStore, STATE_ROW_LIST_STORAGE_KEY } from './stateRowListStore';
-
-const hostTheme = Object.assign(createTheme(), { name: 'light' });
-
-type FieldLike = RxWidgetInfoAttributesField & {
-    label?: string;
-    hidden?: unknown;
-    component?: (
-        field: unknown,
-        data: WidgetData,
-        onDataChange: (patch: WidgetData) => void,
-        props: RxWidgetInfoCustomComponentProperties,
-    ) => React.JSX.Element;
-};
 
 type HostProps = {
     widget: WidgetData;
@@ -61,7 +44,7 @@ type HostProps = {
 function Host({ widget: initial, onPatch }: HostProps): React.JSX.Element {
     const [widget, setWidget] = useState(initial);
     const props = {
-        context: { theme: hostTheme, socket: {}, views: { v: { widgets: { w1: { data: widget } } } } },
+        context: { theme: vis2HostTheme, socket: {}, views: { v: { widgets: { w1: { data: widget } } } } },
         selectedView: 'v',
         selectedWidgets: ['w1'],
         selectedWidget: 'w1',
@@ -70,22 +53,16 @@ function Host({ widget: initial, onPatch }: HostProps): React.JSX.Element {
         onPatch(patch);
         setWidget(current => mergeStateRowPatch(current, patch));
     };
-    const fields = stateEditorGroup().fields as FieldLike[];
+    const fields = stateEditorGroup().fields as Vis2PanelField[];
 
     return (
-        <table>
-            <tbody>
-                {fields.map((field, index) =>
-                    typeof field.hidden === 'function' &&
-                    (field.hidden as (d: WidgetData) => boolean)(widget) ? null : (
-                        <tr key={index}>
-                            <td>{field.label}</td>
-                            <td>{field.component?.(field, widget, onDataChange, props)}</td>
-                        </tr>
-                    ),
-                )}
-            </tbody>
-        </table>
+        <Vis2GroupBody
+            fields={fields}
+            data={widget}
+            stored={[widget]}
+            onDataChange={onDataChange}
+            props={props}
+        />
     );
 }
 

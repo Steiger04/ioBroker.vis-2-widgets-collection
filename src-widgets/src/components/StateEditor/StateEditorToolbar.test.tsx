@@ -24,35 +24,18 @@ vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
 
-import { createTheme } from '@mui/material';
 import { act, useState } from 'react';
 import type React from 'react';
 
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-} from '@iobroker/types-vis-2';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import { Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { stateEditorSpec, type StateEditorParams } from '../../lib/stateEditorConfig';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import StateEditorToolbar from './StateEditorToolbar';
 import { resetStateRowSelection, selectStateRow, stateRowSelectionKey } from './stateRowSelection';
 import { resetStateRowListStore } from './stateRowListStore';
-
-const hostTheme = Object.assign(createTheme(), { name: 'light' });
-
-type FieldLike = RxWidgetInfoAttributesField & {
-    label?: string;
-    hidden?: unknown;
-    component?: (
-        field: unknown,
-        data: WidgetData,
-        onDataChange: (patch: WidgetData) => void,
-        props: RxWidgetInfoCustomComponentProperties,
-    ) => React.JSX.Element;
-};
 
 type HostProps = {
     /** The stored data per selected widget. */
@@ -70,7 +53,7 @@ function Host({ widgets: initial, fieldData, params, onPatch }: HostProps): Reac
     const data = fieldData ?? widgets[ids[0]];
     const props = {
         context: {
-            theme: hostTheme,
+            theme: vis2HostTheme,
             socket: {},
             views: { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } },
         },
@@ -84,22 +67,16 @@ function Host({ widgets: initial, fieldData, params, onPatch }: HostProps): Reac
             Object.fromEntries(Object.entries(current).map(([id, d]) => [id, mergeStateRowPatch(d, patch)])),
         );
     };
-    const fields = stateEditorGroup(params).fields as FieldLike[];
+    const fields = stateEditorGroup(params).fields as Vis2PanelField[];
 
     return (
-        <table>
-            <tbody>
-                {fields.map((field, index) =>
-                    typeof field.hidden === 'function' &&
-                    ids.every(id => (field.hidden as (d: WidgetData) => boolean)(widgets[id])) ? null : (
-                        <tr key={index}>
-                            <td>{field.label}</td>
-                            <td>{field.component?.(field, data, onDataChange, props)}</td>
-                        </tr>
-                    ),
-                )}
-            </tbody>
-        </table>
+        <Vis2GroupBody
+            fields={fields}
+            data={data}
+            stored={ids.map(id => widgets[id])}
+            onDataChange={onDataChange}
+            props={props}
+        />
     );
 }
 
@@ -390,7 +367,7 @@ describe('Zustandseditor toolbar — what a widget refuses', () => {
 describe('Zustandseditor toolbar — reorder lock (the list search)', () => {
     it('locks up and down, the other actions stay', () => {
         const props = {
-            context: { theme: hostTheme, socket: {}, views: {} },
+            context: { theme: vis2HostTheme, socket: {}, views: {} },
             selectedView: 'v',
             selectedWidgets: ['w1'],
             selectedWidget: 'w1',
