@@ -888,7 +888,7 @@
     "json_table_analysis": "Análise",
     "json_table_analysis_info": "Informações de análise",
     "json_table_auto_size": "Ajustar colunas automaticamente",
-    "json_table_auto_tooltip": "Determinado automaticamente com base no tipo de dados da coluna",
+    "json_table_auto_tooltip": "Padrão inteligente baseado no tipo de coluna '{type}': {smart}",
     "json_table_bg_color": "Cor de fundo",
     "json_table_bold": "Negrito",
     "json_table_boolean_false": "Rótulo falso",

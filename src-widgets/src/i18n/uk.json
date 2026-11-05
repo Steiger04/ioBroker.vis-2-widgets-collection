@@ -888,7 +888,7 @@
     "json_table_analysis": "Аналіз",
     "json_table_analysis_info": "Інформація про аналіз",
     "json_table_auto_size": "Автоматично підгоняти стовпці",
-    "json_table_auto_tooltip": "Автоматично визначається на основі типу даних стовпця",
+    "json_table_auto_tooltip": "Розумне значення за замовчуванням на основі типу стовпця '{type}': {smart}",
     "json_table_bg_color": "Колір фону",
     "json_table_bold": "Жирний",
     "json_table_boolean_false": "Мітка хиба",

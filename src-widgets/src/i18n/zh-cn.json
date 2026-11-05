@@ -888,7 +888,7 @@
     "json_table_analysis": "分析",
     "json_table_analysis_info": "分析信息",
     "json_table_auto_size": "自动调整列宽",
-    "json_table_auto_tooltip": "根据列数据类型自动确定",
+    "json_table_auto_tooltip": "基于列类型“{type}”的智能默认值：{smart}",
     "json_table_bg_color": "背景颜色",
     "json_table_bold": "粗体",
     "json_table_boolean_false": "假值标签",

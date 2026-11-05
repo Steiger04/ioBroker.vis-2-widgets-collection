@@ -888,7 +888,7 @@
     "json_table_analysis": "Analyse",
     "json_table_analysis_info": "Analyse-informatie",
     "json_table_auto_size": "Kolommen automatisch aanpassen",
-    "json_table_auto_tooltip": "Automatisch bepaald op basis van het kolomgegevenstype",
+    "json_table_auto_tooltip": "Slimme standaardwaarde op basis van kolomtype '{type}': {smart}",
     "json_table_bg_color": "Achtergrondkleur",
     "json_table_bold": "Vet",
     "json_table_boolean_false": "Onwaar-label",

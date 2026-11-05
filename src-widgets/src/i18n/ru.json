@@ -888,7 +888,7 @@
     "json_table_analysis": "Анализ",
     "json_table_analysis_info": "Информация об анализе",
     "json_table_auto_size": "Автоматически подгонять столбцы",
-    "json_table_auto_tooltip": "Автоматически определяется на основе типа данных столбца",
+    "json_table_auto_tooltip": "Умное значение по умолчанию на основе типа столбца '{type}': {smart}",
     "json_table_bg_color": "Цвет фона",
     "json_table_bold": "Жирный",
     "json_table_boolean_false": "Метка ложь",
