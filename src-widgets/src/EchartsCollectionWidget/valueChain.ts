@@ -95,7 +95,7 @@ export interface ValueChainStack {
     mode: EchartsStackMode;
     /** The chart's default cartesian type (per-series types override it). */
     defaultType: EchartsCartesianType;
-    /** The configured Y axis count (a series bound beyond it stacks on axis 0). */
+    /** The configured Y axis count, ≥ 1 (`configuredAxes`; a series bound beyond it stacks on axis 0). */
     axisCount: number;
 }
 

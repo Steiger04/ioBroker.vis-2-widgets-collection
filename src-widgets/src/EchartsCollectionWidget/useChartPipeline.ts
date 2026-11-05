@@ -58,6 +58,7 @@ import {
 } from './historyLogic';
 import { makeBarPlan, type BarFetchExtras } from './barBuckets';
 import { normalizeStackMode } from './stackMode';
+import { configuredAxes } from './axisResolution';
 import { finishValueChain, transformChainSeries } from './valueChain';
 import { chartBackgroundOverride, type ThemeTokens } from './echartsTheme';
 import type {
@@ -376,7 +377,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
                 ? {
                       mode: normalizeStackMode(companions.chartConfig.stackMode),
                       defaultType: cart.cartesianType,
-                      axisCount: cart.yAxes.length ? cart.yAxes.length : 1,
+                      axisCount: configuredAxes(cart.yAxes).length,
                   }
                 : undefined,
         legend: { showValues: presentation.legendShowValues, selection: input.legendSelection },

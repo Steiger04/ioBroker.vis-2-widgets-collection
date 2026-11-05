@@ -188,6 +188,14 @@ export const effectiveAxisColor = (
     return effectiveSeriesColor(series[idx], idx, palette);
 };
 
+/**
+ * The configured axes as the chart reads them — ≥ 1: an empty configuration (the editor allows
+ * deleting the last axis) falls back to one default-config axis (left, splitLine on). The axis
+ * plan and the pipeline's percent stage (its axis count) read the same rule.
+ */
+export const configuredAxes = (axes: readonly EchartsAxisConfig[]): readonly EchartsAxisConfig[] =>
+    axes.length ? axes : [{}];
+
 /** One emitted series as the axis plan reads it (the cartesian entry AFTER its raw fold). */
 export interface AxisPlanEntry {
     /** The series' binding index as emitted (a raw override may have replaced it). */
@@ -249,7 +257,7 @@ export interface AxisPlan {
  * only PARKS on emitted 0; it never names that axis.
  */
 export const resolveAxisPlan = ({ axes, entries, meta, series, selection }: AxisPlanInput): AxisPlan => {
-    const configured: readonly EchartsAxisConfig[] = axes.length ? axes : [{}];
+    const configured = configuredAxes(axes);
     const total = configured.length;
     const axisOf = entries.map(e => clampAxisIndex(e.yAxisIndex, total));
     // Entry names are always strings (the series builder falls back to `Series N`); the guard is
