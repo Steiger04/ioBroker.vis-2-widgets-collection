@@ -54,14 +54,16 @@ export const effectiveDiff = (
  * The series' effective NULL-Behandlung (ADR-0059, ADR-0072 inherit rule): its own override,
  * else the chart-level setting. Only 'forward'/'zero' fill — an absent or non-canonical value
  * (a raw persisted `src.ignoreNull` arrives unchecked) reads as 'keep', exactly what the fill
- * stage does with an unknown mode. The JSON parse paths receive ONLY this resolved value; the
- * Verlauf fetch resolves it per entry over the sparse override of {@link historyEntryOf}.
+ * stage does with an unknown mode. An EMPTY override is unset (it inherits): the card's select
+ * writes '' as „erben", and the Verlauf entry omits a falsy override. The JSON parse paths
+ * receive ONLY this resolved value; the Verlauf fetch resolves it per entry over the sparse
+ * override of {@link historyEntryOf}.
  */
 export const effectiveNullMode = (
     meta: Pick<EchartsSeriesMeta, 'nullMode'> | undefined,
     chartSetting: unknown,
 ): EchartsIgnoreNull => {
-    const mode: unknown = meta?.nullMode ?? chartSetting;
+    const mode: unknown = meta?.nullMode || chartSetting;
     return mode === 'forward' || mode === 'zero' ? mode : 'keep';
 };
 

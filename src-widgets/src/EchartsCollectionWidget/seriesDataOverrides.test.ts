@@ -114,6 +114,11 @@ describe('effectiveNullMode (ADR-0059 NULL-Behandlung, ADR-0072 Erben-Override)'
         expect(effectiveNullMode({}, null)).toBe('keep');
     });
 
+    it("an empty override is unset — it inherits like the card's '' inherit entry and the Verlauf entry", () => {
+        expect(effectiveNullMode({ nullMode: '' as never }, 'forward')).toBe('forward');
+        expect(effectiveNullMode({ nullMode: '' as never }, 'zero')).toBe('zero');
+    });
+
     it("a non-canonical override reads as 'keep' (the fill never runs on an unknown mode)", () => {
         expect(effectiveNullMode({ nullMode: 'bogus' as never }, 'forward')).toBe('keep');
     });
