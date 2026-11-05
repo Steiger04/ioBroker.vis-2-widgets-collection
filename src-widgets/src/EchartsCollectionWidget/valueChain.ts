@@ -126,7 +126,7 @@ export interface ValueChainPatch {
     barCategories?: number[];
     /** The table family's row labels (ADR-0075). */
     xCategories?: string[];
-    /** The pre-normalization values of the percent-normalized series (ADR-0084 tooltip). */
+    /** The pre-normalization values of the percent-normalized series by EFFECTIVE name (ADR-0084 tooltip). */
     percentAbsolute?: Record<string, (number | null)[]>;
     /** The legend values by series name (ADR-0054). */
     legendValues?: Record<string, number | null>;
@@ -211,14 +211,15 @@ const percentStage = (
     stack: ValueChainStack,
     selection: Record<string, boolean> | undefined,
 ): { series: ChartSeries[]; absolutes?: Record<string, (number | null)[]> } => {
-    const names = series.map(s => s.name);
+    // The EFFECTIVE (display) names — the name echarts lists and keys the legend selection by,
+    // and the name the tooltip looks a row's absolutes up by; never the payload name an overlay
+    // may have renamed.
+    const names = meta.map((m, i) => effectiveSeriesName(m, series[i], i));
     // Only the bindings, the active flags and the remap matter here — the axis configs (owner,
     // geometry) are the builder's; `axisCount` placeholders resolve the same emitted indices.
-    // The selection is keyed by the EFFECTIVE (display) name — the name echarts lists, not the
-    // payload name an overlay may have renamed.
     const axes = resolveAxisPlan({
         axes: Array.from({ length: stack.axisCount }, () => ({})),
-        entries: meta.map((m, i) => ({ yAxisIndex: m?.yAxisIndex, name: effectiveSeriesName(m, series[i], i) })),
+        entries: meta.map((m, i) => ({ yAxisIndex: m?.yAxisIndex, name: names[i] })),
         meta,
         series,
         selection,

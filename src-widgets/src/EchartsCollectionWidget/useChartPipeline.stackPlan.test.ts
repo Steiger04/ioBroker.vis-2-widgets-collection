@@ -117,4 +117,20 @@ describe('stack plan at the pipeline core — effective series names', () => {
             [2, 5],
         ]);
     });
+
+    it('the tooltip shows the absolute of a renamed series beside its share', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: [
+                    { name: 'A', data: [[1, 2]] },
+                    { name: 'B', data: [[1, 6]] },
+                ],
+                overlay: { A: { name: 'Alpha' } },
+            }),
+        );
+        const formatter = (option.tooltip as { formatter: (params: unknown) => string }).formatter;
+        const data = dataOf(option);
+        const row = formatter(['Alpha', 'B'].map(n => ({ seriesName: n, value: data[n][0][1], dataIndex: 0 })));
+        expect(row).toBe('Alpha: 25 % (2)<br/>B: 75 % (6)');
+    });
 });
