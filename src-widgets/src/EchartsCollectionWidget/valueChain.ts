@@ -34,7 +34,7 @@ import type {
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
-import { effectiveCartesianType, resolveStackPlan, shares } from './stackMode';
+import { effectiveCartesianType, resolveStackPlan, stackShares } from './stackMode';
 import { effectiveSeriesName, resolveAxisPlan } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
@@ -199,7 +199,7 @@ const bucketStage = (
 
 /**
  * Balken-Stapelmodus 100 % (ADR-0084 decision 4), after every transform — the stack plan's
- * {@link shares} stage (ADR-0103 K2). The plan reads the SAME membership the builder stamps:
+ * {@link stackShares} stage (ADR-0103 K2). The plan reads the SAME membership the builder stamps:
  * bars that resolve a stack, on the emitted axis of the axis plan; like the sum anchor (addendum
  * 1 item 3) the denominator counts the VISIBLE members only — deselected members leave it
  * (Legenden-Folge honesty; the assembly re-runs on every legend click, so a re-selected member
@@ -230,7 +230,7 @@ const percentStage = (
         mode: 'percent',
         axes,
     });
-    return shares(plan, series);
+    return stackShares(plan, series);
 };
 
 /**

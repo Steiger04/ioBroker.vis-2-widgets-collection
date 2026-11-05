@@ -50,7 +50,13 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import { effectiveCartesianType, isPercentStackedBar, normalizeStackMode, resolveStackPlan, sums } from '../stackMode';
+import {
+    effectiveCartesianType,
+    isPercentStackedBar,
+    normalizeStackMode,
+    resolveStackPlan,
+    stackSums,
+} from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 import {
@@ -1035,14 +1041,14 @@ export const buildCartesianOption = (
         // the adapter's own rule; the shares read the same value slots).
         for (const {
             stack: { key: stackName, axis: axisIdx, members },
-            sums: stackSums,
+            sums: totals,
             ts: tss,
             pointShaped,
-        } of sums(stackPlan, series)) {
+        } of stackSums(stackPlan, series)) {
             if (members.length < 2) {
                 continue; // a one-series stack would only repeat the value its bar already shows
             }
-            const anchorData = stackSums.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
+            const anchorData = totals.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
             // Label size/shift follow the TOPMOST member (its own top label would collide —
             // the adapter's `topover` shift moves the sum one line up out of the way).
             const topMeta = meta[members[members.length - 1]];
@@ -1073,7 +1079,7 @@ export const buildCartesianOption = (
                     show: true,
                     position: 'top',
                     ...(topLabelAtTop ? { offset: [0, -(fontSize + 2)] } : {}),
-                    formatter: sumAnchorLabelFormatter(stackSums, facts, chartFmt),
+                    formatter: sumAnchorLabelFormatter(totals, facts, chartFmt),
                     fontSize,
                     color: p.themeTokens.textPrimary,
                 },

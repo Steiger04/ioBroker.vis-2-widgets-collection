@@ -1,6 +1,6 @@
 /**
  * Narrow suite for the stack plan (ADR-0103 K2): {@link resolveStackPlan} resolves the stack
- * membership once — the 100 % {@link shares} and the sum anchor's {@link sums} read the same
+ * membership once — the 100 % {@link stackShares} and the sum anchor's {@link stackSums} read the same
  * visible members on the same EMITTED axis. The option-level behaviour stays pinned in
  * `optionBuilder.test.ts`, `stackModeAcrossModes.test.ts` and the value-chain net.
  *
@@ -8,7 +8,14 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { resolveStackPlan, shares, sums, type StackPlan, type StackPlanInput, type StackPlanSeries } from './stackMode';
+import {
+    resolveStackPlan,
+    stackShares,
+    stackSums,
+    type StackPlan,
+    type StackPlanInput,
+    type StackPlanSeries,
+} from './stackMode';
 import type { ChartSeries } from './optionBuilders/types';
 
 /** An axis plan where every series is active and binds emitted axis 0 unless told otherwise. */
@@ -126,7 +133,7 @@ describe('resolveStackPlan', () => {
 
 const plain = (name: string, data: (number | null)[]): ChartSeries => ({ name, data });
 
-describe('shares', () => {
+describe('stackShares', () => {
     const plan = (series: StackPlanSeries[], active?: boolean[]): StackPlan =>
         resolveStackPlan({
             series,
@@ -136,7 +143,7 @@ describe('shares', () => {
         });
 
     it('normalizes each visible stack per category; gaps stay gaps, sum ≤ 0 → 0', () => {
-        const out = shares(plan(bars(undefined, undefined, 'none')), [
+        const out = stackShares(plan(bars(undefined, undefined, 'none')), [
             plain('a', [1, null, 0, -1]),
             plain('b', [3, 2, 0, 1]),
             plain('c', [9, 9, 9, 9]),
@@ -151,7 +158,7 @@ describe('shares', () => {
     });
 
     it('points keep their timestamps; a deselected member leaves the denominator', () => {
-        const out = shares(plan(bars(undefined, undefined), [true, false]), [
+        const out = stackShares(plan(bars(undefined, undefined), [true, false]), [
             {
                 name: 'a',
                 data: [
@@ -182,11 +189,11 @@ describe('shares', () => {
 
     it('outside the percent mode the series pass unchanged and no absolutes come back', () => {
         const stackPlan = resolveStackPlan({ series: bars(undefined), names: ['a'], mode: 'stack', axes: axesOf(1) });
-        expect(shares(stackPlan, [plain('a', [5])])).toEqual({ series: [plain('a', [5])] });
+        expect(stackShares(stackPlan, [plain('a', [5])])).toEqual({ series: [plain('a', [5])] });
     });
 });
 
-describe('sums', () => {
+describe('stackSums', () => {
     it('sums the visible members per category; a category nobody contributes to stays null', () => {
         const stackPlan = resolveStackPlan({
             series: bars(undefined, undefined, undefined),
@@ -194,7 +201,7 @@ describe('sums', () => {
             mode: 'stack',
             axes: axesOf(3, { active: [true, true, false] }),
         });
-        const [only] = sums(stackPlan, [
+        const [only] = stackSums(stackPlan, [
             plain('a', [1, null, null, -2]),
             plain('b', [2, 3, null, 1]),
             plain('c', [100, 100, 100, 100]),
@@ -212,7 +219,7 @@ describe('sums', () => {
             mode: 'stack',
             axes: axesOf(2),
         });
-        const [only] = sums(stackPlan, [
+        const [only] = stackSums(stackPlan, [
             {
                 name: 'a',
                 data: [

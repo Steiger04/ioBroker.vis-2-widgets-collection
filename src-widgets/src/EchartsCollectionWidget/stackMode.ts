@@ -146,8 +146,8 @@ export interface StackPlan {
  * Resolve the stack membership ONCE (ADR-0103 K2): per bar its mode-resolved stack name on the
  * EMITTED axis ({@link effectiveStackName} — the remap compacts the actively bound axes, so one
  * configured axis is one emitted axis and a stack still never spans foreign scales), its percent
- * membership, and the stacks with their visible members. The 100 % shares ({@link shares}) and
- * the sum anchor ({@link sums}) read the same plan — per construction the same members.
+ * membership, and the stacks with their visible members. The 100 % shares ({@link stackShares})
+ * and the sum anchor ({@link stackSums}) read the same plan — per construction the same members.
  */
 export const resolveStackPlan = ({ series, names, mode, axes }: StackPlanInput): StackPlan => {
     const bar = series.map(s => s.type === 'bar');
@@ -181,58 +181,6 @@ export const resolveStackPlan = ({ series, names, mode, axes }: StackPlanInput):
     return { mode, names, stackOf, percent, percentAxes, stacks };
 };
 
-/**
- * Balken-Stapelmodus 100 % (ADR-0084 decision 4) over the plan: each stack normalizes per
- * category — share = value / stack sum, sum ≤ 0 → 0 (the example's defensive formula — negative
- * totals are the documented fragility, the InfoBox says it), gaps stay gaps. The ABSOLUTE values
- * come back keyed by {@link StackPlan.names} for the tooltip (share AND absolute). Per data INDEX,
- * the same alignment echarts stacks by (table rows, payload points, Verlauf buckets). Non-members
- * (opted out, non-bar, deselected) keep their absolute values; a lone member is always 100 %.
- * Outside the percent mode the series pass unchanged.
- */
-export const shares = (
-    plan: StackPlan,
-    series: readonly ChartSeries[],
-): { series: ChartSeries[]; absolutes?: Record<string, (number | null)[]> } => {
-    const out = [...series];
-    if (plan.mode !== 'percent') {
-        return { series: out };
-    }
-    const absolutes: Record<string, (number | null)[]> = {};
-    for (const { members } of plan.stacks) {
-        const length = members.reduce((max, i) => Math.max(max, out[i]?.data.length ?? 0), 0);
-        const totals: number[] = [];
-        for (let c = 0; c < length; c++) {
-            let sum: number | null = null;
-            for (const i of members) {
-                const v = datumValueSlot(out[i]?.data[c]);
-                if (v !== null) {
-                    sum = (sum ?? 0) + v;
-                }
-            }
-            totals.push(sum ?? 0);
-        }
-        for (const i of members) {
-            const s = out[i];
-            absolutes[plan.names[i]] = s.data.map(d => datumValueSlot(d));
-            // Narrowed from the ChartSeries union: a series' data is homogeneous by
-            // construction (points OR plain values — the map preserves whichever it finds).
-            out[i] = {
-                name: s.name,
-                data: s.data.map((d, c): SeriesPoint | number | null => {
-                    const share = datumValueSlot(d);
-                    if (share === null) {
-                        return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
-                    }
-                    const value = totals[c] > 0 ? share / totals[c] : 0; // sum ≤ 0 → 0 (defensive)
-                    return Array.isArray(d) ? [d[0], value] : value;
-                }) as SeriesPoint[] | (number | null)[],
-            };
-        }
-    }
-    return Object.keys(absolutes).length ? { series: out, absolutes } : { series: out };
-};
-
 /** The per-category sums of one stack — the sum anchor's label values. */
 export interface StackSums {
     stack: ResolvedStack;
@@ -249,7 +197,7 @@ export interface StackSums {
  * members' ABSOLUTE values; a gap never counts as 0 — a category no member contributes to stays
  * `null` (the anchor renders no label there).
  */
-export const sums = (plan: StackPlan, series: readonly ChartSeries[]): StackSums[] =>
+export const stackSums = (plan: StackPlan, series: readonly ChartSeries[]): StackSums[] =>
     plan.stacks.map(stack => {
         const { members } = stack;
         const length = members.reduce((max, i) => Math.max(max, series[i]?.data.length ?? 0), 0);
@@ -277,3 +225,46 @@ export const sums = (plan: StackPlan, series: readonly ChartSeries[]): StackSums
         }
         return { stack, sums: totals, ts, pointShaped };
     });
+
+/**
+ * Balken-Stapelmodus 100 % (ADR-0084 decision 4) over the plan: each stack normalizes per
+ * category — share = value / stack sum, sum ≤ 0 → 0 (the example's defensive formula — negative
+ * totals are the documented fragility, the InfoBox says it), gaps stay gaps. The ABSOLUTE values
+ * come back keyed by {@link StackPlan.names} for the tooltip (share AND absolute). Per data INDEX,
+ * the same alignment echarts stacks by (table rows, payload points, Verlauf buckets). Non-members
+ * (opted out, non-bar, deselected) keep their absolute values; a lone member is always 100 %.
+ * Outside the percent mode the series pass unchanged.
+ */
+export const stackShares = (
+    plan: StackPlan,
+    series: readonly ChartSeries[],
+): { series: ChartSeries[]; absolutes?: Record<string, (number | null)[]> } => {
+    const out = [...series];
+    if (plan.mode !== 'percent') {
+        return { series: out };
+    }
+    const absolutes: Record<string, (number | null)[]> = {};
+    // The denominators are the sum anchor's sums ({@link stackSums}) — a category no member
+    // contributes to (null) divides like a zero sum.
+    for (const { stack, sums: totals } of stackSums(plan, series)) {
+        for (const i of stack.members) {
+            const s = out[i];
+            absolutes[plan.names[i]] = s.data.map(d => datumValueSlot(d));
+            // Narrowed from the ChartSeries union: a series' data is homogeneous by
+            // construction (points OR plain values — the map preserves whichever it finds).
+            out[i] = {
+                name: s.name,
+                data: s.data.map((d, c): SeriesPoint | number | null => {
+                    const share = datumValueSlot(d);
+                    if (share === null) {
+                        return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
+                    }
+                    const total = totals[c] ?? 0;
+                    const value = total > 0 ? share / total : 0; // sum ≤ 0 → 0 (defensive)
+                    return Array.isArray(d) ? [d[0], value] : value;
+                }) as SeriesPoint[] | (number | null)[],
+            };
+        }
+    }
+    return Object.keys(absolutes).length ? { series: out, absolutes } : { series: out };
+};
