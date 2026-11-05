@@ -14,7 +14,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
-import { applyStateRowOperation, isStateRowKey, stateRowCount } from './stateRows';
+import { applyStateRowOperation, assignStateRowPatch, isStateRowKey, stateRowCount } from './stateRows';
 import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
@@ -193,14 +193,7 @@ export const oidChangeHandlerAsync =
             if (role === 'main') {
                 // Supplement, never overwrite: existing rows keep order, alias and styles; the
                 // states no row carries yet are appended (ADR-0104 §6).
-                const patch = applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS);
-                Object.entries(patch ?? {}).forEach(([key, value]) => {
-                    if (value === null) {
-                        delete data[key];
-                    } else {
-                        data[key] = value;
-                    }
-                });
+                assignStateRowPatch(data, applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS));
             }
 
             setTimeout(() => changeData(data), 100);

@@ -28,7 +28,7 @@ import StateRowHeader from '../components/StateEditor/StateRowHeader';
 import StateRowList from '../components/StateEditor/StateRowList';
 import { guardWidgetData } from './fieldFactories';
 import { stateEditorSpec } from './stateEditorConfig';
-import { stateRowCount } from './stateRows';
+import { stateRowCount, stateRowOidObject } from './stateRows';
 
 import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
@@ -113,7 +113,7 @@ export const stateEditorGroup = (
     options: StateEditorGroupOptions = {},
 ): RxWidgetInfoGroup => {
     const spec = stateEditorSpec(params);
-    const noOidObject = (data: WidgetData): boolean => !data[`${spec.config.oidProperty}Object`];
+    const noOidObject = (data: WidgetData): boolean => !stateRowOidObject(data, spec.config);
     const noRows = (data: WidgetData): boolean => noOidObject(data) || stateRowCount(data, spec.config) === 0;
 
     const fields: RxWidgetInfoAttributesField[] = [

@@ -12,7 +12,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createPlainColorField } from './fieldFactories';
 import { stateEditorSpec } from './stateEditorConfig';
-import { applyStateRowOperation, stateRowCount } from './stateRows';
+import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -74,14 +74,7 @@ const seedSwitchRows = (data: WidgetData): void => {
     // common.states, those would stand in for the rows of a widget that has none yet.
     const judged = { ...data, ignoreCommonStates: false };
     const before = stateRowCount(judged, SWITCH_ROWS);
-    const patch = applyStateRowOperation(judged, { kind: 'supplement' }, SWITCH_ROWS);
-    Object.entries(patch ?? {}).forEach(([key, value]) => {
-        if (value === null) {
-            delete data[key];
-        } else {
-            data[key] = value;
-        }
-    });
+    assignStateRowPatch(data, applyStateRowOperation(judged, { kind: 'supplement' }, SWITCH_ROWS));
 
     for (let n = before + 1; n <= (data.values_count as number); n++) {
         Object.assign(data, {

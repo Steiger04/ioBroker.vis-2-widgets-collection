@@ -9,7 +9,7 @@
  */
 import { useMemo } from 'react';
 
-import { stateRowCount } from '../../lib/stateRows';
+import { stateRowCount, stateRowOidObject } from '../../lib/stateRows';
 import { stateRowSelectionKey, useStateRowSelection } from './stateRowSelection';
 
 import type { StateEditorSpec } from '../../lib/stateEditorConfig';
@@ -138,7 +138,7 @@ export const useStateEditor = ({
     const [selected, select] = useStateRowSelection(key, count);
 
     return {
-        hasOidObject: !!data[`${spec.config.oidProperty}Object`],
+        hasOidObject: !!stateRowOidObject(data, spec.config),
         rows,
         selected,
         select,

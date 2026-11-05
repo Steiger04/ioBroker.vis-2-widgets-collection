@@ -102,12 +102,19 @@ export type StateRowPatch = Record<string, unknown>;
 /** One Zustandszeile: its values per base key and the base keys bound in `data.bindings`. */
 type Row = { values: Record<string, unknown>; bound: Set<string> };
 
-const oidObjectOf = (data: WidgetData, config: StateRowsConfig): StoredOidObject =>
+/**
+ * The OID object the rows belong to, as the OID pick stores it.
+ *
+ * @param data The widget data.
+ * @param config The widget's Zustandszeilen config (its OID property).
+ * @returns `<oidProperty>Object` — `undefined` until the OID pick has run.
+ */
+export const stateRowOidObject = (data: WidgetData, config: Pick<StateRowsConfig, 'oidProperty'>): StoredOidObject =>
     data[`${config.oidProperty}Object`] as StoredOidObject;
 
 /** Whether the widget's rows are fixed: a boolean OID, or a widget declaring fixed rows. */
 const hasFixedRows = (data: WidgetData, config: StateRowsConfig): boolean =>
-    !!config.fixedRows || oidObjectOf(data, config)?.type === 'boolean';
+    !!config.fixedRows || stateRowOidObject(data, config)?.type === 'boolean';
 
 /**
  * The number of Zustandszeilen the editor shows: the Zustandsmenge the runtime walks.
@@ -120,7 +127,7 @@ const hasFixedRows = (data: WidgetData, config: StateRowsConfig): boolean =>
 export const stateRowCount = (data: WidgetData, config: StateRowsConfig): number =>
     effectiveStateCount({
         valuesCount: data.values_count as number | undefined,
-        commonStatesCount: Object.keys(oidObjectOf(data, config)?.commonStates || {}).length,
+        commonStatesCount: Object.keys(stateRowOidObject(data, config)?.commonStates || {}).length,
         ignoreCommonStates: data.ignoreCommonStates as boolean | undefined,
     });
 
@@ -170,7 +177,7 @@ const FIXED_ROW_STATES: readonly string[] = ['true', 'false'];
  * - No states without an OID object.
  */
 const sourceStates = (data: WidgetData, config: StateRowsConfig): { states: [string, unknown][]; type: AllowedType } => {
-    const oidObject = oidObjectOf(data, config);
+    const oidObject = stateRowOidObject(data, config);
     const declared = oidObject?.commonStates || {};
     if (!oidObject) {
         return { states: [], type: 'mixed' };
@@ -371,6 +378,23 @@ export const mergeStateRowPatch = (data: WidgetData, patch: StateRowPatch): Widg
         }
     }
     return next;
+};
+
+/**
+ * Applies a patch to `data` in place, as {@link mergeStateRowPatch} does on a copy — for the
+ * OID picks, whose `onChange` changes the data vis-2 hands them.
+ *
+ * @param data The widget data, changed in place.
+ * @param patch The patch; `null` (and so a refused action) leaves `data` as it is.
+ */
+export const assignStateRowPatch = (data: WidgetData, patch: StateRowPatch | null): void => {
+    for (const [key, value] of Object.entries(patch ?? {})) {
+        if (value === null) {
+            delete data[key];
+        } else {
+            data[key] = value;
+        }
+    }
 };
 
 /** Equal as stored values; an absent key equals `null` (a patch's `null` deletes it). */
