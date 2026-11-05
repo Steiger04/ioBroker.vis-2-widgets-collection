@@ -501,6 +501,7 @@
     "echarts_series_states_value": "Value",
     "echarts_series_step": "Step",
     "echarts_series_symbol": "Show symbols",
+    "echarts_series_symbol_label_hint": "Line labels sit on the symbols, so the symbols stay visible while the label is on.",
     "echarts_series_symbol_size": "Symbol size",
     "echarts_series_text_false": "Text when false",
     "echarts_series_text_true": "Text when true",

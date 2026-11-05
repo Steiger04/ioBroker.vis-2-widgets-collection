@@ -1353,5 +1353,6 @@
     "color_picker_close": "Fechar",
     "color_picker_alpha_hint": "Opacidade em percentagem (0–100)",
     "track_color_false": "Cor da trilha (falso)",
-    "track_color_true": "Cor da trilha (verdadeiro)"
+    "track_color_true": "Cor da trilha (verdadeiro)",
+    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
 }

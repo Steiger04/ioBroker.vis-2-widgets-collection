@@ -1353,5 +1353,6 @@
     "color_picker_close": "Sluiten",
     "color_picker_alpha_hint": "Dekking in procent (0–100)",
     "track_color_false": "Trackkleur (uit)",
-    "track_color_true": "Trackkleur (aan)"
+    "track_color_true": "Trackkleur (aan)",
+    "echarts_series_symbol_label_hint": "[TODO] Line labels sit on the symbols, so the symbols stay visible while the label is on."
 }
