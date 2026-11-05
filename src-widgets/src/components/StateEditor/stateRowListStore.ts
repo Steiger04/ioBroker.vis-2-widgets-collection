@@ -6,7 +6,7 @@
  * @remarks
  * List and toolbar are separate vis-2 custom fields (own React subtrees), so — like the row
  * selection (`stateRowSelection`) — they share through module state keyed by view + selected
- * widgets (`stateRowSelectionKey`):
+ * widgets (`stateRowSelectionKey`, `keyedStore`):
  * - **Search** (Spec „Suche"): typed in the toolbar, filters the list; while it is active,
  *   reordering is locked in both.
  * - **Focus**: every row action hands the focus to the list. vis-2 deletes the selected widget
@@ -14,19 +14,13 @@
  *   focused toolbar button turns disabled — so the focus must never fall there.
  * - **Height**: the visible row count, global and kept in `localStorage`.
  */
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback } from 'react';
 
-const searches = new Map<string, string>();
-const listeners = new Set<() => void>();
+import { createKeyedStore } from './keyedStore';
+
+const searches = createKeyedStore<string>();
 const lists = new Map<string, HTMLElement>();
 const pendingFocus = new Set<string>();
-
-const subscribe = (listener: () => void): (() => void) => {
-    listeners.add(listener);
-    return () => {
-        listeners.delete(listener);
-    };
-};
 
 /**
  * Sets the search of a key; list and toolbar follow.
@@ -34,17 +28,7 @@ const subscribe = (listener: () => void): (() => void) => {
  * @param key See `stateRowSelectionKey`.
  * @param text The search text as typed.
  */
-export const setStateRowSearch = (key: string, text: string): void => {
-    if ((searches.get(key) ?? '') === text) {
-        return;
-    }
-    if (text) {
-        searches.set(key, text);
-    } else {
-        searches.delete(key);
-    }
-    listeners.forEach(listener => listener());
-};
+export const setStateRowSearch = (key: string, text: string): void => searches.set(key, text || undefined);
 
 /**
  * The search of one Zustandseditor and the function that changes it.
@@ -53,7 +37,7 @@ export const setStateRowSearch = (key: string, text: string): void => {
  * @returns `[text, setText]` — the text as typed.
  */
 export const useStateRowSearch = (key: string): [string, (text: string) => void] => {
-    const text = useSyncExternalStore(subscribe, () => searches.get(key) ?? '');
+    const text = searches.use(key) ?? '';
     const set = useCallback((next: string) => setStateRowSearch(key, next), [key]);
     return [text, set];
 };
@@ -124,10 +108,9 @@ export const focusStateRowList = (key: string): void => {
 
 /** Forgets every search and focus request — for tests (the editor keeps them until reload). */
 export const resetStateRowListStore = (): void => {
-    searches.clear();
     pendingFocus.clear();
     lists.clear();
-    listeners.forEach(listener => listener());
+    searches.clear();
 };
 
 /** The `localStorage` key of the list height (visible rows), in the project's namespace. */

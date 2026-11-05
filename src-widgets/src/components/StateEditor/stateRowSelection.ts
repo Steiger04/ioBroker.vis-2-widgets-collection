@@ -8,12 +8,13 @@
  * selected widgets. A selection change writes no project data, so it triggers no vis-2
  * recalculation; it is remembered per key until the page reloads. Each field of the group is
  * its own vis-2 custom field (its own React subtree), so they share the selection through this
- * store, not through a React context.
+ * store (`keyedStore`), not through a React context.
  */
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback } from 'react';
 
-const selections = new Map<string, number>();
-const listeners = new Set<() => void>();
+import { createKeyedStore } from './keyedStore';
+
+const selections = createKeyedStore<number>();
 
 /**
  * The key a selection is remembered under: the view and the selected widgets (order-free).
@@ -39,20 +40,7 @@ export const storedStateRow = (key: string): number => selections.get(key) ?? 1;
  * @param key See {@link stateRowSelectionKey}.
  * @param row The Feldnummer (1-based).
  */
-export const selectStateRow = (key: string, row: number): void => {
-    if (selections.get(key) === row) {
-        return;
-    }
-    selections.set(key, row);
-    listeners.forEach(listener => listener());
-};
-
-const subscribe = (listener: () => void): (() => void) => {
-    listeners.add(listener);
-    return () => {
-        listeners.delete(listener);
-    };
-};
+export const selectStateRow = (key: string, row: number): void => selections.set(key, row);
 
 /**
  * Clamps a stored Feldnummer to the rows that exist.
@@ -73,13 +61,10 @@ export const clampStateRow = (stored: number, count: number): number =>
  * @returns `[row, select]` — `row` is `0` without rows.
  */
 export const useStateRowSelection = (key: string, count: number): [number, (row: number) => void] => {
-    const stored = useSyncExternalStore(subscribe, () => storedStateRow(key));
+    const stored = selections.use(key) ?? 1;
     const select = useCallback((row: number) => selectStateRow(key, row), [key]);
     return [clampStateRow(stored, count), select];
 };
 
 /** Forgets every selection — for tests (the editor keeps them until the page reloads). */
-export const resetStateRowSelection = (): void => {
-    selections.clear();
-    listeners.forEach(listener => listener());
-};
+export const resetStateRowSelection = (): void => selections.clear();
