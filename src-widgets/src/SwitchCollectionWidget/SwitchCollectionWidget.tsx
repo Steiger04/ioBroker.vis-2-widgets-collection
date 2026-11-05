@@ -7,6 +7,7 @@
 import React from 'react';
 import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import switchFields from '../lib/switchFields';
@@ -38,13 +39,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
                         ...switchFields(),
                     ] as RxWidgetInfoAttributesField[],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup({ fixedRows: true }),
             ],
             visDefaultStyle: {
                 width: '100%',

@@ -11,12 +11,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
-// The module's field list renders CollectionDivider, which pulls Generic (extends
-// window.visRxWidget, absent outside vis-2). The handler under test never renders it.
+// The module's field lists (its own, and the per-state list its row keys come from) render
+// CollectionDivider and colour fields, which pull Generic (extends window.visRxWidget, absent
+// outside vis-2). The handler under test never renders them.
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
-import { oidChangeHandlerAsync } from './commonObjectFields';
+import commonObjectFields, { oidChangeHandlerAsync } from './commonObjectFields';
 
 const STATUS = 'zigbee.0.lamp.mode_status';
 const COMMAND = 'zigbee.0.lamp.mode_set';
@@ -57,6 +60,19 @@ const OBJECTS: Record<string, unknown> = {
     },
 };
 
+const SCENE = 'zigbee.0.lamp.scene';
+const POWER = 'zigbee.0.lamp.on';
+OBJECTS[SCENE] = {
+    _id: SCENE,
+    type: 'state',
+    common: { name: 'Scene', type: 'number', role: 'level', read: true, write: true, states: { 1: 'Eco', 3: 'Party' } },
+};
+OBJECTS[POWER] = {
+    _id: POWER,
+    type: 'state',
+    common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
+};
+
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
 } as unknown as Connection;
@@ -81,7 +97,7 @@ async function pick(idName: string, data: WidgetData): Promise<WidgetData> {
     return emitted;
 }
 
-/** The main-OID pick of the read-only status state, as the editor stores it today. */
+/** The main-OID pick of the read-only status state, as the editor stores it today (rows: value and alias only). */
 const STATUS_PICKED = {
     oid: STATUS,
     oidObject: {
@@ -101,7 +117,8 @@ const STATUS_PICKED = {
     onlyDisplay: true,
     minValue: 0,
     maxValue: 2,
-    values_count: 0,
+    values_count: 3,
+    ignoreCommonStates: false,
     value1: 0,
     alias1: 'Off',
     value2: 1,
@@ -125,6 +142,129 @@ describe('oidChangeHandlerAsync — main OID without a control ID (unchanged)', 
 
     it('suggests an interactive control for a writable main OID', async () => {
         expect((await pick('oid', { oid: COMMAND })).onlyDisplay).toBe(false);
+    });
+});
+
+/** The rows 1..values_count as `[value, alias, iconColor]` — what the runtime walks. */
+const rowsOf = (data: WidgetData): unknown[][] =>
+    Array.from({ length: data.values_count as number }, (_, i) => [
+        data[`value${i + 1}`],
+        data[`alias${i + 1}`],
+        data[`iconColor${i + 1}`],
+    ]);
+
+describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandszeilen (ADR-0104 §6)', () => {
+    it('creates one row per state on a first pick, with ignoreCommonStates off', async () => {
+        const picked = await pick('oid', { oid: STATUS, values_count: 0 });
+
+        expect(rowsOf(picked)).toEqual([
+            [0, 'Off', undefined],
+            [1, 'Eco', undefined],
+            [2, 'Comfort', undefined],
+        ]);
+        expect(picked.ignoreCommonStates).toBe(false);
+    });
+
+    it('re-picking keeps order, alias and styles of the existing rows and appends the missing states', async () => {
+        /** The user moved Comfort to the top, renamed and styled it; Off is gone. */
+        const edited = {
+            ...STATUS_PICKED,
+            values_count: 2,
+            value1: 2,
+            alias1: 'Warm',
+            iconColor1: 'blue',
+            value2: 1,
+            alias2: 'Eco',
+            iconColor2: 'green',
+            value3: null,
+            alias3: null,
+        };
+
+        const repicked = await pick('oid', { ...edited, oid: SCENE });
+
+        expect(rowsOf(repicked)).toEqual([
+            [2, 'Warm', 'blue'],
+            [1, 'Eco', 'green'],
+            [3, 'Party', undefined],
+        ]);
+        expect(repicked.ignoreCommonStates).toBe(false);
+    });
+
+    it('takes over a widget saved with ignoreCommonStates on: its rows stay, the new states are appended', async () => {
+        // Saved with the switch on: values_count 0, the three rows of the old OID filled.
+        const legacy = { ...STATUS_PICKED, values_count: 0, ignoreCommonStates: true, iconColor3: 'red' };
+
+        const repicked = await pick('oid', { ...legacy, oid: SCENE });
+
+        expect(rowsOf(repicked)).toEqual([
+            [0, 'Off', undefined],
+            [1, 'Eco', undefined],
+            [2, 'Comfort', 'red'],
+            [3, 'Party', undefined],
+        ]);
+        expect(repicked.ignoreCommonStates).toBe(false);
+    });
+
+    it('seeds a boolean OID without common.states with TRUE/FALSE, and keeps them on a re-pick', async () => {
+        const picked = await pick('oid', { oid: POWER, values_count: 0 });
+        expect(rowsOf(picked)).toEqual([
+            [true, 'TRUE', undefined],
+            [false, 'FALSE', undefined],
+        ]);
+
+        const styled = { ...picked, value1: false, alias1: 'Aus', value2: true, alias2: 'An', iconColor2: 'red' };
+        expect(rowsOf(await pick('oid', styled))).toEqual([
+            [false, 'Aus', undefined],
+            [true, 'An', 'red'],
+        ]);
+    });
+
+    it('keeps own rows when the OID has no common.states', async () => {
+        const own = { ...STATUS_PICKED, oid: 'zigbee.0.lamp.level', values_count: 1, value1: 7, alias1: 'Seven' };
+        OBJECTS['zigbee.0.lamp.level'] = {
+            _id: 'zigbee.0.lamp.level',
+            type: 'state',
+            common: { name: 'Level', type: 'number', role: 'level', read: true, write: true },
+        };
+
+        expect(rowsOf(await pick('oid', own))).toEqual([[7, 'Seven', undefined]]);
+    });
+});
+
+describe('commonObjectFields — the panel no longer offers the value-group switches', () => {
+    it('has no ignoreCommonStates checkbox and no values_count number field', () => {
+        const names = commonObjectFields(ANY_VALUE_TYPES).map(field => field.name);
+
+        expect(names).not.toContain('ignoreCommonStates');
+        expect(names).not.toContain('values_count');
+    });
+});
+
+describe('oidChangeHandlerAsync — main OID cleared', () => {
+    it('removes every key of every Zustandszeile, the icon colour mask included', async () => {
+        const picked = await pick('oid', { oid: STATUS });
+        const styled = { ...picked, enableIconColorMask2: true, iconColor2: 'red', header1: 'Off', iconHover3: 'x' };
+
+        const cleared = await pick('oid', { ...styled, oid: '' });
+
+        expect(Object.keys(cleared).filter(key => /\d$/.test(key))).toEqual([]);
+    });
+
+    it('removes the icon colour mask of a row with the row (authored rows, ignoreCommonStates off)', async () => {
+        const rows = { oid: STATUS, ignoreCommonStates: false, values_count: 1, value1: 0, enableIconColorMask1: true };
+
+        const cleared = await pick('oid', { ...rows, oid: '' });
+
+        expect(cleared).not.toHaveProperty('enableIconColorMask1');
+    });
+
+    it('drops the bindings of the removed row keys and keeps every other binding', async () => {
+        const picked = await pick('oid', { oid: STATUS });
+        const bound = { ...picked, header1: '{a}', iconColor3: '{b}', title: '{c}' };
+
+        const cleared = await pick('oid', { ...bound, oid: '', bindings: ['header1', 'title', 'iconColor3'] });
+
+        expect(cleared.bindings).toEqual(['title']);
     });
 });
 

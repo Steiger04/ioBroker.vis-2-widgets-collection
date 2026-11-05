@@ -627,7 +627,7 @@ The single text line below a Collection widget's content, owned by the frame, HT
 _Avoid_: Footer without saying which frame, Statuszeile, Wert-Anzeige (that is the content's icon + value cluster)
 
 **Zustandsmenge**:
-The ONE pure rule for how many discrete states a widget effectively has (`lib/effectiveStateCount.ts`): `ignoreCommonStates === false` → the authored rows (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to `values_count` when absent (e.g. boolean OIDs without commonStates). Consumed by BOTH the editor's field visibility (stateFields' hidden closures) and the runtime state resolution (useData) — visibility never promises behaviour the runtime does not deliver. The OID-change heal in commonObjectFields remains the PRODUCER of `values_count`, deliberately outside this seam.
+The ONE pure rule for how many discrete states a widget effectively has (`lib/effectiveStateCount.ts`): `ignoreCommonStates === false` → the authored rows (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to `values_count` when absent (e.g. boolean OIDs without commonStates). Consumed by BOTH the editor's field visibility (stateFields' hidden closures) and the runtime state resolution (useData) — visibility never promises behaviour the runtime does not deliver. The OID pick (oidChangeHandlerAsync) and the Zustandseditor (Zustandszeilen-Operationen) are the PRODUCERS of `values_count`, deliberately outside this seam; both always write `ignoreCommonStates: false` with it. `ignoreCommonStates` has no editor switch any more (ADR-0104): it survives only as the legacy marker of widgets saved with the old switch on, which keep the `commonStates` count until their first edit.
 _Avoid_: Werte-Anzahl (that is the raw `values_count` field), state count formula (mechanism, not the seam), effektive Anzahl without the one-rule meaning
 
 **Feldnummer**:
@@ -639,8 +639,20 @@ One discrete state of a widget together with everything configured for it — it
 _Avoid_: Wertegruppe (that is vis-2's indexed attribute group that used to edit them), Wert (that is only the row's `value`), state row / value row
 
 **Zustandseditor**:
-The editor in the vis-2 attribute panel in which a widget's Zustandszeilen are listed, edited and reordered; labelled „Werte" in the UI.
+The editor in the vis-2 attribute panel in which a widget's Zustandszeilen are listed, edited and reordered; labelled „Werte" in the UI. Master-detail: a toolbar and a searchable, sortable list of all Zustandszeilen, below it the fields of the **Gewählte Zeile** only, each in a **Detail-Hülle** (ADR-0104).
 _Avoid_: Werte-Konfigurator, Werteliste (that is what it shows, not the editor)
+
+**Zustandszeilen-Operationen**:
+The ONE pure module (`lib/stateRows.ts`) that turns every Zustandseditor action — Verschieben, Hinzufügen, Klonen, Löschen, Zeile leeren, aus common.states neu anlegen, aus common.states ergänzen — into one vis-2 patch (`null` deletes a key) carrying `values_count`, `ignoreCommonStates: false` and the row's `data.bindings` entries renamed with it. It also answers which actions the selected widgets allow: fixed rows (boolean OID, Checkbox, Switch, Template, Light2) refuse add/clone/delete, and under multi-selection the structural actions need identical Zustandszeilen. The OID picks run „ergänzen" through it as well.
+_Avoid_: Zeilen-Logik, row helpers (it is the seam, not a utility bag)
+
+**Gewählte Zeile**:
+The Zustandszeile whose fields the Zustandseditor's detail shows — chosen in the list, or paged with ‹ › in the attribute row of the same label above the detail (‹ n / Anzahl ›, „Wert · Alias"). Choosing writes no project data, so vis-2 does not recalculate; it is remembered per view + selected widgets until the page reloads.
+_Avoid_: Kopfzeile (that is the **Rahmen-Kopfzeile** of a widget), aktive Zeile (that is the runtime's active state, `activeFieldNumber`)
+
+**Detail-Hülle**:
+The custom field of the „Werte" group that stands for one per-state field definition (`stateEditor:<name>`): it keeps the definition's label and widget-level `hidden` rule and renders the definition under the indexed name of the **Gewählte Zeile** through vis-2's `Editor` — so the field is a native attribute row — together with its own binding switch and „unterschiedlich" mark. A per-state rule that reads the Feldnummer locks it instead of hiding it. Called wrapper in code.
+_Avoid_: hull, Proxy-Feld
 
 **OID-Rolle**:
 What an id field of a widget is to that widget — exactly one of **Haupt-OID**, Steuer ID (the Select's **Schreibziel**) or **Hilfs-OID** — decided once from the field, never guessed per call site. The role decides which widget data an OID pick may set: only the Haupt-OID owns the root fields (icon, writability, range, state rows).

@@ -8,6 +8,7 @@ import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import gaugeFields from '../lib/gaugeFields';
 import GaugeCollection from './GaugeCollection';
@@ -40,13 +41,7 @@ class GaugeCollectionWidget extends Generic<WidgetRegistry['tplGaugeCollectionWi
                     label: 'group_gauge',
                     fields: [...commonObjectFields(['number']), ...gaugeFields()] as RxWidgetInfoAttributesField[],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup(),
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {

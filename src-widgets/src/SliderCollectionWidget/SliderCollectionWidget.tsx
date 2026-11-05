@@ -8,6 +8,7 @@ import React from 'react';
 import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import sliderFields from '../lib/sliderFields';
@@ -40,13 +41,7 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
                     label: 'group_active',
                     fields: [...commonFields({ groupName: 'Active', allFields: false })],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true, markerLayer: true })],
-                },
+                stateEditorGroup({ markerLayer: true }),
             ],
             visDefaultStyle: {
                 width: '100%',

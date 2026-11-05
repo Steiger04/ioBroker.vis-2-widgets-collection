@@ -37,8 +37,8 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
      */
     private static createObjectFields(): RxWidgetInfoAttributesField[] {
         // JSON table renders columns from the JSON data (Spalten-Merge, ./columns), not from
-        // common.states value groups, and has no use for a unit override — drop both sections.
-        const fields = commonObjectFields(JSON_TABLE_TYPES, { unit: false, valueGroups: false });
+        // Zustandszeilen, and has no use for a unit override — drop the unit section.
+        const fields = commonObjectFields(JSON_TABLE_TYPES, { unit: false });
         const oidField = fields.find(f => f.name === 'oid');
 
         if (oidField) {

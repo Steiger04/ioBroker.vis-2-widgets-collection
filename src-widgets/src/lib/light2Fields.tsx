@@ -11,6 +11,8 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createPlainColorField } from './fieldFactories';
+import { stateEditorSpec } from './stateEditorConfig';
+import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -25,18 +27,6 @@ const PowerSettingsNewIcon =
  * Only used internally by the field generator to type `data` while pre-filling values.
  */
 interface ExtendedWidgetData extends WidgetData {
-    values_count?: number;
-    value1?: boolean;
-    alias1?: string;
-    value2?: boolean;
-    alias2?: string;
-    iconSize?: number;
-    iconSmall1?: string;
-    iconColor1?: string;
-    iconSize1?: number;
-    iconSmall2?: string;
-    iconColor2?: string;
-    iconSize2?: number;
     colorLightButton?: boolean;
     colorLightDelayLongPress?: number;
     colorLightModalWidth?: number;
@@ -61,11 +51,48 @@ interface ExtendedWidgetData extends WidgetData {
     colorLightBrightnessOid?: string;
 }
 
+/** The Zustandszeilen of the button mode: they belong to the switch OID, always two (ADR-0104). */
+const SWITCH_ROWS = stateEditorSpec({ oidProperty: 'colorLightSwitchOid', fixedRows: true }).config;
+
+/** The look a seeded switch row gets: the power icon, red for ON, green for OFF. */
+const SWITCH_ROW_LOOK = { iconSmall: PowerSettingsNewIcon, iconSize: 100 };
+
 /**
- * Mapping of ioBroker state roles to the corresponding Light2 configuration field.
+ * Seeds the two rows of the button mode, `true` and `false` — fixed; the switch's other
+ * `common.states` never become rows.
+ *
+ * @param data The widget data, changed in place.
+ * @remarks
+ * Supplements like the main-OID pick (ADR-0104 §6, Nachtrag Ticket 02): rows already carrying
+ * `true`/`false` keep order, alias and styles; only a missing row is appended, with the power
+ * icon and the alias of `common.states[true|false]` (else TRUE/FALSE, Nachtrag Review). The
+ * widget icon is hidden (`iconSize` 0) only when the rows are seeded from none.
+ */
+const seedSwitchRows = (data: WidgetData): void => {
+    // Fixed rows: the source is always true/false (alias from the switch's common.states[true|
+    // false], else TRUE/FALSE). The rows are the authored ones — counted with the switch's
+    // common.states, those would stand in for the rows of a widget that has none yet.
+    const judged = { ...data, ignoreCommonStates: false };
+    const before = stateRowCount(judged, SWITCH_ROWS);
+    assignStateRowPatch(data, applyStateRowOperation(judged, { kind: 'supplement' }, SWITCH_ROWS));
+
+    for (let n = before + 1; n <= (data.values_count as number); n++) {
+        Object.assign(data, {
+            [`iconSmall${n}`]: SWITCH_ROW_LOOK.iconSmall,
+            [`iconColor${n}`]: data[`value${n}`] === true ? 'red' : 'green',
+            [`iconSize${n}`]: SWITCH_ROW_LOOK.iconSize,
+        });
+    }
+    if (before === 0) {
+        data.iconSize = 0;
+    }
+};
+
+/**
+ * Mapping of ioBroker state roles to the Light2 channel OID field they fill. The switch itself is
+ * never detected: it is the user's pick that starts the detection.
  */
 const RGB_ROLES: Record<string, string> = {
-    'switch.light': 'colorLightSwitchOid',
     'level.color.rgb': 'colorLightRgbHexOid',
     'level.color.red': 'colorLightRedOid',
     'level.color.green': 'colorLightGreenOid',
@@ -79,12 +106,22 @@ const RGB_ROLES: Record<string, string> = {
     'level.color.white': 'colorLightBrightnessOid',
 };
 
+/** The JS types a Light2 OID may have — the switch and every channel state. */
+const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
+
+/** A channel field may be filled by the detection only while it holds no pick of the user. */
+const isUnset = (value: unknown): boolean => !value || value === 'nothing_selected';
+
 /**
  * `onChange` handler for the Light2 switch OID field.
  *
  * @remarks
- * When the selected object looks like a device channel, this scans related states and populates matching Light2
- * OID fields based on ioBroker roles.
+ * Stores the picked switch's object and seeds the two rows of the button mode — whatever role the
+ * switch has. Then scans the switch's channel and fills each channel OID field that is still unset
+ * from the state with the matching ioBroker role. A pick never replaces the picked switch nor a
+ * channel OID the user already chose (ADR-0104 §6, Nachtrag Fix Light2-Kanalerkennung): picking
+ * another lamp leaves set channel fields alone, the user empties them to have them detected again.
+ * Emptying the switch (or picking one that does not resolve) drops its object and keeps its rows.
  */
 const loadStatesAsync = async (
     field: RxWidgetInfoAttributesField,
@@ -93,70 +130,55 @@ const loadStatesAsync = async (
     socket: Connection,
 ): Promise<void> => {
     const fieldName = field.name;
-    if (fieldName && data[fieldName]) {
-        const object = await socket.getObject(data[fieldName] as string);
-
-        if (object && object.common) {
-            const id = (data[fieldName] as string).split('.');
-            id.pop();
-            const states = await socket.getObjectView(`${id.join('.')}.`, `${id.join('.')}.\u9999`, 'state');
-
-            if (states) {
-                const extendedData = data as ExtendedWidgetData;
-
-                await Promise.all(
-                    Object.values(states).map(async state => {
-                        const role = state.common.role;
-
-                        if (
-                            role &&
-                            RGB_ROLES[role] &&
-                            (!data[role as keyof WidgetData] ||
-                                data[role as keyof WidgetData] === 'nothing_selected') &&
-                            fieldName !== role
-                        ) {
-                            const targetField = RGB_ROLES[role];
-                            // Type-safe assignment to ExtendedWidgetData
-                            extendedData[targetField as keyof ExtendedWidgetData] = state._id;
-
-                            await oidChangeHandlerAsync(['boolean', 'number', 'string', 'mixed'], targetField)(
-                                field,
-                                data,
-                                changeData,
-                                socket,
-                            );
-
-                            if (targetField === 'colorLightTemperatureOid') {
-                                if (!extendedData.colorLightCtMin && state.common.min) {
-                                    extendedData.colorLightCtMin = state.common.min;
-                                }
-                                if (!extendedData.colorLightCtMax && state.common.max) {
-                                    extendedData.colorLightCtMax = state.common.max;
-                                }
-                            }
-
-                            if (targetField === 'colorLightSwitchOid') {
-                                extendedData.values_count = 2;
-                                extendedData.value1 = true;
-                                extendedData.alias1 = 'TRUE';
-                                extendedData.value2 = false;
-                                extendedData.alias2 = 'FALSE';
-
-                                extendedData.iconSize = 0;
-                                extendedData.iconSmall1 = PowerSettingsNewIcon;
-                                extendedData.iconColor1 = 'red';
-                                extendedData.iconSize1 = 100;
-                                extendedData.iconSmall2 = PowerSettingsNewIcon;
-                                extendedData.iconColor2 = 'green';
-                                extendedData.iconSize2 = 100;
-                            }
-                        }
-                    }),
-                );
-                changeData(data);
-            }
-        }
+    if (!fieldName) {
+        return;
     }
+    const object = data[fieldName] ? await socket.getObject(data[fieldName] as string) : undefined;
+    if (!object?.common) {
+        // Emptied or unresolvable: the switch behaves like every auxiliary ID (ADR-0096) — the
+        // shared OID handler drops its object; the rows stay, the values group asks for an OID.
+        await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
+        changeData(data);
+        return;
+    }
+
+    await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
+    seedSwitchRows(data);
+
+    const id = (data[fieldName] as string).split('.');
+    id.pop();
+    const states = await socket.getObjectView(`${id.join('.')}.`, `${id.join('.')}.\u9999`, 'state');
+
+    if (states) {
+        const extendedData = data as ExtendedWidgetData;
+
+        await Promise.all(
+            Object.values(states).map(async state => {
+                const role = state.common.role;
+                const targetField = role ? RGB_ROLES[role] : undefined;
+
+                // Checked and claimed before the first await: of two states with the same
+                // target (level.dimmer, level.brightness) the first one wins.
+                if (!targetField || !isUnset(data[targetField])) {
+                    return;
+                }
+                // Type-safe assignment to ExtendedWidgetData
+                extendedData[targetField as keyof ExtendedWidgetData] = state._id;
+
+                await oidChangeHandlerAsync(LIGHT2_OID_TYPES, targetField)(field, data, changeData, socket);
+
+                if (targetField === 'colorLightTemperatureOid') {
+                    if (!extendedData.colorLightCtMin && state.common.min) {
+                        extendedData.colorLightCtMin = state.common.min;
+                    }
+                    if (!extendedData.colorLightCtMax && state.common.max) {
+                        extendedData.colorLightCtMax = state.common.max;
+                    }
+                }
+            }),
+        );
+    }
+    changeData(data);
 };
 
 const light2Fields = (): RxWidgetInfoAttributesField[] => [
