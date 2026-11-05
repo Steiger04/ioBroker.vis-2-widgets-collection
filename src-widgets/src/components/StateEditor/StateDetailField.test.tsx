@@ -61,8 +61,28 @@ type FieldLike = RxWidgetInfoAttributesField & {
 
 type PanelProps = {
     fields: readonly FieldLike[];
+    /** The data vis-2 hands the fields: the widget's data, under multi-selection its `commonValues`. */
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
+    /** The stored widgets under multi-selection (`context.views`); one widget `w1` without it. */
+    widgets?: Record<string, WidgetData>;
+};
+
+/**
+ * vis-2's `commonValues` of several widgets (`Attributes/Widget/index.tsx` recalculateFields):
+ * the first widget's keys, every key that differs by `!==` in another widget set to `null`.
+ */
+const commonValuesOf = (widgets: Record<string, WidgetData>): WidgetData => {
+    const [first, ...others] = Object.values(widgets);
+    const common: WidgetData = { ...first };
+    for (const other of others) {
+        for (const key of Object.keys(common)) {
+            if (common[key] !== other[key]) {
+                common[key] = null;
+            }
+        }
+    }
+    return common;
 };
 
 /**
@@ -93,7 +113,7 @@ function FakeWidgetField({
 }
 
 /** The group body as vis-2 renders it (`renderGroupBody` / `renderFieldRow`). */
-function Panel({ fields, data, onDataChange }: PanelProps): React.JSX.Element {
+function Panel({ fields, data, onDataChange, widgets }: PanelProps): React.JSX.Element {
     // A fresh Editor function on every render, exactly like vis-2's WidgetField.
     const Editor = (editorProps: FakeEditorProps): React.JSX.Element => (
         <FakeWidgetField
@@ -102,20 +122,24 @@ function Panel({ fields, data, onDataChange }: PanelProps): React.JSX.Element {
             onDataChange={onDataChange}
         />
     );
+    const ids = widgets ? Object.keys(widgets) : ['w1'];
+    const views = widgets ? { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } } : {};
     const props = {
-        context: { theme: hostTheme, socket: {}, views: {}, projectName: 'main', instance: 0, adapterName: 'vis-2' },
+        context: { theme: hostTheme, socket: {}, views, projectName: 'main', instance: 0, adapterName: 'vis-2' },
         selectedView: 'v',
-        selectedWidgets: ['w1'],
-        selectedWidget: 'w1',
+        selectedWidgets: ids,
+        selectedWidget: ids[0],
         Editor,
     } as unknown as RxWidgetInfoCustomComponentProperties;
+    // vis-2 hides a field only when its rule holds for every selected widget (`checkFunction`).
+    const stored = widgets ? Object.values(widgets) : [data];
 
     return (
         <table>
             <tbody>
                 {fields.map((field, index) =>
                     typeof field.hidden === 'function' &&
-                    (field.hidden as (d: WidgetData, i?: number) => boolean)(data, undefined) ? null : (
+                    stored.every(d => (field.hidden as (d: WidgetData, i?: number) => boolean)(d, undefined)) ? null : (
                         <tr
                             key={index}
                             data-field={field.name ?? `#${index}`}
@@ -195,6 +219,22 @@ const mount = (
     const panel: PanelProps = { fields: stateEditorGroup(params).fields as FieldLike[], data, onDataChange };
     handle = renderComponent(Panel, panel);
     return { container: handle.container, onDataChange, panel };
+};
+
+/** Mounts the group with several selected widgets: the fields get vis-2's `commonValues`. */
+const mountSelected = (
+    widgets: Record<string, WidgetData>,
+    params: StateEditorParams = {},
+): { container: HTMLElement; onDataChange: ReturnType<typeof vi.fn> } => {
+    const onDataChange = vi.fn();
+    const panel: PanelProps = {
+        fields: stateEditorGroup(params).fields as FieldLike[],
+        data: commonValuesOf(widgets),
+        onDataChange,
+        widgets,
+    };
+    handle = renderComponent(Panel, panel);
+    return { container: handle.container, onDataChange };
 };
 
 /** The rows below the Kopfzeile: the detail of the selected row. */
@@ -388,6 +428,17 @@ describe('„Icon-Farbmaske" is always shown, locked by the old rule', () => {
         selectRow(container, 3);
         expect(editor(container, 'enableIconColorMask3').disabled).toBe(false);
         expect(maskRow(container).querySelector('td')?.style.opacity).toBe('');
+    });
+
+    it.each<[string, WidgetData, WidgetData, boolean]>([
+        ['both widgets have their own URL icon', { icon2: '/a.png' }, { icon2: '/b.png' }, false],
+        ['one widget has a URL icon (vis-2 hides only when all would)', { icon2: '/a.png' }, {}, false],
+        ['neither widget has a URL icon or a colour', {}, {}, true],
+    ])('under multi-selection reads the stored widgets: %s', (_case, first, second, locked) => {
+        const { container } = mountSelected({ w1: { ...THREE_ROWS, ...first }, w2: { ...THREE_ROWS, ...second } });
+        selectRow(container, 2);
+
+        expect(editor(container, 'enableIconColorMask2').disabled).toBe(locked);
     });
 
     it('locks nothing else', () => {
