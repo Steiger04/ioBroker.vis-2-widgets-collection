@@ -39,6 +39,7 @@ import { stateEditorSpec } from '../../lib/stateEditorConfig';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import StateEditorToolbar from './StateEditorToolbar';
 import { resetStateRowSelection, selectStateRow, stateRowSelectionKey } from './stateRowSelection';
+import { resetStateRowListStore } from './stateRowListStore';
 
 const hostTheme = Object.assign(createTheme(), { name: 'light' });
 
@@ -147,6 +148,7 @@ let handle: RenderComponentHandle<HostProps> | null = null;
 
 beforeEach(() => {
     resetStateRowSelection();
+    resetStateRowListStore();
 });
 
 afterEach(() => {
@@ -442,5 +444,84 @@ describe('Zustandseditor toolbar — multi-selection', () => {
             expect(tool(container, action).disabled).toBe(true);
         }
         expect(tool(container, 'clear_row').disabled).toBe(false);
+    });
+
+    const infoBoxes = (container: HTMLElement): string[] =>
+        [...container.querySelectorAll<HTMLElement>('[data-info-box]')].map(box => box.textContent ?? '');
+    const differingRows = (container: HTMLElement): string[] =>
+        [...container.querySelectorAll<HTMLElement>('[role="option"][data-state-row-differs]')].map(
+            row => row.querySelector('[data-col="nr"]')?.textContent ?? '',
+        );
+
+    it('explains the lock in an InfoBox and marks the rows that differ', () => {
+        const { container } = mount({
+            w1: { ...THREE_ROWS },
+            w2: { ...THREE_ROWS, alias3: 'Warm', bindings: [] },
+        });
+
+        expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ']);
+        expect(differingRows(container)).toEqual(['2', '3']);
+        expect(
+            container.querySelector('[role="option"][data-state-row-differs]')?.getAttribute('aria-description'),
+        ).toBe('t:state_editor_different');
+    });
+
+    it('marks the rows another widget does not have', () => {
+        const { container } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, values_count: 1 } });
+
+        expect(differingRows(container)).toEqual(['2', '3']);
+        expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ']);
+    });
+
+    it('shows neither InfoBox nor marks on identical rows, everything stays usable', () => {
+        const { container } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, header: 'Other' } });
+        selectRow(container, 2);
+
+        expect(infoBoxes(container)).toEqual([]);
+        expect(differingRows(container)).toEqual([]);
+        for (const action of ['add_row', 'clone_row', 'delete_row', 'move_row_up', 'move_row_down', 'clear_row']) {
+            expect(tool(container, action).disabled).toBe(false);
+        }
+    });
+
+    it('keeps the mark on its Feldnummer while the search filters, and locks drag and Alt+↑/↓ (Ticket 05)', () => {
+        const { container, patches } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, alias3: 'Warm' } });
+        const search = container.querySelector<HTMLInputElement>('input[aria-label="t:state_editor_search"]')!;
+        const list = container.querySelector<HTMLElement>('[role="listbox"]')!;
+
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(search, 'comf');
+            search.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        expect(differingRows(container)).toEqual(['3']);
+        expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ']);
+        expect(container.querySelector('[role="option"]')?.getAttribute('draggable')).toBe('false');
+        act(() => {
+            list.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', altKey: true, bubbles: true }));
+        });
+        expect(patches).toHaveLength(0);
+    });
+
+    it('hands the focus to the list after „Zeile leeren", the row action left under differing rows (Ticket 05)', async () => {
+        const { container, patches } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, alias3: 'Warm' } });
+        selectRow(container, 2);
+        tool(container, 'clear_row').focus();
+        click(tool(container, 'clear_row'));
+
+        click(document.querySelector<HTMLButtonElement>('[data-state-editor-confirm="ok"]')!);
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        });
+
+        expect(patches).toHaveLength(1);
+        expect(document.activeElement).toBe(container.querySelector('[role="listbox"]'));
+    });
+
+    it('shows neither InfoBox nor marks with one widget', () => {
+        const { container } = mount(THREE_ROWS);
+
+        expect(infoBoxes(container)).toEqual([]);
+        expect(differingRows(container)).toEqual([]);
     });
 });

@@ -28,6 +28,7 @@ import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { stateRowDiffers } from '../../lib/stateRows';
 import {
     clampStateRowListRows,
     filterStateRows,
@@ -40,8 +41,14 @@ import {
     storeStateRowListRows,
     useStateRowSearch,
 } from './stateRowListStore';
+import { stateRowDiffersProps, stateRowDiffersSx } from './StateDifferentMark';
 import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
-import { stateEditorSelectionKey, type StateEditorFieldProps, type StateRowSummary } from './useStateEditor';
+import {
+    selectedWidgetDatas,
+    stateEditorSelectionKey,
+    type StateEditorFieldProps,
+    type StateRowSummary,
+} from './useStateEditor';
 import { useStateRowActions } from './useStateRowActions';
 
 /**
@@ -83,6 +90,8 @@ type StateRowItemProps = {
     dragging: boolean;
     /** A dragged row would land on this side of it. */
     dropSide?: 'before' | 'after';
+    /** Multi-selection: the row differs between the selected widgets (warning right edge). */
+    differs: boolean;
 };
 
 /**
@@ -97,6 +106,7 @@ const StateRowItem = memo(function StateRowItem({
     draggable,
     dragging,
     dropSide,
+    differs,
 }: StateRowItemProps): React.JSX.Element {
     return (
         <Box
@@ -105,6 +115,7 @@ const StateRowItem = memo(function StateRowItem({
             aria-selected={selected}
             data-row={row.n}
             draggable={draggable}
+            {...stateRowDiffersProps(differs)}
             sx={{
                 display: 'grid',
                 gridTemplateColumns: '16px 24px minmax(0, 2fr) minmax(0, 3fr) 20px',
@@ -116,6 +127,7 @@ const StateRowItem = memo(function StateRowItem({
                 cursor: draggable ? 'grab' : 'pointer',
                 borderLeft: 2,
                 borderLeftColor: selected ? 'primary.main' : 'transparent',
+                ...stateRowDiffersSx(differs),
                 bgcolor: selected ? 'action.selected' : undefined,
                 opacity: dragging ? 0.4 : 1,
                 boxShadow: theme =>
@@ -270,6 +282,9 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
     const searching = isStateRowSearchActive(search);
     const { rows, selected, select, can, run } = useStateRowActions(fieldProps, { reorderLocked: searching });
     const shown = useMemo(() => filterStateRows(rows, search), [rows, search]);
+    // Multi-selection (Ticket 07): rows that differ between the selected widgets are marked —
+    // by Feldnummer, so the mark stays on its row while the search filters.
+    const datas = selectedWidgetDatas(fieldProps);
     const canMove = rows.length > 1 && can('move');
     const [visibleRows, setVisibleRows] = useState(readStateRowListRows);
     const [drag, setDrag] = useState<{ from: number; over: number } | null>(null);
@@ -402,6 +417,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
                             selected={row.n === selected}
                             draggable={canMove}
                             dragging={drag?.from === row.n}
+                            differs={stateRowDiffers(datas, row.n, fieldProps.spec.config)}
                             dropSide={
                                 drag && drag.over === row.n && drag.from !== row.n
                                     ? drag.from < row.n

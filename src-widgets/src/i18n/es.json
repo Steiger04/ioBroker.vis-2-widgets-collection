@@ -1371,6 +1371,8 @@
     "state_editor_binding_differs": "[TODO] The selected widgets bind different fields: select them one by one to change a binding.",
     "state_editor_binding_off": "[TODO] Deactivate binding and use field as standard input",
     "state_editor_binding_on": "[TODO] Use field as binding",
+    "state_editor_different": "[TODO] different",
+    "state_editor_rows_differ": "[TODO] The rows of the selected widgets differ (marked on the right). Moving, adding, cloning, deleting and recreating rows works only on identical rows — edit the widgets one by one.",
     "state_editor_no_search_results": "[TODO] No row matches the search",
     "state_editor_resize_list": "[TODO] Drag to change the list height",
     "state_editor_search": "[TODO] Search"
