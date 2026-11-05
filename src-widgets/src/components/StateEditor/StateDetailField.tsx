@@ -36,6 +36,7 @@ import { createPortal } from 'react-dom';
 
 import type { RxWidgetInfoAttributesField, RxWidgetInfoCustomComponentProperties } from '@iobroker/types-vis-2';
 import { stateRowKeyDiffers } from '../../lib/stateRows';
+import type { StateFieldDefinition } from '../../lib/stateEditorConfig';
 import StateBindingSwitch, { stateBindingTextField, useStateFieldBinding } from './StateBindingSwitch';
 import { StateDifferentMark } from './StateDifferentMark';
 import { useLabelCell } from './useLabelCell';
@@ -74,8 +75,8 @@ type IndexedPredicate = (data: Record<string, unknown>, index?: number) => boole
  * @param n The Feldnummer.
  * @returns The field of row `n` (without `hidden`, which the wrapper owns).
  */
-export const stateRowField = (definition: RxWidgetInfoAttributesField, n: number): RxWidgetInfoAttributesField => {
-    const { hidden: _hidden, ...rest } = definition as RxWidgetInfoAttributesField & { hidden?: unknown };
+export const stateRowField = (definition: StateFieldDefinition, n: number): RxWidgetInfoAttributesField => {
+    const { hidden: _hidden, ...rest } = definition;
     return { ...rest, name: `${definition.name}${n}` } as RxWidgetInfoAttributesField;
 };
 
@@ -130,7 +131,7 @@ function ImagePreview({
 /** Props of {@link StateDetailField}: the custom-field props plus the per-state definition. */
 export type StateDetailFieldProps = StateEditorFieldProps & {
     /** The per-state field definition (base name, e.g. `iconColor`). */
-    definition: RxWidgetInfoAttributesField;
+    definition: StateFieldDefinition;
 };
 
 /**
@@ -145,7 +146,7 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     const { data, props } = fieldProps;
     const Editor = vis2EditorOf(props);
     const field = useMemo(() => (selected > 0 ? stateRowField(definition, selected) : null), [definition, selected]);
-    const rule = (definition as { hidden?: unknown }).hidden;
+    const rule = definition.hidden;
     // Evaluated on every selected widget's stored data, locked only when it holds for all — as
     // vis-2 hid the row in "Value [n]" (`checkFunction`). The field data is vis-2's merged
     // `commonValues` under multi-selection, where differing keys (two URL icons) are `null`.
@@ -171,7 +172,7 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     const binding = useStateFieldBinding(fieldProps, definition, field ? (field.name as string) : null);
     // The field data on purpose: vis-2 draws the preview from the first widget unless the values
     // differ (`!isDifferent`), and the merged `commonValues` hold exactly that (`null` if they differ).
-    const image = field && (definition as { type?: string }).type === 'image' ? data[field.name as string] : undefined;
+    const image = field && definition.type === 'image' ? data[field.name as string] : undefined;
 
     return (
         <Box

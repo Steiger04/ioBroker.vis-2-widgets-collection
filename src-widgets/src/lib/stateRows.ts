@@ -17,6 +17,7 @@
  *   the patch to all of them — only where {@link stateRowOperationAllowed} says so.
  */
 import effectiveStateCount from './effectiveStateCount';
+import sameItems from './helper/sameItems';
 
 import type { AllowedType } from './allowedOidTypes';
 
@@ -246,10 +247,6 @@ const readRows = (data: WidgetData, config: StateRowsConfig, count: number): Row
         return row;
     });
 };
-
-/** Whether two name lists hold the same entries, in any order. */
-export const sameItems = (a: readonly string[], b: readonly string[]): boolean =>
-    a.length === b.length && [...a].sort().join('\n') === [...b].sort().join('\n');
 
 /**
  * Writes `rows` back for the Feldnummern `first..last` (default: up to the old or new end,

@@ -30,15 +30,31 @@ import { guardWidgetData } from './fieldFactories';
 import { stateEditorSpec } from './stateEditorConfig';
 import { stateRowCount, stateRowOidObject } from './stateRows';
 
+import type { StateEditorFieldProps } from '../components/StateEditor/useStateEditor';
 import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
+import type React from 'react';
 
 /** Group-level options of the values group. */
 export type StateEditorGroupOptions = {
     /** When the whole group is hidden (Light2: outside the button mode). */
     hidden?: RxWidgetInfoGroup['hidden'];
 };
+
+/**
+ * The custom-field `component` of a Zustandseditor field: hands `render` the widget's spec and
+ * the props vis-2 passes (data guarded, see `guardWidgetData`).
+ *
+ * @param spec The widget's Zustandseditor spec.
+ * @param render Renders the field from its {@link StateEditorFieldProps}.
+ * @returns The `component` of the field definition.
+ */
+const stateEditorComponent = (
+    spec: StateEditorSpec,
+    render: (fieldProps: StateEditorFieldProps) => React.JSX.Element,
+): ReturnType<typeof guardWidgetData<unknown, React.JSX.Element>> =>
+    guardWidgetData((_field: unknown, data, onDataChange, props) => render({ spec, data, onDataChange, props }));
 
 /**
  * Adds the "no row" rule to a per-state field's own widget-level `hidden` rule.
@@ -72,7 +88,7 @@ const stateDetailFields = (
     noRows: (data: WidgetData) => boolean,
 ): RxWidgetInfoAttributesField[] =>
     spec.perStateFields.map(definition => {
-        const hidden = (definition as { hidden?: unknown }).hidden;
+        const { hidden, label, tooltip } = definition;
         if (!definition.name) {
             // A section divider: unchanged, only gone without a row.
             return { ...definition, hidden: unlessRows(noRows, hidden) } as RxWidgetInfoAttributesField;
@@ -80,21 +96,17 @@ const stateDetailFields = (
         // A rule reading the Feldnummer locks the field instead (StateDetailField); only rules on
         // widget level hide the row — vis-2 passes no index outside an indexed group, so for
         // `enableIconColorMask` the rule yields "visible".
-        const tooltip = (definition as { tooltip?: string }).tooltip;
         return {
             name: `stateEditor:${definition.name}`,
             type: 'custom',
-            label: (definition as { label?: string }).label ?? '',
+            label: label ?? '',
             ...(tooltip === undefined ? {} : { tooltip }),
             noBinding: true,
             hidden: unlessRows(noRows, hidden),
-            component: guardWidgetData((_field, data, onDataChange, props) => (
+            component: stateEditorComponent(spec, fieldProps => (
                 <StateDetailField
-                    spec={spec}
+                    {...fieldProps}
                     definition={definition}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
                 />
             )),
         } as RxWidgetInfoAttributesField;
@@ -123,14 +135,7 @@ export const stateEditorGroup = (
             label: 'state_editor_rows',
             noBinding: true,
             default: 0,
-            component: guardWidgetData((_field, data, onDataChange, props) => (
-                <StateEditorRowsField
-                    spec={spec}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            )),
+            component: stateEditorComponent(spec, fieldProps => <StateEditorRowsField {...fieldProps} />),
         },
         {
             name: 'stateEditor:list',
@@ -138,14 +143,7 @@ export const stateEditorGroup = (
             label: '',
             noBinding: true,
             hidden: noOidObject,
-            component: guardWidgetData((_field, data, onDataChange, props) => (
-                <StateRowList
-                    spec={spec}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            )),
+            component: stateEditorComponent(spec, fieldProps => <StateRowList {...fieldProps} />),
         },
         {
             name: 'stateEditor:selectedRow',
@@ -153,14 +151,7 @@ export const stateEditorGroup = (
             label: 'state_editor_selected_row',
             noBinding: true,
             hidden: noRows,
-            component: guardWidgetData((_field, data, onDataChange, props) => (
-                <SelectedStateRow
-                    spec={spec}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            )),
+            component: stateEditorComponent(spec, fieldProps => <SelectedStateRow {...fieldProps} />),
         },
         ...stateDetailFields(spec, noRows),
     ];

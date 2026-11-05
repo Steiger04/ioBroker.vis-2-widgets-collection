@@ -25,10 +25,21 @@ export type StateEditorParams = {
     fixedRows?: boolean;
 };
 
+/**
+ * A per-state field definition with the optional keys the Zustandseditor reads — `type`,
+ * `label`, `tooltip`, `hidden` are not declared on every member of vis-2's field union.
+ */
+export type StateFieldDefinition = RxWidgetInfoAttributesField & {
+    type?: string;
+    label?: string;
+    tooltip?: string;
+    hidden?: unknown;
+};
+
 /** A widget's Zustandseditor, resolved from its {@link StateEditorParams}. */
 export type StateEditorSpec = {
     /** The per-state field definitions the rows are edited with (dividers included). */
-    perStateFields: readonly RxWidgetInfoAttributesField[];
+    perStateFields: readonly StateFieldDefinition[];
     /** Row schema and OID property for the Zustandszeilen-Operationen. */
     config: StateRowsConfig;
 };
@@ -53,7 +64,7 @@ export const stateEditorSpec = (params: StateEditorParams = {}): StateEditorSpec
     });
 
     return {
-        perStateFields,
+        perStateFields: perStateFields as StateFieldDefinition[],
         config: {
             schema: stateRowSchema(perStateFields),
             oidProperty: resolved.oidProperty,

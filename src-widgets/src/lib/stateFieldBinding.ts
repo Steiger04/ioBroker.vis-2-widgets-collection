@@ -16,7 +16,7 @@
  * while every selected widget holds the same bindings, otherwise one widget would lose or gain
  * bindings of other fields.
  */
-import { sameItems } from './stateRows';
+import sameItems from './helper/sameItems';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 

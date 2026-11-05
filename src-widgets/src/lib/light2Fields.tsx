@@ -134,15 +134,14 @@ const loadStatesAsync = async (
         return;
     }
     const object = data[fieldName] ? await socket.getObject(data[fieldName] as string) : undefined;
+    await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
     if (!object?.common) {
         // Emptied or unresolvable: the switch behaves like every auxiliary ID (ADR-0096) — the
-        // shared OID handler drops its object; the rows stay, the values group asks for an OID.
-        await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
+        // shared OID handler dropped its object; the rows stay, the values group asks for an OID.
         changeData(data);
         return;
     }
 
-    await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
     seedSwitchRows(data);
 
     const id = (data[fieldName] as string).split('.');
