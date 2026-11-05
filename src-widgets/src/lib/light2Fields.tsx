@@ -67,13 +67,12 @@ const SWITCH_ROW_LOOK = { iconSmall: PowerSettingsNewIcon, iconSize: 100 };
  * icon. The widget icon is hidden (`iconSize` 0) only when the rows are seeded from none.
  */
 const seedSwitchRows = (data: WidgetData): void => {
-    const before = stateRowCount(data, SWITCH_ROWS);
-    // The source is always TRUE/FALSE: judged as a boolean OID without common.states.
-    const patch = applyStateRowOperation(
-        { ...data, colorLightSwitchOidObject: { type: 'boolean' } },
-        { kind: 'supplement' },
-        SWITCH_ROWS,
-    );
+    // The source is always TRUE/FALSE: judged as a boolean OID without common.states. The rows
+    // before are counted on the same judged data — counted on the stored switch object, its
+    // common.states would stand in for the rows of a widget that has none yet.
+    const judged = { ...data, colorLightSwitchOidObject: { type: 'boolean' } };
+    const before = stateRowCount(judged, SWITCH_ROWS);
+    const patch = applyStateRowOperation(judged, { kind: 'supplement' }, SWITCH_ROWS);
     Object.entries(patch ?? {}).forEach(([key, value]) => {
         if (value === null) {
             delete data[key];

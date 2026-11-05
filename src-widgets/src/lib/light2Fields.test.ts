@@ -135,6 +135,21 @@ describe('Light2 switch-OID pick — the two rows of the button mode', () => {
         ]);
         expect(repicked.iconSize).toBe(50);
     });
+
+    it('seeds both rows with the power icon when the switch declares common.states', async () => {
+        const statedSwitch = {
+            ...SWITCH_OBJECT,
+            common: { ...SWITCH_OBJECT.common, states: { true: 'An', false: 'Aus' } },
+        };
+
+        const picked = await pickSwitch({ colorLightButton: true }, socketWith([statedSwitch]));
+
+        expect(picked.values_count).toBe(2);
+        expect([picked.value1, picked.iconColor1, picked.iconSize1]).toEqual([true, 'red', 100]);
+        expect([picked.value2, picked.iconColor2, picked.iconSize2]).toEqual([false, 'green', 100]);
+        expect(picked.iconSmall1).toMatch(/^data:image\/svg\+xml/);
+        expect(picked.iconSize).toBe(0);
+    });
 });
 
 describe('Light2 switch-OID pick — the channel states it detects', () => {
