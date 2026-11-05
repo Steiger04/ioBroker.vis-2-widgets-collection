@@ -38,7 +38,8 @@ import type {
 } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
-import { resetStateRowSelection } from './stateRowSelection';
+import { resetStateRowListStore, setStateRowSearch } from './stateRowListStore';
+import { resetStateRowSelection, stateRowSelectionKey } from './stateRowSelection';
 
 const hostTheme = Object.assign(createTheme(), { name: 'light' });
 
@@ -132,6 +133,7 @@ let handle: RenderComponentHandle<PanelProps> | null = null;
 
 beforeEach(() => {
     resetStateRowSelection();
+    resetStateRowListStore();
 });
 
 afterEach(() => {
@@ -234,6 +236,23 @@ describe('Zustandseditor selection — a row switch writes no project data', () 
         click(previous);
         expect(header(container).textContent).toContain('2 / 3');
         expect(rowText(selectedRow(container) as HTMLElement)[2]).toBe('Eco');
+        expect(onDataChange).not.toHaveBeenCalled();
+    });
+
+    it('‹ › page only through the rows an active search keeps, so the selection stays in the list', () => {
+        // "f" keeps Off (1) and Comfort (3), not Eco (2) — Spec story 10.
+        setStateRowSearch(stateRowSelectionKey('v', ['w1']), 'f');
+        const { container, onDataChange } = mount(THREE_ROWS);
+        const previous = button(container, 't:state_editor_previous_row');
+        const next = button(container, 't:state_editor_next_row');
+
+        click(next);
+        expect(header(container).textContent).toContain('3 / 3');
+        expect(rowText(selectedRow(container) as HTMLElement)[2]).toBe('Comfort');
+        expect(next.disabled).toBe(true);
+        click(previous);
+        expect(header(container).textContent).toContain('1 / 3');
+        expect(previous.disabled).toBe(true);
         expect(onDataChange).not.toHaveBeenCalled();
     });
 

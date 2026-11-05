@@ -74,6 +74,23 @@ export const filterStateRows = <R extends { n: number; value: string; alias: str
 };
 
 /**
+ * The row before or after the selected one among the rows a search keeps — what ↑/↓ in the
+ * list and ‹ › in the Gewählte Zeile row step to, so the selection never leaves the list
+ * (Spec story 10).
+ *
+ * @param shown The rows the search keeps, in Feldnummer order.
+ * @param selected The selected Feldnummer (it need not be among `shown`).
+ * @param direction `-1` for the previous row, `1` for the next.
+ * @returns The neighbouring Feldnummer, or `undefined` at the end of the kept rows.
+ */
+export const neighbourStateRow = (
+    shown: readonly { n: number }[],
+    selected: number,
+    direction: -1 | 1,
+): number | undefined =>
+    (direction < 0 ? shown.findLast(row => row.n < selected) : shown.find(row => row.n > selected))?.n;
+
+/**
  * Registers the list element of a key; a focus requested before it existed is handed over.
  *
  * @param key See `stateRowSelectionKey`.

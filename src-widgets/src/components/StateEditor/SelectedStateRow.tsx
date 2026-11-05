@@ -6,15 +6,19 @@
  * @remarks
  * A native attribute row (label "Selected row") above the detail fields (Ticket 03), so the user
  * knows which row they edit even with the list scrolled away, and pages through 50–200 rows
- * without scrolling up. Paging changes only the shared selection — no `onDataChange`. The ‹ ›
- * icons keep their default 24 px, like vis-2's group-head icons (Spec, appearance).
+ * without scrolling up. Paging changes only the shared selection — no `onDataChange` — and,
+ * like ↑/↓ in the list, steps only through the rows an active search keeps, so the selection
+ * stays visible in the list (Spec story 10). The ‹ › icons keep their default 24 px, like
+ * vis-2's group-head icons (Spec, appearance).
  */
 import { Box, IconButton } from '@mui/material';
 import PreviousIcon from '@mui/icons-material/ChevronLeft';
 import NextIcon from '@mui/icons-material/ChevronRight';
+import { useMemo } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import { filterStateRows, neighbourStateRow, useStateRowSearch } from './stateRowListStore';
 import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
 import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
@@ -25,7 +29,11 @@ import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
  * @returns The paging row.
  */
 function SelectedStateRow(fieldProps: StateEditorFieldProps): React.JSX.Element {
-    const { rows, selected, select } = useStateEditor(fieldProps);
+    const { rows, selected, select, selectionKey } = useStateEditor(fieldProps);
+    const [search] = useStateRowSearch(selectionKey);
+    const shown = useMemo(() => filterStateRows(rows, search), [rows, search]);
+    const previous = neighbourStateRow(shown, selected, -1);
+    const next = neighbourStateRow(shown, selected, 1);
     const row = rows[selected - 1];
     const previousLabel = Generic.t('state_editor_previous_row');
     const nextLabel = Generic.t('state_editor_next_row');
@@ -40,8 +48,8 @@ function SelectedStateRow(fieldProps: StateEditorFieldProps): React.JSX.Element 
                     size="small"
                     aria-label={previousLabel}
                     title={previousLabel}
-                    disabled={selected <= 1}
-                    onClick={() => select(selected - 1)}
+                    disabled={previous === undefined}
+                    onClick={() => previous !== undefined && select(previous)}
                     sx={{ p: 0.25 }}
                 >
                     <PreviousIcon />
@@ -56,8 +64,8 @@ function SelectedStateRow(fieldProps: StateEditorFieldProps): React.JSX.Element 
                     size="small"
                     aria-label={nextLabel}
                     title={nextLabel}
-                    disabled={selected >= rows.length}
-                    onClick={() => select(selected + 1)}
+                    disabled={next === undefined}
+                    onClick={() => next !== undefined && select(next)}
                     sx={{ p: 0.25 }}
                 >
                     <NextIcon />

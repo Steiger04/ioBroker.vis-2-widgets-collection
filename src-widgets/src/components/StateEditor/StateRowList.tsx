@@ -35,6 +35,7 @@ import {
     filterStateRows,
     focusStateRowList,
     isStateRowSearchActive,
+    neighbourStateRow,
     readStateRowListRows,
     registerStateRowList,
     STATE_ROW_LIST_MAX_ROWS,
@@ -327,9 +328,9 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
             }
             return;
         }
-        const next = up ? shown.findLast(row => row.n < selected) : shown.find(row => row.n > selected);
+        const next = neighbourStateRow(shown, selected, up ? -1 : 1);
         if (next) {
-            select(next.n);
+            select(next);
         }
     };
 
