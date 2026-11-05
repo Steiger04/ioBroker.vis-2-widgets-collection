@@ -52,13 +52,7 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import {
-    datumValueSlot,
-    effectiveCartesianType,
-    effectiveStackName,
-    isPercentStackedBar,
-    normalizeStackMode,
-} from '../stackMode';
+import { effectiveCartesianType, isPercentStackedBar, normalizeStackMode, resolveStackPlan, sums } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 
@@ -838,40 +832,38 @@ export const buildCartesianOption = (
         e.yAxisIndex = plan.emittedOf[i];
     });
 
-    // Balken-Stapelmodus (ADR-0084): bars resolve their stack HERE — after the axis remap, so
-    // the coupled name carries the EMITTED axis index (decision 3: a stack can never span
-    // foreign scales, not even with explicit groups; the name is builder-internal, never
-    // persisted). Stamped AFTER the raw fold: the GUI-authored resolution wins a raw `stack`
-    // collision; where the mode resolves NO stack (opted out, or mode off) a raw-authored stack
-    // stays effective — the escape hatch keeps its key.
+    // Balken-Stapelmodus (ADR-0084): the stack plan (ADR-0103 K2) — the SAME membership the
+    // value chain's shares read — resolves every bar's stack on its EMITTED axis (decision 3: a
+    // stack can never span foreign scales, not even with explicit groups; the name is
+    // builder-internal, never persisted). Resolved AFTER the raw fold: a raw `type` counts, the
+    // GUI-authored resolution wins a raw `stack` collision; where the mode resolves NO stack
+    // (opted out, or mode off) a raw-authored stack stays effective — the escape hatch keeps
+    // its key (and its sum anchor).
     const stackMode = normalizeStackMode(p.stackMode);
+    const stackPlan = resolveStackPlan({
+        series: entries.map((e, i) => ({ type: e.type, stack: meta[i]?.stack, authored: e.stack })),
+        names: entries.map(e => e.name as string),
+        mode: stackMode,
+        axes: plan,
+    });
     // Percent surfaces (decision 4): which names/axes render SHARES — the pipeline already
-    // normalized their data (same resolver, ADR-0084 one-truth); everything formatting a value
-    // of these series switches to the percent display.
+    // normalized their data (same plan, ADR-0084 one-truth); everything formatting a value of
+    // these series switches to the percent display.
     const percentNames = new Set<string>();
-    const percentAxes = new Set<number>();
+    const percentAxes = stackPlan.percentAxes;
     entries.forEach((e, i) => {
-        if (e.type !== 'bar') {
-            return;
-        }
-        const stack = effectiveStackName(meta[i]?.stack, stackMode, e.yAxisIndex as number);
+        const stack = stackPlan.stackOf[i];
         if (stack) {
             e.stack = stack;
-            if (stackMode === 'percent') {
-                percentNames.add(e.name as string);
-                // Only an axis the bar truly binds: a deselected bar whose axis rests is parked
-                // on emitted 0 and must not turn that axis into a share scale.
-                const bound = plan.bindsEmitted[i];
-                if (bound !== undefined) {
-                    percentAxes.add(bound);
-                }
-                // The segment label shows the SHARE — the Wert-Formatter's value display is
-                // replaced (a share's unit would lie; facts like bool texts never apply to a
-                // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
-                const label = e.label as Record<string, unknown> | undefined;
-                if (label) {
-                    label.formatter = (v: unknown): string => formatPercentValue(v, p.decimalComma);
-                }
+        }
+        if (stackPlan.percent[i]) {
+            percentNames.add(e.name as string);
+            // The segment label shows the SHARE — the Wert-Formatter's value display is
+            // replaced (a share's unit would lie; facts like bool texts never apply to a
+            // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
+            const label = e.label as Record<string, unknown> | undefined;
+            if (label) {
+                label.formatter = (v: unknown): string => formatPercentValue(v, p.decimalComma);
             }
         }
     });
@@ -1034,50 +1026,18 @@ export const buildCartesianOption = (
     // exclusion mechanism) and the tooltip's exclude filter drops its rows.
     const anchors: Record<string, unknown>[] = [];
     if (stackMode === 'stack' && p.stackSum) {
-        const byStack = new Map<string, number[]>();
-        entries.forEach((e, i) => {
-            if (e.type !== 'bar' || typeof e.stack !== 'string' || !plan.active[i]) {
-                return;
-            }
-            const list = byStack.get(e.stack);
-            if (list) {
-                list.push(i);
-            } else {
-                byStack.set(e.stack, [i]);
-            }
-        });
-        // The value slot of one datum (points `[ts, v]` and plain buckets alike); null = no
-        // contribution (a gap never counts as 0 — the adapter's own rule). datumValueSlot is
-        // the SHARED extractor — the percent normalizer reads the same slots.
-        for (const [stackName, members] of byStack) {
+        // The plan's sums: the visible members' values per category (a gap never counts as 0 —
+        // the adapter's own rule; the shares read the same value slots).
+        for (const {
+            stack: { key: stackName, axis: axisIdx, members },
+            sums: stackSums,
+            ts: tss,
+            pointShaped,
+        } of sums(stackPlan, series)) {
             if (members.length < 2) {
                 continue; // a one-series stack would only repeat the value its bar already shows
             }
-            const axisIdx = entries[members[0]].yAxisIndex as number;
-            const length = members.reduce((max, i) => Math.max(max, series[i]?.data.length ?? 0), 0);
-            const sums: (number | null)[] = [];
-            const tss: (number | null)[] = [];
-            let pointShaped = false;
-            for (let c = 0; c < length; c++) {
-                let sum: number | null = null;
-                let ts: number | null = null;
-                for (const i of members) {
-                    const d = series[i]?.data[c];
-                    if (Array.isArray(d)) {
-                        pointShaped = true;
-                        if (ts === null && typeof d[0] === 'number') {
-                            ts = d[0]; // the time path's anchor point rides the first member's ts
-                        }
-                    }
-                    const v = datumValueSlot(d);
-                    if (v !== null) {
-                        sum = (sum ?? 0) + v;
-                    }
-                }
-                sums.push(sum);
-                tss.push(ts);
-            }
-            const anchorData = sums.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
+            const anchorData = stackSums.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
             // Label size/shift follow the TOPMOST member (its own top label would collide —
             // the adapter's `topover` shift moves the sum one line up out of the way).
             const topMeta = meta[members[members.length - 1]];
@@ -1109,7 +1069,7 @@ export const buildCartesianOption = (
                     position: 'top',
                     ...(topLabelAtTop ? { offset: [0, -(fontSize + 2)] } : {}),
                     formatter: (params: { dataIndex: number }): string => {
-                        const sum = sums[params.dataIndex];
+                        const sum = stackSums[params.dataIndex];
                         return sum === null ? '' : formatSeriesValue(sum, facts, chartFmt);
                     },
                     fontSize,

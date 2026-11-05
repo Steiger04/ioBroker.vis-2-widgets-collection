@@ -14,7 +14,8 @@
  *     diff (ADR-0072), then the window transforms on the BUCKETS; every other path runs the
  *     window transforms (smoothing, cumulative — ticket 04's final stone) on its own data;
  *  2. the table categories (ADR-0075) — string row labels, kept apart from the bucket grid;
- *  3. the Balken-Stapelmodus 100 % normalization (ADR-0084 decision 4) over the final values;
+ *  3. the Balken-Stapelmodus 100 % normalization (ADR-0084 decision 4) over the final values —
+ *     the stack plan's shares (ADR-0103 K2), the same membership the builder stamps;
  *  4. the tabular pie rings (ADR-0075 decision 5): windowed values become row slices;
  *  5. the legend values (ADR-0054) — computed exactly ONCE, at the end, over the final series
  *     (the pie rings: over the windowed series before the slice split). One value, one truth:
@@ -30,12 +31,11 @@ import type {
     EchartsSeriesMeta,
     EchartsStackMode,
 } from '../types/field-definitions/echarts-fields';
-import { legendActiveOf } from './presentation';
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
-import { datumValueSlot, effectiveCartesianType, effectiveStackName } from './stackMode';
-import { clampAxisIndex } from './axisResolution';
+import { effectiveCartesianType, resolveStackPlan, shares } from './stackMode';
+import { resolveAxisPlan } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
 export type ValueChainMeta = EchartsSeriesMeta | undefined;
@@ -198,16 +198,12 @@ const bucketStage = (
 };
 
 /**
- * Balken-Stapelmodus 100 % (ADR-0084 decision 4), after every transform. Each effective stack
- * group (the SHARED stackMode resolver — same names the builder stamps) normalizes per
- * category: share = value / group sum, sum ≤ 0 → 0 (the example's defensive formula — negative
- * totals are the documented fragility, the InfoBox says it), gaps stay gaps. The ABSOLUTE
- * values ride `percentAbsolute` for the tooltip (share AND absolute). Every cartesian data mode
- * (addendum 3): per data INDEX, the same alignment echarts stacks by (table rows, payload
- * points, Verlauf buckets). Opted-out ('none') and non-bar series keep their absolute values;
- * a lone group in percent mode is always 100 %. Like the sum anchor (addendum 1 item 3), the
- * denominator counts the VISIBLE stack only — deselected members leave it (Legenden-Folge
- * honesty; the assembly re-runs on every legend click, so a re-selected member renormalizes).
+ * Balken-Stapelmodus 100 % (ADR-0084 decision 4), after every transform — the stack plan's
+ * {@link shares} stage (ADR-0103 K2). The plan reads the SAME membership the builder stamps:
+ * bars that resolve a stack, on the emitted axis of the axis plan; like the sum anchor (addendum
+ * 1 item 3) the denominator counts the VISIBLE members only — deselected members leave it
+ * (Legenden-Folge honesty; the assembly re-runs on every legend click, so a re-selected member
+ * renormalizes). The ABSOLUTE values ride `percentAbsolute` for the tooltip.
  */
 const percentStage = (
     series: readonly ChartSeries[],
@@ -215,61 +211,23 @@ const percentStage = (
     stack: ValueChainStack,
     selection: Record<string, boolean> | undefined,
 ): { series: ChartSeries[]; absolutes?: Record<string, (number | null)[]> } => {
-    const out = [...series];
-    const groups = new Map<string, number[]>();
-    meta.forEach((m, i) => {
-        if (effectiveCartesianType(m?.type, stack.defaultType) !== 'bar') {
-            return;
-        }
-        const name = out[i]?.name;
-        const active = typeof name === 'string' ? legendActiveOf(selection, name, m?.legendOnly === true) : true;
-        if (!active) {
-            return; // invisible — keeps its absolute data, contributes to no denominator
-        }
-        const stackName = effectiveStackName(m?.stack, 'percent', clampAxisIndex(m?.yAxisIndex, stack.axisCount));
-        if (!stackName) {
-            return; // opted out — absolute values stay
-        }
-        const list = groups.get(stackName);
-        if (list) {
-            list.push(i);
-        } else {
-            groups.set(stackName, [i]);
-        }
+    const names = series.map(s => s.name);
+    // Only the bindings, the active flags and the remap matter here — the axis configs (owner,
+    // geometry) are the builder's; `axisCount` placeholders resolve the same emitted indices.
+    const axes = resolveAxisPlan({
+        axes: Array.from({ length: stack.axisCount }, () => ({})),
+        entries: meta.map((m, i) => ({ yAxisIndex: m?.yAxisIndex, name: names[i] })),
+        meta,
+        series,
+        selection,
     });
-    const absolutes: Record<string, (number | null)[]> = {};
-    for (const members of groups.values()) {
-        const length = members.reduce((max, i) => Math.max(max, out[i]?.data.length ?? 0), 0);
-        const sums: number[] = [];
-        for (let c = 0; c < length; c++) {
-            let sum: number | null = null;
-            for (const i of members) {
-                const v = datumValueSlot(out[i]?.data[c]);
-                if (v !== null) {
-                    sum = (sum ?? 0) + v;
-                }
-            }
-            sums.push(sum ?? 0);
-        }
-        for (const i of members) {
-            const s = out[i];
-            absolutes[s.name] = s.data.map(d => datumValueSlot(d));
-            // Narrowed from the ChartSeries union: a series' data is homogeneous by
-            // construction (points OR plain values — the map preserves whichever it finds).
-            out[i] = {
-                name: s.name,
-                data: s.data.map((d, c): SeriesPoint | number | null => {
-                    const share = datumValueSlot(d);
-                    if (share === null) {
-                        return Array.isArray(d) ? [d[0], null] : null; // a gap stays a gap — never a 0 % lie
-                    }
-                    const value = sums[c] > 0 ? share / sums[c] : 0; // sum ≤ 0 → 0 (defensive)
-                    return Array.isArray(d) ? [d[0], value] : value;
-                }) as SeriesPoint[] | (number | null)[],
-            };
-        }
-    }
-    return Object.keys(absolutes).length ? { series: out, absolutes } : { series: out };
+    const plan = resolveStackPlan({
+        series: meta.map(m => ({ type: effectiveCartesianType(m?.type, stack.defaultType), stack: m?.stack })),
+        names,
+        mode: 'percent',
+        axes,
+    });
+    return shares(plan, series);
 };
 
 /**
