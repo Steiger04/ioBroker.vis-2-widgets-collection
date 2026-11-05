@@ -198,6 +198,31 @@ describe('SeriesDataFields — Erben-Override UI (ADR-0072)', () => {
     });
 });
 
+describe('SeriesDataFields — the NULL select names the runtime value (ADR-0072 Erben-Override)', () => {
+    // The shared dictionary has no `%s` in the null inherit text — key-echo stub, local to these
+    // tests, so the NAMED target is visible.
+    const host = (window as unknown as { visRxWidget: { t: (key: string, ...args: string[]) => string } }).visRxWidget;
+    const nullSelect = (chartNullMode: unknown): string | undefined => {
+        const t = vi.spyOn(host, 't').mockImplementation((key, ...args) => (args.length ? `${key}(${args[0]})` : key));
+        try {
+            const h = mount({ chartNullMode: chartNullMode as DataProps['chartNullMode'] });
+            return combos(h.container).find(c => c.startsWith('echarts_series_null_inherit'));
+        } finally {
+            t.mockRestore();
+        }
+    };
+
+    it('the inherit entry names the chart setting the fill uses', () => {
+        expect(nullSelect('forward')).toBe('echarts_series_null_inherit(echarts_ignore_null_forward)');
+        expect(nullSelect('zero')).toBe('echarts_series_null_inherit(echarts_ignore_null_zero)');
+        expect(nullSelect(undefined)).toBe('echarts_series_null_inherit(echarts_ignore_null_keep)');
+    });
+
+    it("a non-canonical persisted chart setting is named as 'keep' — what the fill does with it", () => {
+        expect(nullSelect('true')).toBe('echarts_series_null_inherit(echarts_ignore_null_keep)');
+    });
+});
+
 describe('xOffsetMode (pure)', () => {
     it('numbers and unset are the seconds form; calendar keys select themselves', () => {
         expect(xOffsetMode(undefined)).toBe('sec');
