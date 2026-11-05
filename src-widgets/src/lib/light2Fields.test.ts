@@ -145,6 +145,7 @@ describe('Light2 switch-OID pick — the two rows of the button mode', () => {
         const picked = await pickSwitch({ colorLightButton: true }, socketWith([statedSwitch]));
 
         expect(picked.values_count).toBe(2);
+        expect([picked.alias1, picked.alias2]).toEqual(['An', 'Aus']);
         expect([picked.value1, picked.iconColor1, picked.iconSize1]).toEqual([true, 'red', 100]);
         expect([picked.value2, picked.iconColor2, picked.iconSize2]).toEqual([false, 'green', 100]);
         expect(picked.iconSmall1).toMatch(/^data:image\/svg\+xml/);

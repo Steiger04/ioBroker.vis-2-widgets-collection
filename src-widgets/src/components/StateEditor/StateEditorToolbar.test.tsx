@@ -366,7 +366,8 @@ describe('Zustandseditor toolbar — what a widget refuses', () => {
     it('a widget with fixed rows refuses add, clone and delete whatever its OID type', () => {
         const { container } = mount(OWN_ROWS, { params: { fixedRows: true } });
 
-        expect(enabled(container)).toEqual(['move_row_down', 'clear_row']);
+        // „neu anlegen" yields true/false whatever the OID declares, so it is always offered.
+        expect(enabled(container)).toEqual(['move_row_down', 'clear_row', 'recreate_rows']);
     });
 
     it('„neu anlegen" is off while the OID has no common.states; own rows can be added', () => {

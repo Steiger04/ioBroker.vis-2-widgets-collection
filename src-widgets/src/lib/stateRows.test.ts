@@ -435,6 +435,55 @@ describe('recreate — aus common.states neu anlegen', () => {
     });
 });
 
+describe('fixed rows — recreate and supplement yield exactly the rows true and false', () => {
+    const LIGHT2: StateRowsConfig = { ...CONFIG, oidProperty: 'colorLightSwitchOid', fixedRows: true };
+    /** Light2 on a number switch that declares states of its own. */
+    const NUMBER_SWITCH = {
+        colorLightSwitchOidObject: { type: 'number', commonStates: { 0: 'Off', 1: 'On', 2: 'Blink' } },
+        ignoreCommonStates: false,
+        values_count: 0,
+    };
+
+    it('recreates true/false, never the states of a non-boolean switch', () => {
+        expect(rowsOf(after(NUMBER_SWITCH, { kind: 'recreate' }, LIGHT2))).toEqual([
+            [true, 'TRUE', ''],
+            [false, 'FALSE', ''],
+        ]);
+    });
+
+    it('supplements only true/false', () => {
+        const half = { ...NUMBER_SWITCH, values_count: 1, value1: false, alias1: 'Aus' };
+
+        expect(rowsOf(after(half, { kind: 'supplement' }, LIGHT2))).toEqual([
+            [false, 'Aus', undefined],
+            [true, 'TRUE', ''],
+        ]);
+    });
+
+    it('takes the alias from common.states[true|false] where the OID declares it', () => {
+        const partial = { ...NUMBER_SWITCH, colorLightSwitchOidObject: { type: 'boolean', commonStates: { true: 'An' } } };
+
+        expect(rowsOf(after(partial, { kind: 'recreate' }, LIGHT2))).toEqual([
+            [true, 'An', ''],
+            [false, 'FALSE', ''],
+        ]);
+    });
+
+    it('keeps the order of common.states when it declares both', () => {
+        const checkbox = { oidObject: { type: 'boolean', commonStates: { false: 'Zu', true: 'Offen' } } };
+
+        expect(rowsOf(after(checkbox, { kind: 'recreate' }, { ...CONFIG, fixedRows: true }))).toEqual([
+            [false, 'Zu', ''],
+            [true, 'Offen', ''],
+        ]);
+    });
+
+    it('offers recreate as soon as the OID object exists, whatever its common.states', () => {
+        expect(stateRowOperationAllowed('recreate', [NUMBER_SWITCH], LIGHT2)).toBe(true);
+        expect(stateRowOperationAllowed('recreate', [{ values_count: 0 }], LIGHT2)).toBe(false);
+    });
+});
+
 describe('supplement — aus common.states ergänzen (re-picking the OID)', () => {
     it('appends the missing states; the existing rows keep order, alias and styles', () => {
         const edited = { ...THREE_ROWS, values_count: 2, value1: 2, alias1: 'Warm', value2: 0, alias2: 'Aus' };

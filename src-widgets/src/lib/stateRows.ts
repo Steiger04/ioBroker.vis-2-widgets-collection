@@ -155,25 +155,43 @@ export const convertValueByType = (value: string, type: AllowedType): boolean | 
     }
 };
 
+/** The states of fixed rows: always exactly these two, whatever the OID declares. */
+const FIXED_ROW_STATES: readonly string[] = ['true', 'false'];
+
 /**
- * The states rows are made from: the OID's `common.states`; a boolean OID without them gets
- * TRUE/FALSE, as the OID picks seed it (`commonObjectFields`, Light2's switch OID).
+ * The states rows are made from, as `[state key, alias]`, and the value type of their keys.
+ *
+ * - Fixed rows (a boolean OID, or a widget declaring fixed rows — Checkbox, Switch, Template,
+ *   Light2's switch rows): always exactly `true` and `false`, as booleans; the alias from
+ *   `common.states[true|false]` where the OID declares it, else TRUE/FALSE; in the order of
+ *   `common.states` where it declares both, else `true` first. The other states of a
+ *   non-boolean switch never become rows (Spec Further Notes, ADR-0104 Nachtrag Review).
+ * - Otherwise: the OID's `common.states` in their order.
+ * - No states without an OID object.
  */
-const sourceStates = (oidObject: StoredOidObject): [string, unknown][] => {
-    const states = Object.entries(oidObject?.commonStates || {});
-    if (states.length === 0 && oidObject?.type === 'boolean') {
-        return [
-            ['true', 'TRUE'],
-            ['false', 'FALSE'],
-        ];
+const sourceStates = (data: WidgetData, config: StateRowsConfig): { states: [string, unknown][]; type: AllowedType } => {
+    const oidObject = oidObjectOf(data, config);
+    const declared = oidObject?.commonStates || {};
+    if (!oidObject) {
+        return { states: [], type: 'mixed' };
     }
-    return states;
+    if (!hasFixedRows(data, config)) {
+        return { states: Object.entries(declared), type: oidObject.type as AllowedType };
+    }
+    const order = Object.keys(declared);
+    const rank = (key: string): number => (order.includes(key) ? order.indexOf(key) : order.length);
+    return {
+        states: [...FIXED_ROW_STATES]
+            .sort((a, b) => rank(a) - rank(b))
+            .map(key => [key, declared[key] ?? key.toUpperCase()]),
+        type: 'boolean',
+    };
 };
 
-const stateRow = (config: StateRowsConfig, oidObject: StoredOidObject, [key, label]: [string, unknown]): Row => ({
+const stateRow = (config: StateRowsConfig, type: AllowedType, [key, label]: [string, unknown]): Row => ({
     values: {
         ...config.schema.defaults,
-        value: convertValueByType(key, oidObject?.type as AllowedType),
+        value: convertValueByType(key, type),
         alias: String(label),
     },
     bound: new Set(),
@@ -260,7 +278,6 @@ export const applyStateRowOperation = (
     op: StateRowOperation,
     config: StateRowsConfig,
 ): StateRowPatch | null => {
-    const oidObject = oidObjectOf(data, config);
     if (FIXED_ROW_KINDS.includes(op.kind) && hasFixedRows(data, config)) {
         return null;
     }
@@ -309,14 +326,14 @@ export const applyStateRowOperation = (
             return rewriteRows(data, config, rows, op.row, op.row, STATE_KEYS);
         }
         case 'recreate': {
-            const states = sourceStates(oidObject);
+            const { states, type } = sourceStates(data, config);
             if (states.length === 0) {
                 return null;
             }
             return rewriteRows(
                 data,
                 config,
-                states.map(state => stateRow(config, oidObject, state)),
+                states.map(state => stateRow(config, type, state)),
                 1,
             );
         }
@@ -324,8 +341,9 @@ export const applyStateRowOperation = (
             // A row carries a state when its value's string form is the state key — the
             // match the runtime makes (useData).
             const carried = new Set(rows.map(row => String(row.values.value)));
-            const missing = sourceStates(oidObject).filter(([key]) => !carried.has(key));
-            rows.push(...missing.map(state => stateRow(config, oidObject, state)));
+            const { states, type } = sourceStates(data, config);
+            const missing = states.filter(([key]) => !carried.has(key));
+            rows.push(...missing.map(state => stateRow(config, type, state)));
             return rewriteRows(data, config, rows, count + 1);
         }
     }
@@ -479,7 +497,7 @@ export const stateRowOperationAllowed = (
     if (FIXED_ROW_KINDS.includes(kind) && datas.some(data => hasFixedRows(data, config))) {
         return false;
     }
-    if (kind === 'recreate' && datas.some(data => sourceStates(oidObjectOf(data, config)).length === 0)) {
+    if (kind === 'recreate' && datas.some(data => sourceStates(data, config).states.length === 0)) {
         return false;
     }
     if (kind === 'clear') {

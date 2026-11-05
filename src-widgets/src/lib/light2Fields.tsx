@@ -58,19 +58,21 @@ const SWITCH_ROWS = stateEditorSpec({ oidProperty: 'colorLightSwitchOid', fixedR
 const SWITCH_ROW_LOOK = { iconSmall: PowerSettingsNewIcon, iconSize: 100 };
 
 /**
- * Seeds the two rows of the button mode, TRUE and FALSE — fixed, never from `common.states`.
+ * Seeds the two rows of the button mode, `true` and `false` — fixed; the switch's other
+ * `common.states` never become rows.
  *
  * @param data The widget data, changed in place.
  * @remarks
  * Supplements like the main-OID pick (ADR-0104 §6, Nachtrag Ticket 02): rows already carrying
  * `true`/`false` keep order, alias and styles; only a missing row is appended, with the power
- * icon. The widget icon is hidden (`iconSize` 0) only when the rows are seeded from none.
+ * icon and the alias of `common.states[true|false]` (else TRUE/FALSE, Nachtrag Review). The
+ * widget icon is hidden (`iconSize` 0) only when the rows are seeded from none.
  */
 const seedSwitchRows = (data: WidgetData): void => {
-    // The source is always TRUE/FALSE: judged as a boolean OID without common.states. The rows
-    // before are counted on the same judged data — counted on the stored switch object, its
-    // common.states would stand in for the rows of a widget that has none yet.
-    const judged = { ...data, colorLightSwitchOidObject: { type: 'boolean' } };
+    // Fixed rows: the source is always true/false (alias from the switch's common.states[true|
+    // false], else TRUE/FALSE). The rows are the authored ones — counted with the switch's
+    // common.states, those would stand in for the rows of a widget that has none yet.
+    const judged = { ...data, ignoreCommonStates: false };
     const before = stateRowCount(judged, SWITCH_ROWS);
     const patch = applyStateRowOperation(judged, { kind: 'supplement' }, SWITCH_ROWS);
     Object.entries(patch ?? {}).forEach(([key, value]) => {
