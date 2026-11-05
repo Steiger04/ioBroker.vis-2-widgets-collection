@@ -1358,5 +1358,14 @@
     "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
     "state_editor_previous_row": "[TODO] Previous row",
     "state_editor_rows": "[TODO] Rows",
-    "state_editor_selected_row": "[TODO] Selected row"
+    "state_editor_selected_row": "[TODO] Selected row",
+    "state_editor_add_row": "[TODO] Add row",
+    "state_editor_clear_row": "[TODO] Clear row",
+    "state_editor_clear_row_confirm": "[TODO] Remove every style of the selected row? Its value and alias stay.",
+    "state_editor_clone_row": "[TODO] Clone row",
+    "state_editor_delete_row": "[TODO] Delete row",
+    "state_editor_move_row_down": "[TODO] Move row down",
+    "state_editor_move_row_up": "[TODO] Move row up",
+    "state_editor_recreate_rows": "[TODO] Recreate from common.states",
+    "state_editor_recreate_rows_confirm": "[TODO] Replace all rows with the states of the object ID? Order, aliases and styles of the current rows are lost."
 }

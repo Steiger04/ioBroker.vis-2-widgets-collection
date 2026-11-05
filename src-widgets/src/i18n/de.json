@@ -1358,5 +1358,14 @@
     "state_editor_pick_oid_first": "Erst eine Objekt-ID wählen: Ihre Zustände werden hier zu Zeilen.",
     "state_editor_previous_row": "Vorige Zeile",
     "state_editor_rows": "Zeilen",
-    "state_editor_selected_row": "Gewählte Zeile"
+    "state_editor_selected_row": "Gewählte Zeile",
+    "state_editor_add_row": "Zeile hinzufügen",
+    "state_editor_clear_row": "Zeile leeren",
+    "state_editor_clear_row_confirm": "Alle Stile der gewählten Zeile entfernen? Wert und Alias bleiben.",
+    "state_editor_clone_row": "Zeile klonen",
+    "state_editor_delete_row": "Zeile löschen",
+    "state_editor_move_row_down": "Zeile nach unten",
+    "state_editor_move_row_up": "Zeile nach oben",
+    "state_editor_recreate_rows": "Aus common.states neu anlegen",
+    "state_editor_recreate_rows_confirm": "Alle Zeilen durch die Zustände der Objekt-ID ersetzen? Reihenfolge, Aliase und Stile der bisherigen Zeilen gehen verloren."
 }
