@@ -475,6 +475,35 @@ export const stateRowDiffers = (datas: readonly WidgetData[], n: number, config:
     );
 };
 
+/** Why the selected widgets' Zustandszeilen are not identical — see {@link stateRowsDifference}. */
+export type StateRowsDifference = 'rows' | 'count' | 'bindings';
+
+/**
+ * Why the selected widgets' Zustandszeilen are not identical — what the InfoBox above the list
+ * can point to.
+ *
+ * @param datas The data of every selected widget; the list shows the first one's rows.
+ * @param config Schema and OID property of the widgets.
+ * @returns `null` when they are identical ({@link stateRowsIdentical}); `'rows'` when a row of
+ *   the list is marked ({@link stateRowDiffers}); `'count'` when no row is marked but another
+ *   widget has more rows; `'bindings'` when only bindings outside the shown rows disagree.
+ */
+export const stateRowsDifference = (
+    datas: readonly WidgetData[],
+    config: StateRowsConfig,
+): StateRowsDifference | null => {
+    if (stateRowsIdentical(datas, config)) {
+        return null;
+    }
+    const count = stateRowCount(datas[0], config);
+    for (let n = 1; n <= count; n++) {
+        if (stateRowDiffers(datas, n, config)) {
+            return 'rows';
+        }
+    }
+    return datas.some(data => stateRowCount(data, config) !== count) ? 'count' : 'bindings';
+};
+
 /**
  * Whether the Zustandseditor offers an action for the selected widgets.
  *

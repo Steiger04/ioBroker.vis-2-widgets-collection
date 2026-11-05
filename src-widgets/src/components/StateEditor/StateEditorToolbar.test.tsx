@@ -474,6 +474,23 @@ describe('Zustandseditor toolbar — multi-selection', () => {
         expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ']);
     });
 
+    it('names the row count, not a mark, when only another widget has more rows', () => {
+        const { container } = mount({ w1: { ...THREE_ROWS, values_count: 1 }, w2: { ...THREE_ROWS } });
+
+        expect(differingRows(container)).toEqual([]);
+        expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ_count']);
+    });
+
+    it('names the bindings, not a mark, when only bindings outside the rows differ', () => {
+        const { container } = mount({
+            w1: { ...THREE_ROWS },
+            w2: { ...THREE_ROWS, bindings: ['header2', 'title'] },
+        });
+
+        expect(differingRows(container)).toEqual([]);
+        expect(infoBoxes(container)).toEqual(['t:state_editor_rows_differ_bindings']);
+    });
+
     it('shows neither InfoBox nor marks on identical rows, everything stays usable', () => {
         const { container } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, header: 'Other' } });
         selectRow(container, 2);

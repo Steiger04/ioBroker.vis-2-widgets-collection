@@ -26,6 +26,7 @@ import {
     stateRowKeyDiffers,
     stateRowOperationAllowed,
     stateRowSchema,
+    stateRowsDifference,
     stateRowsIdentical,
 } from './stateRows';
 import type { StateRowOperation, StateRowPatch, StateRowsConfig } from './stateRows';
@@ -616,6 +617,26 @@ describe('stateRowDiffers — the mark of a list row', () => {
         const unbound = { ...THREE_ROWS, bindings: ['header'] };
 
         expect([1, 2, 3].map(n => stateRowDiffers([THREE_ROWS, unbound], n, CONFIG))).toEqual([false, true, false]);
+    });
+});
+
+describe('stateRowsDifference — what the InfoBox can point to', () => {
+    it('is null on identical rows', () => {
+        expect(stateRowsDifference([THREE_ROWS, { ...THREE_ROWS, header: 'x' }], CONFIG)).toBeNull();
+    });
+
+    it('is rows when a shown row differs', () => {
+        expect(stateRowsDifference([THREE_ROWS, { ...THREE_ROWS, alias2: 'Warm' }], CONFIG)).toBe('rows');
+    });
+
+    it('is count when only another widget has more rows', () => {
+        expect(stateRowsDifference([{ ...THREE_ROWS, values_count: 2 }, THREE_ROWS], CONFIG)).toBe('count');
+    });
+
+    it('is bindings when only bindings outside the rows disagree', () => {
+        expect(stateRowsDifference([THREE_ROWS, { ...THREE_ROWS, bindings: ['header2', 'title'] }], CONFIG)).toBe(
+            'bindings',
+        );
     });
 });
 

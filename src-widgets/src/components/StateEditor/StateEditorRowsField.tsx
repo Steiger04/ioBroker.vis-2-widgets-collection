@@ -17,12 +17,21 @@ import type React from 'react';
 import { createPortal } from 'react-dom';
 
 import Generic from '../../Generic';
-import { stateRowsIdentical } from '../../lib/stateRows';
+import { stateRowsDifference } from '../../lib/stateRows';
 import { InfoBox } from '../controls';
 import StateEditorSurface from './StateEditorSurface';
 import StateEditorToolbar from './StateEditorToolbar';
 import { useLabelCell } from './useLabelCell';
 import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+
+import type { StateRowsDifference } from '../../lib/stateRows';
+
+/** The InfoBox text per reason the rows differ — literal keys, so the code scan finds them. */
+const ROWS_DIFFER_TEXTS: Record<StateRowsDifference, string> = {
+    rows: 'state_editor_rows_differ',
+    count: 'state_editor_rows_differ_count',
+    bindings: 'state_editor_rows_differ_bindings',
+};
 
 /**
  * Renders the „Zeilen (n)" row of the Zustandseditor.
@@ -36,8 +45,9 @@ function StateEditorRowsField(fieldProps: StateEditorFieldProps): React.JSX.Elem
     const labelCell = useLabelCell(anchor);
     const count = <span data-state-editor-count>{` (${rows.length})`}</span>;
     // Multi-selection: one patch goes into every widget, so structural actions need identical
-    // rows (ADR-0104 §4) — the toolbar locks them, this InfoBox says why.
-    const rowsDiffer = !stateRowsIdentical(selectedWidgetDatas(fieldProps), fieldProps.spec.config);
+    // rows (ADR-0104 §4) — the toolbar locks them, this InfoBox says why: it points to the
+    // marked rows only where a row is marked, else to the row count or the bindings.
+    const difference = stateRowsDifference(selectedWidgetDatas(fieldProps), fieldProps.spec.config);
 
     return (
         <StateEditorSurface props={fieldProps.props}>
@@ -46,10 +56,10 @@ function StateEditorRowsField(fieldProps: StateEditorFieldProps): React.JSX.Elem
                 {hasOidObject ? (
                     <>
                         <StateEditorToolbar {...fieldProps} />
-                        {rowsDiffer ? (
+                        {difference ? (
                             <InfoBox
                                 tone="warning"
-                                text={Generic.t('state_editor_rows_differ')}
+                                text={Generic.t(ROWS_DIFFER_TEXTS[difference])}
                             />
                         ) : null}
                     </>
