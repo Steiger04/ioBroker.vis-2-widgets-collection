@@ -35,6 +35,7 @@ import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
 import { datumValueSlot, effectiveCartesianType, effectiveStackName } from './stackMode';
+import { clampAxisIndex } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
 export type ValueChainMeta = EchartsSeriesMeta | undefined;
@@ -225,8 +226,7 @@ const percentStage = (
         if (!active) {
             return; // invisible — keeps its absolute data, contributes to no denominator
         }
-        const yi = typeof m?.yAxisIndex === 'number' ? m.yAxisIndex : 0;
-        const stackName = effectiveStackName(m?.stack, 'percent', yi >= stack.axisCount ? 0 : yi);
+        const stackName = effectiveStackName(m?.stack, 'percent', clampAxisIndex(m?.yAxisIndex, stack.axisCount));
         if (!stackName) {
             return; // opted out — absolute values stay
         }

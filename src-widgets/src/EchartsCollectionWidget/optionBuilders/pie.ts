@@ -24,6 +24,7 @@ import type { ChartSeries, EchartsSeriesMeta, PieFragment, PieSliceDatum, Presen
 import { buildTooltip } from './tooltip';
 import { buildLegend, pieLabelColorOf } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
+import { effectiveSeriesColor, paletteSlot } from '../axisResolution';
 
 /** The outer pie edge — the ring bands share the space between the donut hole and it. */
 const OUTER_RADIUS_PCT = 70;
@@ -116,7 +117,7 @@ const buildRingSeries = (
                         name: d.name,
                         value: d.value,
                         // Kategoriestabil — meta.color deliberately NOT read here (ADR-0075).
-                        itemStyle: { color: p.palette[(katIndex.get(d.name) ?? 0) % p.palette.length] },
+                        itemStyle: { color: paletteSlot(katIndex.get(d.name) ?? 0, p.palette) },
                     })),
                     animation: p.animation,
                     // Slider + easing drive BOTH enter and update (one honest knob; a live tick
@@ -177,7 +178,7 @@ export const buildPieOption = (
                 // Category-bar bucket arrays (ADR-0065) never reach the pie family — the
                 // bucketing is cartesian-only; narrowed for the points-only aggregate.
                 value: aggregate(s.data as Parameters<typeof aggregate>[0], mode),
-                itemStyle: { color: m?.color ?? p.palette[i % p.palette.length] },
+                itemStyle: { color: effectiveSeriesColor(m, i, p.palette) },
             },
             m?.raw,
         );

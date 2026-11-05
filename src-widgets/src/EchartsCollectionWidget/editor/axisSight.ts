@@ -12,54 +12,26 @@
  * dissolved into these two.
  */
 import { lastPathSegment } from '../jsonTableParse';
+import { binderIndexOf } from '../axisResolution';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
-export const AXIS_STAGGER_STAGE = 80;
-
 /**
- * Position + offset for the i-th auto-created axis: alternate left/right, 80 px stagger per side
- * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × stage`). Geometry only — safe to re-apply on
- * re-arrange without clobbering the rest of an axis config (id/name/colour/min/max/…).
+ * The axis rules this sight shares with the chart live in the runtime module
+ * `axisResolution` (ADR-0103 K3, ADR-0099 decision 6 addendum): re-exported here under their
+ * unchanged names and signatures, so the editor keeps ONE axis interface and every import site
+ * stays as it was — the source is the runtime, the import direction editor → runtime holds
+ * (ADR-0083).
  */
-export const axisPosition = (i: number): { position: 'left' | 'right'; offset: number } => ({
-    position: i % 2 ? 'right' : 'left',
-    offset: Math.floor(i / 2) * AXIS_STAGGER_STAGE,
-});
-
-/**
- * The binding index a series EFFECTIVELY binds (Q7): an undefined `yAxisIndex` materialises to
- * axis 0 — exactly the builder's `?? 0` and the old {@link boundAxisIndices} rule, now the ONE
- * place it lives. The display helpers read through here so the editor shows what the chart
- * renders (a legacy series without a stored index inherits axis 0's name/colour slot). The JSON
- * sights stay STRICT (a cleared overlay entry is unbound — see {@link boundJsonView}); the
- * materialisation is a history binding-sight concern, never a JSON one.
- */
-export const materializedAxisIndex = (s: { yAxisIndex?: number }): number =>
-    typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0;
-
-/**
- * The DISPLAY clamp of a stored axis index against the configured total (the F7/Q6 idiom): the
- * select shows the builder truth (`yi >= total ? 0 : yi`, cartesian.ts), while the STORED value
- * stays untouched — no silent rewrite; the stale-index validation explains the divergence.
- * Shared by the per-series Y-axis select and the marking card's axis select (B4: the marking
- * card still clamped to `total-1`, showing an axis the chart never draws on).
- */
-export const displayAxisIndex = (yi: number | undefined, total: number): number =>
-    yi !== undefined && yi >= total ? 0 : (yi ?? 0);
-
-/**
- * The axis indices at least one series binds — the **bound set**. A series with
- * `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's `e.yAxisIndex ?? 0`).
- * Since ADR-0069 every configured axis is IN the set (an axis outside it dies at the structural
- * event that emptied it) — the builder still filters to the set as defense for hand-edited JSON.
- */
-export const boundAxisIndices = (series: readonly { yAxisIndex?: number }[]): Set<number> => {
-    const bound = new Set<number>();
-    for (const s of series) {
-        bound.add(materializedAxisIndex(s));
-    }
-    return bound;
-};
+export {
+    AXIS_STAGGER_STAGE,
+    axisPosition,
+    binderIndexOf,
+    boundAxisIndices,
+    displayAxisIndex,
+    effectiveAxisColor,
+    emittedAxisRanks,
+    materializedAxisIndex,
+} from '../axisResolution';
 
 /**
  * The side an axis card DISPLAYS when no position is stored (a hand-edit blob): the index-aware
@@ -144,19 +116,6 @@ export interface AxisSlotMemory {
 }
 
 /**
- * The emitted (effective) axis positions (Q5): the cartesian builder emits the axes compacted in
- * array order — `ranks.get(i)` is axis i's EMITTED index (its rank, ascending). UI gates that
- * must follow the emitted truth (the alignTicks switch/warning: the reference axis is the first
- * axis, an unbound configured axis 0 is never it — retired with ADR-0069) read here instead of
- * the configured index.
- */
-export const emittedAxisRanks = (bound: ReadonlySet<number>): Map<number, number> => {
-    const ranks = new Map<number, number>();
-    [...bound].sort((a, b) => a - b).forEach((axisIdx, rank) => ranks.set(axisIdx, rank));
-    return ranks;
-};
-
-/**
  * Whether an axis carries a tick override that makes echarts IGNORE `alignTicks` on it (ADR-0034).
  * echarts only honours `alignTicks` on an axis whose tick interval is auto-computed; setting `min`,
  * `max`, `splitNumber`, or `minInterval` fixes the interval, so alignment silently no-ops. The
@@ -165,30 +124,6 @@ export const emittedAxisRanks = (bound: ReadonlySet<number>): Map<number, number
  */
 export const alignTicksDisabledByOverride = (a: EchartsAxisConfig): boolean =>
     a.min !== undefined || a.max !== undefined || a.splitNumber !== undefined || a.minInterval !== undefined;
-
-/**
- * The index of the series an axis DISPLAY-name/colour inherits from — its **owner** (the
- * „Namensgeber", ADR-0068): the owner series when still bound, else the first binder in series
- * order (the pre-owner rule, kept as the fallback for id-less legacy sights and owner-less
- * axes). This is what stops a REBIND newcomer from stealing the axis identity: without it the
- * first binder in ARRAY order won, so a series moving onto an occupied axis renamed it the
- * moment it stood earlier in the list — the incumbent series lost every visible trace.
- */
-export const binderIndexOf = (
-    axis: EchartsAxisConfig,
-    i: number,
-    series: readonly { id?: string; yAxisIndex?: number }[],
-): number => {
-    if (axis.owner !== undefined) {
-        const ownerIdx = series.findIndex(s => s.id === axis.owner);
-        if (ownerIdx >= 0) {
-            return ownerIdx;
-        }
-    }
-    // Materialised sight (Q7): a series without a stored index binds axis 0 — the lookup mirrors
-    // the builder, so a legacy series inherits its name onto the axis card/dropdown.
-    return series.findIndex(s => materializedAxisIndex(s) === i);
-};
 
 /**
  * A POSITIONAL series' display name — the shared default chain for every family that binds
@@ -331,32 +266,4 @@ export const jsonAxisDeathName = (
 ): string => {
     const extended = [...names, ...Object.keys(overlay).filter(n => !names.includes(n) && !hidden.includes(n))];
     return boundJsonAxisName(axis, i, extended, overlay, hidden) ?? `Achse ${i + 1}`;
-};
-
-/**
- * Effective colour of axis `i` for the Axis-card swatch (ADR-0018): the OWNER series' colour
- * (first bound series before ADR-0068), else its palette slot by the series' DISPLAY position.
- * Mirrors both the cartesian builder (`a.color ?? seriesColor`) and the Series-card swatch
- * (`s.color ?? palette[seriesIndex]`), so the Axis card matches the Series card of its display
- * series — the 1:1 colour invariant.
- *
- * `series` MUST be in DISPLAY order: history passes `state.series`; JSON passes the VISIBLE
- * payload names mapped through the overlay (in payload order, hidden ones filtered). The palette slot
- * is therefore the series' visible position, NOT the axis index. That distinction matters in JSON:
- * after a rebind OR a payload-name reorder the sticky reconcile keeps `yAxisIndex`, so the axis index
- * drifts off the visible position — indexing the palette by axis would then paint the swatch with the
- * wrong series' colour. The explicit axis colour is resolved by the caller (the swatch does
- * `a.color ?? effectiveAxisColor(...)`), not here.
- */
-export const effectiveAxisColor = (
-    axis: EchartsAxisConfig,
-    i: number,
-    series: readonly { id?: string; yAxisIndex?: number; color?: string }[],
-    palette: readonly string[],
-): string | undefined => {
-    const idx = binderIndexOf(axis, i, series);
-    if (idx < 0) {
-        return undefined;
-    }
-    return series[idx].color ?? palette[idx % palette.length];
 };

@@ -23,6 +23,7 @@ import type { EchartsAxisConfig, EchartsSeriesMeta } from '../types/field-defini
 import { toEchartsLinearGradient, type EchartsColorStop } from '../lib/helper/extractColorFromValue';
 import { mixRgba, parseSeriesColor, RGBA_BLACK, RGBA_WHITE, toRgbaString, type Rgba } from './seriesColorDerive';
 import type { ChartSeries } from './optionBuilders/types';
+import { clampAxisIndex } from './axisResolution';
 
 /** Share of white (low end) / black (high end) mixed into the series colour for the derived scale. */
 export const COLOR_SCALE_MIX = 0.5;
@@ -257,14 +258,13 @@ export const resolveColorScaleRange = (
 };
 
 /**
- * The Y axis a series' Farbskala inherits its fixed bounds from — the builder's axis clamp
- * (ADR-0012): no index binds axis 0, a stale index beyond the axes falls back to axis 0.
- * `undefined` = no axes. ONE resolution for the builder and the Stil tab placeholders.
+ * The Y axis a series' Farbskala inherits its fixed bounds from — the CONFIGURED axis by the
+ * runtime axis clamp (`clampAxisIndex`, ADR-0012/ADR-0103 K3): no index binds axis 0, a stale
+ * index beyond the axes falls back to axis 0. `undefined` = no axes. ONE resolution for the
+ * builder and the Stil tab placeholders.
  */
-export const colorScaleAxis = <A>(yAxes: readonly A[], yAxisIndex: number | undefined): A | undefined => {
-    const yi = yAxisIndex ?? 0;
-    return yAxes[yi < yAxes.length ? yi : 0];
-};
+export const colorScaleAxis = <A>(yAxes: readonly A[], yAxisIndex: number | undefined): A | undefined =>
+    yAxes[clampAxisIndex(yAxisIndex, yAxes.length)];
 
 /**
  * The INPUT ERROR of a Farbskala (ticket 05): the scale is on and BOTH bounds are entered with
