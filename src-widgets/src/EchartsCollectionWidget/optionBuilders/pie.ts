@@ -24,7 +24,7 @@ import type { ChartSeries, EchartsSeriesMeta, PieFragment, PieSliceDatum, Presen
 import { buildTooltip } from './tooltip';
 import { buildLegend, pieLabelColorOf } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
-import { effectiveSeriesColor, paletteSlot } from '../axisResolution';
+import { effectiveSeriesColor, paletteSlot, pieSeriesName } from '../axisResolution';
 
 /** The outer pie edge — the ring bands share the space between the donut hole and it. */
 const OUTER_RADIUS_PCT = 70;
@@ -106,7 +106,7 @@ const buildRingSeries = (
                     type: 'pie',
                     // meta.name is the RING's identity (tooltip {a}, the series context) — the
                     // slice names stay the payload's.
-                    name: m?.name || s.name,
+                    name: pieSeriesName(m, s),
                     radius: [
                         `${Math.round(innerPct + (S - 1 - i) * band)}%`,
                         `${Math.round(innerPct + (S - i) * band)}%`,
@@ -174,7 +174,7 @@ export const buildPieOption = (
         // GUI-uncovered per-slice keys (borderRadius/borderColor, selected, label, emphasis) survive.
         return applyRawOverride(
             {
-                name: m?.name || s.name,
+                name: pieSeriesName(m, s),
                 // Category-bar bucket arrays (ADR-0065) never reach the pie family — the
                 // bucketing is cartesian-only; narrowed for the points-only aggregate.
                 value: aggregate(s.data as Parameters<typeof aggregate>[0], mode),

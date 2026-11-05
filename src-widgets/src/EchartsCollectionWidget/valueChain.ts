@@ -35,7 +35,7 @@ import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries } from './barBuckets';
 import { effectiveCartesianType, resolveStackPlan, stackShares } from './stackMode';
-import { effectiveSeriesName, resolveAxisPlan } from './axisResolution';
+import { effectiveSeriesName, pieSeriesName, resolveAxisPlan } from './axisResolution';
 
 /** One series' meta as the value chain reads it — absent for an unstyled payload series. */
 export type ValueChainMeta = EchartsSeriesMeta | undefined;
@@ -255,8 +255,8 @@ const sliceStage = (windowed: readonly ChartSeries[], names: readonly string[]):
  * the LEGEND lists, the last NON-NULL value — points and plain arrays alike; a trailing gap is no
  * value (the formatter renders the bare name). Read over the FINAL series, so the legend shows
  * exactly what the axis sees (post offset/formula, bucketing/diff, smoothing/cumulative, share).
- * The key is the builder's display name — cartesian {@link effectiveSeriesName}, pie the meta
- * name else the payload name — never the payload name an overlay may have renamed.
+ * The key is the builder's display name — cartesian {@link effectiveSeriesName}, pie
+ * {@link pieSeriesName} — never the payload name an overlay may have renamed.
  */
 const legendValuesOf = (
     series: readonly ChartSeries[],
@@ -276,7 +276,7 @@ const legendValuesOf = (
             }
         }
         const m = meta[idx];
-        out[family === 'pie' ? m?.name || s.name : effectiveSeriesName(m, s, idx)] = v;
+        out[family === 'pie' ? pieSeriesName(m, s) : effectiveSeriesName(m, s, idx)] = v;
     });
     return out;
 };

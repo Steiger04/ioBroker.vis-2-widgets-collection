@@ -12,7 +12,7 @@
  * dissolved into these two.
  */
 import { lastPathSegment } from '../jsonTableParse';
-import { binderIndexOf } from '../axisResolution';
+import { binderIndexOf, effectiveSeriesName } from '../axisResolution';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
 /**
@@ -245,7 +245,9 @@ export const boundJsonAxisName = (
     if (binder === undefined) {
         return undefined;
     }
-    return overlay[binder]?.name || binder || `Series ${i + 1}`;
+    // The series name rule (overlay name, else payload name, else `Series N`); N reads the AXIS
+    // index here — unreachable in practice, a binder is always a payload name.
+    return effectiveSeriesName(overlay[binder], { name: binder }, i);
 };
 
 /**

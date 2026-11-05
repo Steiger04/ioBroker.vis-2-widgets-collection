@@ -128,6 +128,15 @@ export const effectiveSeriesName = (
     i: number,
 ): string => meta?.name || series?.name || `Series ${i + 1}`;
 
+/**
+ * The display name of a PIE ring or slice: the meta name, else the series' own (payload) name —
+ * deliberately WITHOUT the `Series N` fallback of {@link effectiveSeriesName} (a pie series
+ * always carries its payload name). The pie builder names rings and slices by it, the legend
+ * values key by it.
+ */
+export const pieSeriesName = (meta: { name?: string } | undefined, series: { name: string }): string =>
+    meta?.name || series.name;
+
 /** The series index an owner key names (ADR-0068): meta id first, else payload name; -1 = none. */
 const ownerIndexOf = (
     owner: string | undefined,
