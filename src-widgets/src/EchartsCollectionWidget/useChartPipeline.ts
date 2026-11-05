@@ -40,6 +40,7 @@ import { coreOf } from './families/cores';
 import { familyOf } from './families/kernel';
 import {
     buildTitleOption,
+    makeRoomForTitle,
     markBoundOids,
     resolveMarkLines,
     toPresentationBase,
@@ -391,17 +392,21 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     const titleText = typeof src.titleText === 'string' ? src.titleText.trim() : '';
     // A raw title (frame/behaviour/subtitle) applies even without title text (ADR-0044).
     if (titleText || companions.chartConfig.titleRaw) {
+        const titlePos = (src.titlePos as EchartsTitlePos) ?? 'topCenter';
+        const titleDy = numOr(src.titleDy, 0);
         buildTitleOption(merged, {
             text: titleText,
-            titlePos: (src.titlePos as EchartsTitlePos) ?? 'topCenter',
+            titlePos,
             dx: numOr(src.titleDx, 0),
-            dy: numOr(src.titleDy, 0),
+            dy: titleDy,
             color: typeof src.titleColor === 'string' && src.titleColor ? src.titleColor : null,
             fontSize: typeof src.titleFontSize === 'number' ? src.titleFontSize : undefined,
             fontWeight: (src.titleWeight as EchartsFontWeight) ?? null,
             fontStyle: (src.titleFontStyle as EchartsFontStyle) ?? null,
             raw: companions.chartConfig.titleRaw,
         });
+        // Title and legend on the same edge: the legend (and the plot) move past the title.
+        makeRoomForTitle(merged, titlePos, titleDy);
     }
     const backgroundOverride = chartBackgroundOverride(presentation.bgColor);
     if (backgroundOverride) {

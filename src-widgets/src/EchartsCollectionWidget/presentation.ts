@@ -129,6 +129,53 @@ export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOpt
     merged.title = applyRawOverride(merged.title as Record<string, unknown>, opts.raw);
 };
 
+/** echarts' title defaults (`title.textStyle.fontSize`, `title.padding`) — the title block's fallbacks. */
+const TITLE_DEFAULT_FONT_SIZE = 18;
+const TITLE_DEFAULT_PADDING = 5;
+
+/**
+ * Title and legend on the SAME edge never overlap (ADR-0103 Abnahme-Funde): both anchor at their
+ * edge independently (title `top`/`bottom`, legend at the 4 px edge), so the default top-centre
+ * title and top-centre legend painted on top of each other. When the title has text and a shown
+ * legend sits on the title's row, the legend moves past the title block — its font size plus its
+ * padding above and below, plus a title shift away from the edge — and the grid's same-edge
+ * margin grows by the same amount, so the plot keeps its distance from the legend. A middle-row
+ * legend, a legend on the other edge or a hidden one leaves the layout untouched. Measurement-free
+ * like the anchors themselves (ADR-0009): a raw subtitle (`subtext`) is not counted.
+ *
+ * @param merged - The merged option after {@link buildTitleOption}; mutated in place.
+ * @param titlePos - The title anchor (its row decides the shared edge).
+ * @param dy - The title's down-positive offset (ADR-0009): on top it pushes the block down, at
+ *   the bottom a negative value lifts it up.
+ */
+export const makeRoomForTitle = (merged: Record<string, unknown>, titlePos: EchartsTitlePos, dy: number): void => {
+    const title = merged.title as Record<string, unknown> | undefined;
+    const legend = merged.legend as Record<string, unknown> | undefined;
+    if (!title?.text || !legend || legend.show === false) {
+        return;
+    }
+    const edge =
+        titlePos === 'bottomLeft' || titlePos === 'bottomCenter' || titlePos === 'bottomRight' ? 'bottom' : 'top';
+    const legendEdge = legend[edge];
+    if (typeof legendEdge !== 'number') {
+        return; // the legend sits on the other edge or in the middle row ('center')
+    }
+    const fontSize = (title.textStyle as { fontSize?: unknown } | undefined)?.fontSize;
+    const padding = typeof title.padding === 'number' ? title.padding : TITLE_DEFAULT_PADDING;
+    const away = Math.max(0, edge === 'top' ? dy : -dy);
+    const block =
+        away +
+        (typeof fontSize === 'number' && Number.isFinite(fontSize) ? fontSize : TITLE_DEFAULT_FONT_SIZE) +
+        2 * padding;
+    // Fresh objects: the builder's fragments are never mutated behind its back.
+    merged.legend = { ...legend, [edge]: legendEdge + block };
+    const grid = merged.grid as Record<string, unknown> | undefined;
+    const gridEdge = grid?.[edge];
+    if (grid && typeof gridEdge === 'number') {
+        merged.grid = { ...grid, [edge]: gridEdge + block };
+    }
+};
+
 /**
  * Legacy 4-edge → 3×3-grid legend position migration (ADR-0021). Old widgets may still store
  * `top`/`bottom`/`left`/`right`; mapped on load, never rewritten to storage.
