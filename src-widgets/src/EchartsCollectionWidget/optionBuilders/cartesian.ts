@@ -175,6 +175,57 @@ export const parseBarWidth = (raw: string | undefined): number | string | undefi
     return m[2] ? raw.trim() : px;
 };
 
+/**
+ * Point labels at the plot edges (ADR-0103 Abnahme-Funde): echarts centres a symbol label on its
+ * point (line: above it, `top`; scatter: on it, `inside`), so the label of a point ON the left plot
+ * edge reaches half its width over the Y axis labels, and the one on the right edge runs past the
+ * plot (the grid sits flush with the canvas, ADR-0024) and is cut off. echarts' `labelLayout`
+ * callback re-aligns exactly those two labels — the leftmost grows rightwards from its point, the
+ * rightmost leftwards — measurement-free and without moving any label off its point; every other
+ * label keeps echarts' centred default.
+ *
+ * The edges are the extreme X values that carry a value (a null point paints no symbol, hence
+ * no label): `[x, y]` points by X — never by array position, a scatter (or JSON) payload need not
+ * be X-sorted — plain category values by position. An inverse X axis swaps them. Fewer than two
+ * labelled points → `undefined` (no edge pair, no key). The callback sees only `dataIndex` and
+ * pixel rects, no axis extent: after an interactive filter zoom the zoom edges are not re-aligned.
+ *
+ * @param data - The series' cartesian data (`[x, y]` points or plain category values).
+ * @param inverse - Whether the emitted X axis runs inverse (raw JSON).
+ */
+const edgeLabelLayout = (
+    data: ChartSeries['data'],
+    inverse: boolean,
+): ((params: { dataIndex: number }) => { align: 'left' | 'right' } | undefined) | undefined => {
+    let minIdx = -1;
+    let maxIdx = -1;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    data.forEach((d, i) => {
+        const point = Array.isArray(d) ? d : null;
+        const y = point ? point[1] : d;
+        if (typeof y !== 'number' || !Number.isFinite(y)) {
+            return;
+        }
+        const x = point ? point[0] : i;
+        if (x < minX) {
+            minX = x;
+            minIdx = i;
+        }
+        if (x > maxX) {
+            maxX = x;
+            maxIdx = i;
+        }
+    });
+    if (minIdx < 0 || minIdx === maxIdx) {
+        return undefined;
+    }
+    const leftIdx = inverse ? maxIdx : minIdx;
+    const rightIdx = inverse ? minIdx : maxIdx;
+    return ({ dataIndex }) =>
+        dataIndex === leftIdx ? { align: 'left' } : dataIndex === rightIdx ? { align: 'right' } : undefined;
+};
+
 /** Build a single cartesian series entry from its data + per-series meta. */
 const buildCartesianSeriesEntry = (
     s: ChartSeries,
@@ -975,6 +1026,19 @@ export const buildCartesianOption = (
         buildXAxisEntry(p.xAxis, spanMs, p.themeTokens.primary, xCategories),
         p.xAxis.raw,
     );
+    // Point labels at the plot edges (edgeLabelLayout): stamped post-raw-fold on line and scatter
+    // series with the GUI label on, so the EMITTED type and the EMITTED X direction decide — and
+    // a raw `labelLayout` wins (a derived default, not a GUI knob). Bars keep their own position
+    // cluster and stay untouched.
+    const xInverse = xAxisEntry.inverse === true;
+    entries.forEach((e, i) => {
+        if (meta[i]?.label && (e.type === 'line' || e.type === 'scatter') && e.labelLayout === undefined) {
+            const layout = edgeLabelLayout(series[i].data, xInverse);
+            if (layout) {
+                e.labelLayout = layout;
+            }
+        }
+    });
     // Achsen-Vorrang's horizontal coincidence (erratum): the axis line owns its edge only while
     // it actually SITS on it. A Versatz lifts it off (the emitted offset is non-zero — a raw
     // offset counts too, the same emitted-truth rule), and then no gridline yields: the versetzte

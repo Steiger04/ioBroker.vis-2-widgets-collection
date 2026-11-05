@@ -129,19 +129,41 @@ export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOpt
     merged.title = applyRawOverride(merged.title as Record<string, unknown>, opts.raw);
 };
 
-/** echarts' title defaults (`title.textStyle.fontSize`, `title.padding`) — the title block's fallbacks. */
+/**
+ * echarts' title defaults (`title.textStyle.fontSize`, `title.subtextStyle.fontSize`, `title.itemGap`,
+ * `title.padding`) — the title block's fallbacks.
+ */
 const TITLE_DEFAULT_FONT_SIZE = 18;
+const SUBTITLE_DEFAULT_FONT_SIZE = 12;
+const TITLE_DEFAULT_ITEM_GAP = 10;
 const TITLE_DEFAULT_PADDING = 5;
+
+/** A finite number, else the fallback. */
+const finiteOr = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+
+/** Height of a title text block without measuring: one font size per `\n`-separated line; empty = 0. */
+const textBlockHeight = (text: unknown, style: unknown, defaultFontSize: number): number => {
+    if (typeof text !== 'string' || !text) {
+        return 0;
+    }
+    const fontSize = finiteOr((style as { fontSize?: unknown } | undefined)?.fontSize, defaultFontSize);
+    return text.split('\n').length * fontSize;
+};
 
 /**
  * Title and legend on the SAME edge never overlap (ADR-0103 Abnahme-Funde): both anchor at their
  * edge independently (title `top`/`bottom`, legend at the 4 px edge), so the default top-centre
- * title and top-centre legend painted on top of each other. When the title has text and a shown
- * legend sits on the title's row, the legend moves past the title block — its font size plus its
- * padding above and below, plus a title shift away from the edge — and the grid's same-edge
- * margin grows by the same amount, so the plot keeps its distance from the legend. A middle-row
- * legend, a legend on the other edge or a hidden one leaves the layout untouched. Measurement-free
- * like the anchors themselves (ADR-0009): a raw subtitle (`subtext`) is not counted.
+ * title and top-centre legend painted on top of each other. When the title has text (or a raw
+ * subtitle) and a shown legend sits on the title's row, the legend moves past the title block —
+ * its lines plus its padding above and below, plus a title shift away from the edge — and the
+ * grid's same-edge margin grows by the same amount, so the plot keeps its distance from the
+ * legend. A middle-row legend, a legend on the other edge or a hidden one leaves the layout
+ * untouched. Measurement-free like the anchors themselves (ADR-0009): a line is as tall as its
+ * font size. A raw subtitle
+ * (`subtext`, ADR-0044 — folded in by {@link buildTitleOption}, so it is already on `merged.title`)
+ * adds its item gap plus one subtitle line per `\n`-separated line, exactly as echarts stacks it
+ * below the title (an empty title text has no height there, so a subtitle-only title still makes
+ * room).
  *
  * @param merged - The merged option after {@link buildTitleOption}; mutated in place.
  * @param titlePos - The title anchor (its row decides the shared edge).
@@ -151,7 +173,7 @@ const TITLE_DEFAULT_PADDING = 5;
 export const makeRoomForTitle = (merged: Record<string, unknown>, titlePos: EchartsTitlePos, dy: number): void => {
     const title = merged.title as Record<string, unknown> | undefined;
     const legend = merged.legend as Record<string, unknown> | undefined;
-    if (!title?.text || !legend || legend.show === false) {
+    if ((!title?.text && !title?.subtext) || !legend || legend.show === false) {
         return;
     }
     const edge =
@@ -160,12 +182,13 @@ export const makeRoomForTitle = (merged: Record<string, unknown>, titlePos: Echa
     if (typeof legendEdge !== 'number') {
         return; // the legend sits on the other edge or in the middle row ('center')
     }
-    const fontSize = (title.textStyle as { fontSize?: unknown } | undefined)?.fontSize;
-    const padding = typeof title.padding === 'number' ? title.padding : TITLE_DEFAULT_PADDING;
+    const padding = finiteOr(title.padding, TITLE_DEFAULT_PADDING);
     const away = Math.max(0, edge === 'top' ? dy : -dy);
+    const subtitle = textBlockHeight(title.subtext, title.subtextStyle, SUBTITLE_DEFAULT_FONT_SIZE);
     const block =
         away +
-        (typeof fontSize === 'number' && Number.isFinite(fontSize) ? fontSize : TITLE_DEFAULT_FONT_SIZE) +
+        textBlockHeight(title.text, title.textStyle, TITLE_DEFAULT_FONT_SIZE) +
+        (subtitle ? finiteOr(title.itemGap, TITLE_DEFAULT_ITEM_GAP) + subtitle : 0) +
         2 * padding;
     // Fresh objects: the builder's fragments are never mutated behind its back.
     merged.legend = { ...legend, [edge]: legendEdge + block };
