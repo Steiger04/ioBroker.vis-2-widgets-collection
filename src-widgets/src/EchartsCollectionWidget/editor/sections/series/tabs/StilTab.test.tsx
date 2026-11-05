@@ -77,6 +77,70 @@ describe('StilTab — the Flächen-Verlauf field (ADR-0101)', () => {
     });
 });
 
+describe('StilTab — the symbol switch is honest while a line label is on (ADR-0103 Abnahme-Funde)', () => {
+    /** The switch input of the SwitchRow labelled `label` (the row's label points at it). */
+    const switchOf = (el: HTMLElement, label: string): HTMLInputElement => {
+        const lbl = Array.from(el.querySelectorAll<HTMLLabelElement>('label')).find(l => l.textContent === label)!;
+        return el.querySelector<HTMLInputElement>(`input[id="${lbl.htmlFor}"]`)!;
+    };
+    /** The number input of the symbol-size SliderField (the slider thumb shares its aria-label). */
+    const sizeInputs = (el: HTMLElement): HTMLInputElement[] =>
+        Array.from(el.querySelectorAll<HTMLInputElement>('input[aria-label="echarts_series_symbol_size"]'));
+    const hintShown = (el: HTMLElement): boolean =>
+        Array.from(el.querySelectorAll('[data-info-box]')).some(b =>
+            b.textContent?.includes('echarts_series_symbol_label_hint'),
+        );
+
+    const mountWithPatches = (meta: EchartsSeriesMeta): { el: HTMLElement; patches: unknown[] } => {
+        const patches: unknown[] = [];
+        const el = document.createElement('div');
+        document.body.appendChild(el);
+        act(() => {
+            createRoot(el).render(
+                createElement(StilTab, {
+                    meta,
+                    defaultType: 'line',
+                    onPatch: (p: Partial<EchartsSeriesMeta>) => patches.push(p),
+                    pickerCtx: {} as never,
+                    seriesColor: '#5470c6',
+                    chartCanvas: 'transparent',
+                }),
+            );
+        });
+        return { el, patches };
+    };
+
+    it('label on: the symbol switch shows on and is locked, the size unlocks, an InfoBox explains — nothing is written', () => {
+        // An explicit `symbol: false` too: the builder draws the symbols for the label anyway.
+        for (const meta of [
+            { name: 'A', type: 'line', label: true },
+            { name: 'A', type: 'line', label: true, symbol: false },
+        ] as EchartsSeriesMeta[]) {
+            const { el, patches } = mountWithPatches(meta);
+            const sw = switchOf(el, 'echarts_series_symbol');
+            expect(sw.checked).toBe(true);
+            expect(sw.disabled).toBe(true);
+            expect(sizeInputs(el).length).toBeGreaterThan(0);
+            expect(sizeInputs(el).every(i => !i.disabled)).toBe(true);
+            expect(hintShown(el)).toBe(true);
+            expect(patches).toEqual([]); // showing never stores `symbol`
+        }
+    });
+
+    it('label off: the symbol switch alone decides, as before — no InfoBox', () => {
+        const off = mountWithPatches({ name: 'A', type: 'line' }).el;
+        expect(switchOf(off, 'echarts_series_symbol').checked).toBe(false);
+        expect(switchOf(off, 'echarts_series_symbol').disabled).toBe(false);
+        expect(sizeInputs(off).every(i => i.disabled)).toBe(true);
+        expect(hintShown(off)).toBe(false);
+        const on = mountWithPatches({ name: 'A', type: 'line', symbol: true }).el;
+        expect(switchOf(on, 'echarts_series_symbol').checked).toBe(true);
+        expect(switchOf(on, 'echarts_series_symbol').disabled).toBe(false);
+        expect(sizeInputs(on).every(i => !i.disabled)).toBe(true);
+        expect(hintShown(on)).toBe(false);
+    });
+});
+
 const barLabelField = (el: HTMLElement): HTMLElement | undefined =>
     colorFields(el).find(f => f.dataset.title === 'echarts_bar_label_color');
 

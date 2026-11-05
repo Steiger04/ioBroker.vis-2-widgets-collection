@@ -355,3 +355,99 @@ describe('Farbskala on the series cards (ADR-0101)', () => {
         expect(latest).toMatchObject({ type: 'scatter', ...scale });
     });
 });
+
+describe('Farbskala percent membership on the cards — the runtime stack plan', () => {
+    /** Two cards of the given source (A, B); only B's card is expanded. */
+    const pair = (
+        source: Source,
+        a: EchartsSeriesMeta,
+        b: EchartsSeriesMeta,
+        extents: PreviewExtents,
+        extra: Partial<typeof DEFAULT_EDITOR_STATE>,
+    ): HTMLElement => {
+        const yAxes = [{ id: 'ax-1', position: 'left' as const }];
+        const base = { ...common, expanded: { 1: true } };
+        const list =
+            source === 'history'
+                ? createElement(
+                      HistorySeriesList as never,
+                      {
+                          ...base,
+                          state: {
+                              ...DEFAULT_EDITOR_STATE,
+                              chartType: 'line',
+                              mode: 'history',
+                              yAxes,
+                              series: [
+                                  { id: 's1', oid: 'a.0', name: 'A', ...a },
+                                  { id: 's2', oid: 'b.0', name: 'B', ...b },
+                              ],
+                              ...extra,
+                          },
+                          historyInstances: { instances: [], loaded: true },
+                      } as never,
+                  )
+                : source === 'json'
+                  ? createElement(
+                        JsonSeriesList as never,
+                        {
+                            ...base,
+                            state: {
+                                ...DEFAULT_EDITOR_STATE,
+                                chartType: 'line',
+                                mode: 'json',
+                                jsonOid: 'javascript.0.chart',
+                                yAxes,
+                                jsonSeriesStyle: { A: a, B: b },
+                                jsonHidden: [],
+                                ...extra,
+                            },
+                            jsonSeriesNames: ['A', 'B'],
+                        } as never,
+                    )
+                  : createElement(
+                        TableSeriesList as never,
+                        {
+                            ...base,
+                            state: {
+                                ...DEFAULT_EDITOR_STATE,
+                                chartType: 'line',
+                                mode: 'json',
+                                jsonKind: 'table',
+                                jsonOid: 'javascript.0.table',
+                                yAxes,
+                                series: [
+                                    { id: 's1', oid: '', yPath: 'A', ...a },
+                                    { id: 's2', oid: '', yPath: 'B', ...b },
+                                ],
+                                ...extra,
+                            },
+                            columns: [],
+                        } as never,
+                    );
+        return render(createElement(PreviewExtentsContext.Provider, { value: extents }, list));
+    };
+
+    it.each(SOURCES)(
+        '%s: a bar whose raw stack key joins the 100 % stack names its bounds in displayed percent',
+        source => {
+            const el = pair(
+                source,
+                { type: 'bar' },
+                { type: 'bar', colorScale: true, stack: 'none', raw: '{"stack":"total#0"}' },
+                { B: { min: 0.125, max: 0.35 } },
+                { stackMode: 'percent' },
+            );
+            openStil(el);
+            const placeholders = Array.from(el.querySelectorAll<HTMLInputElement>('input[type="number"]')).map(
+                i => i.placeholder,
+            );
+            expect(placeholders).toEqual(
+                expect.arrayContaining([
+                    'echarts_color_scale_placeholder_data|12.5',
+                    'echarts_color_scale_placeholder_data|35',
+                ]),
+            );
+        },
+    );
+});

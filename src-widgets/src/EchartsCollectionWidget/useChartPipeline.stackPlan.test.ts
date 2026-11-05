@@ -1,0 +1,303 @@
+/**
+ * Regression tests for the stack plan at the ADR-0046 test surface {@link assemblePipelineResult}
+ * (ADR-0103 K2): the 100 % shares and the percent surfaces of the rendered option follow the
+ * legend selection under the EFFECTIVE series name — the name echarts keys the selection by.
+ * The legend values ride the same name (the legend formatter looks them up by it).
+ *
+ * @module EchartsCollectionWidget/useChartPipeline.stackPlan.test
+ */
+import { describe, expect, it } from 'vitest';
+import type { EChartsOption } from 'echarts';
+
+import { toPresentationBase } from './presentation';
+import { coreOf } from './families/cores';
+import type { ThemeTokens } from './echartsTheme';
+import type { EchartsAxisConfig, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
+import { assemblePipelineResult, type AssemblePipelineInput } from './useChartPipeline';
+import { finishValueChain } from './valueChain';
+
+const tokens = {
+    primary: '#1',
+    secondary: '#2',
+    success: '#3',
+    warning: '#4',
+    error: '#5',
+    info: '#6',
+    divider: '#7',
+    textPrimary: '#8',
+    textSecondary: '#9',
+} as unknown as ThemeTokens;
+
+type Point = [number, number | null];
+
+/** A series-shaped JSON bar chart, 100 % mode by default (name-keyed overlay, runtime selection). */
+const percentJson = (opts: {
+    series: { name: string; data: Point[] }[];
+    overlay?: Record<string, EchartsSeriesMeta>;
+    selection?: Record<string, boolean>;
+    legendShowValues?: boolean;
+    stackMode?: 'percent' | 'none';
+    yAxes?: EchartsAxisConfig[];
+}): AssemblePipelineInput => {
+    const src = { chartType: 'bar', legendShowValues: opts.legendShowValues ?? false };
+    const chartConfig = { stackMode: opts.stackMode ?? 'percent' };
+    return {
+        family: 'cartesian',
+        mode: 'json',
+        usable: [],
+        history: { series: [], loading: false, error: null },
+        jsonParsed: { series: opts.series },
+        presentation: {
+            ...toPresentationBase({
+                src,
+                palette: ['#111'],
+                family: 'cartesian',
+                themeTokens: tokens,
+                themeDark: false,
+            }),
+            ...coreOf('cartesian').presentationFragment({ src, chartConfig, markLines: [], yAxes: opts.yAxes }),
+        },
+        themeBase: {} as EChartsOption,
+        companions: {
+            chartConfig,
+            yAxes: opts.yAxes ?? [],
+            markLines: [],
+            jsonSeriesStyle: opts.overlay ?? {},
+            jsonHidden: [],
+            series: [],
+        },
+        now: 1_000_000,
+        src,
+        legendSelection: opts.selection,
+    };
+};
+
+type EmittedSeries = { name: string; data: Point[] };
+
+const dataOf = (option: EChartsOption): Record<string, Point[]> =>
+    Object.fromEntries(((option.series as EmittedSeries[] | undefined) ?? []).map(s => [s.name, s.data]));
+
+const ABC: { name: string; data: Point[] }[] = [
+    {
+        name: 'A',
+        data: [
+            [1, 5],
+            [2, 5],
+        ],
+    },
+    {
+        name: 'B',
+        data: [
+            [1, 1],
+            [2, 1],
+        ],
+    },
+    {
+        name: 'C',
+        data: [
+            [1, 3],
+            [2, 4],
+        ],
+    },
+];
+
+describe('stack plan at the pipeline core — effective series names', () => {
+    it('a renamed series deselected under its display name leaves the percent denominator', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, overlay: { A: { name: 'Alpha' } }, selection: { Alpha: false } }),
+        );
+        const data = dataOf(option);
+        // the visible shares (B, C) add up to 1 in every category
+        for (const c of [0, 1]) {
+            expect((data.B[c][1] ?? 0) + (data.C[c][1] ?? 0)).toBeCloseTo(1);
+        }
+        expect(data.B).toEqual([
+            [1, 0.25],
+            [2, 0.2],
+        ]);
+        // the deselected series keeps its absolute values
+        expect(data.Alpha).toEqual([
+            [1, 5],
+            [2, 5],
+        ]);
+    });
+
+    it('the tooltip shows the absolute of a renamed series beside its share', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: [
+                    { name: 'A', data: [[1, 2]] },
+                    { name: 'B', data: [[1, 6]] },
+                ],
+                overlay: { A: { name: 'Alpha' } },
+            }),
+        );
+        const formatter = (option.tooltip as { formatter: (params: unknown) => string }).formatter;
+        const data = dataOf(option);
+        const row = formatter(['Alpha', 'B'].map(n => ({ seriesName: n, value: data[n][0][1], dataIndex: 0 })));
+        expect(row).toBe('Alpha: 25 % (2)<br/>B: 75 % (6)');
+    });
+});
+
+describe('stack plan at the pipeline core — percent membership follows the selection', () => {
+    it('a deselected bar of a 100 % stack formats its absolute value with the series format', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, selection: { A: false }, legendShowValues: true }),
+        );
+        const formatter = (option.legend as { formatter: (n: string) => string }).formatter;
+        expect(['A', 'B', 'C'].map(formatter)).toEqual(['A [5]', 'B [20 %]', 'C [80 %]']);
+    });
+
+    it('a deselected percent bar does not turn the axis of a visible line into a share scale', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: [
+                    { name: 'A', data: [[1, 2]] },
+                    { name: 'L', data: [[1, 7]] },
+                ],
+                // same unit on both: the deselected bar still binds the emitted axis (its facts count)
+                overlay: { A: { unit: 'W' }, L: { type: 'line', unit: 'W' } },
+                selection: { A: false },
+            }),
+        );
+        const [axis] = option.yAxis as { axisLabel?: { formatter?: (v: number) => string } }[];
+        expect(axis.axisLabel?.formatter?.(7)).toBe('7 W');
+    });
+});
+
+describe('legend values — effective series names', () => {
+    it('a series renamed in the overlay shows its legend value', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: ABC,
+                overlay: { A: { name: 'Alpha' } },
+                legendShowValues: true,
+                stackMode: 'none',
+            }),
+        );
+        const formatter = (option.legend as { formatter: (n: string) => string }).formatter;
+        expect(['Alpha', 'B', 'C'].map(formatter)).toEqual(['Alpha [5]', 'B [1]', 'C [4]']);
+    });
+
+    it('a pie slice renamed by its meta carries its legend value under the slice name', () => {
+        const { patch } = finishValueChain({
+            series: [
+                { name: 'a', data: [[1, 3]] },
+                { name: 'b', data: [[1, 4]] },
+            ],
+            meta: [{ name: 'Alpha' }, undefined],
+            family: 'pie',
+            fetch: {},
+            legend: { showValues: true },
+        });
+        expect(patch.legendValues).toEqual({ Alpha: 3, b: 4 });
+    });
+});
+
+describe('stack plan at the pipeline core — a raw override of the stack fields', () => {
+    type StackedSeries = EmittedSeries & { type?: string; stack?: string; yAxisIndex?: number };
+
+    /** The emitted series grouped by the stack key echarts stacks them by. */
+    const stacksOf = (option: EChartsOption): Map<string, StackedSeries[]> => {
+        const groups = new Map<string, StackedSeries[]>();
+        for (const s of (option.series as StackedSeries[] | undefined) ?? []) {
+            if (s.stack) {
+                groups.set(s.stack, [...(groups.get(s.stack) ?? []), s]);
+            }
+        }
+        return groups;
+    };
+
+    /** Per category: the sum of the stacked members' plotted values. */
+    const categorySums = (members: StackedSeries[]): number[] =>
+        members[0].data.map((_d, c) => members.reduce((sum, m) => sum + (m.data[c][1] ?? 0), 0));
+
+    it('a raw type, axis or stack on a 100 % member never moves it out of its stack (the GUI keys win)', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: ABC,
+                overlay: { A: { raw: '{"type":"line","yAxisIndex":1,"stack":"X"}' } },
+                yAxes: [{}, {}],
+            }),
+        );
+        const stacks = stacksOf(option);
+        expect([...stacks.keys()]).toEqual(['total#0']);
+        const members = stacks.get('total#0') ?? [];
+        expect(members.map(m => [m.name, m.type, m.yAxisIndex])).toEqual([
+            ['A', 'bar', 0],
+            ['B', 'bar', 0],
+            ['C', 'bar', 0],
+        ]);
+        for (const sum of categorySums(members)) {
+            expect(sum).toBeCloseTo(1);
+        }
+    });
+
+    it('a raw stack key that joins the 100 % stack is normalized with it', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: ABC,
+                // C opts out of the mode, its raw override authors the 100 % stack's own key
+                overlay: { C: { stack: 'none', raw: '{"stack":"total#0"}' } },
+                legendShowValues: true,
+            }),
+        );
+        const members = stacksOf(option).get('total#0') ?? [];
+        expect(members.map(m => m.name)).toEqual(['A', 'B', 'C']);
+        // what echarts stacks is what the denominator counts: the shares fill 100 %
+        for (const sum of categorySums(members)) {
+            expect(sum).toBeCloseTo(1);
+        }
+        expect(dataOf(option).C).toEqual([
+            [1, 3 / 9],
+            [2, 0.4],
+        ]);
+        // and C formats as a share like its stack mates
+        const formatter = (option.legend as { formatter: (n: string) => string }).formatter;
+        expect(formatter('C')).toBe('C [40 %]');
+    });
+
+    it('a raw stack of its own keeps its absolute values beside the 100 % stack', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: ABC,
+                overlay: {
+                    B: { stack: 'none', raw: '{"stack":"own"}' },
+                    C: { stack: 'none', raw: '{"stack":"own"}' },
+                },
+            }),
+        );
+        const stacks = stacksOf(option);
+        expect([...stacks.keys()]).toEqual(['total#0', 'own']);
+        expect(dataOf(option)).toEqual({
+            A: [
+                [1, 1],
+                [2, 1],
+            ],
+            B: ABC[1].data,
+            C: ABC[2].data,
+        });
+    });
+});
+
+describe('stack plan at the pipeline core — the colour scale reads the percent membership', () => {
+    type VisualMapEntry = { seriesIndex: number; min: number; max: number };
+    const scaled: EchartsSeriesMeta = { color: '#ff0000', colorScale: true, colorScaleMin: 20, colorScaleMax: 80 };
+    const scaleOf = (option: EChartsOption, seriesIndex: number): VisualMapEntry | undefined =>
+        ((option as { visualMap?: VisualMapEntry[] }).visualMap ?? []).find(v => v.seriesIndex === seriesIndex);
+
+    it('a bar whose raw stack key joins the 100 % stack reads its colour scale entries as percent', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, overlay: { C: { ...scaled, stack: 'none', raw: '{"stack":"total#0"}' } } }),
+        );
+        expect(scaleOf(option, 2)).toMatchObject({ min: 0.2, max: 0.8 });
+    });
+
+    it('a deselected bar of a 100 % stack keeps its absolute values — its colour scale entries stay as typed', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, overlay: { A: scaled }, selection: { A: false } }),
+        );
+        expect(dataOf(option).A).toEqual(ABC[0].data);
+        expect(scaleOf(option, 0)).toMatchObject({ min: 20, max: 80 });
+    });
+});

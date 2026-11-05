@@ -1353,5 +1353,6 @@
     "color_picker_close": "Zamknij",
     "color_picker_alpha_hint": "Krycie w procentach (0–100)",
     "track_color_false": "Kolor ścieżki (wyłączona)",
-    "track_color_true": "Kolor ścieżki (włączona)"
+    "track_color_true": "Kolor ścieżki (włączona)",
+    "echarts_series_symbol_label_hint": "Etykiety linii są umieszczone na symbolach – dopóki etykieta jest włączona, symbole pozostają widoczne."
 }

@@ -250,7 +250,7 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         paths.add('label.color');
         paths.add('data');
         if (ctx.slot === 'pie-ring') {
-            paths.add('name'); // the ring identity (m?.name || s.name)
+            paths.add('name'); // the ring identity (pieSeriesName)
         }
         ANIMATION_LEAVES.forEach(p => paths.add(p));
         if (ctx.pieRoseActive) {

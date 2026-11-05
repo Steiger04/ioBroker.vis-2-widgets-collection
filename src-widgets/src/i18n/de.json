@@ -497,6 +497,7 @@
     "echarts_series_states_value": "Wert",
     "echarts_series_step": "Stufe",
     "echarts_series_symbol": "Symbole anzeigen",
+    "echarts_series_symbol_label_hint": "Linien-Beschriftungen hängen an den Symbolen – solange die Beschriftung an ist, bleiben die Symbole sichtbar.",
     "echarts_series_symbol_size": "Symbolgröße",
     "echarts_series_text_false": "Text bei falsch",
     "echarts_series_text_true": "Text bei wahr",

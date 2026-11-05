@@ -1353,5 +1353,6 @@
     "color_picker_close": "关闭",
     "color_picker_alpha_hint": "不透明度百分比（0–100）",
     "track_color_false": "轨道颜色（关闭）",
-    "track_color_true": "轨道颜色（开启）"
+    "track_color_true": "轨道颜色（开启）",
+    "echarts_series_symbol_label_hint": "折线标签显示在符号上——标签开启时，符号保持可见。"
 }

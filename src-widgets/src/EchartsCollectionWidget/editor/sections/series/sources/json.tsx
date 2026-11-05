@@ -26,6 +26,7 @@ import type { EditorState } from '../../../editorState';
 import { axisOptionLabel, jsonBindingView } from '../../../axisSight';
 import { resolveCardCapabilities } from '../cardCapabilities';
 import SeriesCard, { type SeriesCardContext, type SeriesCardFocus } from '../SeriesCard';
+import { percentStackedSeries } from '../../../stackSight';
 import { JsonTab } from '../tabs/JsonTab';
 
 /**
@@ -108,6 +109,13 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, overlaySeries)),
         chartCanvas,
         stackMode: state.stackMode,
+        // The chart renders the VISIBLE payload names — the card index runs over them too.
+        percentStacked: percentStackedSeries(
+            visibleNames.map(n => state.jsonSeriesStyle[n]),
+            defaultType,
+            state.stackMode,
+            state.yAxes,
+        ),
         chart: state,
     };
 

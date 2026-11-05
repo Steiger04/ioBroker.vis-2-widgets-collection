@@ -24,6 +24,7 @@ import { axisOptionLabel } from '../../../axisSight';
 import type { HistoryInstancesSight } from '../../../useHistoryInstances';
 import { resolveCardCapabilities } from '../cardCapabilities';
 import SeriesCard, { type SeriesCardContext, type SeriesCardFocus } from '../SeriesCard';
+import { percentStackedSeries } from '../../../stackSight';
 import { AddSeriesViaOid, EmptyState } from '../shared';
 
 /**
@@ -104,6 +105,7 @@ export const HistorySeriesList: FC<HistorySeriesListProps> = ({
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series)),
         chartCanvas,
         stackMode: state.stackMode,
+        percentStacked: percentStackedSeries(series, defaultType, state.stackMode, state.yAxes),
         chart: state,
         fetch: state,
     };

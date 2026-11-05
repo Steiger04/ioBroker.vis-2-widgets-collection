@@ -1353,5 +1353,6 @@
     "color_picker_close": "Закрыть",
     "color_picker_alpha_hint": "Непрозрачность в процентах (0–100)",
     "track_color_false": "Цвет дорожки (выкл.)",
-    "track_color_true": "Цвет дорожки (вкл.)"
+    "track_color_true": "Цвет дорожки (вкл.)",
+    "echarts_series_symbol_label_hint": "Подписи линии привязаны к символам — пока подпись включена, символы остаются видимыми."
 }

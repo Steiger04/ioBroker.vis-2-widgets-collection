@@ -2149,15 +2149,18 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
             tooltipDecimals: 1,
             decimalComma: true,
         });
-        const label = withKnobs.label as { formatter?: (v: unknown) => string };
+        // echarts calls a label formatter with its params object — `value` is the datum.
+        const label = withKnobs.label as { formatter?: (params: { value: unknown }) => string };
         expect(label.formatter).toBeTypeOf('function');
-        expect(label.formatter!(1.5)).toBe('1,5 W'); // decimals clamp + comma + unit
+        expect(label.formatter!({ value: [1, 1.5] })).toBe('1,5 W'); // decimals clamp + comma + unit
 
         // Gated like the tooltip's valueFormatter: no knob authored → echarts' own label default.
         expect(s0([{ label: true }]).label).not.toHaveProperty('formatter');
         // Comma alone is a knob too (ADR-0054 rule, same gate as the tooltip).
         const commaOnly = s0([{ label: true }], { decimalComma: true });
-        expect((commaOnly.label as { formatter: (v: unknown) => string }).formatter(2.5)).toBe('2,5');
+        expect(
+            (commaOnly.label as { formatter: (params: { value: unknown }) => string }).formatter({ value: 2.5 }),
+        ).toBe('2,5');
     });
 
     it('a line label ignores the bar POSITION knob, but resolves its colour explicitly (ADR 0080)', () => {
@@ -2178,6 +2181,144 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
             p: P,
         });
         expect((bare.series as Record<string, unknown>[])[0].label).toEqual({ show: true, color: '#1' }); // palette slot 0
+    });
+
+    it('a line label shows its symbols — echarts paints line labels only on symbols, so „Label an" stays visible', () => {
+        const lineEntry = (meta: EchartsSeriesMeta): Record<string, unknown> =>
+            (
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data: [[1, 21.5]] }],
+                    meta: [meta],
+                    p: P, // cartesianType stays 'line'
+                }).series as Record<string, unknown>[]
+            )[0];
+        // Label on, symbols unset → the symbols carry the labels.
+        expect(lineEntry({ label: true, unit: '°C' }).showSymbol).toBe(true);
+        // An explicit symbol switch-off cannot hide the labels' only carrier: label on wins.
+        expect(lineEntry({ label: true, symbol: false }).showSymbol).toBe(true);
+        expect(lineEntry({ label: true, symbol: true }).showSymbol).toBe(true);
+        // Without a label the symbol switch alone decides (unset = off), unchanged.
+        expect(lineEntry({}).showSymbol).toBe(false);
+        expect(lineEntry({ symbol: false }).showSymbol).toBe(false);
+        expect(lineEntry({ symbol: true }).showSymbol).toBe(true);
+        expect(lineEntry({ label: false }).showSymbol).toBe(false);
+    });
+
+    describe('line labels at the plot edges stay inside the plot (ADR-0103 Abnahme-Funde)', () => {
+        type EdgeLayout = (params: { dataIndex: number }) => { align?: string } | undefined;
+        /** Six temperature points on a time axis — the Sichtprüfung case. */
+        const SIX: [number, number | null][] = [
+            [1000, 21.5],
+            [2000, 22.0],
+            [3000, 22.4],
+            [4000, 22.8],
+            [5000, 23.1],
+            [6000, 23.3],
+        ];
+        const entryOf = (
+            meta: EchartsSeriesMeta,
+            data: unknown[] = SIX,
+            p: PresentationBase & CartesianFragment = P,
+        ): Record<string, unknown> =>
+            (
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data: data as [number, number | null][] }],
+                    meta: [meta],
+                    p,
+                }).series as Record<string, unknown>[]
+            )[0];
+        const alignOf = (layout: unknown, dataIndex: number): string | undefined =>
+            (layout as EdgeLayout)({ dataIndex })?.align;
+
+        it('the leftmost label grows rightwards, the rightmost leftwards, the rest stay centred', () => {
+            const layout = entryOf({ label: true, unit: '°C' }).labelLayout;
+            expect(layout).toBeTypeOf('function');
+            // Left edge: the label starts at its point instead of reaching over the Y axis labels.
+            expect(alignOf(layout, 0)).toBe('left');
+            // Right edge: the label ends at its point instead of running past the plot.
+            expect(alignOf(layout, 5)).toBe('right');
+            for (const i of [1, 2, 3, 4]) {
+                expect(alignOf(layout, i)).toBeUndefined();
+            }
+        });
+
+        it('the edges are the extreme X values with a value, not the array ends', () => {
+            // Unsorted payload with gaps at both ends: X 1000 (index 3) is leftmost, 6000 (index 1) rightmost.
+            const layout = entryOf({ label: true }, [
+                [500, null],
+                [6000, 23.3],
+                [3000, 22.4],
+                [1000, 21.5],
+                [7000, null],
+            ]).labelLayout;
+            expect(alignOf(layout, 3)).toBe('left');
+            expect(alignOf(layout, 1)).toBe('right');
+            expect(alignOf(layout, 0)).toBeUndefined();
+            expect(alignOf(layout, 2)).toBeUndefined();
+        });
+
+        it('plain category values: the first and last value carry the edges', () => {
+            const layout = entryOf({ label: true }, [null, 4, 5, 6]).labelLayout;
+            expect(alignOf(layout, 1)).toBe('left');
+            expect(alignOf(layout, 3)).toBe('right');
+        });
+
+        it('an inverse X axis (raw) swaps the edges — the smallest X sits on the right', () => {
+            const layout = entryOf({ label: true }, SIX, {
+                ...P,
+                xAxis: { ...P.xAxis, raw: '{"inverse": true}' },
+            }).labelLayout;
+            expect(alignOf(layout, 0)).toBe('right');
+            expect(alignOf(layout, 5)).toBe('left');
+        });
+
+        it('only line and scatter series with a label get the edge layout', () => {
+            // No label → no key; a single point has no edge pair → no key.
+            expect(entryOf({})).not.toHaveProperty('labelLayout');
+            expect(entryOf({ label: false })).not.toHaveProperty('labelLayout');
+            expect(entryOf({ label: true }, [[1000, 21.5]])).not.toHaveProperty('labelLayout');
+            expect(entryOf({ type: 'scatter' })).not.toHaveProperty('labelLayout');
+            // Bar labels keep their own position cluster.
+            expect(entryOf({ label: true, type: 'bar' })).not.toHaveProperty('labelLayout');
+        });
+
+        it('scatter labels follow the same edge rule — unsorted points by their extreme X', () => {
+            // A scatter payload need not be X-sorted (serien-förmiges JSON passes it through):
+            // X 1000 (index 2) is leftmost, X 6000 (index 0) rightmost.
+            const layout = entryOf({ label: true, type: 'scatter' }, [
+                [6000, 23.3],
+                [3000, 22.4],
+                [1000, 21.5],
+                [4000, null],
+            ]).labelLayout;
+            expect(layout).toBeTypeOf('function');
+            expect(alignOf(layout, 2)).toBe('left');
+            expect(alignOf(layout, 0)).toBe('right');
+            expect(alignOf(layout, 1)).toBeUndefined();
+        });
+
+        it('a scatter label sits above its point — the symbol never covers the text', () => {
+            // echarts' scatter default is `position: 'inside'`: the label centres ON the dot
+            // and the dot paints over it. Like a line label it sits on top of the point.
+            const label = entryOf({ label: true, type: 'scatter' }, [
+                [1000, 21.5],
+                [2000, 22.4],
+            ]).label as { show?: boolean; position?: string };
+            expect(label.show).toBe(true);
+            expect(label.position).toBe('top');
+            // a line label keeps echarts' own default (top) — no key emitted
+            expect(
+                (entryOf({ label: true, type: 'line' }, [[1000, 21.5]]).label as { position?: string }).position,
+            ).toBeUndefined();
+        });
+
+        it('a raw labelLayout wins (escape hatch)', () => {
+            expect(entryOf({ label: true, raw: '{"labelLayout": {"hideOverlap": true}}' }).labelLayout).toEqual({
+                hideOverlap: true,
+            });
+        });
     });
 
     it('label off wins over authored knobs — no label key at all', () => {
@@ -2262,8 +2403,8 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
             tooltipUnits: 'W',
         });
         const entry = (option.series as Record<string, unknown>[])[0];
-        const fmt = (entry.label as { formatter: (v: unknown) => string }).formatter;
-        expect(fmt(1.56)).toBe('1.6 kW'); // the series unit + decimals win over the chart cluster
+        const fmt = (entry.label as { formatter: (params: { value: unknown }) => string }).formatter;
+        expect(fmt({ value: 1.56 })).toBe('1.6 kW'); // the series unit + decimals win over the chart cluster
         // The chart-only path stays exactly as Build D shipped it (characterisation).
         const chartLevel = build([{ name: 'W', label: true }], {
             cartesianType: 'bar',
@@ -2272,17 +2413,19 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
         });
         expect(
             (
-                (chartLevel.series as Record<string, unknown>[])[0].label as { formatter: (v: unknown) => string }
-            ).formatter(1.56),
+                (chartLevel.series as Record<string, unknown>[])[0].label as {
+                    formatter: (params: { value: unknown }) => string;
+                }
+            ).formatter({ value: 1.56 }),
         ).toBe('1.6 W');
     });
 
     it('a LINE label gets the formatter as well when facts exist; without facts it stays show + colour', () => {
         const withFacts = build([{ name: 'T', label: true, unit: '°C' }]);
         const lineLabel = (withFacts.series as Record<string, unknown>[])[0].label as {
-            formatter?: (v: unknown) => string;
+            formatter?: (params: { value: unknown }) => string;
         };
-        expect(lineLabel.formatter!(21.5)).toBe('21.5 °C');
+        expect(lineLabel.formatter!({ value: [1, 21.5] })).toBe('21.5 °C');
 
         expect((build([{ name: 'T', label: true }]).series as Record<string, unknown>[])[0].label).toEqual({
             show: true,
@@ -2414,11 +2557,11 @@ describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', 
         const labeled = build([{ name: 'M', label: true, states: STATES }], { cartesianType: 'bar' });
         const fmt = (
             (labeled.series as Record<string, unknown>[])[0].label as {
-                formatter: (v: unknown) => string;
+                formatter: (params: { value: unknown }) => string;
             }
         ).formatter;
-        expect(fmt(2)).toBe('AN');
-        expect(fmt(0.5)).toBe(''); // exact mode on a label
+        expect(fmt({ value: 2 })).toBe('AN');
+        expect(fmt({ value: 0.5 })).toBe(''); // exact mode on a label
 
         const authored = build([{ name: 'A', states: STATES }], { yAxes: [{ format: '{value}' }] });
         expect((authored.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter).toBe('{value}');
@@ -3383,6 +3526,49 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
         expect(html).not.toContain('stackSum');
     });
 
+    it('sum anchor decimals: the SHARED decimals of the stack members beat the chart-level clamp; divergent ones do not', () => {
+        const sumText = (metas: EchartsSeriesMeta[]): string => {
+            const option = buildBars(
+                metas,
+                [
+                    [1.5, 1, 1],
+                    [2.25, 1, 1],
+                ],
+                // The editor's real default: the chart-level tooltip decimals are 0.
+                { stackMode: 'stack', stackSum: true, tooltipDecimals: 0 },
+            );
+            const anchor = (option.series as Record<string, unknown>[])[2];
+            return (anchor.label as { formatter: (p: { dataIndex: number }) => string }).formatter({ dataIndex: 0 });
+        };
+        // Every member carries 2 decimals → the sum wears them too (never „4 kWh" for 3.75).
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh', decimals: 2 },
+            ]),
+        ).toBe('3.75 kWh');
+        // Divergent (or partly unset) decimals → no shared fact, the axis format stays (today's rounding).
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh', decimals: 1 },
+            ]),
+        ).toBe('4 kWh');
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh' },
+            ]),
+        ).toBe('4 kWh');
+        // A shared 0 is a fact too (ADR-0057).
+        expect(
+            sumText([
+                { name: 'A', decimals: 0 },
+                { name: 'B', decimals: 0 },
+            ]),
+        ).toBe('4');
+    });
+
     it('sum anchor shift: an unset top-member position keeps the one-line lift (documented deviation, ADR-0056)', () => {
         const shiftOf = (top: EchartsSeriesMeta): unknown => {
             const option = buildBars(
@@ -3554,10 +3740,11 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
             { stackMode: 'percent' },
         );
         const label = (option.series as Record<string, unknown>[])[0].label as Record<string, unknown> as {
-            formatter: (v: unknown) => string;
+            formatter: (params: { value: unknown }) => string;
         };
-        expect(label.formatter(0.25)).toBe('25 %');
-        expect(label.formatter(0.3334)).toBe('33.3 %');
+        // echarts calls a label formatter with its params object — `value` is the datum.
+        expect(label.formatter({ value: 0.25 })).toBe('25 %');
+        expect(label.formatter({ value: 0.3334 })).toBe('33.3 %');
     });
 
     it('percent tooltip rows show share AND absolute; the legend value renders the share', () => {

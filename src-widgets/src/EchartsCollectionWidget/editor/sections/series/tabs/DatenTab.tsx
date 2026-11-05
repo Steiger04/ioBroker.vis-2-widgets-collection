@@ -18,6 +18,7 @@ import type {
 } from '../../../../../types/field-definitions/echarts-fields';
 import {
     effectiveAggregate,
+    effectiveNullMode,
     inheritedIntegralInterpolation,
     inheritedIntegralUnit,
     inheritedPercentileLevel,
@@ -65,10 +66,18 @@ export const xOffsetMode = (xOffset: EchartsSeriesMeta['xOffset']): 'sec' | Echa
  * The NULL-Behandlung select's option list — the inherit entry NAMES its effective chart
  * target (the ADR-0072 aggregate pattern): the value is effective in every mode since the
  * toter-Regler fix, so naming it stays honest even where the chart-level field has no UI
- * (the JSON families inherit the persisted Verlauf-authored setting).
+ * (the JSON families inherit the persisted Verlauf-authored setting). The named target
+ * resolves through the pipeline's own rule ({@link effectiveNullMode}): a persisted
+ * non-canonical chart value is named 'keep', exactly what the fill does with it.
  */
 const nullModeOptions = (chartNullMode?: 'keep' | 'forward' | 'zero'): [string, string][] => [
-    ['', Generic.t('echarts_series_null_inherit', Generic.t(`echarts_ignore_null_${chartNullMode ?? 'keep'}`))],
+    [
+        '',
+        Generic.t(
+            'echarts_series_null_inherit',
+            Generic.t(`echarts_ignore_null_${effectiveNullMode(undefined, chartNullMode)}`),
+        ),
+    ],
     ['keep', Generic.t('echarts_ignore_null_keep')],
     ['forward', Generic.t('echarts_ignore_null_forward')],
     ['zero', Generic.t('echarts_ignore_null_zero')],

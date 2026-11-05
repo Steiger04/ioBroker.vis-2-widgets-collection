@@ -31,12 +31,11 @@ import type {
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { deriveAreaGradient } from '../seriesColorDerive';
 import { buildColorScaleEntry, colorScaleAxis } from '../seriesColorScale';
-import { axisPosition } from '../editor/axisSight';
+import { effectiveSeriesColor, effectiveSeriesName, markerHostIndex, resolveAxisPlan } from '../axisResolution';
 import {
     buildLegend,
     DEFAULT_MARK_FILL,
     edgeLabelOf,
-    legendActiveOf,
     markLabelColorOf,
     markLineStyleOf,
     type EchartsMarkEdge,
@@ -44,8 +43,6 @@ import {
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
-    formatPercentValue,
-    formatSeriesValue,
     hasSeriesValueFormat,
     textFactsActive,
     type ChartValueFormat,
@@ -54,14 +51,22 @@ import {
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import {
-    datumValueSlot,
     effectiveCartesianType,
-    effectiveStackName,
-    isPercentStackedBar,
+    lineStackGroup,
     normalizeStackMode,
+    resolveStackPlan,
+    stackPlanSeriesOf,
+    stackSums,
 } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
+import {
+    axisTickFormatter,
+    percentLabelFormatter,
+    percentTickFormatter,
+    seriesLabelFormatter,
+    sumAnchorLabelFormatter,
+} from './formatters';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
     solid: 'solid',
@@ -170,11 +175,62 @@ export const parseBarWidth = (raw: string | undefined): number | string | undefi
     return m[2] ? raw.trim() : px;
 };
 
+/**
+ * Point labels at the plot edges (ADR-0103 Abnahme-Funde): echarts centres a symbol label on its
+ * point (line: above it, `top`; scatter: on it, `inside`), so the label of a point ON the left plot
+ * edge reaches half its width over the Y axis labels, and the one on the right edge runs past the
+ * plot (the grid sits flush with the canvas, ADR-0024) and is cut off. echarts' `labelLayout`
+ * callback re-aligns exactly those two labels — the leftmost grows rightwards from its point, the
+ * rightmost leftwards — measurement-free and without moving any label off its point; every other
+ * label keeps echarts' centred default.
+ *
+ * The edges are the extreme X values that carry a value (a null point paints no symbol, hence
+ * no label): `[x, y]` points by X — never by array position, a scatter (or JSON) payload need not
+ * be X-sorted — plain category values by position. An inverse X axis swaps them. Fewer than two
+ * labelled points → `undefined` (no edge pair, no key). The callback sees only `dataIndex` and
+ * pixel rects, no axis extent: after an interactive filter zoom the zoom edges are not re-aligned.
+ *
+ * @param data - The series' cartesian data (`[x, y]` points or plain category values).
+ * @param inverse - Whether the emitted X axis runs inverse (raw JSON).
+ */
+const edgeLabelLayout = (
+    data: ChartSeries['data'],
+    inverse: boolean,
+): ((params: { dataIndex: number }) => { align: 'left' | 'right' } | undefined) | undefined => {
+    let minIdx = -1;
+    let maxIdx = -1;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    data.forEach((d, i) => {
+        const point = Array.isArray(d) ? d : null;
+        const y = point ? point[1] : d;
+        if (typeof y !== 'number' || !Number.isFinite(y)) {
+            return;
+        }
+        const x = point ? point[0] : i;
+        if (x < minX) {
+            minX = x;
+            minIdx = i;
+        }
+        if (x > maxX) {
+            maxX = x;
+            maxIdx = i;
+        }
+    });
+    if (minIdx < 0 || minIdx === maxIdx) {
+        return undefined;
+    }
+    const leftIdx = inverse ? maxIdx : minIdx;
+    const rightIdx = inverse ? minIdx : maxIdx;
+    return ({ dataIndex }) =>
+        dataIndex === leftIdx ? { align: 'left' } : dataIndex === rightIdx ? { align: 'right' } : undefined;
+};
+
 /** Build a single cartesian series entry from its data + per-series meta. */
 const buildCartesianSeriesEntry = (
     s: ChartSeries,
     m: EchartsSeriesMeta | undefined,
-    fallbackColor: string,
+    palette: readonly string[],
     index: number,
     defaultType: EchartsCartesianType,
     /** The chart-level value-format context (comma + tooltip-cluster fallbacks, ADR-0057). */
@@ -184,9 +240,9 @@ const buildCartesianSeriesEntry = (
     // Legacy `type:'area'` (ADR-0008 r4 removed it) matches no concrete type → falls through to
     // `defaultType`, which a legacy 'area' chart normalises to 'line' upstream.
     const type: EchartsCartesianType = effectiveCartesianType(m?.type, defaultType);
-    const color = m?.color ?? fallbackColor;
+    const color = effectiveSeriesColor(m, index, palette);
     const areaMode = normalizeAreaMode(m);
-    const name = m?.name || s.name || `Series ${index + 1}`;
+    const name = effectiveSeriesName(m, s, index);
 
     const entry: Record<string, unknown> = {
         name,
@@ -210,7 +266,7 @@ const buildCartesianSeriesEntry = (
         // series colour so echarts' bg-contrast halo never runs, ADR 0080).
         const seriesFacts = factsOfMeta(m);
         const labelFmt = hasSeriesValueFormat(seriesFacts, chartFmt)
-            ? (v: unknown): string => formatSeriesValue(v, seriesFacts, chartFmt)
+            ? seriesLabelFormatter(seriesFacts, chartFmt)
             : undefined;
         entry.label =
             type === 'bar'
@@ -227,21 +283,30 @@ const buildCartesianSeriesEntry = (
                       // echarts' auto contrast, which strokes a halo derived from the
                       // (transparent!) canvas background — a white border on dark hosts.
                       color: m.labelColor ?? color,
+                      // echarts' scatter default is `inside`: the label centres on the dot and
+                      // the dot paints over it. A scatter label sits above its point like a
+                      // line label (whose echarts default is already `top`).
+                      ...(type === 'scatter' ? { position: 'top' } : {}),
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   };
     }
-    if (m?.stack && m.stack !== 'none' && type === 'line') {
+    const lineGroup = lineStackGroup(m?.stack, type);
+    if (lineGroup) {
         // Hand-set LINE group (ADR-0084 decision 2: lines never inherit the mode — the plain
         // group name keeps the pre-0084 semantics, no axis coupling). Bars resolve through the
         // mode resolver in buildCartesianOption (the axis-coupled name, stamped AFTER the raw
         // fold so the GUI wins a raw collision); scatter never stacks.
-        entry.stack = m.stack;
+        entry.stack = lineGroup;
     }
 
     if (type === 'line') {
         // D2: smooth defaults to false (matches ECharts 'Basic Line', not the smoothed example).
         entry.smooth = m?.smooth ?? false;
-        entry.showSymbol = m?.symbol ?? false;
+        // echarts paints line labels ONLY on the symbols (LineView drops the SymbolDraw when
+        // `showSymbol` is false; the label is the symbol path's text content) — a switched-on
+        // label therefore shows the symbols, even over an explicit symbol switch-off, or the
+        // label switch would be a dead knob (ADR-0103 Abnahme-Funde).
+        entry.showSymbol = m?.label ? true : (m?.symbol ?? false);
         if (m?.symbolSize !== undefined) {
             entry.symbolSize = m.symbolSize;
         }
@@ -560,7 +625,7 @@ const buildYAxisEntry = (
     } else if (percent) {
         // Percent ticks (ADR-0084): the 0..1 share scale labels as `0–100 %` — no unit
         // inheritance (a share is unitless), one decimal by the example rule.
-        axisLabel.formatter = (v: number): string => formatPercentValue(v, comma);
+        axisLabel.formatter = percentTickFormatter(comma);
     } else if (textFactsActive(seriesFacts) || seriesFacts?.unit || comma) {
         // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. ADR-0057: the axis
         // inherits the unit every bound series shares — appended to the default numeric labels,
@@ -568,7 +633,7 @@ const buildYAxisEntry = (
         // format wins verbatim, mixing units inherits nothing). ADR-0058: shared bool/enum TEXTS
         // take over the ticks in `'axis'` mode (nearest state — a hit suppresses the unit).
         const axisMode = textFactsActive(seriesFacts) ? 'axis' : 'exact';
-        axisLabel.formatter = (v: number): string => formatSeriesValue(v, seriesFacts, { comma }, axisMode);
+        axisLabel.formatter = axisTickFormatter(seriesFacts, { comma }, axisMode);
     }
     const color = a.color ?? seriesColor;
     if (color) {
@@ -747,7 +812,8 @@ const buildXAxisEntry = (
 /**
  * Build the cartesian G option.
  *
- * @param series - Resolved chart series (history / live / json → `[ts, val]`).
+ * @param series - Resolved chart series (Verlauf / serien-förmiges JSON → `[ts, val]` points;
+ *   category bars and tabellarisch on a category axis → plain values, ADR-0065/0075).
  * @param meta - Per-series rendering metadata from the `seriesConfig` blob.
  * @param p - Chart-wide presentation base + the cartesian fragment (ADR-0083: pie fields are
  *   not visible here — a foreign-fragment access does not compile).
@@ -757,78 +823,66 @@ export const buildCartesianOption = (
     meta: readonly EchartsSeriesMeta[],
     p: PresentationBase & CartesianFragment,
 ): EChartsOption => {
-    // Guarantee ≥1 Y-axis: the editor allows deleting every axis (the last one too), but a cartesian
-    // chart must always render at least one value axis. An empty `p.yAxes` — or one where every
-    // axis is unbound (only reachable through hand-edited JSON since ADR-0069) — falls back to a
-    // single default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves
-    // exactly that.
-    const allAxes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
-    const total = allAxes.length;
     // The chart-level value-format context (ADR-0057): the comma switch + the tooltip cluster as
     // the per-fact fallback for series without their own facts — the shared projection.
     const chartFmt = chartValueFormatOf(p);
-    const entries = series.map((s, i) => {
-        const e = applyRawOverride(
-            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType, chartFmt),
-            meta[i]?.raw,
-        );
-        // Clamp the per-series axis index to the configured axes (ADR-0012): a removed axis must
-        // not leave a series bound to a non-existent yAxisIndex (echarts would drop it).
-        const yi = typeof e.yAxisIndex === 'number' ? e.yAxisIndex : 0;
-        e.yAxisIndex = yi >= total ? 0 : yi;
-        return e;
+    const entries = series.map((s, i) =>
+        applyRawOverride(buildCartesianSeriesEntry(s, meta[i], p.palette, i, p.cartesianType, chartFmt), meta[i]?.raw),
+    );
+    // The axis plan (ADR-0103 K3, the runtime axis rules): every binding materialised and
+    // clamped to the configured axes (ADR-0012 — a removed axis never leaves a series on a
+    // non-existent yAxisIndex), the actively bound axes emitted (ADR-0066 widened by the
+    // Legenden-Folge, ADR-0074: a deselected series does not keep its axis alive; deselected
+    // series STAY emitted — echarts needs them for the legend — and remap with the rest onto
+    // the compacted array, echarts matches `yAxisIndex` against the EMITTED array), the
+    // all-deselected chart's silent carrier, the display re-stagger and each axis' Namensgeber.
+    // Read AFTER the raw fold: a raw `yAxisIndex`/`name` counts. `allAxes` is the configured
+    // array, ≥ 1 axis: an empty `p.yAxes` (the editor allows deleting the last axis) falls back
+    // to one default-config axis (left, splitLine on).
+    const plan = resolveAxisPlan({
+        axes: p.yAxes,
+        entries,
+        meta,
+        series,
+        selection: p.legendSelection,
+    });
+    const allAxes = plan.configured;
+    // Balken-Stapelmodus (ADR-0084): the stack plan (ADR-0103 K2) — the SAME membership the
+    // value chain's shares read — resolves every bar's stack on its EMITTED axis (decision 3: a
+    // stack can never span foreign scales, not even with explicit groups; the name is
+    // builder-internal, never persisted). The plan reads the series' stack fields after the raw
+    // fold through the SAME read as the value chain (`stackPlanSeriesOf`): the GUI-authored
+    // resolution wins a raw `stack` collision; where the mode resolves NO stack (opted out, or
+    // mode off) a raw-authored stack stays effective — the escape hatch keeps its key (and its
+    // sum anchor), and a key naming a 100 % stack joins its shares.
+    const stackMode = normalizeStackMode(p.stackMode);
+    const stackPlan = resolveStackPlan({
+        series: entries.map((_e, i) => stackPlanSeriesOf(meta[i], p.cartesianType)),
+        names: entries.map(e => e.name as string),
+        mode: stackMode,
+        axes: plan,
     });
     // Per-series colour scale (Farbskala, ADR-0101): one invisible continuous visualMap entry per series with
     // an active scale, `seriesIndex` = the series' own index (hidden series stay emitted, so the
-    // indices never shift). Resolved against the CONFIGURED axis (before the remap below) and
-    // the whole loaded series — zooming never recolours. A percent-stacked bar carries shares
-    // (the pipeline's normalization, same predicate): its entered bounds are displayed percent.
-    const colorScaleStackMode = normalizeStackMode(p.stackMode);
+    // indices never shift). Resolved against the CONFIGURED axis (not the emitted one) and
+    // the whole loaded series — zooming never recolours. A series that renders SHARES (the stack
+    // plan's percent flag — the membership the pipeline normalized, a raw-joined bar included, a
+    // deselected bar with its absolutes excluded) reads its entered bounds as displayed percent.
     const colorScales = entries.flatMap((e, i) => {
-        const axis = colorScaleAxis(allAxes, e.yAxisIndex as number);
-        const percent = isPercentStackedBar(
-            meta[i]?.stack,
-            effectiveCartesianType(meta[i]?.type, p.cartesianType),
-            colorScaleStackMode,
-        );
-        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data, percent);
+        const axis = colorScaleAxis(allAxes, plan.axisOf[i]);
+        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data, stackPlan.percent[i]);
         return vm ? [vm] : [];
     });
-    // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the
-    // editor with its config, absent from the chart (no phantom, no reserved grid space).
-    // Legenden-Folge (ADR-0074) widens the criterion to ACTIVELY bound: a series whose legend
-    // entry is deselected — runtime selection (name→active) with „Nur in Legende" (ADR-0060) as
-    // the per-name config fallback — does not keep its axis alive either. Deselected series
-    // STAY emitted (echarts needs them for the legend); their refs fall to the clamp/remap
-    // below. Keep only the actively-bound axes and remap the series refs onto the compacted
-    // array — echarts matches `yAxisIndex` against the EMITTED array, so a hole in the middle
-    // would dangle every higher ref. The remap runs AFTER the marking host lookup below, which
-    // matches against the configured indices.
-    const active = (i: number): boolean => {
-        const name = entries[i]?.name;
-        // Entry names are always strings (the series builder falls back to `Series N`); the
-        // guard is for the reader — an unnameable entry counts as active.
-        return typeof name === 'string' ? legendActiveOf(p.legendSelection, name, meta[i]?.legendOnly === true) : true;
-    };
-    const boundAxes = new Set(entries.map(e => e.yAxisIndex as number));
-    const activeBoundAxes = new Set(entries.filter((_e, i) => active(i)).map(e => e.yAxisIndex as number));
-    const emittedIdx = allAxes.map((_a, i) => i).filter(i => activeBoundAxes.has(i));
-    // The all-deselected chart (series exist, none active) renders NO real axis — the empty
-    // plot (ADR-0074): ONE silent carrier (see silentYAxis) keeps echarts' grid renderable
-    // whatever the grid switch says (addendum 6 — the X min/max gridlines close the vertical
-    // edges; the invisible carrier staffs no side).
-    const allInactive = entries.length > 0 && emittedIdx.length === 0;
-    const axes: readonly EchartsAxisConfig[] = emittedIdx.length ? emittedIdx.map(i => allAxes[i]) : [{}];
-    const axisRemap = new Map<number, number>(emittedIdx.map((old, pos) => [old, pos]));
     // Marking markers attach to a SERIES, and echarts draws them on that series' axis. With
     // multi-axis (ADR-0023) a marking must hang on a series bound to its own axis, not stuck on
     // entries[0] (which would draw a 2000 W marking on a 0–40 °C axis). Group markings by their
-    // yAxisIndex and attach each group's lines AND bands to the FIRST ACTIVE series on that
-    // axis (ADR-0074 re-anchor): a deselected host does not draw its markers, so the marking
-    // follows the first binder the legend still shows — it dies with the AXIS (every binder
-    // inactive), not with its config host. A marking anchored to an unbound or fully
-    // deselected axis rests with it (ADR-0066/0074): no fallback onto another axis' scale — it
-    // returns when an active series (re-)binds the axis.
+    // yAxisIndex and attach each group's lines AND bands to the axis' marker host
+    // (`markerHostIndex`: the FIRST ACTIVE series on the CONFIGURED axis, ADR-0074 re-anchor) —
+    // a deselected host does not draw its markers, so the marking follows the first binder the
+    // legend still shows; it dies with the AXIS (every binder inactive), not with its config
+    // host. A marking anchored to an unbound or fully deselected axis rests with it
+    // (ADR-0066/0074): no fallback onto another axis' scale — it returns when an active series
+    // (re-)binds the axis.
     if (p.markLines.length > 0 && entries.length > 0) {
         const byAxis = new Map<number, EchartsMarkLine[]>();
         for (const ml of p.markLines) {
@@ -841,13 +895,11 @@ export const buildCartesianOption = (
             }
         }
         for (const [ax, marks] of byAxis) {
-            if (!activeBoundAxes.has(ax)) {
+            const hostIdx = markerHostIndex(plan, ax);
+            if (hostIdx < 0) {
                 continue; // target axis unbound or fully deselected (hand-edited JSON / stale index) — the marking rests
             }
-            const host = entries.find((e, idx) => e.yAxisIndex === ax && active(idx));
-            if (!host) {
-                continue; // unreachable while activeBoundAxes is derived from entries — defensive
-            }
+            const host = entries[hostIdx];
             const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider, p.themeTokens.textSecondary);
             if (lineData.length) {
                 attachMarker(host, 'markLine', lineData);
@@ -857,41 +909,29 @@ export const buildCartesianOption = (
             }
         }
     }
-    // Remap the series refs onto the compacted (bound-only) emission array. `axisRemap.get` is
-    // defined for every entry (the bound set was derived from exactly these refs).
-    for (const e of entries) {
-        e.yAxisIndex = axisRemap.get(e.yAxisIndex as number) ?? 0;
-    }
-
-    // Balken-Stapelmodus (ADR-0084): bars resolve their stack HERE — after the axis remap, so
-    // the coupled name carries the EMITTED axis index (decision 3: a stack can never span
-    // foreign scales, not even with explicit groups; the name is builder-internal, never
-    // persisted). Stamped AFTER the raw fold: the GUI-authored resolution wins a raw `stack`
-    // collision; where the mode resolves NO stack (opted out, or mode off) a raw-authored stack
-    // stays effective — the escape hatch keeps its key.
-    const stackMode = normalizeStackMode(p.stackMode);
-    // Percent surfaces (decision 4): which names/axes render SHARES — the pipeline already
-    // normalized their data (same resolver, ADR-0084 one-truth); everything formatting a value
-    // of these series switches to the percent display.
-    const percentNames = new Set<string>();
-    const percentAxes = new Set<number>();
+    // Remap the series refs onto the compacted (actively-bound-only) emission array.
     entries.forEach((e, i) => {
-        if (e.type !== 'bar') {
-            return;
-        }
-        const stack = effectiveStackName(meta[i]?.stack, stackMode, e.yAxisIndex as number);
+        e.yAxisIndex = plan.emittedOf[i];
+    });
+
+    // Percent surfaces (decision 4): which names/axes render SHARES — the pipeline already
+    // normalized their data (same plan, ADR-0084 one-truth); everything formatting a value of
+    // these series switches to the percent display.
+    const percentNames = new Set<string>();
+    const percentAxes = stackPlan.percentAxes;
+    entries.forEach((e, i) => {
+        const stack = stackPlan.stackOf[i];
         if (stack) {
             e.stack = stack;
-            if (stackMode === 'percent') {
-                percentNames.add(e.name as string);
-                percentAxes.add(e.yAxisIndex as number);
-                // The segment label shows the SHARE — the Wert-Formatter's value display is
-                // replaced (a share's unit would lie; facts like bool texts never apply to a
-                // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
-                const label = e.label as Record<string, unknown> | undefined;
-                if (label) {
-                    label.formatter = (v: unknown): string => formatPercentValue(v, p.decimalComma);
-                }
+        }
+        if (stackPlan.percent[i]) {
+            percentNames.add(e.name as string);
+            // The segment label shows the SHARE — the Wert-Formatter's value display is
+            // replaced (a share's unit would lie; facts like bool texts never apply to a
+            // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
+            const label = e.label as Record<string, unknown> | undefined;
+            if (label) {
+                label.formatter = percentLabelFormatter(p.decimalComma);
             }
         }
     });
@@ -913,7 +953,9 @@ export const buildCartesianOption = (
     const boundFacts = (axisIndex: number): SeriesValueFacts[] => {
         const bound: SeriesValueFacts[] = [];
         for (let i = 0; i < entries.length; i++) {
-            if ((entries[i].yAxisIndex as number) === axisIndex) {
+            // `bindsEmitted`, not the emitted ref: a series parked on emitted 0 (its axis rests)
+            // lends that axis no unit/text facts.
+            if (plan.bindsEmitted[i] === axisIndex) {
                 bound.push(factsOfMeta(meta[i]));
             }
         }
@@ -935,6 +977,11 @@ export const buildCartesianOption = (
             }
         }
         return unit;
+    };
+    /** The decimals EVERY listed series carries alike (`0` counts); unset or divergent → none. */
+    const sharedDecimals = (seriesIndices: readonly number[]): number | undefined => {
+        const first = meta[seriesIndices[0]]?.decimals;
+        return first !== undefined && seriesIndices.every(i => meta[i]?.decimals === first) ? first : undefined;
     };
     /** Order-insensitive states equality (an authored row order is not a divergent mapping). */
     const sameStates = (a?: Record<string, string>, b?: Record<string, string>): boolean => {
@@ -983,20 +1030,30 @@ export const buildCartesianOption = (
         buildXAxisEntry(p.xAxis, spanMs, p.themeTokens.primary, xCategories),
         p.xAxis.raw,
     );
+    // Point labels at the plot edges (edgeLabelLayout): stamped post-raw-fold on line and scatter
+    // series with the GUI label on, so the EMITTED type and the EMITTED X direction decide — and
+    // a raw `labelLayout` wins (a derived default, not a GUI knob). Bars keep their own position
+    // cluster and stay untouched.
+    const xInverse = xAxisEntry.inverse === true;
+    entries.forEach((e, i) => {
+        if (meta[i]?.label && (e.type === 'line' || e.type === 'scatter') && e.labelLayout === undefined) {
+            const layout = edgeLabelLayout(series[i].data, xInverse);
+            if (layout) {
+                e.labelLayout = layout;
+            }
+        }
+    });
     // Achsen-Vorrang's horizontal coincidence (erratum): the axis line owns its edge only while
     // it actually SITS on it. A Versatz lifts it off (the emitted offset is non-zero — a raw
     // offset counts too, the same emitted-truth rule), and then no gridline yields: the versetzte
     // X axis behaves exactly like a versetzte Y axis, the grid closes both edges.
     const xOnEdge = xAxisEntry.offset !== undefined ? null : xAxisEntry.position === 'top' ? 'top' : 'bottom';
-    // Display re-stagger (ADR-0074): while the selection dropped ≥1 real axis, the VISIBLE axes
-    // re-slot into the standard interleaving (`axisPosition` parity over the visible sequence —
-    // balanceAxes semantics, display-only: sides may flip on a legend click). With everything
-    // visible the authored geometry renders verbatim — no re-slot, byte-identical to the
-    // pre-0074 chart (there is no display-time balance without a hidden axis; authored
-    // position/Versatz-Feinjustur never re-arranges at runtime).
-    const selectionDropped = [...boundAxes].some(i => !activeBoundAxes.has(i));
-    const displayAxes =
-        selectionDropped && emittedIdx.length ? axes.map((a, i) => ({ ...a, ...axisPosition(i) })) : axes;
+    // Display re-stagger (ADR-0074, `plan.display`): while the selection dropped ≥1 real axis,
+    // the VISIBLE axes re-slot into the standard interleaving (`axisPosition` parity over the
+    // visible sequence — balanceAxes semantics, display-only: sides may flip on a legend click).
+    // With everything visible the authored geometry renders verbatim — no re-slot (there is no
+    // display-time balance without a hidden axis; authored position/Versatz-Feinjustur never
+    // re-arranges at runtime).
     // Y-axes: one entry per ACTIVELY BOUND axis (ADR-0012; ADR-0066's bound-only filter widened
     // by ADR-0074's Legenden-Folge; the filter is hand-edited-JSON defense since ADR-0069 —
     // in-state every axis is bound). The all-deselected chart emits no real axis at all — the
@@ -1008,25 +1065,18 @@ export const buildCartesianOption = (
     // the axis colour AND name default to the axis' OWNER series' effective values when neither
     // is explicit (ADR-0018; owner-first since ADR-0068 — the incumbent series keeps the
     // identity, a rebinding newcomer standing earlier in the array never steals it; the owner
-    // matches by meta id in history/live, by payload name in JSON); the axis LABELS inherit the
+    // matches by meta id in Verlauf and tabellarisch, by payload name in serien-förmiges JSON —
+    // `plan.nameGivers`); the axis LABELS inherit the
     // bound series' shared unit (ADR-0057) and the shared text facts (ADR-0058) — decimals
     // deliberately NOT inherited (whose would a shared axis clamp to?).
     // Per-EMITTED-axis value-format facts (the shared unit + text facts, ADR-0057/0058) —
     // captured beside the entry build so the sum anchors below format through the SAME facts
     // the axis labels do (adapter parity: the sum wears the axis' format).
     const axisFacts: (SeriesValueFacts | undefined)[] = [];
-    const yAxisEntries: Record<string, unknown>[] = allInactive
+    const yAxisEntries: Record<string, unknown>[] = plan.allInactive
         ? [silentYAxis()]
-        : displayAxes.map((a, i) => {
-              const firstBinder = entries.find(e => e.yAxisIndex === i);
-              const ownerIdx =
-                  a.owner === undefined
-                      ? -1
-                      : meta.findIndex(m => m?.id === a.owner) >= 0
-                        ? meta.findIndex(m => m?.id === a.owner)
-                        : series.findIndex(s => s.name === a.owner);
-              const ownerEntry = ownerIdx >= 0 ? entries[ownerIdx] : undefined;
-              const bound = ownerEntry !== undefined && ownerEntry.yAxisIndex === i ? ownerEntry : firstBinder;
+        : plan.display.map((a, i) => {
+              const bound = plan.nameGivers[i] >= 0 ? entries[plan.nameGivers[i]] : undefined;
               const sc = bound?.color;
               const seriesColor = typeof sc === 'string' ? sc : undefined;
               const sn = bound?.name;
@@ -1062,50 +1112,18 @@ export const buildCartesianOption = (
     // exclusion mechanism) and the tooltip's exclude filter drops its rows.
     const anchors: Record<string, unknown>[] = [];
     if (stackMode === 'stack' && p.stackSum) {
-        const byStack = new Map<string, number[]>();
-        entries.forEach((e, i) => {
-            if (e.type !== 'bar' || typeof e.stack !== 'string' || !active(i)) {
-                return;
-            }
-            const list = byStack.get(e.stack);
-            if (list) {
-                list.push(i);
-            } else {
-                byStack.set(e.stack, [i]);
-            }
-        });
-        // The value slot of one datum (points `[ts, v]` and plain buckets alike); null = no
-        // contribution (a gap never counts as 0 — the adapter's own rule). datumValueSlot is
-        // the SHARED extractor — the percent normalizer reads the same slots.
-        for (const [stackName, members] of byStack) {
+        // The plan's sums: the visible members' values per category (a gap never counts as 0 —
+        // the adapter's own rule; the shares read the same value slots).
+        for (const {
+            stack: { key: stackName, axis: axisIdx, members },
+            sums: totals,
+            ts: tss,
+            pointShaped,
+        } of stackSums(stackPlan, series)) {
             if (members.length < 2) {
                 continue; // a one-series stack would only repeat the value its bar already shows
             }
-            const axisIdx = entries[members[0]].yAxisIndex as number;
-            const length = members.reduce((max, i) => Math.max(max, series[i]?.data.length ?? 0), 0);
-            const sums: (number | null)[] = [];
-            const tss: (number | null)[] = [];
-            let pointShaped = false;
-            for (let c = 0; c < length; c++) {
-                let sum: number | null = null;
-                let ts: number | null = null;
-                for (const i of members) {
-                    const d = series[i]?.data[c];
-                    if (Array.isArray(d)) {
-                        pointShaped = true;
-                        if (ts === null && typeof d[0] === 'number') {
-                            ts = d[0]; // the time path's anchor point rides the first member's ts
-                        }
-                    }
-                    const v = datumValueSlot(d);
-                    if (v !== null) {
-                        sum = (sum ?? 0) + v;
-                    }
-                }
-                sums.push(sum);
-                tss.push(ts);
-            }
-            const anchorData = sums.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
+            const anchorData = totals.map((sum, c) => (sum === null ? null : pointShaped ? [tss[c], 0] : 0));
             // Label size/shift follow the TOPMOST member (its own top label would collide —
             // the adapter's `topover` shift moves the sum one line up out of the way).
             const topMeta = meta[members[members.length - 1]];
@@ -1115,7 +1133,14 @@ export const buildCartesianOption = (
             // one line, and the rendering of existing widgets stays unchanged.
             const topLabelAtTop = !!topMeta?.label && (topMeta.labelPosition ?? 'top') === 'top';
             const barWidth = parseBarWidth(meta[members[0]]?.barWidth);
-            const facts = axisFacts[axisIdx];
+            // The sum wears the axis' facts PLUS the decimals every visible member shares (the
+            // unit-inheritance rule „alle teilen sie", ADR-0057): the axis itself never inherits
+            // decimals (whose would a shared axis clamp to?), but a stack whose members agree
+            // has an unambiguous answer — otherwise the chart-level clamp rounded „3.75 kWh" to
+            // „4 kWh" (ADR-0103 Abnahme-Funde). Divergent or partly unset → the axis format alone.
+            const decimals = sharedDecimals(members);
+            const facts: SeriesValueFacts | undefined =
+                decimals === undefined ? axisFacts[axisIdx] : { ...axisFacts[axisIdx], decimals };
             const anchorName = `stackSum#${stackName}`;
             anchors.push({
                 id: anchorName,
@@ -1136,10 +1161,7 @@ export const buildCartesianOption = (
                     show: true,
                     position: 'top',
                     ...(topLabelAtTop ? { offset: [0, -(fontSize + 2)] } : {}),
-                    formatter: (params: { dataIndex: number }): string => {
-                        const sum = sums[params.dataIndex];
-                        return sum === null ? '' : formatSeriesValue(sum, facts, chartFmt);
-                    },
+                    formatter: sumAnchorLabelFormatter(totals, facts, chartFmt),
                     fontSize,
                     color: p.themeTokens.textPrimary,
                 },

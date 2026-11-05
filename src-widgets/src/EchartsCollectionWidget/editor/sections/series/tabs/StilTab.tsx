@@ -187,7 +187,7 @@ export const StilTab: FC<{
      */
     dataExtent?: ValueExtent | null;
     /**
-     * The series is a percent-stacked bar (`isPercentStackedBar`, resolved by the card) —
+     * The series renders shares (`percentStackedSeries`, resolved per list for the card) —
      * the Farbskala bounds are entered and shown in displayed percent (ticket 08).
      */
     colorScalePercent?: boolean;
@@ -208,6 +208,12 @@ export const StilTab: FC<{
     // groups exactly like the builder emits nothing for them.
     const renderedType: EchartsCartesianType =
         meta.type === 'bar' || meta.type === 'scatter' ? meta.type : meta.type === 'line' ? 'line' : defaultType;
+    // The builder's symbol rule (`buildCartesianSeriesEntry`): echarts paints line labels only on
+    // the symbols, so a switched-on label draws them whatever the symbol switch stores. The switch
+    // shows that truth locked (display only — the stored `symbol` stays untouched) and the size
+    // knob unlocks, because the drawn symbols read it.
+    const labelDrawsSymbols = meta.label === true;
+    const symbolsShown = labelDrawsSymbols || (meta.symbol ?? false);
     return (
         <>
             {renderedType === 'line' && (
@@ -221,7 +227,8 @@ export const StilTab: FC<{
                             />
                             <SwitchRow
                                 label={Generic.t('echarts_series_symbol')}
-                                checked={meta.symbol ?? false}
+                                checked={symbolsShown}
+                                disabled={labelDrawsSymbols}
                                 onChange={v => onPatch({ symbol: v })}
                             />
                             <SwitchRow
@@ -249,7 +256,7 @@ export const StilTab: FC<{
                                 value={meta.symbolSize ?? 6}
                                 min={2}
                                 max={20}
-                                disabled={!meta.symbol}
+                                disabled={!symbolsShown}
                                 onChange={v => onPatch({ symbolSize: v })}
                             />
                             {/* Line shadow (ADR-0060): blur in the series colour; unset = off. */}
@@ -297,6 +304,7 @@ export const StilTab: FC<{
                                 ]}
                             />
                         </FieldGrid>
+                        {labelDrawsSymbols && <InfoBox text={Generic.t('echarts_series_symbol_label_hint')} />}
                     </SubGroup>
                     <SubGroup title={Generic.t('echarts_grp_area')}>
                         <FieldGrid min={140}>

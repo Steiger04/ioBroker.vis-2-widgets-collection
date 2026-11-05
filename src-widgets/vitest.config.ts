@@ -48,6 +48,8 @@ const DOM_TS_TESTS = [
     // editorState's heal dispatch — same chain.
     'src/EchartsCollectionWidget/editor/structureEvents.characterization.test.ts',
     'src/EchartsCollectionWidget/stackModeAcrossModes.test.ts',
+    // Calls the moment-header tooltip with a hovered axisValue — the time header reads `window`.
+    'src/EchartsCollectionWidget/tooltipPercentGap.test.ts',
 ];
 
 export default defineConfig({

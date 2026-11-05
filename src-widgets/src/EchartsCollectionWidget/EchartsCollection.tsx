@@ -30,7 +30,7 @@ import {
 } from './echartsTheme';
 import { frameInheritColor, resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
-import { useSubscribedValues } from './editor/useSubscribedValues';
+import { useSubscribedValues } from './useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
 import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, resolvePalette } from './presentation';
 import { isUsableOid, useChartPipeline, type ChartPipelineSeries, type ChartPipelineTheme } from './useChartPipeline';

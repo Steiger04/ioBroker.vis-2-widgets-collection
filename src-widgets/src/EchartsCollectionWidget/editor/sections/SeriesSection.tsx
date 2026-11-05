@@ -28,6 +28,7 @@ import { InfoBox, type SectionTabsFocus } from '../../../components/controls';
 import StackModeHead from './series/StackModeHead';
 import { useEditorTheme } from '../useEditorTheme';
 import { effectiveChartCanvas } from '../../barLabelContrast';
+import { paletteSlot } from '../../axisResolution';
 import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
 import { applyOidTextFacts, oidTextPrefill } from '../oidTextFacts';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
@@ -134,7 +135,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, theme } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
-    const slot = (i: number): string => palette[i % palette.length];
+    const slot = (i: number): string => paletteSlot(i, palette);
     // Bar label colour inherit preview: echarts' auto contrast (ADR-0080 decision 4) — an outside
     // label reads the canvas the chart hands zrender (user background, else the theme canvas).
     const chartCanvas = effectiveChartCanvas(state.bgColor, theme, state.darkMode);

@@ -320,6 +320,113 @@ describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
     });
 });
 
+describe('assemblePipelineResult — title and legend on the same edge never overlap (ADR-0103 Abnahme-Funde)', () => {
+    /** Builds a one-series Verlauf chart from the given src and returns its legend + grid. */
+    const layoutOf = (
+        src: Record<string, unknown>,
+    ): { legend: Record<string, unknown>; grid: Record<string, unknown> } => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                src,
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
+            }),
+        );
+        return {
+            legend: option.legend as Record<string, unknown>,
+            grid: option.grid as Record<string, unknown>,
+        };
+    };
+
+    it('without a title the legend keeps its 4 px edge and the plot its 30 px top', () => {
+        const { legend, grid } = layoutOf({});
+        expect(legend.top).toBe(4);
+        expect(grid.top).toBe(30);
+    });
+
+    it('title and legend both on top (the defaults): the legend sits below the title block, the plot moves down by it', () => {
+        // Title block = echarts' default title font (18) + its padding (5 above, 5 below) = 28.
+        const { legend, grid } = layoutOf({ titleText: 'W2 100 %' });
+        expect(legend.top).toBe(4 + 28);
+        expect(grid.top).toBe(30 + 28);
+    });
+
+    it('the title block follows the title font size and a downward title shift', () => {
+        expect(layoutOf({ titleText: 'T', titleFontSize: 24 }).legend.top).toBe(4 + 34);
+        const shifted = layoutOf({ titleText: 'T', titleDy: 10 });
+        expect(shifted.legend.top).toBe(4 + 10 + 28);
+        expect(shifted.grid.top).toBe(30 + 10 + 28);
+    });
+
+    it('both at the bottom: the legend rises above the title, the plot bottom follows', () => {
+        const { legend, grid } = layoutOf({ titleText: 'T', titlePos: 'bottomCenter', legendPos: 'bottomCenter' });
+        expect(legend.bottom).toBe(4 + 28);
+        expect(grid.bottom).toBe(28 + 28);
+    });
+
+    it('different edges, a middle legend or a hidden legend leave the layout untouched', () => {
+        const apart = layoutOf({ titleText: 'T', titlePos: 'bottomCenter' });
+        expect(apart.legend.top).toBe(4);
+        expect(apart.grid.top).toBe(30);
+        expect(apart.grid.bottom).toBe(28);
+        const middle = layoutOf({ titleText: 'T', legendPos: 'middleRight' });
+        expect(middle.legend.top).toBe('center');
+        expect(middle.grid.top).toBe(30);
+        expect(layoutOf({ titleText: 'T', legendShow: false }).grid.top).toBe(30);
+    });
+
+    describe('a raw subtitle counts towards the title block', () => {
+        /** Like layoutOf, with the Title section's raw JSON set. */
+        const rawLayoutOf = (
+            src: Record<string, unknown>,
+            titleRaw: string,
+        ): { legend: Record<string, unknown>; grid: Record<string, unknown> } => {
+            const { option } = assemblePipelineResult(
+                makeInput('cartesian', 'history', {
+                    src,
+                    usable: [{ oid: 'a.0', name: 'A' }],
+                    history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
+                    companions: {
+                        chartConfig: { titleRaw },
+                        yAxes: [],
+                        markLines: [],
+                        jsonSeriesStyle: {},
+                        jsonHidden: [],
+                        series: [],
+                    },
+                }),
+            );
+            return {
+                legend: option.legend as Record<string, unknown>,
+                grid: option.grid as Record<string, unknown>,
+            };
+        };
+
+        it('echarts defaults: the subtitle adds its gap (10) and its font size (12) below the title', () => {
+            // Title block = 18 (title font) + 10 (itemGap) + 12 (subtext font) + 2 × 5 (padding) = 50.
+            const { legend, grid } = rawLayoutOf({ titleText: 'T' }, '{"subtext": "Quelle: Sensor"}');
+            expect(legend.top).toBe(4 + 50);
+            expect(grid.top).toBe(30 + 50);
+        });
+
+        it('honours a raw subtitle font size, item gap and line breaks', () => {
+            // 18 + 4 (itemGap) + 2 lines × 16 (subtext font) + 2 × 5 = 64.
+            const { legend } = rawLayoutOf(
+                { titleText: 'T' },
+                '{"subtext": "Zeile 1\\nZeile 2", "itemGap": 4, "subtextStyle": {"fontSize": 16}}',
+            );
+            expect(legend.top).toBe(4 + 64);
+        });
+
+        it('a subtitle without title text still pushes the legend (empty text has no height in echarts)', () => {
+            // 0 (no title line) + 10 (itemGap) + 12 (subtext font) + 2 × 5 = 32.
+            const { legend, grid } = rawLayoutOf({}, '{"subtext": "Nur Untertitel"}');
+            expect(legend.top).toBe(4 + 32);
+            expect(grid.top).toBe(30 + 32);
+        });
+    });
+});
+
 // ── legend-values injection (ADR-0054, adapter legActual; ticket 04 moved the read to the FINAL series) ──
 
 describe('assemblePipelineResult — legend values injection (ADR-0054)', () => {

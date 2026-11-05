@@ -1,8 +1,9 @@
 /**
  * The per-series data-setting Erben-Override resolvers (ADR-0072) — the ONE place that knows
- * how a series' effective aggregate/diff composes from its own override and the Data source
- * section's Voreinstellung. Shared by the pipeline (request shaping + bar reduction) and the
- * editor (the series card's Daten cluster, the Data source summary) so the two can never drift.
+ * how a series' effective aggregate/diff/NULL handling composes from its own override and the
+ * Data source section's Voreinstellung, and how a series maps onto its sparse Verlauf request
+ * entry. Shared by the pipeline (request shaping, parse inputs, bar reduction) and the editor
+ * (the series card's Daten cluster, the Data source summary) so the two can never drift.
  *
  * @module EchartsCollectionWidget/seriesDataOverrides
  * @remarks
@@ -11,7 +12,8 @@
  * 'raw' as the explicit NON-inherit (the adapter models only 'diff'; our tristate keeps the
  * chart default overridable in both directions).
  */
-import type { EchartsAggregate, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
+import type { EchartsAggregate, EchartsIgnoreNull, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
+import type { HistoryEntry } from './historyEntry';
 
 /** The per-series override subset this module resolves. */
 export type SeriesOverrideMeta = Pick<EchartsSeriesMeta, 'aggregate' | 'diffMode'>;
@@ -47,6 +49,68 @@ export const effectiveDiff = (
     meta: Pick<EchartsSeriesMeta, 'diffMode'> | undefined,
     chartBarDiff: boolean | undefined,
 ): boolean => meta?.diffMode === 'diff' || (meta?.diffMode !== 'raw' && chartBarDiff === true);
+
+/**
+ * The NULL-Behandlung inherit rule on its two primitives — the series' override and the
+ * chart-level setting — for callers that hold the override outside a meta (the Verlauf entry's
+ * sparse `ignoreNull`, `fetchMultiSeries`); {@link effectiveNullMode} is this rule over a meta. Same semantics: an
+ * empty override inherits, only 'forward'/'zero' fill, everything else reads as 'keep'.
+ */
+export const resolveNullMode = (override: unknown, chartSetting: unknown): EchartsIgnoreNull => {
+    const mode: unknown = override || chartSetting;
+    return mode === 'forward' || mode === 'zero' ? mode : 'keep';
+};
+
+/**
+ * The series' effective NULL-Behandlung (ADR-0059, ADR-0072 inherit rule): its own override,
+ * else the chart-level setting. Only 'forward'/'zero' fill — an absent or non-canonical value
+ * (a raw persisted `src.ignoreNull` arrives unchecked) reads as 'keep', exactly what the fill
+ * stage does with an unknown mode. An EMPTY override is unset (it inherits): the card's select
+ * writes '' as „erben", and the Verlauf entry omits a falsy override. The JSON parse paths
+ * receive ONLY this resolved value; the Verlauf fetch resolves it per entry over the sparse
+ * override of {@link historyEntryOf} ({@link resolveNullMode}).
+ */
+export const effectiveNullMode = (
+    meta: Pick<EchartsSeriesMeta, 'nullMode'> | undefined,
+    chartSetting: unknown,
+): EchartsIgnoreNull => resolveNullMode(meta?.nullMode, chartSetting);
+
+/** The series fields {@link historyEntryOf} reads — its identity plus the request overrides. */
+export type HistoryEntrySource = Pick<
+    EchartsSeriesMeta,
+    | 'name'
+    | 'instance'
+    | 'xOffset'
+    | 'aggregate'
+    | 'percentileValue'
+    | 'integralUnit'
+    | 'integralInterpolation'
+    | 'nullMode'
+    | 'valueMap'
+> & { oid: string };
+
+/**
+ * The series' Verlauf request entry (ADR-0039 instance; ADR-0059 X-offset + NULL handling;
+ * ADR-0072 aggregate + params; ticket 02 value map) — SPARSE: an unset override stays absent,
+ * so the chart defaults keep riding the shared options and the entry's JSON (the fetch's
+ * refetch key) changes only with what the series authors. The offset rides as SPEC (numeric
+ * seconds and calendar keys resolve per fetch at the fetch seam, never precomputed here); a
+ * zero offset is no shift. Params ride whenever authored — 0 is a valid level; the request
+ * side gates them under the entry's effective aggregate (`entryRequestOptions`). The field
+ * order is fixed (it is part of that JSON key).
+ */
+export const historyEntryOf = (s: HistoryEntrySource): HistoryEntry => ({
+    oid: s.oid,
+    name: s.name,
+    instance: s.instance,
+    ...(s.xOffset ? { xOffset: s.xOffset } : {}),
+    ...(s.aggregate ? { aggregate: s.aggregate } : {}),
+    ...(s.percentileValue !== undefined ? { percentile: s.percentileValue } : {}),
+    ...(s.integralUnit !== undefined ? { integralUnit: s.integralUnit } : {}),
+    ...(s.integralInterpolation ? { integralInterpolation: s.integralInterpolation } : {}),
+    ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
+    ...(s.valueMap ? { valueMap: s.valueMap } : {}),
+});
 
 /**
  * The param inherit rule (ADR-0072, mirroring the fetch seam of ticket 01): a chart param
