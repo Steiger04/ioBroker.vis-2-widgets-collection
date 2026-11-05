@@ -28,10 +28,7 @@ import { useCallback, useEffect, useId, useState } from 'react';
 import type React from 'react';
 import Generic from '../Generic';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
-import { SWATCH_CHECKERBOARD } from './swatchCheckerboard';
-
-/** The colour of a swatch that names no colour: nothing painted, the checkerboard alone. */
-const TRANSPARENT = 'transparent';
+import { CheckerboardSwatch, TRANSPARENT } from './swatchCheckerboard';
 
 /** Props for {@link ColorPickerField}. */
 interface ColorPickerFieldProps {
@@ -224,23 +221,17 @@ function ColorPickerField({
                             }}
                         />
                     ) : null}
-                    <Box
-                        data-swatch-color={swatchColor}
-                        data-swatch-checkerboard
+                    <CheckerboardSwatch
+                        swatchColor={swatchColor}
+                        fill={swatchColor}
                         sx={{
                             width: 22,
                             height: 22,
                             overflow: 'hidden',
                             borderRadius: '4px',
-                            background: SWATCH_CHECKERBOARD,
                             border: `1px solid ${error ? theme.palette.error.main : theme.palette.divider}`,
                         }}
-                    >
-                        <Box
-                            data-swatch-fill
-                            sx={{ width: '100%', height: '100%', background: swatchColor || TRANSPARENT }}
-                        />
-                    </Box>
+                    />
                     {overridden ? (
                         <IconButton
                             size="small"
