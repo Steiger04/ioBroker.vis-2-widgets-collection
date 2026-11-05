@@ -2205,6 +2205,92 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
         expect(lineEntry({ label: false }).showSymbol).toBe(false);
     });
 
+    describe('line labels at the plot edges stay inside the plot (ADR-0103 Abnahme-Funde)', () => {
+        type EdgeLayout = (params: { dataIndex: number }) => { align?: string } | undefined;
+        /** Six temperature points on a time axis — the Sichtprüfung case. */
+        const SIX: [number, number | null][] = [
+            [1000, 21.5],
+            [2000, 22.0],
+            [3000, 22.4],
+            [4000, 22.8],
+            [5000, 23.1],
+            [6000, 23.3],
+        ];
+        const entryOf = (
+            meta: EchartsSeriesMeta,
+            data: unknown[] = SIX,
+            p: PresentationBase & CartesianFragment = P,
+        ): Record<string, unknown> =>
+            (
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data: data as [number, number | null][] }],
+                    meta: [meta],
+                    p,
+                }).series as Record<string, unknown>[]
+            )[0];
+        const alignOf = (layout: unknown, dataIndex: number): string | undefined =>
+            (layout as EdgeLayout)({ dataIndex })?.align;
+
+        it('the leftmost label grows rightwards, the rightmost leftwards, the rest stay centred', () => {
+            const layout = entryOf({ label: true, unit: '°C' }).labelLayout;
+            expect(layout).toBeTypeOf('function');
+            // Left edge: the label starts at its point instead of reaching over the Y axis labels.
+            expect(alignOf(layout, 0)).toBe('left');
+            // Right edge: the label ends at its point instead of running past the plot.
+            expect(alignOf(layout, 5)).toBe('right');
+            for (const i of [1, 2, 3, 4]) {
+                expect(alignOf(layout, i)).toBeUndefined();
+            }
+        });
+
+        it('the edges are the extreme X values with a value, not the array ends', () => {
+            // Unsorted payload with gaps at both ends: X 1000 (index 3) is leftmost, 6000 (index 1) rightmost.
+            const layout = entryOf({ label: true }, [
+                [500, null],
+                [6000, 23.3],
+                [3000, 22.4],
+                [1000, 21.5],
+                [7000, null],
+            ]).labelLayout;
+            expect(alignOf(layout, 3)).toBe('left');
+            expect(alignOf(layout, 1)).toBe('right');
+            expect(alignOf(layout, 0)).toBeUndefined();
+            expect(alignOf(layout, 2)).toBeUndefined();
+        });
+
+        it('plain category values: the first and last value carry the edges', () => {
+            const layout = entryOf({ label: true }, [null, 4, 5, 6]).labelLayout;
+            expect(alignOf(layout, 1)).toBe('left');
+            expect(alignOf(layout, 3)).toBe('right');
+        });
+
+        it('an inverse X axis (raw) swaps the edges — the smallest X sits on the right', () => {
+            const layout = entryOf({ label: true }, SIX, {
+                ...P,
+                xAxis: { ...P.xAxis, raw: '{"inverse": true}' },
+            }).labelLayout;
+            expect(alignOf(layout, 0)).toBe('right');
+            expect(alignOf(layout, 5)).toBe('left');
+        });
+
+        it('only line series with a label get the edge layout', () => {
+            // No label → no key; a single point has no edge pair → no key.
+            expect(entryOf({})).not.toHaveProperty('labelLayout');
+            expect(entryOf({ label: false })).not.toHaveProperty('labelLayout');
+            expect(entryOf({ label: true }, [[1000, 21.5]])).not.toHaveProperty('labelLayout');
+            // Bar labels keep their own position cluster, scatter stays untouched.
+            expect(entryOf({ label: true, type: 'bar' })).not.toHaveProperty('labelLayout');
+            expect(entryOf({ label: true, type: 'scatter' })).not.toHaveProperty('labelLayout');
+        });
+
+        it('a raw labelLayout wins (escape hatch)', () => {
+            expect(entryOf({ label: true, raw: '{"labelLayout": {"hideOverlap": true}}' }).labelLayout).toEqual({
+                hideOverlap: true,
+            });
+        });
+    });
+
     it('label off wins over authored knobs — no label key at all', () => {
         expect(s0([{ labelPosition: 'inside', labelFontSize: 20 }])).not.toHaveProperty('label');
     });
