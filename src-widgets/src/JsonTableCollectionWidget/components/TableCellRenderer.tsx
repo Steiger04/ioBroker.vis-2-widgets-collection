@@ -13,7 +13,7 @@ import { useMemo, useState } from 'react';
 
 import type { CellImageContent, ColumnConfigEntry } from '../types';
 import { buildCellContent, type CellColumn } from '../utils/cellFormatters';
-import { UNPAINTED_CELL_COLOR } from '../utils/cellColors';
+import { paintedCellColor } from '../utils/cellColors';
 import { isUrlIcon } from '../../lib/helper/isUrlIcon';
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ export function ImageGraphic({ descriptor }: { descriptor: CellImageContent }): 
     const border = borderColor && borderWidth ? `${borderWidth}px solid ${borderColor}` : undefined;
     const rootSx = {
         ...sizeSx,
-        bgcolor: bgColor || UNPAINTED_CELL_COLOR,
+        bgcolor: paintedCellColor(bgColor),
         borderRadius,
         ...(border ? { border } : {}),
     } as const;

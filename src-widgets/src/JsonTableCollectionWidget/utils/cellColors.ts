@@ -9,7 +9,8 @@
  * synthetic field contract. The inherited colour comes from the same source as the runtime,
  * never from a second calculation:
  * - a cell background, an image background, border or tint paints nothing:
- *   {@link UNPAINTED_CELL_COLOR} — the renderer's image background reads it too;
+ *   {@link UNPAINTED_CELL_COLOR} — the renderer's image background reads it too; the swatch
+ *   shows the value, else that ({@link paintedCellColor});
  * - a cell's text inherits the table's text colour — the vis-2 widget CSS `color`, else the
  *   Collection theme's text colour: the inherited stages of the table text cascade
  *   (`jsonTableColorContracts.tableHeaderTextColor`, ADR-0004), {@link tableTextColor};
@@ -24,6 +25,17 @@ import { staticStringTextColor } from './cellFormatters';
 
 /** The colour of a cell colour that is unset: nothing painted, what lies beneath shows. */
 export const UNPAINTED_CELL_COLOR = 'transparent';
+
+/**
+ * What a cell colour without an inherited colour paints (cell, image background, border, tint):
+ * its value, else nothing ({@link UNPAINTED_CELL_COLOR}).
+ *
+ * @param value - The stored colour (`''`/undefined: unset).
+ * @returns The value, or `transparent` when it is unset.
+ */
+export function paintedCellColor(value: string | undefined): string {
+    return value || UNPAINTED_CELL_COLOR;
+}
 
 /** What the table's cells inherit their text colour from. */
 export interface CellColorInheritance {

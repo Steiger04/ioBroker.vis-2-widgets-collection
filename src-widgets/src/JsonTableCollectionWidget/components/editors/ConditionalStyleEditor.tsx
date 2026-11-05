@@ -37,7 +37,7 @@ import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../../lib/helper/gradientTextSx';
 import type { ColumnFormatConfig, ColumnStyleRule } from '../../types';
-import { cellBaseTextColor, UNPAINTED_CELL_COLOR, type CellColorInheritance } from '../../utils/cellColors';
+import { cellBaseTextColor, paintedCellColor, type CellColorInheritance } from '../../utils/cellColors';
 import ConditionRuleBuilder from '../ConditionRuleBuilder';
 import type { JsonLogicRule } from '../../utils/jsonLogicEngine';
 
@@ -284,7 +284,7 @@ function ConditionalStyleEditor({
                                 <ColorPickerField
                                     label={Generic.t('json_table_bg_color')}
                                     value={rule.backgroundColor || ''}
-                                    swatchValue={rule.backgroundColor || UNPAINTED_CELL_COLOR}
+                                    swatchValue={paintedCellColor(rule.backgroundColor)}
                                     overridden={!!rule.backgroundColor}
                                     onChange={c => updateStyleRule(idx, { backgroundColor: c || undefined })}
                                     allowGradient
