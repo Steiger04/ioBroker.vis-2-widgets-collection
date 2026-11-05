@@ -366,6 +366,19 @@ describe('boolean OIDs — exactly two rows', () => {
             applyStateRowOperation(light2, { kind: 'add' }, { ...CONFIG, oidProperty: 'colorLightSwitchOid' }),
         ).toBeNull();
     });
+
+    it('a widget with fixed rows keeps its two rows whatever the OID type (Light2 on a number switch)', () => {
+        const fixed: StateRowsConfig = { ...CONFIG, fixedRows: true };
+        const numberRows = { ...BOOLEAN_ROWS, oidObject: { type: 'number' } };
+
+        for (const kind of ['add', 'clone', 'delete'] as const) {
+            const op = (kind === 'add' ? { kind } : { kind, row: 1 }) as StateRowOperation;
+            expect(applyStateRowOperation(numberRows, op, fixed), kind).toBeNull();
+            expect(stateRowOperationAllowed(kind, [numberRows], fixed), kind).toBe(false);
+        }
+        expect(stateRowOperationAllowed('move', [numberRows], fixed)).toBe(true);
+        expect(rowsOf(after(numberRows, { kind: 'move', from: 2, to: 1 }, fixed))).toHaveLength(2);
+    });
 });
 
 describe('recreate — aus common.states neu anlegen', () => {

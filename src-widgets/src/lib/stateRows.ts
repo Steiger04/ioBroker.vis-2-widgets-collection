@@ -66,6 +66,11 @@ export type StateRowsConfig = {
     schema: StateRowSchema;
     /** Data property of the OID the rows describe — `oid`, Light2 `colorLightSwitchOid`. */
     oidProperty: string;
+    /**
+     * The widget always has exactly two rows (Light2's switch rows), whatever its OID type —
+     * add/clone/delete are refused as on a boolean OID.
+     */
+    fixedRows?: boolean;
 };
 
 /** A Zustandseditor action; rows are addressed by Feldnummer (1-based). */
@@ -99,6 +104,10 @@ type Row = { values: Record<string, unknown>; bound: Set<string> };
 
 const oidObjectOf = (data: WidgetData, config: StateRowsConfig): StoredOidObject =>
     data[`${config.oidProperty}Object`] as StoredOidObject;
+
+/** Whether the widget's rows are fixed: a boolean OID, or a widget declaring fixed rows. */
+const hasFixedRows = (data: WidgetData, config: StateRowsConfig): boolean =>
+    !!config.fixedRows || oidObjectOf(data, config)?.type === 'boolean';
 
 /**
  * The number of Zustandszeilen the editor shows: the Zustandsmenge the runtime walks.
@@ -243,7 +252,7 @@ const isRow = (n: number, count: number): boolean => Number.isInteger(n) && n >=
  * @param config Schema and OID property of the widget.
  * @returns The patch — always with `values_count` and `ignoreCommonStates: false` — or `null`
  *   when the action is refused: a Feldnummer outside the rows, add/clone/delete on a boolean
- *   OID, recreate without states to recreate from.
+ *   OID or a widget with fixed rows, recreate without states to recreate from.
  */
 export const applyStateRowOperation = (
     data: WidgetData,
@@ -251,7 +260,7 @@ export const applyStateRowOperation = (
     config: StateRowsConfig,
 ): StateRowPatch | null => {
     const oidObject = oidObjectOf(data, config);
-    if (oidObject?.type === 'boolean' && FIXED_ROW_KINDS.includes(op.kind)) {
+    if (FIXED_ROW_KINDS.includes(op.kind) && hasFixedRows(data, config)) {
         return null;
     }
     const count = stateRowCount(data, config);
@@ -405,7 +414,7 @@ export const stateRowsIdentical = (datas: readonly WidgetData[], config: StateRo
  * @param kind The action.
  * @param datas The data of every selected widget.
  * @param config Schema and OID property of the widgets.
- * @returns `false` for add/clone/delete on a boolean OID, for recreate without states to
+ * @returns `false` for add/clone/delete on a boolean OID or fixed rows, for recreate without states to
  *   recreate from, and under multi-selection for every structural action unless the
  *   Zustandszeilen are identical — „Zeile leeren" only needs equal row counts and bindings,
  *   because its patch carries `values_count` and the bindings, not the other rows.
@@ -418,7 +427,7 @@ export const stateRowOperationAllowed = (
     if (datas.length === 0) {
         return false;
     }
-    if (FIXED_ROW_KINDS.includes(kind) && datas.some(data => oidObjectOf(data, config)?.type === 'boolean')) {
+    if (FIXED_ROW_KINDS.includes(kind) && datas.some(data => hasFixedRows(data, config))) {
         return false;
     }
     if (kind === 'recreate' && datas.some(data => sourceStates(oidObjectOf(data, config)).length === 0)) {
