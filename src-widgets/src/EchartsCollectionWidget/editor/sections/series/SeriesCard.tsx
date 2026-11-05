@@ -45,7 +45,6 @@ import { PreviewExtentsContext, previewExtentOf } from '../../previewExtents';
 import { issueCountsByTab } from '../../issueTabs';
 import { seriesMetaIssues } from '../../seriesIssues';
 import { colorScaleAxis, colorScaleCss, effectiveColorScale } from '../../../seriesColorScale';
-import { effectiveCartesianType, isPercentStackedBar } from '../../../stackMode';
 
 /**
  * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
@@ -73,6 +72,11 @@ export interface SeriesCardContext {
     chartCanvas: string;
     /** The Stapelmodus — the bar stack-group select's inherit target (ADR-0084). */
     stackMode: EchartsStackMode;
+    /**
+     * Per card index: the series renders SHARES — the runtime stack plan over the whole list
+     * (`percentStackedSeries`, every series visible); resolved once per list.
+     */
+    percentStacked: readonly boolean[];
     /** The chart type + the NULL select's inherit target (every source's Daten tab). */
     chart: Pick<EditorState, 'ignoreNull' | 'chartType'>;
     /**
@@ -172,12 +176,8 @@ const SeriesCard: FC<SeriesCardProps> = ({
     // scale the builder emits: the scale as a mini gradient, its middle colour for a degenerate
     // range, the plain series colour when no scale is drawn. Unknown data invents nothing.
     // A percent-stacked bar carries shares: its Farbskala bounds are displayed percent (ticket 08)
-    // — the builder's own predicate, so the card converts for exactly the series it does.
-    const colorScalePercent = isPercentStackedBar(
-        meta.stack,
-        effectiveCartesianType(meta.type, ctx.defaultType),
-        ctx.stackMode,
-    );
+    // — the chart's own stack plan, so the card converts for exactly the series it does.
+    const colorScalePercent = ctx.percentStacked[index] ?? false;
     const scale = effectiveColorScale(
         meta,
         seriesColor,

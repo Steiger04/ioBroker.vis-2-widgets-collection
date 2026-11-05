@@ -27,6 +27,7 @@ import type { EditorSeries, EditorState } from '../../../editorState';
 import { axisOptionLabel, positionalBinderName } from '../../../axisSight';
 import { resolveCardCapabilities } from '../cardCapabilities';
 import SeriesCard, { type SeriesCardContext, type SeriesCardFocus } from '../SeriesCard';
+import { percentStackedSeries } from '../../../stackSight';
 import { EmptyState } from '../shared';
 
 /**
@@ -99,6 +100,7 @@ export const TableSeriesList: FC<TableSeriesListProps> = ({
         axisDisplayNames: state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series)),
         chartCanvas,
         stackMode: state.stackMode,
+        percentStacked: percentStackedSeries(series, defaultType, state.stackMode, state.yAxes),
         chart: state,
     };
     // Duplicate display names (F11 logic over state.series): legend and tooltip cannot tell two

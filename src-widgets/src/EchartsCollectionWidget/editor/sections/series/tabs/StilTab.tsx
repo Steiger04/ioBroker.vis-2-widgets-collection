@@ -187,7 +187,7 @@ export const StilTab: FC<{
      */
     dataExtent?: ValueExtent | null;
     /**
-     * The series is a percent-stacked bar (`isPercentStackedBar`, resolved by the card) —
+     * The series renders shares (`percentStackedSeries`, resolved per list for the card) —
      * the Farbskala bounds are entered and shown in displayed percent (ticket 08).
      */
     colorScalePercent?: boolean;
