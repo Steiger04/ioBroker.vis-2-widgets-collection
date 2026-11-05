@@ -1368,6 +1368,9 @@
     "state_editor_move_row_up": "Zeile nach oben",
     "state_editor_recreate_rows": "Aus common.states neu anlegen",
     "state_editor_recreate_rows_confirm": "Alle Zeilen durch die Zustände der Objekt-ID ersetzen? Reihenfolge, Aliase und Stile der bisherigen Zeilen gehen verloren.",
+    "state_editor_binding_differs": "Die gewählten Widgets binden unterschiedliche Felder: Um eine Bindung zu ändern, die Widgets einzeln wählen.",
+    "state_editor_binding_off": "Bindung deaktivieren und Feld als Standardeingabe verwenden",
+    "state_editor_binding_on": "Feld als Bindung verwenden",
     "state_editor_no_search_results": "Keine Zeile passt zur Suche",
     "state_editor_resize_list": "Ziehen ändert die Listenhöhe",
     "state_editor_search": "Suchen"

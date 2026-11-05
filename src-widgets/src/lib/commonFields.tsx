@@ -10,7 +10,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField } from './fieldFactories';
+import { createColorField, hiddenWhenTruthy } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
@@ -72,7 +72,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="icon" />,
-            hidden: 'data.noIcon',
+            hidden: hiddenWhenTruthy('noIcon'),
         },
         {
             name: `icon${groupName}`,
@@ -93,7 +93,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 1,
             max: 500,
             step: 1,
-            hidden: 'data.noIcon',
+            hidden: hiddenWhenTruthy('noIcon'),
         },
         {
             name: `enableIconColorMask${groupName}`,
@@ -136,13 +136,13 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `iconXOffset${groupName}`,
             label: 'icon_x_offset',
             type: 'text',
-            hidden: 'data.noIcon',
+            hidden: hiddenWhenTruthy('noIcon'),
         },
         {
             name: `iconYOffset${groupName}`,
             label: 'icon_y_offset',
             type: 'text',
-            hidden: 'data.noIcon',
+            hidden: hiddenWhenTruthy('noIcon'),
         },
         {
             label: '',
@@ -161,14 +161,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'checkbox',
             label: 'no_header_icon',
             default: false,
-            hidden: 'data.noHeader',
+            hidden: hiddenWhenTruthy('noHeader'),
         },
         {
             name: `header${groupName}`,
             label: 'header_text',
             type: 'html',
             default: '',
-            hidden: 'data.noHeader',
+            hidden: hiddenWhenTruthy('noHeader'),
         },
         {
             name: `headerSize${groupName}`,
@@ -177,7 +177,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: 'data.noHeader',
+            hidden: hiddenWhenTruthy('noHeader'),
         },
         {
             label: '',
@@ -223,7 +223,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'footer_text',
             type: 'html',
             default: '',
-            hidden: 'data.noFooter',
+            hidden: hiddenWhenTruthy('noFooter'),
         },
         {
             name: `footerSize${groupName}`,
@@ -232,7 +232,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: 'data.noFooter',
+            hidden: hiddenWhenTruthy('noFooter'),
         },
         {
             label: '',

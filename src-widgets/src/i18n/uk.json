@@ -1368,6 +1368,9 @@
     "state_editor_move_row_up": "[TODO] Move row up",
     "state_editor_recreate_rows": "[TODO] Recreate from common.states",
     "state_editor_recreate_rows_confirm": "[TODO] Replace all rows with the states of the object ID? Order, aliases and styles of the current rows are lost.",
+    "state_editor_binding_differs": "[TODO] The selected widgets bind different fields: select them one by one to change a binding.",
+    "state_editor_binding_off": "[TODO] Deactivate binding and use field as standard input",
+    "state_editor_binding_on": "[TODO] Use field as binding",
     "state_editor_no_search_results": "[TODO] No row matches the search",
     "state_editor_resize_list": "[TODO] Drag to change the list height",
     "state_editor_search": "[TODO] Search"

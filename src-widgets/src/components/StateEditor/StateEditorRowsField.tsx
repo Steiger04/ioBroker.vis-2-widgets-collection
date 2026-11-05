@@ -11,7 +11,7 @@
  * count is portalled into that cell (the row's first `<td>`). Where the cell cannot be found,
  * the count stays in the value cell.
  */
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
@@ -19,23 +19,8 @@ import Generic from '../../Generic';
 import { InfoBox } from '../controls';
 import StateEditorSurface from './StateEditorSurface';
 import StateEditorToolbar from './StateEditorToolbar';
+import { useLabelCell } from './useLabelCell';
 import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
-
-/**
- * The native label cell of the attribute row a field renders in.
- *
- * @param anchor An element inside the field's value cell.
- * @returns The label cell, or `null` outside a vis-2 attribute row.
- */
-const useLabelCell = (anchor: React.RefObject<HTMLElement | null>): HTMLElement | null => {
-    const [cell, setCell] = useState<HTMLElement | null>(null);
-    useLayoutEffect(() => {
-        const valueCell = anchor.current?.closest('td');
-        const labelCell = valueCell?.parentElement?.firstElementChild;
-        setCell(labelCell && labelCell !== valueCell ? (labelCell as HTMLElement) : null);
-    }, [anchor]);
-    return cell;
-};
 
 /**
  * Renders the „Zeilen (n)" row of the Zustandseditor.
