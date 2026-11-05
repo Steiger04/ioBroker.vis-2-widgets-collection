@@ -859,7 +859,12 @@ export const buildCartesianOption = (
             e.stack = stack;
             if (stackMode === 'percent') {
                 percentNames.add(e.name as string);
-                percentAxes.add(e.yAxisIndex as number);
+                // Only an axis the bar truly binds: a deselected bar whose axis rests is parked
+                // on emitted 0 and must not turn that axis into a share scale.
+                const bound = plan.bindsEmitted[i];
+                if (bound !== undefined) {
+                    percentAxes.add(bound);
+                }
                 // The segment label shows the SHARE — the Wert-Formatter's value display is
                 // replaced (a share's unit would lie; facts like bool texts never apply to a
                 // share). Patched post-raw-fold: the GUI percent display wins a raw formatter.
@@ -888,7 +893,9 @@ export const buildCartesianOption = (
     const boundFacts = (axisIndex: number): SeriesValueFacts[] => {
         const bound: SeriesValueFacts[] = [];
         for (let i = 0; i < entries.length; i++) {
-            if ((entries[i].yAxisIndex as number) === axisIndex) {
+            // `bindsEmitted`, not the emitted ref: a series parked on emitted 0 (its axis rests)
+            // lends that axis no unit/text facts.
+            if (plan.bindsEmitted[i] === axisIndex) {
                 bound.push(factsOfMeta(meta[i]));
             }
         }

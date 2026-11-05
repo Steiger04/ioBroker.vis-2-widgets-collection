@@ -157,6 +157,23 @@ describe('resolveAxisPlan', () => {
     });
 });
 
+describe('resolveAxisPlan — parked series (ADR-0103 K3 fix)', () => {
+    it('a series whose axis rests parks on emitted 0 but binds no emitted axis and names none', () => {
+        const plan = resolveAxisPlan(
+            input(
+                [
+                    [0, 'a'],
+                    [1, 'b'],
+                ],
+                { selection: { a: false } },
+            ),
+        );
+        expect(plan.emittedOf).toEqual([0, 0]);
+        expect(plan.bindsEmitted).toEqual([undefined, 0]);
+        expect(plan.nameGivers).toEqual([1]);
+    });
+});
+
 describe('markerHostIndex', () => {
     it('hangs a marking on the first ACTIVE series of its configured axis', () => {
         const plan = resolveAxisPlan(

@@ -224,8 +224,14 @@ export interface AxisPlan {
     emitted: readonly EchartsAxisConfig[];
     /** Configured index → emitted index, for every emitted axis. */
     remap: ReadonlyMap<number, number>;
-    /** Per series: its EMITTED axis index (a series on a non-emitted axis falls to 0). */
+    /** Per series: its EMITTED axis ref (a series on a non-emitted axis falls to 0 — echarts needs a valid ref). */
     emittedOf: readonly number[];
+    /**
+     * Per series: the emitted axis it truly BINDS — `undefined` while its configured axis rests
+     * (dropped by the selection). Unlike {@link AxisPlan.emittedOf} the fallback ref never counts:
+     * a series parked on emitted 0 lends that axis no identity and no value-format facts.
+     */
+    bindsEmitted: readonly (number | undefined)[];
     /** Series exist but none is active → the chart renders ONE silent carrier axis. */
     allInactive: boolean;
     /** The emitted axes as displayed: re-slotted while the selection dropped an axis. */
@@ -239,7 +245,8 @@ export interface AxisPlan {
  * the Legenden-Folge, emit only actively bound axes (compacted in configured order, remapped),
  * detect the all-inactive chart, re-slot the display geometry while the selection dropped an
  * axis, and name each emitted axis' Namensgeber (owner while it still binds the axis — matched
- * by meta id, else payload name — else the first series on the emitted index).
+ * by meta id, else payload name — else the first series binding it). A series whose axis rests
+ * only PARKS on emitted 0; it never names that axis.
  */
 export const resolveAxisPlan = ({ axes, entries, meta, series, selection }: AxisPlanInput): AxisPlan => {
     const configured: readonly EchartsAxisConfig[] = axes.length ? axes : [{}];
@@ -256,7 +263,8 @@ export const resolveAxisPlan = ({ axes, entries, meta, series, selection }: Axis
     const allInactive = entries.length > 0 && emittedIdx.length === 0;
     const emitted: readonly EchartsAxisConfig[] = emittedIdx.length ? emittedIdx.map(i => configured[i]) : [{}];
     const remap = emittedAxisRanks(new Set(emittedIdx));
-    const emittedOf = axisOf.map(a => remap.get(a) ?? 0);
+    const bindsEmitted = axisOf.map(a => remap.get(a));
+    const emittedOf = bindsEmitted.map(e => e ?? 0);
     const selectionDropped = [...bound].some(i => !activeBound.has(i));
     const display =
         selectionDropped && emittedIdx.length ? emitted.map((a, i) => ({ ...a, ...axisPosition(i) })) : emitted;
@@ -264,11 +272,21 @@ export const resolveAxisPlan = ({ axes, entries, meta, series, selection }: Axis
     const payloadNames = series.map(s => s.name);
     const nameGivers = display.map((a, i) => {
         const ownerIdx = ownerIndexOf(a.owner, ids, payloadNames);
-        return ownerIdx >= 0 && ownerIdx < entries.length && emittedOf[ownerIdx] === i
-            ? ownerIdx
-            : emittedOf.indexOf(i);
+        return ownerIdx >= 0 && bindsEmitted[ownerIdx] === i ? ownerIdx : bindsEmitted.indexOf(i);
     });
-    return { configured, axisOf, active, activeBound, emitted, remap, emittedOf, allInactive, display, nameGivers };
+    return {
+        configured,
+        axisOf,
+        active,
+        activeBound,
+        emitted,
+        remap,
+        emittedOf,
+        bindsEmitted,
+        allInactive,
+        display,
+        nameGivers,
+    };
 };
 
 /**
