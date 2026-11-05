@@ -279,3 +279,25 @@ describe('stack plan at the pipeline core — a raw override of the stack fields
         });
     });
 });
+
+describe('stack plan at the pipeline core — the colour scale reads the percent membership', () => {
+    type VisualMapEntry = { seriesIndex: number; min: number; max: number };
+    const scaled: EchartsSeriesMeta = { color: '#ff0000', colorScale: true, colorScaleMin: 20, colorScaleMax: 80 };
+    const scaleOf = (option: EChartsOption, seriesIndex: number): VisualMapEntry | undefined =>
+        ((option as { visualMap?: VisualMapEntry[] }).visualMap ?? []).find(v => v.seriesIndex === seriesIndex);
+
+    it('a bar whose raw stack key joins the 100 % stack reads its colour scale entries as percent', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, overlay: { C: { ...scaled, stack: 'none', raw: '{"stack":"total#0"}' } } }),
+        );
+        expect(scaleOf(option, 2)).toMatchObject({ min: 0.2, max: 0.8 });
+    });
+
+    it('a deselected bar of a 100 % stack keeps its absolute values — its colour scale entries stay as typed', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, overlay: { A: scaled }, selection: { A: false } }),
+        );
+        expect(dataOf(option).A).toEqual(ABC[0].data);
+        expect(scaleOf(option, 0)).toMatchObject({ min: 20, max: 80 });
+    });
+});

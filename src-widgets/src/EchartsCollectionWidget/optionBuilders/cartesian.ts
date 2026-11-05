@@ -52,7 +52,6 @@ import {
 import { applyRawOverride } from '../utils/mergeOption';
 import {
     effectiveCartesianType,
-    isPercentStackedBar,
     lineStackGroup,
     normalizeStackMode,
     resolveStackPlan,
@@ -789,20 +788,30 @@ export const buildCartesianOption = (
         selection: p.legendSelection,
     });
     const allAxes = plan.configured;
+    // Balken-Stapelmodus (ADR-0084): the stack plan (ADR-0103 K2) — the SAME membership the
+    // value chain's shares read — resolves every bar's stack on its EMITTED axis (decision 3: a
+    // stack can never span foreign scales, not even with explicit groups; the name is
+    // builder-internal, never persisted). The plan reads the series' stack fields after the raw
+    // fold through the SAME read as the value chain (`stackPlanSeriesOf`): the GUI-authored
+    // resolution wins a raw `stack` collision; where the mode resolves NO stack (opted out, or
+    // mode off) a raw-authored stack stays effective — the escape hatch keeps its key (and its
+    // sum anchor), and a key naming a 100 % stack joins its shares.
+    const stackMode = normalizeStackMode(p.stackMode);
+    const stackPlan = resolveStackPlan({
+        series: entries.map((_e, i) => stackPlanSeriesOf(meta[i], p.cartesianType)),
+        names: entries.map(e => e.name as string),
+        mode: stackMode,
+        axes: plan,
+    });
     // Per-series colour scale (Farbskala, ADR-0101): one invisible continuous visualMap entry per series with
     // an active scale, `seriesIndex` = the series' own index (hidden series stay emitted, so the
     // indices never shift). Resolved against the CONFIGURED axis (not the emitted one) and
-    // the whole loaded series — zooming never recolours. A percent-stacked bar carries shares
-    // (the pipeline's normalization, same predicate): its entered bounds are displayed percent.
-    const colorScaleStackMode = normalizeStackMode(p.stackMode);
+    // the whole loaded series — zooming never recolours. A series that renders SHARES (the stack
+    // plan's percent flag — the membership the pipeline normalized, a raw-joined bar included, a
+    // deselected bar with its absolutes excluded) reads its entered bounds as displayed percent.
     const colorScales = entries.flatMap((e, i) => {
         const axis = colorScaleAxis(allAxes, plan.axisOf[i]);
-        const percent = isPercentStackedBar(
-            meta[i]?.stack,
-            effectiveCartesianType(meta[i]?.type, p.cartesianType),
-            colorScaleStackMode,
-        );
-        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data, percent);
+        const vm = buildColorScaleEntry(i, meta[i], e.color, axis, series[i].data, stackPlan.percent[i]);
         return vm ? [vm] : [];
     });
     // Marking markers attach to a SERIES, and echarts draws them on that series' axis. With
@@ -846,21 +855,6 @@ export const buildCartesianOption = (
         e.yAxisIndex = plan.emittedOf[i];
     });
 
-    // Balken-Stapelmodus (ADR-0084): the stack plan (ADR-0103 K2) — the SAME membership the
-    // value chain's shares read — resolves every bar's stack on its EMITTED axis (decision 3: a
-    // stack can never span foreign scales, not even with explicit groups; the name is
-    // builder-internal, never persisted). The plan reads the series' stack fields after the raw
-    // fold through the SAME read as the value chain (`stackPlanSeriesOf`): the GUI-authored
-    // resolution wins a raw `stack` collision; where the mode resolves NO stack (opted out, or
-    // mode off) a raw-authored stack stays effective — the escape hatch keeps its key (and its
-    // sum anchor), and a key naming a 100 % stack joins its shares.
-    const stackMode = normalizeStackMode(p.stackMode);
-    const stackPlan = resolveStackPlan({
-        series: entries.map((_e, i) => stackPlanSeriesOf(meta[i], p.cartesianType)),
-        names: entries.map(e => e.name as string),
-        mode: stackMode,
-        axes: plan,
-    });
     // Percent surfaces (decision 4): which names/axes render SHARES — the pipeline already
     // normalized their data (same plan, ADR-0084 one-truth); everything formatting a value of
     // these series switches to the percent display.
