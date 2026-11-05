@@ -14,7 +14,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
-import { applyStateRowOperation, stateRowCount } from './stateRows';
+import { applyStateRowOperation, isStateRowKey, stateRowCount } from './stateRows';
 import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
@@ -74,6 +74,12 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
             MAIN_STATE_ROWS.schema.keys.forEach(key => {
                 delete data[`${key}${i}`];
             });
+        }
+
+        // The rows are gone, so are their bindings — a binding left behind would make the
+        // selected widgets' bindings disagree and lock the structural row actions unmarked.
+        if (data.bindings?.some(name => isStateRowKey(name, MAIN_STATE_ROWS))) {
+            data.bindings = data.bindings.filter(name => !isStateRowKey(name, MAIN_STATE_ROWS));
         }
 
         data.values_count = 0;

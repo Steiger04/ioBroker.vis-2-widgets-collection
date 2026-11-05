@@ -279,6 +279,15 @@ describe('oidChangeHandlerAsync — main OID cleared', () => {
 
         expect(cleared).not.toHaveProperty('enableIconColorMask1');
     });
+
+    it('drops the bindings of the removed row keys and keeps every other binding', async () => {
+        const picked = await pick('oid', { oid: STATUS });
+        const bound = { ...picked, header1: '{a}', iconColor3: '{b}', title: '{c}' };
+
+        const cleared = await pick('oid', { ...bound, oid: '', bindings: ['header1', 'title', 'iconColor3'] });
+
+        expect(cleared.bindings).toEqual(['title']);
+    });
 });
 
 describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {

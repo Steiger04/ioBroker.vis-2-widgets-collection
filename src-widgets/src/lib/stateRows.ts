@@ -355,12 +355,22 @@ export const mergeStateRowPatch = (data: WidgetData, patch: StateRowPatch): Widg
 const sameValue = (a: unknown, b: unknown): boolean =>
     (a ?? null) === (b ?? null) || (typeof a === 'object' && JSON.stringify(a) === JSON.stringify(b));
 
-/** The entries of `data.bindings` that name a row key (`header2`, also past the rows). */
+/**
+ * Whether a data attribute name is a row key — a base key of the schema with a Feldnummer
+ * (`header2`, also past the rows).
+ *
+ * @param name A data attribute name, e.g. an entry of `data.bindings`.
+ * @param config Schema and OID property of the widget.
+ * @returns `true` for `<row key><n>`.
+ */
+export const isStateRowKey = (name: string, config: StateRowsConfig): boolean => {
+    const match = /^(\D+)\d+$/.exec(name);
+    return !!match && config.schema.keys.includes(match[1]);
+};
+
+/** The entries of `data.bindings` that name a row key. */
 const rowBindingsOf = (data: WidgetData, config: StateRowsConfig): string[] =>
-    (data.bindings || []).filter(name => {
-        const match = /^(\D+)\d+$/.exec(name);
-        return !!match && config.schema.keys.includes(match[1]);
-    });
+    (data.bindings || []).filter(name => isStateRowKey(name, config));
 
 /**
  * Whether one patch keeps every widget's bindings right: the row bindings agree, and where
