@@ -35,6 +35,7 @@ import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/t
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
 import { TOOLTIP_CATALOG } from '../tooltipTemplates';
 import ColorField from '../colorFields';
+import { useEditorTheme } from '../useEditorTheme';
 import RawJsonSection from './RawJsonSection';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
@@ -44,7 +45,8 @@ import type { EditorState, SetEditor } from '../editorState';
  * trigger coercion, the four flat tooltip fields, the parity Build E cluster (background colour,
  * the two cartesian row filters, the chart-wide comma separator; ADR-0054), the section raw +
  * its template ids, and the X-Karte's Time format (read-only: it drives the `{b}` token + the
- * live example, ADR-0052).
+ * live example, ADR-0052). The 4 palette/darkMode fields are transitively read via
+ * `useEditorTheme` (the background's inherit swatch, the `paper` token).
  */
 export type TooltipSlice = Pick<
     EditorState,
@@ -60,6 +62,10 @@ export type TooltipSlice = Pick<
     | 'tooltipRaw'
     | 'tooltipSnippets'
     | 'xAxis'
+    | 'paletteSource'
+    | 'palettePreset'
+    | 'paletteCustom'
+    | 'darkMode'
 >;
 
 interface TooltipSectionProps {
@@ -75,6 +81,8 @@ interface TooltipSectionProps {
 
 const TooltipSection: FC<TooltipSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     const isCartesian = familyOf(state.chartType) === 'cartesian';
+    // The collection-theme tokens (ADR-0027) — `paper` is the tooltip surface the theme floor paints.
+    const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const effectiveTrigger: TooltipSlice['tooltipTrigger'] =
         !isCartesian && state.tooltipTrigger === 'axis' ? 'item' : state.tooltipTrigger;
     const triggerOptions: ReadonlyArray<[string, string]> = isCartesian
@@ -187,10 +195,12 @@ const TooltipSection: FC<TooltipSectionProps> = ({ focusTab, issues, state, set,
                     />
                     <Box>
                         <FieldLabel>{Generic.t('echarts_tooltip_bg')}</FieldLabel>
-                        {/* Null = unset → the theme's tooltip background (ADR-0054). */}
+                        {/* Null = unset → the theme floor's tooltip surface (ADR-0054, ADR-0027 addendum 2026-11-04). */}
                         <ColorField
                             title={Generic.t('echarts_tooltip_bg')}
                             value={state.tooltipBgColor || null}
+                            // Inherit swatch = the `paper` surface the theme floor paints without a colour.
+                            fallback={themeTokens.paper}
                             onChange={v => set({ tooltipBgColor: v ?? '' })}
                             ctx={pickerCtx}
                         />

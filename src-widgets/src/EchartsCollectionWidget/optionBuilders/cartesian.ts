@@ -1110,6 +1110,9 @@ export const buildCartesianOption = (
             // the adapter's `topover` shift moves the sum one line up out of the way).
             const topMeta = meta[members[members.length - 1]];
             const fontSize = topMeta?.labelFontSize ?? 12;
+            // Unset counts as `top` here although echarts paints an unset bar label inside — a
+            // documented deviation (ADR-0056): aligning it would drop every existing sum label by
+            // one line, and the rendering of existing widgets stays unchanged.
             const topLabelAtTop = !!topMeta?.label && (topMeta.labelPosition ?? 'top') === 'top';
             const barWidth = parseBarWidth(meta[members[0]]?.barWidth);
             const facts = axisFacts[axisIdx];

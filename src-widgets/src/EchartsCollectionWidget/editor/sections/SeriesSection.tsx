@@ -27,6 +27,7 @@ import Generic from '../../../Generic';
 import { InfoBox, type SectionTabsFocus } from '../../../components/controls';
 import StackModeHead from './series/StackModeHead';
 import { useEditorTheme } from '../useEditorTheme';
+import { effectiveChartCanvas } from '../../barLabelContrast';
 import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
 import { applyOidTextFacts, oidTextPrefill } from '../oidTextFacts';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
@@ -69,6 +70,9 @@ export type SeriesSlice = Pick<
     | 'palettePreset'
     | 'paletteCustom'
     | 'darkMode'
+    // The chart background is zrender's dark-mode input — the bar label colour's auto-contrast
+    // inherit preview reads it (read-only, ADR-0080 decision 4).
+    | 'bgColor'
     // ADR-0072: the chart-level data settings ride down as the series cards' Erben-Override
     // inherit targets (the Daten cluster reads them; nothing here is written).
     | 'aggregate'
@@ -129,10 +133,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     focusTab,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
-    const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
+    const { palette, theme } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const slot = (i: number): string => palette[i % palette.length];
-    // Bar label colour inherit preview (parity Build D) — the theme's text primary, dark-mode-aware.
-    const labelColorFallback = themeTokens.textPrimary;
+    // Bar label colour inherit preview: echarts' auto contrast (ADR-0080 decision 4) — an outside
+    // label reads the canvas the chart hands zrender (user background, else the theme canvas).
+    const chartCanvas = effectiveChartCanvas(state.bgColor, theme, state.darkMode);
     const isPie = state.chartType === 'pie';
     const isJson = state.mode === 'json';
     // The tabellarische family (ADR-0075): cards from state.series, yPath-bound — the overlay,
@@ -299,7 +304,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
-                    labelColorFallback={labelColorFallback}
+                    chartCanvas={chartCanvas}
                     columns={tableColumns ?? []}
                     schemaError={tableSchemaError}
                     expanded={expanded}
@@ -318,7 +323,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
-                    labelColorFallback={labelColorFallback}
+                    chartCanvas={chartCanvas}
                     jsonSeriesNames={jsonSeriesNames}
                     jsonError={jsonError}
                     expanded={expanded}
@@ -345,7 +350,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
-                    labelColorFallback={labelColorFallback}
+                    chartCanvas={chartCanvas}
                     historyInstances={isHistory ? historyInstances : NO_HISTORY_INSTANCES}
                     expanded={expanded}
                     onToggleCard={toggleCard}

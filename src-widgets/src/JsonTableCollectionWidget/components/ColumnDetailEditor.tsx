@@ -36,6 +36,7 @@ import Generic from '../../Generic';
 import { effectiveType, type TableCapabilities } from '../capabilities';
 import { headerNameOf } from '../columns';
 import { TYPE_COLORS } from '../utils/columnConfig';
+import type { CellColorInheritance } from '../utils/cellColors';
 import type { ColumnConfigEntry, ColumnStyleRule, ColumnFormatConfig } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 
@@ -63,6 +64,8 @@ interface ColumnDetailEditorProps {
     capabilities: TableCapabilities;
     /** Connection for the Collection theme presets of the Farbwähler (optional) */
     socket?: Connection;
+    /** What the table's cells inherit their text colour from (the text colour rows' swatches) */
+    inheritance: CellColorInheritance;
 }
 
 /**
@@ -74,6 +77,7 @@ function ColumnDetailEditor({
     onChange,
     capabilities,
     socket,
+    inheritance,
 }: ColumnDetailEditorProps): React.JSX.Element {
     // Track which accordion sections are expanded
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -468,6 +472,7 @@ function ColumnDetailEditor({
                                     format={column.format ?? { type: 'string' }}
                                     onChange={updateFormat}
                                     socket={socket}
+                                    inheritance={inheritance}
                                 />
                             )}
 
@@ -558,6 +563,8 @@ function ColumnDetailEditor({
                             onStyleChange={handleStyleChange}
                             onModeChange={handleStyleModeChange}
                             socket={socket}
+                            format={column.format}
+                            inheritance={inheritance}
                         />
                     </AccordionDetails>
                 </Accordion>

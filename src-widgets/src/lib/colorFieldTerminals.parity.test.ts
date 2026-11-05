@@ -1,13 +1,14 @@
 /**
- * Parity test: every contract colour field declares a terminal (ADR-0004, Chrome-Slots addendum).
+ * Parity test: every contract colour field declares a terminal (ADR-0004, Chrome-Slots addendum
+ * and addendum 2026-11-04).
  *
  * @module lib/colorFieldTerminals.parity.test
  * @remarks
- * A colour field without a terminal is almost always a field whose editor swatch shows a
+ * A colour field without a terminal is a field whose editor swatch stays empty or shows a
  * different colour than the widget renders (kern-chrome-review K1: Button-Group separator,
- * table lines, Radio "unchecked"). This invariant makes that loud: every contract colour
- * field of every registered widget declares a `terminal`, or it is listed in
- * {@link EXCEPTIONS} with the reason why no single terminal describes its runtime.
+ * table lines, Radio "unchecked"). This invariant makes that loud, without exception: every
+ * contract colour field of every registered widget declares a `terminal`, so a new colour
+ * field without one fails here and no empty swatch can return.
  *
  * Scope — the "contract colour fields": every attribute field whose editor is the
  * `ContractColorField`, i.e. every product of `createColorField` (and of
@@ -22,6 +23,11 @@
  * could disagree with the runtime. Their editor is a module of its own (`PlainColorField`,
  * mocked separately below), so the scan does not recognise them. Configurator-internal pickers
  * (the ECharts editor) are not attribute fields either.
+ *
+ * Second invariant, same scan: the per-state colour fields (`iconColor{n}`, `textColor{n}`,
+ * `background{n}`, `frameBackground{n}` — the `values` group vis-2 clones per index) declare
+ * their base field as fallback field, so a state row without a value shows the base colour the
+ * widget paints for it (ADR-0004, per-state variants; slider marks: Marker-Ebene first).
  *
  * The roster is `widgetsRegistry.widgets`, introspected through each widget's
  * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does, and like it runs isolated
@@ -75,22 +81,6 @@ for (const name of widgets) {
     vi.doMock(`../${name}/${WIDGET_BODIES[name]}`, () => ({ default: () => null }));
 }
 
-/**
- * Contract colour fields that legitimately declare no terminal, keyed `Widget.field`.
- * Each reason says why no single terminal describes the runtime when the field is unset.
- * An entry that stops matching a terminal-less colour field fails the stale check below.
- */
-const EXCEPTIONS: Record<string, string> = {
-    'SwitchCollectionWidget.thumbColorTrue':
-        'unset means the MUI Switch default; the colour depends on the switch state, no single terminal',
-    'SwitchCollectionWidget.thumbColorFalse':
-        'unset means the MUI Switch default; the colour depends on the switch state, no single terminal',
-    'SwitchCollectionWidget.trackColor':
-        'unset means the MUI Switch default; the track colour depends on the switch state, no single terminal',
-    'DialogCollectionWidget.dialogBackgroundColor':
-        'unset renders CSS `inherit`: the runtime inherits from the host element, which no theme terminal names',
-};
-
 interface FieldLike {
     name?: string;
     type?: string;
@@ -127,7 +117,25 @@ const colorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): ColorField[] => 
     return [...byKey.values()];
 };
 
+/** A colour field of a per-state (`values`, indexed) group, with its declared fallback fields. */
+interface StateColorField {
+    widget: WidgetName;
+    name: string;
+    fallbackFields: string[] | undefined;
+}
+
+/** The colour fields of the indexed groups vis-2 clones per state (`indexFrom` / `indexTo`). */
+const stateColorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): StateColorField[] =>
+    (info.visAttrs ?? [])
+        .filter(group => (group as { indexFrom?: unknown }).indexFrom !== undefined)
+        .flatMap(group =>
+            ((group.fields ?? []) as (FieldLike & { fallbackFields?: string[] })[])
+                .filter(isPickerField)
+                .map(field => ({ widget, name: field.name ?? '', fallbackFields: field.fallbackFields })),
+        );
+
 let scanned: ColorField[] = [];
+let stateScanned: StateColorField[] = [];
 
 beforeAll(async () => {
     const perWidget = await Promise.all(
@@ -135,10 +143,12 @@ beforeAll(async () => {
             const mod = (await import(`../${name}/${name}.tsx`)) as {
                 default: { getWidgetInfo: () => RxWidgetInfo };
             };
-            return colorFieldsOf(name, mod.default.getWidgetInfo());
+            const info = mod.default.getWidgetInfo();
+            return { fields: colorFieldsOf(name, info), stateFields: stateColorFieldsOf(name, info) };
         }),
     );
-    scanned = perWidget.flat();
+    scanned = perWidget.flatMap(entry => entry.fields);
+    stateScanned = perWidget.flatMap(entry => entry.stateFields);
     // The first run pays the cold Vite transform of every field module.
 }, 60_000);
 
@@ -169,16 +179,61 @@ describe('colour field terminals (every contract colour field declares a termina
         expect(keys.has('GaugeCollectionWidget.gaugeColorBarProgress')).toBe(true);
     });
 
-    it.each(widgets)('%s: every colour field declares a terminal or is a listed exception', name => {
+    it.each(widgets)('%s: every colour field declares a terminal', name => {
         const missing = scanned
-            .filter(field => field.widget === name && field.terminal === undefined && !(field.key in EXCEPTIONS))
+            .filter(field => field.widget === name && field.terminal === undefined)
             .map(field => field.key);
-        expect(missing, 'declare a terminal, or add the field to EXCEPTIONS with a reason').toEqual([]);
+        expect(missing, 'declare a terminal in the field contract').toEqual([]);
+    });
+});
+
+/** The shared state colour fields (`commonFields`) every per-state row carries. */
+const STATE_COLOR_NAMES = ['iconColor', 'textColor', 'background', 'frameBackground'];
+
+describe('per-state colour fields inherit the base field (ADR-0004, per-state variants)', () => {
+    it('finds the per-state rows of the ten state widgets', () => {
+        const withStates = new Set(
+            stateScanned.filter(field => STATE_COLOR_NAMES.includes(field.name)).map(field => field.widget),
+        );
+        expect([...withStates].sort()).toEqual(
+            [
+                'ButtonGroupCollectionWidget',
+                'CheckboxCollectionWidget',
+                'GaugeCollectionWidget',
+                'InputCollectionWidget',
+                'Light2CollectionWidget',
+                'RadioGroupCollectionWidget',
+                'SelectCollectionWidget',
+                'SliderCollectionWidget',
+                'StateCollectionWidget',
+                'SwitchCollectionWidget',
+            ].sort(),
+        );
     });
 
-    it('every exception still names a colour field without a terminal', () => {
-        const terminalLess = new Set(scanned.filter(field => field.terminal === undefined).map(field => field.key));
-        const stale = Object.keys(EXCEPTIONS).filter(key => !terminalLess.has(key));
-        expect(stale, 'remove the stale EXCEPTIONS entries').toEqual([]);
+    it.each(widgets)('%s: every per-state colour field x{n} falls back to its base field x', name => {
+        const orphans = stateScanned
+            .filter(field => field.widget === name && STATE_COLOR_NAMES.includes(field.name))
+            .filter(field => !(field.fallbackFields ?? []).includes(field.name))
+            .map(field => field.name);
+        expect(orphans, 'declare the base field as fallback (commonFields perState)').toEqual([]);
+    });
+
+    it('the slider marks put the Marker-Ebene before the base field', () => {
+        const slider = stateScanned.filter(field => field.widget === 'SliderCollectionWidget');
+        const fallbacksOf = (name: string): string[] | undefined =>
+            slider.find(field => field.name === name)?.fallbackFields;
+
+        expect(fallbacksOf('iconColor')).toEqual(['markerIconColor', 'iconColor']);
+        expect(fallbacksOf('textColor')).toEqual(['markerTextColor', 'textColor']);
+        expect(fallbacksOf('background')).toEqual(['background']);
+        expect(fallbacksOf('frameBackground')).toEqual(['frameBackground']);
+    });
+
+    it('only the slider passes a Marker-Ebene', () => {
+        const withMarker = stateScanned
+            .filter(field => (field.fallbackFields ?? []).some(fallback => fallback.startsWith('marker')))
+            .map(field => field.widget);
+        expect([...new Set(withMarker)]).toEqual(['SliderCollectionWidget']);
     });
 });

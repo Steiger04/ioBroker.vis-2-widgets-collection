@@ -12,7 +12,8 @@ import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { PALETTE_PRESETS } from '../../presentation';
-import { FRAME_STYLES } from '../../frameStyle';
+import { FRAME_STYLES, frameInheritColor } from '../../frameStyle';
+import { chartCanvasColor } from '../../echartsTheme';
 import {
     FieldGrid,
     FieldLabel,
@@ -59,9 +60,10 @@ const paletteChoice = (state: ColorsSlice): string =>
 const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — what the canvas renders
     // under, not the vis-2 host theme.
-    const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
-    // Frame colour inherit preview — the collection theme's divider (what the body defaults to).
-    const frameColorFallback = themeTokens.divider;
+    const { palette, theme } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
+    // Frame colour inherit swatch — the divider body and preview paint (shared source); it follows
+    // the host mode, not a forced chart mode (the frame is container CSS, ADR-0056).
+    const frameColorFallback = frameInheritColor(theme);
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
         ...Object.keys(PALETTE_PRESETS).map(k => [`preset:${k}`, k] as [string, string]),
@@ -146,6 +148,9 @@ const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, p
                 <ColorField
                     title={Generic.t('echarts_background')}
                     value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
+                    // Inherit swatch = the canvas the chart paints: transparent while it follows
+                    // the host mode, the fixed canvas colour of a forced mode (shared resolver).
+                    fallback={chartCanvasColor(theme, state.darkMode)}
                     onChange={v => set({ bgColor: v ?? 'transparent' })}
                     ctx={pickerCtx}
                 />

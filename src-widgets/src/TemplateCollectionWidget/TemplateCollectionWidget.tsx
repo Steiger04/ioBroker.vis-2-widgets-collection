@@ -42,7 +42,7 @@ class TemplateCollectionWidget extends Generic<WidgetRegistry['tplTemplateCollec
                     label: 'values',
                     indexFrom: 1,
                     indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false })],
+                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
                 },
             ],
             visDefaultStyle: {

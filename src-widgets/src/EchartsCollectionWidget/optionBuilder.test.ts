@@ -39,6 +39,7 @@ const BASE: PresentationBase = {
         divider: '#d',
         textPrimary: '#tp',
         textSecondary: '#ts',
+        paper: '#pa',
     },
     themeDark: false,
 };
@@ -2124,8 +2125,13 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
         return (option.series as Record<string, unknown>[])[0];
     };
 
-    it('label on emits { show: true } only — position/size/colour stay sparse (echarts default top)', () => {
+    it('label on emits { show: true } only — position/size/colour stay sparse (echarts bar default inside)', () => {
+        // An unset position emits NO `position` — echarts paints the bar label inside; the
+        // editor's select shows exactly that (ADR-0056), existing widgets render unchanged.
         expect(s0([{ label: true }]).label).toEqual({ show: true });
+        expect(s0([{ label: true }]).label).not.toHaveProperty('position');
+        // "Above bar" is stored as an explicit `top` and emitted as such.
+        expect(s0([{ label: true, labelPosition: 'top' }]).label).toEqual({ show: true, position: 'top' });
     });
 
     it('labelPosition emits label.position; labelFontSize/labelColour size + colour the label', () => {
@@ -3375,6 +3381,26 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
         expect(html).toContain('A:');
         expect(html).toContain('B:');
         expect(html).not.toContain('stackSum');
+    });
+
+    it('sum anchor shift: an unset top-member position keeps the one-line lift (documented deviation, ADR-0056)', () => {
+        const shiftOf = (top: EchartsSeriesMeta): unknown => {
+            const option = buildBars(
+                [{ name: 'A' }, { name: 'B', ...top }],
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                ],
+                { stackMode: 'stack', stackSum: true },
+            );
+            return ((option.series as Record<string, unknown>[])[2].label as Record<string, unknown>).offset;
+        };
+        // Pinned as rendered today: the unset position is painted inside, yet the sum still
+        // lifts one line (fontSize + 2) — aligning it would move every existing sum label.
+        expect(shiftOf({ label: true })).toEqual([0, -14]);
+        expect(shiftOf({ label: true, labelPosition: 'top' })).toEqual([0, -14]);
+        expect(shiftOf({ label: true, labelPosition: 'inside' })).toBeUndefined();
+        expect(shiftOf({})).toBeUndefined();
     });
 
     it('an ALL-NULL category renders no anchor label (the honest gap)', () => {

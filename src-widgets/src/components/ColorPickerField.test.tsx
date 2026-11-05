@@ -33,7 +33,9 @@ vi.mock(
 );
 
 import type { Connection } from '@iobroker/adapter-react-v5';
+import { createTheme, ThemeProvider } from '@mui/material';
 import { act, type ComponentProps } from 'react';
+import type React from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
@@ -195,6 +197,64 @@ describe('ColorPickerField swatch and error', () => {
     });
 });
 
+describe('ColorPickerField swatch on a checkerboard', () => {
+    /** The checkerboard of the mounted row's swatch (throws when it has none). */
+    const checkerboard = (container: HTMLElement): HTMLElement => {
+        const el = container.querySelector<HTMLElement>(
+            '[data-swatch-color] [data-swatch-checkerboard], [data-swatch-color][data-swatch-checkerboard]',
+        );
+        if (!el) {
+            throw new Error('no checkerboard rendered');
+        }
+        return el;
+    };
+
+    /** The colour the swatch paints on the checkerboard. */
+    const fillColor = (container: HTMLElement): string => {
+        const fill = checkerboard(container).querySelector<HTMLElement>('[data-swatch-fill]');
+        if (!fill) {
+            throw new Error('no swatch fill rendered');
+        }
+        return getComputedStyle(fill).background;
+    };
+
+    const swatch = (container: HTMLElement): HTMLElement =>
+        container.querySelector<HTMLElement>('[data-swatch-color]') as HTMLElement;
+
+    it('lays the colour on a checkerboard', () => {
+        const { container } = mount({ value: 'rgba(0, 128, 255, 0.4)' });
+        expect(getComputedStyle(checkerboard(container)).background).toContain('gradient');
+        expect(fillColor(container)).toContain('rgba(0, 128, 255, 0.4)');
+    });
+
+    it('shows the same checkerboard in a light and a dark editor', () => {
+        const light = getComputedStyle(checkerboard(mount({ value: '#0080ff66' }).container)).background;
+        handle?.unmount();
+        const dark = createTheme({ palette: { mode: 'dark' } });
+        const Dark = (p: Props): React.JSX.Element => (
+            <ThemeProvider theme={dark}>
+                <ColorPickerField {...p} />
+            </ThemeProvider>
+        );
+        handle = renderComponent<Props>(Dark, { label: 'Primary', value: '#0080ff66', onChange: vi.fn() });
+        expect(getComputedStyle(checkerboard(handle.container)).background).toBe(light);
+    });
+
+    it.each([
+        ['an inherited transparent', 'transparent'],
+        ['no colour', ''],
+    ])('shows the checkerboard alone for %s — no dashed empty swatch', (_case, value) => {
+        const { container } = mount({ value });
+        expect(fillColor(container)).toMatch(/^(transparent|)$/);
+        expect(getComputedStyle(swatch(container)).border).not.toContain('dashed');
+    });
+
+    it('keeps an invalid value recognizable: the swatch frame takes the error colour', () => {
+        const { container } = mount({ value: 'nope', error: 'Must be a colour' });
+        expect(getComputedStyle(swatch(container)).border.toLowerCase()).toMatch(/#d32f2f|rgb\(211, 47, 47\)/);
+    });
+});
+
 describe('ColorPickerField Farbwähler', () => {
     /** The open Farbwähler's paper (throws when closed). */
     const paper = (): HTMLElement => {
@@ -218,6 +278,27 @@ describe('ColorPickerField Farbwähler', () => {
         act(() => container.querySelector<HTMLElement>('p')?.click());
         expect(paper().querySelector('[data-picker-title]')?.textContent).toBe('Primary');
         expect(paper().querySelector('[data-fake-library]')?.getAttribute('data-value')).toBe('#112233');
+    });
+
+    it('starts on the swatch colour while no value is stored', () => {
+        const { container } = mount({ value: '', swatchValue: '#abcdef' });
+        openPicker(container);
+        expect(lastLibraryProps().value).toBe('#abcdef');
+    });
+
+    it('starts on the stored value, not on a differing swatch colour', () => {
+        const { container } = mount({ value: 'red', swatchValue: '#0000ff' });
+        openPicker(container);
+        expect(lastLibraryProps().value).toBe('red');
+    });
+
+    it.each([
+        ['an inherited transparent', { value: '', swatchValue: 'transparent' }],
+        ['no colour at all', { value: '' }],
+    ])('starts on alpha 0 for %s — not on white', (_case, props) => {
+        const { container } = mount(props);
+        openPicker(container);
+        expect(lastLibraryProps().value).toBe('transparent');
     });
 
     it('commits a pick to onChange and shows it in the swatch', () => {

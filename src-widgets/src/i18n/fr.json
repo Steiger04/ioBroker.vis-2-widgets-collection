@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Dégradé impossible ici",
     "color_picker_invalid": "Couleur non valide",
     "color_picker_close": "Fermer",
-    "color_picker_alpha_hint": "Opacité en pourcentage (0–100)"
+    "color_picker_alpha_hint": "Opacité en pourcentage (0–100)",
+    "track_color_false": "Couleur de la piste (faux)",
+    "track_color_true": "Couleur de la piste (vrai)"
 }

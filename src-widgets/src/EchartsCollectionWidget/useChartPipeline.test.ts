@@ -30,6 +30,7 @@ const THEME = {
         error: { main: '#e' },
         text: { primary: '#tp', secondary: '#ts' },
         divider: '#div',
+        background: { paper: '#pa' },
     },
     typography: { fontFamily: 'sans' },
 } as unknown as Theme;
@@ -1240,6 +1241,43 @@ describe('assemblePipelineResult — family × mode × jsonKind option-path pari
         expect(x?.axisLine?.lineStyle?.color).toBe('#1'); // G's primary stamp (tokens.primary)
         const y = (option as { yAxis?: { splitLine?: { lineStyle?: { color?: string } } }[] }).yAxis;
         expect(y?.[0]?.splitLine?.lineStyle?.color).toBe('#7'); // G's divider (tokens.divider)
+    });
+
+    // Tooltip floor (ADR-0027 addendum 2026-11-04): the REAL theme base paints the card surface
+    // and the legend-text colour; the GUI colour and a raw `backgroundColor` keep winning, and
+    // the GUI still beats the raw (ADR-0054 — emitted before the raw fold).
+    describe('tooltip over the REAL theme base (ADR-0027 addendum 2026-11-04)', () => {
+        const tooltipOf = (
+            presentation: Partial<AssemblePipelineInput['presentation']> = {},
+        ): Record<string, unknown> => {
+            const { option } = assemblePipelineResult(
+                makeInput('cartesian', 'history', {
+                    usable: [{ oid: 'a.0', name: 'A' }],
+                    history: { series: [{ name: 'A', data: [[1, 5]] }], loading: false, error: null },
+                    presentation: { ...presentationFor('cartesian'), ...presentation },
+                    themeBase: buildEchartsTheme(THEME),
+                }),
+            );
+            return option.tooltip as Record<string, unknown>;
+        };
+
+        it('unset: the paper surface with the textSecondary text, no border colour', () => {
+            const t = tooltipOf();
+            expect(t.backgroundColor).toBe('#pa');
+            expect(t.textStyle).toEqual({ color: '#ts' });
+            expect(t).not.toHaveProperty('borderColor');
+        });
+
+        it('a raw tooltip backgroundColor wins against the floor', () => {
+            expect(tooltipOf({ tooltipRaw: '{"backgroundColor":"#raw"}' }).backgroundColor).toBe('#raw');
+        });
+
+        it('the GUI colour wins against the floor and against the raw', () => {
+            expect(tooltipOf({ tooltipBgColor: '#gui' }).backgroundColor).toBe('#gui');
+            expect(
+                tooltipOf({ tooltipBgColor: '#gui', tooltipRaw: '{"backgroundColor":"#raw"}' }).backgroundColor,
+            ).toBe('#gui');
+        });
     });
 
     it('pie · json-series: the payload series become slices', () => {

@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Sfumatura non possibile qui",
     "color_picker_invalid": "Colore non valido",
     "color_picker_close": "Chiudi",
-    "color_picker_alpha_hint": "Opacità in percentuale (0–100)"
+    "color_picker_alpha_hint": "Opacità in percentuale (0–100)",
+    "track_color_false": "Colore traccia (falso)",
+    "track_color_true": "Colore traccia (vero)"
 }

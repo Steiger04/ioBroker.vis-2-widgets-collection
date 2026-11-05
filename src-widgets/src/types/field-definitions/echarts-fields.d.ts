@@ -473,7 +473,8 @@ export interface EchartsSeriesMeta {
     label?: boolean;
     /**
      * Bar value-label placement (parity Build D, ADR-0056) — bar cards only; a line label stays
-     * the bare `{ show: true }`. Unset = echarts' own bar default (`top`), emitted sparse.
+     * the bare `{ show: true }`. Unset = echarts' own bar default (`inside`, painted mid-bar),
+     * emitted sparse; the editor shows it as "Inside, middle" and stores "Above bar" as `top`.
      */
     labelPosition?: EchartsBarLabelPos;
     /** Bar value-label font size (px); unset = the theme text default, emitted sparse. */

@@ -49,7 +49,7 @@ const props = (over: Record<string, unknown> = {}, state: Record<string, unknown
     },
     pickerCtx: {},
     slot: () => '#111',
-    labelColorFallback: '#222',
+    chartCanvas: 'transparent',
     jsonSeriesNames: ['Temp', 'Hum'],
     expanded: { 0: true },
     onToggleCard: () => undefined,

@@ -60,7 +60,7 @@ import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import { datumValueSlot, effectiveCartesianType, effectiveStackName, normalizeStackMode } from './stackMode';
-import type { ThemeTokens } from './echartsTheme';
+import { chartBackgroundOverride, type ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
     EchartsFontStyle,
@@ -629,8 +629,9 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             raw: companions.chartConfig.titleRaw,
         });
     }
-    if (presentation.bgColor && presentation.bgColor !== 'transparent') {
-        merged.backgroundColor = presentation.bgColor;
+    const backgroundOverride = chartBackgroundOverride(presentation.bgColor);
+    if (backgroundOverride) {
+        merged.backgroundColor = backgroundOverride;
     }
 
     return { option: merged, hasData: hasMergedData(merged) };

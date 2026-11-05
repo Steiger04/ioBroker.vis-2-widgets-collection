@@ -1351,5 +1351,7 @@
     "color_picker_gradient_not_allowed": "Gradient nie jest tu możliwy",
     "color_picker_invalid": "Nieprawidłowy kolor",
     "color_picker_close": "Zamknij",
-    "color_picker_alpha_hint": "Krycie w procentach (0–100)"
+    "color_picker_alpha_hint": "Krycie w procentach (0–100)",
+    "track_color_false": "Kolor ścieżki (wyłączona)",
+    "track_color_true": "Kolor ścieżki (włączona)"
 }

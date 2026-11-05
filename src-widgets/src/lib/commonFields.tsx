@@ -24,6 +24,18 @@ type Settings = {
     groupName?: string;
     /** If `true`, includes the full common field list; otherwise generates a reduced subset. */
     allFields?: boolean;
+    /**
+     * The list builds the per-state rows of a `values` group: vis-2 clones it per index and
+     * renames every field `name{n}`, the contract carried over (`visWidgetsCatalog.tsx`), so
+     * a state colour field `x{n}` declares its base field `x` as fallback field.
+     */
+    perState?: boolean;
+    /**
+     * With {@link Settings.perState}: the widget passes a Marker-Ebene to useData (the slider),
+     * so `iconColor{n}` / `textColor{n}` inherit `markerIconColor` / `markerTextColor` before
+     * the base field — the order the state resolvers walk for a mark.
+     */
+    markerLayer?: boolean;
 };
 
 /**
@@ -32,7 +44,28 @@ type Settings = {
  * @param settings Optional generation settings.
  */
 const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
-    const { groupName = '', allFields = true } = settings || {};
+    const { groupName = '', allFields = true, perState = false, markerLayer = false } = settings || {};
+
+    /**
+     * The fallback fields of the colour field `base{groupName}` — the variant inherits what the
+     * widget paints for it while it has no value (ADR-0004, per-state and Active variants):
+     * - Active (`groupName` set): the base field `base`. The Marker-Ebene does not apply — the
+     *   active style `data` resolves without it. The runtime tier between the two, `base{n}` of
+     *   the state currently active, depends on the live value and is a documented divergence
+     *   (pattern Select arrow): the swatch resolves over the base fields.
+     * - per state (`perState`): the base field, behind the Marker-Ebene field where the widget
+     *   has one (`marker`, slider marks only).
+     * - the base list itself: none — its terminal (and `inheritTextStyle`) end the cascade.
+     */
+    const inheritFrom = (base: string, marker?: string): string[] => {
+        if (groupName !== '') {
+            return [base];
+        }
+        if (!perState) {
+            return [];
+        }
+        return markerLayer && marker ? [marker, base] : [base];
+    };
 
     const fields: (RxWidgetInfoAttributesField | ExtendedField)[] = [
         {
@@ -95,7 +128,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         createColorField({
             name: `iconColor${groupName}`,
             label: 'icon_color',
-            fallbackFields: [''],
+            fallbackFields: inheritFrom('iconColor', 'markerIconColor'),
             noGradient: true,
             terminal: 'primary',
         }),
@@ -222,7 +255,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         createColorField({
             name: `textColor${groupName}`,
             label: 'text_color',
-            fallbackFields: [''],
+            fallbackFields: inheritFrom('textColor', 'markerTextColor'),
             terminal: 'text',
             inheritTextStyle: true,
         }),
@@ -299,25 +332,32 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider dividerText="background" />,
         },
-        // Background color field (no fallback)
+        // Content background color field (no fallback of its own; the per-state and Active
+        // variants inherit it, see inheritFrom). Terminal `paper`: with no value the
+        // card's inner paper (CollectionBase, BASE-PAPER-1) keeps MUI's Paper default
+        // `palette.background.paper`, so the swatch shows that. Documented divergence
+        // (ADR-0004, pattern table header `noCard`): under `noCard` / embedded the runtime
+        // paints `transparent`. Read by the swatch only — the runtime resolver
+        // (`propertyResolvers` `background`) has its own chain and stays `''`.
         createColorField({
             name: `background${groupName}`,
             label: 'background',
-            fallbackFields: [],
-            terminal: 'transparent',
+            fallbackFields: inheritFrom('background'),
+            terminal: 'paper',
         }),
         {
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="frame_background" />,
         },
-        // Frame background color field (no fallback). Terminal `paper`: with no
+        // Frame background color field (no fallback of its own; the per-state and Active
+        // variants inherit it, see inheritFrom). Terminal `paper`: with no
         // explicit override the card/frame surface inherits the effective theme's
         // `palette.background.paper` (preset-controlled), matching the swatch.
         createColorField({
             name: `frameBackground${groupName}`,
             label: 'frame_background',
-            fallbackFields: [],
+            fallbackFields: inheritFrom('frameBackground'),
             terminal: 'paper',
         }),
     ];

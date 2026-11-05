@@ -21,8 +21,14 @@ import useData from '../hooks/useData';
 import type { EchartsCollectionContextProps } from '../types';
 
 import EChart from './EChart';
-import { buildEchartsTheme, echartsPalette, effectiveDarkMode, resolveThemeTokens } from './echartsTheme';
-import { resolveFrameCss } from './frameStyle';
+import {
+    buildEchartsTheme,
+    chartThemeSignature,
+    echartsPalette,
+    effectiveDarkMode,
+    resolveThemeTokens,
+} from './echartsTheme';
+import { frameInheritColor, resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
 import { useSubscribedValues } from './editor/useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
@@ -72,26 +78,10 @@ function EchartsCollection(): React.ReactElement {
     // mere editor move (moving changes `widget.style` top/left → `useStyles` recomputes → the
     // `overrides`-layered theme gets a new ref), so keying `palette`/`themeBase` on the `theme`
     // REFERENCE would churn them on every move → `presentation` → `option` → a pointless chart
-    // redraw. The chart consumes only these primitive fields (palette colours + mode + text/
-    // divider colours + font family), all strings — safe to serialize. A move leaves them
-    // identical, so the signature is stable → `palette`/`themeBase` stay referentially stable →
-    // no redraw. A real theme change alters the signature → recomputes, as intended.
-    const themeSig = useMemo(() => {
-        const p = theme.palette;
-        return JSON.stringify({
-            mode: p.mode,
-            primary: p.primary.main,
-            secondary: p.secondary.main,
-            warning: p.warning.main,
-            success: p.success.main,
-            info: p.info.main,
-            error: p.error.main,
-            textPrimary: p.text.primary,
-            textSecondary: p.text.secondary,
-            divider: p.divider,
-            fontFamily: theme.typography.fontFamily,
-        });
-    }, [theme]);
+    // redraw. A move leaves the signature identical → `palette`/`themeBase` stay referentially
+    // stable → no redraw. A real theme change (incl. a paper-only one, the tooltip floor) alters
+    // it → recomputes, as intended. The field list lives beside the theme readers.
+    const themeSig = useMemo(() => chartThemeSignature(theme), [theme]);
 
     // Resolved series palette: theme default, a named preset, or a custom list.
     // Keyed on `themeSig` (content), not the `theme` ref — see themeSig comment.
@@ -224,7 +214,7 @@ function EchartsCollection(): React.ReactElement {
                     style: data.frameStyle as string | undefined,
                     padding: data.framePadding,
                 },
-                theme.palette.divider,
+                frameInheritColor(theme),
             ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [dataKey, theme],

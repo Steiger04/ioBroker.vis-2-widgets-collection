@@ -101,6 +101,10 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * - `'paper'` → `theme.palette.background.paper` (frame/card surfaces)
      * - `'divider'` → `theme.palette.divider` (chrome lines: borders, separators)
      * - `'textSecondary'` → `theme.palette.text.secondary` (subdued chrome: unchecked icons)
+     * - `'onBackground'` → MUI's `common.onBackground`: `theme.palette.common.black` (light) /
+     *   `theme.palette.common.white` (dark) — the contrast colour on the background (Switch track off)
+     * - `'switchThumbOff'` → MUI 6.5.0's Switch thumb default: `theme.palette.common.white`
+     *   (light) / `theme.palette.grey[300]` (dark) — the one widget-specific terminal
      * - `'transparent'` → `''` (no fill / inherit)
      *
      * If undefined, `'transparent'` is assumed (preserves the legacy behavior of
@@ -128,4 +132,12 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
 /**
  * Terminal default categories for color fields. See {@link ExtendedField.terminal}.
  */
-export type ColorTerminal = 'primary' | 'text' | 'paper' | 'divider' | 'textSecondary' | 'transparent';
+export type ColorTerminal =
+    | 'primary'
+    | 'text'
+    | 'paper'
+    | 'divider'
+    | 'textSecondary'
+    | 'onBackground'
+    | 'switchThumbOff'
+    | 'transparent';

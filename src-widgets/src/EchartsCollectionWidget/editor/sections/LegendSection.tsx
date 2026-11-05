@@ -240,6 +240,8 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                             <ColorField
                                 title={Generic.t('echarts_legend_background')}
                                 value={bgValue}
+                                // The legend paints no background of its own.
+                                fallback="transparent"
                                 onChange={v => patch({ bgColor: v ?? 'transparent' })}
                                 ctx={pickerCtx}
                             />
