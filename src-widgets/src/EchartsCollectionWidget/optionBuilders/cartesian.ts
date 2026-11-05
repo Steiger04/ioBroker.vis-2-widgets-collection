@@ -923,6 +923,11 @@ export const buildCartesianOption = (
         }
         return unit;
     };
+    /** The decimals EVERY listed series carries alike (`0` counts); unset or divergent → none. */
+    const sharedDecimals = (seriesIndices: readonly number[]): number | undefined => {
+        const first = meta[seriesIndices[0]]?.decimals;
+        return first !== undefined && seriesIndices.every(i => meta[i]?.decimals === first) ? first : undefined;
+    };
     /** Order-insensitive states equality (an authored row order is not a divergent mapping). */
     const sameStates = (a?: Record<string, string>, b?: Record<string, string>): boolean => {
         if (!a || !b) {
@@ -1060,7 +1065,14 @@ export const buildCartesianOption = (
             // one line, and the rendering of existing widgets stays unchanged.
             const topLabelAtTop = !!topMeta?.label && (topMeta.labelPosition ?? 'top') === 'top';
             const barWidth = parseBarWidth(meta[members[0]]?.barWidth);
-            const facts = axisFacts[axisIdx];
+            // The sum wears the axis' facts PLUS the decimals every visible member shares (the
+            // unit-inheritance rule „alle teilen sie", ADR-0057): the axis itself never inherits
+            // decimals (whose would a shared axis clamp to?), but a stack whose members agree
+            // has an unambiguous answer — otherwise the chart-level clamp rounded „3.75 kWh" to
+            // „4 kWh" (ADR-0103 Abnahme-Funde). Divergent or partly unset → the axis format alone.
+            const decimals = sharedDecimals(members);
+            const facts: SeriesValueFacts | undefined =
+                decimals === undefined ? axisFacts[axisIdx] : { ...axisFacts[axisIdx], decimals };
             const anchorName = `stackSum#${stackName}`;
             anchors.push({
                 id: anchorName,

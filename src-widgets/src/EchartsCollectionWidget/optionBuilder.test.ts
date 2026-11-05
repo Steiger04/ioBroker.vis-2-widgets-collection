@@ -3410,6 +3410,49 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
         expect(html).not.toContain('stackSum');
     });
 
+    it('sum anchor decimals: the SHARED decimals of the stack members beat the chart-level clamp; divergent ones do not', () => {
+        const sumText = (metas: EchartsSeriesMeta[]): string => {
+            const option = buildBars(
+                metas,
+                [
+                    [1.5, 1, 1],
+                    [2.25, 1, 1],
+                ],
+                // The editor's real default: the chart-level tooltip decimals are 0.
+                { stackMode: 'stack', stackSum: true, tooltipDecimals: 0 },
+            );
+            const anchor = (option.series as Record<string, unknown>[])[2];
+            return (anchor.label as { formatter: (p: { dataIndex: number }) => string }).formatter({ dataIndex: 0 });
+        };
+        // Every member carries 2 decimals → the sum wears them too (never „4 kWh" for 3.75).
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh', decimals: 2 },
+            ]),
+        ).toBe('3.75 kWh');
+        // Divergent (or partly unset) decimals → no shared fact, the axis format stays (today's rounding).
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh', decimals: 1 },
+            ]),
+        ).toBe('4 kWh');
+        expect(
+            sumText([
+                { name: 'A', unit: 'kWh', decimals: 2 },
+                { name: 'B', unit: 'kWh' },
+            ]),
+        ).toBe('4 kWh');
+        // A shared 0 is a fact too (ADR-0057).
+        expect(
+            sumText([
+                { name: 'A', decimals: 0 },
+                { name: 'B', decimals: 0 },
+            ]),
+        ).toBe('4');
+    });
+
     it('sum anchor shift: an unset top-member position keeps the one-line lift (documented deviation, ADR-0056)', () => {
         const shiftOf = (top: EchartsSeriesMeta): unknown => {
             const option = buildBars(
