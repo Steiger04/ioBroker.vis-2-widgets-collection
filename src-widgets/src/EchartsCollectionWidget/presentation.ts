@@ -29,7 +29,8 @@ import type {
 import { decodeBlob } from '../lib/encoding';
 import { asNullableIntake, intakeValue } from './historyLogic';
 import { applyRawOverride } from './utils/mergeOption';
-import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
+import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
+import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
 import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
@@ -723,10 +724,7 @@ export const buildLegend = (
     // ADR-0057: the value formats through the series' facts; the chart context is comma-only.
     if (p.legendShowValues) {
         const chartCtx: ChartValueFormat = { comma: p.decimalComma };
-        legend.formatter = (name: string): string => {
-            const v = p.legendValues?.[name];
-            return typeof v === 'number' ? `${name} [${formatSeriesValue(v, seriesFacts?.[name], chartCtx)}]` : name;
-        };
+        legend.formatter = legendValueFormatter(p.legendValues, seriesFacts, chartCtx);
     }
 
     // `legend.selected` (ADR-0054 + ADR-0074): the adapter's deselection mechanism, now authored

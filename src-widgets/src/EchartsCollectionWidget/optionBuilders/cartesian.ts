@@ -55,6 +55,7 @@ import { applyRawOverride } from '../utils/mergeOption';
 import { effectiveCartesianType, isPercentStackedBar, normalizeStackMode, resolveStackPlan, sums } from '../stackMode';
 import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
+import { axisTickFormatter, percentTickFormatter, sumAnchorLabelFormatter } from './formatters';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
     solid: 'solid',
@@ -553,7 +554,7 @@ const buildYAxisEntry = (
     } else if (percent) {
         // Percent ticks (ADR-0084): the 0..1 share scale labels as `0–100 %` — no unit
         // inheritance (a share is unitless), one decimal by the example rule.
-        axisLabel.formatter = (v: number): string => formatPercentValue(v, comma);
+        axisLabel.formatter = percentTickFormatter(comma);
     } else if (textFactsActive(seriesFacts) || seriesFacts?.unit || comma) {
         // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. ADR-0057: the axis
         // inherits the unit every bound series shares — appended to the default numeric labels,
@@ -561,7 +562,7 @@ const buildYAxisEntry = (
         // format wins verbatim, mixing units inherits nothing). ADR-0058: shared bool/enum TEXTS
         // take over the ticks in `'axis'` mode (nearest state — a hit suppresses the unit).
         const axisMode = textFactsActive(seriesFacts) ? 'axis' : 'exact';
-        axisLabel.formatter = (v: number): string => formatSeriesValue(v, seriesFacts, { comma }, axisMode);
+        axisLabel.formatter = axisTickFormatter(seriesFacts, { comma }, axisMode);
     }
     const color = a.color ?? seriesColor;
     if (color) {
@@ -1068,10 +1069,7 @@ export const buildCartesianOption = (
                     show: true,
                     position: 'top',
                     ...(topLabelAtTop ? { offset: [0, -(fontSize + 2)] } : {}),
-                    formatter: (params: { dataIndex: number }): string => {
-                        const sum = stackSums[params.dataIndex];
-                        return sum === null ? '' : formatSeriesValue(sum, facts, chartFmt);
-                    },
+                    formatter: sumAnchorLabelFormatter(stackSums, facts, chartFmt),
                     fontSize,
                     color: p.themeTokens.textPrimary,
                 },
