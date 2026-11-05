@@ -37,10 +37,7 @@ import type { VisTheme } from '@iobroker/types-vis-2';
 import Generic from '../Generic';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
-import { SWATCH_CHECKERBOARD } from './swatchCheckerboard';
-
-/** The colour of a swatch that names no colour: nothing painted, the checkerboard alone. */
-const TRANSPARENT = 'transparent';
+import { CheckerboardSwatch, TRANSPARENT } from './swatchCheckerboard';
 
 /** Props for {@link ColorTextFieldRow}. */
 export interface ColorTextFieldRowProps {
@@ -227,24 +224,17 @@ function ColorTextFieldRow({
                     opacity: error ? 0.6 : 1,
                 }}
             >
-                <Box
-                    data-swatch-checkerboard
-                    sx={{ width: '36px', height: '14px', borderRadius: '2px', background: SWATCH_CHECKERBOARD }}
-                >
-                    <Box
-                        data-swatch-fill
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: 'inherit',
-                            // Invalid text: the error hatch on the plain frame colour covers the
-                            // checkerboard, so the error never reads as a translucent colour.
-                            background: error
-                                ? `repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px), ${frameColor}`
-                                : effectiveColor || TRANSPARENT,
-                        }}
-                    />
-                </Box>
+                <CheckerboardSwatch
+                    roundedFill
+                    // Invalid text: the error hatch on the plain frame colour covers the
+                    // checkerboard, so the error never reads as a translucent colour.
+                    fill={
+                        error
+                            ? `repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px), ${frameColor}`
+                            : effectiveColor
+                    }
+                    sx={{ width: '36px', height: '14px', borderRadius: '2px' }}
+                />
             </Box>
         </Box>
     );

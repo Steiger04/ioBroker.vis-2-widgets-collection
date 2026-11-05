@@ -88,14 +88,28 @@ const FIXED_TEXT_LIGHT: ModeTokens = {
 };
 
 /**
+ * Whether a `forceMode` policy flips the chart away from the host palette mode: only a concrete
+ * `'light'`/`'dark'` that differs from `paletteMode` does; `'auto'`/undefined and an agreeing mode
+ * follow the host. The single override rule behind {@link effectiveTextTokens},
+ * {@link effectiveDarkMode} and {@link chartCanvasColor} (ADR-0007 dark-mode).
+ *
+ * @param forceMode - The chart's dark-mode policy.
+ * @param paletteMode - The host palette mode (`theme.palette.mode`).
+ * @returns `true` (narrowing `forceMode` to the concrete mode) when the override applies.
+ */
+const overridesHostMode = (
+    forceMode: 'light' | 'dark' | 'auto' | undefined,
+    paletteMode: string,
+): forceMode is 'light' | 'dark' => !!forceMode && forceMode !== 'auto' && forceMode !== paletteMode;
+
+/**
  * The effective text, divider and surface (`paper`) tokens, honouring a `forceMode` override.
  * Shared by {@link buildEchartsTheme} and {@link resolveThemeTokens} so the chart base, the builder
  * defaults and the editor inherit swatches all agree on the same dark-mode-aware values (ADR-0027).
  */
 export const effectiveTextTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): ModeTokens => {
     const p = theme.palette;
-    const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
-    if (!overridden) {
+    if (!overridesHostMode(forceMode, p.mode)) {
         return {
             textPrimary: p.text.primary,
             textSecondary: p.text.secondary,
@@ -116,8 +130,7 @@ export const effectiveDarkMode = (
     forceMode: 'light' | 'dark' | 'auto' | undefined,
     paletteMode: string,
 ): 'light' | 'dark' => {
-    const overridden = forceMode && forceMode !== 'auto' && forceMode !== paletteMode;
-    return (overridden ? forceMode : paletteMode) === 'dark' ? 'dark' : 'light';
+    return (overridesHostMode(forceMode, paletteMode) ? forceMode : paletteMode) === 'dark' ? 'dark' : 'light';
 };
 
 /**
@@ -132,13 +145,23 @@ export const effectiveDarkMode = (
  * @returns `transparent`, `#ffffff` or `#1e1e1e`.
  */
 export const chartCanvasColor = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): string => {
-    const mode = theme.palette.mode;
-    const overridden = forceMode && forceMode !== 'auto' && forceMode !== mode;
-    if (!overridden) {
+    if (!overridesHostMode(forceMode, theme.palette.mode)) {
         return 'transparent';
     }
-    return effectiveDarkMode(forceMode, mode) === 'dark' ? DARK_BG : LIGHT_BG;
+    return forceMode === 'dark' ? DARK_BG : LIGHT_BG;
 };
+
+/**
+ * The user-set chart background that replaces the theme base's canvas: a stored colour other than
+ * `transparent`; unset, `''` and `transparent` inherit {@link chartCanvasColor}. The single rule
+ * shared by the chart pipeline (it writes the option's `backgroundColor`) and the canvas the
+ * configurator's bar-label preview hands zrender (`effectiveChartCanvas`).
+ *
+ * @param bgColor - The stored chart background.
+ * @returns The background that overrides the canvas, or `undefined` when the canvas is inherited.
+ */
+export const chartBackgroundOverride = (bgColor: string | undefined): string | undefined =>
+    bgColor && bgColor !== 'transparent' ? bgColor : undefined;
 
 /**
  * Resolve the full semantic token set from a theme (ADR-0027). Pure — the caller passes the theme

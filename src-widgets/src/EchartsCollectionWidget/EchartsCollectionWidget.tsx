@@ -30,11 +30,12 @@ const INERT_COMMON_FIELDS: ReadonlySet<string> = new Set([
     'valueSize',
 ]);
 
-const hideAlways = (): boolean => true;
+/** `hidden` callback of an inert core field: hidden in every widget state (vis-2 calls it with the widget data). */
+const HIDDEN_IN_EVERY_STATE = (): boolean => true;
 
 /** A core-block section divider: a custom field without a data name (or the `allFieldsDivider` rule). */
 const isSectionDivider = (field: RxWidgetInfoAttributesField): boolean =>
-    (field as { type?: string }).type === 'custom' && (field.name === undefined || field.name === 'allFieldsDivider');
+    'type' in field && field.type === 'custom' && (field.name === undefined || field.name === 'allFieldsDivider');
 
 /**
  * `commonFields()` with the inert fields hidden — hidden, not removed, so the fields stay
@@ -48,14 +49,14 @@ const echartsCommonFields = (): RxWidgetInfoAttributesField[] => {
 
     return fields.map((field, index) => {
         if (isInert(field)) {
-            return { ...field, hidden: hideAlways };
+            return { ...field, hidden: HIDDEN_IN_EVERY_STATE };
         }
         if (isSectionDivider(field)) {
             const next = fields.slice(index + 1);
             const end = next.findIndex(isSectionDivider);
             const section = end === -1 ? next : next.slice(0, end);
             if (section.length > 0 && section.every(isInert)) {
-                return { ...field, hidden: hideAlways };
+                return { ...field, hidden: HIDDEN_IN_EVERY_STATE };
             }
         }
         return field;

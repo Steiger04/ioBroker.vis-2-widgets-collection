@@ -93,7 +93,7 @@ export interface SwitchColors {
  * The raw value of the first set stage — the field itself, then its fallback fields, as
  * stored (never validated away) — or `undefined` when none is set.
  */
-function rawStage(contract: ColorFieldContract, data: Record<string, unknown>): string | undefined {
+function firstStoredValue(contract: ColorFieldContract, data: Record<string, unknown>): string | undefined {
     for (const name of [contract.name, ...(contract.fallbackFields ?? [])]) {
         const value = name ? data[name] : undefined;
         if (typeof value === 'string' && value !== '') {
@@ -149,7 +149,7 @@ function trackAlphas(theme: Theme, locked: boolean): { on: number; off: number }
 export function resolveSwitchColors(data: SwitchColorData, theme: Theme, locked: boolean): SwitchColors {
     const lockedDefaults = locked ? lockedThumbDefaults(theme) : undefined;
     const stage = (contract: ColorFieldContract, lockedDefault: string | undefined): string =>
-        rawStage(contract, data) ?? lockedDefault ?? terminalColor(contract.terminal, theme);
+        firstStoredValue(contract, data) ?? lockedDefault ?? terminalColor(contract.terminal, theme);
     const alphas = trackAlphas(theme, locked);
     return {
         on: {
