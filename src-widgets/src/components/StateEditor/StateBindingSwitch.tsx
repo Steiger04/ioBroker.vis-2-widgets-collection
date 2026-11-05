@@ -10,8 +10,9 @@
  * cell, the closest place a custom field owns. A bound field is edited as a plain text field,
  * as vis-2's `WidgetBindingField` (a standard `TextField`) does — here through vis-2's own
  * `Editor` with the field type `text`, so it reads and writes `name{n}` in every selected widget
- * like any native field. Toggling writes only `data.bindings` (`lib/stateFieldBinding`); the
- * value stays, as in vis-2.
+ * like any native field. Toggling writes `data.bindings` (`lib/stateFieldBinding`) — on a widget
+ * saved with `ignoreCommonStates` on also its row count, as every Zustandseditor action
+ * (`stateRowConversion`); the value stays, as in vis-2.
  */
 import { Box, IconButton, Tooltip } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
@@ -21,6 +22,7 @@ import type React from 'react';
 
 import Generic from '../../Generic';
 import { stateFieldBindable, stateFieldBindingPatch, stateFieldBound } from '../../lib/stateFieldBinding';
+import { stateRowConversion } from '../../lib/stateRows';
 import { selectedWidgetDatas, type StateEditorFieldProps } from './useStateEditor';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -50,14 +52,15 @@ export type StateFieldBinding = {
  *   multi-selection vis-2's `commonValues` hold `bindings: null` (`useStateEditor`).
  */
 export const useStateFieldBinding = (
-    fieldProps: Pick<StateEditorFieldProps, 'data' | 'props' | 'onDataChange'>,
+    fieldProps: Pick<StateEditorFieldProps, 'spec' | 'data' | 'props' | 'onDataChange'>,
     definition: RxWidgetInfoAttributesField,
     name: string | null,
 ): StateFieldBinding => {
-    const { data, props, onDataChange } = fieldProps;
+    const { spec, data, props, onDataChange } = fieldProps;
     const datas = selectedWidgetDatas({ data, props });
     const bound = name !== null && stateFieldBound(datas, name);
-    const patch = name === null ? null : stateFieldBindingPatch(datas, name);
+    const bindingPatch = name === null ? null : stateFieldBindingPatch(datas, name);
+    const patch = bindingPatch && { ...bindingPatch, ...stateRowConversion(datas, spec.config) };
     const toggle = useCallback(() => {
         if (patch) {
             onDataChange(patch);

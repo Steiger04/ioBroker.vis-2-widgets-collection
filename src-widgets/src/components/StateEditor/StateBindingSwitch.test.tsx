@@ -233,6 +233,17 @@ describe('the binding switch of a detail field', () => {
         expect(control(container, 'header').dataset).toMatchObject({ editor: 'header1', type: 'text' });
     });
 
+    it('converts a widget saved with ignoreCommonStates on, like every Zustandseditor action', () => {
+        // The legacy widget shows its OID's three states (Zustandsmenge); the toggle writes that count.
+        const { container, patches } = mount({ ...THREE_ROWS, values_count: 0, ignoreCommonStates: true });
+
+        click(bindingSwitch(container, 'header') as HTMLButtonElement);
+
+        expect(patches).toEqual([
+            { bindings: ['title', 'header2', 'header1'], values_count: 3, ignoreCommonStates: false },
+        ]);
+    });
+
     it('unbinds it again and gives the field its own control back; the value stays', () => {
         const { container, patches } = mount(THREE_ROWS);
         selectRow(container, 2);

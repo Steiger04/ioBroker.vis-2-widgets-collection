@@ -132,6 +132,26 @@ export const stateRowCount = (data: WidgetData, config: StateRowsConfig): number
     });
 
 /**
+ * The keys that convert widgets saved with `ignoreCommonStates` on, for a Zustandseditor patch
+ * that is no row operation (the binding switch): the row count the editor shows, written
+ * explicitly, as every row operation does (`rewriteRows`).
+ *
+ * @param datas The data of every selected widget.
+ * @param config Schema and OID property of the widgets.
+ * @returns `{ values_count, ignoreCommonStates: false }` when one of them is not converted yet and
+ *   all show the same row count — one patch goes to all of them; `{}` otherwise.
+ */
+export const stateRowConversion = (datas: readonly WidgetData[], config: StateRowsConfig): StateRowPatch => {
+    if (datas.length === 0 || datas.every(data => data.ignoreCommonStates === false)) {
+        return {};
+    }
+    const count = stateRowCount(datas[0], config);
+    return datas.every(data => stateRowCount(data, config) === count)
+        ? { values_count: count, ignoreCommonStates: false }
+        : {};
+};
+
+/**
  * Converts a `common.states` key to the value an OID of `type` carries.
  *
  * @param value The state key (object keys are always strings).

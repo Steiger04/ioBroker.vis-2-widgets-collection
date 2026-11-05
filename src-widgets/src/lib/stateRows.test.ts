@@ -24,6 +24,7 @@ import {
     stateRowCount,
     stateRowDiffers,
     stateRowKeyDiffers,
+    stateRowConversion,
     stateRowOperationAllowed,
     stateRowSchema,
     stateRowsDifference,
@@ -673,6 +674,26 @@ describe('stateRowsDifference — what the InfoBox can point to', () => {
         const otherStates = { ...THREE_ROWS, oidObject: { type: 'number', commonStates: { 0: 'Off', 5: 'Boost' } } };
 
         expect(stateRowsDifference([THREE_ROWS, otherStates], CONFIG)).toBe('states');
+    });
+});
+
+describe('stateRowConversion — the binding switch converts legacy widgets too', () => {
+    const LEGACY = { ...THREE_ROWS, values_count: 0, ignoreCommonStates: true };
+
+    it('writes the shown row count on a widget saved with ignoreCommonStates on', () => {
+        expect(stateRowConversion([LEGACY], CONFIG)).toEqual({ values_count: 3, ignoreCommonStates: false });
+    });
+
+    it('writes nothing on converted widgets', () => {
+        expect(stateRowConversion([THREE_ROWS], CONFIG)).toEqual({});
+    });
+
+    it('writes nothing when the selected widgets show different row counts — one patch goes to all', () => {
+        expect(stateRowConversion([LEGACY, { ...THREE_ROWS, values_count: 2 }], CONFIG)).toEqual({});
+        expect(stateRowConversion([LEGACY, THREE_ROWS], CONFIG)).toEqual({
+            values_count: 3,
+            ignoreCommonStates: false,
+        });
     });
 });
 
