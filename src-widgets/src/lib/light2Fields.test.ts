@@ -29,10 +29,20 @@ const SWITCH_OBJECT = {
     common: { name: 'On', type: 'boolean', role: 'switch.light', read: true, write: true },
 };
 
-const fakeSocket = {
-    getObject: (id: string): Promise<unknown> => Promise.resolve(id === SWITCH ? SWITCH_OBJECT : undefined),
-    getObjectView: (): Promise<unknown> => Promise.resolve({ [SWITCH]: SWITCH_OBJECT }),
-} as unknown as Connection;
+/** A channel state of the given role — what the object database holds next to the switch. */
+const channelState = (id: string, role: string, type = 'number'): Record<string, unknown> => ({
+    _id: id,
+    type: 'state',
+    common: { name: id, type, role, read: true, write: true },
+});
+
+/** A fake object database holding the given channel (default: only the switch). */
+const socketWith = (channel: Record<string, unknown>[] = [SWITCH_OBJECT]): Connection =>
+    ({
+        getObject: (id: string): Promise<unknown> => Promise.resolve(channel.find(object => object._id === id)),
+        getObjectView: (): Promise<unknown> =>
+            Promise.resolve(Object.fromEntries(channel.map(object => [object._id, object]))),
+    }) as unknown as Connection;
 
 const switchField = light2Fields().find(
     field => field.name === 'colorLightSwitchOid',
@@ -46,15 +56,15 @@ const switchField = light2Fields().find(
 };
 
 /** Runs one pick of the switch OID and returns the data the handler hands to vis-2. */
-async function pickSwitch(data: WidgetData): Promise<WidgetData> {
+async function pickSwitch(data: WidgetData, socket = socketWith(), oid = SWITCH): Promise<WidgetData> {
     let emitted: WidgetData | undefined;
     await switchField.onChange(
         switchField,
-        { ...data, colorLightSwitchOid: SWITCH },
+        { ...data, colorLightSwitchOid: oid },
         newData => {
             emitted = newData;
         },
-        fakeSocket,
+        socket,
     );
     if (!emitted) {
         throw new Error('the switch pick did not reach changeData');
@@ -124,5 +134,59 @@ describe('Light2 switch-OID pick — the two rows of the button mode', () => {
             [false, 'FALSE', 'green', 100],
         ]);
         expect(repicked.iconSize).toBe(50);
+    });
+});
+
+describe('Light2 switch-OID pick — the channel states it detects', () => {
+    const DIMMER = 'hue.0.lamp.level';
+    const CT = 'hue.0.lamp.ct';
+
+    it('fills the empty channel fields from the roles in the channel', async () => {
+        const picked = await pickSwitch(
+            { colorLightButton: false, colorLightTemperatureOid: 'nothing_selected' },
+            socketWith([
+                SWITCH_OBJECT,
+                channelState(DIMMER, 'level.dimmer'),
+                channelState(CT, 'level.color.temperature'),
+            ]),
+        );
+
+        expect(picked.colorLightBrightnessOid).toBe(DIMMER);
+        expect(picked.colorLightTemperatureOid).toBe(CT);
+        expect(picked.colorLightBrightnessOidObject).toMatchObject({ _id: DIMMER });
+    });
+
+    it('keeps a channel field the user already chose', async () => {
+        const picked = await pickSwitch(
+            { colorLightButton: false, colorLightBrightnessOid: 'zigbee.0.my.dimmer' },
+            socketWith([SWITCH_OBJECT, channelState(DIMMER, 'level.dimmer')]),
+        );
+
+        expect(picked.colorLightBrightnessOid).toBe('zigbee.0.my.dimmer');
+    });
+
+    it('keeps the picked switch OID although another state of the channel has the role switch.light', async () => {
+        const picked = await pickSwitch(
+            { colorLightButton: true, values_count: 0 },
+            socketWith([SWITCH_OBJECT, channelState('hue.0.lamp.power', 'switch.light', 'boolean')]),
+        );
+
+        expect(picked.colorLightSwitchOid).toBe(SWITCH);
+        expect(picked.colorLightSwitchOidObject).toMatchObject({ _id: SWITCH, type: 'boolean' });
+    });
+
+    it('stores the switch object and seeds the rows when the picked switch has another role', async () => {
+        const plainSwitch = 'zigbee.0.plug.state';
+        const picked = await pickSwitch(
+            { colorLightButton: true, values_count: 0 },
+            socketWith([channelState(plainSwitch, 'switch', 'boolean'), channelState(DIMMER, 'level.dimmer')]),
+            plainSwitch,
+        );
+
+        expect(picked.colorLightSwitchOidObject).toMatchObject({ _id: plainSwitch, type: 'boolean' });
+        expect(rowsOf(picked)).toEqual([
+            [true, 'TRUE', 'red', 100],
+            [false, 'FALSE', 'green', 100],
+        ]);
     });
 });
