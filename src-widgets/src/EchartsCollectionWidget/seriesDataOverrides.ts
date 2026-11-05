@@ -13,7 +13,7 @@
  * chart default overridable in both directions).
  */
 import type { EchartsAggregate, EchartsIgnoreNull, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
-import type { HistoryEntry } from './historyLogic';
+import type { HistoryEntry } from './historyEntry';
 
 /** The per-series override subset this module resolves. */
 export type SeriesOverrideMeta = Pick<EchartsSeriesMeta, 'aggregate' | 'diffMode'>;
@@ -51,21 +51,29 @@ export const effectiveDiff = (
 ): boolean => meta?.diffMode === 'diff' || (meta?.diffMode !== 'raw' && chartBarDiff === true);
 
 /**
+ * The NULL-Behandlung inherit rule on its two primitives — the series' override and the
+ * chart-level setting — for callers that hold the override outside a meta (the Verlauf entry's
+ * sparse `ignoreNull`, `fetchMultiSeries`); {@link effectiveNullMode} is this rule over a meta. Same semantics: an
+ * empty override inherits, only 'forward'/'zero' fill, everything else reads as 'keep'.
+ */
+export const resolveNullMode = (override: unknown, chartSetting: unknown): EchartsIgnoreNull => {
+    const mode: unknown = override || chartSetting;
+    return mode === 'forward' || mode === 'zero' ? mode : 'keep';
+};
+
+/**
  * The series' effective NULL-Behandlung (ADR-0059, ADR-0072 inherit rule): its own override,
  * else the chart-level setting. Only 'forward'/'zero' fill — an absent or non-canonical value
  * (a raw persisted `src.ignoreNull` arrives unchecked) reads as 'keep', exactly what the fill
  * stage does with an unknown mode. An EMPTY override is unset (it inherits): the card's select
  * writes '' as „erben", and the Verlauf entry omits a falsy override. The JSON parse paths
  * receive ONLY this resolved value; the Verlauf fetch resolves it per entry over the sparse
- * override of {@link historyEntryOf}.
+ * override of {@link historyEntryOf} ({@link resolveNullMode}).
  */
 export const effectiveNullMode = (
     meta: Pick<EchartsSeriesMeta, 'nullMode'> | undefined,
     chartSetting: unknown,
-): EchartsIgnoreNull => {
-    const mode: unknown = meta?.nullMode || chartSetting;
-    return mode === 'forward' || mode === 'zero' ? mode : 'keep';
-};
+): EchartsIgnoreNull => resolveNullMode(meta?.nullMode, chartSetting);
 
 /** The series fields {@link historyEntryOf} reads — its identity plus the request overrides. */
 export type HistoryEntrySource = Pick<

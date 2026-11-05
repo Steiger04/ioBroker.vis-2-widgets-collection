@@ -22,9 +22,12 @@
  */
 
 import type { EchartsOffsetKey } from '../types/field-definitions/echarts-fields';
-import { effectiveNullMode } from './seriesDataOverrides';
+import type { HistoryEntry, IgnoreNull, SeriesValueMap } from './historyEntry';
+import { resolveNullMode } from './seriesDataOverrides';
 
-export type IgnoreNull = 'keep' | 'forward' | 'zero';
+// The request-entry types live in the neutral `historyEntry` module (no import cycle with the
+// Erben-Override module); re-exported so every import site stays as it was.
+export type { HistoryEntry, IgnoreNull, SeriesValueMap } from './historyEntry';
 
 export interface Point {
     ts: number;
@@ -123,9 +126,6 @@ export function toPlottableNumber(val: unknown): number | null {
     return null;
 }
 
-/** A series' authored raw-value mapping — the intake stage before numeric coercion (ticket 02). */
-export type SeriesValueMap = Record<string, number | null>;
-
 /**
  * Marks a raw value the map DELIBERATELY discarded (an authored empty target) — „bewusst
  * verworfen" is not „unlesbar": nullMode (forward/zero) never fills it, unlike an intake null.
@@ -202,43 +202,6 @@ export function toSeriesData(
         out.push([p.ts, v]);
     }
     return out;
-}
-
-export interface HistoryEntry {
-    oid: string;
-    name?: string;
-    /** Pinned history instance for THIS OID (ADR-0039); absent = Auto (datapoint config, else server). */
-    instance?: string;
-    /**
-     * This series' request-window shift as SPEC (ADR-0059 numeric seconds, ADR-0072 calendar
-     * keys): numeric values shift start/end by −offset·1000 ms, {@link EchartsOffsetKey} values
-     * resolve PER FETCH via setMonth/setFullYear against the resolved window (adapter `addTime`
-     * parity — the caller must NOT precompute static ms for the keys, a relative window's
-     * resolved bounds move every fetch). Absent/0 = the shared window.
-     */
-    xOffset?: number | EchartsOffsetKey;
-    /**
-     * This series' aggregate override (ADR-0072) — reshapes THIS entry's request; absent =
-     * inherit the shared options' aggregate.
-     */
-    aggregate?: Aggregate;
-    /** Percentile level — emitted only under this entry's effective 'percentile' aggregate (ADR-0072). */
-    percentile?: number;
-    /** Integral unit in seconds — emitted only under this entry's effective 'integral' aggregate (ADR-0072). */
-    integralUnit?: number;
-    /** Integral interpolation — emitted only under this entry's effective 'integral' aggregate (ADR-0072). */
-    integralInterpolation?: 'none' | 'linear';
-    /**
-     * This series' NULL handling (ADR-0059) — overrides the chart-level `ignoreNull` argument
-     * for this entry's data; absent = inherit the chart-level setting.
-     */
-    ignoreNull?: IgnoreNull;
-    /**
-     * This series' raw-value mapping (ticket 02) — applied at the intake, BEFORE numeric
-     * coercion (exact `String(raw)` match, authored-empty target = a fill-immune gap); absent =
-     * the plain numeric intake.
-     */
-    valueMap?: SeriesValueMap;
 }
 
 export interface FetchedSeries {
@@ -322,7 +285,7 @@ export function entryRequestOptions(
  * doesn't discard the others — a failed series becomes `{ data: [], error }`. Each entry's
  * request diverges only where it authors an override — instance, aggregate + params, window
  * shift ({@link entryRequestOptions}) — and its `ignoreNull` overrides the chart-level gap
- * handling (resolved by the shared Erben-Override rule, {@link effectiveNullMode}).
+ * handling (resolved by the shared Erben-Override rule, {@link resolveNullMode}).
  */
 export async function fetchMultiSeries(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
@@ -345,7 +308,7 @@ export async function fetchMultiSeries(
                 name,
                 data: toSeriesData(
                     r.value.pts,
-                    effectiveNullMode({ nullMode: entries[i].ignoreNull }, ignoreNull),
+                    resolveNullMode(entries[i].ignoreNull, ignoreNull),
                     entries[i].valueMap,
                 ),
             };
