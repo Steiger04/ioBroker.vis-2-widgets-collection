@@ -110,19 +110,20 @@ function ImagePreview({
         ? src.replace('_PRJ_NAME/', `../${context.adapterName}.${context.instance}/${context.projectName}/`)
         : src;
     return (
-        <div
+        <Box
             data-state-detail-preview
-            style={{ width: 30, height: 30, display: 'inline-block', float: 'right' }}
+            sx={{ width: 30, height: 30, display: 'inline-block', float: 'right' }}
         >
-            <img
+            <Box
+                component="img"
                 src={url}
                 alt=""
-                style={{ maxWidth: '100%', maxHeight: '100%' }}
-                onError={event => {
+                sx={{ maxWidth: '100%', maxHeight: '100%' }}
+                onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
                     event.currentTarget.style.display = 'none';
                 }}
             />
-        </div>
+        </Box>
     );
 }
 

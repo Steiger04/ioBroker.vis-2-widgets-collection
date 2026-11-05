@@ -13,7 +13,7 @@
  * like any native field. Toggling writes only `data.bindings` (`lib/stateFieldBinding`); the
  * value stays, as in vis-2.
  */
-import { IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import { useCallback } from 'react';
@@ -26,7 +26,7 @@ import { selectedWidgetDatas, type StateEditorFieldProps } from './useStateEdito
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 /** vis-2's `styles.bindIcon`. */
-const BIND_ICON_STYLE = { width: 16, height: 16 } as const;
+const BIND_ICON_SIZE = { width: 16, height: 16 } as const;
 
 /** The binding of one detail field. */
 export type StateFieldBinding = {
@@ -101,7 +101,10 @@ function StateBindingSwitch({ bound, canToggle, toggle }: StateBindingSwitchProp
             title={canToggle ? label : Generic.t('state_editor_binding_differs')}
             slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
         >
-            <span style={{ display: 'inline-flex', marginRight: 3, flex: '0 0 auto' }}>
+            <Box
+                component="span"
+                sx={{ display: 'inline-flex', marginRight: '3px', flex: '0 0 auto' }}
+            >
                 <IconButton
                     data-binding-switch
                     aria-label={label}
@@ -110,9 +113,9 @@ function StateBindingSwitch({ bound, canToggle, toggle }: StateBindingSwitchProp
                     onClick={toggle}
                     sx={{ p: 0, color: 'inherit' }}
                 >
-                    {bound ? <LinkOffIcon style={BIND_ICON_STYLE} /> : <LinkIcon style={BIND_ICON_STYLE} />}
+                    {bound ? <LinkOffIcon sx={BIND_ICON_SIZE} /> : <LinkIcon sx={BIND_ICON_SIZE} />}
                 </IconButton>
-            </span>
+            </Box>
         </Tooltip>
     );
 }

@@ -49,7 +49,7 @@ import type { StateRowOperation } from '../../lib/stateRows';
 import type { StateEditorFieldProps } from './useStateEditor';
 
 /** vis-2's group-head button box (`styles.groupButton`). */
-const GROUP_BUTTON_STYLE = { width: 24, height: 24 } as const;
+const GROUP_BUTTON_SIZE = { width: 24, height: 24 } as const;
 
 /**
  * The actions that ask before they write, with the i18n keys of their name and question —
@@ -95,7 +95,7 @@ function ToolButton({ label, disabled, onClick, children }: ToolButtonProps): Re
                 <IconButton
                     aria-label={label}
                     size="small"
-                    style={GROUP_BUTTON_STYLE}
+                    sx={GROUP_BUTTON_SIZE}
                     disabled={disabled}
                     onClick={onClick}
                 >
