@@ -67,13 +67,24 @@ type PanelProps = {
     props: RxWidgetInfoCustomComponentProperties;
 };
 
-/** The group body as vis-2 renders it (`renderGroupBody` / `renderFieldRow`). */
+/**
+ * The raw data of every selected widget, as vis-2 hands it to a `hidden` predicate — the
+ * stored widgets of `context.views`, else (no project in the test) the field data.
+ */
+const rawDatas = (data: WidgetData, props: RxWidgetInfoCustomComponentProperties): WidgetData[] => {
+    const views = props.context.views as unknown as Record<string, { widgets?: Record<string, { data: WidgetData }> }>;
+    const stored = props.selectedWidgets.map(id => views?.[props.selectedView]?.widgets?.[id]?.data);
+    return stored.every(Boolean) && stored.length > 0 ? (stored as WidgetData[]) : [data];
+};
+
+/** The group body as vis-2 renders it (`renderGroupBody` / `renderFieldRow`); a field is hidden when its predicate holds for every selected widget. */
 function Panel({ fields, data, onDataChange, props }: PanelProps): React.JSX.Element {
     return (
         <table>
             <tbody>
                 {fields.map((field, index) =>
-                    typeof field.hidden === 'function' && (field.hidden as (d: WidgetData) => boolean)(data) ? null : (
+                    typeof field.hidden === 'function' &&
+                    rawDatas(data, props).every(raw => (field.hidden as (d: WidgetData) => boolean)(raw)) ? null : (
                         <tr
                             key={index}
                             data-field={field.name ?? `#${index}`}
@@ -278,5 +289,22 @@ describe('Zustandseditor with no rows yet', () => {
         expect(listRows(container)).toHaveLength(0);
         expect(container.querySelector('[role="listbox"]')?.textContent).toBe('t:state_editor_no_rows');
         expect(container.querySelector('[data-state-row-header]')).toBeNull();
+    });
+});
+
+describe('Zustandseditor under multi-selection — reads the stored widgets, not vis-2s merged data', () => {
+    it('shows the rows although vis-2 merged the OID object of two widgets to null', () => {
+        // vis-2 hands a custom field `commonValues` under multi-selection: every key whose
+        // values differ by `!==` is null — an object like `oidObject` always is
+        // (Attributes/Widget/index.tsx, commonValues).
+        const merged: WidgetData = { ...THREE_ROWS, oidObject: null };
+        const props = editorProps(['w1', 'w2']);
+        (props.context as unknown as { views: unknown }).views = {
+            v: { widgets: { w1: { data: { ...THREE_ROWS } }, w2: { data: { ...THREE_ROWS } } } },
+        };
+        const { container } = mount(merged, props);
+
+        expect(container.querySelector('[data-info-box]')).toBeNull();
+        expect(listRows(container)).toHaveLength(3);
     });
 });
