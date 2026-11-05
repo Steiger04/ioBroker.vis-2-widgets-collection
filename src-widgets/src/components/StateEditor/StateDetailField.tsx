@@ -25,6 +25,9 @@
  * A per-state `hidden` rule that reads the Feldnummer (`enableIconColorMask`: neither URL icon nor
  * colour) cannot hide a row any more — it would make the layout jump between rows — so it locks
  * the field instead; rules on widget level hide the hull through vis-2 (no index there).
+ *
+ * The binding switch of `name{n}` (`StateBindingSwitch`, Ticket 06) opens the value cell; a
+ * bound field is rendered as a plain text field through the same `Editor`.
  */
 import { Box } from '@mui/material';
 import { useLayoutEffect, useMemo, useRef } from 'react';
@@ -33,6 +36,7 @@ import { createPortal } from 'react-dom';
 
 import type { RxWidgetInfoAttributesField, RxWidgetInfoCustomComponentProperties } from '@iobroker/types-vis-2';
 import { stateRowKeyDiffers } from '../../lib/stateRows';
+import StateBindingSwitch, { stateBindingTextField, useStateFieldBinding } from './StateBindingSwitch';
 import { StateDifferentMark } from './StateDifferentMark';
 import { useLabelCell } from './useLabelCell';
 import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
@@ -163,6 +167,7 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
             labelCell.style.opacity = '';
         };
     }, [labelCell, locked]);
+    const binding = useStateFieldBinding(fieldProps, definition, field ? (field.name as string) : null);
     // The field data on purpose: vis-2 draws the preview from the first widget unless the values
     // differ (`!isDifferent`), and the merged `commonValues` hold exactly that (`null` if they differ).
     const image = field && (definition as { type?: string }).type === 'image' ? data[field.name as string] : undefined;
@@ -175,13 +180,20 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
             data-different={differs || undefined}
             sx={{ display: 'flex', alignItems: 'center', width: '100%', minWidth: 0 }}
         >
-            {/* Ticket 06: the binding switch of `name{n}` goes here, at the start of the value cell. */}
+            {field && binding.shown ? (
+                <StateBindingSwitch
+                    bound={binding.bound}
+                    canToggle={binding.canToggle}
+                    toggle={binding.toggle}
+                />
+            ) : null}
             <Box sx={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', width: '100%', minWidth: 0 }}>
                 {Editor && field ? (
                     <EditorSlot
-                        key={field.name}
+                        // A bound field is a text field of its own: the toggle starts it fresh.
+                        key={binding.bound ? `${field.name}|binding` : field.name}
                         Editor={Editor}
-                        field={field}
+                        field={binding.bound ? stateBindingTextField(field) : field}
                         disabled={locked}
                     />
                 ) : null}

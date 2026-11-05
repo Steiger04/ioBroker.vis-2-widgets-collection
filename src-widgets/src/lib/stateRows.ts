@@ -195,7 +195,8 @@ const readRows = (data: WidgetData, config: StateRowsConfig, count: number): Row
     });
 };
 
-const sameItems = (a: readonly string[], b: readonly string[]): boolean =>
+/** Whether two name lists hold the same entries, in any order. */
+export const sameItems = (a: readonly string[], b: readonly string[]): boolean =>
     a.length === b.length && [...a].sort().join('\n') === [...b].sort().join('\n');
 
 /**

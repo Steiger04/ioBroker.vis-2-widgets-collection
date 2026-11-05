@@ -1368,6 +1368,9 @@
     "state_editor_move_row_up": "Zeile nach oben",
     "state_editor_recreate_rows": "Aus common.states neu anlegen",
     "state_editor_recreate_rows_confirm": "Alle Zeilen durch die Zustände der Objekt-ID ersetzen? Reihenfolge, Aliase und Stile der bisherigen Zeilen gehen verloren.",
+    "state_editor_binding_differs": "Die gewählten Widgets binden unterschiedliche Felder: Um eine Bindung zu ändern, die Widgets einzeln wählen.",
+    "state_editor_binding_off": "Bindung deaktivieren und Feld als Standardeingabe verwenden",
+    "state_editor_binding_on": "Feld als Bindung verwenden",
     "state_editor_different": "unterschiedlich",
     "state_editor_rows_differ": "Die Zeilen der gewählten Widgets unterscheiden sich (rechts markiert). Verschieben, Hinzufügen, Klonen, Löschen und Neu anlegen gehen nur bei gleichen Zeilen – die Widgets einzeln bearbeiten."
 }
