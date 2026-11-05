@@ -14,7 +14,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
-import { convertValueByType } from './stateRows';
+import { applyStateRowOperation, stateRowCount } from './stateRows';
 import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
@@ -88,9 +88,11 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
  * @remarks
  * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role
  * ({@link module:lib/oidRole}) decides what the pick owns:
- * - `main` (Haupt-OID `oid`): root `icon`/`write`/`minValue`/`maxValue`, the value rows, and the
- *   `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
- *   control ID keeps its suggestion, whatever the picking order.
+ * - `main` (Haupt-OID `oid`): root `icon`/`write`/`minValue`/`maxValue`, the Zustandszeilen, and
+ *   the `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
+ *   control ID keeps its suggestion, whatever the picking order. The pick supplements the rows
+ *   from the object's `common.states` (boolean without them: TRUE/FALSE) and writes
+ *   `ignoreCommonStates: false` with `values_count` (ADR-0104 §5, §6).
  * - `control` (the Select's Steuer ID, ADR-0090): only `cidObject` and the `onlyDisplay`
  *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
  * - `auxiliary` (Hilfs-OID — Dialog's `dialogId`, Light2's channel IDs, ADR-0096): only its own
@@ -123,6 +125,14 @@ export const oidChangeHandlerAsync =
             const oidType = object.common.type as AllowedType;
             if (!allowedTypes.includes(oidType)) {
                 return;
+            }
+
+            if (role === 'main') {
+                // The rows the widget carries now, counted against the previous OID object — a
+                // widget saved with ignoreCommonStates on (values_count 0) shows its states'
+                // rows. From here on its authored rows govern (ADR-0104 §5, Nachtrag Ticket 01).
+                data.values_count = stateRowCount(data, MAIN_STATE_ROWS);
+                data.ignoreCommonStates = false;
             }
 
             // Set object metadata
@@ -170,30 +180,21 @@ export const oidChangeHandlerAsync =
                 }
 
                 data[`${oid}Object`].commonStates = states;
-
-                if (role === 'main') {
-                    data.values_count = Object.keys(states).length;
-
-                    Object.entries(states).forEach(([value, alias], index) => {
-                        const keyIndex = index + 1;
-                        data[`value${keyIndex}`] = convertValueByType(value, oidType);
-                        data[`alias${keyIndex}`] = String(alias);
-                    });
-                }
             } else if (oidType === 'boolean' && role === 'main') {
                 data[`${oid}Object`].commonStates = { true: 'TRUE', false: 'FALSE' };
-                data.values_count = 2;
-                data.value1 = true;
-                data.alias1 = 'TRUE';
-                data.value2 = false;
-                data.alias2 = 'FALSE';
-            } else if (role === 'main') {
-                data.values_count = 0;
             }
 
-            // When ignoreCommonStates is active, hide value groups in editor but keep data populated
-            if (role === 'main' && data.ignoreCommonStates !== false) {
-                data.values_count = 0;
+            if (role === 'main') {
+                // Supplement, never overwrite: existing rows keep order, alias and styles; the
+                // states no row carries yet are appended (ADR-0104 §6).
+                const patch = applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS);
+                Object.entries(patch ?? {}).forEach(([key, value]) => {
+                    if (value === null) {
+                        delete data[key];
+                    } else {
+                        data[key] = value;
+                    }
+                });
             }
 
             setTimeout(() => changeData(data), 100);
@@ -230,16 +231,15 @@ export const createIdField = (name: string, allowedTypes: readonly AllowedType[]
 interface CommonObjectFieldsOptions {
     /** Include the unit override field (default: true). */
     unit?: boolean;
-    /** Include the common.states value-group machinery — `ignoreCommonStates` + `values_count` (default: true). */
-    valueGroups?: boolean;
 }
 
 const commonObjectFields = (
     allowedTypes: readonly AllowedType[],
-    { unit = true, valueGroups = true }: CommonObjectFieldsOptions = {},
+    { unit = true }: CommonObjectFieldsOptions = {},
 ): RxWidgetInfoAttributesField[] => {
-    // The OID picker is always present; the unit and value-group sections are optional
-    // and each carries its own leading divider so toggling them leaves no orphan dividers.
+    // The OID picker is always present; the unit section is optional and carries its own
+    // leading divider so toggling it leaves no orphan divider. The Zustandszeilen are edited in
+    // the widget's „Werte" group (`lib/stateEditorFields`), not here (ADR-0104).
     const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes)];
 
     if (unit) {
@@ -271,58 +271,6 @@ const commonObjectFields = (
                         setTimeout(() => changeData(data), 100);
                     }
                 },
-            },
-        );
-    }
-
-    if (valueGroups) {
-        fields.push(
-            {
-                label: '',
-                type: 'custom',
-                component: () => <CollectionDivider />,
-                hidden: (data, _i) => data.oidObject === undefined,
-            },
-            {
-                name: 'ignoreCommonStates',
-                type: 'checkbox',
-                default: true,
-                label: 'ignore_common_states',
-                tooltip: 'ignore_common_states_tooltip',
-                hidden: (data, _i) => data.oidObject === undefined,
-                // eslint-disable-next-line @typescript-eslint/require-await
-                onChange: async (
-                    _field: RxWidgetInfoAttributesField,
-                    data: WidgetData,
-                    changeData: (newData: WidgetData) => void,
-                    _socket: Connection,
-                ): Promise<void> => {
-                    if (data.ignoreCommonStates !== false) {
-                        // Hide value groups: set values_count to 0
-                        data.values_count = 0;
-                    } else {
-                        // Restore values_count from commonStates
-                        const commonStates = data.oidObject?.commonStates;
-                        if (commonStates) {
-                            data.values_count = Object.keys(commonStates).length;
-                        } else if (data.oidObject?.type === 'boolean') {
-                            data.values_count = 2;
-                        } else {
-                            data.values_count = 0;
-                        }
-                    }
-                    setTimeout(() => changeData(data), 100);
-                },
-            },
-            {
-                name: 'values_count',
-                type: 'number',
-                default: 0,
-                label: 'values_count',
-                hidden: (data, _i) =>
-                    data.oidObject?.type === 'boolean' ||
-                    data.oidObject === undefined ||
-                    data.ignoreCommonStates !== false,
             },
         );
     }

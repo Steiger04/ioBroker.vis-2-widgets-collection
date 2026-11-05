@@ -19,7 +19,7 @@ vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
-import { oidChangeHandlerAsync } from './commonObjectFields';
+import commonObjectFields, { oidChangeHandlerAsync } from './commonObjectFields';
 
 const STATUS = 'zigbee.0.lamp.mode_status';
 const COMMAND = 'zigbee.0.lamp.mode_set';
@@ -60,6 +60,19 @@ const OBJECTS: Record<string, unknown> = {
     },
 };
 
+const SCENE = 'zigbee.0.lamp.scene';
+const POWER = 'zigbee.0.lamp.on';
+OBJECTS[SCENE] = {
+    _id: SCENE,
+    type: 'state',
+    common: { name: 'Scene', type: 'number', role: 'level', read: true, write: true, states: { 1: 'Eco', 3: 'Party' } },
+};
+OBJECTS[POWER] = {
+    _id: POWER,
+    type: 'state',
+    common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
+};
+
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
 } as unknown as Connection;
@@ -84,8 +97,30 @@ async function pick(idName: string, data: WidgetData): Promise<WidgetData> {
     return emitted;
 }
 
+/**
+ * The style keys a new Zustandszeile `n` carries: every per-state field with a declared default
+ * (the Zustandszeilen-Operationen write it, or `null`, so orphaned keys are overwritten).
+ */
+const newRowDefaults = (n: number): Record<string, unknown> =>
+    Object.fromEntries(
+        Object.entries({
+            icon: '',
+            iconSmall: '',
+            enableIconColorMask: false,
+            iconColor: '',
+            header: '',
+            footer: '',
+            textColor: '',
+            background: '',
+            frameBackground: '',
+        }).map(([key, value]) => [`${key}${n}`, value]),
+    );
+
 /** The main-OID pick of the read-only status state, as the editor stores it today. */
 const STATUS_PICKED = {
+    ...newRowDefaults(1),
+    ...newRowDefaults(2),
+    ...newRowDefaults(3),
     oid: STATUS,
     oidObject: {
         _id: STATUS,
@@ -104,7 +139,8 @@ const STATUS_PICKED = {
     onlyDisplay: true,
     minValue: 0,
     maxValue: 2,
-    values_count: 0,
+    values_count: 3,
+    ignoreCommonStates: false,
     value1: 0,
     alias1: 'Off',
     value2: 1,
@@ -128,6 +164,101 @@ describe('oidChangeHandlerAsync — main OID without a control ID (unchanged)', 
 
     it('suggests an interactive control for a writable main OID', async () => {
         expect((await pick('oid', { oid: COMMAND })).onlyDisplay).toBe(false);
+    });
+});
+
+/** The rows 1..values_count as `[value, alias, iconColor]` — what the runtime walks. */
+const rowsOf = (data: WidgetData): unknown[][] =>
+    Array.from({ length: data.values_count as number }, (_, i) => [
+        data[`value${i + 1}`],
+        data[`alias${i + 1}`],
+        data[`iconColor${i + 1}`],
+    ]);
+
+describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandszeilen (ADR-0104 §6)', () => {
+    it('creates one row per state on a first pick, with ignoreCommonStates off', async () => {
+        const picked = await pick('oid', { oid: STATUS, values_count: 0 });
+
+        expect(rowsOf(picked)).toEqual([
+            [0, 'Off', ''],
+            [1, 'Eco', ''],
+            [2, 'Comfort', ''],
+        ]);
+        expect(picked.ignoreCommonStates).toBe(false);
+    });
+
+    it('re-picking keeps order, alias and styles of the existing rows and appends the missing states', async () => {
+        /** The user moved Comfort to the top, renamed and styled it; Off is gone. */
+        const edited = {
+            ...STATUS_PICKED,
+            values_count: 2,
+            value1: 2,
+            alias1: 'Warm',
+            iconColor1: 'blue',
+            value2: 1,
+            alias2: 'Eco',
+            iconColor2: 'green',
+            value3: null,
+            alias3: null,
+        };
+
+        const repicked = await pick('oid', { ...edited, oid: SCENE });
+
+        expect(rowsOf(repicked)).toEqual([
+            [2, 'Warm', 'blue'],
+            [1, 'Eco', 'green'],
+            [3, 'Party', ''],
+        ]);
+        expect(repicked.ignoreCommonStates).toBe(false);
+    });
+
+    it('takes over a widget saved with ignoreCommonStates on: its rows stay, the new states are appended', async () => {
+        // Saved with the switch on: values_count 0, the three rows of the old OID filled.
+        const legacy = { ...STATUS_PICKED, values_count: 0, ignoreCommonStates: true, iconColor3: 'red' };
+
+        const repicked = await pick('oid', { ...legacy, oid: SCENE });
+
+        expect(rowsOf(repicked)).toEqual([
+            [0, 'Off', ''],
+            [1, 'Eco', ''],
+            [2, 'Comfort', 'red'],
+            [3, 'Party', ''],
+        ]);
+        expect(repicked.ignoreCommonStates).toBe(false);
+    });
+
+    it('seeds a boolean OID without common.states with TRUE/FALSE, and keeps them on a re-pick', async () => {
+        const picked = await pick('oid', { oid: POWER, values_count: 0 });
+        expect(rowsOf(picked)).toEqual([
+            [true, 'TRUE', ''],
+            [false, 'FALSE', ''],
+        ]);
+
+        const styled = { ...picked, value1: false, alias1: 'Aus', value2: true, alias2: 'An', iconColor2: 'red' };
+        expect(rowsOf(await pick('oid', styled))).toEqual([
+            [false, 'Aus', ''],
+            [true, 'An', 'red'],
+        ]);
+    });
+
+    it('keeps own rows when the OID has no common.states', async () => {
+        const own = { ...STATUS_PICKED, oid: 'zigbee.0.lamp.level', values_count: 1, value1: 7, alias1: 'Seven' };
+        OBJECTS['zigbee.0.lamp.level'] = {
+            _id: 'zigbee.0.lamp.level',
+            type: 'state',
+            common: { name: 'Level', type: 'number', role: 'level', read: true, write: true },
+        };
+
+        expect(rowsOf(await pick('oid', own))).toEqual([[7, 'Seven', '']]);
+    });
+});
+
+describe('commonObjectFields — the panel no longer offers the value-group switches', () => {
+    it('has no ignoreCommonStates checkbox and no values_count number field', () => {
+        const names = commonObjectFields(ANY_VALUE_TYPES).map(field => field.name);
+
+        expect(names).not.toContain('ignoreCommonStates');
+        expect(names).not.toContain('values_count');
     });
 });
 
