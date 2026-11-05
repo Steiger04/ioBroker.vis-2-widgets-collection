@@ -4,7 +4,7 @@
  *
  * @module components/StateEditor/StateRowList
  * @remarks
- * Its own attribute row with an empty label, in the value column (Spec, list field). Rows are
+ * Its own attribute row with an empty label, in the value column. Rows are
  * 28 px high; the list shows 8 rows (or what the height grip set, kept in `localStorage`) and
  * scrolls; the selected row is kept in view. Choosing a row changes only the shared selection
  * (`stateRowSelection`) — no `onDataChange`, so vis-2 does not recalculate.
@@ -284,7 +284,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
     const searching = isStateRowSearchActive(search);
     const { rows, selected, select, can, run } = useStateRowActions(fieldProps, { reorderLocked: searching });
     const shown = useMemo(() => filterStateRows(rows, search), [rows, search]);
-    // Multi-selection (Ticket 07): rows that differ between the selected widgets are marked —
+    // Multi-selection (ADR-0104 Nachtrag Ticket 07): rows that differ between the selected widgets are marked —
     // by Feldnummer, so the mark stays on its row while the search filters.
     const datas = selectedWidgetDatas(fieldProps);
     const canMove = rows.length > 1 && can('move');

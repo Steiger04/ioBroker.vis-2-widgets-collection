@@ -1,5 +1,5 @@
 /**
- * The binding switch of a Zustandseditor detail field (Ticket 06).
+ * The binding switch of a Zustandseditor detail field (ADR-0104 Nachtrag Ticket 06).
  *
  * @module components/StateEditor/StateBindingSwitch
  * @remarks

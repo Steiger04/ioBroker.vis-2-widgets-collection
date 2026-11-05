@@ -141,10 +141,10 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
     // the last row, delete of the last row) would drop it on <body>, where vis-2's Delete key
     // deletes the widget.
     // The row selected after add, clone or delete stays visible while the search filters
-    // (Spec stories 10, 41): add and clone select the new row and empty the search when it
+    // (ADR-0104 Nachtrag Review): add and clone select the new row and empty the search when it
     // would hide that row; delete selects the next row the search keeps behind the deleted one,
     // else the previous one it keeps, and empties the search only when it keeps none — then the
-    // Spec rule (the following row, after the last one the previous) stands.
+    // rule (the following row, after the last one the previous) stands.
     const run = (op: StateRowOperation): void => {
         const patch = actions.run(op);
         if (

@@ -3,7 +3,7 @@
  *
  * @module components/StateEditor/useStateEditor
  * @remarks
- * The list, the Gewählte Zeile row, the toolbar (Ticket 04) and the detail fields (Ticket 03) are
+ * The list, the Gewählte Zeile row, the toolbar and the detail fields are
  * separate vis-2 custom fields of the values group; each one calls this hook with the props
  * vis-2 hands it, so they agree on rows and selected row without talking to each other.
  */

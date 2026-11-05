@@ -4,12 +4,12 @@
  *
  * @module components/StateEditor/SelectedStateRow
  * @remarks
- * A native attribute row (label "Selected row") above the detail fields (Ticket 03), so the user
+ * A native attribute row (label "Selected row") above the detail fields, so the user
  * knows which row they edit even with the list scrolled away, and pages through 50–200 rows
  * without scrolling up. Paging changes only the shared selection — no `onDataChange` — and,
  * like ↑/↓ in the list, steps only through the rows an active search keeps, so the selection
- * stays visible in the list (Spec story 10). The ‹ › icons keep their default 24 px, like
- * vis-2's group-head icons (Spec, appearance).
+ * stays visible in the list (ADR-0104 Nachtrag Code-Review). The ‹ › icons keep their default 24 px, like
+ * vis-2's group-head icons.
  */
 import { Box, IconButton } from '@mui/material';
 import PreviousIcon from '@mui/icons-material/ChevronLeft';

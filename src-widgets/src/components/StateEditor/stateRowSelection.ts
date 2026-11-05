@@ -4,7 +4,7 @@
  *
  * @module components/StateEditor/stateRowSelection
  * @remarks
- * Module state of the widget bundle (Spec, shared row selection), keyed by view +
+ * Module state of the widget bundle, keyed by view +
  * selected widgets. A selection change writes no project data, so it triggers no vis-2
  * recalculation; it is remembered per key until the page reloads. Each field of the group is
  * its own vis-2 custom field (its own React subtree), so they share the selection through this

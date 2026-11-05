@@ -1,6 +1,6 @@
 /**
  * A detail field of the Zustandseditor: one per-state field of the selected Zustandszeile, as a
- * native vis-2 attribute row (layout A, Ticket 03).
+ * native vis-2 attribute row (ADR-0104 Nachtrag Ticket 03).
  *
  * @module components/StateEditor/StateDetailField
  * @remarks
@@ -26,7 +26,7 @@
  * colour) cannot hide a row any more — it would make the layout jump between rows — so it locks
  * the field instead; rules on widget level hide the wrapper through vis-2 (no index there).
  *
- * The binding switch of `name{n}` (`StateBindingSwitch`, Ticket 06) opens the value cell; a
+ * The binding switch of `name{n}` (`StateBindingSwitch`) opens the value cell; a
  * bound field is rendered as a plain text field through the same `Editor`.
  */
 import { Box } from '@mui/material';

@@ -5,7 +5,7 @@
  * @module components/StateEditor/useStateRowActions
  * @remarks
  * The one place that turns a row action into project data — the toolbar buttons use it, and
- * so do the list's Alt+↑/↓ and drop (Ticket 05). Each action is exactly one patch of the
+ * so do the list's Alt+↑/↓ and drop. Each action is exactly one patch of the
  * Zustandszeilen-Operationen (`lib/stateRows`), so vis-2 records it as one history step and
  * its undo takes it back whole (vis-2 `Editor.tsx` `changeProject` → `saveHistory`).
  *
@@ -14,7 +14,7 @@
  *   multi-selection the custom-field API writes the one patch into every selected widget
  *   (ADR-0104 §4).
  * - Reordering can be locked from outside (`reorderLocked`): the list locks it while its
- *   search filters the rows (Spec, search).
+ *   search filters the rows.
  */
 import { useCallback } from 'react';
 
@@ -48,7 +48,7 @@ export type StateRowActions = StateEditorState & {
 };
 
 /**
- * The row selected after an action (Spec, selection after actions).
+ * The row selected after an action (ADR-0104 Nachtrag Ticket 04).
  *
  * @param op The action.
  * @param selected The row selected before it.

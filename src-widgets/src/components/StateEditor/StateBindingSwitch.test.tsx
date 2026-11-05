@@ -1,5 +1,5 @@
 /**
- * Zustandseditor binding switch (T4, Ticket 06): every detail field can be switched to a plain
+ * Zustandseditor binding switch (ADR-0104 Nachtrag Ticket 06): every detail field can be switched to a plain
  * text field for `{…}` bindings, maintaining `data.bindings` for `name{n}` — and a binding
  * moves with its row.
  *

@@ -1,6 +1,6 @@
 /**
  * Bindings of the Zustandseditor's detail fields: which field offers vis-2's binding switch,
- * whether `name{n}` is bound and the patch that toggles it (Ticket 06).
+ * whether `name{n}` is bound and the patch that toggles it (ADR-0104 Nachtrag Ticket 06).
  *
  * @module lib/stateFieldBinding
  * @remarks

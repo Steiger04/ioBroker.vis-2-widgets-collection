@@ -1,5 +1,5 @@
 /**
- * Zustandseditor toolbar (T4, Ticket 04): every row action writes one patch of the
+ * Zustandseditor toolbar (ADR-0104 Nachtrag Ticket 04): every row action writes one patch of the
  * Zustandszeilen-Operationen and the selection follows the action.
  *
  * @module components/StateEditor/StateEditorToolbar.test
@@ -387,7 +387,7 @@ describe('Zustandseditor toolbar — what a widget refuses', () => {
     });
 });
 
-describe('Zustandseditor toolbar — reorder lock (the list search, Ticket 05)', () => {
+describe('Zustandseditor toolbar — reorder lock (the list search)', () => {
     it('locks up and down, the other actions stay', () => {
         const props = {
             context: { theme: hostTheme, socket: {}, views: {} },
@@ -502,7 +502,7 @@ describe('Zustandseditor toolbar — multi-selection', () => {
         }
     });
 
-    it('keeps the mark on its Feldnummer while the search filters, and locks drag and Alt+↑/↓ (Ticket 05)', () => {
+    it('keeps the mark on its Feldnummer while the search filters, and locks drag and Alt+↑/↓', () => {
         const { container, patches } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, alias3: 'Warm' } });
         const search = container.querySelector<HTMLInputElement>('input[aria-label="t:state_editor_search"]')!;
         const list = container.querySelector<HTMLElement>('[role="listbox"]')!;
@@ -521,7 +521,7 @@ describe('Zustandseditor toolbar — multi-selection', () => {
         expect(patches).toHaveLength(0);
     });
 
-    it('hands the focus to the list after "clear row", the row action left under differing rows (Ticket 05)', async () => {
+    it('hands the focus to the list after "clear row", the row action left under differing rows', async () => {
         const { container, patches } = mount({ w1: { ...THREE_ROWS }, w2: { ...THREE_ROWS, alias3: 'Warm' } });
         selectRow(container, 2);
         tool(container, 'clear_row').focus();

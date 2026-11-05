@@ -7,7 +7,7 @@
  * List and toolbar are separate vis-2 custom fields (own React subtrees), so — like the row
  * selection (`stateRowSelection`) — they share through module state keyed by view + selected
  * widgets (`stateRowSelectionKey`, `keyedStore`):
- * - **Search** (Spec, search): typed in the toolbar, filters the list; while it is active,
+ * - **Search**: typed in the toolbar, filters the list; while it is active,
  *   reordering is locked in both.
  * - **Focus**: every row action hands the focus to the list. vis-2 deletes the selected widget
  *   on Delete while the focus is on `<body>` (vis-2 `Editor.tsx` `onKeyDown`) — e.g. after a
@@ -76,7 +76,7 @@ export const filterStateRows = <R extends { n: number; value: string; alias: str
 /**
  * The row before or after the selected one among the rows a search keeps — what ↑/↓ in the
  * list and ‹ › in the Gewählte Zeile row step to, so the selection never leaves the list
- * (Spec story 10).
+ * (ADR-0104 Nachtrag Code-Review).
  *
  * @param shown The rows the search keeps, in Feldnummer order.
  * @param selected The selected Feldnummer (it need not be among `shown`).

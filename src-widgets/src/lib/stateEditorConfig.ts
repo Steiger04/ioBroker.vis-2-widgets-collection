@@ -15,7 +15,7 @@ import { stateRowSchema } from './stateRows';
 import type { StateRowsConfig } from './stateRows';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-/** The parameters a widget passes to its Zustandseditor (Spec, parameters per widget). */
+/** The parameters a widget passes to its Zustandseditor (ADR-0104 §1). */
 export type StateEditorParams = {
     /** Data property of the OID the rows describe — `oid` (default), Light2 `colorLightSwitchOid`. */
     oidProperty?: string;

@@ -192,7 +192,7 @@ const FIXED_ROW_STATES: readonly string[] = ['true', 'false'];
  *   Light2's switch rows): always exactly `true` and `false`, as booleans; the alias from
  *   `common.states[true|false]` where the OID declares it, else TRUE/FALSE; in the order of
  *   `common.states` where it declares both, else `true` first. The other states of a
- *   non-boolean switch never become rows (Spec Further Notes, ADR-0104 Nachtrag Review).
+ *   non-boolean switch never become rows (ADR-0104 Nachtrag Review).
  * - Otherwise: the OID's `common.states` in their order.
  * - No states without an OID object.
  */

@@ -1,5 +1,5 @@
 /**
- * Zustandseditor list (T4, Ticket 05): search, keyboard, drag-and-drop and the height grip.
+ * Zustandseditor list (ADR-0104 Nachtrag Ticket 05): search, keyboard, drag-and-drop and the height grip.
  *
  * @module components/StateEditor/StateRowList.test
  * @remarks

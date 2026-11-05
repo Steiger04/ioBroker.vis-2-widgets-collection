@@ -1,5 +1,5 @@
 /**
- * Zustandseditor detail fields (T4, Ticket 03): the fields of the selected Zustandszeile as native
+ * Zustandseditor detail fields (ADR-0104 Nachtrag Ticket 03): the fields of the selected Zustandszeile as native
  * vis-2 attribute rows (layout A).
  *
  * @module components/StateEditor/StateDetailField.test

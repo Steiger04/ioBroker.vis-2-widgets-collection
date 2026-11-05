@@ -1,5 +1,5 @@
 /**
- * Zustandseditor (T4, Ticket 02): the values group's list, Gewählte Zeile row and shared row
+ * Zustandseditor (ADR-0104): the values group's list, Gewählte Zeile row and shared row
  * selection.
  *
  * @module components/StateEditor/StateEditor.test
@@ -22,7 +22,7 @@ vi.hoisted(() => {
 });
 
 // The per-state field list renders colour fields and dividers; the master fields under test
-// never render them (the detail fields come with Ticket 03).
+// never render them (StateDetailField.test covers the detail fields).
 vi.mock('../ContractColorField', () => ({ default: () => null }));
 vi.mock('../PlainColorField', () => ({ default: () => null }));
 vi.mock('../CollectionDivider', () => ({ default: () => null }));
@@ -240,7 +240,7 @@ describe('Zustandseditor selection — a row switch writes no project data', () 
     });
 
     it('‹ › page only through the rows an active search keeps, so the selection stays in the list', () => {
-        // "f" keeps Off (1) and Comfort (3), not Eco (2) — Spec story 10.
+        // "f" keeps Off (1) and Comfort (3), not Eco (2).
         setStateRowSearch(stateRowSelectionKey('v', ['w1']), 'f');
         const { container, onDataChange } = mount(THREE_ROWS);
         const previous = button(container, 't:state_editor_previous_row');

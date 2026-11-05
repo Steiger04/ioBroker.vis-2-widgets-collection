@@ -1,6 +1,6 @@
 /**
  * Parity test (T3): the 11 state widgets edit their Zustandszeilen in the values group with the
- * Zustandseditor — no indexed vis-2 group `values` is left (ADR-0104, Ticket 02).
+ * Zustandseditor — no indexed vis-2 group `values` is left (ADR-0104).
  *
  * @module lib/stateEditorFields.parity.test
  * @remarks
@@ -49,7 +49,7 @@ for (const name of ROSTER) {
     vi.doMock(`../${name}/${BODIES[name]}`, () => ({ default: () => null }));
 }
 
-/** The parameters each state widget passes to its Zustandseditor (Spec, parameters per widget). */
+/** The parameters each state widget passes to its Zustandseditor (ADR-0104 §1). */
 const STATE_WIDGETS: Record<string, Required<StateEditorParams>> = {
     ButtonGroupCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
     CheckboxCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
