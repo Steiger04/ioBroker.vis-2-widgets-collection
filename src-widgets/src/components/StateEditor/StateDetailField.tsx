@@ -1,0 +1,190 @@
+/**
+ * A detail field of the Zustandseditor: one per-state field of the selected Zustandszeile, as a
+ * native vis-2 attribute row (Bauform A, Ticket 03).
+ *
+ * @module components/StateEditor/StateDetailField
+ * @remarks
+ * Each per-state field definition (`commonFields({ perState: true })`, the single source) gets a
+ * custom-field hull in the „Werte" group (`lib/stateEditorFields`). vis-2 renders the hull's
+ * label in the native label cell; the hull renders the definition under the indexed name
+ * `name{n}` of the selected row through vis-2's `Editor` prop — so the field looks and behaves
+ * exactly like in the former group „Wert [n]", colour fields inherit through their own
+ * `fallbackFields` (Marker-Ebene included), and every change is written by vis-2 into all
+ * selected widgets. A row switch only changes the shared selection: no `onDataChange`, no vis-2
+ * recalculation.
+ *
+ * vis-2's `Editor` (fork `Attributes/Widget/WidgetField.tsx`, custom branch) is
+ * `(editorProps: { field, disabled?, error? }) => <WidgetField {...props} field disabled error />`
+ * — it renders any field type, reads `widget.data[field.name]` and writes through `applyValue`
+ * (all selected widgets, the field's own `onChange` included); `hidden` of the passed field is
+ * not evaluated there. It is a new function on every vis-2 render, so it is CALLED here, not
+ * mounted: mounted, its changing identity would remount the field (focus and typing state lost)
+ * after every edit. The call sits in a component of its own, keyed by the indexed name, so a row
+ * switch starts the field fresh (vis-2's field caches what was typed until its value changes).
+ *
+ * A per-state `hidden` rule that reads the Feldnummer (`enableIconColorMask`: neither URL icon nor
+ * colour) cannot hide a row any more — it would make the layout jump between rows — so it locks
+ * the field instead; rules on widget level hide the hull through vis-2 (no index there).
+ */
+import { Box } from '@mui/material';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import type React from 'react';
+import { createPortal } from 'react-dom';
+
+import type { RxWidgetInfoAttributesField, RxWidgetInfoCustomComponentProperties } from '@iobroker/types-vis-2';
+import { useLabelCell } from './useLabelCell';
+import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+
+/** What vis-2's `Editor` takes (fork `WidgetField.tsx`; `data`/`onChange` it declares are unused). */
+export type Vis2EditorProps = {
+    /** The field to render — any vis-2 field type, read from and written to `data[field.name]`. */
+    field: RxWidgetInfoAttributesField;
+    /** Renders the control disabled. */
+    disabled?: boolean;
+    /** Renders the control in its error state. */
+    error?: boolean;
+};
+
+/** vis-2's `Editor`: renders a field definition as the attribute panel does. */
+export type Vis2Editor = (props: Vis2EditorProps) => React.ReactNode;
+
+/**
+ * The `Editor` vis-2 hands a custom field — passed at runtime, missing in `@iobroker/types-vis-2`.
+ *
+ * @param props The custom-field props.
+ * @returns The Editor, or `undefined` in a host that does not pass one.
+ */
+export const vis2EditorOf = (props: RxWidgetInfoCustomComponentProperties): Vis2Editor | undefined =>
+    (props as RxWidgetInfoCustomComponentProperties & { Editor?: Vis2Editor }).Editor;
+
+/** Per-state predicate as `commonFields` declares it (`index` = Feldnummer). */
+type IndexedPredicate = (data: Record<string, unknown>, index?: number) => boolean;
+
+/**
+ * The per-state field definition under the indexed name of a row, as vis-2's indexed group
+ * cloned it (`visWidgetsCatalog.tsx` parseAttributes: `name{n}`, everything else carried over).
+ *
+ * @param definition The per-state field definition.
+ * @param n The Feldnummer.
+ * @returns The field of row `n` (without `hidden`, which the hull owns).
+ */
+export const stateRowField = (definition: RxWidgetInfoAttributesField, n: number): RxWidgetInfoAttributesField => {
+    const { hidden: _hidden, ...rest } = definition as RxWidgetInfoAttributesField & { hidden?: unknown };
+    return { ...rest, name: `${definition.name}${n}` } as RxWidgetInfoAttributesField;
+};
+
+/**
+ * Calls vis-2's Editor (see the module remarks: called, not mounted).
+ *
+ * @param props The Editor and what it renders.
+ * @param props.Editor vis-2's Editor of the current render.
+ * @returns The vis-2 field element.
+ */
+function EditorSlot({ Editor, ...editorProps }: Vis2EditorProps & { Editor: Vis2Editor }): React.ReactNode {
+    return Editor(editorProps);
+}
+
+/**
+ * The small preview of an image field in its label cell, as vis-2 draws it for `type: 'image'`
+ * (`renderFieldRow`, `smallImageDiv`).
+ *
+ * @param props The preview props.
+ * @param props.src The stored image path.
+ * @param props.context The vis-2 editor context (project path of `_PRJ_NAME/`).
+ * @returns The preview.
+ */
+function ImagePreview({
+    src,
+    context,
+}: {
+    src: string;
+    context: RxWidgetInfoCustomComponentProperties['context'];
+}): React.JSX.Element {
+    const url = src.startsWith('_PRJ_NAME/')
+        ? src.replace('_PRJ_NAME/', `../${context.adapterName}.${context.instance}/${context.projectName}/`)
+        : src;
+    return (
+        <div
+            data-state-detail-preview
+            style={{ width: 30, height: 30, display: 'inline-block', float: 'right' }}
+        >
+            <img
+                src={url}
+                alt=""
+                style={{ maxWidth: '100%', maxHeight: '100%' }}
+                onError={event => {
+                    event.currentTarget.style.display = 'none';
+                }}
+            />
+        </div>
+    );
+}
+
+/** Props of {@link StateDetailField}: the custom-field props plus the per-state definition. */
+export type StateDetailFieldProps = StateEditorFieldProps & {
+    /** The per-state field definition (base name, e.g. `iconColor`). */
+    definition: RxWidgetInfoAttributesField;
+};
+
+/**
+ * Renders one per-state field of the selected Zustandszeile.
+ *
+ * @param fieldProps See {@link StateDetailFieldProps}.
+ * @param fieldProps.definition The per-state field definition.
+ * @returns The value cell content of the hull.
+ */
+function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps): React.JSX.Element {
+    const { selected } = useStateEditor(fieldProps);
+    const { data, props } = fieldProps;
+    const Editor = vis2EditorOf(props);
+    const field = useMemo(() => (selected > 0 ? stateRowField(definition, selected) : null), [definition, selected]);
+    const rule = (definition as { hidden?: unknown }).hidden;
+    const locked = field !== null && typeof rule === 'function' && !!(rule as IndexedPredicate)(data, selected);
+    const anchor = useRef<HTMLDivElement>(null);
+    const labelCell = useLabelCell(anchor);
+    // A locked row looks like a disabled vis-2 row (`fieldTitleDisabled`: opacity 0.8); vis-2
+    // cannot grey the label itself — its `disabled` rule knows no selected row.
+    useLayoutEffect(() => {
+        if (!labelCell || !locked) {
+            return undefined;
+        }
+        labelCell.style.opacity = '0.8';
+        return () => {
+            labelCell.style.opacity = '';
+        };
+    }, [labelCell, locked]);
+    const image = field && (definition as { type?: string }).type === 'image' ? data[field.name as string] : undefined;
+
+    return (
+        <Box
+            ref={anchor}
+            data-state-detail={definition.name}
+            data-locked={locked || undefined}
+            sx={{ display: 'flex', alignItems: 'center', width: '100%', minWidth: 0 }}
+        >
+            {/* Ticket 06: the binding switch of `name{n}` goes here, at the start of the value cell. */}
+            <Box sx={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', width: '100%', minWidth: 0 }}>
+                {Editor && field ? (
+                    <EditorSlot
+                        key={field.name}
+                        Editor={Editor}
+                        field={field}
+                        disabled={locked}
+                    />
+                ) : null}
+            </Box>
+            {/* Ticket 07: the „unterschiedlich" mark of a multi-selection goes here. */}
+            {labelCell && typeof image === 'string' && image
+                ? createPortal(
+                      <ImagePreview
+                          src={image}
+                          context={props.context}
+                      />,
+                      labelCell,
+                  )
+                : null}
+        </Box>
+    );
+}
+
+export default StateDetailField;

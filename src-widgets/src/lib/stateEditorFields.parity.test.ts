@@ -64,7 +64,14 @@ const STATE_WIDGETS: Record<string, StateEditorSpec['params']> = {
 };
 
 type Predicate = (data: WidgetData) => boolean;
-type FieldLike = { name?: string; type?: string; label?: string; hidden?: unknown; stateEditor?: StateEditorSpec };
+type FieldLike = {
+    name?: string;
+    type?: string;
+    label?: string;
+    hidden?: unknown;
+    component?: unknown;
+    stateEditor?: StateEditorSpec;
+};
 type GroupLike = {
     name: string;
     label?: string;
@@ -113,27 +120,71 @@ describe('the „Werte" group replaces the indexed value group', () => {
         ).toEqual(['values_count']);
     });
 
-    it.each(Object.keys(STATE_WIDGETS))('%s: every Zustandseditor field stays when several widgets are selected', name => {
-        const group = valuesGroupOf(name) as GroupLike;
-        const spec = group.fields[0].stateEditor as StateEditorSpec;
-        const dividers = new Set<unknown>(spec.perStateFields.filter(field => !field.name));
+    it.each(Object.keys(STATE_WIDGETS))(
+        '%s: every Zustandseditor field stays when several widgets are selected',
+        name => {
+            const group = valuesGroupOf(name) as GroupLike;
+            const spec = group.fields[0].stateEditor as StateEditorSpec;
+            // The section dividers stay as they are (unnamed, like in „Wert [n]"); the group carries
+            // copies with the „no row" rule, recognised by their component.
+            const dividers = new Set<unknown>(
+                spec.perStateFields.filter(field => !field.name).map(field => (field as FieldLike).component),
+            );
 
-        // vis-2 counts `${group}.${field.name}` once per field of every selected widget
-        // (`visWidgetsCatalog.tsx` parseAttributes) and, with several widgets selected, keeps a
-        // field only when its count equals the number of widgets (`Attributes/Widget/index.tsx`
-        // recalculateFields) — two unnamed fields of one group share the name `undefined` and
-        // both vanish.
-        const counts = new Map<string, number>();
-        for (let widget = 0; widget < 2; widget++) {
-            group.fields.forEach(field => counts.set(String(field.name), (counts.get(String(field.name)) ?? 0) + 1));
-        }
-        const vanished = group.fields
-            .map((field, index) => ({ field, index }))
-            .filter(({ field }) => !dividers.has(field) && counts.get(String(field.name)) !== 2)
-            .map(({ field, index }) => `#${index} ${field.label ?? ''}`);
+            // vis-2 counts `${group}.${field.name}` once per field of every selected widget
+            // (`visWidgetsCatalog.tsx` parseAttributes) and, with several widgets selected, keeps a
+            // field only when its count equals the number of widgets (`Attributes/Widget/index.tsx`
+            // recalculateFields) — two unnamed fields of one group share the name `undefined` and
+            // both vanish.
+            const counts = new Map<string, number>();
+            for (let widget = 0; widget < 2; widget++) {
+                group.fields.forEach(field =>
+                    counts.set(String(field.name), (counts.get(String(field.name)) ?? 0) + 1),
+                );
+            }
+            const vanished = group.fields
+                .map((field, index) => ({ field, index }))
+                .filter(({ field }) => !dividers.has(field.component) && counts.get(String(field.name)) !== 2)
+                .map(({ field, index }) => `#${index} ${field.label ?? ''}`);
 
-        expect(vanished).toEqual([]);
-    });
+            expect(vanished).toEqual([]);
+        },
+    );
+
+    it.each(Object.keys(STATE_WIDGETS))(
+        '%s: the detail follows the Kopfzeile — one row per per-state field, label and tooltip kept',
+        name => {
+            const group = valuesGroupOf(name) as GroupLike;
+            const spec = group.fields[0].stateEditor as StateEditorSpec;
+            const detail = group.fields.slice(3);
+            const expected = spec.perStateFields.map(field => {
+                const definition = field as FieldLike & { tooltip?: string };
+                return definition.name
+                    ? {
+                          name: `stateEditor:${definition.name}`,
+                          type: 'custom',
+                          label: definition.label,
+                          tooltip: definition.tooltip,
+                          noBinding: true,
+                      }
+                    : { name: undefined, label: '', component: definition.component };
+            });
+
+            expect(
+                detail.map(field =>
+                    field.name
+                        ? {
+                              name: field.name,
+                              type: field.type,
+                              label: field.label,
+                              tooltip: (field as { tooltip?: string }).tooltip,
+                              noBinding: (field as { noBinding?: boolean }).noBinding,
+                          }
+                        : { name: field.name, label: field.label, component: field.component },
+                ),
+            ).toEqual(expected);
+        },
+    );
 
     it.each(Object.entries(STATE_WIDGETS))('%s: passes its parameters', (name, params) => {
         expect(valuesGroupOf(name)?.fields[0].stateEditor?.params).toEqual(params);

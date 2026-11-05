@@ -10,8 +10,10 @@
  *    one of its named fields has a value (`hasValues`); unticking the group deletes it, like
  *    any vis-2 group (0 Zustandszeilen).
  * 2. the list of Zustandszeilen (own row, empty label);
- * 3. the Kopfzeile „Gewählte Zeile" — the detail fields of the selected row follow it
- *    (Ticket 03).
+ * 3. the Kopfzeile „Gewählte Zeile";
+ * 4. the detail of the selected row: per per-state field (`stateEditorSpec().perStateFields`, the
+ *    single source) a hull rendering `name{n}` of the selected row as a native row
+ *    (`StateDetailField`), the section dividers as they are — all hidden without a row.
  * Each widget only swaps its group entry and passes its parameters ({@link StateEditorParams}).
  * Every field but `values_count` and the per-state dividers carries a `stateEditor:` name no
  * data key has: with several widgets selected, vis-2 keeps a field only when
@@ -22,6 +24,7 @@
  * The `values_count` field mirrors the resolved spec as `stateEditor` (introspected by the
  * parity tests; vis-2 ignores unknown keys).
  */
+import StateDetailField from '../components/StateEditor/StateDetailField';
 import StateEditorRowsField from '../components/StateEditor/StateEditorRowsField';
 import StateRowHeader from '../components/StateEditor/StateRowHeader';
 import StateRowList from '../components/StateEditor/StateRowList';
@@ -30,6 +33,7 @@ import { stateEditorSpec } from './stateEditorConfig';
 import { stateRowCount } from './stateRows';
 
 import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
+import type { HiddenPredicate } from './fieldFactories';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
 export type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
@@ -42,6 +46,66 @@ export type StateEditorGroupOptions = {
 
 /** The `values_count` field with its introspectable spec mirror. */
 export type StateEditorRowsFieldDefinition = RxWidgetInfoAttributesField & { stateEditor: StateEditorSpec };
+
+/**
+ * Adds the „no row" rule to a per-state field's own widget-level `hidden` rule.
+ *
+ * @param noRows Hides while there is no row to show.
+ * @param hidden The definition's own rule (vis-2 calls it without an index here).
+ * @returns The combined predicate.
+ * @throws When the rule is a vis-2 string condition — it cannot be combined without `eval`;
+ *   `commonFields` declares predicates.
+ */
+const unlessRows = (noRows: (data: WidgetData) => boolean, hidden: unknown): HiddenPredicate => {
+    if (hidden === undefined) {
+        return noRows;
+    }
+    if (typeof hidden !== 'function') {
+        throw new Error(`stateEditorGroup: a per-state hidden rule must be a predicate, got ${JSON.stringify(hidden)}`);
+    }
+    const rule = hidden as HiddenPredicate;
+    return (data, index) => noRows(data) || !!rule(data, index);
+};
+
+/**
+ * The detail of the selected row: a hull per per-state field, the dividers as they are.
+ *
+ * @param spec The widget's Zustandseditor spec.
+ * @param noRows Hides the detail while there is no row.
+ * @returns The detail fields, in the order of the per-state definitions.
+ */
+const stateDetailFields = (
+    spec: StateEditorSpec,
+    noRows: (data: WidgetData) => boolean,
+): RxWidgetInfoAttributesField[] =>
+    spec.perStateFields.map(definition => {
+        const hidden = (definition as { hidden?: unknown }).hidden;
+        if (!definition.name) {
+            // A section divider: unchanged, only gone without a row.
+            return { ...definition, hidden: unlessRows(noRows, hidden) } as RxWidgetInfoAttributesField;
+        }
+        // A rule reading the Feldnummer locks the field instead (StateDetailField); only rules on
+        // widget level hide the row — vis-2 passes no index outside an indexed group, so for
+        // `enableIconColorMask` the rule yields „visible".
+        const tooltip = (definition as { tooltip?: string }).tooltip;
+        return {
+            name: `stateEditor:${definition.name}`,
+            type: 'custom',
+            label: (definition as { label?: string }).label ?? '',
+            ...(tooltip === undefined ? {} : { tooltip }),
+            noBinding: true,
+            hidden: unlessRows(noRows, hidden),
+            component: guardWidgetData((_field, data, onDataChange, props) => (
+                <StateDetailField
+                    spec={spec}
+                    definition={definition}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            )),
+        } as RxWidgetInfoAttributesField;
+    });
 
 /**
  * Builds the „Werte" group of a state widget.
@@ -94,7 +158,7 @@ export const stateEditorGroup = (
             )),
         },
         {
-            name: 'stateEditor:header',
+            name: 'stateEditor:selectedRow',
             type: 'custom',
             label: 'state_editor_selected_row',
             noBinding: true,
@@ -108,6 +172,7 @@ export const stateEditorGroup = (
                 />
             )),
         },
+        ...stateDetailFields(spec, noRows),
     ];
 
     return {
