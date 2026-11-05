@@ -190,3 +190,23 @@ describe('Light2 switch-OID pick — the channel states it detects', () => {
         ]);
     });
 });
+
+describe('Light2 switch-OID pick — emptying the switch', () => {
+    it('drops the switch object and keeps the rows when the switch OID is emptied', async () => {
+        const picked = await pickSwitch({ colorLightButton: true, values_count: 0 });
+
+        const emptied = await pickSwitch(picked, socketWith(), '');
+
+        expect(emptied.colorLightSwitchOidObject).toBeUndefined();
+        expect(rowsOf(emptied)).toEqual(rowsOf(picked));
+    });
+
+    it('drops the switch object when the picked OID does not resolve', async () => {
+        const picked = await pickSwitch({ colorLightButton: true, values_count: 0 });
+
+        const unresolved = await pickSwitch(picked, socketWith(), 'hue.0.gone.on');
+
+        expect(unresolved.colorLightSwitchOidObject).toBeUndefined();
+        expect(rowsOf(unresolved)).toEqual(rowsOf(picked));
+    });
+});

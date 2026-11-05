@@ -127,6 +127,7 @@ const isUnset = (value: unknown): boolean => !value || value === 'nothing_select
  * from the state with the matching ioBroker role. A pick never replaces the picked switch nor a
  * channel OID the user already chose (ADR-0104 §6, Nachtrag Fix Light2-Kanalerkennung): picking
  * another lamp leaves set channel fields alone, the user empties them to have them detected again.
+ * Emptying the switch (or picking one that does not resolve) drops its object and keeps its rows.
  */
 const loadStatesAsync = async (
     field: RxWidgetInfoAttributesField,
@@ -135,11 +136,15 @@ const loadStatesAsync = async (
     socket: Connection,
 ): Promise<void> => {
     const fieldName = field.name;
-    if (!fieldName || !data[fieldName]) {
+    if (!fieldName) {
         return;
     }
-    const object = await socket.getObject(data[fieldName] as string);
+    const object = data[fieldName] ? await socket.getObject(data[fieldName] as string) : undefined;
     if (!object?.common) {
+        // Emptied or unresolvable: the switch behaves like every auxiliary ID (ADR-0096) — the
+        // shared OID handler drops its object; the rows stay, the Werte group asks for an OID.
+        await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
+        changeData(data);
         return;
     }
 
