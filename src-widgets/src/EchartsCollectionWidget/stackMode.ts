@@ -131,7 +131,10 @@ export interface StackPlan {
      * a re-selected bar must land in its stack); `undefined` = no mode-resolved stack.
      */
     stackOf: readonly (string | undefined)[];
-    /** Per series: renders SHARES (ADR-0084 decision 4) — every percent surface formats it as percent. */
+    /**
+     * Per series: renders SHARES (ADR-0084 decision 4) — a VISIBLE member of a 100 % stack; every
+     * percent surface formats it as percent.
+     */
     percent: readonly boolean[];
     /** The emitted axes that carry shares (a 0..1 scale labelled as percent). */
     percentAxes: ReadonlySet<number>;
@@ -149,11 +152,13 @@ export interface StackPlan {
 export const resolveStackPlan = ({ series, names, mode, axes }: StackPlanInput): StackPlan => {
     const bar = series.map(s => s.type === 'bar');
     const stackOf = series.map((s, i) => (bar[i] ? effectiveStackName(s.stack, mode, axes.emittedOf[i]) : undefined));
-    const percent = stackOf.map(name => mode === 'percent' && name !== undefined);
+    // Percent membership = VISIBLE stack membership, like the shares' denominator: a deselected
+    // bar keeps its absolute values (it left the stack), so every surface — legend value, axis
+    // scale — formats it with its own series format, never as a share.
+    const percent = stackOf.map((name, i) => mode === 'percent' && name !== undefined && axes.active[i]);
     const percentAxes = new Set<number>();
     percent.forEach((p, i) => {
-        // Only an axis the bar truly binds: a deselected bar whose axis rests is parked on
-        // emitted 0 and must not turn that axis into a share scale.
+        // Only an axis the bar truly binds (an active series always does — defensive).
         const bound = axes.bindsEmitted[i];
         if (p && bound !== undefined) {
             percentAxes.add(bound);

@@ -325,10 +325,10 @@ describe.each([false, true])('value chain final stage — legend values %s', leg
             // percent text renders a null share as 0 % — pinned as today's behaviour
             'A: 0 % (-)<br/>B: 100 % (2)',
         ]);
-        // D (deselected) keeps its absolute data, but the legend formats it with the percent facts
-        // of a percent-stacked bar — `D [500 %]` is today's behaviour, pinned as such.
+        // D (deselected) keeps its absolute data and left the stack — the legend formats it with
+        // its own series format (ADR-0103 K2 fix; pinned as `D [500 %]` before it).
         expect(legendTexts(option, ['A', 'B', 'C', 'D'])).toEqual(
-            legend({ A: 'A [75 %]', B: 'B [100 %]', C: 'C [4]', D: 'D [500 %]' }),
+            legend({ A: 'A [75 %]', B: 'B [100 %]', C: 'C [4]', D: 'D [5]' }),
         );
     });
 

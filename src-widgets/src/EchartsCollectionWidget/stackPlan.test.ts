@@ -110,6 +110,18 @@ describe('resolveStackPlan', () => {
         expect(plan.percent).toEqual([true, false, true, false]);
         expect([...plan.percentAxes]).toEqual([0, 1]);
     });
+
+    it('percent mode: a deselected bar renders no share and lends its axis no share scale', () => {
+        const plan = resolveStackPlan({
+            series: bars(undefined, 'A'),
+            names: names(2),
+            mode: 'percent',
+            axes: axesOf(2, { active: [true, false], emittedOf: [0, 1] }),
+        });
+        expect(plan.stackOf).toEqual(['total#0', 'A#1']);
+        expect(plan.percent).toEqual([true, false]);
+        expect([...plan.percentAxes]).toEqual([0]);
+    });
 });
 
 const plain = (name: string, data: (number | null)[]): ChartSeries => ({ name, data });

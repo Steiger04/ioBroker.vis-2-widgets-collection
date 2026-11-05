@@ -134,3 +134,29 @@ describe('stack plan at the pipeline core — effective series names', () => {
         expect(row).toBe('Alpha: 25 % (2)<br/>B: 75 % (6)');
     });
 });
+
+describe('stack plan at the pipeline core — percent membership follows the selection', () => {
+    it('a deselected bar of a 100 % stack formats its absolute value with the series format', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({ series: ABC, selection: { A: false }, legendShowValues: true }),
+        );
+        const formatter = (option.legend as { formatter: (n: string) => string }).formatter;
+        expect(['A', 'B', 'C'].map(formatter)).toEqual(['A [5]', 'B [20 %]', 'C [80 %]']);
+    });
+
+    it('a deselected percent bar does not turn the axis of a visible line into a share scale', () => {
+        const { option } = assemblePipelineResult(
+            percentJson({
+                series: [
+                    { name: 'A', data: [[1, 2]] },
+                    { name: 'L', data: [[1, 7]] },
+                ],
+                // same unit on both: the deselected bar still binds the emitted axis (its facts count)
+                overlay: { A: { unit: 'W' }, L: { type: 'line', unit: 'W' } },
+                selection: { A: false },
+            }),
+        );
+        const [axis] = option.yAxis as { axisLabel?: { formatter?: (v: number) => string } }[];
+        expect(axis.axisLabel?.formatter?.(7)).toBe('7 W');
+    });
+});
