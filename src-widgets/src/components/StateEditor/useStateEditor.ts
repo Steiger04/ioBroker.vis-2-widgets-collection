@@ -71,6 +71,28 @@ export const stateRowSummaries = (data: WidgetData, count: number): StateRowSumm
         };
     });
 
+/** The project map of the custom-field context, as far as the Zustandseditor reads it. */
+type StoredViews = Record<string, { widgets?: Record<string, { data?: WidgetData } | undefined> } | undefined>;
+
+/**
+ * The stored data of every selected widget.
+ *
+ * @param fieldProps The field props.
+ * @param fieldProps.data The data vis-2 hands the field.
+ * @param fieldProps.props The vis-2 editor context.
+ * @returns One data object per selected widget, read from the project
+ *   (`context.views[selectedView].widgets[id].data`); the field data where the project does not
+ *   hold them. Under multi-selection vis-2 hands a custom field its `commonValues`, where every
+ *   key that differs by `!==` is `null` — an object such as `oidObject` or `bindings` always
+ *   does (vis-2 `Attributes/Widget/index.tsx`, `commonValues`) — so rows and actions must read
+ *   the stored widgets.
+ */
+export const selectedWidgetDatas = ({ data, props }: Pick<StateEditorFieldProps, 'data' | 'props'>): WidgetData[] => {
+    const widgets = (props.context?.views as unknown as StoredViews | undefined)?.[props.selectedView]?.widgets;
+    const stored = (props.selectedWidgets ?? []).map(id => widgets?.[id]?.data);
+    return stored.length > 0 && stored.every(Boolean) ? (stored as WidgetData[]) : [data];
+};
+
 /** The state every Zustandseditor field works from. */
 export type StateEditorState = {
     /** The OID object of the widget's OID property is known (the pick has run). */
@@ -88,15 +110,17 @@ export type StateEditorState = {
  *
  * @param fieldProps The props of the field (see {@link StateEditorFieldProps}).
  * @param fieldProps.spec The widget's Zustandseditor spec.
- * @param fieldProps.data The widget data.
+ * @param fieldProps.data The data vis-2 hands the field (see {@link selectedWidgetDatas}).
  * @param fieldProps.props The vis-2 editor context.
- * @returns Rows, selected row and the selection function.
+ * @returns Rows, selected row and the selection function — of the first selected widget.
  */
 export const useStateEditor = ({
     spec,
-    data,
+    data: fieldData,
     props,
 }: Omit<StateEditorFieldProps, 'onDataChange'>): StateEditorState => {
+    // The first selected widget stands for all: structural actions run only on identical rows.
+    const data = selectedWidgetDatas({ data: fieldData, props })[0];
     const count = stateRowCount(data, spec.config);
     const rows = useMemo(() => stateRowSummaries(data, count), [data, count]);
     const key = stateRowSelectionKey(props.selectedView, (props.selectedWidgets ?? []) as string[]);
