@@ -283,6 +283,10 @@ const buildCartesianSeriesEntry = (
                       // echarts' auto contrast, which strokes a halo derived from the
                       // (transparent!) canvas background — a white border on dark hosts.
                       color: m.labelColor ?? color,
+                      // echarts' scatter default is `inside`: the label centres on the dot and
+                      // the dot paints over it. A scatter label sits above its point like a
+                      // line label (whose echarts default is already `top`).
+                      ...(type === 'scatter' ? { position: 'top' } : {}),
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   };
     }

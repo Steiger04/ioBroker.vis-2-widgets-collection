@@ -2299,6 +2299,21 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
             expect(alignOf(layout, 1)).toBeUndefined();
         });
 
+        it('a scatter label sits above its point — the symbol never covers the text', () => {
+            // echarts' scatter default is `position: 'inside'`: the label centres ON the dot
+            // and the dot paints over it. Like a line label it sits on top of the point.
+            const label = entryOf({ label: true, type: 'scatter' }, [
+                [1000, 21.5],
+                [2000, 22.4],
+            ]).label as { show?: boolean; position?: string };
+            expect(label.show).toBe(true);
+            expect(label.position).toBe('top');
+            // a line label keeps echarts' own default (top) — no key emitted
+            expect(
+                (entryOf({ label: true, type: 'line' }, [[1000, 21.5]]).label as { position?: string }).position,
+            ).toBeUndefined();
+        });
+
         it('a raw labelLayout wins (escape hatch)', () => {
             expect(entryOf({ label: true, raw: '{"labelLayout": {"hideOverlap": true}}' }).labelLayout).toEqual({
                 hideOverlap: true,
