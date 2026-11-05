@@ -68,8 +68,9 @@ export const percentLabelFormatter =
  */
 export const sumAnchorLabelFormatter =
     (sums: readonly (number | null)[], facts: SeriesValueFacts | undefined, chart: ChartValueFormat) =>
-    (params: { dataIndex: number }): string => {
-        const sum = sums[params.dataIndex];
+    (params: LabelParams): string => {
+        // echarts always passes the datum's index; without one there is no category to label.
+        const sum = params.dataIndex === undefined ? null : sums[params.dataIndex];
         return sum === null ? '' : formatSeriesValue(sum, facts, chart);
     };
 
