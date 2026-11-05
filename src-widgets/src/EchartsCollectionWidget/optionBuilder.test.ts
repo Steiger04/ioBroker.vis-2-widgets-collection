@@ -2265,8 +2265,8 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
             tooltipUnits: 'W',
         });
         const entry = (option.series as Record<string, unknown>[])[0];
-        const fmt = (entry.label as { formatter: (v: unknown) => string }).formatter;
-        expect(fmt(1.56)).toBe('1.6 kW'); // the series unit + decimals win over the chart cluster
+        const fmt = (entry.label as { formatter: (params: { value: unknown }) => string }).formatter;
+        expect(fmt({ value: 1.56 })).toBe('1.6 kW'); // the series unit + decimals win over the chart cluster
         // The chart-only path stays exactly as Build D shipped it (characterisation).
         const chartLevel = build([{ name: 'W', label: true }], {
             cartesianType: 'bar',
@@ -2275,17 +2275,19 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
         });
         expect(
             (
-                (chartLevel.series as Record<string, unknown>[])[0].label as { formatter: (v: unknown) => string }
-            ).formatter(1.56),
+                (chartLevel.series as Record<string, unknown>[])[0].label as {
+                    formatter: (params: { value: unknown }) => string;
+                }
+            ).formatter({ value: 1.56 }),
         ).toBe('1.6 W');
     });
 
     it('a LINE label gets the formatter as well when facts exist; without facts it stays show + colour', () => {
         const withFacts = build([{ name: 'T', label: true, unit: '°C' }]);
         const lineLabel = (withFacts.series as Record<string, unknown>[])[0].label as {
-            formatter?: (v: unknown) => string;
+            formatter?: (params: { value: unknown }) => string;
         };
-        expect(lineLabel.formatter!(21.5)).toBe('21.5 °C');
+        expect(lineLabel.formatter!({ value: [1, 21.5] })).toBe('21.5 °C');
 
         expect((build([{ name: 'T', label: true }]).series as Record<string, unknown>[])[0].label).toEqual({
             show: true,
@@ -2417,11 +2419,11 @@ describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', 
         const labeled = build([{ name: 'M', label: true, states: STATES }], { cartesianType: 'bar' });
         const fmt = (
             (labeled.series as Record<string, unknown>[])[0].label as {
-                formatter: (v: unknown) => string;
+                formatter: (params: { value: unknown }) => string;
             }
         ).formatter;
-        expect(fmt(2)).toBe('AN');
-        expect(fmt(0.5)).toBe(''); // exact mode on a label
+        expect(fmt({ value: 2 })).toBe('AN');
+        expect(fmt({ value: 0.5 })).toBe(''); // exact mode on a label
 
         const authored = build([{ name: 'A', states: STATES }], { yAxes: [{ format: '{value}' }] });
         expect((authored.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter).toBe('{value}');
@@ -3557,10 +3559,11 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
             { stackMode: 'percent' },
         );
         const label = (option.series as Record<string, unknown>[])[0].label as Record<string, unknown> as {
-            formatter: (v: unknown) => string;
+            formatter: (params: { value: unknown }) => string;
         };
-        expect(label.formatter(0.25)).toBe('25 %');
-        expect(label.formatter(0.3334)).toBe('33.3 %');
+        // echarts calls a label formatter with its params object — `value` is the datum.
+        expect(label.formatter({ value: 0.25 })).toBe('25 %');
+        expect(label.formatter({ value: 0.3334 })).toBe('33.3 %');
     });
 
     it('percent tooltip rows show share AND absolute; the legend value renders the share', () => {

@@ -36,12 +36,8 @@ export interface LabelParams {
     dataIndex?: number;
 }
 
-/**
- * The value slot of a label callback argument. echarts passes a params object; a bare datum
- * (scalar or point) is accepted too — the slot rule reads both the same way.
- */
-const labelValueOf = (arg: unknown): number | null =>
-    datumValueSlot(arg !== null && typeof arg === 'object' && !Array.isArray(arg) ? (arg as LabelParams).value : arg);
+/** The value slot of the datum echarts hands a label `formatter` in its params object. */
+const labelValueOf = (params: LabelParams): number | null => datumValueSlot(params.value);
 
 /**
  * The series value label (ADR-0057/0058): the datum's value through this series' facts, the
