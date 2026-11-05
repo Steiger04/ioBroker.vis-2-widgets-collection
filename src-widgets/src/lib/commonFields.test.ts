@@ -62,11 +62,7 @@ const STATE_COLORS: [string, string][] = [
  * deep-cloned per index and every field renamed `name + index` (`visWidgetsCatalog.tsx`), the
  * rest of the definition — the contract included — carried over as declared.
  */
-const stateFieldOf = (
-    name: string,
-    index: number,
-    settings: { markerLayer?: boolean } = {},
-): ExtendedField => {
+const stateFieldOf = (name: string, index: number, settings: { markerLayer?: boolean } = {}): ExtendedField => {
     const field = commonFields({ groupName: '', allFields: false, perState: true, ...settings }).find(
         entry => (entry as { name?: string }).name === name,
     ) as ExtendedField;

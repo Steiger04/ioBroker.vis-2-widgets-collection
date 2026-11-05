@@ -135,7 +135,12 @@ describe('chartCanvasColor (ADR-0007 dark-mode)', () => {
 describe('tooltip floor of the theme base (ADR-0027 addendum 2026-11-04)', () => {
     const darkTheme = {
         ...lightTheme,
-        palette: { ...lightTheme.palette, mode: 'dark', text: { primary: '#dtp', secondary: '#dts' }, background: { paper: '#dpa' } },
+        palette: {
+            ...lightTheme.palette,
+            mode: 'dark',
+            text: { primary: '#dtp', secondary: '#dts' },
+            background: { paper: '#dpa' },
+        },
     } as unknown as Theme;
 
     it('paints the card surface with the legend-text colour while following the host mode', () => {
