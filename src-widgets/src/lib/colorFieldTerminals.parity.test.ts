@@ -28,9 +28,10 @@
  * `background{n}`, `frameBackground{n}` — the per-state field list the Zustandseditor of the
  * „Werte" group edits each row with, ADR-0104) declare their base field as fallback field, so a
  * state row without a value shows the base colour the widget paints for it (ADR-0004,
- * per-state variants; slider marks: Marker-Ebene first). The list is read from the spec the
- * group's `values_count` field mirrors (`stateEditor.perStateFields`); its colour fields count
- * as contract colour fields for the first invariant too.
+ * per-state variants; slider marks: Marker-Ebene first). The list is read from the group's
+ * detail fields: each renders its per-state definition (`definition` of the element its
+ * component returns); its colour fields count as contract colour fields for the first invariant
+ * too.
  *
  * The roster is `widgetsRegistry.widgets`, introspected through each widget's
  * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does, and like it runs isolated
@@ -106,12 +107,20 @@ const isPickerField = (field: FieldLike): boolean => {
     return element?.type === PickerSentinel;
 };
 
-/** The per-state field list of the widget's Zustandseditor (mirrored on its `values_count` field). */
+/**
+ * The per-state field list of the widget's Zustandseditor: the definition each detail field
+ * (`stateEditor:<name>`) renders, read from the element its component returns.
+ */
 const perStateFieldsOf = (info: RxWidgetInfo): (FieldLike & { fallbackFields?: string[] })[] =>
     (info.visAttrs ?? []).flatMap(group =>
-        ((group.fields ?? []) as (FieldLike & { stateEditor?: { perStateFields: FieldLike[] } })[]).flatMap(field =>
-            field.name === 'values_count' ? (field.stateEditor?.perStateFields ?? []) : [],
-        ),
+        ((group.fields ?? []) as FieldLike[]).flatMap(field => {
+            const definition =
+                field.name?.startsWith('stateEditor:') && typeof field.component === 'function'
+                    ? (field.component(field, {}, () => undefined, {}) as { props?: { definition?: FieldLike } } | null)
+                          ?.props?.definition
+                    : undefined;
+            return definition ? [definition] : [];
+        }),
     );
 
 const colorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): ColorField[] => {

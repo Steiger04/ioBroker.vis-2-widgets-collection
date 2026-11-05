@@ -21,8 +21,6 @@
  * parseAttributes, `Attributes/Widget/index.tsx` recalculateFields), so two unnamed fields of
  * one group (both `undefined`) would vanish. The names are never written by the Zustandseditor;
  * vis-2's group checkbox sets them to `null` like every field of a group it ticks.
- * The `values_count` field mirrors the resolved spec as `stateEditor` (introspected by the
- * parity tests; vis-2 ignores unknown keys).
  */
 import StateDetailField from '../components/StateEditor/StateDetailField';
 import StateEditorRowsField from '../components/StateEditor/StateEditorRowsField';
@@ -36,16 +34,11 @@ import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
-export type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
-
 /** Group-level options of the „Werte" group. */
 export type StateEditorGroupOptions = {
     /** When the whole group is hidden (Light2: outside the button mode). */
     hidden?: RxWidgetInfoGroup['hidden'];
 };
-
-/** The `values_count` field with its introspectable spec mirror. */
-export type StateEditorRowsFieldDefinition = RxWidgetInfoAttributesField & { stateEditor: StateEditorSpec };
 
 /**
  * Adds the „no row" rule to a per-state field's own widget-level `hidden` rule.
@@ -123,25 +116,22 @@ export const stateEditorGroup = (
     const noOidObject = (data: WidgetData): boolean => !data[`${spec.config.oidProperty}Object`];
     const noRows = (data: WidgetData): boolean => noOidObject(data) || stateRowCount(data, spec.config) === 0;
 
-    const rowsField: StateEditorRowsFieldDefinition = {
-        name: 'values_count',
-        type: 'custom',
-        label: 'state_editor_rows',
-        noBinding: true,
-        default: 0,
-        stateEditor: spec,
-        component: guardWidgetData((_field, data, onDataChange, props) => (
-            <StateEditorRowsField
-                spec={spec}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        )),
-    } as StateEditorRowsFieldDefinition;
-
     const fields: RxWidgetInfoAttributesField[] = [
-        rowsField,
+        {
+            name: 'values_count',
+            type: 'custom',
+            label: 'state_editor_rows',
+            noBinding: true,
+            default: 0,
+            component: guardWidgetData((_field, data, onDataChange, props) => (
+                <StateEditorRowsField
+                    spec={spec}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            )),
+        },
         {
             name: 'stateEditor:list',
             type: 'custom',

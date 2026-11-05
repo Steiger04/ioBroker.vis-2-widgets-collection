@@ -8,7 +8,8 @@
  * mocks: the vis-2 runtime base, the widget bodies and the heavy custom editors contribute no
  * field) and runs isolated for its own module registry (`DOM_TS_TESTS`). The roster is the
  * registry plus the Template widget, which carries a `values` group but is not shipped. The
- * parameters per widget are read from the spec the `values_count` field mirrors.
+ * parameters per widget are read where vis-2 meets them: the element the `values_count` field's
+ * component renders carries the spec, compared with `stateEditorSpec(params)`.
  */
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -16,7 +17,7 @@ import type { RxWidgetInfo, WidgetData } from '@iobroker/types-vis-2';
 
 import { widgets } from '../widgetsRegistry';
 
-import type { StateEditorSpec } from './stateEditorConfig';
+import { stateEditorSpec, type StateEditorParams, type StateEditorSpec } from './stateEditorConfig';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -49,7 +50,7 @@ for (const name of ROSTER) {
 }
 
 /** The parameters each state widget passes to its Zustandseditor (Spec „Parameter je Widget"). */
-const STATE_WIDGETS: Record<string, StateEditorSpec['params']> = {
+const STATE_WIDGETS: Record<string, Required<StateEditorParams>> = {
     ButtonGroupCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
     CheckboxCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
     GaugeCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
@@ -70,7 +71,6 @@ type FieldLike = {
     label?: string;
     hidden?: unknown;
     component?: unknown;
-    stateEditor?: StateEditorSpec;
 };
 type GroupLike = {
     name: string;
@@ -92,6 +92,19 @@ beforeAll(async () => {
 
 const groupsOf = (name: string): GroupLike[] => (infos.get(name)?.visAttrs ?? []) as unknown as GroupLike[];
 const valuesGroupOf = (name: string): GroupLike | undefined => groupsOf(name).find(group => group.name === 'values');
+
+/** The spec a widget's Zustandseditor renders with — read from the element its `values_count` field renders. */
+const specOf = (name: string): StateEditorSpec => {
+    const [rows] = (valuesGroupOf(name) as GroupLike).fields;
+    const render = rows.component as (field: unknown, data: WidgetData, onDataChange: () => void, props: unknown) => {
+        props: { spec: StateEditorSpec };
+    };
+    return render(rows, {}, () => undefined, {}).props.spec;
+};
+
+/** The fallback fields of the per-state fields — where the Marker-Ebene shows. */
+const fallbacksOf = (spec: StateEditorSpec): unknown[] =>
+    spec.perStateFields.map(field => [field.name, (field as { fallbackFields?: string[] }).fallbackFields]);
 
 describe('the „Werte" group replaces the indexed value group', () => {
     it('no widget declares an indexed group over values_count any more', () => {
@@ -124,7 +137,7 @@ describe('the „Werte" group replaces the indexed value group', () => {
         '%s: every Zustandseditor field stays when several widgets are selected',
         name => {
             const group = valuesGroupOf(name) as GroupLike;
-            const spec = group.fields[0].stateEditor as StateEditorSpec;
+            const spec = specOf(name);
             // The section dividers stay as they are (unnamed, like in „Wert [n]"); the group carries
             // copies with the „no row" rule, recognised by their component.
             const dividers = new Set<unknown>(
@@ -155,7 +168,7 @@ describe('the „Werte" group replaces the indexed value group', () => {
         '%s: the detail follows the Kopfzeile — one row per per-state field, label and tooltip kept',
         name => {
             const group = valuesGroupOf(name) as GroupLike;
-            const spec = group.fields[0].stateEditor as StateEditorSpec;
+            const spec = specOf(name);
             const detail = group.fields.slice(3);
             const expected = spec.perStateFields.map(field => {
                 const definition = field as FieldLike & { tooltip?: string };
@@ -187,7 +200,15 @@ describe('the „Werte" group replaces the indexed value group', () => {
     );
 
     it.each(Object.entries(STATE_WIDGETS))('%s: passes its parameters', (name, params) => {
-        expect(valuesGroupOf(name)?.fields[0].stateEditor?.params).toEqual(params);
+        const spec = specOf(name);
+        const expected = stateEditorSpec(params);
+
+        expect(spec.config).toEqual(expected.config);
+        expect(fallbacksOf(spec)).toEqual(fallbacksOf(expected));
+    });
+
+    it('the Marker-Ebene changes the fallback fields, so the parameter check can tell it apart', () => {
+        expect(fallbacksOf(stateEditorSpec({ markerLayer: true }))).not.toEqual(fallbacksOf(stateEditorSpec()));
     });
 
     it('the panel offers neither ignoreCommonStates nor a second values_count field', () => {

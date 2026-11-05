@@ -34,8 +34,8 @@ import type {
     WidgetData,
 } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
-import { stateEditorGroup, type StateEditorParams } from '../../lib/stateEditorFields';
-import { stateEditorSpec } from '../../lib/stateEditorConfig';
+import { stateEditorGroup } from '../../lib/stateEditorFields';
+import { stateEditorSpec, type StateEditorParams } from '../../lib/stateEditorConfig';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import StateEditorToolbar from './StateEditorToolbar';
 import { resetStateRowSelection, selectStateRow, stateRowSelectionKey } from './stateRowSelection';

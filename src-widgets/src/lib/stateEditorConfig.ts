@@ -27,8 +27,6 @@ export type StateEditorParams = {
 
 /** A widget's Zustandseditor, resolved from its {@link StateEditorParams}. */
 export type StateEditorSpec = {
-    /** The parameters with their defaults applied. */
-    params: Required<StateEditorParams>;
     /** The per-state field definitions the rows are edited with (dividers included). */
     perStateFields: readonly RxWidgetInfoAttributesField[];
     /** Row schema and OID property for the Zustandszeilen-Operationen. */
@@ -39,7 +37,7 @@ export type StateEditorSpec = {
  * Resolves a widget's Zustandseditor parameters.
  *
  * @param params The widget's parameters; omitted ones take their default.
- * @returns Parameters, per-state field list and Zustandszeilen config.
+ * @returns Per-state field list and Zustandszeilen config.
  */
 export const stateEditorSpec = (params: StateEditorParams = {}): StateEditorSpec => {
     const resolved: Required<StateEditorParams> = {
@@ -55,7 +53,6 @@ export const stateEditorSpec = (params: StateEditorParams = {}): StateEditorSpec
     });
 
     return {
-        params: resolved,
         perStateFields,
         config: {
             schema: stateRowSchema(perStateFields),

@@ -39,7 +39,8 @@ import type {
     WidgetData,
 } from '@iobroker/types-vis-2';
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
-import { stateEditorGroup, type StateEditorParams } from '../../lib/stateEditorFields';
+import type { StateEditorParams } from '../../lib/stateEditorConfig';
+import { stateEditorGroup } from '../../lib/stateEditorFields';
 import { resetStateRowSelection } from './stateRowSelection';
 
 const hostTheme = Object.assign(createTheme(), { name: 'light' });
