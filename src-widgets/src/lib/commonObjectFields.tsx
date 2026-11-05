@@ -13,6 +13,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidRole } from './oidRole';
+import { stateEditorSpec } from './stateEditorConfig';
 import { convertValueByType } from './stateRows';
 import { writeTargetDeniesWrite } from './writeTarget';
 
@@ -38,7 +39,21 @@ const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): 
     return null;
 };
 
+/** The Zustandszeilen of the main OID (`oid`): the row keys every state widget carries. */
+const MAIN_STATE_ROWS = stateEditorSpec().config;
+
 const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
+    const role = oidRole(oid);
+    // Every row the widget may still carry — counted before the OID object (and with it its
+    // common.states) is removed: the authored rows or the states, whichever reach further.
+    const rowCount =
+        role === 'main'
+            ? Math.max(
+                  typeof data.values_count === 'number' ? data.values_count : 0,
+                  Object.keys(data.oidObject?.commonStates || {}).length,
+              )
+            : 0;
+
     // Clear only fields that start with the given OID and end with 'Object'
     Object.keys(data).forEach(key => {
         if (key.startsWith(oid) && key.endsWith('Object')) {
@@ -46,57 +61,17 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
     });
 
-    const role = oidRole(oid);
-
     if (role === 'control') {
         // The control ID is gone: the write target falls back to the main OID (ADR-0090).
         data.onlyDisplay = writeTargetDeniesWrite(data);
     }
 
-    const keys = [
-        'iconSmall',
-        'icon',
-        'iconSize',
-        'iconColor',
-        'iconHover',
-        'iconXOffset',
-        'iconYOffset',
-        'noHeader',
-        'header',
-        'headerSize',
-        'alias',
-        'value',
-        'valueSize',
-        'noFooter',
-        'footer',
-        'footerSize',
-        'noCard',
-        'squaredCorner',
-        'textColor',
-        'outlined',
-        'outlinedFrame',
-        'basePadding',
-        'baseElevation',
-        'square',
-        'ellipse',
-        'circle',
-        'background',
-        'backgroundColor',
-        'frameBackground',
-        'frameBackgroundColor',
-    ];
-
     if (role === 'main') {
         delete data.icon;
         delete data.write;
 
-        // Use the larger of values_count and commonStates length to ensure all fields are cleared
-        const storedCount = typeof data.values_count === 'number' ? data.values_count : 0;
-        const commonStatesCount = Object.keys(data.oidObject?.commonStates || {}).length;
-        const count = Math.max(storedCount, commonStatesCount);
-
-        for (let i = 1; i <= count; i++) {
-            keys.forEach(key => {
+        for (let i = 1; i <= rowCount; i++) {
+            MAIN_STATE_ROWS.schema.keys.forEach(key => {
                 delete data[`${key}${i}`];
             });
         }

@@ -11,9 +11,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
-// The module's field list renders CollectionDivider, which pulls Generic (extends
-// window.visRxWidget, absent outside vis-2). The handler under test never renders it.
+// The module's field lists (its own, and the per-state list its row keys come from) render
+// CollectionDivider and colour fields, which pull Generic (extends window.visRxWidget, absent
+// outside vis-2). The handler under test never renders them.
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 
 import { ANY_VALUE_TYPES } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
@@ -125,6 +128,25 @@ describe('oidChangeHandlerAsync — main OID without a control ID (unchanged)', 
 
     it('suggests an interactive control for a writable main OID', async () => {
         expect((await pick('oid', { oid: COMMAND })).onlyDisplay).toBe(false);
+    });
+});
+
+describe('oidChangeHandlerAsync — main OID cleared', () => {
+    it('removes every key of every Zustandszeile, the icon colour mask included', async () => {
+        const picked = await pick('oid', { oid: STATUS });
+        const styled = { ...picked, enableIconColorMask2: true, iconColor2: 'red', header1: 'Off', iconHover3: 'x' };
+
+        const cleared = await pick('oid', { ...styled, oid: '' });
+
+        expect(Object.keys(cleared).filter(key => /\d$/.test(key))).toEqual([]);
+    });
+
+    it('removes the icon colour mask of a row with the row (authored rows, ignoreCommonStates off)', async () => {
+        const rows = { oid: STATUS, ignoreCommonStates: false, values_count: 1, value1: 0, enableIconColorMask1: true };
+
+        const cleared = await pick('oid', { ...rows, oid: '' });
+
+        expect(cleared).not.toHaveProperty('enableIconColorMask1');
     });
 });
 
