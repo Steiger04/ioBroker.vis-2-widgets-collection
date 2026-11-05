@@ -226,6 +226,43 @@ describe('Zustandseditor list — search locks reordering', () => {
     });
 });
 
+describe('Zustandseditor list — a new row the search would hide', () => {
+    it('add empties the search, so the new row is shown and selected', () => {
+        const { container } = mount();
+        click(option(container, 2));
+        type(searchInput(container), 'eco');
+
+        click(tool(container, 'add_row'));
+
+        expect(searchInput(container).value).toBe('');
+        expect(listRows(container)).toHaveLength(5);
+        expect(selectedRow(container)).toBe('5');
+    });
+
+    it('clone keeps the search while the copy matches it', () => {
+        const { container } = mount();
+        click(option(container, 2));
+        type(searchInput(container), 'eco');
+
+        click(tool(container, 'clone_row'));
+
+        expect(searchInput(container).value).toBe('eco');
+        expect(listRows(container)).toEqual(['2 1 Eco', '3 1 Eco']);
+        expect(selectedRow(container)).toBe('3');
+    });
+
+    it('clone empties the search when only the Nr of the source matched', () => {
+        const { container } = mount();
+        click(option(container, 4));
+        type(searchInput(container), '4');
+
+        click(tool(container, 'clone_row'));
+
+        expect(searchInput(container).value).toBe('');
+        expect(selectedRow(container)).toBe('5');
+    });
+});
+
 describe('Zustandseditor list — keyboard', () => {
     it('↑/↓ change the selection without writing anything', () => {
         const { container, patches } = mount();

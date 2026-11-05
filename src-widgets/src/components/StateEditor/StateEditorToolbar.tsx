@@ -39,10 +39,11 @@ import { useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
+import { mergeStateRowPatch } from '../../lib/stateRows';
+import { filterStateRows, focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
 import { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
-import { stateEditorSelectionKey } from './useStateEditor';
-import { useStateRowActions } from './useStateRowActions';
+import { selectedWidgetDatas, stateEditorSelectionKey, stateRowSummaries } from './useStateEditor';
+import { stateRowSelectionAfter, useStateRowActions } from './useStateRowActions';
 
 import type { StateRowOperation } from '../../lib/stateRows';
 import type { StateEditorFieldProps } from './useStateEditor';
@@ -139,8 +140,17 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
     // Each action hands the focus to the list: a focused button that turns disabled (down on
     // the last row, delete of the last row) would drop it on <body>, where vis-2's Delete key
     // deletes the widget.
+    // Add and clone select the new row: when the search would hide it, the search is emptied,
+    // so the list shows (and scrolls to) the row the detail now edits.
     const run = (op: StateRowOperation): void => {
-        actions.run(op);
+        const patch = actions.run(op);
+        if (patch && (op.kind === 'add' || op.kind === 'clone') && isStateRowSearchActive(search)) {
+            const n = stateRowSelectionAfter(op, selected, patch);
+            const next = mergeStateRowPatch(selectedWidgetDatas(fieldProps)[0], patch);
+            if (filterStateRows(stateRowSummaries(next, n).slice(n - 1), search).length === 0) {
+                setSearch('');
+            }
+        }
         focusStateRowList(selectionKey);
     };
     // A confirmed action hands the focus to the list once the dialog is gone — the dialog

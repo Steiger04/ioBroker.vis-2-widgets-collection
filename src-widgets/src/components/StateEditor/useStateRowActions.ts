@@ -41,9 +41,10 @@ export type StateRowActions = StateEditorState & {
     /**
      * Writes the action's patch and moves the selection.
      *
-     * @returns `false` when the action is not offered or refused — then nothing is written.
+     * @returns The patch written, or `null` when the action is not offered or refused — then
+     *   nothing is written.
      */
-    run: (op: StateRowOperation) => boolean;
+    run: (op: StateRowOperation) => StateRowPatch | null;
 };
 
 /**
@@ -98,17 +99,17 @@ export const useStateRowActions = (
     );
 
     const run = useCallback(
-        (op: StateRowOperation): boolean => {
+        (op: StateRowOperation): StateRowPatch | null => {
             if (!can(op.kind)) {
-                return false;
+                return null;
             }
             const patch = applyStateRowOperation(selectedWidgetDatas({ data, props })[0], op, spec.config);
             if (!patch) {
-                return false;
+                return null;
             }
             onDataChange(patch);
             select(stateRowSelectionAfter(op, selected, patch));
-            return true;
+            return patch;
         },
         [can, data, props, spec, onDataChange, select, selected],
     );
