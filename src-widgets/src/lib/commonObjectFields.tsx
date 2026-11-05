@@ -13,6 +13,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidRole } from './oidRole';
+import { convertValueByType } from './stateRows';
 import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
@@ -101,30 +102,6 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
 
         data.values_count = 0;
-    }
-};
-
-const convertValueByType = (value: string, type: AllowedType): boolean | number | string => {
-    switch (type) {
-        case 'boolean':
-            return value === 'true';
-        case 'number':
-            return Number(value);
-        case 'string':
-            return String(value);
-        case 'mixed':
-            if (value === 'true') {
-                return true;
-            }
-            if (value === 'false') {
-                return false;
-            }
-            if (!isNaN(Number(value)) && value !== '') {
-                return Number(value);
-            }
-            return String(value);
-        default:
-            return String(value);
     }
 };
 
