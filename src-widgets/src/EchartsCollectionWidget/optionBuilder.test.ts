@@ -2183,6 +2183,28 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
         expect((bare.series as Record<string, unknown>[])[0].label).toEqual({ show: true, color: '#1' }); // palette slot 0
     });
 
+    it('a line label shows its symbols — echarts paints line labels only on symbols, so „Label an" stays visible', () => {
+        const lineEntry = (meta: EchartsSeriesMeta): Record<string, unknown> =>
+            (
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data: [[1, 21.5]] }],
+                    meta: [meta],
+                    p: P, // cartesianType stays 'line'
+                }).series as Record<string, unknown>[]
+            )[0];
+        // Label on, symbols unset → the symbols carry the labels.
+        expect(lineEntry({ label: true, unit: '°C' }).showSymbol).toBe(true);
+        // An explicit symbol switch-off cannot hide the labels' only carrier: label on wins.
+        expect(lineEntry({ label: true, symbol: false }).showSymbol).toBe(true);
+        expect(lineEntry({ label: true, symbol: true }).showSymbol).toBe(true);
+        // Without a label the symbol switch alone decides (unset = off), unchanged.
+        expect(lineEntry({}).showSymbol).toBe(false);
+        expect(lineEntry({ symbol: false }).showSymbol).toBe(false);
+        expect(lineEntry({ symbol: true }).showSymbol).toBe(true);
+        expect(lineEntry({ label: false }).showSymbol).toBe(false);
+    });
+
     it('label off wins over authored knobs — no label key at all', () => {
         expect(s0([{ labelPosition: 'inside', labelFontSize: 20 }])).not.toHaveProperty('label');
     });

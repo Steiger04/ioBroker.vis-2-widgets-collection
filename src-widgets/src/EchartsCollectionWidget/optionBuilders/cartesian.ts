@@ -247,7 +247,11 @@ const buildCartesianSeriesEntry = (
     if (type === 'line') {
         // D2: smooth defaults to false (matches ECharts 'Basic Line', not the smoothed example).
         entry.smooth = m?.smooth ?? false;
-        entry.showSymbol = m?.symbol ?? false;
+        // echarts paints line labels ONLY on the symbols (LineView drops the SymbolDraw when
+        // `showSymbol` is false; the label is the symbol path's text content) — a switched-on
+        // label therefore shows the symbols, even over an explicit symbol switch-off, or the
+        // label switch would be a dead knob (ADR-0103 Abnahme-Funde).
+        entry.showSymbol = m?.label ? true : (m?.symbol ?? false);
         if (m?.symbolSize !== undefined) {
             entry.symbolSize = m.symbolSize;
         }
