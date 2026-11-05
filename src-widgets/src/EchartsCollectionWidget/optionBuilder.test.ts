@@ -2274,14 +2274,29 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
             expect(alignOf(layout, 5)).toBe('left');
         });
 
-        it('only line series with a label get the edge layout', () => {
+        it('only line and scatter series with a label get the edge layout', () => {
             // No label → no key; a single point has no edge pair → no key.
             expect(entryOf({})).not.toHaveProperty('labelLayout');
             expect(entryOf({ label: false })).not.toHaveProperty('labelLayout');
             expect(entryOf({ label: true }, [[1000, 21.5]])).not.toHaveProperty('labelLayout');
-            // Bar labels keep their own position cluster, scatter stays untouched.
+            expect(entryOf({ type: 'scatter' })).not.toHaveProperty('labelLayout');
+            // Bar labels keep their own position cluster.
             expect(entryOf({ label: true, type: 'bar' })).not.toHaveProperty('labelLayout');
-            expect(entryOf({ label: true, type: 'scatter' })).not.toHaveProperty('labelLayout');
+        });
+
+        it('scatter labels follow the same edge rule — unsorted points by their extreme X', () => {
+            // A scatter payload need not be X-sorted (serien-förmiges JSON passes it through):
+            // X 1000 (index 2) is leftmost, X 6000 (index 0) rightmost.
+            const layout = entryOf({ label: true, type: 'scatter' }, [
+                [6000, 23.3],
+                [3000, 22.4],
+                [1000, 21.5],
+                [4000, null],
+            ]).labelLayout;
+            expect(layout).toBeTypeOf('function');
+            expect(alignOf(layout, 2)).toBe('left');
+            expect(alignOf(layout, 0)).toBe('right');
+            expect(alignOf(layout, 1)).toBeUndefined();
         });
 
         it('a raw labelLayout wins (escape hatch)', () => {
