@@ -873,8 +873,6 @@
     "icon_small_min": "图标小最小",
     "icon_x_offset": "图标 X 偏移",
     "icon_y_offset": "图标 Y 偏移",
-    "ignore_common_states": "忽略 common.states",
-    "ignore_common_states_tooltip": "当 common.states 超过 20 个条目时建议启用。大量状态可能导致 vis-2 编辑器冻结。",
     "input": "输入",
     "input_collection_widget": "输入（字符串、数字、混合）",
     "input_padding": "输入框内边距",
@@ -1275,8 +1273,6 @@
     "value": "价值",
     "value_label_display": "标签",
     "value_size": "价值大小",
-    "values": "价值",
-    "values_count": "价值观很重要",
     "variant_filled": "填充",
     "variant_outlined": "轮廓",
     "variant_standard": "标准",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "不透明度百分比（0–100）",
     "track_color_false": "轨道颜色（关闭）",
     "track_color_true": "轨道颜色（开启）",
-    "echarts_series_symbol_label_hint": "折线标签显示在符号上——标签开启时，符号保持可见。"
+    "echarts_series_symbol_label_hint": "折线标签显示在符号上——标签开启时，符号保持可见。",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

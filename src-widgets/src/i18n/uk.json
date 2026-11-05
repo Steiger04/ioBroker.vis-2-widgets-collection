@@ -873,8 +873,6 @@
     "icon_small_min": "Значок маленький мінімум",
     "icon_x_offset": "Зсув значка X",
     "icon_y_offset": "Зсув значка Y",
-    "ignore_common_states": "Ігнорувати common.states",
-    "ignore_common_states_tooltip": "Рекомендовано, коли common.states містить більше 20 записів. Велика кількість станів може призвести до зависання редактора vis-2.",
     "input": "Введення",
     "input_collection_widget": "Введення (рядок, число, мішаний)",
     "input_padding": "Внутрішній відступ вводу",
@@ -1275,8 +1273,6 @@
     "value": "Значення",
     "value_label_display": "Мітка",
     "value_size": "Розмір значення",
-    "values": "Значення",
-    "values_count": "Значення враховуються",
     "variant_filled": "Заповнений",
     "variant_outlined": "З контуром",
     "variant_standard": "Стандартний",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Непрозорість у відсотках (0–100)",
     "track_color_false": "Колір доріжки (вимкнено)",
     "track_color_true": "Колір доріжки (увімкнено)",
-    "echarts_series_symbol_label_hint": "Підписи лінії прив’язані до символів — поки підпис увімкнено, символи залишаються видимими."
+    "echarts_series_symbol_label_hint": "Підписи лінії прив’язані до символів — поки підпис увімкнено, символи залишаються видимими.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

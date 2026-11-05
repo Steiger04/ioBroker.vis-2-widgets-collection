@@ -1,0 +1,162 @@
+/**
+ * Parity test (T3): the 11 state widgets edit their Zustandszeilen in the „Werte" group with the
+ * Zustandseditor — no indexed vis-2 group `values` is left (ADR-0104, Ticket 02).
+ *
+ * @module lib/stateEditorFields.parity.test
+ * @remarks
+ * Introspects each widget's `getWidgetInfo()` like `colorFieldTerminals.parity.test.ts` (same
+ * mocks: the vis-2 runtime base, the widget bodies and the heavy custom editors contribute no
+ * field) and runs isolated for its own module registry (`DOM_TS_TESTS`). The roster is the
+ * registry plus the Template widget, which carries a `values` group but is not shipped. The
+ * parameters per widget are read from the spec the `values_count` field mirrors.
+ */
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+import type { RxWidgetInfo, WidgetData } from '@iobroker/types-vis-2';
+
+import { widgets } from '../widgetsRegistry';
+
+import type { StateEditorSpec } from './stateEditorConfig';
+
+vi.mock('../Generic', () => ({ default: class {} }));
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
+vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+vi.mock('../JsonTableCollectionWidget/JsonTableColumnEditor', () => ({ default: () => null }));
+vi.mock('../EchartsCollectionWidget/EchartsConfigEditor', () => ({ default: () => null }));
+
+/** Every widget module the test loads, with the render body it imports (mocked). */
+const BODIES: Record<string, string> = {
+    StateCollectionWidget: 'StateCollection',
+    SliderCollectionWidget: 'SliderCollection',
+    InputCollectionWidget: 'InputCollection',
+    ButtonGroupCollectionWidget: 'ButtonGroupCollection',
+    SwitchCollectionWidget: 'SwitchCollection',
+    CheckboxCollectionWidget: 'CheckboxCollection',
+    DialogCollectionWidget: 'DialogCollection',
+    SelectCollectionWidget: 'SelectCollection',
+    RadioGroupCollectionWidget: 'RadioGroupCollection',
+    GaugeCollectionWidget: 'GaugeCollection',
+    Light2CollectionWidget: 'Light2Collection',
+    JsonTableCollectionWidget: 'JsonTableCollection',
+    EchartsCollectionWidget: 'EchartsCollection',
+    ThemeConfigWizard: 'ThemeWizardButton',
+    TemplateCollectionWidget: 'TemplateCollection',
+};
+const ROSTER = [...widgets, 'TemplateCollectionWidget'];
+for (const name of ROSTER) {
+    vi.doMock(`../${name}/${BODIES[name]}`, () => ({ default: () => null }));
+}
+
+/** The parameters each state widget passes to its Zustandseditor (Spec „Parameter je Widget"). */
+const STATE_WIDGETS: Record<string, StateEditorSpec['params']> = {
+    ButtonGroupCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    CheckboxCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
+    GaugeCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    InputCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    Light2CollectionWidget: { oidProperty: 'colorLightSwitchOid', markerLayer: false, fixedRows: true },
+    RadioGroupCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    SelectCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    SliderCollectionWidget: { oidProperty: 'oid', markerLayer: true, fixedRows: false },
+    StateCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: false },
+    SwitchCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
+    TemplateCollectionWidget: { oidProperty: 'oid', markerLayer: false, fixedRows: true },
+};
+
+type Predicate = (data: WidgetData) => boolean;
+type FieldLike = { name?: string; type?: string; label?: string; hidden?: unknown; stateEditor?: StateEditorSpec };
+type GroupLike = {
+    name: string;
+    label?: string;
+    indexFrom?: unknown;
+    indexTo?: unknown;
+    hidden?: unknown;
+    fields: FieldLike[];
+};
+
+const infos = new Map<string, RxWidgetInfo>();
+
+beforeAll(async () => {
+    for (const name of ROSTER) {
+        const mod = (await import(`../${name}/${name}.tsx`)) as { default: { getWidgetInfo: () => RxWidgetInfo } };
+        infos.set(name, mod.default.getWidgetInfo());
+    }
+}, 60_000);
+
+const groupsOf = (name: string): GroupLike[] => (infos.get(name)?.visAttrs ?? []) as unknown as GroupLike[];
+const valuesGroupOf = (name: string): GroupLike | undefined => groupsOf(name).find(group => group.name === 'values');
+
+describe('the „Werte" group replaces the indexed value group', () => {
+    it('no widget declares an indexed group over values_count any more', () => {
+        const indexed = ROSTER.flatMap(name =>
+            groupsOf(name)
+                .filter(group => group.indexTo === 'values_count' || group.indexFrom === 'values_count')
+                .map(group => `${name}.${group.name}`),
+        );
+        expect(indexed).toEqual([]);
+    });
+
+    it('exactly the 11 state widgets have it', () => {
+        expect(ROSTER.filter(name => valuesGroupOf(name)).sort()).toEqual(Object.keys(STATE_WIDGETS).sort());
+    });
+
+    it.each(Object.keys(STATE_WIDGETS))('%s: its first field is the Zustandseditor named values_count', name => {
+        const group = valuesGroupOf(name) as GroupLike;
+        const [rows] = group.fields;
+
+        expect(group.label).toBe('state_editor_group');
+        expect(rows).toMatchObject({ name: 'values_count', type: 'custom', label: 'state_editor_rows' });
+        // The only named field of the group: vis-2's hasValues and group checkbox hang on it.
+        expect(group.fields.filter(field => field.name).map(field => field.name)).toEqual(['values_count']);
+    });
+
+    it.each(Object.entries(STATE_WIDGETS))('%s: passes its parameters', (name, params) => {
+        expect(valuesGroupOf(name)?.fields[0].stateEditor?.params).toEqual(params);
+    });
+
+    it('the panel offers neither ignoreCommonStates nor a second values_count field', () => {
+        const offending = ROSTER.flatMap(name =>
+            groupsOf(name).flatMap(group =>
+                group.fields
+                    .filter(
+                        field =>
+                            field.name === 'ignoreCommonStates' ||
+                            (field.name === 'values_count' && group.name !== 'values'),
+                    )
+                    .map(field => `${name}.${group.name}.${field.name}`),
+            ),
+        );
+        expect(offending).toEqual([]);
+    });
+});
+
+describe('the parameters at work', () => {
+    it('Light2 shows the group only in the button mode („Schalter (UI)")', () => {
+        const hidden = valuesGroupOf('Light2CollectionWidget')?.hidden as Predicate;
+
+        expect(hidden({ colorLightButton: false })).toBe(true);
+        expect(hidden({})).toBe(true);
+        expect(hidden({ colorLightButton: true })).toBe(false);
+        expect(
+            Object.keys(STATE_WIDGETS).filter(
+                name => name !== 'Light2CollectionWidget' && valuesGroupOf(name)?.hidden !== undefined,
+            ),
+        ).toEqual([]);
+    });
+
+    it("the list waits for the OID object of the widget's OID property", () => {
+        const listHidden = (name: string): Predicate => valuesGroupOf(name)?.fields[1].hidden as Predicate;
+
+        expect(listHidden('StateCollectionWidget')({})).toBe(true);
+        expect(listHidden('StateCollectionWidget')({ oidObject: { type: 'number' } })).toBe(false);
+        expect(listHidden('Light2CollectionWidget')({ oidObject: { type: 'boolean' } })).toBe(true);
+        expect(listHidden('Light2CollectionWidget')({ colorLightSwitchOidObject: { type: 'boolean' } })).toBe(false);
+    });
+
+    it('the Kopfzeile waits for a row', () => {
+        const headerHidden = valuesGroupOf('StateCollectionWidget')?.fields[2].hidden as Predicate;
+
+        expect(headerHidden({ oidObject: { type: 'number' }, ignoreCommonStates: false, values_count: 0 })).toBe(true);
+        expect(headerHidden({ oidObject: { type: 'number' }, ignoreCommonStates: false, values_count: 1 })).toBe(false);
+    });
+});

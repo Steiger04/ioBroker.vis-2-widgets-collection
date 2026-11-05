@@ -151,13 +151,11 @@ export interface CommonObjectFieldsRxData {
     values_count: number;
 
     /**
-     * When true, hides value groups in the editor but still uses common.states
-     * internally for widget rendering.
+     * Legacy marker (ADR-0104 §5): no longer an editor field. A widget saved with it on
+     * (`values_count` 0, rows filled) shows its OID's common.states rows (Zustandsmenge);
+     * the Zustandseditor and the OID pick always write `false` together with `values_count`.
      *
-     * @remarks
-     * Recommended when common.states has more than 20 entries to prevent
-     * the vis-2 editor from freezing.
-     * @default true
+     * @default true (absent)
      */
     ignoreCommonStates: boolean;
 

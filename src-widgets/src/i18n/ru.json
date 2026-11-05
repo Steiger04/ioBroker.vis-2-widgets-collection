@@ -873,8 +873,6 @@
     "icon_small_min": "Значок маленький минимум",
     "icon_x_offset": "Смещение значка X",
     "icon_y_offset": "Смещение значка Y",
-    "ignore_common_states": "Игнорировать common.states",
-    "ignore_common_states_tooltip": "Рекомендуется, когда common.states содержит более 20 записей. Большое количество состояний может привести к зависанию редактора vis-2.",
     "input": "Ввод",
     "input_collection_widget": "Ввод (строка, число, смешанный)",
     "input_padding": "Внутренний отступ ввода",
@@ -1275,8 +1273,6 @@
     "value": "Ценить",
     "value_label_display": "Этикетка",
     "value_size": "Размер значения",
-    "values": "Ценить",
-    "values_count": "Количество значений",
     "variant_filled": "Заполненный",
     "variant_outlined": "С контуром",
     "variant_standard": "Стандартный",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Непрозрачность в процентах (0–100)",
     "track_color_false": "Цвет дорожки (выкл.)",
     "track_color_true": "Цвет дорожки (вкл.)",
-    "echarts_series_symbol_label_hint": "Подписи линии привязаны к символам — пока подпись включена, символы остаются видимыми."
+    "echarts_series_symbol_label_hint": "Подписи линии привязаны к символам — пока подпись включена, символы остаются видимыми.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

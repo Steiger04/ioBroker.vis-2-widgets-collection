@@ -873,8 +873,6 @@
     "icon_small_min": "Ikona małe minimum",
     "icon_x_offset": "Przesunięcie ikony X",
     "icon_y_offset": "Przesunięcie ikony Y",
-    "ignore_common_states": "Ignoruj common.states",
-    "ignore_common_states_tooltip": "Zalecane, gdy common.states ma więcej niż 20 wpisów. Duża liczba stanów może spowodować zawieszenie edytora vis-2.",
     "input": "Wejście",
     "input_collection_widget": "Wejście (ciąg znaków, liczba, mieszany)",
     "input_padding": "Odstęp wewnętrzny pola wprowadzania",
@@ -1275,8 +1273,6 @@
     "value": "Wartość",
     "value_label_display": "Etykieta",
     "value_size": "Rozmiar wartości",
-    "values": "Wartość",
-    "values_count": "Wartości się liczą",
     "variant_filled": "Wypełnione",
     "variant_outlined": "Obramowane",
     "variant_standard": "Standardowe",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Krycie w procentach (0–100)",
     "track_color_false": "Kolor ścieżki (wyłączona)",
     "track_color_true": "Kolor ścieżki (włączona)",
-    "echarts_series_symbol_label_hint": "Etykiety linii są umieszczone na symbolach – dopóki etykieta jest włączona, symbole pozostają widoczne."
+    "echarts_series_symbol_label_hint": "Etykiety linii są umieszczone na symbolach – dopóki etykieta jest włączona, symbole pozostają widoczne.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

@@ -25,9 +25,12 @@
  * (the ECharts editor) are not attribute fields either.
  *
  * Second invariant, same scan: the per-state colour fields (`iconColor{n}`, `textColor{n}`,
- * `background{n}`, `frameBackground{n}` — the `values` group vis-2 clones per index) declare
- * their base field as fallback field, so a state row without a value shows the base colour the
- * widget paints for it (ADR-0004, per-state variants; slider marks: Marker-Ebene first).
+ * `background{n}`, `frameBackground{n}` — the per-state field list the Zustandseditor of the
+ * „Werte" group edits each row with, ADR-0104) declare their base field as fallback field, so a
+ * state row without a value shows the base colour the widget paints for it (ADR-0004,
+ * per-state variants; slider marks: Marker-Ebene first). The list is read from the spec the
+ * group's `values_count` field mirrors (`stateEditor.perStateFields`); its colour fields count
+ * as contract colour fields for the first invariant too.
  *
  * The roster is `widgetsRegistry.widgets`, introspected through each widget's
  * `getWidgetInfo()` like `allowedOidTypes.parity.test.ts` does, and like it runs isolated
@@ -103,11 +106,20 @@ const isPickerField = (field: FieldLike): boolean => {
     return element?.type === PickerSentinel;
 };
 
+/** The per-state field list of the widget's Zustandseditor (mirrored on its `values_count` field). */
+const perStateFieldsOf = (info: RxWidgetInfo): (FieldLike & { fallbackFields?: string[] })[] =>
+    (info.visAttrs ?? []).flatMap(group =>
+        ((group.fields ?? []) as (FieldLike & { stateEditor?: { perStateFields: FieldLike[] } })[]).flatMap(field =>
+            field.name === 'values_count' ? (field.stateEditor?.perStateFields ?? []) : [],
+        ),
+    );
+
 const colorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): ColorField[] => {
     const byKey = new Map<string, ColorField>();
     // A field list can appear in more than one group (e.g. common + per-state); one entry per name.
-    for (const group of info.visAttrs ?? []) {
-        for (const field of (group.fields ?? []) as FieldLike[]) {
+    const fieldLists = [...(info.visAttrs ?? []).map(group => group.fields ?? []), perStateFieldsOf(info)];
+    for (const fields of fieldLists) {
+        for (const field of fields as FieldLike[]) {
             if (isPickerField(field)) {
                 const key = `${widget}.${field.name}`;
                 byKey.set(key, { key, widget, terminal: field.terminal });
@@ -117,22 +129,18 @@ const colorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): ColorField[] => 
     return [...byKey.values()];
 };
 
-/** A colour field of a per-state (`values`, indexed) group, with its declared fallback fields. */
+/** A per-state colour field of the Zustandseditor, with its declared fallback fields. */
 interface StateColorField {
     widget: WidgetName;
     name: string;
     fallbackFields: string[] | undefined;
 }
 
-/** The colour fields of the indexed groups vis-2 clones per state (`indexFrom` / `indexTo`). */
+/** The colour fields of the per-state field list the Zustandseditor edits each row with. */
 const stateColorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): StateColorField[] =>
-    (info.visAttrs ?? [])
-        .filter(group => (group as { indexFrom?: unknown }).indexFrom !== undefined)
-        .flatMap(group =>
-            ((group.fields ?? []) as (FieldLike & { fallbackFields?: string[] })[])
-                .filter(isPickerField)
-                .map(field => ({ widget, name: field.name ?? '', fallbackFields: field.fallbackFields })),
-        );
+    perStateFieldsOf(info)
+        .filter(isPickerField)
+        .map(field => ({ widget, name: field.name ?? '', fallbackFields: field.fallbackFields }));
 
 let scanned: ColorField[] = [];
 let stateScanned: StateColorField[] = [];

@@ -9,6 +9,7 @@ import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import inputFields from '../lib/inputFields';
@@ -43,13 +44,7 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
                         ...stateFields({ onlyStates: false }),
                     ] as RxWidgetInfoAttributesField[],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup(),
             ],
             visDefaultStyle: {
                 width: '100%',

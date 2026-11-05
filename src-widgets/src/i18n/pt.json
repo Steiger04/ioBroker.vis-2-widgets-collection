@@ -873,8 +873,6 @@
     "icon_small_min": "Ícone pequeno mínimo",
     "icon_x_offset": "Deslocamento do ícone X",
     "icon_y_offset": "Deslocamento Y do ícone",
-    "ignore_common_states": "Ignorar common.states",
-    "ignore_common_states_tooltip": "Recomendado quando common.states tem mais de 20 entradas. Um grande número de estados pode fazer com que o editor vis-2 congele.",
     "input": "Entrada",
     "input_collection_widget": "Entrada (string, número, misto)",
     "input_padding": "Preenchimento do input",
@@ -1275,8 +1273,6 @@
     "value": "Valor",
     "value_label_display": "Rótulo",
     "value_size": "Tamanho do valor",
-    "values": "Valor",
-    "values_count": "Contagem de valores",
     "variant_filled": "Preenchido",
     "variant_outlined": "Contornado",
     "variant_standard": "Padrão",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Opacidade em percentagem (0–100)",
     "track_color_false": "Cor da trilha (falso)",
     "track_color_true": "Cor da trilha (verdadeiro)",
-    "echarts_series_symbol_label_hint": "Os rótulos da linha ficam sobre os símbolos; enquanto o rótulo estiver ativado, os símbolos permanecem visíveis."
+    "echarts_series_symbol_label_hint": "Os rótulos da linha ficam sobre os símbolos; enquanto o rótulo estiver ativado, os símbolos permanecem visíveis.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

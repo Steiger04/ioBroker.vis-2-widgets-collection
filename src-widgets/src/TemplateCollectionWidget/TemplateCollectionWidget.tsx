@@ -8,6 +8,7 @@ import React from 'react';
 import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import TemplateCollection from './TemplateCollection';
 
@@ -37,13 +38,7 @@ class TemplateCollectionWidget extends Generic<WidgetRegistry['tplTemplateCollec
                     label: 'group_dialog',
                     fields: [...commonObjectFields(['boolean'])],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup({ fixedRows: true }),
             ],
             visDefaultStyle: {
                 width: '100%',

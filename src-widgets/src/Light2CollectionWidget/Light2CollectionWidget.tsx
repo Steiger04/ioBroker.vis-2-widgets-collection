@@ -8,6 +8,7 @@ import React from 'react';
 import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import delayFields from '../lib/delayFields';
 import light2Fields from '../lib/light2Fields';
 
@@ -45,14 +46,11 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
                         ...light2Fields(),
                     ] as RxWidgetInfoAttributesField[],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                    hidden: (data: WidgetData) => !data.colorLightButton,
-                },
+                // The rows of the button mode belong to the switch OID, seeded TRUE/FALSE on its pick.
+                stateEditorGroup(
+                    { oidProperty: 'colorLightSwitchOid', fixedRows: true },
+                    { hidden: (data: WidgetData) => !data.colorLightButton },
+                ),
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {

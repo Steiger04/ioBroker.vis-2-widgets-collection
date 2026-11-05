@@ -8,6 +8,7 @@ import React from 'react';
 import Generic from '../Generic';
 import checkboxFields from '../lib/checkboxFields';
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import type { WidgetRegistry } from '../types';
@@ -35,14 +36,7 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
                     fields: [...commonObjectFields(['boolean']), ...delayFields(), ...checkboxFields()],
                 },
 
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    // indexTo: 2,
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup({ fixedRows: true }),
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {

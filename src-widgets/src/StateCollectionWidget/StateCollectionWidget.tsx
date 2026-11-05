@@ -8,6 +8,7 @@ import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import stateFields from '../lib/stateFields';
@@ -40,13 +41,7 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
                         ...stateFields(),
                     ] as RxWidgetInfoAttributesField[],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup(),
             ],
             visDefaultStyle: {
                 width: '100%',

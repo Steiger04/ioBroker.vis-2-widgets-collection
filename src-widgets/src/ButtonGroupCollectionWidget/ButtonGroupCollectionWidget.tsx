@@ -8,6 +8,7 @@ import React from 'react';
 import Generic from '../Generic';
 import buttonGroupFields from '../lib/buttonGroupFields';
 import commonFields from '../lib/commonFields';
+import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
@@ -44,13 +45,7 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
                     label: 'group_active',
                     fields: [...commonFields({ groupName: 'Active', allFields: false })],
                 },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false, perState: true })],
-                },
+                stateEditorGroup(),
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {

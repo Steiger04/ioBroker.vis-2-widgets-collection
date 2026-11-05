@@ -873,8 +873,6 @@
     "icon_small_min": "Icône petit minimum",
     "icon_x_offset": "Décalage de l'icône X",
     "icon_y_offset": "Décalage Y de l'icône",
-    "ignore_common_states": "Ignorer common.states",
-    "ignore_common_states_tooltip": "Recommandé lorsque common.states a plus de 20 entrées. Un grand nombre d'états peut provoquer le gel de l'éditeur vis-2.",
     "input": "Entrée",
     "input_collection_widget": "Saisie (chaîne, nombre, mixte)",
     "input_padding": "Marge interne du champ",
@@ -1275,8 +1273,6 @@
     "value": "Valeur",
     "value_label_display": "Étiquette",
     "value_size": "Taille de la valeur",
-    "values": "Valeur",
-    "values_count": "Les valeurs comptent",
     "variant_filled": "Rempli",
     "variant_outlined": "Encadré",
     "variant_standard": "Standard",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Opacité en pourcentage (0–100)",
     "track_color_false": "Couleur de la piste (faux)",
     "track_color_true": "Couleur de la piste (vrai)",
-    "echarts_series_symbol_label_hint": "Les étiquettes de ligne reposent sur les symboles ; tant que l'étiquette est activée, les symboles restent visibles."
+    "echarts_series_symbol_label_hint": "Les étiquettes de ligne reposent sur les symboles ; tant que l'étiquette est activée, les symboles restent visibles.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }

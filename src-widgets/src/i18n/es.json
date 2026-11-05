@@ -873,8 +873,6 @@
     "icon_small_min": "Icono pequeño mínimo",
     "icon_x_offset": "Desplazamiento del icono X",
     "icon_y_offset": "Desplazamiento del icono Y",
-    "ignore_common_states": "Ignorar common.states",
-    "ignore_common_states_tooltip": "Recomendado cuando common.states tiene más de 20 entradas. Un gran número de estados puede hacer que el editor vis-2 se congele.",
     "input": "Entrada",
     "input_collection_widget": "Entrada (cadena, número, mixto)",
     "input_padding": "Relleno de entrada",
@@ -1275,8 +1273,6 @@
     "value": "Valor",
     "value_label_display": "Etiqueta",
     "value_size": "Tamaño del valor",
-    "values": "Valor",
-    "values_count": "Los valores cuentan",
     "variant_filled": "Relleno",
     "variant_outlined": "Contorneado",
     "variant_standard": "Estándar",
@@ -1354,5 +1350,13 @@
     "color_picker_alpha_hint": "Opacidad en porcentaje (0–100)",
     "track_color_false": "Color de la pista (falso)",
     "track_color_true": "Color de la pista (verdadero)",
-    "echarts_series_symbol_label_hint": "Las etiquetas de línea se colocan en los símbolos; mientras la etiqueta esté activada, los símbolos permanecen visibles."
+    "echarts_series_symbol_label_hint": "Las etiquetas de línea se colocan en los símbolos; mientras la etiqueta esté activada, los símbolos permanecen visibles.",
+    "state_editor_group": "[TODO] Values",
+    "state_editor_has_icon": "[TODO] Has an icon",
+    "state_editor_next_row": "[TODO] Next row",
+    "state_editor_no_rows": "[TODO] No rows yet",
+    "state_editor_pick_oid_first": "[TODO] Select an object ID first: its states become the rows here.",
+    "state_editor_previous_row": "[TODO] Previous row",
+    "state_editor_rows": "[TODO] Rows",
+    "state_editor_selected_row": "[TODO] Selected row"
 }
