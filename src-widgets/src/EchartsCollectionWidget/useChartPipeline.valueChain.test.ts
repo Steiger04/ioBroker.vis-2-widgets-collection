@@ -321,9 +321,9 @@ describe.each([false, true])('value chain final stage — legend values %s', leg
         expect(percentRows(option, ['A', 'B'], 3)).toEqual([
             'A: 25 % (1)<br/>B: 75 % (3)',
             'A: 75 % (3)<br/>B: 25 % (1)',
-            // the gap stays a gap in the data (finalData above, absolute '-'); the tooltip's
-            // percent text renders a null share as 0 % — pinned as today's behaviour
-            'A: 0 % (-)<br/>B: 100 % (2)',
+            // the gap stays a gap in the data (finalData above) and in the tooltip: share and
+            // absolute read '-' (ADR-0103 K4 fix; pinned as `0 % (-)` before it)
+            'A: - (-)<br/>B: 100 % (2)',
         ]);
         // D (deselected) keeps its absolute data and left the stack — the legend formats it with
         // its own series format (ADR-0103 K2 fix; pinned as `D [500 %]` before it).

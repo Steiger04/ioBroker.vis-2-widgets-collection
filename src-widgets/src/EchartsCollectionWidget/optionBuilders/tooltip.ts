@@ -192,6 +192,7 @@ export interface TooltipPercentContext {
 /**
  * The percent row's value text — `x,x % (absolute)` — or `null` when the row is no percent row.
  * The share comes from the normalized point; the absolute formats through the series' raw facts.
+ * A gap reads `- (-)`.
  */
 const percentValueText = (
     p: TooltipParam,
@@ -204,7 +205,10 @@ const percentValueText = (
     }
     const abs = percent.absolute[name]?.[p.dataIndex ?? 0];
     const absText = abs === null || abs === undefined ? '-' : (valueFmtFor?.(name)?.(abs) ?? String(abs));
-    return `${formatPercentValue(paramValue(p), percent.comma)} (${absText})`;
+    // A gap stays a gap (ADR-0103 K4 fix): a null share reads `-` like its absolute, never `0 %`.
+    const share = paramValue(p);
+    const shareText = share === null || share === undefined ? '-' : formatPercentValue(share, percent.comma);
+    return `${shareText} (${absText})`;
 };
 
 /** Apply the row filters to one tooltip param list (no-ops when both flags are off). */
