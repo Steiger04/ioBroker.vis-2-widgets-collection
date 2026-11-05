@@ -17,7 +17,6 @@
 import { Box, IconButton, Tooltip } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
-import { useCallback } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
@@ -61,11 +60,12 @@ export const useStateFieldBinding = (
     const bound = name !== null && stateFieldBound(datas, name);
     const bindingPatch = name === null ? null : stateFieldBindingPatch(datas, name);
     const patch = bindingPatch && { ...bindingPatch, ...stateRowConversion(datas, spec.config) };
-    const toggle = useCallback(() => {
+    // No useCallback: the patch is a new object on every render, and the switch is no memo.
+    const toggle = (): void => {
         if (patch) {
             onDataChange(patch);
         }
-    }, [patch, onDataChange]);
+    };
 
     return {
         shown: name !== null && (bound || stateFieldBindable(definition)),
