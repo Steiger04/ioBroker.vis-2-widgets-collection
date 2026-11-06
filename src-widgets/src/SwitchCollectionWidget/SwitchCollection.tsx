@@ -12,6 +12,7 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useContentBox from '../hooks/useContentBox';
 import useData from '../hooks/useData';
+import { sameStateValue } from '../hooks/useData/stateValueEquality';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import { buildSwitchChrome } from './chrome';
@@ -84,9 +85,13 @@ function SwitchCollection(): React.JSX.Element {
 
     const isValidType = oidType === 'boolean';
 
+    // The `true` row is active exactly when the backend value matches `true` under the
+    // state-value equality — the rule useData resolves the state's colours by (ADR-0105).
+    const checked = sameStateValue(true, oidValue);
+
     /** Toggles the boolean state using debounced backend writes. */
     const handleSwitchChange = (): void => {
-        updateValue(!oidValue);
+        updateValue(!checked);
     };
 
     return (
@@ -123,7 +128,7 @@ function SwitchCollection(): React.JSX.Element {
                             width={rowWidth}
                             locked={locked}
                             theme={theme}
-                            checked={Boolean(oidValue)}
+                            checked={checked}
                             onChange={handleSwitchChange}
                         />
                     )}

@@ -10,6 +10,7 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueText from '../components/CollectionValueText';
 import useData from '../hooks/useData/useData';
+import { sameStateValue } from '../hooks/useData/stateValueEquality';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -54,6 +55,10 @@ function CheckboxCollection(): React.JSX.Element {
 
     const oidType = oidObject?.type;
     const isValidType = oidType === 'boolean';
+
+    // The `true` row is active exactly when the backend value matches `true` under the
+    // state-value equality — the rule useData resolves the label and colours by (ADR-0105).
+    const checked = sameStateValue(true, oidValue);
 
     const contentValue = useHtmlValue(oidValue, widget, data);
     // Frozen label collapse: the legacy template dropped falsy values
@@ -109,8 +114,8 @@ function CheckboxCollection(): React.JSX.Element {
                             <Checkbox
                                 disabled={locked}
                                 disableRipple
-                                checked={Boolean(oidValue)}
-                                onChange={() => setOidValueState(!oidValue)}
+                                checked={checked}
+                                onChange={() => setOidValueState(!checked)}
                                 checkedIcon={renderCheckboxIcon(true, data, iconStyle)}
                                 icon={renderCheckboxIcon(false, data, iconStyle)}
                                 sx={{
