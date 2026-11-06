@@ -704,6 +704,14 @@ The collection's state display/toggle button (icon + Wert-Anzeige cluster, click
 The State widget's ONE trigger decision (`StateCollectionWidget/stateTrigger.ts`, pure): what a press / release / click does — write (single state), toggle between two states (via the `sameStateValue` contract), open the change dialog (more than two states, or `onlyStates` off), or nothing. The push-button click write is SUPPRESSED, not outrun: press/release write synchronously, so the former `setTimeout(0)` race is gone, and a keyboard click in push-button mode is an honest no-op instead of latching the press value. The React body is wiring — three unconditional `fire()` adapters over the RESOLVED `states[]` from useData (never raw `value1`/`value2`); the change dialog is an internal implementation behind it: props-driven, no context of its own, writing through the body's one **Schreibkette**.
 _Avoid_: Klick-Logik (that is the wiring), Trigger-Handler (that is the adapter side), Taster-Trick/Timer-Rennen (retired with the race)
 
+# Radio Group Collection Widget
+
+## Language
+
+**Radio-Chrome**:
+The presentation shell of the radio group — everything the renderer draws AROUND the per-state content, resolved in exactly one widget-local place (`RadioGroupCollectionWidget/chrome.ts`, pure, the **Button-Group-Chrome** pattern of one function for the group and one per entry). The group: direction, width and alignment of the stack (only an explicit `horizontal` lays out a row; anything else stacks). The entry: the label area (the gap on the label's side by placement, none while labels are hidden; stacked an equal flex share, side by side the full height), the button base (side by side square, capped at the Content-Box height; stacked fixed at the px share `Content-Box height / count`), the radio root with its cap and the ripple in the state's icon colour, and the lock colours (checked keeps the state's icon colour, unchecked draws the radio colour contract's Sperre default `action.active` — only while locked). The radio colours come from the radio colour contract (`lib/radioColorContract.ts`, ADR-0004), which the entry function resolves itself. The renderer still reads the Content-Box (ADR-0098) and hands its height in. The px share is frozen legacy presentation; whether the Button-Group's CSS share (`calc(100% / count)`) would suffice is an open question in the module comment, not an alignment. The icon over the dot and the label (2-line clamp, HTML) are per-state content, not chrome; they stay in the renderer (ADR-0091).
+_Avoid_: Radio-Styles (unsaid WHICH shell), mixing chrome rules with the icon/label content, treating the px share as a CSS share (it is measured and frozen)
+
 # Select Collection Widget
 
 The collection's dropdown selection over the resolved states of one OID, with an optional control ID as separate command target. This glossary pins down its write and chrome language.
