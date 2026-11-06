@@ -3,8 +3,9 @@
  *
  * @module widgets/ButtonGroupCollectionWidget/chrome
  * @remarks
- * Extracted from the inline sx literals in ButtonGroupCollection.tsx (the
- * Slider chrome / Switch chrome pattern, ADR-0088 discipline) so the
+ * Extracted from the inline sx literals in ButtonGroupCollection.tsx (after the
+ * Slider chrome and the former Switch geometry module, since folded into the
+ * sibling Schalter-Chrome; ADR-0088 discipline) so the
  * variant/orientation interplay — outlined vs text borders, the inset
  * box-shadow separators, the vertical per-button cap, the hover/selected
  * lightening with its gradient escape — is testable as pure data without
