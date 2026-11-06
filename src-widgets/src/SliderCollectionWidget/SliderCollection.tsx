@@ -76,20 +76,21 @@ const SliderCollection: FC = () => {
         locked,
     } = useOptimisticNumber('oid');
 
-    const isHorizontal = widget.data.sliderOrientation === 'horizontal';
-
     // Slider-Chrome (CONTEXT "Slider-Chrome"): the whole presentation of the MUI Slider as sx —
     // colours from the slider colour contracts, geometry, label space and positions — plus the
-    // end symbols' rail offset. The label containers take the resolved active style.
+    // end symbols' rail offset. The label containers take the resolved active style. Its
+    // orientation (unset → horizontal, as MUI renders) is the one every rule below reads.
     const { valueSize, textColor } = data;
     const chrome = useMemo(
         () => buildSliderChrome({ data: widget.data, label: { valueSize, textColor }, theme }),
         [widget.data, valueSize, textColor, theme],
     );
+    const { orientation } = chrome;
+    const isHorizontal = orientation === 'horizontal';
 
     // Endsymbol rule (CONTEXT "Endsymbol"): icon, colour and size follow the source icon;
     // only the position swaps with the orientation.
-    const endSymbols = resolveEndSymbols(widget.data, theme, isHorizontal ? 'horizontal' : 'vertical');
+    const endSymbols = resolveEndSymbols(widget.data, theme, orientation);
 
     const oidType = oidObject?.type;
 
@@ -158,12 +159,12 @@ const SliderCollection: FC = () => {
                             slotProps={{
                                 markLabel: {
                                     marks: widget.data.marks,
-                                    sliderOrientation: widget.data.sliderOrientation,
+                                    sliderOrientation: orientation,
                                 },
                             }}
                             disabled={locked}
                             valueLabelDisplay={widget.data.valueLabelDisplay}
-                            orientation={widget.data.sliderOrientation}
+                            orientation={orientation}
                             min={scale.min ?? undefined}
                             max={scale.max ?? undefined}
                             marks={scale.marks}

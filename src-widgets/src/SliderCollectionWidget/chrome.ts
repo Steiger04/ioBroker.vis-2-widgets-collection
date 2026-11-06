@@ -46,6 +46,9 @@ import { MARK_LABEL_SPACE, railOffset } from './railOffset';
 /** The resolved label style the label containers read (useData's active StyleData). */
 export type SliderChromeLabel = Readonly<Pick<StyleData, 'valueSize' | 'textColor'>>;
 
+/** The orientation of the rendered slider. */
+export type SliderOrientation = 'horizontal' | 'vertical';
+
 /** Input for {@link buildSliderChrome}. */
 export interface SliderChromeInput {
     /** Widget data (rxData): the slider geometry fields and the fields of the slider colour contracts, raw. */
@@ -58,6 +61,11 @@ export interface SliderChromeInput {
 
 /** The Slider-Chrome: the MUI Slider's sx and the transform that puts the end symbols onto the rail axis. */
 export interface SliderChrome {
+    /**
+     * The orientation the slider renders in: `'vertical'` only when stored so, otherwise
+     * `'horizontal'` (MUI's default) — the one reading for the body, the end symbols and MUI.
+     */
+    orientation: SliderOrientation;
     /** The slider's sx object; pass it as `<Slider sx={…}>`. */
     sx: CSSObject;
     /** CSS transform of both end symbols (the rail offset along the cross axis). */
@@ -119,17 +127,17 @@ function resolveColors(data: SliderFieldsRxData, theme: Theme): ChromeColors {
  * @param input - Raw slider fields, the resolved label style and the theme.
  * @returns The slider's sx and the end symbols' transform.
  * @remarks
- * The orientation is read as stored: the geometry tests `'horizontal'` and `'vertical'` each
- * on its own (an unset orientation gets neither length), the layout rules — label margin,
- * label positions, end-symbol axis — treat everything but `'horizontal'` as vertical. Frozen,
- * like the vertical mark fallbacks (16 × 3 px against the horizontal 2 × 2 px).
+ * Every rule reads one orientation, normalised like MUI renders it: only a stored
+ * `'vertical'` is vertical, anything else — legacy data, an import or a script may leave the
+ * field out — horizontal. The vertical mark fallbacks (16 × 3 px against the horizontal
+ * 2 × 2 px) are frozen.
  */
 export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     const { data, label, theme } = input;
 
     const colors = resolveColors(data, theme);
-    const isHorizontal = data.sliderOrientation === 'horizontal';
-    const isVertical = data.sliderOrientation === 'vertical';
+    const orientation: SliderOrientation = data.sliderOrientation === 'vertical' ? 'vertical' : 'horizontal';
+    const isHorizontal = orientation === 'horizontal';
     const marks = !!data.marks;
 
     const thumbBorderWidth = data.thumbBorderWidth ?? 0;
@@ -139,7 +147,7 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     const markWidth = isHorizontal ? `${data.markWidth ?? 2}px` : `${data.markHeight ?? 16}px`;
     const markHeight = isHorizontal ? `${data.markHeight ?? 2}px` : `${data.markWidth ?? 3}px`;
 
-    const offset = railOffset(marks, isHorizontal ? 'horizontal' : 'vertical');
+    const offset = railOffset(marks, orientation);
 
     const sx: CSSObject = {
         '& .MuiSlider-thumb': {
@@ -160,7 +168,7 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
         },
         '& .MuiSlider-track': {
             height: isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
-            width: isVertical ? `${data.trackLength ?? 4}px` : 'auto',
+            width: !isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
             borderColor: colors.trackBorder,
             background: colors.trackBackground,
 
@@ -169,7 +177,7 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
         },
         '& .MuiSlider-rail': {
             height: isHorizontal ? `${data.railLength ?? 4}px` : '100%',
-            width: isVertical ? `${data.railLength ?? 4}px` : '100%',
+            width: !isHorizontal ? `${data.railLength ?? 4}px` : '100%',
             background: colors.railBackground,
 
             borderWidth: data.railBorderWidth ? `${data.railBorderWidth}px` : '0px',
@@ -217,6 +225,7 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     };
 
     return {
+        orientation,
         sx,
         endSymbolTransform: isHorizontal ? `translateY(${offset.y}px)` : `translateX(${offset.x}px)`,
     };

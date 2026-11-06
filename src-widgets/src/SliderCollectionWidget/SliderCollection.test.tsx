@@ -938,6 +938,33 @@ describe('SliderCollection chrome geometry and colours', () => {
         });
     });
 
+    // Legacy data, an import or a script may leave the orientation out: the slider then renders
+    // horizontal (MUI's default), and every rule around it must agree.
+    describe('unset orientation', () => {
+        it('lays out, sizes and labels the slider as a horizontal one', () => {
+            const container = mountChrome({ sliderOrientation: undefined, trackLength: 6, railLength: 8 });
+            const root = container.querySelector('.MuiSlider-root');
+            const icon = Array.from(container.querySelectorAll('img')).find(
+                img => img.getAttribute('src') === END_ICON,
+            );
+            if (!root || !icon) {
+                throw new Error('the slider rendered no root or no start icon');
+            }
+
+            expect(rangeOf(container).getAttribute('aria-orientation')).toBe('horizontal');
+            expect(styleOf(container, '.MuiSlider-track').height).toBe('6px');
+            expect(styleOf(container, '.MuiSlider-rail').height).toBe('8px');
+            const mark = styleOf(container, '.MuiSlider-mark');
+            expect([mark.width, mark.height]).toEqual(['2px', '2px']);
+            expect([getComputedStyle(root).marginBottom, getComputedStyle(root).marginRight]).toEqual(['20px', '0px']);
+            expect(endSymbolTransform(container)).toBe('translateY(-10px)');
+            // The min icon is the start symbol: before the slider, as in a horizontal row.
+            expect(icon.compareDocumentPosition(root) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            const row = icon.parentElement?.parentElement;
+            expect(row && getComputedStyle(row).flexDirection).toBe('row');
+        });
+    });
+
     describe('label positions', () => {
         it('puts the value label at labelPosition and the mark labels at markPosition (horizontal)', () => {
             const container = mountChrome({ labelPosition: '-7px', markPosition: '25px' });

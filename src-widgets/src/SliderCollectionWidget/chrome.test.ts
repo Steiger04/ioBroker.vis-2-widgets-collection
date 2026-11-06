@@ -245,11 +245,11 @@ describe('buildSliderChrome — track and rail geometry', () => {
             { sliderOrientation: 'vertical', trackLength: 6, railLength: 8 },
             { trackHeight: 'auto', trackWidth: '6px', railHeight: '100%', railWidth: '8px' },
         ],
-        // Frozen: an unset orientation gets neither cross-axis length.
+        // An unset orientation renders horizontal, like MUI.
         [
             'orientation unset',
             { trackLength: 6, railLength: 8 },
-            { trackHeight: 'auto', trackWidth: 'auto', railHeight: '100%', railWidth: '100%' },
+            { trackHeight: '6px', trackWidth: 'auto', railHeight: '8px', railWidth: '100%' },
         ],
     ])('takes the cross-axis length of the orientation (%s)', (_case, data, expected) => {
         expect({
@@ -282,7 +282,7 @@ describe('buildSliderChrome — marks', () => {
         ['horizontal, set', { sliderOrientation: 'horizontal', markWidth: 5, markHeight: 7 }, ['5px', '7px']],
         ['vertical, unset', { sliderOrientation: 'vertical' }, ['16px', '3px']],
         ['vertical, set', { sliderOrientation: 'vertical', markWidth: 5, markHeight: 7 }, ['7px', '5px']],
-        ['orientation unset (the vertical fallbacks)', {}, ['16px', '3px']],
+        ['orientation unset (the horizontal fallbacks)', {}, ['2px', '2px']],
     ])('sizes the inactive and the active mark alike (%s)', (_case, data, expected) => {
         expect([mark(data).width, mark(data).height]).toEqual(expected);
         expect([markActive(data).width, markActive(data).height]).toEqual(expected);
@@ -327,13 +327,32 @@ describe('buildSliderChrome — mark-label space and end symbol offset', () => {
             { mb: '0px', mr: '0px' },
             'translateX(0px)',
         ],
-        // Frozen: the layout rules treat an unset orientation as vertical.
-        ['orientation unset with marks', { marks: true }, { mb: '0px', mr: '44px' }, 'translateX(-22px)'],
+        // An unset orientation renders horizontal, like MUI.
+        ['orientation unset with marks', { marks: true }, { mb: '20px', mr: '0px' }, 'translateY(-10px)'],
     ])('reserves the label space and moves the end symbols by half of it (%s)', (_case, data, margins, transform) => {
         const { sx, endSymbolTransform } = chrome(data);
 
         expect({ mb: sx.mb, mr: sx.mr }).toEqual(margins);
         expect(endSymbolTransform).toBe(transform);
+    });
+});
+
+describe('buildSliderChrome — orientation', () => {
+    // MUI renders every orientation but 'vertical' horizontal; the chrome hands that one
+    // orientation out, so the body, the end symbols and MUI read the same.
+    it.each<[string, SliderFieldsRxData, 'horizontal' | 'vertical']>([
+        ['horizontal', { sliderOrientation: 'horizontal' }, 'horizontal'],
+        ['vertical', { sliderOrientation: 'vertical' }, 'vertical'],
+        ['unset', {}, 'horizontal'],
+    ])('hands out the rendered orientation (%s)', (_case, data, expected) => {
+        expect(chrome(data).orientation).toBe(expected);
+    });
+
+    it('puts the labels of an unset orientation where a horizontal slider has them', () => {
+        const data: SliderFieldsRxData = { labelPosition: '-7px', markPosition: '25px' };
+
+        expect(part(data, '& .MuiSlider-valueLabel')).toMatchObject({ top: '-7px', right: undefined });
+        expect(part(data, '& .MuiSlider-markLabel')).toMatchObject({ top: '25px', left: undefined });
     });
 });
 
