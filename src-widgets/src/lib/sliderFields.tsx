@@ -8,6 +8,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import effectiveStateCount from './effectiveStateCount';
 import {
     createColorField,
     createOnlyDisplayField,
@@ -16,7 +17,21 @@ import {
 } from './fieldFactories';
 import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
-import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+/**
+ * The effective state count (Zustandsmenge) of the widget's editor data — the same reading of
+ * `effectiveStateCount` as `stateFields` and useData, so the `onlyStates` option shows exactly
+ * when the runtime has states to snap to (ADR-0106 decision 8).
+ *
+ * @param data The raw widget data vis-2 hands a hidden predicate.
+ */
+const stateCountOf = (data: WidgetData): number =>
+    effectiveStateCount({
+        valuesCount: data.values_count,
+        commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
+        ignoreCommonStates: data.ignoreCommonStates,
+    });
 
 const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
@@ -202,16 +217,14 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: Record<string, unknown>) =>
-            !data.values_count && !Object.keys((data.oidObject as Record<string, unknown>)?.commonStates || {}).length,
+        hidden: (data: WidgetData) => stateCountOf(data) === 0,
     } as const,
     {
         name: 'onlyStates',
         type: 'checkbox',
         label: 'only_states',
         default: false,
-        hidden: (data: Record<string, unknown>) =>
-            !data.values_count && !Object.keys((data.oidObject as Record<string, unknown>)?.commonStates || {}).length,
+        hidden: (data: WidgetData) => stateCountOf(data) === 0,
     } as const,
     {
         type: 'custom',
