@@ -188,6 +188,20 @@ describe('SliderCollection value label colour and size', () => {
         expect(valueLabelStyle(data, style).color).toBe(expected);
     });
 
+    // A blank textColorActive (legacy data, an import) is unset like an empty one — the state
+    // resolvers skip whitespace-only values — instead of painting as invalid CSS.
+    it.each<[string, Record<string, unknown>, string]>([
+        ['the base text colour', { textColor: '#0000aa', textColorActive: '   ' }, '#0000aa'],
+        [
+            "the active state's text colour",
+            { ...ACTIVE_STATE, textColor: '#0000aa', textColor1: '#00aa00', textColorActive: '   ' },
+            '#00aa00',
+        ],
+        ['the theme text', { textColorActive: '   ' }, THEME_TEXT],
+    ])('paints %s under a blank textColorActive', (_case, data, expected) => {
+        expect(valueLabelStyle(data).color).toBe(expected);
+    });
+
     // formatSizeRem: a size of N % is `calc(N/100 rem * 0.875)`; happy-dom computes the rem at 16px.
     const SIZE_250 = 'calc(40px * 0.875)';
     const SIZE_200 = 'calc(32px * 0.875)';

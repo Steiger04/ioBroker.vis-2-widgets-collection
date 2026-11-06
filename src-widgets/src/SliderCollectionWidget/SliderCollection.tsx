@@ -295,8 +295,9 @@ const SliderCollection: FC = () => {
                                         data.valueSizeActive ||
                                         data.valueSize,
                                     // No marker layer: the value label is not a mark.
+                                    // A blank textColorActive is unset, as in the state resolvers.
                                     color:
-                                        widget.data.textColorActive ||
+                                        (widget.data.textColorActive?.trim() && widget.data.textColorActive) ||
                                         data.textColorActive ||
                                         data.textColor ||
                                         theme.palette.text.primary,
