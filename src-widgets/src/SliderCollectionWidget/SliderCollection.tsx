@@ -16,7 +16,6 @@ import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
 import { MARK_LABEL_SPACE, railOffset } from './railOffset';
 import { alphaOf } from '../lib/helper/colorDerivation';
-import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 import type { SliderCollectionContextProps } from '../types';
@@ -290,17 +289,13 @@ const SliderCollection: FC = () => {
                                 mb: widget.data.marks && isHorizontal ? `${MARK_LABEL_SPACE.horizontal}px` : '0px',
                                 mr: widget.data.marks && !isHorizontal ? `${MARK_LABEL_SPACE.vertical}px` : '0px',
                                 '& .MuiSlider-valueLabel': {
-                                    fontSize:
-                                        formatSizeRem(widget.data.valueSizeActive) ||
-                                        data.valueSizeActive ||
-                                        data.valueSize,
-                                    // No marker layer: the value label is not a mark.
-                                    // A blank textColorActive is unset, as in the state resolvers.
-                                    color:
-                                        (widget.data.textColorActive?.trim() && widget.data.textColorActive) ||
-                                        data.textColorActive ||
-                                        data.textColor ||
-                                        theme.palette.text.primary,
+                                    // The resolved active style (CONTEXT "Chrome-Farbvertrag"):
+                                    // valueSizeActive → active state → base → vis-2 font size,
+                                    // textColorActive → active state → base → vis-2 text style →
+                                    // theme text. `data` carries no marker layer: the value label
+                                    // is not a mark.
+                                    fontSize: data.valueSize,
+                                    color: data.textColor,
                                     bgcolor: 'transparent',
                                     top: isHorizontal ? widget.data.labelPosition : undefined,
                                     right: !isHorizontal ? widget.data.labelPosition : undefined,
