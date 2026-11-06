@@ -17,7 +17,9 @@
  * colour as is (useData's icon colour chain ends on the primary terminal), and disabled
  * unchecked draws `action.active` instead of the terminal (documented divergence, ADR-0004
  * addendum "Chrome-Slots"). The explicit value is drawn raw, as
- * before the contract: swatch and runtime agree for every colour (the cascade reads stored
+ * before the contract, through the cascade's raw stage `resolveStoredChromeColor` (it reads
+ * the contract — field, then fallback fields —, and the disabled rule passes `action.active`
+ * as its Sperre default): swatch and runtime agree for every colour (the cascade reads stored
  * values with the Regeln für Farbeingaben — colour names, `var(…)`, `transparent` included);
  * only a legacy value that is no colour at all keeps painting raw while the swatch counts it
  * as unset (the spec allows rendering changes only for values that used to crash).
@@ -26,7 +28,7 @@
  * runtime and its node tests must not import.
  */
 import type { Theme } from '@mui/material';
-import { terminalColor } from './helper/resolveEffectiveColor';
+import { resolveStoredChromeColor } from './helper/resolveEffectiveColor';
 import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { RadioGroupFieldsRxData } from '../types/field-definitions/radio-group-fields';
 
@@ -68,13 +70,17 @@ export function resolveRadioColors(
     activeIconColor: string | undefined,
     theme: Theme,
 ): RadioColors {
-    // The explicit stage raw, as before the contract — never validated away.
-    const explicit = data.radioGroupUncheckedIconColor || '';
+    // The stored stages raw, as before the contract — never validated away.
     return {
-        unchecked: explicit || terminalColor(radioUncheckedIconColorContract.terminal, theme),
+        unchecked: resolveStoredChromeColor(radioUncheckedIconColorContract, data, theme),
         checked: activeIconColor,
         // State rule: disabled deliberately does not follow the terminal — MUI's own
         // disabled grey (`action.disabled`) is overridden by `action.active`, not by text.secondary.
-        disabledUnchecked: explicit || theme.palette.action.active,
+        disabledUnchecked: resolveStoredChromeColor(
+            radioUncheckedIconColorContract,
+            data,
+            theme,
+            theme.palette.action.active,
+        ),
     };
 }

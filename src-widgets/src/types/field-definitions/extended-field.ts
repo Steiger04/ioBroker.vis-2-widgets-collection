@@ -16,11 +16,14 @@
  *
  * Who walks that cascade whole, through `resolveEffectiveColor` /
  * `resolveEffectiveSolidColor`: the editor swatch (`ContractColorField`), the Gauge's color options and
- * most chrome contract consumers (CONTEXT.md, Chrome-Farbvertrag). Others build
- * their own chain and share only the terminal mapping (`terminalColor`): the
- * state resolvers (`hooks/useData/propertyResolvers`), and the chrome slots that
- * paint the explicit value raw, as stored — the Radio's unchecked icon and the
- * table's header bar. The Button-Group separator takes the stored value raw
+ * most chrome contract consumers (CONTEXT.md, Chrome-Farbvertrag). The chrome
+ * slots that paint their stored value raw — the Switch's thumbs and tracks and the
+ * Radio's unchecked icon — go through `resolveStoredChromeColor`: the field, then
+ * its fallback fields, as stored, else a Sperre default, else the terminal, without
+ * the vis-2 style stage. Others build their own chain and share only the terminal
+ * mapping (`terminalColor`): the state resolvers (`hooks/useData/propertyResolvers`)
+ * and the table's header bar, which paints its explicit value raw over the
+ * terminal. The Button-Group separator takes the stored value raw
  * wherever a color calculation reads it, before it walks the cascade. The cascade
  * reads stored values with the Regeln für Farbeingaben (any CSS colour the browser
  * accepts, complete gradients), so only a value that is no colour at all (historic
