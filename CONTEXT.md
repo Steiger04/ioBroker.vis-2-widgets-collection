@@ -690,6 +690,16 @@ _Avoid_: Farbfeld (that is the field, not its row), Picker-Feld
 The display-first edit session of the Input widget (`useInlineEdit`, widget-local over the **Schreibkette**'s `useValueState` binding): a click switches to a TextField, the icon hides while editing, the autofocus effect stays in the component. Two modes — live (default): every keystroke writes through the optimistic binding; OK-button mode: the draft buffers and commits exactly once on blur/Enter/OK click. Draft sync adopts the backend value only while NOT editing — a foreign change DURING the session surfaces as `hasBackendChange` (red field, the **Signifikante Backend-Änderung**) instead of clobbering the draft. Keys: Enter runs the blur path; **Escape beendet die Bearbeitung ohne Commit** — in OK mode the buffered draft is DISCARDED (nothing was written), in live mode it equals blur because already-written keystrokes are on their way through the debounce (a "discard" there would be a lie).
 _Avoid_: Draft-Modus (that is only the buffering half of OK mode), Cancel (that is the Escape action, not the session), Editier-Modus (that is just the editing flag)
 
+# Switch Collection Widget
+
+The collection's toggle switch over one boolean OID. This glossary pins down its chrome language.
+
+## Language
+
+**Schalter-Chrome**:
+The complete presentation of the MUI Switch, resolved in exactly one widget-local place (`SwitchCollectionWidget/chrome.ts`, pure `buildSwitchChrome`, pattern **Button-Group-Chrome**): the thumb travel with its sign (off positive, on negative) and the anchor of the switch base (0 % off, 100 % on), position and width of the invisible input over the measured track row, the thumb size capped by the height budget (the frame's Content-Box, ADR-0098 — unmeasured, the thumb stays uncapped), the thumb and track colours, the icon overlay on the thumb (the same on and off, in the state's resolved icon colour) and the ripple colour. Built from raw widget data (thumb size and the fields of the switch colour contracts), the state's icon values from useData, the measured track-row width, the height budget, the Sperre and the theme — never from the whole widget — and handed to the MUI Switch as `sx` (no styled wrapper, so no guard against props leaking into the DOM). The thumb and track colours are the switch's **Chrome-Farbvertrag** (`lib/switchColorContract.ts`, ADR-0004): the stored value raw through the cascade's raw stage, else MUI's Switch default as terminal; locked, an unset thumb draws MUI's disabled grey. Frozen presentation, pinned by tests and not contract: the track alpha (MUI 6.5.0: off 0.38 light / 0.3 dark, on 0.5; locked 0.12 / 0.2 in both states) and the travel inset (4 px, derivation no longer verifiable). The track row itself (its height from `trackSize`) and both measurements stay in the renderer.
+_Avoid_: Switch-Styles (unsaid WHICH shell), Geometrie-Modul (retired — the travel and input-offset formulas are internal helpers of the chrome), treating the track alpha or the travel inset as configurable knobs (they are frozen)
+
 # Button-Group Collection Widget
 
 ## Language

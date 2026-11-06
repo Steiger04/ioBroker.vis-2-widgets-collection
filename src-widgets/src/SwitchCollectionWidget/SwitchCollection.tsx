@@ -5,6 +5,8 @@
  */
 
 import { Box } from '@mui/material';
+import Switch from '@mui/material/Switch';
+import type { Theme } from '@mui/material/styles';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -12,21 +14,50 @@ import useContentBox from '../hooks/useContentBox';
 import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
-import MaterialUISwitch from './MaterialUISwitch';
+import { buildSwitchChrome } from './chrome';
+import type { SwitchChromeData, SwitchChromeIcon } from './chrome';
 import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
+interface BudgetedSwitchProps {
+    /** Raw widget data: the thumb size and the switch colour fields. */
+    data: SwitchChromeData;
+    /** The state's icon values from useData. */
+    icon: SwitchChromeIcon;
+    /** Measured width of the track row (px). */
+    width: number | undefined;
+    /** Sperre: the OID binding's `locked`. */
+    locked: boolean;
+    /** The effective collection theme. */
+    theme: Theme;
+    /** Whether the switch is on. */
+    checked: boolean;
+    /** Toggle handler. */
+    onChange: () => void;
+}
+
 /**
  * The switch, its thumb capped by the height budget: the frame's Content-Box height
- * (ADR-0098) — a child of CollectionBase, where the box is published.
+ * (ADR-0098) — a child of CollectionBase, where the box is published. Its whole
+ * presentation is the Schalter-Chrome ({@link buildSwitchChrome}), passed as `sx`.
  */
-function BudgetedSwitch(props: Omit<React.ComponentProps<typeof MaterialUISwitch>, 'maxHeight'>): React.JSX.Element {
+function BudgetedSwitch({
+    data,
+    icon,
+    width,
+    locked,
+    theme,
+    checked,
+    onChange,
+}: BudgetedSwitchProps): React.JSX.Element {
     const { height } = useContentBox();
 
     return (
-        <MaterialUISwitch
-            {...props}
-            maxHeight={height}
+        <Switch
+            disabled={locked}
+            checked={checked}
+            onChange={onChange}
+            sx={buildSwitchChrome({ data, icon, width, maxHeight: height, locked, theme })}
         />
     );
 }
@@ -42,7 +73,7 @@ function SwitchCollection(): React.JSX.Element {
     if (!context) {
         throw new Error('SwitchCollection must be used within a CollectionProvider');
     }
-    const { widget } = context as SwitchCollectionContextProps;
+    const { widget, theme } = context as SwitchCollectionContextProps;
 
     const oidObject = widget.data.oidObject;
 
@@ -87,18 +118,13 @@ function SwitchCollection(): React.JSX.Element {
                 >
                     {oidValue !== undefined && widget.data.thumbSize !== undefined && (
                         <BudgetedSwitch
-                            disabled={locked}
+                            data={widget.data}
+                            icon={data}
                             width={rowWidth}
-                            data={data}
-                            widget={widget}
+                            locked={locked}
+                            theme={theme}
                             checked={Boolean(oidValue)}
                             onChange={handleSwitchChange}
-                            sx={{
-                                '& .MuiTouchRipple-root': {
-                                    // useData's icon colour chain ends on the primary terminal.
-                                    color: data.iconColor,
-                                },
-                            }}
                         />
                     )}
                 </Box>
