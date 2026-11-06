@@ -12,12 +12,12 @@ import useData, { sameStateValue } from '../hooks/useData';
 import CollectionMark from './CollectionMark';
 import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
+import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
 import { MARK_LABEL_SPACE, railOffset } from './railOffset';
 import { alphaOf } from '../lib/helper/colorDerivation';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
 import { type Mark } from '@mui/material/Slider/useSlider.types';
@@ -106,6 +106,32 @@ interface SliderMarkLabelProps {
     activeMarkIndex?: number | null;
 }
 
+/**
+ * One end symbol in the normal layout flow beside the slider; nothing without a source icon.
+ * The transform moves it onto the rail axis.
+ */
+const EndSymbolIcon: FC<{ symbol: EndSymbol; transform: string }> = ({ symbol, transform }) =>
+    symbol.icon ? (
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexShrink: 0,
+                transform,
+            }}
+        >
+            <SafeImg
+                alt=""
+                src={symbol.icon}
+                style={{
+                    width: symbol.size,
+                    ...getIconColorStyles(symbol.icon, symbol.color, true),
+                }}
+            />
+        </Box>
+    ) : null;
+
 const SliderCollection: FC = () => {
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
     const {
@@ -146,26 +172,10 @@ const SliderCollection: FC = () => {
     // the slider colour contracts (lib/sliderColorContract), resolved in one place.
     const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
 
-    // Source icons (orientation-independent).
-    const minIcon = widget.data.iconMin || widget.data.iconSmallMin;
-    const maxIcon = widget.data.iconMax || widget.data.iconSmallMax;
-
-    // Color follows the SOURCE icon, not the rendered position: startIconColor is
-    // the color of iconMin, endIconColor of iconMax — in BOTH orientations. The
-    // default-primary fallback is checked against the source icon, so a single
-    // configured icon keeps its color when orientation swaps its position.
-    // The primary fallback applies to a Base64 icon only: an image icon (URL, path)
-    // without a value stays uncoloured (its own colours), with a value it is coloured
-    // through the forced mask below. The swatch shows the Base64 colour (ADR-0004).
-    const minIconColor = widget.data.startIconColor || (isBase64Icon(minIcon) ? theme.palette.primary.main : undefined);
-    const maxIconColor = widget.data.endIconColor || (isBase64Icon(maxIcon) ? theme.palette.primary.main : undefined);
-
-    // Positions (and their colors) swap by orientation: start = min in horizontal,
-    // max in vertical. The color travels with its source icon.
-    const startIcon = isHorizontal ? minIcon : maxIcon;
-    const endIcon = isHorizontal ? maxIcon : minIcon;
-    const startIconColor = isHorizontal ? minIconColor : maxIconColor;
-    const endIconColor = isHorizontal ? maxIconColor : minIconColor;
+    // Endsymbol rule (CONTEXT "Endsymbol"): icon, colour and size follow the source icon;
+    // only the position swaps with the orientation.
+    const endSymbols = resolveEndSymbols(widget.data, theme, isHorizontal ? 'horizontal' : 'vertical');
+    const endSymbolTransform = isHorizontal ? `translateY(${trackOffset.y}px)` : `translateX(${trackOffset.x}px)`;
 
     const oidType = oidObject?.type;
 
@@ -238,31 +248,10 @@ const SliderCollection: FC = () => {
                     height: '100%',
                 }}
             >
-                {/* Start icon - in normal layout flow */}
-                {startIcon && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexShrink: 0,
-                            transform: isHorizontal
-                                ? `translateY(${trackOffset.y}px)`
-                                : `translateX(${trackOffset.x}px)`,
-                        }}
-                    >
-                        <SafeImg
-                            alt=""
-                            src={startIcon}
-                            style={{
-                                width: isHorizontal
-                                    ? widget.data.iconSizeStart || '24px'
-                                    : widget.data.iconSizeEnd || '24px',
-                                ...getIconColorStyles(startIcon, startIconColor, true),
-                            }}
-                        />
-                    </Box>
-                )}
+                <EndSymbolIcon
+                    symbol={endSymbols.start}
+                    transform={endSymbolTransform}
+                />
 
                 {/* Slider container - takes available space */}
                 <Box
@@ -372,31 +361,10 @@ const SliderCollection: FC = () => {
                     )}
                 </Box>
 
-                {/* End icon - in normal layout flow */}
-                {endIcon && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexShrink: 0,
-                            transform: isHorizontal
-                                ? `translateY(${trackOffset.y}px)`
-                                : `translateX(${trackOffset.x}px)`,
-                        }}
-                    >
-                        <SafeImg
-                            alt=""
-                            src={endIcon}
-                            style={{
-                                width: isHorizontal
-                                    ? widget.data.iconSizeEnd || '24px'
-                                    : widget.data.iconSizeStart || '24px',
-                                ...getIconColorStyles(endIcon, endIconColor, true),
-                            }}
-                        />
-                    </Box>
-                )}
+                <EndSymbolIcon
+                    symbol={endSymbols.end}
+                    transform={endSymbolTransform}
+                />
             </Box>
         </CollectionBase>
     );
