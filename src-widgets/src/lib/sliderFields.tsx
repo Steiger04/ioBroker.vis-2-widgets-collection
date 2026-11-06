@@ -8,13 +8,8 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import {
-    createColorField,
-    createOnlyDisplayField,
-    createPlainColorField,
-    createSliderColorField,
-} from './fieldFactories';
-import type { ColorFieldContract } from './helper/resolveEffectiveColor';
+import { createColorField, createOnlyDisplayField, createPlainColorField } from './fieldFactories';
+import { sliderColorContracts } from './sliderColorContract';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -71,8 +66,9 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: '-5px',
         hidden: "data.valueLabelDisplay === 'off'",
     } as const,
-    // Color fields using factory function
-    createColorField({ name: 'sliderColor', label: 'slider_color', terminal: 'primary' }),
+    // Colour fields: each spreads the contract its chrome part resolves at runtime
+    // (lib/sliderColorContract, ADR-0004) — terminal primary, the parts fall back to sliderColor.
+    createColorField({ ...sliderColorContracts.sliderColor, label: 'slider_color' }),
     {
         name: 'sliderPadding',
         label: 'slider_padding',
@@ -99,8 +95,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 20,
         min: 0,
     } as const,
-    // Color fields with sliderColor fallback using convenience function
-    createSliderColorField('thumbColor', 'thumb_color'),
+    createColorField({ ...sliderColorContracts.thumbColor, label: 'thumb_color' }),
     {
         name: 'thumbBorderWidth',
         label: 'thumb_border_width',
@@ -110,12 +105,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 100,
     } as const,
     // thumbBorderColor follows the runtime cascade thumbColor → sliderColor
-    createColorField({
-        name: 'thumbBorderColor',
-        label: 'thumb_border_color',
-        fallbackFields: ['thumbColor', 'sliderColor'],
-        terminal: 'primary',
-    }),
+    createColorField({ ...sliderColorContracts.thumbBorderColor, label: 'thumb_border_color' }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="track" />,
@@ -127,7 +117,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 4,
         min: 0,
     } as const,
-    createSliderColorField('trackBackgroundColor', 'track_background_color'),
+    createColorField({ ...sliderColorContracts.trackBackgroundColor, label: 'track_background_color' }),
     {
         name: 'trackBorderWidth',
         label: 'track_border_width',
@@ -136,7 +126,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 100,
     } as const,
-    createSliderColorField('trackBorderColor', 'track_border_color'),
+    createColorField({ ...sliderColorContracts.trackBorderColor, label: 'track_border_color' }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="rail" />,
@@ -148,7 +138,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 4,
         min: 0,
     } as const,
-    createSliderColorField('railBackgroundColor', 'rail_background_color'),
+    createColorField({ ...sliderColorContracts.railBackgroundColor, label: 'rail_background_color' }),
     {
         name: 'railBorderWidth',
         label: 'rail_border_width',
@@ -157,7 +147,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 100,
     } as const,
-    createSliderColorField('railBorderColor', 'rail_border_color'),
+    createColorField({ ...sliderColorContracts.railBorderColor, label: 'rail_border_color' }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="mark" />,
@@ -176,7 +166,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 2,
         min: 0,
     } as const,
-    createSliderColorField('markBackgroundColor', 'mark_background_color'),
+    createColorField({ ...sliderColorContracts.markBackgroundColor, label: 'mark_background_color' }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="values" />,
@@ -250,14 +240,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // Label field, not chrome: useData renders the mark text through
     // textColor{n} → markerTextColor → textColor → vis-2 text style → theme
     // text, so the contract mirrors that runtime cascade. See ADR 0004.
-    createColorField({
-        name: 'markerTextColor',
-        label: 'marker_text_color',
-        fallbackFields: ['textColor'],
-        terminal: 'text',
-        inheritTextStyle: true,
-        hidden: '!data.marks',
-    }),
+    createColorField({ ...sliderColorContracts.markerTextColor, label: 'marker_text_color', hidden: '!data.marks' }),
     {
         name: 'markerTextSize',
         label: 'marker_text_size',
@@ -315,10 +298,9 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // must match (terminal 'primary') to keep picker swatch and widget in sync.
     // See ADR 0004.
     createColorField({
-        name: 'startIconColor',
+        ...sliderColorContracts.startIconColor,
         label: 'icon_color',
         noGradient: true,
-        terminal: 'primary',
         hidden: '!data.iconMin && !data.iconSmallMin',
     }),
     {
@@ -345,36 +327,11 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: '!data.iconMax && !data.iconSmallMax',
     } as const,
     createColorField({
-        name: 'endIconColor',
+        ...sliderColorContracts.endIconColor,
         label: 'icon_color',
         noGradient: true,
-        terminal: 'primary',
         hidden: '!data.iconMax && !data.iconSmallMax',
     }),
 ];
-
-/**
- * Color contracts derived from the slider field list above — ONE declaration
- * site: the fields declare their cascade (`fallbackFields`, `terminal`), this
- * map only collects it for the runtime (`buildSliderChromeStyles`) and any
- * other contract consumer. See ADR 0004.
- *
- * `markerTextColor` is the exception: a label contract that only drives its
- * picker swatch. No chrome slot reads it — the mark text is rendered by the
- * state-resolver system (useData), whose cascade the field mirrors.
- */
-export const sliderColorContracts: Record<string, ColorFieldContract> = Object.fromEntries(
-    sliderFields()
-        .filter((field): field is ExtendedField => (field as ExtendedField).terminal !== undefined)
-        .map(field => [
-            field.name as string,
-            {
-                name: field.name,
-                fallbackFields: field.fallbackFields,
-                terminal: field.terminal,
-                inheritTextStyle: field.inheritTextStyle,
-            },
-        ]),
-);
 
 export default sliderFields;

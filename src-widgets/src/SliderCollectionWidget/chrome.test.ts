@@ -1,14 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
-
-// sliderFields pulls fieldFactories, which pulls ContractColorField and PlainColorField,
-// which pulls Generic, which extends window.visRxWidget — undefined outside the
-// vis-2 runtime. The contracts under test are independent of those components.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+import { describe, expect, it } from 'vitest';
 
 import { buildSliderChromeStyles } from './chrome';
-import { sliderColorContracts } from '../lib/sliderFields';
+import { sliderColorContracts } from '../lib/sliderColorContract';
 
 import type { SliderFieldsRxData } from '../types';
 import type { Theme } from '@mui/material';
@@ -20,7 +13,7 @@ const styles = (data: SliderFieldsRxData): ReturnType<typeof buildSliderChromeSt
     buildSliderChromeStyles(data, theme);
 
 describe('sliderColorContracts', () => {
-    it('derives exactly the slider color fields with a terminal', () => {
+    it('declares exactly the slider color fields with a terminal', () => {
         expect(Object.keys(sliderColorContracts).sort()).toEqual(
             [
                 'sliderColor',

@@ -143,7 +143,7 @@ const SliderCollection: FC = () => {
     const trackOffset = railOffset(!!widget.data.marks, isHorizontal ? 'horizontal' : 'vertical');
 
     // Chrome-Farbvertrag: the color cascade of thumb/track/rail/mark comes from
-    // the field contracts (sliderColorContracts), resolved in one place.
+    // the slider colour contracts (lib/sliderColorContract), resolved in one place.
     const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
 
     // Source icons (orientation-independent).

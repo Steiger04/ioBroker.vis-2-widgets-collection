@@ -4,21 +4,18 @@
  * @module widgets/SliderCollectionWidget/chrome
  * @remarks
  * Implements the Chrome-Farbvertrag (CONTEXT.md): the color cascade of the
- * slider's chrome parts (thumb, track, rail, marks) is DECLARED by the field
- * definitions (`sliderFields` → `sliderColorContracts`) and resolved here
- * through `resolveEffectiveColor` — no hand-rolled `a || b || theme.x` chains
- * in the styled/sx layer. Label chains (valueLabel, markLabel) are NOT chrome:
+ * slider's chrome parts (thumb, track, rail, marks) is DECLARED once in the
+ * component-free contract module (`lib/sliderColorContract` →
+ * `sliderColorContracts`, which the fields spread) and resolved here through
+ * `resolveEffectiveColor` — no hand-rolled `a || b || theme.x` chains in the
+ * styled/sx layer. Label chains (valueLabel, markLabel) are NOT chrome:
  * they stay in the state-resolver system (useData/StyleData).
  */
 
 import type { Theme } from '@mui/material';
 
-import {
-    resolveEffectiveColor,
-    resolveEffectiveSolidColor,
-    type ColorFieldContract,
-} from '../lib/helper/resolveEffectiveColor';
-import { sliderColorContracts } from '../lib/sliderFields';
+import { resolveEffectiveColor, resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
+import { sliderColorContracts, type SliderColorField } from '../lib/sliderColorContract';
 import type { SliderFieldsRxData } from '../types';
 
 /**
@@ -46,17 +43,6 @@ export interface SliderChromeStyles {
     markBackground: string;
 }
 
-/** The field contract of one chrome slot (`sliderColorContracts`). */
-const contractOf = (field: string): ColorFieldContract => {
-    const contract: ColorFieldContract | undefined = sliderColorContracts[field];
-
-    if (!contract) {
-        throw new Error(`buildSliderChromeStyles: unknown chrome color field '${field}'`);
-    }
-
-    return contract;
-};
-
 /**
  * Builds the chrome colors for the slider from the widget data.
  *
@@ -82,8 +68,10 @@ const contractOf = (field: string): ColorFieldContract => {
 export function buildSliderChromeStyles(rxData: SliderFieldsRxData, theme: Theme): SliderChromeStyles {
     const data = rxData as Record<string, unknown>;
 
-    const background = (field: string): string => resolveEffectiveColor(contractOf(field), data, theme);
-    const solid = (field: string): string | undefined => resolveEffectiveSolidColor(contractOf(field), data, theme);
+    const background = (field: SliderColorField): string =>
+        resolveEffectiveColor(sliderColorContracts[field], data, theme);
+    const solid = (field: SliderColorField): string | undefined =>
+        resolveEffectiveSolidColor(sliderColorContracts[field], data, theme);
 
     return {
         thumbBackground: background('thumbColor'),
