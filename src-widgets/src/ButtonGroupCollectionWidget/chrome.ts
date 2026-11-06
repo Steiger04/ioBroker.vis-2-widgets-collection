@@ -4,7 +4,7 @@
  * @module widgets/ButtonGroupCollectionWidget/chrome
  * @remarks
  * Extracted from the inline sx literals in ButtonGroupCollection.tsx (the
- * Slider chrome / Switch geometry pattern, ADR-0088 discipline) so the
+ * Slider chrome / Switch chrome pattern, ADR-0088 discipline) so the
  * variant/orientation interplay — outlined vs text borders, the inset
  * box-shadow separators, the vertical per-button cap, the hover/selected
  * lightening with its gradient escape — is testable as pure data without

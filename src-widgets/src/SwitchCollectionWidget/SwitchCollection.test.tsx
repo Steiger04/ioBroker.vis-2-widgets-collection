@@ -5,7 +5,7 @@
  * @remarks
  * DOM contract of the body on the preview context: the thumb is capped by the height
  * budget, the frame's Content-Box height (ADR-0098, injected through the test scene).
- * The travel math behind the cap is pinned as pure data in geometry.test.ts. The Sperre
+ * The travel math behind the cap is pinned as pure data in chrome.test.ts. The Sperre
  * cases pin the switch's `disabled` against the OID binding's `locked`.
  */
 import { describe, expect, it, vi } from 'vitest';
@@ -35,7 +35,7 @@ const OID = 'demo.0.power';
 
 const mountBody = testScopedMount();
 
-const scene = (data: Record<string, unknown> = {}): PreviewScene =>
+const scene = (data: Record<string, unknown> = {}, status: boolean = true): PreviewScene =>
     collectionScene(
         'switch-collection-test',
         {
@@ -47,7 +47,7 @@ const scene = (data: Record<string, unknown> = {}): PreviewScene =>
             noHeaderIcon: true,
             ...data,
         },
-        true,
+        status,
     );
 
 /** The switch thumb. */
@@ -96,5 +96,18 @@ describe('SwitchCollection Sperre', () => {
         const { container } = mountBody(SwitchCollection, scene(data));
 
         expect(input(container)?.disabled).toBe(true);
+    });
+});
+
+describe('SwitchCollection thumb colour (sx specificity)', () => {
+    const colours = { thumbColorTrue: '#00ff00', thumbColorFalse: '#ff0000' };
+
+    it.each([
+        ['on', true, '#00ff00'],
+        ['off', false, '#ff0000'],
+    ])('paints the contract colour on the thumb while %s', (_state, status, colour) => {
+        const { container } = mountBody(SwitchCollection, scene(colours, status));
+
+        expect(getComputedStyle(thumb(container)).background).toContain(colour);
     });
 });

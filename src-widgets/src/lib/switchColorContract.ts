@@ -8,7 +8,7 @@
  * ADR-0004 (Nachtrag 2026-11 general rule, Nachtrag 2026-11-04), pattern
  * `selectColorContract` / `radioColorContract`: the switch colour fields (switchFields)
  * spread their contract, so the editor swatch resolves it, and the Switch renderer
- * (`MaterialUISwitch`) resolves the same contract at runtime. For a chrome slot the field
+ * (the Schalter-Chrome, `buildSwitchChrome`) resolves the same contract at runtime. For a chrome slot the field
  * follows the runtime: without a value the thumbs have always drawn MUI's Switch defaults,
  * so the contracts declare exactly these as terminals — thumb on `primary`, thumb off
  * `switchThumbOff` (`common.white` light / `grey[300]` dark), track on `primary`, track off
