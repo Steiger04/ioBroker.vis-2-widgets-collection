@@ -65,12 +65,15 @@ function CheckboxCollection(): React.JSX.Element {
     const iconStyle = useMemo((): CSSProperties => {
         return {
             objectFit: 'contain',
-            width: `calc(100% * (${data.iconSize} / 24px))`,
-            height: `calc(100% * (${data.iconSize} / 24px))`,
+            // Box-relative: `iconWidth`/`iconHeight` walk the `iconSize` chain (active, row,
+            // base, 100) as a plain number. Not `iconSizeOnly` — that skips the base size
+            // once a Zustandszeile matches, and the boolean rows always match.
+            width: `${data.iconWidth}%`,
+            height: `${data.iconHeight}%`,
             // useData's icon colour chain ends on the primary terminal — no fallback here.
             ...getIconColorStyles(data.icon || defaultIconTrue, data.iconColor, data.forceColorMask),
         };
-    }, [data.iconSize, data.icon, data.iconColor, data.forceColorMask]);
+    }, [data.iconWidth, data.iconHeight, data.icon, data.iconColor, data.forceColorMask]);
 
     return (
         <CollectionBase
