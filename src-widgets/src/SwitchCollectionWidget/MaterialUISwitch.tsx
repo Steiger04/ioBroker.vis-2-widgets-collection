@@ -45,8 +45,9 @@ const CALLBACK_ONLY_PROPS = new Set<PropertyKey>(['width', 'maxHeight', 'data', 
  * checked/disabled thumb colour (`currentColor`) and track styling no longer decide.
  * Both track rules hang off the switch base (`:not(.Mui-checked)` / `.Mui-checked`
  * `+ .MuiSwitch-track`), which outranks MUI's `.Mui-checked` / `.Mui-disabled + track`
- * rules by specificity, whatever the stylesheet order. The icon overlay differs
- * between the states only in its fallback colour.
+ * rules by specificity, whatever the stylesheet order. The icon overlay is the same in
+ * both states: the thumb rule draws it on and off, in the state's resolved icon colour
+ * (useData's icon colour chain ends on the primary terminal, so there is no fallback).
  */
 const MaterialUISwitch = styled(Switch, {
     shouldForwardProp: prop => !CALLBACK_ONLY_PROPS.has(prop),
@@ -64,8 +65,8 @@ const MaterialUISwitch = styled(Switch, {
         opacity: state.trackAlpha,
     });
 
-    /** The icon overlay pseudo-element; only the fallback colour varies by state. */
-    const iconOverlay = (fallbackColor: string): CSSObject => ({
+    /** The icon overlay pseudo-element, identical on and off (the thumb rule covers both). */
+    const iconOverlay: CSSObject = {
         content: "''",
         position: 'absolute',
 
@@ -80,8 +81,8 @@ const MaterialUISwitch = styled(Switch, {
 
         backgroundSize: data.iconSizeOnly,
         backgroundImage: `url('${data.icon}')`,
-        ...getIconColorStyles(data.icon, data.iconColor || fallbackColor, data.forceColorMask),
-    });
+        ...getIconColorStyles(data.icon, data.iconColor, data.forceColorMask),
+    };
 
     return {
         width: '100%',
@@ -121,8 +122,6 @@ const MaterialUISwitch = styled(Switch, {
 
                 '& .MuiSwitch-thumb': {
                     background: colors.on.thumb,
-
-                    '&::before': iconOverlay(theme.palette.primary.dark),
                 },
 
                 '& + .MuiSwitch-track': track(colors.on),
@@ -137,7 +136,7 @@ const MaterialUISwitch = styled(Switch, {
             height: thumbSize,
             maxHeight: maxHeight,
 
-            '&::before': iconOverlay(theme.palette.primary.main),
+            '&::before': iconOverlay,
         },
     };
 });

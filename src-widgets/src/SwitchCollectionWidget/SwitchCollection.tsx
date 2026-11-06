@@ -42,7 +42,7 @@ function SwitchCollection(): React.JSX.Element {
     if (!context) {
         throw new Error('SwitchCollection must be used within a CollectionProvider');
     }
-    const { widget, theme } = context as SwitchCollectionContextProps;
+    const { widget } = context as SwitchCollectionContextProps;
 
     const oidObject = widget.data.oidObject;
 
@@ -95,7 +95,8 @@ function SwitchCollection(): React.JSX.Element {
                             onChange={handleSwitchChange}
                             sx={{
                                 '& .MuiTouchRipple-root': {
-                                    color: data.iconColor || theme.palette.primary.main,
+                                    // useData's icon colour chain ends on the primary terminal.
+                                    color: data.iconColor,
                                 },
                             }}
                         />

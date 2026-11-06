@@ -56,11 +56,6 @@ describe('resolveRadioColors — the checked icon follows the state', () => {
             '#aa0000',
         );
     });
-
-    it('without a state icon colour, draws the theme primary — not the unchecked colour', () => {
-        expect(resolveRadioColors({ radioGroupUncheckedIconColor: '#b0bec5' }, '', THEME).checked).toBe('#pri');
-        expect(resolveRadioColors({}, undefined, THEME).checked).toBe('#pri');
-    });
 });
 
 describe('resolveRadioColors — disabled unchecked is a state rule, not the terminal', () => {

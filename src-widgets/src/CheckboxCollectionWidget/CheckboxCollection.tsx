@@ -45,7 +45,7 @@ function CheckboxCollection(): React.JSX.Element {
     }
 
     const checkboxContext = context as CheckboxCollectionContextProps;
-    const { widget, theme } = checkboxContext;
+    const { widget } = checkboxContext;
 
     const oidObject = widget.data.oidObject;
 
@@ -67,13 +67,10 @@ function CheckboxCollection(): React.JSX.Element {
             objectFit: 'contain',
             width: `calc(100% * (${data.iconSize} / 24px))`,
             height: `calc(100% * (${data.iconSize} / 24px))`,
-            ...getIconColorStyles(
-                data.icon || defaultIconTrue,
-                data.iconColor || theme.palette.primary.main,
-                data.forceColorMask,
-            ),
+            // useData's icon colour chain ends on the primary terminal — no fallback here.
+            ...getIconColorStyles(data.icon || defaultIconTrue, data.iconColor, data.forceColorMask),
         };
-    }, [data.iconSize, data.icon, data.iconColor, data.forceColorMask, theme.palette.primary.main]);
+    }, [data.iconSize, data.icon, data.iconColor, data.forceColorMask]);
 
     return (
         <CollectionBase

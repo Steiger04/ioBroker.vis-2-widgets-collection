@@ -83,7 +83,7 @@ describe('RadioGroupCollection wiring', () => {
     });
 
     it.each([
-        // The checked dot falls back to the theme primary; the label text colour (the
+        // The checked dot draws useData's primary terminal; the label text colour (the
         // former ripple fallback) must not leak into the ripple.
         ['no icon colour set: theme primary, not the label text colour', { textColor: '#00aa00' }],
         // Differs from the primary the checked radio root passes down, so this case fails
