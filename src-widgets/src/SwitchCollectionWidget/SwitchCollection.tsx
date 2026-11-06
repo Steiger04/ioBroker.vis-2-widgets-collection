@@ -6,7 +6,6 @@
 
 import { Box } from '@mui/material';
 import Switch from '@mui/material/Switch';
-import type { Theme } from '@mui/material/styles';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -16,49 +15,32 @@ import { sameStateValue } from '../hooks/useData/stateValueEquality';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import { buildSwitchChrome } from './chrome';
-import type { SwitchChromeData, SwitchChromeIcon } from './chrome';
+import type { SwitchChromeInput } from './chrome';
 import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
-interface BudgetedSwitchProps {
-    /** Raw widget data: the thumb size and the switch colour fields. */
-    data: SwitchChromeData;
-    /** The state's icon values from useData. */
-    icon: SwitchChromeIcon;
-    /** Measured width of the track row (px). */
-    width: number | undefined;
-    /** Sperre: the OID binding's `locked`. */
-    locked: boolean;
-    /** The effective collection theme. */
-    theme: Theme;
+/** The Schalter-Chrome input minus the height budget, which the switch reads itself, plus the toggle. */
+type BudgetedSwitchProps = Omit<SwitchChromeInput, 'contentBoxHeight'> & {
     /** Whether the switch is on. */
     checked: boolean;
     /** Toggle handler. */
     onChange: () => void;
-}
+};
 
 /**
  * The switch, its thumb capped by the height budget: the frame's Content-Box height
  * (ADR-0098) — a child of CollectionBase, where the box is published. Its whole
  * presentation is the Schalter-Chrome ({@link buildSwitchChrome}), passed as `sx`.
  */
-function BudgetedSwitch({
-    data,
-    icon,
-    width,
-    locked,
-    theme,
-    checked,
-    onChange,
-}: BudgetedSwitchProps): React.JSX.Element {
+function BudgetedSwitch({ checked, onChange, ...chromeInput }: BudgetedSwitchProps): React.JSX.Element {
     const { height } = useContentBox();
 
     return (
         <Switch
-            disabled={locked}
+            disabled={chromeInput.locked}
             checked={checked}
             onChange={onChange}
-            sx={buildSwitchChrome({ data, icon, width, maxHeight: height, locked, theme })}
+            sx={buildSwitchChrome({ ...chromeInput, contentBoxHeight: height })}
         />
     );
 }

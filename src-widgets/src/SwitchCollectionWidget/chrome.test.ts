@@ -31,7 +31,7 @@ const chrome = (overrides: Partial<SwitchChromeInput> = {}): Record<string, any>
         data: { thumbSize: 62 },
         icon: {},
         width: 200,
-        maxHeight: 400,
+        contentBoxHeight: 400,
         locked: false,
         theme: LIGHT,
         ...overrides,
@@ -53,32 +53,36 @@ const travel = (off: string, on: string): [string, string] => [
 
 describe('buildSwitchChrome — thumb travel (sign off/on, frozen 4px inset)', () => {
     it('travels half the thumb size minus the inset while the thumb fits', () => {
-        expect(travelOf(chrome({ data: { thumbSize: 62 }, maxHeight: 400 }))).toEqual(travel('27px', '-27px'));
+        expect(travelOf(chrome({ data: { thumbSize: 62 }, contentBoxHeight: 400 }))).toEqual(travel('27px', '-27px'));
     });
 
     it('clamps to half the available height once it undercuts the thumb', () => {
-        expect(travelOf(chrome({ data: { thumbSize: 62 }, maxHeight: 40 }))).toEqual(travel('16px', '-16px'));
+        expect(travelOf(chrome({ data: { thumbSize: 62 }, contentBoxHeight: 40 }))).toEqual(travel('16px', '-16px'));
     });
 
     it('treats the boundary (budget === thumb size) as fitting', () => {
-        expect(travelOf(chrome({ data: { thumbSize: 62 }, maxHeight: 62 }))).toEqual(travel('27px', '-27px'));
+        expect(travelOf(chrome({ data: { thumbSize: 62 }, contentBoxHeight: 62 }))).toEqual(travel('27px', '-27px'));
     });
 
     it('treats an unmeasured height budget as zero (first render)', () => {
-        expect(travelOf(chrome({ maxHeight: undefined }))).toEqual(travel('-4px', '4px'));
+        expect(travelOf(chrome({ contentBoxHeight: undefined }))).toEqual(travel('-4px', '4px'));
     });
 
     it('may go negative when the budget undercuts twice the inset (legacy, frozen)', () => {
-        expect(travelOf(chrome({ maxHeight: 0 }))).toEqual(travel('-4px', '4px'));
-        expect(travelOf(chrome({ maxHeight: 6 }))).toEqual(travel('-1px', '1px'));
+        expect(travelOf(chrome({ contentBoxHeight: 0 }))).toEqual(travel('-4px', '4px'));
+        expect(travelOf(chrome({ contentBoxHeight: 6 }))).toEqual(travel('-1px', '1px'));
     });
 
     it('honours the field caps', () => {
         // thumbSize 0 (slider minimum): the inset dominates
-        expect(travelOf(chrome({ data: { thumbSize: 0 }, maxHeight: 400 }))).toEqual(travel('-4px', '4px'));
+        expect(travelOf(chrome({ data: { thumbSize: 0 }, contentBoxHeight: 400 }))).toEqual(travel('-4px', '4px'));
         // thumbSize 500 (slider maximum), capped by a smaller budget
-        expect(travelOf(chrome({ data: { thumbSize: 500 }, maxHeight: 400 }))).toEqual(travel('196px', '-196px'));
-        expect(travelOf(chrome({ data: { thumbSize: 500 }, maxHeight: 600 }))).toEqual(travel('246px', '-246px'));
+        expect(travelOf(chrome({ data: { thumbSize: 500 }, contentBoxHeight: 400 }))).toEqual(
+            travel('196px', '-196px'),
+        );
+        expect(travelOf(chrome({ data: { thumbSize: 500 }, contentBoxHeight: 600 }))).toEqual(
+            travel('246px', '-246px'),
+        );
     });
 
     it('falls back to the schema thumb size (62) when none is stored', () => {
@@ -113,17 +117,17 @@ describe('buildSwitchChrome — anchor and invisible input', () => {
 
 describe('buildSwitchChrome — thumb size and height budget', () => {
     it('sizes the thumb and caps it at the height budget', () => {
-        const t = thumb(chrome({ data: { thumbSize: 40 }, maxHeight: 24 }));
+        const t = thumb(chrome({ data: { thumbSize: 40 }, contentBoxHeight: 24 }));
         expect([t.width, t.height, t.maxWidth, t.maxHeight]).toEqual(['40px', '40px', '24px', '24px']);
     });
 
     it('leaves the thumb uncapped while the budget is unmeasured', () => {
-        const t = thumb(chrome({ data: { thumbSize: 40 }, maxHeight: undefined }));
+        const t = thumb(chrome({ data: { thumbSize: 40 }, contentBoxHeight: undefined }));
         expect([t.width, t.height, t.maxWidth, t.maxHeight]).toEqual(['40px', '40px', undefined, undefined]);
     });
 
     it('keeps a thumb size of 1 in px (no sx fraction-to-percent conversion)', () => {
-        const t = thumb(chrome({ data: { thumbSize: 1 }, maxHeight: 1 }));
+        const t = thumb(chrome({ data: { thumbSize: 1 }, contentBoxHeight: 1 }));
         expect([t.width, t.height, t.maxWidth, t.maxHeight]).toEqual(['1px', '1px', '1px', '1px']);
     });
 

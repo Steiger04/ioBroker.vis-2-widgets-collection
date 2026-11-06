@@ -63,7 +63,7 @@ export interface SwitchChromeInput {
     /** Measured width of the track row (px), `undefined` while unmeasured. */
     width: number | undefined;
     /** Height budget (px): the frame's Content-Box height (ADR-0098), `undefined` while unmeasured. */
-    maxHeight: number | undefined;
+    contentBoxHeight: number | undefined;
     /** Whether the switch is locked (Sperre: only display, or not writable). */
     locked: boolean;
     /** The effective MUI theme (the collection theme). */
@@ -101,13 +101,13 @@ const px = (value: number): string => `${value}px`;
 /**
  * Horizontal travel magnitude of the switch base in px; negate for the checked side.
  *
- * While the thumb fits (`maxHeight >= thumbSize`) it travels half its own size minus the
+ * While the thumb fits (`contentBoxHeight >= thumbSize`) it travels half its own size minus the
  * inset; once the height budget caps the thumb, half the cap minus the inset. An unmeasured
  * budget counts as `0` (first render). May go negative when the budget undercuts twice the
  * inset (legacy formula, frozen).
  */
-function thumbTravel(thumbSize: number, maxHeight: number | undefined): number {
-    const effectiveHeight = maxHeight || 0;
+function thumbTravel(thumbSize: number, contentBoxHeight: number | undefined): number {
+    const effectiveHeight = contentBoxHeight || 0;
     const travelBase = effectiveHeight >= thumbSize ? thumbSize : effectiveHeight;
     return travelBase / 2 - TRAVEL_INSET_PX;
 }
@@ -128,14 +128,14 @@ function checkedInputLeft(width: number | undefined, thumbSize: number): number 
  * @returns The switch's sx object; pass it as `<Switch sx={…}>`.
  */
 export function buildSwitchChrome(input: SwitchChromeInput): CSSObject {
-    const { data, icon, width, maxHeight, locked, theme } = input;
+    const { data, icon, width, contentBoxHeight, locked, theme } = input;
 
     // Single source: the schema default in lib/switchFields.tsx
     const thumbSize = data.thumbSize ?? THUMB_SIZE_DEFAULT;
     const colors = resolveSwitchColors(data, theme, locked);
-    const travel = thumbTravel(thumbSize, maxHeight);
+    const travel = thumbTravel(thumbSize, contentBoxHeight);
     const inputWidth = px(width || 0);
-    const cap = maxHeight === undefined ? undefined : px(maxHeight);
+    const cap = contentBoxHeight === undefined ? undefined : px(contentBoxHeight);
 
     return {
         width: '100%',
