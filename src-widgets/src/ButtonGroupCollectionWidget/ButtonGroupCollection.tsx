@@ -26,7 +26,7 @@ function ButtonGroupCollection(): React.JSX.Element {
     const { widget, theme } = context as ButtonGroupCollectionContextProps;
 
     const oidObject = widget.data.oidObject;
-    const { data: styleData, states: buttonStates, activePosition } = useData('oid');
+    const { data: styleData, states: buttonStates } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
@@ -67,10 +67,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                         theme,
                     })}
                 >
-                    {buttonStates.map(({ value, ...state }, index) => {
-                        // activePosition indexes the state list (not a Feldnummer);
-                        // undefined = no matching state.
-                        const isActive = activePosition === index;
+                    {buttonStates.map(({ value, active: isActive, ...state }, index) => {
+                        // Aktiver Zustand (ADR-0105): every duplicate of the matching value is
+                        // active — the same buttons MUI selects, so selection, Active styling
+                        // and the active treatment agree.
 
                         // String(value!) coerces for MUI's strict === selection,
                         // applying the sameStateValue contract (see group value above).
