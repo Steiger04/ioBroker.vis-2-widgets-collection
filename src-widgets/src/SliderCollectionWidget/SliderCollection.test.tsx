@@ -664,3 +664,301 @@ describe('SliderCollection backend sync (Fremdänderung, ADR-0087 addendum)', ()
         expect(thumbOf(container)).toBe(0.45);
     });
 });
+
+// Characterisation of the Slider-Chrome (ADR-0106 decision 6): the geometry and colours of thumb,
+// track, rail and marks per orientation with their fallbacks, the frozen active-mark layer, the
+// mark-label space with the end symbols' rail offset, and the value/mark label positions. MUI's
+// own layers stay as they are (rail opacity 0.38, active-mark opacity 0.8).
+describe('SliderCollection chrome geometry and colours', () => {
+    const END_ICON =
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIvPg==';
+    // The preview host theme: Theme('light') → palette.primary.main.
+    const PRIMARY = '#3399CC';
+
+    /** A slider at 50 with marks at 0, 50, 100 (the first two active), its value label shown and a start icon. */
+    const mountChrome = (data: Record<string, unknown> = {}): HTMLElement =>
+        mount(
+            SliderCollection,
+            collectionScene(
+                'slider-chrome-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    valueLabelDisplay: 'on',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    iconMin: END_ICON,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        ).container;
+
+    /** The computed style of the first element matching `selector`. */
+    const styleOf = (container: HTMLElement, selector: string): CSSStyleDeclaration => {
+        const element = container.querySelector(selector);
+        if (!element) {
+            throw new Error(`the slider rendered no ${selector}`);
+        }
+        return getComputedStyle(element);
+    };
+
+    /**
+     * The declarations of the rule `<root class> <selector>`: for the pseudo-classes happy-dom
+     * does not compute (`:hover`, `:active`) and for the declaration order.
+     */
+    const rootRule = (container: HTMLElement, selector: string): string => {
+        const root = container.querySelector('.MuiSlider-root');
+        if (!root) {
+            throw new Error('the slider rendered no root');
+        }
+        const css = Array.from(document.head.querySelectorAll('style'))
+            .map(style => style.textContent ?? '')
+            .join('\n');
+        for (const cls of Array.from(root.classList).filter(name => name.startsWith('css-'))) {
+            const start = css.indexOf(`.${cls} ${selector}{`);
+            if (start >= 0) {
+                const open = css.indexOf('{', start);
+                return css.slice(open + 1, css.indexOf('}', open));
+            }
+        }
+        return '';
+    };
+
+    /** The transform of the wrapper that carries the start icon onto the rail axis. */
+    const endSymbolTransform = (container: HTMLElement): string => {
+        const icon = Array.from(container.querySelectorAll('img')).find(img => img.getAttribute('src') === END_ICON);
+        if (!icon?.parentElement) {
+            throw new Error('the slider rendered no start icon');
+        }
+        return getComputedStyle(icon.parentElement).transform;
+    };
+
+    describe('thumb', () => {
+        it('measures 20 × 20 px and paints the primary without a border by default', () => {
+            const thumb = styleOf(mountChrome(), '.MuiSlider-thumb');
+
+            expect([thumb.width, thumb.height]).toEqual(['20px', '20px']);
+            expect(thumb.background).toBe(PRIMARY);
+            expect(thumb.border).toBe('');
+        });
+
+        it('takes thumbWidth and thumbHeight and paints thumbColor, gradients too', () => {
+            const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+            const thumb = styleOf(
+                mountChrome({ thumbWidth: 30, thumbHeight: 12, thumbColor: gradient }),
+                '.MuiSlider-thumb',
+            );
+
+            expect([thumb.width, thumb.height]).toEqual(['30px', '12px']);
+            expect(thumb.background).toBe(gradient);
+        });
+
+        it.each<[string, Record<string, unknown>, string]>([
+            [
+                'a positive width in thumbBorderColor',
+                { thumbBorderWidth: 2, thumbBorderColor: '#00aa00' },
+                '2px solid #00aa00',
+            ],
+            [
+                'a positive width in the thumb colour',
+                { thumbBorderWidth: 3, thumbColor: '#aa0000' },
+                '3px solid #aa0000',
+            ],
+            ['a zero width as none', { thumbBorderWidth: 0, thumbBorderColor: '#00aa00' }, ''],
+            ['a negative width as none', { thumbBorderWidth: -1, thumbBorderColor: '#00aa00' }, ''],
+        ])('draws the border for %s', (_case, data, expected) => {
+            expect(styleOf(mountChrome(data), '.MuiSlider-thumb').border).toBe(expected);
+        });
+
+        it('draws the hover and active halo from the solid thumb colour', () => {
+            const container = mountChrome({ thumbColor: '#ff0000' });
+
+            expect(rootRule(container, '.MuiSlider-thumb:hover')).toBe(
+                'box-shadow:0px 0px 0px 8px rgba(255, 0, 0, 0.32);',
+            );
+            expect(rootRule(container, '.MuiSlider-thumb:active')).toBe(
+                'box-shadow:0px 0px 0px 14px rgba(255, 0, 0, 0.32);',
+            );
+        });
+    });
+
+    describe('track and rail', () => {
+        it.each<[string, Record<string, unknown>, Record<string, string>]>([
+            [
+                'horizontal, unset',
+                { sliderOrientation: 'horizontal' },
+                { trackHeight: '4px', railWidth: '100%', railHeight: '4px' },
+            ],
+            [
+                'horizontal, set',
+                { sliderOrientation: 'horizontal', trackLength: 6, railLength: 8 },
+                { trackHeight: '6px', railWidth: '100%', railHeight: '8px' },
+            ],
+            [
+                'vertical, unset',
+                { sliderOrientation: 'vertical' },
+                { trackWidth: '4px', railWidth: '4px', railHeight: '100%' },
+            ],
+            [
+                'vertical, set',
+                { sliderOrientation: 'vertical', trackLength: 6, railLength: 8 },
+                { trackWidth: '6px', railWidth: '8px', railHeight: '100%' },
+            ],
+        ])('takes the cross-axis lengths (%s)', (_case, data, expected) => {
+            const container = mountChrome(data);
+            const track = styleOf(container, '.MuiSlider-track');
+            const rail = styleOf(container, '.MuiSlider-rail');
+
+            // MUI writes the track's main-axis length inline (the value's share).
+            const actual: Record<string, string> = { railWidth: rail.width, railHeight: rail.height };
+            if (expected.trackHeight) {
+                actual.trackHeight = track.height;
+            } else {
+                actual.trackWidth = track.width;
+            }
+            expect(actual).toEqual(expected);
+        });
+
+        it('paints their own colours and the solid borders, rail opacity left to MUI', () => {
+            const container = mountChrome({
+                trackBackgroundColor: '#112233',
+                trackBorderColor: '#445566',
+                trackBorderWidth: 3,
+                railBackgroundColor: '#778899',
+                railBorderColor: '#aabbcc',
+                railBorderWidth: 2,
+            });
+            const track = styleOf(container, '.MuiSlider-track');
+            const rail = styleOf(container, '.MuiSlider-rail');
+
+            expect([track.background, track.borderWidth, track.borderStyle, track.borderColor]).toEqual([
+                '#112233',
+                '3px',
+                'solid',
+                '#445566',
+            ]);
+            expect([rail.background, rail.borderWidth, rail.borderStyle, rail.borderColor, rail.opacity]).toEqual([
+                '#778899',
+                '2px',
+                'solid',
+                '#aabbcc',
+                '0.38',
+            ]);
+        });
+
+        it.each([0, undefined])('keeps a 0px solid border for a border width of %s', width => {
+            const container = mountChrome({ trackBorderWidth: width, railBorderWidth: width });
+
+            for (const part of ['.MuiSlider-track', '.MuiSlider-rail']) {
+                const style = styleOf(container, part);
+                expect([style.borderWidth, style.borderStyle]).toEqual(['0px', 'solid']);
+            }
+        });
+    });
+
+    describe('marks', () => {
+        const INACTIVE = '.MuiSlider-mark:not(.MuiSlider-markActive)';
+        const ACTIVE = '.MuiSlider-markActive';
+
+        it.each<[string, Record<string, unknown>, [string, string]]>([
+            ['horizontal, unset', { sliderOrientation: 'horizontal' }, ['2px', '2px']],
+            ['horizontal, set', { sliderOrientation: 'horizontal', markWidth: 5, markHeight: 7 }, ['5px', '7px']],
+            ['vertical, unset', { sliderOrientation: 'vertical' }, ['16px', '3px']],
+            ['vertical, set', { sliderOrientation: 'vertical', markWidth: 5, markHeight: 7 }, ['7px', '5px']],
+        ])('sizes the inactive and the active mark alike (%s)', (_case, data, expected) => {
+            const container = mountChrome(data);
+
+            for (const selector of [INACTIVE, ACTIVE]) {
+                const mark = styleOf(container, selector);
+                expect([mark.width, mark.height]).toEqual(expected);
+            }
+        });
+
+        it('paints markBackgroundColor on both and brightens only the active mark', () => {
+            const container = mountChrome({ markBackgroundColor: '#204060' });
+            const inactive = styleOf(container, INACTIVE);
+            const active = styleOf(container, ACTIVE);
+
+            expect([inactive.background, inactive.filter, inactive.opacity]).toEqual(['#204060', '', '']);
+            expect([active.background, active.backgroundColor, active.filter, active.opacity]).toEqual([
+                '#204060',
+                '#204060',
+                'brightness(2.5)',
+                '0.8',
+            ]);
+        });
+
+        it('keeps a named colour that is a palette key as the plain CSS colour', () => {
+            const container = mountChrome({ markBackgroundColor: 'grey' });
+
+            expect(styleOf(container, INACTIVE).background).toBe('grey');
+            expect(styleOf(container, ACTIVE).backgroundColor).toBe('grey');
+        });
+
+        it('declares backgroundColor before background and the frozen brightness on the active mark', () => {
+            const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+            const container = mountChrome({ markBackgroundColor: gradient });
+
+            const rule = rootRule(container, '.MuiSlider-markActive');
+
+            expect(rule).toContain(`;background-color:${gradient};background:${gradient};`);
+            expect(rule).toMatch(/;filter:brightness\(2\.5\);/);
+        });
+    });
+
+    describe('mark-label space and end symbol offset', () => {
+        it.each<[string, Record<string, unknown>, [string, string], string]>([
+            ['horizontal with marks', { sliderOrientation: 'horizontal' }, ['20px', '0px'], 'translateY(-10px)'],
+            ['vertical with marks', { sliderOrientation: 'vertical' }, ['0px', '44px'], 'translateX(-22px)'],
+            [
+                'horizontal without marks',
+                { sliderOrientation: 'horizontal', marks: false },
+                ['0px', '0px'],
+                'translateY(0px)',
+            ],
+            [
+                'vertical without marks',
+                { sliderOrientation: 'vertical', marks: false },
+                ['0px', '0px'],
+                'translateX(0px)',
+            ],
+        ])('reserves the label margin and moves the end icon onto the rail (%s)', (_case, data, margins, transform) => {
+            const container = mountChrome(data);
+            const root = styleOf(container, '.MuiSlider-root');
+
+            expect([root.marginBottom, root.marginRight]).toEqual(margins);
+            expect(endSymbolTransform(container)).toBe(transform);
+        });
+    });
+
+    describe('label positions', () => {
+        it('puts the value label at labelPosition and the mark labels at markPosition (horizontal)', () => {
+            const container = mountChrome({ labelPosition: '-7px', markPosition: '25px' });
+            const valueLabel = styleOf(container, '.MuiSlider-valueLabel');
+            const markLabel = styleOf(container, '.MuiSlider-markLabel');
+
+            expect([valueLabel.top, valueLabel.backgroundColor]).toEqual(['-7px', 'transparent']);
+            expect(markLabel.top).toBe('25px');
+        });
+
+        it('puts them beside a vertical slider', () => {
+            const container = mountChrome({
+                sliderOrientation: 'vertical',
+                labelPosition: '-7px',
+                markPosition: '25px',
+            });
+            const valueLabel = styleOf(container, '.MuiSlider-valueLabel');
+            const markLabel = styleOf(container, '.MuiSlider-markLabel');
+
+            expect([valueLabel.right, valueLabel.backgroundColor]).toEqual(['-7px', 'transparent']);
+            expect(markLabel.left).toBe('25px');
+        });
+    });
+});
