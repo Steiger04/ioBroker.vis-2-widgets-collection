@@ -98,8 +98,9 @@ function selectedMarkIconOffset(activeOffset: string | undefined, markOffset: st
  * Generated marks get `active` by `sameStateValue`; state marks keep useData's
  * flag. The selected mark is the FIRST active mark (like `activePosition`).
  * It gets the label `aliasActive` (when it has a label) and the `0px` offset
- * rule; a selected generated mark additionally takes `iconSize`/`forceColorMask`
- * from `activeStyle` and `iconColor` only when an active icon colour is set —
+ * rule; a selected generated mark additionally takes `iconSize`/`forceColorMask`,
+ * `textColor`/`valueSize` from `activeStyle` and `iconColor` only when an
+ * active icon colour is set —
  * an unset `iconColorActive` must not override the base icon color. The former
  * `!== undefined` guards around size/mask were dropped as ineffective: with the
  * Active fields unset, the style resolver falls back to the base cascade.
@@ -175,11 +176,14 @@ function presentSelectedMark(mark: SliderMark, isGenerated: boolean, params: Bui
     return {
         ...mark,
         // A state mark resolved its Active tier per state in useData; a generated
-        // mark takes it from the active base mark style.
+        // mark takes it from the active base mark style — the resolved label style,
+        // so a gradient textColorActive paints like on a state mark.
         ...(isGenerated && {
             iconSize: activeStyle.iconSize,
             ...(iconColorActive ? { iconColor: activeStyle.iconColor } : {}),
             forceColorMask: activeStyle.forceColorMask,
+            textColor: activeStyle.textColor,
+            valueSize: activeStyle.valueSize,
         }),
         // Labels may carry HTML; a mark without a label stays empty.
         label: mark.label && aliasActive ? aliasActive : mark.label,

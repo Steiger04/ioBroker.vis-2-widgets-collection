@@ -330,6 +330,38 @@ describe('buildSliderMarks — selected mark', () => {
     });
 });
 
+describe('buildSliderMarks — text of the selected mark', () => {
+    const styles = {
+        baseStyle: baseStyle({ textColor: '#base', valueSize: '1rem' }),
+        activeStyle: activeStyle({ textColor: 'linear-gradient(90deg, #f00, #00f)', valueSize: '2.5rem' }),
+    };
+    const textOf = (marks: { value: number; textColor?: string; valueSize?: string | null }[]): unknown[] =>
+        marks.map(({ value, textColor, valueSize }) => [value, textColor, valueSize]);
+
+    it('gives a selected generated mark the text colour and size of the active style', () => {
+        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5, ...styles }));
+
+        expect(textOf(marks)).toEqual([
+            [0, '#base', '1rem'],
+            [5, 'linear-gradient(90deg, #f00, #00f)', '2.5rem'],
+            [10, '#base', '1rem'],
+        ]);
+    });
+
+    it('keeps the per-state text of a selected state mark', () => {
+        const marks = buildSliderMarks(
+            params({
+                states: [state(5, { active: true, textColor: '#state', valueSize: '3rem' })],
+                onlyStates: true,
+                oidValue: 5,
+                ...styles,
+            }),
+        );
+
+        expect(textOf(marks)).toEqual([[5, '#state', '3rem']]);
+    });
+});
+
 // The 0px rule (ADR-0106): frozen presentation, read from the RAW active offsets — unlike the
 // shared resolver, an unset value does not fall back to the mark's own offset.
 describe('buildSliderMarks — the 0px rule of the selected icon offset', () => {

@@ -205,9 +205,6 @@ const SliderCollection: FC = () => {
             widget.data.iconYOffsetActive,
         ],
     );
-    // The selected mark is the first active one (buildSliderMarks decided it); null without one.
-    const selectedIndex = sliderMarks.findIndex(mark => mark.active);
-    const sliderMarksIndex = selectedIndex !== -1 ? selectedIndex : null;
 
     return (
         <CollectionBase
@@ -328,21 +325,6 @@ const SliderCollection: FC = () => {
                                     fontSize: data.valueSize,
                                     top: isHorizontal ? widget.data.markPosition : undefined,
                                     left: !isHorizontal ? widget.data.markPosition : undefined,
-                                },
-                                // The selected mark follows the backend value, not MUI's
-                                // markLabelActive (value ≥ mark): a thumb dragged below it must
-                                // not drop its selected presentation before the write echoes.
-                                [`& .MuiSlider-markLabel[data-index='${sliderMarksIndex}']`]: {
-                                    // No tag: the mark text is a Typography, rendered as <p>.
-                                    "& [data-font='active']": {
-                                        color: widget.data.textColorActive
-                                            ? `${widget.data.textColorActive} !important`
-                                            : undefined,
-                                        fontSize:
-                                            typeof widget.data.valueSizeActive === 'number'
-                                                ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
-                                                : undefined,
-                                    },
                                 },
                             }}
                         />

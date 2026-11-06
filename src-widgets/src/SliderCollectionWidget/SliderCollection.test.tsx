@@ -194,6 +194,50 @@ describe('SliderCollection mark label text', () => {
     });
 });
 
+// A gradient textColorActive is no valid `color`: the selected mark paints it through its own
+// resolved text colour (gradientTextSx), a Zwischenmarke like a Zustandsmarke (ADR-0106).
+describe('SliderCollection selected mark gradient', () => {
+    const GRADIENT = 'linear-gradient(90deg, #ff0000, #0000ff)';
+
+    it.each([
+        ['a Zwischenmarke', {}],
+        ['a Zustandsmarke', { values_count: 1, value1: '50' }],
+    ])('paints a gradient textColorActive on the selected mark when it is %s', (_case, data) => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-mark-gradient-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    textColorActive: GRADIENT,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const marks = Array.from(container.querySelectorAll(".MuiSlider-markLabel [data-font='active']")).map(m =>
+            getComputedStyle(m),
+        );
+
+        expect(marks).toHaveLength(3);
+        expect(marks.map(m => [m.backgroundImage.includes('linear-gradient'), m.color])).toEqual([
+            [false, marks[0].color],
+            [true, 'transparent'],
+            [false, marks[0].color],
+        ]);
+        expect(marks[0].color).not.toBe('transparent');
+    });
+});
+
 describe('SliderCollection mark label font size', () => {
     /** The font size of every mark label container, mounted with the given data. */
     const markLabelSizes = (data: Record<string, unknown>): string[] => {
