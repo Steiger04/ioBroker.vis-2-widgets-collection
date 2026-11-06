@@ -26,6 +26,8 @@ const activeStyle = (overrides: Partial<StyleData> = {}): StyleData => ({
 const state = (value: number, overrides: Partial<StateStyleData> = {}): StateStyleData => ({
     // The marks never read the Feldnummer — any valid one will do.
     fieldNumber: 1,
+    // The marks derive their active overlay from oidValue, never from this flag.
+    active: false,
     value,
     label: String(value),
     ...overrides,
