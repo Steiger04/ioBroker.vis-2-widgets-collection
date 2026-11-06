@@ -10,7 +10,7 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import CollectionMark, { type CollectionMarkSlotProps } from './CollectionMark';
-import { buildSliderMarks } from './marks';
+import { buildScale } from './scale';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
@@ -173,47 +173,22 @@ const SliderCollection: FC = () => {
 
     const isValidType = oidType === 'number';
 
-    const sliderMinValue = useMemo(
-        () => (!widget.data.onlyStates && widget.data.minValue !== undefined ? Number(widget.data.minValue) : minValue),
-        [widget.data.onlyStates, widget.data.minValue, minValue],
-    );
-
-    const sliderMaxValue = useMemo(
-        () => (!widget.data.onlyStates && widget.data.maxValue !== undefined ? Number(widget.data.maxValue) : maxValue),
-        [widget.data.onlyStates, widget.data.maxValue, maxValue],
-    );
-
-    const sliderMarks = useMemo(
+    // Skala (CONTEXT "Skala"): range, grid, marks and the selected mark in one pure
+    // module. Reference-keyed like the chrome memo: a move in the editor churns
+    // widget.data, states and markBaseStyle alike, and the recompute is pure and
+    // cheap — a content key on the mark style alone would not stop it.
+    const scale = useMemo(
         () =>
-            buildSliderMarks({
+            buildScale({
+                fields: widget.data,
                 states,
-                minValue: sliderMinValue,
-                maxValue: sliderMaxValue,
-                markStep: widget.data.markStep,
-                onlyStates: widget.data.onlyStates,
+                stateMin: minValue,
+                stateMax: maxValue,
+                markBaseStyle,
                 unit: oidObject?.unit,
                 oidValue,
-                baseStyle: markBaseStyle.inactive,
-                activeStyle: markBaseStyle.active,
-                iconColorActive: widget.data.iconColorActive,
-                aliasActive: widget.data.aliasActive,
-                iconXOffsetActive: widget.data.iconXOffsetActive,
-                iconYOffsetActive: widget.data.iconYOffsetActive,
             }),
-        [
-            states,
-            widget.data.onlyStates,
-            widget.data.markStep,
-            sliderMinValue,
-            sliderMaxValue,
-            oidObject?.unit,
-            oidValue,
-            markBaseStyle,
-            widget.data.iconColorActive,
-            widget.data.aliasActive,
-            widget.data.iconXOffsetActive,
-            widget.data.iconYOffsetActive,
-        ],
+        [widget.data, states, minValue, maxValue, markBaseStyle, oidObject?.unit, oidValue],
     );
 
     return (
@@ -269,16 +244,10 @@ const SliderCollection: FC = () => {
                             disabled={locked}
                             valueLabelDisplay={widget.data.valueLabelDisplay}
                             orientation={widget.data.sliderOrientation}
-                            min={sliderMinValue ?? undefined}
-                            max={sliderMaxValue ?? undefined}
-                            marks={sliderMarks}
-                            step={
-                                widget.data.onlyStates
-                                    ? null // For onlyStates: null means only mark values can be selected
-                                    : widget.data.step !== undefined
-                                      ? Number(widget.data.step)
-                                      : undefined
-                            }
+                            min={scale.min ?? undefined}
+                            max={scale.max ?? undefined}
+                            marks={scale.marks}
+                            step={scale.step}
                             size={widget.data.sliderSize}
                             value={sliderValue}
                             onChange={(_, newValue: number | number[]) => {
