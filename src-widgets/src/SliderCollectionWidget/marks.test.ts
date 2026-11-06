@@ -26,7 +26,7 @@ const activeStyle = (overrides: Partial<StyleData> = {}): StyleData => ({
 const state = (value: number, overrides: Partial<StateStyleData> = {}): StateStyleData => ({
     // The marks never read the Feldnummer — any valid one will do.
     fieldNumber: 1,
-    // The marks derive their active overlay from oidValue, never from this flag.
+    // useData's Aktiver Zustand — the marks keep it as given, whatever oidValue says.
     active: false,
     value,
     label: String(value),
@@ -232,6 +232,151 @@ describe('buildSliderMarks — active overlay', () => {
         expect(active?.iconSize).toBe(base.iconSize);
         expect(active?.iconColor).toBe(base.iconColor);
         expect(active?.forceColorMask).toBe(base.forceColorMask);
+    });
+});
+
+const flagsOf = (marks: { value: number; active: boolean }[]): [number, boolean][] =>
+    marks.map(m => [m.value, m.active]);
+
+describe('buildSliderMarks — active flag', () => {
+    it('flags the generated mark matching oidValue', () => {
+        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
+
+        expect(flagsOf(marks)).toEqual([
+            [0, false],
+            [5, true],
+            [10, false],
+        ]);
+    });
+
+    it("flags a numeric mark for the string value '5' (sameStateValue)", () => {
+        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: '5' }));
+
+        expect(marks.find(m => m.value === 5)?.active).toBe(true);
+    });
+
+    it.each([
+        ['a value between the marks', 7],
+        ['no backend value', undefined],
+    ])('flags no mark for %s', (_case, oidValue) => {
+        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue }));
+
+        expect(marks.some(m => m.active)).toBe(false);
+    });
+
+    it("keeps the state marks' own flag from useData", () => {
+        const marks = buildSliderMarks(
+            params({
+                states: [state(3, { active: true }), state(5, { active: false })],
+                minValue: 0,
+                maxValue: 10,
+                markStep: 10,
+                oidValue: 5,
+            }),
+        );
+
+        expect(flagsOf(marks)).toEqual([
+            [0, false],
+            [3, true],
+            [5, false],
+            [10, false],
+        ]);
+    });
+});
+
+describe('buildSliderMarks — selected mark', () => {
+    it('gives aliasActive to the first active mark only, duplicates keep their labels', () => {
+        const marks = buildSliderMarks(
+            params({
+                states: [state(5, { active: true, label: 'first' }), state(5, { active: true, label: 'second' })],
+                onlyStates: true,
+                aliasActive: '<b>on</b>',
+            }),
+        );
+
+        expect(marks.map(m => [m.label, m.active])).toEqual([
+            ['<b>on</b>', true],
+            ['second', true],
+        ]);
+    });
+
+    it('gives aliasActive to a selected generated mark', () => {
+        const marks = buildSliderMarks(
+            params({ minValue: 0, maxValue: 10, markStep: 5, unit: '%', oidValue: 5, aliasActive: 'half' }),
+        );
+
+        expect(marks.map(m => m.label)).toEqual(['0%', 'half', '10%']);
+    });
+
+    it('leaves a selected mark without a label empty', () => {
+        const marks = buildSliderMarks(
+            params({ states: [state(5, { active: true, label: '' })], onlyStates: true, aliasActive: 'on' }),
+        );
+
+        expect(marks[0].label).toBe('');
+    });
+
+    it('keeps the label without aliasActive', () => {
+        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
+
+        expect(marks.find(m => m.value === 5)?.label).toBe('5');
+    });
+
+    it('does not touch the state entry it selects', () => {
+        const entry = state(5, { active: true, label: 'five', iconXOffset: '3px' });
+        buildSliderMarks(params({ states: [entry], onlyStates: true, aliasActive: 'on' }));
+
+        expect(entry).toEqual(state(5, { active: true, label: 'five', iconXOffset: '3px' }));
+    });
+});
+
+// The 0px rule (ADR-0106): frozen presentation, read from the RAW active offsets — unlike the
+// shared resolver, an unset value does not fall back to the mark's own offset.
+describe('buildSliderMarks — the 0px rule of the selected icon offset', () => {
+    const offsets = (
+        active: Partial<Pick<BuildSliderMarksParams, 'iconXOffsetActive' | 'iconYOffsetActive'>>,
+    ): { value: number; iconXOffset?: string; iconYOffset?: string }[] =>
+        buildSliderMarks(
+            params({
+                states: [state(10, { active: true, iconXOffset: '3px', iconYOffset: '4px' })],
+                minValue: 0,
+                maxValue: 10,
+                markStep: 10,
+                oidValue: 10,
+                baseStyle: baseStyle({ iconXOffset: '1px', iconYOffset: '2px' }),
+                ...active,
+            }),
+        ).map(({ value, iconXOffset, iconYOffset }) => ({ value, iconXOffset, iconYOffset }));
+
+    it.each([
+        ['unset', {}, '0px', '0px'],
+        ["''", { iconXOffsetActive: '', iconYOffsetActive: '' }, '3px', '4px'],
+        ["'0px'", { iconXOffsetActive: '0px', iconYOffsetActive: '0px' }, '0px', '0px'],
+        ['a value', { iconXOffsetActive: '7px', iconYOffsetActive: '-2px' }, '7px', '-2px'],
+    ])('places the selected icon for an active offset %s', (_case, active, x, y) => {
+        expect(offsets(active)).toEqual([
+            { value: 0, iconXOffset: '1px', iconYOffset: '2px' },
+            { value: 10, iconXOffset: x, iconYOffset: y },
+        ]);
+    });
+
+    it('applies to a selected generated mark too', () => {
+        const marks = buildSliderMarks(
+            params({
+                minValue: 0,
+                maxValue: 10,
+                markStep: 5,
+                oidValue: 5,
+                baseStyle: baseStyle({ iconXOffset: '1px', iconYOffset: '2px' }),
+                iconYOffsetActive: '',
+            }),
+        );
+
+        expect(marks.map(({ iconXOffset, iconYOffset }) => [iconXOffset, iconYOffset])).toEqual([
+            ['1px', '2px'],
+            ['0px', '2px'],
+            ['1px', '2px'],
+        ]);
     });
 });
 

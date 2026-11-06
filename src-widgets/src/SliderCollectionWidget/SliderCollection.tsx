@@ -8,8 +8,8 @@ import { Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useMemo, useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData, { sameStateValue } from '../hooks/useData';
-import CollectionMark from './CollectionMark';
+import useData from '../hooks/useData';
+import CollectionMark, { type CollectionMarkSlotProps } from './CollectionMark';
 import { buildSliderMarks } from './marks';
 import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
 import useOptimisticNumber from './useOptimisticNumber';
@@ -20,7 +20,6 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
-import { type Mark } from '@mui/material/Slider/useSlider.types';
 import SafeImg from '../components/SafeImg';
 
 type CollectionSliderProps = SliderProps & {
@@ -30,7 +29,7 @@ type CollectionSliderProps = SliderProps & {
         markLabel: typeof CollectionMark;
     };
     slotProps: {
-        markLabel: SliderMarkLabelProps;
+        markLabel: CollectionMarkSlotProps;
     };
 };
 
@@ -98,13 +97,6 @@ const CollectionSlider = styled(Slider, {
         },
     };
 });
-
-interface SliderMarkLabelProps {
-    marks: boolean;
-    sliderOrientation: 'horizontal' | 'vertical';
-    aliasActive?: string;
-    activeMarkIndex?: number | null;
-}
 
 const SliderCollection: FC = () => {
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
@@ -194,6 +186,9 @@ const SliderCollection: FC = () => {
                 baseStyle: markBaseStyle.inactive,
                 activeStyle: markBaseStyle.active,
                 iconColorActive: widget.data.iconColorActive,
+                aliasActive: widget.data.aliasActive,
+                iconXOffsetActive: widget.data.iconXOffsetActive,
+                iconYOffsetActive: widget.data.iconYOffsetActive,
             }),
         [
             states,
@@ -205,17 +200,14 @@ const SliderCollection: FC = () => {
             oidValue,
             markBaseStyle,
             widget.data.iconColorActive,
+            widget.data.aliasActive,
+            widget.data.iconXOffsetActive,
+            widget.data.iconYOffsetActive,
         ],
     );
-    // Derive the index of the mark corresponding to the current oidValue
-    const sliderMarksIndex = useMemo(() => {
-        if (oidValue === undefined) {
-            return null;
-        }
-
-        const index = sliderMarks.findIndex(mark => sameStateValue(mark.value, oidValue));
-        return index !== -1 ? index : null;
-    }, [oidValue, sliderMarks]);
+    // The selected mark is the first active one (buildSliderMarks decided it); null without one.
+    const selectedIndex = sliderMarks.findIndex(mark => mark.active);
+    const sliderMarksIndex = selectedIndex !== -1 ? selectedIndex : null;
 
     return (
         <CollectionBase
@@ -286,16 +278,14 @@ const SliderCollection: FC = () => {
                                 markLabel: {
                                     marks: widget.data.marks,
                                     sliderOrientation: widget.data.sliderOrientation,
-                                    aliasActive: widget.data.aliasActive,
-                                    activeMarkIndex: sliderMarksIndex,
-                                } as SliderMarkLabelProps,
+                                },
                             }}
                             disabled={locked}
                             valueLabelDisplay={widget.data.valueLabelDisplay}
                             orientation={widget.data.sliderOrientation}
                             min={sliderMinValue ?? undefined}
                             max={sliderMaxValue ?? undefined}
-                            marks={sliderMarks as Mark[]}
+                            marks={sliderMarks}
                             step={
                                 widget.data.onlyStates
                                     ? null // For onlyStates: null means only mark values can be selected
@@ -352,20 +342,6 @@ const SliderCollection: FC = () => {
                                             typeof widget.data.valueSizeActive === 'number'
                                                 ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
                                                 : undefined,
-                                    },
-                                    "& div[data-position='active']": {
-                                        left:
-                                            widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
-                                                ? `${widget.data.iconXOffsetActive} !important`
-                                                : widget.data.iconXOffsetActive === ''
-                                                  ? undefined
-                                                  : '0px !important',
-                                        bottom:
-                                            widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
-                                                ? `${widget.data.iconYOffsetActive} !important`
-                                                : widget.data.iconYOffsetActive === ''
-                                                  ? undefined
-                                                  : '0px !important',
                                     },
                                 },
                             }}

@@ -2,6 +2,11 @@
  * Slider mark-label renderer used by MUI `Slider`.
  *
  * @module widgets/CollectionMark
+ * @remarks
+ * Paints the mark's data only: the selected mark's final presentation (label,
+ * icon offset, icon overlay) is already written onto it by `buildSliderMarks`
+ * (ADR-0106). The `data-font`/`data-position`/`data-img` attributes are test
+ * hooks — no rule of the slider body reaches the mark through them.
  */
 
 import { SliderMarkLabel, Box, Typography } from '@mui/material';
@@ -10,41 +15,34 @@ import React, { type FC, type HTMLAttributes } from 'react';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
-import { type StateStyleData } from '../hooks/useData/types';
 import SafeImg from '../components/SafeImg';
+import type { SliderMark } from './marks';
+
+/** The props the slider hands to its mark-label slot (`slotProps.markLabel`). */
+export interface CollectionMarkSlotProps {
+    /** The widget's `marks` toggle: without it the mark labels render nothing. */
+    marks?: boolean;
+    sliderOrientation?: 'horizontal' | 'vertical';
+}
 
 // Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
-export interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
-    marks: boolean;
-    sliderOrientation: 'horizontal' | 'vertical';
-    aliasActive?: string;
-    activeMarkIndex?: number | null;
+export interface CollectionMarkProps extends CollectionMarkSlotProps, Omit<HTMLAttributes<HTMLElement>, 'children'> {
     'data-index': number;
     ownerState: {
-        marks?: StateStyleData[];
+        /** The slider's `marks` — the list `buildSliderMarks` built. */
+        marks?: SliderMark[];
     };
     // Additional MUI-specific props.
     style?: React.CSSProperties;
     className?: string;
 }
 
-const CollectionMark: FC<CollectionMarkProps> = ({
-    marks,
-    sliderOrientation,
-    aliasActive,
-    activeMarkIndex,
-    ...props
-}) => {
-    const index = props['data-index'];
+const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...props }) => {
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
-    const mark = props.ownerState.marks?.[index];
+    const mark = props.ownerState.marks?.[props['data-index']];
 
-    // Check if this is exactly the current selected mark using our index
-    const isCurrentSelected = activeMarkIndex === index;
-
-    // Labels may carry HTML. aliasActive replaces the label ONLY for the currently
-    // selected mark (not all active marks); a mark without label stays empty.
-    const labelHtml = mark?.label ? (isCurrentSelected && aliasActive ? aliasActive : mark.label) : '';
+    // Labels may carry HTML; the selected mark's alias is already its label.
+    const labelHtml = mark?.label || '';
 
     return marks && mark ? (
         <SliderMarkLabel {...props}>
