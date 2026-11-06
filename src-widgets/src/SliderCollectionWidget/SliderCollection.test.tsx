@@ -104,6 +104,136 @@ describe('SliderCollection value label ignores the marker text colour', () => {
     });
 });
 
+// Characterisation of the value label's colour and size (ADR-0106): the label paints the
+// resolved active style — `textColorActive` → active state → base → vis-2 text style → theme
+// text, and `valueSizeActive` → active state → base → vis-2 font size → MUI's own size.
+describe('SliderCollection value label colour and size', () => {
+    /** A slider at 50 with its label always shown; `value1: '50'` makes state 1 active. */
+    const valueLabelStyle = (
+        data: Record<string, unknown>,
+        style: Record<string, string> = {},
+    ): { color: string; fontSize: string } => {
+        const scene = collectionScene(
+            'slider-value-label-test',
+            {
+                oid: OID,
+                oidObject: { _id: OID, type: 'number' },
+                sliderOrientation: 'horizontal',
+                valueLabelDisplay: 'on',
+                minValue: 0,
+                maxValue: 100,
+                noHeader: true,
+                noFooter: true,
+                noHeaderIcon: true,
+                ...data,
+            },
+            50,
+        );
+        (scene.context.widget as { style: Record<string, string> }).style = style;
+        const { container } = mount(SliderCollection, scene);
+        const valueLabel = container.querySelector('.MuiSlider-valueLabel');
+        if (!valueLabel) {
+            throw new Error('the slider rendered no value label');
+        }
+        const { color, fontSize } = getComputedStyle(valueLabel);
+        return { color, fontSize };
+    };
+
+    const ACTIVE_STATE = { values_count: 1, value1: '50' };
+    const INACTIVE_STATE = { values_count: 1, value1: '30' };
+    // The collection theme lets the text follow the effective primary (resolveCollectionTheme):
+    // on the preview host, Theme('light'), palette.text.primary is the host primary.
+    const THEME_TEXT = '#3399CC';
+
+    it.each<[string, Record<string, unknown>, Record<string, string>, string]>([
+        ['nothing set', {}, {}, THEME_TEXT],
+        ['nothing set on an active state', ACTIVE_STATE, {}, THEME_TEXT],
+        [
+            'textColorActive over the active state and the base',
+            { ...ACTIVE_STATE, textColor: '#0000aa', textColor1: '#00aa00', textColorActive: '#aa00aa' },
+            {},
+            '#aa00aa',
+        ],
+        ['textColorActive without a state', { textColorActive: '#aa00aa' }, {}, '#aa00aa'],
+        ['an empty textColorActive as unset', { textColor: '#0000aa', textColorActive: '' }, {}, '#0000aa'],
+        [
+            'an empty textColorActive on an active state',
+            { ...ACTIVE_STATE, textColor: '#0000aa', textColor1: '#00aa00', textColorActive: '' },
+            {},
+            '#00aa00',
+        ],
+        [
+            "the active state's text colour over the base",
+            { ...ACTIVE_STATE, textColor: '#0000aa', textColor1: '#00aa00' },
+            {},
+            '#00aa00',
+        ],
+        [
+            "the base over an inactive state's text colour",
+            { ...INACTIVE_STATE, textColor: '#0000aa', textColor1: '#00aa00' },
+            {},
+            '#0000aa',
+        ],
+        ['the base text colour', { textColor: '#0000aa' }, {}, '#0000aa'],
+        ['the vis-2 text style without a text colour', {}, { color: '#123456' }, '#123456'],
+        ['the base text colour over the vis-2 text style', { textColor: '#0000aa' }, { color: '#123456' }, '#0000aa'],
+        [
+            "the active state's text colour over the vis-2 text style",
+            { ...ACTIVE_STATE, textColor1: '#00aa00' },
+            { color: '#123456' },
+            '#00aa00',
+        ],
+        ['the theme text, not the marker text colour', { markerTextColor: MARKER_TEXT_COLOR }, {}, THEME_TEXT],
+    ])('paints %s', (_case, data, style, expected) => {
+        expect(valueLabelStyle(data, style).color).toBe(expected);
+    });
+
+    // formatSizeRem: a size of N % is `calc(N/100 rem * 0.875)`; happy-dom computes the rem at 16px.
+    const SIZE_250 = 'calc(40px * 0.875)';
+    const SIZE_200 = 'calc(32px * 0.875)';
+    const SIZE_150 = 'calc(24px * 0.875)';
+
+    it('keeps MUI’s own size with nothing set', () => {
+        const unset = valueLabelStyle({}).fontSize;
+
+        // Guards against a vacuous match should happy-dom stop resolving the Emotion rules.
+        expect(unset).not.toBe('');
+        expect([SIZE_250, SIZE_200, SIZE_150]).not.toContain(unset);
+        expect(valueLabelStyle(ACTIVE_STATE).fontSize).toBe(unset);
+        expect(valueLabelStyle({ markerTextSize: 250 }).fontSize).toBe(unset);
+    });
+
+    it.each<[string, Record<string, unknown>, Record<string, string>, string]>([
+        ['valueSizeActive', { valueSizeActive: 250 }, {}, SIZE_250],
+        ['valueSizeActive over the base', { valueSize: 150, valueSizeActive: 250 }, {}, SIZE_250],
+        [
+            'valueSizeActive over the active state',
+            { ...ACTIVE_STATE, valueSize: 150, valueSize1: 200, valueSizeActive: 250 },
+            {},
+            SIZE_250,
+        ],
+        ['a zero valueSizeActive as set', { valueSize: 150, valueSizeActive: 0 }, {}, 'calc(0px * 0.875)'],
+        ['the base value size without valueSizeActive', { valueSize: 150 }, {}, SIZE_150],
+        [
+            "the active state's value size over the base",
+            { ...ACTIVE_STATE, valueSize: 150, valueSize1: 200 },
+            {},
+            SIZE_200,
+        ],
+        [
+            "the base over an inactive state's value size",
+            { ...INACTIVE_STATE, valueSize: 150, valueSize1: 200 },
+            {},
+            SIZE_150,
+        ],
+        ['the vis-2 font size without a value size', {}, { 'font-size': '20px' }, '20px'],
+        ['the base value size over the vis-2 font size', { valueSize: 150 }, { 'font-size': '20px' }, SIZE_150],
+        ['the base value size, not the marker text size', { valueSize: 150, markerTextSize: 250 }, {}, SIZE_150],
+    ])('sizes the label with %s', (_case, data, style, expected) => {
+        expect(valueLabelStyle(data, style).fontSize).toBe(expected);
+    });
+});
+
 describe('SliderCollection mark label text', () => {
     /** The colours of the value label and of every mark label text, mounted with the given data. */
     const labelColors = (data: Record<string, unknown>): { valueLabel: string; marks: string[] } => {
