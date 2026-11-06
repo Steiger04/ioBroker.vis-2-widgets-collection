@@ -7,9 +7,11 @@
  * `inheritTextStyle` / `fallbackFields`). The editor swatch
  * (`ContractColorField`, the Vertrags-Adapter), the Gauge's color options and most chrome
  * contracts at runtime walk the whole cascade here; the state resolvers
- * (`propertyResolvers`) and the chrome slots that paint a raw explicit value
- * build their own chains and take only the terminal mapping (`terminalColor`) —
- * who does which: `ExtendedField`'s module remarks.
+ * (`propertyResolvers`) and the table's header bar build their own chains and
+ * take only the terminal mapping (`terminalColor`); the Switch's and the Radio's
+ * chrome slots, which paint their stored value raw, take the stored stages, a
+ * Sperre default and the terminal through `resolveStoredChromeColor` — who does
+ * which: `ExtendedField`'s module remarks.
  *
  * This is the FIELD CONTRACT (base layer) only — it knows nothing about
  * active/state/marker layers, which the widget resolvers apply on top. See
@@ -18,6 +20,10 @@
  * `resolveEffectiveSolidColor` walks the same cascade for slots that can only
  * draw a solid color (borders, separators, shadows) and accepts a stage only
  * with its Repräsentative Vollfarbe (`lib/helper/colorDerivation`).
+ *
+ * `resolveStoredChromeColor` reads only the stored stages (field, fallback fields)
+ * raw, not validated, and knows no vis-2 style stage; it ends on a Sperre default
+ * the caller passes, else on the terminal.
  */
 
 import type { Theme } from '@mui/material';
@@ -174,4 +180,40 @@ export function resolveEffectiveSolidColor(
         }
     }
     return undefined;
+}
+
+/**
+ * Resolves a chrome slot that paints its stored value raw, as stored — the Switch's
+ * thumbs and tracks and the Radio's unchecked icon.
+ *
+ * Walks the stored stages of the contract — the field, then each `fallbackFields` entry
+ * (empty-string names skipped) — and yields the first set one raw: any non-empty string,
+ * never validated or trimmed (a colour name, `transparent`, a gradient, legacy free text).
+ * Unlike {@link cascadeCandidates} it does not read the stored values with the Regeln für
+ * Farbeingaben, so a value the swatch counts as unset can still paint here. Without a
+ * stored value it yields the Sperre default the caller passes for the locked state (the
+ * rule itself stays in the contract module), else the terminal ({@link terminalColor}).
+ *
+ * It knows no vis-2 style stage: `inheritTextStyle` is ignored, no raw slot inherits the
+ * vis-2 CSS colour.
+ *
+ * @param contract - Field contract (name, fallbackFields, terminal).
+ * @param data - Widget data map (explicit values + fallback sources).
+ * @param theme - Effective MUI theme (for the terminal default).
+ * @param lockedDefault - The colour that replaces the terminal while the slot is locked (Sperre); omitted when enabled.
+ * @returns The stored value raw, else the Sperre default, else the terminal (`''` for transparent/none).
+ */
+export function resolveStoredChromeColor(
+    contract: ColorFieldContract,
+    data: Record<string, unknown>,
+    theme: Theme,
+    lockedDefault?: string,
+): string {
+    for (const name of [contract.name, ...(contract.fallbackFields ?? [])]) {
+        const value = name ? data[name] : undefined;
+        if (typeof value === 'string' && value !== '') {
+            return value;
+        }
+    }
+    return lockedDefault ?? terminalColor(contract.terminal, theme);
 }

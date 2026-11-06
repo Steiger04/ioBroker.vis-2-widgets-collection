@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Theme } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import { resolveEffectiveColor, resolveEffectiveSolidColor, terminalColor } from './resolveEffectiveColor';
+import {
+    resolveEffectiveColor,
+    resolveEffectiveSolidColor,
+    resolveStoredChromeColor,
+    terminalColor,
+} from './resolveEffectiveColor';
 import type { ColorFieldContract } from './resolveEffectiveColor';
 
 const THEME = {
@@ -245,5 +250,57 @@ describe('resolveEffectiveSolidColor', () => {
         // A theme primary no colour calculation reads (a CSS variable).
         const unreadable = { palette: { ...THEME.palette, primary: { main: 'var(--primary)' } } } as unknown as Theme;
         expect(resolveEffectiveSolidColor(border, {}, unreadable, undefined)).toBeUndefined();
+    });
+});
+
+describe('resolveStoredChromeColor', () => {
+    const track = contract({ name: 'trackColorTrue', fallbackFields: ['trackColor'], terminal: 'primary' });
+
+    it('yields the field value as stored', () => {
+        expect(resolveStoredChromeColor(track, { trackColorTrue: '#123456', trackColor: '#654321' }, THEME)).toBe(
+            '#123456',
+        );
+    });
+
+    it('yields the first set fallback field when the field is unset', () => {
+        const chained = contract({ name: 'a', fallbackFields: ['', 'b', 'c'], terminal: 'primary' });
+
+        expect(resolveStoredChromeColor(track, { trackColor: '#654321' }, THEME)).toBe('#654321');
+        expect(resolveStoredChromeColor(track, { trackColorTrue: '', trackColor: '#654321' }, THEME)).toBe('#654321');
+        expect(resolveStoredChromeColor(chained, { b: '', c: '#0c0c0c' }, THEME)).toBe('#0c0c0c');
+    });
+
+    it('yields an unvalidated stored value raw, untrimmed', () => {
+        for (const raw of ['red', 'transparent', 'var(--x)', 'not a colour', ' #123456 ']) {
+            expect(resolveStoredChromeColor(track, { trackColorTrue: raw }, THEME)).toBe(raw);
+            expect(resolveStoredChromeColor(track, { trackColor: raw }, THEME)).toBe(raw);
+        }
+    });
+
+    it('skips a stored value that is no string', () => {
+        expect(resolveStoredChromeColor(track, { trackColorTrue: 42, trackColor: null }, THEME)).toBe('#pri');
+    });
+
+    it('never reads the vis-2 style stage', () => {
+        const inheriting = contract({ name: 'textColor', terminal: 'text', inheritTextStyle: true });
+
+        expect(resolveStoredChromeColor(inheriting, {}, THEME)).toBe('#txt');
+    });
+
+    it('yields the Sperre default when no stored stage is set', () => {
+        expect(resolveStoredChromeColor(track, {}, THEME, '#locked')).toBe('#locked');
+        // a stored value keeps winning over the Sperre default
+        expect(resolveStoredChromeColor(track, { trackColor: '#654321' }, THEME, '#locked')).toBe('#654321');
+    });
+
+    it('yields the terminal when neither a stored stage nor a Sperre default is set', () => {
+        expect(resolveStoredChromeColor(track, {}, THEME)).toBe('#pri');
+        expect(resolveStoredChromeColor(track, {}, THEME, undefined)).toBe('#pri');
+        expect(resolveStoredChromeColor(contract({ name: 'x', terminal: 'textSecondary' }), {}, THEME)).toBe('#txs');
+    });
+
+    it("yields '' for the transparent terminal and for no terminal", () => {
+        expect(resolveStoredChromeColor(contract({ name: 'background', terminal: 'transparent' }), {}, THEME)).toBe('');
+        expect(resolveStoredChromeColor(contract({ name: 'background' }), {}, THEME)).toBe('');
     });
 });

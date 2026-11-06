@@ -8,7 +8,7 @@
  * ADR-0004 (Nachtrag 2026-11 general rule, Nachtrag 2026-11-04), pattern
  * `selectColorContract` / `radioColorContract`: the switch colour fields (switchFields)
  * spread their contract, so the editor swatch resolves it, and the Switch renderer
- * (`MaterialUISwitch`) resolves the same contract at runtime. For a chrome slot the field
+ * (the Schalter-Chrome, `buildSwitchChrome`) resolves the same contract at runtime. For a chrome slot the field
  * follows the runtime: without a value the thumbs have always drawn MUI's Switch defaults,
  * so the contracts declare exactly these as terminals — thumb on `primary`, thumb off
  * `switchThumbOff` (`common.white` light / `grey[300]` dark), track on `primary`, track off
@@ -23,14 +23,16 @@
  *
  * `resolveSwitchColors` keeps all of the Switch's colour rules in one place. The explicit
  * value is drawn raw, as stored (ADR-0004 review fix P2: colour names, `transparent`,
- * gradients); only the swatch reads it with the Regeln für Farbeingaben.
+ * gradients) through the cascade's raw stage `resolveStoredChromeColor`, which also takes
+ * the Sperre's MUI disabled thumb colours as its locked default; only the swatch reads it
+ * with the Regeln für Farbeingaben.
  *
  * Kept free of components: the field list pulls editor components (Generic), which the
  * runtime and its node tests must not import.
  */
 import type { Theme } from '@mui/material';
 import { darken, lighten } from '@mui/material/styles';
-import { terminalColor } from './helper/resolveEffectiveColor';
+import { resolveStoredChromeColor } from './helper/resolveEffectiveColor';
 import type { ColorFieldContract } from './helper/resolveEffectiveColor';
 import type { SwitchFieldsRxData } from '../types/field-definitions/switch-fields';
 
@@ -90,20 +92,6 @@ export interface SwitchColors {
 }
 
 /**
- * The raw value of the first set stage — the field itself, then its fallback fields, as
- * stored (never validated away) — or `undefined` when none is set.
- */
-function firstStoredValue(contract: ColorFieldContract, data: Record<string, unknown>): string | undefined {
-    for (const name of [contract.name, ...(contract.fallbackFields ?? [])]) {
-        const value = name ? data[name] : undefined;
-        if (typeof value === 'string' && value !== '') {
-            return value;
-        }
-    }
-    return undefined;
-}
-
-/**
  * The thumb colours MUI 6.5.0 paints while the switch is disabled (Switch.js, non-`vars`
  * branch — the collection theme carries no CSS variables, ADR-0078): off `grey[100]` /
  * `grey[600]`, on the `primary` colour variant's `lighten(main, 0.62)` / `darken(main, 0.55)`.
@@ -149,7 +137,7 @@ function trackAlphas(theme: Theme, locked: boolean): { on: number; off: number }
 export function resolveSwitchColors(data: SwitchColorData, theme: Theme, locked: boolean): SwitchColors {
     const lockedDefaults = locked ? lockedThumbDefaults(theme) : undefined;
     const stage = (contract: ColorFieldContract, lockedDefault: string | undefined): string =>
-        firstStoredValue(contract, data) ?? lockedDefault ?? terminalColor(contract.terminal, theme);
+        resolveStoredChromeColor(contract, data, theme, lockedDefault);
     const alphas = trackAlphas(theme, locked);
     return {
         on: {

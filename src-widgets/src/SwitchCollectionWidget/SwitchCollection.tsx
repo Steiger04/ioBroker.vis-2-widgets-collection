@@ -5,28 +5,42 @@
  */
 
 import { Box } from '@mui/material';
+import Switch from '@mui/material/Switch';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useContentBox from '../hooks/useContentBox';
 import useData from '../hooks/useData';
+import { sameStateValue } from '../hooks/useData/stateValueEquality';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
-import MaterialUISwitch from './MaterialUISwitch';
+import { buildSwitchChrome } from './chrome';
+import type { SwitchChromeInput } from './chrome';
 import { TRACK_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchCollectionContextProps } from '../types';
 
+/** The Schalter-Chrome input minus the height budget, which the switch reads itself, plus the toggle. */
+type BudgetedSwitchProps = Omit<SwitchChromeInput, 'contentBoxHeight'> & {
+    /** Whether the switch is on. */
+    checked: boolean;
+    /** Toggle handler. */
+    onChange: () => void;
+};
+
 /**
  * The switch, its thumb capped by the height budget: the frame's Content-Box height
- * (ADR-0098) — a child of CollectionBase, where the box is published.
+ * (ADR-0098) — a child of CollectionBase, where the box is published. Its whole
+ * presentation is the Schalter-Chrome ({@link buildSwitchChrome}), passed as `sx`.
  */
-function BudgetedSwitch(props: Omit<React.ComponentProps<typeof MaterialUISwitch>, 'maxHeight'>): React.JSX.Element {
+function BudgetedSwitch({ checked, onChange, ...chromeInput }: BudgetedSwitchProps): React.JSX.Element {
     const { height } = useContentBox();
 
     return (
-        <MaterialUISwitch
-            {...props}
-            maxHeight={height}
+        <Switch
+            disabled={chromeInput.locked}
+            checked={checked}
+            onChange={onChange}
+            sx={buildSwitchChrome({ ...chromeInput, contentBoxHeight: height })}
         />
     );
 }
@@ -53,9 +67,13 @@ function SwitchCollection(): React.JSX.Element {
 
     const isValidType = oidType === 'boolean';
 
+    // The `true` row is active exactly when the backend value matches `true` under the
+    // state-value equality — the rule useData resolves the state's colours by (ADR-0105).
+    const checked = sameStateValue(true, oidValue);
+
     /** Toggles the boolean state using debounced backend writes. */
     const handleSwitchChange = (): void => {
-        updateValue(!oidValue);
+        updateValue(!checked);
     };
 
     return (
@@ -87,17 +105,13 @@ function SwitchCollection(): React.JSX.Element {
                 >
                     {oidValue !== undefined && widget.data.thumbSize !== undefined && (
                         <BudgetedSwitch
-                            disabled={locked}
+                            data={widget.data}
+                            icon={data}
                             width={rowWidth}
-                            data={data}
-                            widget={widget}
-                            checked={Boolean(oidValue)}
+                            locked={locked}
+                            theme={theme}
+                            checked={checked}
                             onChange={handleSwitchChange}
-                            sx={{
-                                '& .MuiTouchRipple-root': {
-                                    color: data.iconColor || theme.palette.primary.main,
-                                },
-                            }}
                         />
                     )}
                 </Box>

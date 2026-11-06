@@ -173,6 +173,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 states.push({
                     // The field row's own number — after a skipped blank row it is NOT position + 1.
                     fieldNumber: i,
+                    // Aktiver Zustand: published so renderers never re-derive it (ADR-0105).
+                    active: isActive,
                     value: convertedValue,
                     label: styleData.alias || String(styleData.value),
                     alias: styleData.alias,
@@ -233,8 +235,9 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                // First match wins (duplicate values → the first state).
-                const position = states.findIndex(state => sameStateValue(state.value, oidValue));
+                // First active state wins (duplicate values → the first state). The
+                // `active` flag is the one match decision (ADR-0105) — not re-derived here.
+                const position = states.findIndex(state => state.active);
 
                 if (position !== -1) {
                     // Apply state-specific styles with active properties — keyed by the state's
@@ -253,7 +256,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             default:
                 return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
         }
-    }, [oidObject, oidValue, states, resolveStyleData, baseStyle]);
+    }, [oidObject, states, resolveStyleData, baseStyle]);
 
     return {
         widgetStates,

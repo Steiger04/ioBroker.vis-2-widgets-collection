@@ -33,7 +33,7 @@
  * import { useData } from '../hooks/useData';
  *
  * function MyWidget() {
- *   const { states, data, activePosition } = useData('oid');
+ *   const { states, data } = useData('oid');
  *
  *   return (
  *     <div>
@@ -43,7 +43,7 @@
  *           key={index}
  *           style={{
  *             backgroundColor:
- *               activePosition === index
+ *               state.active
  *                 ? state.backgroundActive
  *                 : state.backgroundColor
  *           }}
@@ -60,9 +60,11 @@
  * interchangeable (CONTEXT "Feldnummer", `StateStyleData.fieldNumber`):
  * `activeFieldNumber` is its Feldnummer, `activePosition` its 0-based position in
  * `states` — the one to index the list with. Both are `undefined` when no state
- * matches the current OID value; with duplicate values the first state wins. State
- * equality itself goes through `sameStateValue` (string-coercion contract), also
- * exported below.
+ * matches the current OID value; with duplicate values the first state wins. Whether
+ * a single state is active (CONTEXT "Aktiver Zustand", every duplicate included) is
+ * its `active` flag — read it instead of comparing values again. State equality
+ * itself goes through `sameStateValue` (string-coercion contract), also exported
+ * below.
  * @example
  * Advanced usage with slider properties:
  * ```typescript

@@ -10,9 +10,12 @@
  * labelPlacement arrangements. disableTypography keeps the label element as
  * the DIRECT flex child; these tests pin that structure (proven equivalent to
  * the pre-extraction DOM by an A/B mount diff, 2026-10-29). The Sperre cases pin
- * the checkbox's `disabled` against the OID binding's `locked`.
+ * the checkbox's `disabled` against the OID binding's `locked`. The icon size
+ * cases pin the box-relative width/height, including the base size a matching
+ * Zustandszeile inherits. The checked cases pin the boolean pair's rule (`sameStateValue`
+ * against `true`, ADR-0105), the toggle cases its write through the Schreibkette.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
     // CollectionBase translates its hints through Generic, which extends
@@ -24,7 +27,14 @@ vi.hoisted(() => {
     };
 });
 
-import { installInertResizeObserver, mountCollectionBody } from '../lib/testing/collectionScene';
+import { act } from 'react';
+
+import {
+    installInertResizeObserver,
+    mountCollectionBody,
+    type MountedCollectionBody,
+} from '../lib/testing/collectionScene';
+import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import CheckboxCollection from './CheckboxCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -32,7 +42,10 @@ installInertResizeObserver();
 
 const OID = 'demo.0.switch';
 
-const mountCheckbox = (values: Record<string, unknown>, data: Record<string, unknown> = {}): HTMLDivElement => {
+const mountCheckboxBody = (
+    values: Record<string, unknown>,
+    data: Record<string, unknown> = {},
+): MountedCollectionBody => {
     const scene = {
         slug: 'checkbox-test',
         size: { width: 480, height: 160 },
@@ -62,8 +75,11 @@ const mountCheckbox = (values: Record<string, unknown>, data: Record<string, unk
         },
     } as unknown as PreviewScene;
 
-    return mountCollectionBody(CheckboxCollection, scene).container;
+    return mountCollectionBody(CheckboxCollection, scene);
 };
+
+const mountCheckbox = (values: Record<string, unknown>, data: Record<string, unknown> = {}): HTMLDivElement =>
+    mountCheckboxBody(values, data).container;
 
 describe('CheckboxCollection label DOM contract', () => {
     it('renders the label as the DIRECT flex child of the FormControlLabel root (no MUI body1 wrapper)', () => {
@@ -93,6 +109,90 @@ describe('CheckboxCollection label DOM contract', () => {
         expect(root?.querySelector('.MuiFormControlLabel-label')).toBeNull();
         expect(root?.querySelector(':scope > div > div')?.innerHTML).toContain('<b>AN</b>');
     });
+});
+
+describe('CheckboxCollection icon size', () => {
+    const iconBox = (container: HTMLElement): { width: string; height: string } => {
+        const img = container.querySelector<HTMLImageElement>('.MuiCheckbox-root img');
+        expect(img).not.toBeNull();
+        return { width: img!.style.width, height: img!.style.height };
+    };
+
+    // The fixture's value `false` matches Zustandszeile 2, so `data` resolves on that row.
+    it.each([
+        ['no size anywhere: the full box', {}, '100%'],
+        ['the base size, inherited by the matching row', { iconSize: 50 }, '50%'],
+        ["the matching row's own size before the base", { iconSize: 50, iconSize2: 30 }, '30%'],
+        ['the active size before the row and the base', { iconSizeActive: 70, iconSize: 50, iconSize2: 30 }, '70%'],
+        ['a size of 0 stays 0', { iconSize: 0 }, '0%'],
+    ])('sizes the icon box-relative for %s', (_case, data, expected) => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, data);
+
+        expect(iconBox(container)).toEqual({ width: expected, height: expected });
+    });
+
+    it('sizes the icon from the base without a matching row', () => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0, iconSize: 40 });
+
+        expect(iconBox(container)).toEqual({ width: '40%', height: '40%' });
+    });
+});
+
+describe('CheckboxCollection checked state (sameStateValue against true)', () => {
+    const checkbox = (container: HTMLElement): HTMLInputElement =>
+        container.querySelector<HTMLInputElement>('input[type="checkbox"]') as HTMLInputElement;
+
+    it.each([
+        ['the boolean true', true, true],
+        ['the string "true"', 'true', true],
+        ['the boolean false', false, false],
+        // Truthy, but not the `true` state: the label resolves the `false` row's alias.
+        ['the string "false"', 'false', false],
+        ['the number 1', 1, false],
+        ['the number 0', 0, false],
+    ])('decides checked for %s', (_case, backend, expected) => {
+        const container = mountCheckbox({ [`${OID}.val`]: backend });
+
+        expect(checkbox(container).checked).toBe(expected);
+    });
+});
+
+describe('CheckboxCollection toggle (Schreibkette)', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it.each([
+        ['true', true, false],
+        ['false', false, true],
+        // The non-boolean "false" shows unchecked, so the toggle turns it on.
+        ['the string "false"', 'false', true],
+    ])(
+        'writes the inverse of checked for the backend value %s (optimistic patch, then the backend write)',
+        async (_case, backend, written) => {
+            const { container, setState, setValue } = mountCheckboxBody({ [`${OID}.val`]: backend }, { delay: 0 });
+            vi.useFakeTimers();
+
+            act(() => {
+                container.querySelector<HTMLInputElement>('input[type="checkbox"]')?.click();
+            });
+
+            // Optimistic patch: the inverted value plus the own-write sentinel.
+            expect(setState).toHaveBeenCalledTimes(1);
+            const updater = setState.mock.calls[0][0] as (prev: { values: Record<string, unknown> }) => {
+                values: Record<string, unknown>;
+            };
+            expect(updater({ values: {} }).values).toEqual({
+                [`${OID}.val`]: written,
+                [`${OID}.lc`]: VALUE_NOT_CHANGED_TIMESTAMP,
+            });
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1);
+            });
+            expect(setValue.mock.calls).toEqual([[OID, written]]);
+        },
+    );
 });
 
 describe('CheckboxCollection Sperre', () => {

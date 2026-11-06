@@ -10,6 +10,7 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueText from '../components/CollectionValueText';
 import useData from '../hooks/useData/useData';
+import { sameStateValue } from '../hooks/useData/stateValueEquality';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -45,7 +46,7 @@ function CheckboxCollection(): React.JSX.Element {
     }
 
     const checkboxContext = context as CheckboxCollectionContextProps;
-    const { widget, theme } = checkboxContext;
+    const { widget } = checkboxContext;
 
     const oidObject = widget.data.oidObject;
 
@@ -54,6 +55,10 @@ function CheckboxCollection(): React.JSX.Element {
 
     const oidType = oidObject?.type;
     const isValidType = oidType === 'boolean';
+
+    // The `true` row is active exactly when the backend value matches `true` under the
+    // state-value equality — the rule useData resolves the label and colours by (ADR-0105).
+    const checked = sameStateValue(true, oidValue);
 
     const contentValue = useHtmlValue(oidValue, widget, data);
     // Frozen label collapse: the legacy template dropped falsy values
@@ -65,15 +70,15 @@ function CheckboxCollection(): React.JSX.Element {
     const iconStyle = useMemo((): CSSProperties => {
         return {
             objectFit: 'contain',
-            width: `calc(100% * (${data.iconSize} / 24px))`,
-            height: `calc(100% * (${data.iconSize} / 24px))`,
-            ...getIconColorStyles(
-                data.icon || defaultIconTrue,
-                data.iconColor || theme.palette.primary.main,
-                data.forceColorMask,
-            ),
+            // Box-relative: `iconWidth`/`iconHeight` walk the `iconSize` chain (active, row,
+            // base, 100) as a plain number. Not `iconSizeOnly` — that skips the base size
+            // once a Zustandszeile matches, and the boolean rows always match.
+            width: `${data.iconWidth}%`,
+            height: `${data.iconHeight}%`,
+            // useData's icon colour chain ends on the primary terminal — no fallback here.
+            ...getIconColorStyles(data.icon || defaultIconTrue, data.iconColor, data.forceColorMask),
         };
-    }, [data.iconSize, data.icon, data.iconColor, data.forceColorMask, theme.palette.primary.main]);
+    }, [data.iconWidth, data.iconHeight, data.icon, data.iconColor, data.forceColorMask]);
 
     return (
         <CollectionBase
@@ -109,8 +114,8 @@ function CheckboxCollection(): React.JSX.Element {
                             <Checkbox
                                 disabled={locked}
                                 disableRipple
-                                checked={Boolean(oidValue)}
-                                onChange={() => setOidValueState(!oidValue)}
+                                checked={checked}
+                                onChange={() => setOidValueState(!checked)}
                                 checkedIcon={renderCheckboxIcon(true, data, iconStyle)}
                                 icon={renderCheckboxIcon(false, data, iconStyle)}
                                 sx={{
