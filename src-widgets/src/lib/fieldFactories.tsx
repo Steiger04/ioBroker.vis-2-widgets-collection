@@ -4,7 +4,7 @@
  * @module lib/fieldFactories
  * @remarks
  * Provides the deep building blocks used across every `*Fields.tsx` file:
- * - color field factories (`createColorField`, `createColorFields`, `createSliderColorField`) and
+ * - color field factories (`createColorField`, `createColorFields`) and
  *   the Schlichtes-Farbfeld factory (`createPlainColorField`)
  * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
@@ -270,34 +270,6 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
     }
 
     return field;
-}
-
-/**
- * Creates a color field with common slider fallback pattern.
- *
- * Convenience function for slider-related color fields that fallback to 'sliderColor'.
- * Slider color fields default to terminal `'primary'` (see ADR 0004).
- *
- * @param name - Field name
- * @param label - Label translation key
- * @param options - Additional options (noGradient, hidden, terminal, inheritTextStyle)
- * @returns ExtendedField definition
- * @example
- * // Creates field with fallbackFields: ['sliderColor'], terminal: 'primary'
- * createSliderColorField('thumbColor', 'thumb_color')
- */
-export function createSliderColorField(
-    name: string,
-    label: string,
-    options?: Pick<ColorFieldOptions, 'noGradient' | 'hidden' | 'terminal' | 'inheritTextStyle'>,
-): ExtendedField {
-    return createColorField({
-        name,
-        label,
-        fallbackFields: ['sliderColor'],
-        terminal: 'primary',
-        ...options,
-    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
