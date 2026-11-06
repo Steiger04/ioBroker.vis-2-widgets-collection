@@ -408,9 +408,9 @@ export interface UseDataResult {
      * when no state matches the current OID value.
      *
      * @remarks
-     * For consumers that index the state list (the Select's entry, the Button-Group's
-     * active button): `states[activePosition]` is the first active state. With duplicate
-     * values more states are active — see {@link StateStyleData.active}. Not a Feldnummer —
+     * For consumers that need ONE entry of the state list (the Select's entry):
+     * `states[activePosition]` is the first active state. With duplicate values more
+     * states are active — read {@link StateStyleData.active} per state. Not a Feldnummer —
      * see {@link UseDataResult.activeFieldNumber}. Deliberately not named `activeIndex`:
      * that name used to denote the 1-based field number.
      */
