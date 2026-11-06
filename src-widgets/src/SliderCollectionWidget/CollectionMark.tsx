@@ -25,6 +25,15 @@ export interface CollectionMarkSlotProps {
     sliderOrientation?: 'horizontal' | 'vertical';
 }
 
+// MUI's extension point for extra slot props: lets the slider hand the mark-label slot its
+// props (`slotProps.markLabel`) typed, without a styled wrapper's prop types or a cast.
+declare module '@mui/material/Slider' {
+    interface SliderComponentsPropsOverrides {
+        marks?: CollectionMarkSlotProps['marks'];
+        sliderOrientation?: CollectionMarkSlotProps['sliderOrientation'];
+    }
+}
+
 // Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
 export interface CollectionMarkProps extends CollectionMarkSlotProps, Omit<HTMLAttributes<HTMLElement>, 'children'> {
     'data-index': number;

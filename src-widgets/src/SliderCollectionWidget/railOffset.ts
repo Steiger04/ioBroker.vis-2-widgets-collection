@@ -9,6 +9,10 @@
  * root: the centered margin box shifts the rail by half of it the other way.
  * The end icons are translated by this offset so they sit on the rail axis —
  * derived from the layout contract instead of measured from the DOM.
+ *
+ * An internal seam of the Slider-Chrome (`chrome.ts`): the chrome reserves the
+ * mark-label space and hands out the end symbols' transform from it, so space and
+ * offset are one layout decision; only the chrome and this module's suite import it.
  */
 
 /** Space (px) reserved for the mark labels: below (horizontal) or right (vertical) of the slider. */

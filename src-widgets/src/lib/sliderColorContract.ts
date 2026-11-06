@@ -6,7 +6,7 @@
  * @remarks
  * ADR-0004 (the Chrome-Farbvertrag reference case), ADR-0106 decision 5: the slider colour
  * fields (sliderFields) spread their contract, so the editor swatch resolves it, and the
- * Slider-Chrome (`buildSliderChromeStyles`) resolves the same contract at runtime — ONE
+ * Slider-Chrome (`buildSliderChrome`) resolves the same contract at runtime — ONE
  * declaration site.
  *
  * - Chrome (thumb, track, rail, marks): terminal `primary`; every part falls back to
