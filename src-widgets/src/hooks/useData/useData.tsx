@@ -173,6 +173,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 states.push({
                     // The field row's own number — after a skipped blank row it is NOT position + 1.
                     fieldNumber: i,
+                    // Aktiver Zustand: published so renderers never re-derive it (ADR-0105).
+                    active: isActive,
                     value: convertedValue,
                     label: styleData.alias || String(styleData.value),
                     alias: styleData.alias,

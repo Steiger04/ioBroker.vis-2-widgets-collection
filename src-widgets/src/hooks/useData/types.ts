@@ -333,6 +333,18 @@ export type StateStyleData = Pick<
      */
     fieldNumber: number;
 
+    /**
+     * Aktiver Zustand: whether this state matches the current OID value — the
+     * `sameStateValue` decision its style was resolved with (ADR-0105).
+     *
+     * @remarks
+     * Every duplicate of the matching value is active. Consumers that need ONE entry
+     * (the Select's value, the active style `data`) use
+     * {@link UseDataResult.activePosition} / {@link UseDataResult.activeFieldNumber}
+     * instead — the first match.
+     */
+    active: boolean;
+
     label?: string;
     fontSize?: string | null;
 
@@ -396,8 +408,9 @@ export interface UseDataResult {
      * when no state matches the current OID value.
      *
      * @remarks
-     * For consumers that index the state list (the Select's entry, the Button-Group's
-     * active button): `states[activePosition]` is the active state. Not a Feldnummer —
+     * For consumers that need ONE entry of the state list (the Select's entry):
+     * `states[activePosition]` is the first active state. With duplicate values more
+     * states are active — read {@link StateStyleData.active} per state. Not a Feldnummer —
      * see {@link UseDataResult.activeFieldNumber}. Deliberately not named `activeIndex`:
      * that name used to denote the 1-based field number.
      */

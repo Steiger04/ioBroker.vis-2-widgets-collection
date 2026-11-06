@@ -190,3 +190,50 @@ describe('useData — the marker layer applies to marks only', () => {
         expect([markerFields(states[0]), markerFields(markBaseStyle.inactive)]).toEqual([BASE_FIELDS, BASE_FIELDS]);
     });
 });
+
+/** Three rows, the first and the third sharing the value 'a' (a duplicate). */
+const duplicateRows = {
+    values_count: 3,
+    value1: 'a',
+    value2: 'b',
+    value3: 'a',
+};
+
+describe('useData — the active flag of each state (Aktiver Zustand)', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    it('flags the state matching the status as active, every other state as inactive', () => {
+        const { states } = resolve(gapRows, 'c');
+
+        expect(states.map(state => [state.value, state.active])).toEqual([
+            ['a', false],
+            ['c', true],
+        ]);
+    });
+
+    it('flags every duplicate of the matching value as active', () => {
+        const { states } = resolve(duplicateRows, 'a');
+
+        expect(states.map(state => [state.value, state.active])).toEqual([
+            ['a', true],
+            ['b', false],
+            ['a', true],
+        ]);
+    });
+
+    it('keeps activePosition on the first duplicate', () => {
+        const { activePosition, activeFieldNumber } = resolve(duplicateRows, 'a');
+
+        expect([activePosition, activeFieldNumber]).toEqual([0, 1]);
+    });
+
+    it('flags no state as active while no state matches the status', () => {
+        const { states } = resolve(duplicateRows, 'x');
+
+        expect(states.map(state => state.active)).toEqual([false, false, false]);
+    });
+});

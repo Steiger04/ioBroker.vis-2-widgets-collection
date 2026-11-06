@@ -91,6 +91,37 @@ describe('ButtonGroupCollection wiring', () => {
         expect(dimmed).toEqual(['BOOST']);
     });
 
+    it('gives the active treatment to every duplicate of the matching state (Aktiver Zustand)', () => {
+        // value1 and value3 share the value 1: both are active, as both are selected.
+        const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+        const { container } = mountGroup(
+            scene(
+                {
+                    values_count: 3,
+                    value1: '1',
+                    alias1: 'ON-A',
+                    value2: '0',
+                    alias2: 'OFF',
+                    value3: '1',
+                    alias3: 'ON-B',
+                    background1: gradient,
+                    background2: gradient,
+                    background3: gradient,
+                },
+                1,
+            ),
+        );
+
+        const buttons = Array.from(container.querySelectorAll<HTMLElement>('.MuiToggleButton-root'));
+        const dimmed = buttons
+            .filter(button => getComputedStyle(button).filter === 'opacity(80%)')
+            .map(button => button.textContent);
+        const selected = buttons
+            .filter(button => button.classList.contains('Mui-selected'))
+            .map(button => button.textContent);
+        expect({ dimmed, selected }).toEqual({ dimmed: ['ON-A', 'ON-B'], selected: ['ON-A', 'ON-B'] });
+    });
+
     it('writes the clicked state value as the optimistic patch (val + lc sentinel)', () => {
         const { container, setState } = mountGroup(scene());
 
