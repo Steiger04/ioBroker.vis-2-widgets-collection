@@ -11,8 +11,8 @@
  * Two values count as "the same state" exactly when their string coercions are
  * equal (`String(configured) === String(backend)`). ioBroker delivers the
  * same logical value as `1` or `'1'` depending on source and state type, so
- * every activity check — the state loop and index search inside `useData`
- * (which publishes the per-state `active` flag the radio and button-group
+ * every activity check — the state loop inside `useData` (which publishes the
+ * per-state `active` flag that `activePosition`, the radio and the button-group
  * read, ADR-0105), the button-group value matching, the checkbox/switch
  * `checked` decision against `true` — must go through this function instead
  * of a type-strict comparison. A strict `===`

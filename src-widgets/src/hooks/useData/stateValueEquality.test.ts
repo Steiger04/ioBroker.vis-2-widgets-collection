@@ -4,7 +4,7 @@ import { sameStateValue } from './stateValueEquality';
 // Characterization tests pinning sameStateValue's de-facto contract: two state
 // values count as equal exactly when their string coercions are equal. ioBroker
 // delivers the "same" value as `1` or `'1'` depending on source and state type,
-// so every activity check (useData state loop, index search, toggle renderers)
+// so every activity check (useData state loop, toggle renderers)
 // must go through this function instead of a type-strict comparison.
 
 describe('sameStateValue', () => {

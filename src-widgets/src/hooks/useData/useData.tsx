@@ -235,8 +235,9 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                // First match wins (duplicate values → the first state).
-                const position = states.findIndex(state => sameStateValue(state.value, oidValue));
+                // First active state wins (duplicate values → the first state). The
+                // `active` flag is the one match decision (ADR-0105) — not re-derived here.
+                const position = states.findIndex(state => state.active);
 
                 if (position !== -1) {
                     // Apply state-specific styles with active properties — keyed by the state's
@@ -255,7 +256,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             default:
                 return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
         }
-    }, [oidObject, oidValue, states, resolveStyleData, baseStyle]);
+    }, [oidObject, states, resolveStyleData, baseStyle]);
 
     return {
         widgetStates,
