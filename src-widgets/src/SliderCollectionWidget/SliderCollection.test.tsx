@@ -68,6 +68,24 @@ const valueLabelColor = (data: Record<string, unknown>): string => {
     return getComputedStyle(valueLabel).color;
 };
 
+const rangeOf = (container: HTMLElement): HTMLInputElement => {
+    const input = container.querySelector<HTMLInputElement>('input[type="range"]');
+    if (!input) {
+        throw new Error('the slider rendered no range input');
+    }
+    return input;
+};
+
+/** Moves the thumb like a user would: the native range input fires `change`. */
+const drag = (container: HTMLElement, value: number): void => {
+    const input = rangeOf(container);
+    act(() => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, String(value));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+};
+
 describe('SliderCollection value label ignores the marker text colour', () => {
     it.each([
         ['the base text colour', { textColor: '#0000aa' }, '#0000aa'],
@@ -142,6 +160,37 @@ describe('SliderCollection mark label text', () => {
             '#aa00aa',
             MARKER_TEXT_COLOR,
         ]);
+    });
+
+    // The selected mark follows the backend value, not the thumb: while a drag below it waits for
+    // its debounced write, the mark keeps its selected text like it keeps its active icon.
+    it('keeps textColorActive on the selected mark while the thumb is dragged below it', () => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-mark-drag-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    marks: true,
+                    markStep: 50,
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    markerTextColor: MARKER_TEXT_COLOR,
+                    textColorActive: '#aa00aa',
+                },
+                50,
+            ),
+        );
+
+        drag(container, 20);
+
+        const marks = Array.from(container.querySelectorAll(".MuiSlider-markLabel [data-font='active']"));
+        expect(marks.map(m => getComputedStyle(m).color)).toEqual([MARKER_TEXT_COLOR, '#aa00aa', MARKER_TEXT_COLOR]);
     });
 });
 
@@ -352,25 +401,7 @@ describe('SliderCollection backend sync (Fremdänderung, ADR-0087 addendum)', ()
         return scene;
     };
 
-    const rangeOf = (container: HTMLElement): HTMLInputElement => {
-        const input = container.querySelector<HTMLInputElement>('input[type="range"]');
-        if (!input) {
-            throw new Error('the slider rendered no range input');
-        }
-        return input;
-    };
-
     const thumbOf = (container: HTMLElement): number => Number(rangeOf(container).getAttribute('aria-valuenow'));
-
-    /** Moves the thumb like a user would: the native range input fires `change`. */
-    const drag = (container: HTMLElement, value: number): void => {
-        const input = rangeOf(container);
-        act(() => {
-            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, String(value));
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        });
-    };
 
     it.each([
         ['0.2 → 0.7 on a 0–1 slider', {}, 0.2, 0.7],

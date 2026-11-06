@@ -339,32 +339,33 @@ const SliderCollection: FC = () => {
                                     top: isHorizontal ? widget.data.markPosition : undefined,
                                     left: !isHorizontal ? widget.data.markPosition : undefined,
                                 },
-                                '& .MuiSlider-markLabelActive': {
-                                    [`&[data-index='${sliderMarksIndex}']`]: {
-                                        // No tag: the mark text is a Typography, rendered as <p>.
-                                        "& [data-font='active']": {
-                                            color: widget.data.textColorActive
-                                                ? `${widget.data.textColorActive} !important`
+                                // The selected mark follows the backend value, not MUI's
+                                // markLabelActive (value ≥ mark): a thumb dragged below it must
+                                // not drop its selected presentation before the write echoes.
+                                [`& .MuiSlider-markLabel[data-index='${sliderMarksIndex}']`]: {
+                                    // No tag: the mark text is a Typography, rendered as <p>.
+                                    "& [data-font='active']": {
+                                        color: widget.data.textColorActive
+                                            ? `${widget.data.textColorActive} !important`
+                                            : undefined,
+                                        fontSize:
+                                            typeof widget.data.valueSizeActive === 'number'
+                                                ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
                                                 : undefined,
-                                            fontSize:
-                                                typeof widget.data.valueSizeActive === 'number'
-                                                    ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
-                                                    : undefined,
-                                        },
-                                        "& div[data-position='active']": {
-                                            left:
-                                                widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
-                                                    ? `${widget.data.iconXOffsetActive} !important`
-                                                    : widget.data.iconXOffsetActive === ''
-                                                      ? undefined
-                                                      : '0px !important',
-                                            bottom:
-                                                widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
-                                                    ? `${widget.data.iconYOffsetActive} !important`
-                                                    : widget.data.iconYOffsetActive === ''
-                                                      ? undefined
-                                                      : '0px !important',
-                                        },
+                                    },
+                                    "& div[data-position='active']": {
+                                        left:
+                                            widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
+                                                ? `${widget.data.iconXOffsetActive} !important`
+                                                : widget.data.iconXOffsetActive === ''
+                                                  ? undefined
+                                                  : '0px !important',
+                                        bottom:
+                                            widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
+                                                ? `${widget.data.iconYOffsetActive} !important`
+                                                : widget.data.iconYOffsetActive === ''
+                                                  ? undefined
+                                                  : '0px !important',
                                     },
                                 },
                             }}
