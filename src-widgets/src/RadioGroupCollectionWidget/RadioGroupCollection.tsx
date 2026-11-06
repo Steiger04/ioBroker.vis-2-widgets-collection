@@ -10,7 +10,7 @@ import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
 import { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData, { sameStateValue } from '../hooks/useData';
+import useData from '../hooks/useData';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import useValueState from '../hooks/useValueState';
 import useContentBox from '../hooks/useContentBox';
@@ -82,10 +82,8 @@ function renderCheckedIcon(state: StateStyleData): React.JSX.Element {
 
 /** Props for {@link RadioStack}. */
 interface RadioStackProps {
-    /** The resolved state rows, one radio each. */
+    /** The resolved state rows, one radio each — the active ones checked (every duplicate). */
     states: StateStyleData[];
-    /** The bound OID's current value — the checked radio. */
-    oidValue: unknown;
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     disabled: boolean;
 }
@@ -97,7 +95,7 @@ interface RadioStackProps {
  * and colour rules are the Radio-Chrome (`./chrome`); the icon over the dot and the label
  * stay here (ADR-0091).
  */
-function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): React.ReactElement {
+function RadioStack({ states, onChange, disabled }: RadioStackProps): React.ReactElement {
     const { widget, theme } = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const { height: contentBoxHeight } = useContentBox();
     const { radioOrientation, hideLabels, labelPlacement } = widget.data;
@@ -140,7 +138,7 @@ function RadioStack({ states, oidValue, onChange, disabled }: RadioStackProps): 
                                     />
                                 }
                                 sx={itemChrome.radio}
-                                checked={sameStateValue(state.value, oidValue)}
+                                checked={state.active}
                                 onChange={onChange}
                                 value={state.value}
                             />
@@ -205,7 +203,6 @@ function RadioGroupCollection(): React.ReactElement {
         >
             <RadioStack
                 states={states}
-                oidValue={oidValue}
                 onChange={handleChange}
                 disabled={locked}
             />
