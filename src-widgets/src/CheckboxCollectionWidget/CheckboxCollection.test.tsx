@@ -10,7 +10,9 @@
  * labelPlacement arrangements. disableTypography keeps the label element as
  * the DIRECT flex child; these tests pin that structure (proven equivalent to
  * the pre-extraction DOM by an A/B mount diff, 2026-10-29). The Sperre cases pin
- * the checkbox's `disabled` against the OID binding's `locked`.
+ * the checkbox's `disabled` against the OID binding's `locked`. The icon size
+ * cases pin the box-relative width/height, including the base size a matching
+ * Zustandszeile inherits.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -92,6 +94,33 @@ describe('CheckboxCollection label DOM contract', () => {
         const root = container.querySelector('.MuiFormControlLabel-root');
         expect(root?.querySelector('.MuiFormControlLabel-label')).toBeNull();
         expect(root?.querySelector(':scope > div > div')?.innerHTML).toContain('<b>AN</b>');
+    });
+});
+
+describe('CheckboxCollection icon size', () => {
+    const iconBox = (container: HTMLElement): { width: string; height: string } => {
+        const img = container.querySelector<HTMLImageElement>('.MuiCheckbox-root img');
+        expect(img).not.toBeNull();
+        return { width: img!.style.width, height: img!.style.height };
+    };
+
+    // The fixture's value `false` matches Zustandszeile 2, so `data` resolves on that row.
+    it.each([
+        ['no size anywhere: the full box', {}, '100%'],
+        ['the base size, inherited by the matching row', { iconSize: 50 }, '50%'],
+        ["the matching row's own size before the base", { iconSize: 50, iconSize2: 30 }, '30%'],
+        ['the active size before the row and the base', { iconSizeActive: 70, iconSize: 50, iconSize2: 30 }, '70%'],
+        ['a size of 0 stays 0', { iconSize: 0 }, '0%'],
+    ])('sizes the icon box-relative for %s', (_case, data, expected) => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, data);
+
+        expect(iconBox(container)).toEqual({ width: expected, height: expected });
+    });
+
+    it('sizes the icon from the base without a matching row', () => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0, iconSize: 40 });
+
+        expect(iconBox(container)).toEqual({ width: '40%', height: '40%' });
     });
 });
 
