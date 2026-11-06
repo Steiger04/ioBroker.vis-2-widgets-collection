@@ -68,6 +68,14 @@ export interface BuildSliderMarksParams {
     iconYOffsetActive?: string;
 }
 
+/** Result of {@link buildSliderMarks}: the mark list and the selected mark's position in it. */
+export interface SliderMarks {
+    /** Sorted marks (ascending by value), the selected one carrying its final presentation. */
+    marks: SliderMark[];
+    /** Index of the selected mark (the first active one), `null` without one. */
+    selectedIndex: number | null;
+}
+
 /**
  * The `0px` rule: the icon offset of the selected mark (ADR-0106 decision 2).
  *
@@ -93,7 +101,8 @@ function selectedMarkIconOffset(activeOffset: string | undefined, markOffset: st
  *
  * @param params - See {@link BuildSliderMarksParams}.
  * @returns Sorted marks (ascending by value), the selected one carrying its
- * final presentation.
+ * final presentation, plus the selected mark's index — the one place that
+ * decides it, the Skala passes it through.
  * @remarks
  * Generated marks get `active` by `sameStateValue`; state marks keep useData's
  * flag. The selected mark is the FIRST active mark (like `activePosition`).
@@ -105,7 +114,7 @@ function selectedMarkIconOffset(activeOffset: string | undefined, markOffset: st
  * `!== undefined` guards around size/mask were dropped as ineffective: with the
  * Active fields unset, the style resolver falls back to the base cascade.
  */
-export function buildSliderMarks(params: BuildSliderMarksParams): SliderMark[] {
+export function buildSliderMarks(params: BuildSliderMarksParams): SliderMarks {
     const { states, minValue, maxValue, markStep, onlyStates, unit, oidValue, baseStyle } = params;
 
     const generated = new Set<SliderMark>();
@@ -156,10 +165,11 @@ export function buildSliderMarks(params: BuildSliderMarksParams): SliderMark[] {
     marks.sort((a, b) => a.value - b.value);
 
     const selected = marks.findIndex(mark => mark.active);
-    if (selected !== -1) {
-        marks[selected] = presentSelectedMark(marks[selected], generated.has(marks[selected]), params);
+    if (selected === -1) {
+        return { marks, selectedIndex: null };
     }
-    return marks;
+    marks[selected] = presentSelectedMark(marks[selected], generated.has(marks[selected]), params);
+    return { marks, selectedIndex: selected };
 }
 
 /**

@@ -76,7 +76,8 @@ export function buildScale(params: BuildScaleParams): Scale {
     // the field, unset → MUI's default.
     const step = fields.onlyStates ? null : fields.step !== undefined ? Number(fields.step) : undefined;
 
-    const marks = buildSliderMarks({
+    // The mark function decides the selection (the first active mark); the Skala passes it through.
+    const { marks, selectedIndex } = buildSliderMarks({
         states,
         minValue: min,
         maxValue: max,
@@ -92,8 +93,5 @@ export function buildScale(params: BuildScaleParams): Scale {
         iconYOffsetActive: fields.iconYOffsetActive,
     });
 
-    // The mark function decided the selection by the flag: the first active mark.
-    const selected = marks.findIndex(mark => mark.active);
-
-    return { min, max, step, marks, selectedIndex: selected === -1 ? null : selected };
+    return { min, max, step, marks, selectedIndex };
 }

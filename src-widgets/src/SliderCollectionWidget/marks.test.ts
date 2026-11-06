@@ -50,19 +50,19 @@ const valuesOf = (marks: { value: number }[]): number[] => marks.map(m => m.valu
 
 describe('buildSliderMarks — onlyStates', () => {
     it('returns state marks sorted, without min/max/step injection', () => {
-        const marks = buildSliderMarks(params({ states: [state(30), state(10), state(20)], onlyStates: true }));
+        const { marks } = buildSliderMarks(params({ states: [state(30), state(10), state(20)], onlyStates: true }));
 
         expect(valuesOf(marks)).toEqual([10, 20, 30]);
     });
 
     it('keeps state labels untouched', () => {
-        const marks = buildSliderMarks(params({ states: [state(7, { label: 'sieben' })], onlyStates: true }));
+        const { marks } = buildSliderMarks(params({ states: [state(7, { label: 'sieben' })], onlyStates: true }));
 
         expect(marks[0].label).toBe('sieben');
     });
 
     it('filters out non-numeric state values', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [{ ...state(0), value: 'foo' }, { ...state(0), value: true }, state(10)],
                 onlyStates: true,
@@ -75,13 +75,13 @@ describe('buildSliderMarks — onlyStates', () => {
 
 describe('buildSliderMarks — range filter', () => {
     it('drops states outside [minValue, maxValue]', () => {
-        const marks = buildSliderMarks(params({ states: [state(1), state(50), state(999)], onlyStates: true }));
+        const { marks } = buildSliderMarks(params({ states: [state(1), state(50), state(999)], onlyStates: true }));
 
         expect(valuesOf(marks)).toEqual([1, 50]);
     });
 
     it('treats null bounds as unbounded', () => {
-        const marks = buildSliderMarks(params({ states: [state(5)], minValue: null, maxValue: null }));
+        const { marks } = buildSliderMarks(params({ states: [state(5)], minValue: null, maxValue: null }));
 
         expect(valuesOf(marks)).toEqual([5]);
     });
@@ -89,7 +89,7 @@ describe('buildSliderMarks — range filter', () => {
 
 describe('buildSliderMarks — min/max injection', () => {
     it('injects missing bounds with unit labels', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [state(3), state(7)], minValue: 0, maxValue: 10, markStep: 20 }),
         );
 
@@ -101,7 +101,7 @@ describe('buildSliderMarks — min/max injection', () => {
     });
 
     it('skips injection when a state already sits on the bound', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [state(0), state(10)], minValue: 0, maxValue: 10, markStep: 20 }),
         );
 
@@ -109,7 +109,7 @@ describe('buildSliderMarks — min/max injection', () => {
     });
 
     it('injects nothing without bounds', () => {
-        const marks = buildSliderMarks(params({ states: [state(5)], minValue: null, maxValue: null, markStep: 2 }));
+        const { marks } = buildSliderMarks(params({ states: [state(5)], minValue: null, maxValue: null, markStep: 2 }));
 
         expect(valuesOf(marks)).toEqual([5]);
     });
@@ -117,25 +117,25 @@ describe('buildSliderMarks — min/max injection', () => {
 
 describe('buildSliderMarks — step division', () => {
     it('fills steps between the bounds', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 10, markStep: 2 }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 10, markStep: 2 }));
 
         expect(valuesOf(marks)).toEqual([0, 2, 4, 6, 8, 10]);
     });
 
     it('does not duplicate values already present', () => {
-        const marks = buildSliderMarks(params({ states: [state(4)], minValue: 0, maxValue: 10, markStep: 2 }));
+        const { marks } = buildSliderMarks(params({ states: [state(4)], minValue: 0, maxValue: 10, markStep: 2 }));
 
         expect(valuesOf(marks)).toEqual([0, 2, 4, 6, 8, 10]);
     });
 
     it('falls back to step 1 for markStep 0', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 3, markStep: 0 }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 3, markStep: 0 }));
 
         expect(valuesOf(marks)).toEqual([0, 1, 2, 3]);
     });
 
     it('falls back to step 1 for unset markStep', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 3, markStep: undefined }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 3, markStep: undefined }));
 
         expect(valuesOf(marks)).toEqual([0, 1, 2, 3]);
     });
@@ -144,13 +144,13 @@ describe('buildSliderMarks — step division', () => {
     // and made the `i += step` loop diverge for min < max — an endless loop
     // that froze the tab. It is now clamped to its absolute value.
     it('treats a negative markStep as its absolute value', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 4, markStep: -2 }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 4, markStep: -2 }));
 
         expect(valuesOf(marks)).toEqual([0, 2, 4]);
     });
 
     it('accumulates i += step, keeping the float drift', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 1, markStep: 0.2 }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 1, markStep: 0.2 }));
 
         expect(valuesOf(marks)).toEqual([0, 0.2, 0.4, 0.6000000000000001, 0.8, 1]);
     });
@@ -158,7 +158,7 @@ describe('buildSliderMarks — step division', () => {
 
 describe('buildSliderMarks — empty states', () => {
     it('returns an empty list without bounds', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: null, maxValue: null, onlyStates: true }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: null, maxValue: null, onlyStates: true }));
 
         expect(marks).toEqual([]);
     });
@@ -166,7 +166,7 @@ describe('buildSliderMarks — empty states', () => {
 
 describe('buildSliderMarks — unit', () => {
     it('appends the unit to generated labels only', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [state(5)], minValue: 0, maxValue: 10, markStep: 5, unit: '°C' }),
         );
 
@@ -178,7 +178,7 @@ describe('buildSliderMarks — unit', () => {
 
 describe('buildSliderMarks — active overlay', () => {
     it('applies active icon size/color/mask to the matching mark only', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [], minValue: 0, maxValue: 10, markStep: 5, oidValue: 5, iconColorActive: '#f00' }),
         );
 
@@ -194,13 +194,13 @@ describe('buildSliderMarks — active overlay', () => {
     });
 
     it('keeps the base icon color when iconColorActive is unset', () => {
-        const marks = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
+        const { marks } = buildSliderMarks(params({ states: [], minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
 
         expect(marks.find(m => m.value === 5)?.iconColor).toBe('#111');
     });
 
     it('compares values as strings (string oidValue matches numeric mark)', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [], minValue: 0, maxValue: 10, markStep: 5, oidValue: '5', iconColorActive: '#f00' }),
         );
 
@@ -215,7 +215,7 @@ describe('buildSliderMarks — active overlay', () => {
     // indistinguishable from a non-active one.
     it('writes base values when the active style equals the base style', () => {
         const base = baseStyle();
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [],
                 minValue: 0,
@@ -240,7 +240,7 @@ const flagsOf = (marks: { value: number; active: boolean }[]): [number, boolean]
 
 describe('buildSliderMarks — active flag', () => {
     it('flags the generated mark matching oidValue', () => {
-        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
+        const { marks } = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
 
         expect(flagsOf(marks)).toEqual([
             [0, false],
@@ -250,7 +250,7 @@ describe('buildSliderMarks — active flag', () => {
     });
 
     it("flags a numeric mark for the string value '5' (sameStateValue)", () => {
-        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: '5' }));
+        const { marks } = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: '5' }));
 
         expect(marks.find(m => m.value === 5)?.active).toBe(true);
     });
@@ -259,13 +259,13 @@ describe('buildSliderMarks — active flag', () => {
         ['a value between the marks', 7],
         ['no backend value', undefined],
     ])('flags no mark for %s', (_case, oidValue) => {
-        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue }));
+        const { marks } = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue }));
 
         expect(marks.some(m => m.active)).toBe(false);
     });
 
     it("keeps the state marks' own flag from useData", () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [state(3, { active: true }), state(5, { active: false })],
                 minValue: 0,
@@ -286,7 +286,7 @@ describe('buildSliderMarks — active flag', () => {
 
 describe('buildSliderMarks — selected mark', () => {
     it('gives aliasActive to the first active mark only, duplicates keep their labels', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [state(5, { active: true, label: 'first' }), state(5, { active: true, label: 'second' })],
                 onlyStates: true,
@@ -301,7 +301,7 @@ describe('buildSliderMarks — selected mark', () => {
     });
 
     it('gives aliasActive to a selected generated mark', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ minValue: 0, maxValue: 10, markStep: 5, unit: '%', oidValue: 5, aliasActive: 'half' }),
         );
 
@@ -309,7 +309,7 @@ describe('buildSliderMarks — selected mark', () => {
     });
 
     it('leaves a selected mark without a label empty', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({ states: [state(5, { active: true, label: '' })], onlyStates: true, aliasActive: 'on' }),
         );
 
@@ -317,9 +317,35 @@ describe('buildSliderMarks — selected mark', () => {
     });
 
     it('keeps the label without aliasActive', () => {
-        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
+        const { marks } = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }));
 
         expect(marks.find(m => m.value === 5)?.label).toBe('5');
+    });
+
+    it('returns the index of the first active mark as selectedIndex', () => {
+        const { marks, selectedIndex } = buildSliderMarks(
+            params({
+                states: [state(10), state(5, { active: true }), state(5, { active: true, label: 'dup' })],
+                onlyStates: true,
+                aliasActive: 'on',
+            }),
+        );
+
+        expect(selectedIndex).toBe(0);
+        expect(marks[selectedIndex!].label).toBe('on');
+    });
+
+    it('returns the index of a selected generated mark after sorting', () => {
+        const { marks, selectedIndex } = buildSliderMarks(
+            params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5 }),
+        );
+
+        expect(selectedIndex).toBe(1);
+        expect(marks[1].value).toBe(5);
+    });
+
+    it('returns selectedIndex null without an active mark', () => {
+        expect(buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5 })).selectedIndex).toBeNull();
     });
 
     it('does not touch the state entry it selects', () => {
@@ -339,7 +365,7 @@ describe('buildSliderMarks — text of the selected mark', () => {
         marks.map(({ value, textColor, valueSize }) => [value, textColor, valueSize]);
 
     it('gives a selected generated mark the text colour and size of the active style', () => {
-        const marks = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5, ...styles }));
+        const { marks } = buildSliderMarks(params({ minValue: 0, maxValue: 10, markStep: 5, oidValue: 5, ...styles }));
 
         expect(textOf(marks)).toEqual([
             [0, '#base', '1rem'],
@@ -349,7 +375,7 @@ describe('buildSliderMarks — text of the selected mark', () => {
     });
 
     it('keeps the per-state text of a selected state mark', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [state(5, { active: true, textColor: '#state', valueSize: '3rem' })],
                 onlyStates: true,
@@ -378,7 +404,7 @@ describe('buildSliderMarks — the 0px rule of the selected icon offset', () => 
                 baseStyle: baseStyle({ iconXOffset: '1px', iconYOffset: '2px' }),
                 ...active,
             }),
-        ).map(({ value, iconXOffset, iconYOffset }) => ({ value, iconXOffset, iconYOffset }));
+        ).marks.map(({ value, iconXOffset, iconYOffset }) => ({ value, iconXOffset, iconYOffset }));
 
     it.each([
         ['unset', {}, '0px', '0px'],
@@ -393,7 +419,7 @@ describe('buildSliderMarks — the 0px rule of the selected icon offset', () => 
     });
 
     it('applies to a selected generated mark too', () => {
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 minValue: 0,
                 maxValue: 10,
@@ -438,7 +464,7 @@ describe('buildSliderMarks — marker layer applies to marks only, between per-s
         );
         const stateStyle = getStyleData(1, false, r);
 
-        const marks = buildSliderMarks(
+        const { marks } = buildSliderMarks(
             params({
                 states: [
                     state(50, {
