@@ -10,10 +10,9 @@
  * of the active zone, which the body composes into the `data` CollectionBase
  * renders (ADR-0086 — no zone prop on CollectionBase). Only keys useData puts
  * on a state are read; the legacy per-state colour keys are kept as data, never
- * read here.
+ * read here. An arc carries the state's raw text colour: what the canvas paints
+ * of it is the Options-Builder's Canvas-Farbe (ADR-0107 Nr. 3), not this model's.
  */
-
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 import type { StateStyleData } from '../hooks/useData/types';
 
@@ -21,7 +20,8 @@ import type { StateStyleData } from '../hooks/useData/types';
 export interface ZoneArc {
     from: number;
     to: number;
-    color: string;
+    /** The state's raw text colour (as useData resolved it); the builder makes it paintable. */
+    color: string | undefined;
 }
 
 /**
@@ -71,7 +71,7 @@ const buildZones = (states: StateStyleData[], maxValue: number): Zone[] => {
         return {
             from: Number(state.value),
             to: Number(nextValue),
-            color: extractColorFromValue(state.textColor) || 'transparent',
+            color: state.textColor,
             state,
         };
     });
@@ -102,8 +102,8 @@ const findZone = (zones: Zone[], value: number, maxValue: number): Zone | undefi
  * @param value    - The current, already coerced value.
  * @returns The canvas arcs and the active zone's style (or `null`).
  * @remarks
- * The arc colour is still read from the state's text colour with the hex/rgb
- * reader, `transparent` otherwise.
+ * The arc colour is the state's text colour as stored on the state — raw; the
+ * Canvas-Farbe of the Options-Builder decides what the canvas paints of it.
  */
 export const resolveZones = (states: StateStyleData[], maxValue: number, value: number): Zones => {
     const zones = buildZones(states, maxValue);

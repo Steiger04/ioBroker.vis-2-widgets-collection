@@ -281,6 +281,14 @@ describe('buildGaugeOptions — prefix strip and specials', () => {
         ]);
         expect(build({}).highlights).toStrictEqual([]);
     });
+
+    it('paints an arc without a plottable text colour transparent', () => {
+        const states = [state(0), state(10, { textColor: 'some text' })];
+        expect(build({}, { ...CTX, states }).highlights?.map(arc => arc.color)).toStrictEqual([
+            'transparent',
+            'transparent',
+        ]);
+    });
 });
 
 describe('buildGaugeOptions — Canvas-Titel as plain text (ADR-0107 Nr. 6)', () => {

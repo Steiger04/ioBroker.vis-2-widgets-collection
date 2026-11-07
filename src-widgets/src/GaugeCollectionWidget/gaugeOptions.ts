@@ -18,6 +18,12 @@
  * icon fit). Two entries because the body needs the zone style OUTSIDE the frame
  * (CollectionBase `data`), while the canvas size exists only INSIDE it (Content-Box).
  *
+ * Every colour the canvas paints goes through one private rule, the Canvas-Farbe
+ * (ADR-0107 Nr. 3): the colour option fields (contract fields, Schlichte Farbfelder, the
+ * inherited vis-2 text colour) and the zone arcs alike. A colour the rule leaves unset falls
+ * back as an unset field does — contract fields through their cascade, Schlichte Farbfelder to
+ * the schema default, arcs to `transparent`.
+ *
  * Coercion policy (all types): an unset field (`undefined` / `null` / `''`) or a
  * non-finite number falls back to the SCHEMA DEFAULT from the field definition —
  * never to a canvas-gauges library default (those are invisible to users and
@@ -29,8 +35,9 @@
 import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { resolveEffectiveColor, type ColorFieldContract, type StyleColor } from '../lib/helper/resolveEffectiveColor';
-import { resolveZones, type ZoneStyle, type Zones } from './gaugeSegments';
+import { resolveZones, type ZoneArc, type ZoneStyle, type Zones } from './gaugeSegments';
 // Type-only (erased at runtime): keeps the builder free of editor imports in the node test env.
 import type { ColorTerminal } from '../types/field-definitions/extended-field';
 import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
@@ -115,9 +122,27 @@ const SPECIAL_FIELDS = new Set([
 const needsResolving = (value: unknown): value is string => typeof value === 'string' && /var\(/i.test(value);
 
 /**
- * Widget data and widget text style with every `var(…)` colour resolved for the canvas — an
- * unresolvable one is unset, so the cascade (contract fields) or the schema default (Schlichte
- * Farbfelder) applies as before the Farbwähler accepted typed CSS variables.
+ * Canvas-Farbe: a stored colour as the canvas paints it.
+ *
+ * @param value   - The stored colour (any type; only strings can be colours).
+ * @param resolve - The injected probe ({@link GaugeOptionsContext.resolveCssColor}).
+ * @returns The colour to paint, or `undefined` when the value counts as unset.
+ * @remarks
+ * A `var(…)` is resolved by the probe — unresolvable, or without a probe, it is unset —;
+ * any other string passes as stored.
+ */
+function canvasColor(value: unknown, resolve: GaugeOptionsContext['resolveCssColor']): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+    return needsResolving(value) ? (resolve?.(value) ?? undefined) : value;
+}
+
+/**
+ * Widget data and widget text style with the Canvas-Farbe applied to every colour the option
+ * fields read: the contract fields and Schlichte Farbfelder, their fallback fields and the
+ * inherited vis-2 text colour. An unset result lets the cascade (contract fields) or the schema
+ * default (Schlichte Farbfelder) apply, exactly as for an empty field.
  */
 function canvasColors(
     fields: readonly BuilderField[],
@@ -125,27 +150,34 @@ function canvasColors(
     textStyles: StyleColor,
     resolve: GaugeOptionsContext['resolveCssColor'],
 ): { data: Record<string, unknown>; textStyles: StyleColor } {
-    const resolved = (value: string): string | undefined => resolve?.(value) ?? undefined;
-    const names = new Set<string>();
+    const result = { ...data };
     for (const field of fields) {
         if (field.name && (field.terminal !== undefined || field.plainColor === true)) {
-            names.add(field.name);
-            field.fallbackFields?.forEach(name => names.add(name));
+            for (const name of [field.name, ...(field.fallbackFields ?? [])]) {
+                result[name] = canvasColor(data[name], resolve);
+            }
         }
     }
-    let result = data;
-    for (const name of names) {
-        const value = data[name];
-        if (needsResolving(value)) {
-            result = result === data ? { ...data } : result;
-            result[name] = resolved(value);
-        }
-    }
-    const textColor = textStyles?.color;
     return {
         data: result,
-        textStyles: needsResolving(textColor) ? { ...textStyles, color: resolved(textColor) } : textStyles,
+        textStyles: textStyles && { ...textStyles, color: canvasColor(textStyles.color, resolve) },
     };
+}
+
+/**
+ * The Highlight-Zone arcs with the Canvas-Farbe applied — an arc whose colour is unset paints
+ * `transparent`. The zone model hands the raw state colour; the hex/rgb reader still narrows
+ * it first, as before the rule.
+ */
+function canvasArcs(
+    arcs: readonly ZoneArc[],
+    resolve: GaugeOptionsContext['resolveCssColor'],
+): Array<ZoneArc & { color: string }> {
+    return arcs.map(({ from, to, color }) => ({
+        from,
+        to,
+        color: canvasColor(extractColorFromValue(color), resolve) ?? 'transparent',
+    }));
 }
 
 /**
@@ -370,7 +402,7 @@ export function buildGaugeOptions(
     options.value = value;
     options.units = ctx.unit;
     options.title = canvasTitle(ctx.header);
-    options.highlights = zones.arcs;
+    options.highlights = canvasArcs(zones.arcs, ctx.resolveCssColor);
 
     // Defense in depth: the schema caps gaugeBarWidth at 50 (editor-side only);
     // stored values can exceed it, so the builder enforces it too.

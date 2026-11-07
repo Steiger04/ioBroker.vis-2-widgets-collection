@@ -71,9 +71,9 @@ describe('resolveZones — arcs', () => {
         expect(arcs[1]).toMatchObject({ from: 100, to: 100 });
     });
 
-    it('falls back to transparent without a plottable text color', () => {
+    it("carries the state's text colour raw — the builder decides what the canvas paints", () => {
         const { arcs } = resolveZones([state(0), state(10, { textColor: 'some text' })], 100, 0);
-        expect(arcs.map(arc => arc.color)).toEqual(['transparent', 'transparent']);
+        expect(arcs.map(arc => arc.color)).toEqual([undefined, 'some text']);
     });
 
     it('carries only from/to/color, never the state', () => {
