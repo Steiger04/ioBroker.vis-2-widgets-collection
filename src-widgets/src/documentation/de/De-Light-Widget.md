@@ -140,7 +140,7 @@ Das Widget kann automatisch OIDs eines Lichts erkennen:
 1. Wähle eine Schalter-OID (`colorLightSwitchOid`)
 2. Widget analysiert das Gerät
 3. Findet automatisch RGB/HSV/CCT-OIDs
-4. Konfiguriert Typ entsprechend
+4. Der Lichttyp (`colorLightType`) bleibt deine Wahl; bereits gesetzte Kanal-OIDs bleiben unberührt
 
 ### Manuelle Konfiguration
 
@@ -166,17 +166,8 @@ Das Widget kann automatisch OIDs eines Lichts erkennen:
 
 ### HSV-Steuerung
 
-**Option 1: HSV kombiniert**
-
-- Setze `colorLightHsvOid`
-- Widget schreibt kombinierten HSV-String
-- Format abhängig vom Gerät
-
-**Option 2: Separate Werte**
-
 - Setze `colorLightHueOid`, `colorLightSaturationOid`, `colorLightBrightnessOid`
 - Widget schreibt separate Werte
-- Flexibler, aber mehr OIDs
 
 ### Farbtemperatur (CCT)
 
@@ -190,36 +181,25 @@ Das Widget kann automatisch OIDs eines Lichts erkennen:
 - Separate OID: `colorLightBrightnessOid`
 - Wert: 0-100%
 - Slider im Widget
-- Kann mit allen Lichttypen kombiniert werden
+- Genutzt von den Lichttypen `cct`, `h/s/v` und `h/s/v/cct` sowie in der CCT-Ansicht von `rgbcct` und `r/g/b/cct`
 
 ## Button-Modus
 
 Mit `colorLightButton = true`:
 
-- Widget öffnet Modal bei Click
-- Kein direktes Schreiben auf OID
-- Long-Press-Verzögerung konfigurierbar
-- Nützlich für komplexe Steuerungen ohne direkte OID
+- Das Widget zeigt einen Button mit dem Icon der aktiven Schalter-Zustandszeile
+- Click schaltet `colorLightSwitchOid` ein/aus
+- Langer Druck öffnet das Modal mit der Farbsteuerung
+- Long-Press-Verzögerung über `colorLightDelayLongPress` konfigurierbar
 
 ## Modal-Dialog
 
-Bei Click auf Widget (außer Button-Modus):
+Nur im Button-Modus, nach langem Druck:
 
-- Öffnet Farb-Auswahl-Dialog
+- Öffnet die Farbsteuerung
 - Größe über `colorLightModalWidth/Height` einstellbar
 - Vollständige Farbsteuerung
-- Schließt nach Auswahl oder Click außerhalb
-
-## Farbraum (Gamut)
-
-Optionaler Farbraum für präzise Farbwiedergabe:
-
-- **sRGB**: Standard (Internet, Monitore)
-- **DCI-P3**: Erweiterter Farbraum (Apple-Displays)
-- **Adobe RGB**: Professionelle Fotografie
-- **Rec. 2020**: HDR, Zukunftssicher
-
-**Hinweis:** Nur setzen, wenn dein Licht einen spezifischen Farbraum unterstützt.
+- Schließt per Click außerhalb
 
 ## Anwendungsbeispiele
 
@@ -227,17 +207,16 @@ Optionaler Farbraum für präzise Farbwiedergabe:
 
 ```
 colorLightType: rgb
-colorLightUiComponent: wheel
+colorLightUIComponent: wheel
 colorLightSwitchOid: hue.0.strip.on
 colorLightRgbHexOid: hue.0.strip.rgb
-colorLightBrightnessOid: hue.0.strip.level
 ```
 
 ### Philips Hue (HSV)
 
 ```
-colorLightType: hsv
-colorLightUiComponent: wheel
+colorLightType: h/s/v
+colorLightUIComponent: wheel
 colorLightSwitchOid: hue.0.lamp.on
 colorLightHueOid: hue.0.lamp.hue
 colorLightSaturationOid: hue.0.lamp.sat
@@ -248,7 +227,6 @@ colorLightBrightnessOid: hue.0.lamp.bri
 
 ```
 colorLightType: cct
-colorLightUiComponent: slider
 colorLightSwitchOid: zigbee.0.lamp.state
 colorLightTemperatureOid: zigbee.0.lamp.color_temp
 colorLightBrightnessOid: zigbee.0.lamp.brightness
@@ -256,12 +234,13 @@ colorLightCtMin: 2700
 colorLightCtMax: 6500
 ```
 
-### RGB Button (ohne OID)
+### RGB im Button-Modus
 
 ```
+colorLightType: rgb
+colorLightUIComponent: box
+colorLightSwitchOid: hue.0.strip.on
+colorLightRgbHexOid: hue.0.strip.rgb
 colorLightButton: true
 colorLightDelayLongPress: 1000
-colorLightUiComponent: box
 ```
-
-Nutze JavaScript-Skript um auf Widget-Events zu reagieren.
