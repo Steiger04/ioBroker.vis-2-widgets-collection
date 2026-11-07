@@ -122,9 +122,7 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             alias: 'My Alias',
             value: 42,
             valueSize: 16,
-            backgroundColor: '#bgcol',
             background: 'grad(x)',
-            frameBackgroundColor: '#frbgcol',
             frameBackground: 'grad(y)',
         },
         oidObject: { unit: '°C' },
@@ -163,10 +161,10 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             value: '42°C',
             valueSize: '16%',
             valueSizeActive: null,
-            backgroundColor: '#bgcol',
+            backgroundColor: '',
             background: 'grad(x)',
             backgroundActive: undefined,
-            frameBackgroundColor: '#frbgcol',
+            frameBackgroundColor: '',
             frameBackground: 'grad(y)',
             frameBackgroundActive: undefined,
         });
@@ -205,6 +203,18 @@ describe('style-object fallbacks apply when the rxData tier is absent', () => {
         expect(sd.textColor).toBe('#tsColor');
         expect(sd.headerSize).toBe('13px');
         expect(sd.valueSize).toBe('13px');
+        expect(sd.backgroundColor).toBe('#bsColor');
+        expect(sd.frameBackgroundColor).toBe('#bsColor');
+    });
+
+    it('takes the background colours from the CSS alone — a value stored before 2026-02-12 no longer wins', () => {
+        // The base fields backgroundColor/frameBackgroundColor were retired on 2026-02-12: a stored
+        // value is invisible in the configurator, so it must not override the widget's CSS.
+        const r = buildResolvers({
+            rxData: { backgroundColor: '#stored', frameBackgroundColor: '#stored' },
+            backgroundStyles: { 'background-color': '#bsColor' },
+        });
+        const sd = resolve(r);
         expect(sd.backgroundColor).toBe('#bsColor');
         expect(sd.frameBackgroundColor).toBe('#bsColor');
     });

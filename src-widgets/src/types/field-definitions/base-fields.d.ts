@@ -318,15 +318,6 @@ export interface BaseFieldsRxData {
     background?: string;
 
     /**
-     * Background color of a widget stored before 2026-02-12, when the field was retired.
-     *
-     * @remarks
-     * No field writes it any more; a stored value still wins over the widget's CSS
-     * `background-color` in useData's `backgroundColor` (read by the dialogs).
-     */
-    backgroundColor?: string;
-
-    /**
      * Frame background image URL or path (base property without index).
      * Global background image for frame elements within the widget.
      *
@@ -341,15 +332,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.frameBackground}
      */
     frameBackground?: string;
-
-    /**
-     * Frame background color of a widget stored before 2026-02-12, when the field was retired.
-     *
-     * @remarks
-     * No field writes it any more; a stored value still wins over the widget's CSS
-     * `background-color` in useData's `frameBackgroundColor` (read by the view dialog).
-     */
-    frameBackgroundColor?: string;
 
     /**
      * Value font size (base property without index).

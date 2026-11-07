@@ -446,13 +446,10 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         },
 
         // Background Properties
+        // The widget's CSS background-color — the base field of the same name was retired on
+        // 2026-02-12; a value stored before no longer counts.
         backgroundColor: (_ext: string | number, _includeActive: boolean) =>
-            resolvePriority([
-                {
-                    value: rxData.backgroundColor && rxData.backgroundColor !== '' ? rxData.backgroundColor : undefined,
-                },
-                { value: backgroundStyles?.['background-color'] },
-            ]) ?? '',
+            backgroundStyles?.['background-color'] || '',
 
         background: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
@@ -465,16 +462,9 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         backgroundActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? getDataValue<string>('background', String(ext)) : undefined,
 
+        // Like backgroundColor: the widget's CSS background-color (base field retired 2026-02-12).
         frameBackgroundColor: (_ext: string | number, _includeActive: boolean) =>
-            resolvePriority([
-                {
-                    value:
-                        rxData.frameBackgroundColor && rxData.frameBackgroundColor !== ''
-                            ? rxData.frameBackgroundColor
-                            : undefined,
-                },
-                { value: backgroundStyles?.['background-color'] },
-            ]) ?? '',
+            backgroundStyles?.['background-color'] || '',
 
         // Terminal `paper` mirrors the frameBackground field contract
         // (commonFields): unset ⇒ the card surface follows the effective theme's

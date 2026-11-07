@@ -82,14 +82,14 @@ export interface StyleData {
     /** Active icon Y offset as a CSS value (with unit). */
     iconYOffsetActive?: string;
 
-    /** Background color. */
+    /** The widget's CSS background-color (read by the dialogs). */
     backgroundColor?: string;
     /** Background (gradient/image). */
     background?: string;
     /** Active background. */
     backgroundActive?: string;
 
-    /** Frame background color. */
+    /** The widget's CSS background-color, used for the view dialog's frame details. */
     frameBackgroundColor?: string;
     /** Frame background (gradient/image). */
     frameBackground?: string;
