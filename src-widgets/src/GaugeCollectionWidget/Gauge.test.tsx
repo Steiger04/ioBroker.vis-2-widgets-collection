@@ -86,25 +86,40 @@ describe('Gauge Canvas-Adapter', () => {
         handle.unmount();
     });
 
-    it('does not update when the options object is referentially unchanged', () => {
-        const options = baseOptions();
-        const handle = renderComponent(Gauge, { options });
+    it('does not update when a new options object carries the same content', () => {
+        const handle = renderComponent(Gauge, { options: baseOptions() });
         const instance = fakes.FakeGauge.instances[0];
         const updatesAfterMount = instance.updates.length;
 
-        handle.rerender({ options });
-        expect(instance.updates).toHaveLength(updatesAfterMount);
+        // vis-2 renews references on a mere editor move — content equality must suffice.
+        handle.rerender({ options: baseOptions() });
+        handle.rerender({ options: baseOptions({ highlights: [{ from: 0, to: 5, color: '#f00' }] }) });
+        const updatesAfterHighlights = instance.updates.length;
+        handle.rerender({ options: baseOptions({ highlights: [{ from: 0, to: 5, color: '#f00' }] }) });
+        expect(updatesAfterHighlights).toBe(updatesAfterMount + 1);
+        expect(instance.updates).toHaveLength(updatesAfterHighlights);
         handle.unmount();
     });
 
-    it('updates value and options when the options object changes', () => {
+    it('updates value and options when the value changes', () => {
         const handle = renderComponent(Gauge, { options: baseOptions() });
         const instance = fakes.FakeGauge.instances[0];
 
         handle.rerender({ options: baseOptions({ value: 7 }) });
-        expect(instance.updates.length).toBeGreaterThan(1);
+        expect(instance.updates).toHaveLength(2);
         expect(instance.value).toBe(7);
         expect(instance.options.value).toBe(7);
+        handle.unmount();
+    });
+
+    it('updates when the size changes', () => {
+        const handle = renderComponent(Gauge, { options: baseOptions() });
+        const instance = fakes.FakeGauge.instances[0];
+
+        handle.rerender({ options: baseOptions({ width: 200, value: 6 }) });
+        expect(instance.updates).toHaveLength(2);
+        expect(instance.options.width).toBe(200);
+        expect(instance.value).toBe(6);
         handle.unmount();
     });
 
@@ -112,6 +127,36 @@ describe('Gauge Canvas-Adapter', () => {
         const handle = renderComponent(Gauge, { options: baseOptions({ width: 10 }) });
         const instance = fakes.FakeGauge.instances[0];
         expect(instance.updates).toHaveLength(0);
+        handle.unmount();
+    });
+
+    it('does not remember skipped options as applied: growing past the minimum size updates', () => {
+        const handle = renderComponent(Gauge, { options: baseOptions({ width: 10 }) });
+        const instance = fakes.FakeGauge.instances[0];
+
+        handle.rerender({ options: baseOptions({ width: 10, value: 8 }) });
+        expect(instance.updates).toHaveLength(0);
+
+        handle.rerender({ options: baseOptions({ value: 8 }) });
+        expect(instance.updates).toHaveLength(1);
+        expect(instance.value).toBe(8);
+        handle.unmount();
+    });
+
+    it('compares against the last applied options, not the last skipped ones', () => {
+        const handle = renderComponent(Gauge, { options: baseOptions() });
+        const instance = fakes.FakeGauge.instances[0];
+
+        // Shrinking is skipped, so the instance still holds the first options; returning
+        // to exactly them needs no redraw, while returning with a new value does.
+        handle.rerender({ options: baseOptions({ width: 10 }) });
+        handle.rerender({ options: baseOptions() });
+        expect(instance.updates).toHaveLength(1);
+
+        handle.rerender({ options: baseOptions({ width: 10 }) });
+        handle.rerender({ options: baseOptions({ value: 9 }) });
+        expect(instance.updates).toHaveLength(2);
+        expect(instance.value).toBe(9);
         handle.unmount();
     });
 
@@ -123,6 +168,23 @@ describe('Gauge Canvas-Adapter', () => {
         expect(radial.destroyed).toBe(1);
         expect(fakes.FakeGauge.instances).toHaveLength(2);
         expect(fakes.FakeGauge.instances[1].kind).toBe('linear');
+        handle.unmount();
+    });
+
+    it('applies the options to the new instance after a gaugeType switch', () => {
+        const handle = renderComponent(Gauge, { options: baseOptions() });
+
+        handle.rerender({ options: baseOptions({ gaugeType: 'linear' }) });
+        const linear = fakes.FakeGauge.instances[1];
+        expect(linear.updates).toHaveLength(1);
+        expect(linear.value).toBe(5);
+
+        // Switching back with otherwise identical content must not skip the fresh instance.
+        handle.rerender({ options: baseOptions() });
+        const radial = fakes.FakeGauge.instances[2];
+        expect(radial.kind).toBe('radial');
+        expect(radial.updates).toHaveLength(1);
+        expect(radial.value).toBe(5);
         handle.unmount();
     });
 
