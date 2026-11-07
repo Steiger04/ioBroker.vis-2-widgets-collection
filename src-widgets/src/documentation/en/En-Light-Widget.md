@@ -140,7 +140,7 @@ The widget can automatically detect OIDs of a light:
 1. Select a switch OID (`colorLightSwitchOid`)
 2. Widget analyzes the device
 3. Automatically finds RGB/HSV/CCT OIDs
-4. Configures type accordingly
+4. The light type (`colorLightType`) stays your choice; channel OIDs you already set are left alone
 
 ### Manual Configuration
 
@@ -166,17 +166,8 @@ The widget can automatically detect OIDs of a light:
 
 ### HSV Control
 
-**Option 1: HSV Combined**
-
-- Set `colorLightHsvOid`
-- Widget writes combined HSV string
-- Format depends on device
-
-**Option 2: Separate Values**
-
 - Set `colorLightHueOid`, `colorLightSaturationOid`, `colorLightBrightnessOid`
 - Widget writes separate values
-- More flexible, but more OIDs
 
 ### Color Temperature (CCT)
 
@@ -190,36 +181,25 @@ The widget can automatically detect OIDs of a light:
 - Separate OID: `colorLightBrightnessOid`
 - Value: 0-100%
 - Slider in widget
-- Can be combined with all light types
+- Used by the light types `cct`, `h/s/v` and `h/s/v/cct`, and in the CCT view of `rgbcct` and `r/g/b/cct`
 
 ## Button Mode
 
 With `colorLightButton = true`:
 
-- Widget opens modal on click
-- No direct writing to OID
-- Long-press delay configurable
-- Useful for complex controls without direct OID
+- The widget shows a button with the icon of the active switch state row
+- Click toggles `colorLightSwitchOid` on/off
+- Long press opens the modal with the color control
+- Long-press delay configurable via `colorLightDelayLongPress`
 
 ## Modal Dialog
 
-On widget click (except button mode):
+Only in button mode, after a long press:
 
-- Opens color selection dialog
+- Opens the color control
 - Size adjustable via `colorLightModalWidth/Height`
 - Complete color control
-- Closes after selection or click outside
-
-## Color Space (Gamut)
-
-Optional color space for precise color reproduction:
-
-- **sRGB**: Standard (Internet, monitors)
-- **DCI-P3**: Extended color space (Apple displays)
-- **Adobe RGB**: Professional photography
-- **Rec. 2020**: HDR, future-proof
-
-**Note:** Only set if your light supports a specific color space.
+- Closes on click outside
 
 ## Use Cases
 
@@ -227,17 +207,16 @@ Optional color space for precise color reproduction:
 
 ```
 colorLightType: rgb
-colorLightUiComponent: wheel
+colorLightUIComponent: wheel
 colorLightSwitchOid: hue.0.strip.on
 colorLightRgbHexOid: hue.0.strip.rgb
-colorLightBrightnessOid: hue.0.strip.level
 ```
 
 ### Philips Hue (HSV)
 
 ```
-colorLightType: hsv
-colorLightUiComponent: wheel
+colorLightType: h/s/v
+colorLightUIComponent: wheel
 colorLightSwitchOid: hue.0.lamp.on
 colorLightHueOid: hue.0.lamp.hue
 colorLightSaturationOid: hue.0.lamp.sat
@@ -248,7 +227,6 @@ colorLightBrightnessOid: hue.0.lamp.bri
 
 ```
 colorLightType: cct
-colorLightUiComponent: slider
 colorLightSwitchOid: zigbee.0.lamp.state
 colorLightTemperatureOid: zigbee.0.lamp.color_temp
 colorLightBrightnessOid: zigbee.0.lamp.brightness
@@ -256,12 +234,13 @@ colorLightCtMin: 2700
 colorLightCtMax: 6500
 ```
 
-### RGB Button (without OID)
+### RGB in Button Mode
 
 ```
+colorLightType: rgb
+colorLightUIComponent: box
+colorLightSwitchOid: hue.0.strip.on
+colorLightRgbHexOid: hue.0.strip.rgb
 colorLightButton: true
 colorLightDelayLongPress: 1000
-colorLightUiComponent: box
 ```
-
-Use JavaScript script to react to widget events.
