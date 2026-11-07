@@ -181,6 +181,56 @@ describe('Light2 switch-OID pick — the channel states it detects', () => {
         expect(picked.colorLightBrightnessOid).toBe('zigbee.0.my.dimmer');
     });
 
+    /** A colour-temperature state that declares its range in `common.min`/`common.max`. */
+    const rangedCt = (id: string, min?: number, max?: number): Record<string, unknown> => {
+        const state = channelState(id, 'level.color.temperature');
+        return { ...state, common: { ...(state.common as object), min, max } };
+    };
+
+    // vis-2 stores the schema defaults 2000/6500 when the widget is created, so the CT range of a
+    // fresh widget is never empty when the switch is picked.
+    const FRESH_WIDGET = {
+        colorLightButton: false,
+        colorLightTemperatureOid: 'nothing_selected',
+        colorLightCtMin: 2000,
+        colorLightCtMax: 6500,
+    };
+
+    it('takes the CT range of a newly detected temperature state over the stored defaults', async () => {
+        const picked = await pickSwitch(FRESH_WIDGET, socketWith([SWITCH_OBJECT, rangedCt(CT, 2200, 6000)]));
+
+        expect(picked.colorLightTemperatureOid).toBe(CT);
+        expect([picked.colorLightCtMin, picked.colorLightCtMax]).toEqual([2200, 6000]);
+    });
+
+    it('keeps the CT range when the detected temperature state declares none', async () => {
+        const picked = await pickSwitch(FRESH_WIDGET, socketWith([SWITCH_OBJECT, rangedCt(CT)]));
+
+        expect(picked.colorLightTemperatureOid).toBe(CT);
+        expect([picked.colorLightCtMin, picked.colorLightCtMax]).toEqual([2000, 6500]);
+    });
+
+    it('takes only the bound the detected temperature state declares', async () => {
+        const picked = await pickSwitch(FRESH_WIDGET, socketWith([SWITCH_OBJECT, rangedCt(CT, undefined, 6000)]));
+
+        expect([picked.colorLightCtMin, picked.colorLightCtMax]).toEqual([2000, 6000]);
+    });
+
+    it('keeps a temperature OID the user chose together with its CT range', async () => {
+        const picked = await pickSwitch(
+            {
+                ...FRESH_WIDGET,
+                colorLightTemperatureOid: 'zigbee.0.my.ct',
+                colorLightCtMin: 2700,
+                colorLightCtMax: 5000,
+            },
+            socketWith([SWITCH_OBJECT, rangedCt(CT, 2200, 6000)]),
+        );
+
+        expect(picked.colorLightTemperatureOid).toBe('zigbee.0.my.ct');
+        expect([picked.colorLightCtMin, picked.colorLightCtMax]).toEqual([2700, 5000]);
+    });
+
     it('keeps the picked switch OID although another state of the channel has the role switch.light', async () => {
         const picked = await pickSwitch(
             { colorLightButton: true, values_count: 0 },

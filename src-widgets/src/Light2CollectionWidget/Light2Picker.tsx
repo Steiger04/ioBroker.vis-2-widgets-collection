@@ -16,6 +16,7 @@ import {
     type PickerDimensions,
 } from './colorPickerUtils/colorPickerMemos';
 import { CollectionContext } from '../components/CollectionProvider';
+import { resolveLight2BorderColor } from '../lib/light2ColorContract';
 
 import {
     initializeColorPicker,
@@ -129,6 +130,10 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
             resizeColorPicker(iroPickerRef.current, colorLightWidth);
         }, [colorLightWidth]);
 
+        // A string: the options effect runs again only when the drawn colour changes, not on every
+        // new theme object.
+        const borderColor = resolveLight2BorderColor({ colorLightBorderColor }, theme);
+
         useEffect(() => {
             setColorPickerOptions(iroPickerRef.current, {
                 layout: colorLightLayout,
@@ -136,19 +141,14 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
                 wheelLightness: colorWheelLightness,
                 sliderSize: (colorLightSliderWidth || 1) * 28,
                 borderWidth: colorLightBorderWidth || 0,
-                borderColor:
-                    !colorLightBorderColor ||
-                    (typeof colorLightBorderColor === 'string' && colorLightBorderColor.trim() === '')
-                        ? theme.palette.primary.main
-                        : colorLightBorderColor,
+                borderColor,
             });
         }, [
-            theme.palette.primary.main,
             colorLightLayout,
             marginBetweenPickers,
             colorLightSliderWidth,
             colorLightBorderWidth,
-            colorLightBorderColor,
+            borderColor,
             colorWheelLightness,
         ]);
 

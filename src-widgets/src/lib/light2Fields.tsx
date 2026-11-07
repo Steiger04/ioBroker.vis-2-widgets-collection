@@ -10,8 +10,9 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
-import { createPlainColorField } from './fieldFactories';
+import { createColorField } from './fieldFactories';
 import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
+import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
@@ -142,12 +143,15 @@ const loadStatesAsync = async (
 
                 await oidChangeHandlerAsync(LIGHT2_OID_TYPES, targetField)(field, data, changeData, socket);
 
+                // A newly detected temperature brings its CT range where it declares one: it
+                // replaces the stored range, which vis-2 already filled with the schema defaults
+                // 2000/6500 when the widget was created (ADR-0104, Nachtrag 2026-11-07).
                 if (targetField === 'colorLightTemperatureOid') {
-                    if (!extendedData.colorLightCtMin && state.common.min) {
-                        extendedData.colorLightCtMin = state.common.min;
+                    if (state.common.min) {
+                        data.colorLightCtMin = state.common.min;
                     }
-                    if (!extendedData.colorLightCtMax && state.common.max) {
-                        extendedData.colorLightCtMax = state.common.max;
+                    if (state.common.max) {
+                        data.colorLightCtMax = state.common.max;
                     }
                 }
             }),
@@ -219,9 +223,11 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 3,
         step: 1,
     },
-    createPlainColorField({
-        name: 'colorLightBorderColor',
+    // Field-Vertrag (ADR-0102 Nachtrag 2026-11-07): the swatch shows the primary the empty border draws.
+    createColorField({
+        ...light2BorderColorContract,
         label: 'color_light_border_color',
+        noGradient: true,
     }),
     {
         name: 'colorLightPadding',

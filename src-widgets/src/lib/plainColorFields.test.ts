@@ -1,6 +1,8 @@
 /**
- * Characterisation of the 28 Schlichte Farbfelder (ADR-0102): the colour fields without a
- * Field-Vertrag — Gauge 25, `dialogCloseButtonColor`, `colorLightBorderColor`, `markerIconColor`.
+ * Characterisation of the 27 Schlichte Farbfelder (ADR-0102): the colour fields without a
+ * Field-Vertrag — Gauge 25, `dialogCloseButtonColor`, `markerIconColor`. `colorLightBorderColor`,
+ * the 28th of the former vis-2 colour fields, became a Field-Vertrag (ADR-0102 Nachtrag
+ * 2026-11-07, `lib/light2ColorContract.test`).
  *
  * @module lib/plainColorFields.test
  * @remarks
@@ -45,7 +47,7 @@ const renderedBy = (field: FieldLike): unknown =>
 const PLAIN_ADAPTER = renderedBy(createPlainColorField({ name: 'probe', label: 'probe' }) as FieldLike);
 const CONTRACT_ADAPTER = renderedBy(createColorField({ name: 'probe', label: 'probe' }) as FieldLike);
 
-/** Probe data for predicate hidden rules: every condition the 28 fields depend on. */
+/** Probe data for predicate hidden rules: every condition the 27 fields depend on. */
 const PROBES: Record<string, unknown>[] = [{}, { gaugeType: 'linear' }, { gaugeType: 'radial' }, { marks: true }];
 
 /** Hidden rule as comparable data: the expression, the predicate's answers, or none. */
@@ -83,7 +85,7 @@ const gauge = (name: string, label: string, defaultValue: string, hidden: Hidden
     hidden,
 });
 
-/** The 28 fields as they were rendered by vis-2 (`type: 'color'`) before ADR-0102. */
+/** The 27 fields as they were rendered by vis-2 (`type: 'color'`) before ADR-0102. */
 const PLAIN_COLOR_FIELDS: Characteristic[] = [
     gauge('gaugeColorBarEnd', 'gauge_color_bar_end', '', LINEAR),
     gauge('gaugeColorBarProgressEnd', 'gauge_color_bar_progress_end', '', LINEAR),
@@ -118,13 +120,6 @@ const PLAIN_COLOR_FIELDS: Characteristic[] = [
         hidden: 'none',
     },
     {
-        list: 'light2',
-        name: 'colorLightBorderColor',
-        label: 'color_light_border_color',
-        default: undefined,
-        hidden: 'none',
-    },
-    {
         list: 'slider',
         name: 'markerIconColor',
         label: 'marker_icon_color',
@@ -146,9 +141,9 @@ const findField = (list: Characteristic['list'], name: string): FieldLike => {
     return matches[0];
 };
 
-describe('Schlichte Farbfelder — characterisation of the 28 former vis-2 colour fields', () => {
-    it('covers 28 fields (Gauge 25 + Dialog, Light2, Slider one each)', () => {
-        expect(PLAIN_COLOR_FIELDS).toHaveLength(28);
+describe('Schlichte Farbfelder — characterisation of the 27 former vis-2 colour fields', () => {
+    it('covers 27 fields (Gauge 25 + Dialog, Slider one each)', () => {
+        expect(PLAIN_COLOR_FIELDS).toHaveLength(27);
         expect(PLAIN_COLOR_FIELDS.filter(field => field.list === 'gauge')).toHaveLength(25);
     });
 
