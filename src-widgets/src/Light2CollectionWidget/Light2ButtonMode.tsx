@@ -5,19 +5,19 @@
  * @remarks
  * Composed by the Light2 body when `colorLightButton` is set (ADR-0108 Nr. 4): a click on the face
  * toggles the Schalter-OID, a long press (`colorLightDelayLongPress`) opens the modal. The body
- * holds the switch binding once and hands its value and toggle in; the face reads the
- * Zustandszeilen of the Schalter-OID through useData.
+ * holds the switch binding once and hands its value and toggle in. The face is the Wert-Anzeige
+ * without value text over the Zustandszeilen of the Schalter-OID (icon, size, offsets and colour
+ * mask of the active row, resolved by useData).
  */
 
 import { Box, Button, Modal } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import SafeImg from '../components/SafeImg';
+import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import type { UseValueStateReturn } from '../hooks/useValueState';
-import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { Light2CollectionContextProps } from '../types';
 import { modalWidthOf } from './pickerGeometry';
 
@@ -78,7 +78,8 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
                     onPointerLeave={longPressProps.onPointerLeave}
                     onPointerCancel={longPressProps.onPointerCancel}
                     sx={{
-                        color: data.iconColorActive || 'inherit',
+                        // Text color only, as in the other display-first widgets (ADR-0004).
+                        color: data.textColor || 'inherit',
                         width: '100%',
                         height: '100%',
                         display: 'flex',
@@ -87,27 +88,21 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
                         touchAction: 'manipulation',
                     }}
                 >
-                    <SafeImg
-                        alt=""
-                        src={
-                            data.iconActive ||
-                            'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                        }
-                        style={{
-                            width:
-                                (typeof data.iconSizeOnly === 'number' && `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                '100%',
-                            height:
-                                (typeof data.iconSizeOnly === 'number' && `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                '100%',
-                            objectFit: 'contain',
-                            ...getIconColorStyles(
-                                data.iconActive ||
-                                    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-                                data.iconColorActive || data.iconColor,
-                            ),
+                    <Box
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
                         }}
-                    />
+                    >
+                        <CollectionValueDisplay
+                            data={data}
+                            contentValue=""
+                            noValue
+                        />
+                    </Box>
                 </Button>
             </CollectionBase>
 

@@ -152,6 +152,55 @@ describe('Light2Collection Button-Modus', () => {
     });
 });
 
+describe('Light2Collection Button-Modus face (Wert-Anzeige without value text)', () => {
+    /** The two fixed Zustandszeilen of the Schalter-OID, each with its own icon at the given size. */
+    const switchRows = (iconSize: number): Record<string, unknown> => ({
+        colorLightButton: true,
+        values_count: 2,
+        value1: true,
+        icon1: 'on.svg',
+        iconSize1: iconSize,
+        value2: false,
+        icon2: 'off.svg',
+        iconSize2: iconSize,
+    });
+
+    /** The face's icon element. */
+    const faceIcon = (container: HTMLElement): HTMLImageElement => {
+        const img = container.querySelector<HTMLImageElement>('button img');
+        expect(img).not.toBeNull();
+        return img!;
+    };
+
+    /** The rendered width of the face's icon (the element that carries its size). */
+    const faceIconWidth = (container: HTMLElement): string => {
+        const img = faceIcon(container);
+        const sized = img.closest<HTMLElement>('.MuiAvatar-root') ?? img;
+        return getComputedStyle(sized).width;
+    };
+
+    it("sizes the icon from the active row's iconSize", () => {
+        const { container } = mountBody(Light2Collection, scene(switchRows(50)));
+
+        expect(faceIconWidth(container)).toBe('50%');
+    });
+
+    it("shows the icon of the switch's active row and follows the switch value", () => {
+        const off = scene(switchRows(100), false);
+        const { container, rerender } = mountBody(Light2Collection, off);
+        expect(faceIcon(container).getAttribute('src')).toBe('off.svg');
+
+        rerender(scene(switchRows(100), true));
+        expect(faceIcon(container).getAttribute('src')).toBe('on.svg');
+    });
+
+    it('renders no value text on the face', () => {
+        const { container } = mountBody(Light2Collection, scene(switchRows(100), true));
+
+        expect(container.querySelector('button')?.textContent).toBe('');
+    });
+});
+
 describe('Light2Collection Lampen-Bedienelement', () => {
     it('renders the power button and the picker box directly without the Button-Modus', () => {
         measureContentRect({ width: 300, height: 200 });
