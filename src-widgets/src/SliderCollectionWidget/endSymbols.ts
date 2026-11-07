@@ -17,6 +17,7 @@ import { isBase64Icon } from '../lib/helper/isBase64Icon';
 import { resolveStoredChromeColor, type ColorFieldContract } from '../lib/helper/resolveEffectiveColor';
 import { sliderColorContracts } from '../lib/sliderColorContract';
 import type { SliderFieldsRxData } from '../types';
+import type { SliderOrientation } from './chrome';
 
 /** Icon size when the source icon's size field is unset. */
 const DEFAULT_ICON_SIZE = '24px';
@@ -70,7 +71,7 @@ const resolveSource = (
 export function resolveEndSymbols(
     rxData: SliderFieldsRxData,
     theme: Theme,
-    orientation: 'horizontal' | 'vertical',
+    orientation: SliderOrientation,
 ): EndSymbols {
     const data = rxData as Record<string, unknown>;
 

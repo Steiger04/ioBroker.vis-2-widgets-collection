@@ -15,6 +15,9 @@
  * offset are one layout decision; only the chrome and this module's suite import it.
  */
 
+// Type-only: the chrome imports this module at runtime, never the other way round.
+import type { SliderOrientation } from './chrome';
+
 /** Space (px) reserved for the mark labels: below (horizontal) or right (vertical) of the slider. */
 export const MARK_LABEL_SPACE = {
     horizontal: 20,
@@ -28,7 +31,7 @@ export const MARK_LABEL_SPACE = {
  * @param orientation - Slider orientation.
  * @returns The offset in px; only the cross axis of the orientation is non-zero.
  */
-export function railOffset(marks: boolean, orientation: 'horizontal' | 'vertical'): { x: number; y: number } {
+export function railOffset(marks: boolean, orientation: SliderOrientation): { x: number; y: number } {
     if (!marks) {
         return { x: 0, y: 0 };
     }

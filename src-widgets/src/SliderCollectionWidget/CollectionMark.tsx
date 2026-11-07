@@ -16,21 +16,32 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import SafeImg from '../components/SafeImg';
+import type { SliderOrientation } from './chrome';
 import type { SliderMark } from './marks';
 
-/** The props the slider hands to its mark-label slot (`slotProps.markLabel`). */
+/**
+ * The props the slider hands to its mark-label slot (`slotProps.markLabel`).
+ *
+ * @remarks
+ * `showMarkLabels` is named apart from the slider's own `marks` (the mark list, also on
+ * `ownerState`): it is the widget's toggle, read by this slot only.
+ */
 export interface CollectionMarkSlotProps {
     /** The widget's `marks` toggle: without it the mark labels render nothing. */
-    marks?: boolean;
-    sliderOrientation?: 'horizontal' | 'vertical';
+    showMarkLabels?: boolean;
+    /** The orientation the chrome renders the slider in. */
+    orientation?: SliderOrientation;
 }
 
 // MUI's extension point for extra slot props: lets the slider hand the mark-label slot its
 // props (`slotProps.markLabel`) typed, without a styled wrapper's prop types or a cast.
+// The augmentation is GLOBAL: it applies to every slot of every MUI Slider in the bundle, so
+// no name may reuse a Slider prop with another meaning — `showMarkLabels`, not `marks` (the
+// mark list); `orientation` carries the very value the Slider's own prop gets.
 declare module '@mui/material/Slider' {
     interface SliderComponentsPropsOverrides {
-        marks?: CollectionMarkSlotProps['marks'];
-        sliderOrientation?: CollectionMarkSlotProps['sliderOrientation'];
+        showMarkLabels?: CollectionMarkSlotProps['showMarkLabels'];
+        orientation?: CollectionMarkSlotProps['orientation'];
     }
 }
 
@@ -46,19 +57,19 @@ export interface CollectionMarkProps extends CollectionMarkSlotProps, Omit<HTMLA
     className?: string;
 }
 
-const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...props }) => {
+const CollectionMark: FC<CollectionMarkProps> = ({ showMarkLabels, orientation, ...props }) => {
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
     const mark = props.ownerState.marks?.[props['data-index']];
 
     // Labels may carry HTML; the selected mark's alias is already its label.
     const labelHtml = mark?.label || '';
 
-    return marks && mark ? (
+    return showMarkLabels && mark ? (
         <SliderMarkLabel {...props}>
             <Box
                 sx={{
                     display: 'flex',
-                    flexDirection: sliderOrientation === 'vertical' ? 'row' : 'column',
+                    flexDirection: orientation === 'vertical' ? 'row' : 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
@@ -69,8 +80,8 @@ const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...
                     sx={{
                         textTransform: 'none',
                         flexGrow: 1,
-                        pr: sliderOrientation === 'vertical' ? 1 : 0,
-                        pb: sliderOrientation === 'vertical' ? 0 : 1,
+                        pr: orientation === 'vertical' ? 1 : 0,
+                        pb: orientation === 'vertical' ? 0 : 1,
 
                         fontSize: mark.valueSize,
 

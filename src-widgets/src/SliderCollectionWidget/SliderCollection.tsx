@@ -158,8 +158,8 @@ const SliderCollection: FC = () => {
                             }}
                             slotProps={{
                                 markLabel: {
-                                    marks: widget.data.marks,
-                                    sliderOrientation: orientation,
+                                    showMarkLabels: widget.data.marks,
+                                    orientation,
                                 },
                             }}
                             disabled={locked}
