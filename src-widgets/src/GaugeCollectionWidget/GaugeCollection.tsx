@@ -26,7 +26,7 @@ import SafeImg from '../components/SafeImg';
 import gaugeFields from '../lib/gaugeFields';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
-import { buildHighlights, findSegment, resolveSegmentBackground, resolveSegmentFrame } from './gaugeSegments';
+import { resolveZones } from './gaugeSegments';
 
 import type { GaugeOptions } from 'canvas-gauges';
 
@@ -122,28 +122,27 @@ function GaugeCollection(): React.JSX.Element {
         [gaugeMinValue, minValue, gaugeMaxValue, maxValue],
     );
 
-    const highlights = useMemo(() => buildHighlights(states, effectiveMaxValue), [states, effectiveMaxValue]);
-
-    const segment = useMemo(
-        () => findSegment(highlights, Number(oidValue) || 0, effectiveMaxValue),
-        [highlights, oidValue, effectiveMaxValue],
+    // The bare canvas arcs and the active zone's style, one resolution over useData's states.
+    const { arcs, active } = useMemo(
+        () => resolveZones(states, effectiveMaxValue, Number(oidValue) || 0),
+        [states, effectiveMaxValue, oidValue],
     );
 
-    // Active-zone styling, declaratively: the resolved segment colors are composed INTO
-    // the style data CollectionBase renders through its sx cascade — the replacement for
-    // the retired paper0/paper1 imperative handle writes. Without an active zone (or when
-    // the zone sets nothing) the base data passes through unchanged, exactly like every
-    // other Collection widget.
+    // Active-zone styling, declaratively: the zone's colors are composed INTO the style
+    // data CollectionBase renders through its sx cascade — the replacement for the retired
+    // paper0/paper1 imperative handle writes. Without an active zone (or where the zone
+    // value is empty) the base data passes through unchanged, exactly like every other
+    // Collection widget.
     const baseData = useMemo(() => {
-        if (!segment) {
+        if (!active) {
             return data;
         }
         return {
             ...data,
-            frameBackground: resolveSegmentFrame(segment) ?? data.frameBackground,
-            background: resolveSegmentBackground(segment) ?? data.background,
+            frameBackground: active.frameBackground || data.frameBackground,
+            background: active.background || data.background,
         };
-    }, [data, segment]);
+    }, [data, active]);
 
     // Complete canvas-gauges option set — coercion, defaults, the color contract
     // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
@@ -158,26 +157,22 @@ function GaugeCollection(): React.JSX.Element {
                 value: oidValue,
                 unit: oidObject?.unit,
                 header: data.header,
-                highlights,
+                highlights: arcs,
                 theme,
                 textStyles,
             }),
-        [fields, widget.data, oidValue, oidObject?.unit, data.header, highlights, theme, textStyles],
+        [fields, widget.data, oidValue, oidObject?.unit, data.header, arcs, theme, textStyles],
     );
 
     // Segment icon overlay (rendered above the canvas, positioned per state row).
-    const iconColorStyles = getIconColorStyles(
-        segment?.state.icon,
-        segment?.state.iconColor,
-        segment?.state.forceColorMask ?? false,
-    );
+    const iconColorStyles = getIconColorStyles(active?.icon, active?.iconColor, active?.forceColorMask ?? false);
 
     return (
         <CollectionBase
             isValidType={isValidType}
             data={baseData}
             oidValue={oidValue}
-            cornerIcon={{ ...data, icon: segment?.state.icon, iconColor: segment?.state.iconColor }}
+            cornerIcon={{ ...data, icon: active?.icon, iconColor: active?.iconColor }}
         >
             <Box
                 sx={{
@@ -191,18 +186,18 @@ function GaugeCollection(): React.JSX.Element {
             >
                 <SafeImg
                     alt=""
-                    src={segment?.state.icon}
+                    src={active?.icon}
                     style={{
                         position: 'relative',
 
-                        width: segment?.state.iconSizeOnly,
-                        height: segment?.state.iconSizeOnly,
+                        width: active?.iconSizeOnly,
+                        height: active?.iconSizeOnly,
 
                         boxSizing: 'border-box',
                         objectFit: widget.data.gaugeIconFit,
 
-                        top: `calc(0px - ${segment?.state.iconYOffset})`,
-                        left: `calc(0px + ${segment?.state.iconXOffset})`,
+                        top: `calc(0px - ${active?.iconYOffset})`,
+                        left: `calc(0px + ${active?.iconXOffset})`,
 
                         ...iconColorStyles,
                     }}

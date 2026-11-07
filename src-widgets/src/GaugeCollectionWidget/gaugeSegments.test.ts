@@ -1,116 +1,165 @@
 /**
- * Highlight-Zone model tests (range semantics + segment style chains).
+ * Highlight-Zone model tests (range semantics, arcs, active zone style).
  *
  * @module GaugeCollectionWidget/gaugeSegments.test
+ * @remarks
+ * States are built in the shape useData publishes: `frameBackground` is always set
+ * (terminal paper), the legacy per-state colour keys never appear.
  */
 
 import { describe, it, expect } from 'vitest';
 
-import {
-    buildHighlights,
-    findSegment,
-    resolveSegmentBackground,
-    resolveSegmentFrame,
-    type Highlight,
-    type HighlightState,
-} from './gaugeSegments';
+import { resolveZones } from './gaugeSegments';
 import type { StateStyleData } from '../hooks/useData/types';
 
-/** Minimal state row (only the fields buildHighlights reads). */
-const row = (value: number | string, textColor?: string): StateStyleData =>
-    ({ value, textColor }) as unknown as StateStyleData;
+/** A state as useData publishes it (`useData.tsx` states mapping). */
+const state = (value: number, style: Partial<StateStyleData> = {}): StateStyleData => ({
+    fieldNumber: 1,
+    active: false,
+    value,
+    alias: undefined,
+    textColor: undefined,
+    icon: undefined,
+    iconSize: undefined,
+    iconSizeOnly: undefined,
+    iconXOffset: undefined,
+    iconYOffset: undefined,
+    iconColor: undefined,
+    iconHover: undefined,
+    forceColorMask: undefined,
+    valueSize: undefined,
+    background: undefined,
+    frameBackground: '#ffffff',
+    ...style,
+});
 
-describe('buildHighlights', () => {
-    it('spans each row up to the next row value', () => {
-        const zones = buildHighlights([row(0, '#0f0'), row(10, '#ff0'), row(20, '#f00')], 100);
-        expect(zones.map(z => [z.from, z.to])).toEqual([
-            [0, 10],
-            [10, 20],
-            [20, 100], // last zone stretched to the max
+/** Index of the active zone among `states`, -1 for none — identified by its frame background. */
+const activeIndex = (states: StateStyleData[], maxValue: number, value: number): number => {
+    const { active } = resolveZones(states, maxValue, value);
+    return active ? states.findIndex(s => s.frameBackground === active.frameBackground) : -1;
+};
+
+/** States with distinct frame backgrounds, so the active zone is identifiable. */
+const tagged = (...values: number[]): StateStyleData[] =>
+    values.map((value, index) => state(value, { frameBackground: `zone-${index}` }));
+
+describe('resolveZones — arcs', () => {
+    it('spans each row up to the next row value, the last zone stretched to the max', () => {
+        const { arcs } = resolveZones(
+            [state(0, { textColor: '#0f0' }), state(10, { textColor: '#ff0' }), state(20, { textColor: '#f00' })],
+            100,
+            0,
+        );
+        expect(arcs).toEqual([
+            { from: 0, to: 10, color: '#0f0' },
+            { from: 10, to: 20, color: '#ff0' },
+            { from: 20, to: 100, color: '#f00' },
         ]);
-        expect(zones.map(z => z.color)).toEqual(['#0f0', '#ff0', '#f00']);
     });
 
     it('treats a boundary of exactly 0 as a real limit (not falsy-unset)', () => {
-        const zones = buildHighlights([row(-20), row(0), row(20)], 100);
-        expect(zones[0].to).toBe(0);
-        expect(zones[1].to).toBe(20);
+        const { arcs } = resolveZones([state(-20), state(0), state(20)], 100, 0);
+        expect(arcs.map(arc => [arc.from, arc.to])).toEqual([
+            [-20, 0],
+            [0, 20],
+            [20, 100],
+        ]);
     });
 
     it('keeps the last row end when it equals the max (no stretch)', () => {
-        const zones = buildHighlights([row(0), row(100)], 100);
-        expect(zones[1].to).toBe(100);
+        const { arcs } = resolveZones([state(0), state(100)], 100, 0);
+        expect(arcs[1]).toMatchObject({ from: 100, to: 100 });
     });
 
     it('falls back to transparent without a plottable text color', () => {
-        expect(buildHighlights([row(0)], 100)[0].color).toBe('transparent');
-        expect(buildHighlights([row(0, 'some text')], 100)[0].color).toBe('transparent');
+        const { arcs } = resolveZones([state(0), state(10, { textColor: 'some text' })], 100, 0);
+        expect(arcs.map(arc => arc.color)).toEqual(['transparent', 'transparent']);
     });
 
-    it('returns an empty zone list for empty state rows', () => {
-        expect(buildHighlights([], 100)).toEqual([]);
-    });
-});
-
-describe('findSegment — half-open intervals, closed at the absolute max', () => {
-    const zones: Highlight[] = [
-        { from: 0, to: 10, color: '', state: {} as HighlightState },
-        { from: 10, to: 20, color: '', state: {} as HighlightState },
-    ];
-
-    it('matches inside a zone and at its inclusive start', () => {
-        expect(findSegment(zones, 5, 20)).toBe(zones[0]);
-        expect(findSegment(zones, 10, 20)).toBe(zones[1]); // start of the second zone
+    it('carries only from/to/color, never the state', () => {
+        const { arcs } = resolveZones([state(0, { icon: 'a.svg', background: '#123' })], 100, 0);
+        expect(Object.keys(arcs[0]).sort()).toEqual(['color', 'from', 'to']);
     });
 
-    it('keeps the upper bound exclusive', () => {
-        expect(findSegment(zones, 20, 100)).toBeNull(); // 20 is outside (max is 100)
-    });
-
-    it('closes the last zone at the absolute maximum', () => {
-        const last: Highlight[] = [{ from: 10, to: 20, color: '', state: {} as HighlightState }];
-        expect(findSegment(last, 20, 20)).toBe(last[0]);
-    });
-
-    it('returns null below the first zone and for negative ranges', () => {
-        expect(findSegment(zones, -1, 20)).toBeNull();
-        const negative: Highlight[] = [{ from: -30, to: -10, color: '', state: {} as HighlightState }];
-        expect(findSegment(negative, -20, 0)).toBe(negative[0]);
-        expect(findSegment(negative, -10, 0)).toBeNull();
+    it('returns no arcs and no active zone for empty states', () => {
+        expect(resolveZones([], 100, 5)).toEqual({ arcs: [], active: null });
     });
 });
 
-describe('resolveSegmentFrame / resolveSegmentBackground — active-first chains', () => {
-    const seg = (state: HighlightState): Highlight => ({ from: 0, to: 1, color: '', state });
-
-    it('active flat beats plain flat beats active background beats plain background', () => {
-        const state = seg({
-            frameBackgroundColorActive: 'A',
-            frameBackgroundColor: 'B',
-            frameBackgroundActive: 'C',
-            frameBackground: 'D',
-            backgroundColorActive: 'W',
-            backgroundColor: 'X',
-            backgroundActive: 'Y',
-            background: 'Z',
-        });
-        expect(resolveSegmentFrame(state)).toBe('A');
-        expect(resolveSegmentBackground(state)).toBe('W');
+describe('resolveZones — active zone: half-open intervals, closed at the absolute max', () => {
+    it.each([
+        { value: 5, maxValue: 20, expected: 0, note: 'inside the first zone' },
+        { value: 10, maxValue: 20, expected: 1, note: 'inclusive start of the second zone' },
+        { value: 19.99, maxValue: 20, expected: 1, note: 'just below the upper bound' },
+        { value: 20, maxValue: 20, expected: 1, note: 'closed at the absolute maximum' },
+        { value: 25, maxValue: 20, expected: -1, note: 'above the maximum' },
+        { value: -1, maxValue: 20, expected: -1, note: 'below the first zone' },
+    ])('$note ($value of max $maxValue)', ({ value, maxValue, expected }) => {
+        expect(activeIndex(tagged(0, 10), maxValue, value)).toBe(expected);
     });
 
-    it('skips empty chain members', () => {
-        const state = seg({
-            frameBackgroundColor: '',
-            frameBackgroundActive: 'C',
-            backgroundColor: 'X',
-        });
-        expect(resolveSegmentFrame(state)).toBe('C');
-        expect(resolveSegmentBackground(state)).toBe('X');
+    it('hands an inner boundary to the upper zone (upper bound exclusive)', () => {
+        expect(activeIndex(tagged(0, 10, 20), 100, 9.99)).toBe(0);
+        expect(activeIndex(tagged(0, 10, 20), 100, 10)).toBe(1);
+        expect(activeIndex(tagged(0, 10, 20), 100, 20)).toBe(2);
     });
 
-    it('returns undefined when the zone sets nothing (base data passes through)', () => {
-        const state = seg({ frameBackground: '', background: undefined });
-        expect(resolveSegmentFrame(state)).toBeUndefined();
-        expect(resolveSegmentBackground(state)).toBeUndefined();
+    it('closes the zone ending at the max before a degenerate last zone [max, max]', () => {
+        // Last row at the max: its zone is [100, 100]; the zone before it, closed at the max, wins.
+        expect(activeIndex(tagged(0, 10, 100), 100, 100)).toBe(1);
+    });
+
+    it('takes 0 as a real boundary', () => {
+        expect(activeIndex(tagged(-20, 0, 20), 100, -0.5)).toBe(0);
+        expect(activeIndex(tagged(-20, 0, 20), 100, 0)).toBe(1);
+    });
+
+    it('resolves negative ranges', () => {
+        expect(activeIndex(tagged(-30, -10), -5, -20)).toBe(0);
+        expect(activeIndex(tagged(-30, -10), -5, -10)).toBe(1);
+        expect(activeIndex(tagged(-30, -10), -5, -5)).toBe(1); // closed at the max
+        expect(activeIndex(tagged(-30, -10), -5, -31)).toBe(-1);
+    });
+
+    it('stretches the last zone up to the max', () => {
+        expect(activeIndex(tagged(0, 10), 100, 99)).toBe(1);
+    });
+});
+
+describe('resolveZones — active zone style', () => {
+    it("is exactly the zone's style keys, taken as useData resolved them", () => {
+        const { active } = resolveZones(
+            [
+                state(0),
+                state(10, {
+                    frameBackground: '#336699',
+                    background: '#aa0000',
+                    icon: 'warm.svg',
+                    iconColor: '#f00',
+                    forceColorMask: true,
+                    iconSizeOnly: '24px',
+                    iconXOffset: '2px',
+                    iconYOffset: '3px',
+                    textColor: '#0f0',
+                    alias: 'warm',
+                }),
+            ],
+            100,
+            50,
+        );
+        expect(active).toStrictEqual({
+            frameBackground: '#336699',
+            background: '#aa0000',
+            icon: 'warm.svg',
+            iconColor: '#f00',
+            forceColorMask: true,
+            iconSizeOnly: '24px',
+            iconXOffset: '2px',
+            iconYOffset: '3px',
+        });
+    });
+
+    it('is null when the value lies in no zone', () => {
+        expect(resolveZones([state(10)], 100, 5).active).toBeNull();
     });
 });
