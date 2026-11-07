@@ -20,7 +20,9 @@
  *
  * Each transition reproduces one former effect of the body (dev @ b2fb111d,
  * `Light2Collection.tsx:432-611`): a transition runs when the inputs of its former effect
- * changed, so the write behaviour stays the same (spec licht2-architektur-2026-11 ticket 10).
+ * changed, so the write behaviour stays the same (spec licht2-architektur-2026-11 ticket 10) —
+ * except for the two released fixes: the Lichttyp cct follows foreign brightness changes (V1),
+ * and entering the CCT-Ansicht writes the temperature only when it has no usable value (V2).
  */
 import iro from '@jaames/iro';
 import { channelsOf, hasView, mainColorSyncFields, offersViewSwitch } from '../lib/light2Channels';
@@ -115,11 +117,30 @@ const keysOf = (
     ),
 });
 
-/** What iro reads back for the Kelvin-Picker after mirroring the temperature (lossy: 4000 → 3989.12). */
-const kelvinReadBack = (type: string | undefined, read: LampReadContext): number => {
+/** The temperature the CCT-Ansicht starts a lamp at that has none (the read fallback). */
+const DEFAULT_KELVIN = 2000;
+
+/** Whether a temperature state value is usable: present, not blank, numeric. */
+const isUsableTemperature = (value: unknown): boolean =>
+    (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value));
+
+/**
+ * The write of entering the CCT-Ansicht: only a configured temperature Kanal without a usable
+ * value gets 2000 K — compared against the state, never against iro's lossy read-back — written
+ * like every Kelvin-Picker write (rounded, a Kanal without object is skipped).
+ */
+const enterViewWrites = (
+    type: string | undefined,
+    temperature: unknown,
+    widgetData: Light2WidgetData,
+): ChannelWrite[] => {
+    const oid = widgetData.colorLightTemperatureOid;
+    if (typeof oid !== 'string' || !oid.trim() || isUsableTemperature(temperature)) {
+        return [];
+    }
     const color = new iro.Color('#ffffff');
-    readChannelsIntoColor(color, pickerTargetOf({ type, cctView: true }, 1), read.widgetData, read.getPropertyValue);
-    return color.kelvin;
+    color.kelvin = DEFAULT_KELVIN;
+    return channelWrites(color, pickerTargetOf({ type, cctView: true }, 1), undefined, widgetData);
 };
 
 /**
@@ -191,13 +212,9 @@ export function syncStep(
         pickers.brightness
     ) {
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next, 1) });
-        // PINNED (V2, fix in ticket 12): the view switch itself writes the temperature whenever it
-        // differs from iro's lossy read-back — nearly always, and unrounded (4000 → 3989.12).
+        // The view switch itself: a lamp without a usable temperature starts at 2000 K.
         if (prevViewSwitch && !prev.cctView) {
-            const kelvin = kelvinReadBack(next.type, read);
-            if (Number(temperature) !== Number(kelvin)) {
-                writes.push({ field: 'colorLightTemperatureOid', value: Number(kelvin) });
-            }
+            writes.push(...enterViewWrites(next.type, temperature, read.widgetData));
         }
         actions.push({ kind: 'couple' });
     }

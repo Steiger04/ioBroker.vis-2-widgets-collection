@@ -6,7 +6,7 @@
  * The pure transitions behind `useLampSync` (ADR-0108 Nr. 3, spec licht2-architektur-2026-11
  * Naht 3), with real `iro.Color` (it runs under node). Each transition stands for one former
  * effect of the body (dev @ b2fb111d, `Light2Collection.tsx:432-611`); the cases marked PINNED
- * keep its known defects until their fix tickets (V2 → 12).
+ * keep a former behaviour on purpose.
  */
 import iro from '@jaames/iro';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +23,7 @@ import {
     pickerTargetOf,
     syncStep,
 } from './lampSync';
-import type { LampReadContext, LampSyncState } from './lampSync';
+import type { LampReadContext, LampSyncState, LampSyncStep } from './lampSync';
 
 /** Every Kanal bound to an OID, each with its object (plain percent channels). */
 const DATA = {
@@ -237,21 +237,39 @@ describe('syncStep: Betreten der CCT-Ansicht', () => {
         ]);
     });
 
-    it('PINNED (V2, ticket 12): writes iro’s lossy read-back of a valid temperature, unrounded', () => {
-        const step = syncStep(
-            state('rgbcct', false, {}, { colorLightTemperatureOid: 4000 }),
-            state('rgbcct', true, {}, { colorLightTemperatureOid: 4000 }),
+    /** Entering the CCT-Ansicht of rgbcct with the temperature state `value` (the read sees it too). */
+    const enter = (value: ioBroker.StateValue | undefined, data: Light2WidgetData = DATA): LampSyncStep =>
+        syncStep(
+            state('rgbcct', false, {}, { colorLightTemperatureOid: value }),
+            state('rgbcct', true, {}, { colorLightTemperatureOid: value }),
             BOTH,
-            readContext({ colorLightTemperatureOid: 4000 }),
+            { widgetData: data, getPropertyValue: () => value as ioBroker.StateValue },
         );
 
-        expect(step.writes).toEqual([{ field: 'colorLightTemperatureOid', value: 3989.1204833984375 }]);
+    it('writes nothing while the temperature holds a usable value (V2)', () => {
+        expect(enter(4000).writes).toEqual([]);
+        expect(enter('2700').writes).toEqual([]);
     });
 
-    it('PINNED (V2, ticket 12): writes the read-back of the 2000 K fallback for a missing temperature', () => {
-        const step = syncStep(state('h/s/v/cct', false), state('h/s/v/cct', true), BOTH, readContext());
+    it.each([
+        ['missing', undefined],
+        ['null', null],
+        ['empty', ''],
+        ['blank', '  '],
+        ['not numeric', 'warm'],
+    ])('writes exactly 2000 K, whole, when the temperature is %s (V2)', (_case, value) => {
+        expect(enter(value).writes).toEqual([{ field: 'colorLightTemperatureOid', value: 2000 }]);
+    });
 
-        expect(step.writes).toEqual([{ field: 'colorLightTemperatureOid', value: 2000.2899169921875 }]);
+    it('writes nothing without a configured temperature Kanal', () => {
+        const { colorLightTemperatureOid: _oid, ...withoutOid } = DATA as unknown as Record<string, unknown>;
+        const { colorLightTemperatureOidObject: _object, ...withoutObject } = DATA as unknown as Record<
+            string,
+            unknown
+        >;
+
+        expect(enter(undefined, withoutOid as unknown as Light2WidgetData).writes).toEqual([]);
+        expect(enter(undefined, withoutObject as unknown as Light2WidgetData).writes).toEqual([]);
     });
 
     it('re-inits without writing when an „& cct" Lichttyp arrives with the switch already on', () => {
