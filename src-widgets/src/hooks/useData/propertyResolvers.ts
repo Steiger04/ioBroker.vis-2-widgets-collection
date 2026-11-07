@@ -224,17 +224,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconHover: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: rxData.iconHover ? `${rxData.iconHover}%` : undefined }]) ?? '',
 
-        iconHoverActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      {
-                          value: getDataValue<number>('iconHover', String(ext))
-                              ? `${getDataValue<number>('iconHover', String(ext))}%`
-                              : undefined,
-                      },
-                  ]) ?? undefined)
-                : undefined,
-
         iconXOffsetCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: getDataValue<string>('iconXOffset', '') }]) ?? '0px',
 
@@ -468,9 +457,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { value: backgroundStyles?.['background-color'] },
             ]) ?? '',
 
-        backgroundColorActive: (ext: string | number, includeActive: boolean) =>
-            includeActive ? getDataValue<string>('backgroundColor', String(ext)) : undefined,
-
         background: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('background', 'Active') },
@@ -492,9 +478,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 },
                 { value: backgroundStyles?.['background-color'] },
             ]) ?? '',
-
-        frameBackgroundColorActive: (ext: string | number, includeActive: boolean) =>
-            includeActive ? getDataValue<string>('frameBackgroundColor', String(ext)) : undefined,
 
         // Terminal `paper` mirrors the frameBackground field contract
         // (commonFields): unset ⇒ the card surface follows the effective theme's

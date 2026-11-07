@@ -13,12 +13,12 @@ import type { PropertyResolvers, StyleData } from './types';
 /**
  * Computes StyleData by resolving all style properties through property resolvers.
  *
- * This pure function encapsulates the 50+ property assignments from the getStyleData
+ * This pure function encapsulates the 38 property assignments from the getStyleData
  * hook, making it reusable across multiple contexts (hooks, components, utilities).
  *
  * @param ext - State extension: '' for base, numeric index (1-N) for state-specific, 'Active' for active variant
  * @param includeActive - Flag to enable active-state properties in resolver fallback chains
- * @param propertyResolvers - Pre-built resolver object with 47 property resolution functions
+ * @param propertyResolvers - Pre-built resolver object with 39 property resolution functions
  * @returns StyleData object with all resolved style properties
  * @since 2.2.0
  * @example
@@ -56,7 +56,6 @@ export function getStyleData(
         iconColor: propertyResolvers.iconColor(ext, includeActive),
         iconColorActive: propertyResolvers.iconColorActive(ext, includeActive),
         iconHover: propertyResolvers.iconHover(ext, includeActive),
-        iconHoverActive: propertyResolvers.iconHoverActive(ext, includeActive),
         iconXOffsetCm: propertyResolvers.iconXOffsetCm(ext, includeActive),
         iconYOffsetCm: propertyResolvers.iconYOffsetCm(ext, includeActive),
         iconXOffset: propertyResolvers.iconXOffset(ext, includeActive),
@@ -87,13 +86,11 @@ export function getStyleData(
 
         // Background properties
         backgroundColor: propertyResolvers.backgroundColor(ext, includeActive),
-        backgroundColorActive: propertyResolvers.backgroundColorActive(ext, includeActive),
         background: propertyResolvers.background(ext, includeActive),
         backgroundActive: propertyResolvers.backgroundActive(ext, includeActive),
 
         // Frame background properties
         frameBackgroundColor: propertyResolvers.frameBackgroundColor(ext, includeActive),
-        frameBackgroundColorActive: propertyResolvers.frameBackgroundColorActive(ext, includeActive),
         frameBackground: propertyResolvers.frameBackground(ext, includeActive),
         frameBackgroundActive: propertyResolvers.frameBackgroundActive(ext, includeActive),
     };

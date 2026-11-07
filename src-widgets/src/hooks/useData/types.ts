@@ -71,8 +71,6 @@ export interface StyleData {
     iconColorActive?: string;
     /** Icon hover effect in percent. */
     iconHover?: string;
-    /** Active icon hover effect in percent. */
-    iconHoverActive?: string;
     /** Icon X offset as a CSS value (with unit). */
     iconXOffsetCm?: string;
     /** Icon Y offset as a CSS value (with unit). */
@@ -88,8 +86,6 @@ export interface StyleData {
 
     /** Background color. */
     backgroundColor?: string;
-    /** Active background color. */
-    backgroundColorActive?: string;
     /** Background (gradient/image). */
     background?: string;
     /** Active background. */
@@ -97,8 +93,6 @@ export interface StyleData {
 
     /** Frame background color. */
     frameBackgroundColor?: string;
-    /** Active frame background color. */
-    frameBackgroundColorActive?: string;
     /** Frame background (gradient/image). */
     frameBackground?: string;
     /** Active frame background. */
@@ -126,11 +120,9 @@ export interface StateItem {
     iconHover?: string;
     forceColorMask?: boolean;
     backgroundColor?: string;
-    backgroundColorActive?: string;
     background?: string;
     backgroundActive?: string;
     frameBackgroundColor?: string;
-    frameBackgroundColorActive?: string;
     frameBackground?: string;
     frameBackgroundActive?: string;
 }
@@ -230,13 +222,13 @@ export interface MarkerLayer {
  * returning the resolved property value with proper fallback chain logic.
  *
  * @remarks
- * Defines 42 resolver functions across 5 categories: Icon Properties (22),
+ * Defines 39 resolver functions across 5 categories: Icon Properties (21),
  * Text Properties (3), Size Properties (5), Content Properties (4) and
- * Background Properties (8).
+ * Background Properties (6).
  * @since 2.2.0
  */
 export interface PropertyResolvers {
-    // Icon Properties (22 resolvers)
+    // Icon Properties (21 resolvers)
     icon: (ext: string | number, includeActive: boolean) => string;
     iconActive: (ext: string | number, includeActive: boolean) => string;
     iconSize: (ext: string | number, includeActive: boolean) => string;
@@ -258,7 +250,6 @@ export interface PropertyResolvers {
     forceColorMaskActive: (ext: string | number, includeActive: boolean) => boolean;
     forceColorMaskCm: (ext: string | number, includeActive: boolean) => boolean;
     iconHover: (ext: string | number, includeActive: boolean) => string | undefined;
-    iconHoverActive: (ext: string | number, includeActive: boolean) => string | undefined;
 
     // Text Properties (3 resolvers)
     textColor: (ext: string | number, includeActive: boolean) => string;
@@ -278,13 +269,11 @@ export interface PropertyResolvers {
     alias: (ext: string | number, includeActive: boolean) => string;
     value: (ext: string | number, includeActive: boolean) => string | undefined;
 
-    // Background Properties (8 resolvers)
+    // Background Properties (6 resolvers)
     backgroundColor: (ext: string | number, includeActive: boolean) => string;
-    backgroundColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
     background: (ext: string | number, includeActive: boolean) => string;
     backgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
     frameBackgroundColor: (ext: string | number, includeActive: boolean) => string;
-    frameBackgroundColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
     frameBackground: (ext: string | number, includeActive: boolean) => string;
     frameBackgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
 }
@@ -315,13 +304,11 @@ export type StateStyleData = Pick<
     | 'forceColorMask'
     | 'valueSize'
     | 'backgroundColor'
-    | 'backgroundColorActive'
     | 'background'
     | 'backgroundActive'
     | 'frameBackground'
     | 'frameBackgroundActive'
     | 'frameBackgroundColor'
-    | 'frameBackgroundColorActive'
 > & {
     /**
      * Feldnummer: the 1-based suffix of this state's field row (`value{i}`, `alias{i}`,

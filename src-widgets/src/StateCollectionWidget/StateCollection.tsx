@@ -88,9 +88,6 @@ function StateCollection(): React.ReactElement {
                 color: data.textColor || 'inherit',
                 '&:hover': {
                     bgcolor: 'transparent',
-                    /* filter:
-                        (data.iconHoverActive && `brightness(${data.iconHoverActive})`) ||
-                        (data.iconHover && `brightness(${data.iconHover})`), */
                 },
             }}
         >

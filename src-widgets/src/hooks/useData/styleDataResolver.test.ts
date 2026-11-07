@@ -78,7 +78,6 @@ describe('getStyleData — empty rxData resolves to known defaults', () => {
             iconColor: THEME_PRIMARY,
             iconColorActive: '',
             iconHover: '',
-            iconHoverActive: undefined,
             iconXOffsetCm: '0px',
             iconYOffsetCm: '0px',
             iconXOffset: '0px',
@@ -97,11 +96,9 @@ describe('getStyleData — empty rxData resolves to known defaults', () => {
             valueSize: null,
             valueSizeActive: null,
             backgroundColor: '',
-            backgroundColorActive: undefined,
             background: '',
             backgroundActive: undefined,
             frameBackgroundColor: '',
-            frameBackgroundColorActive: undefined,
             frameBackground: THEME_PAPER,
             frameBackgroundActive: undefined,
         });
@@ -152,7 +149,6 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             iconColor: '#basecolor',
             iconColorActive: '',
             iconHover: '50%',
-            iconHoverActive: undefined,
             iconXOffsetCm: '5px',
             iconYOffsetCm: '7px',
             iconXOffset: '5px',
@@ -171,11 +167,9 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             valueSize: '16%',
             valueSizeActive: null,
             backgroundColor: '#bgcol',
-            backgroundColorActive: undefined,
             background: 'grad(x)',
             backgroundActive: undefined,
             frameBackgroundColor: '#frbgcol',
-            frameBackgroundColorActive: undefined,
             frameBackground: 'grad(y)',
             frameBackgroundActive: undefined,
         });
@@ -352,5 +346,19 @@ describe('noIcon short-circuit', () => {
         expect(resolve(r).icon).toBe('');
         expect(resolve(r, 1, true).icon).toBe('');
         expect(resolve(r, 1, true).iconActive).toBe('');
+    });
+});
+
+describe('legacy state-row keys (LEGACY_STATE_ROW_KEYS)', () => {
+    it('resolves none of them into the style data — no renderer reads them', () => {
+        // The former per-state editor fields a row still carries for data preservation only.
+        const r = buildResolvers({
+            rxData: { value1: 1, iconHover1: 150, backgroundColor1: '#f00', frameBackgroundColor1: '#0f0' },
+        });
+        const sd = resolve(r, 1, true);
+
+        expect(sd).not.toHaveProperty('iconHoverActive');
+        expect(sd).not.toHaveProperty('backgroundColorActive');
+        expect(sd).not.toHaveProperty('frameBackgroundColorActive');
     });
 });
