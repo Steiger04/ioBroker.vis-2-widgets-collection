@@ -11,45 +11,21 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createPlainColorField } from './fieldFactories';
+import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { Light2FieldsRxData } from '../types/field-definitions/light2-fields';
+import type { Light2ChannelField } from './light2Channels';
 
 const PowerSettingsNewIcon =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=';
 
-/**
- * Light2 configuration extension of `WidgetData`.
- *
- * @remarks
- * Only used internally by the field generator to type `data` while pre-filling values.
- */
-interface ExtendedWidgetData extends WidgetData {
-    colorLightButton?: boolean;
-    colorLightDelayLongPress?: number;
-    colorLightModalWidth?: number;
-    colorLightModalHeight?: number;
-    colorLightSliderWidth?: number;
-    colorLightBorderWidth?: number;
-    colorLightBorderColor?: string;
-    colorLightPadding?: number;
-    colorLightSwitchOid?: string;
-    colorLightUIComponent?: 'wheel' | 'box' | 'slider';
-    colorWheelLightness?: boolean;
-    colorLightType?: 'none' | 'cct' | 'rgb' | 'rgbcct' | 'r/g/b' | 'r/g/b/cct' | 'h/s/v' | 'h/s/v/cct';
-    colorLightTemperatureOid?: string;
-    colorLightCtMin?: number;
-    colorLightCtMax?: number;
-    colorLightRgbHexOid?: string;
-    colorLightRedOid?: string;
-    colorLightGreenOid?: string;
-    colorLightBlueOid?: string;
-    colorLightHueOid?: string;
-    colorLightSaturationOid?: string;
-    colorLightBrightnessOid?: string;
-}
+/** The Lichttyp of the raw widget data vis-2 hands to the `hidden` rules. */
+const lightTypeOf = (data: WidgetData): Light2FieldsRxData['colorLightType'] =>
+    (data as Light2FieldsRxData).colorLightType;
 
 /** The Zustandszeilen of the button mode: they belong to the switch OID, always two (ADR-0104). */
 const SWITCH_ROWS = stateEditorSpec({ oidProperty: 'colorLightSwitchOid', fixedRows: true }).config;
@@ -149,7 +125,7 @@ const loadStatesAsync = async (
     const states = await socket.getObjectView(`${id.join('.')}.`, `${id.join('.')}.\u9999`, 'state');
 
     if (states) {
-        const extendedData = data as ExtendedWidgetData;
+        const extendedData = data as Light2FieldsRxData;
 
         await Promise.all(
             Object.values(states).map(async state => {
@@ -161,8 +137,8 @@ const loadStatesAsync = async (
                 if (!targetField || !isUnset(data[targetField])) {
                     return;
                 }
-                // Type-safe assignment to ExtendedWidgetData
-                extendedData[targetField as keyof ExtendedWidgetData] = state._id;
+                // Type-safe assignment to Light2FieldsRxData
+                extendedData[targetField as Light2ChannelField] = state._id;
 
                 await oidChangeHandlerAsync(LIGHT2_OID_TYPES, targetField)(field, data, changeData, socket);
 
@@ -280,9 +256,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         ],
         default: 'wheel',
         noTranslation: true,
-        hidden: (data: WidgetData) =>
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
+        hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'color'),
     },
     {
         name: 'colorWheelLightness',
@@ -290,16 +264,12 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'checkbox',
         default: false,
         hidden: (data: WidgetData) =>
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'none' ||
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
-            (data as Partial<ExtendedWidgetData>).colorLightUIComponent !== 'wheel',
+            !hasView(lightTypeOf(data), 'color') || (data as Light2FieldsRxData).colorLightUIComponent !== 'wheel',
     },
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) =>
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
-            (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
+        hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'color'),
     },
     {
         name: 'colorLightType',
@@ -321,16 +291,13 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) => (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
+        hidden: (data: WidgetData) => viewsOf(lightTypeOf(data)).length === 0,
     },
     {
         name: 'colorLightTemperatureOid',
         type: 'id',
         label: 'color_light_temperature_oid',
-        hidden: (data: WidgetData) =>
-            !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<ExtendedWidgetData>).colorLightType || '',
-            ),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid'),
     },
     {
         name: 'colorLightCtMin',
@@ -340,9 +307,8 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 2000,
         label: 'color_light_ct_min',
         hidden: (data: WidgetData) =>
-            !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<ExtendedWidgetData>).colorLightType || '',
-            ) || !(data as Partial<ExtendedWidgetData>).colorLightTemperatureOid,
+            !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
+            !(data as Light2FieldsRxData).colorLightTemperatureOid,
     },
     {
         name: 'colorLightCtMax',
@@ -352,66 +318,55 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 6500,
         label: 'color_light_ct_max',
         hidden: (data: WidgetData) =>
-            !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<ExtendedWidgetData>).colorLightType || '',
-            ) || !(data as Partial<ExtendedWidgetData>).colorLightTemperatureOid,
+            !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
+            !(data as Light2FieldsRxData).colorLightTemperatureOid,
     },
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) =>
-            !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<ExtendedWidgetData>).colorLightType || '',
-            ) || (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
+        hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'cct'),
     },
     {
         name: 'colorLightRgbHexOid',
         type: 'id',
         label: 'color_light_rgb_hex_oid',
-        hidden: (data: WidgetData) =>
-            !['rgb', 'rgbcct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRgbHexOid'),
     },
     {
         name: 'colorLightRedOid',
         type: 'id',
         label: 'color_light_red_oid',
-        hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRedOid'),
     },
     {
         name: 'colorLightGreenOid',
         type: 'id',
         label: 'color_light_green_oid',
-        hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightGreenOid'),
     },
     {
         name: 'colorLightBlueOid',
         type: 'id',
         label: 'color_light_blue_oid',
-        hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBlueOid'),
     },
     {
         name: 'colorLightHueOid',
         type: 'id',
         label: 'color_light_hue_oid',
-        hidden: (data: WidgetData) =>
-            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightHueOid'),
     },
     {
         name: 'colorLightSaturationOid',
         type: 'id',
         label: 'color_light_saturation_oid',
-        hidden: (data: WidgetData) =>
-            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightSaturationOid'),
     },
     {
         name: 'colorLightBrightnessOid',
         type: 'id',
         label: 'color_light_brightness_oid',
-        hidden: (data: WidgetData) =>
-            !['cct', 'h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
+        hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBrightnessOid'),
     },
 ];
 
