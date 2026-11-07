@@ -98,11 +98,30 @@ function mainPickerBoundOf({ width, height }: ElementDimensions, sliderSize: num
     return width <= height + sliderSize + PICKER_GAP_PX ? width - sliderSize - PICKER_GAP_PX : height;
 }
 
-/** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
-function layoutOf(picker: LampPicker, config: PickerGeometryConfig): IroLayout {
-    if (config.cctView) {
-        // CCT-Ansicht: the Kelvin-Picker (main) and the Helligkeits-Picker.
-        return picker === 'main'
+/**
+ * What a picker kind draws: the iro layout of each picker, the `picker.resize()` target and the
+ * gap. A kind is a UI component of the colour view, or the CCT-Ansicht, which overrides it.
+ */
+interface PickerKindRule {
+    /** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
+    layout: (picker: LampPicker, config: PickerGeometryConfig) => IroLayout;
+    /** The width for `picker.resize()`. */
+    resizeWidth: (height: number | undefined, mainPickerBound: number | undefined) => number | undefined;
+    /** The gap of a measured box (width and height non-zero). */
+    gap: (width: number, sliderSize: number, mainPickerBound: number | undefined) => number;
+}
+
+/** CCT, wheel, box: the main picker element is bounded, its value slider beside it. */
+const resizeToMainPickerBound: PickerKindRule['resizeWidth'] = (_height, mainPickerBound) => mainPickerBound;
+
+/** CCT, wheel, box: maximize the spacing between the main element and the value slider. */
+const gapBesideMainPicker: PickerKindRule['gap'] = (width, sliderSize, mainPickerBound) =>
+    Math.max(PICKER_GAP_PX, width - mainPickerBound! - sliderSize);
+
+/** The CCT-Ansicht: the Kelvin-Picker (main) and the Helligkeits-Picker, one slider each. */
+const CCT_VIEW_RULE: PickerKindRule = {
+    layout: (picker, config) =>
+        picker === 'main'
             ? [
                   {
                       component: iro.ui.Slider,
@@ -119,83 +138,70 @@ function layoutOf(picker: LampPicker, config: PickerGeometryConfig): IroLayout {
                       component: iro.ui.Slider,
                       options: { sliderType: 'value' },
                   },
-              ];
-    }
-    switch (config.uiComponent) {
-        case 'wheel':
-            return [
-                {
-                    component: iro.ui.Wheel,
-                    options: {},
-                },
-                {
-                    component: iro.ui.Slider,
-                    options: { sliderType: 'value' },
-                },
-            ];
-        case 'box':
-            return [
-                {
-                    component: iro.ui.Box,
-                    options: { boxLightness: false },
-                },
-                {
-                    component: iro.ui.Slider,
-                    options: { sliderType: 'hue' },
-                },
-            ];
-        case 'slider':
-            return [
-                { component: iro.ui.Slider, options: { sliderType: 'red' } },
-                { component: iro.ui.Slider, options: { sliderType: 'green' } },
-                { component: iro.ui.Slider, options: { sliderType: 'blue' } },
-            ];
-        default:
-            return [];
-    }
-}
+              ],
+    resizeWidth: resizeToMainPickerBound,
+    gap: gapBesideMainPicker,
+};
 
-/** The width for `picker.resize()`: the main picker bound, the height for the vertical RGB sliders. */
-function resizeWidthOf(
-    config: PickerGeometryConfig,
-    height: number | undefined,
-    mainPickerBound: number | undefined,
-): number | undefined {
-    if (config.cctView) {
-        return mainPickerBound;
-    }
-    switch (config.uiComponent) {
-        case 'wheel':
-        case 'box':
-            return mainPickerBound;
-        case 'slider':
-            return height;
-        default:
-            return 0;
-    }
-}
+/** The colour view per UI component (`colorLightUIComponent`). */
+const UI_COMPONENT_RULES: Record<NonNullable<PickerGeometryConfig['uiComponent']>, PickerKindRule> = {
+    wheel: {
+        layout: () => [
+            {
+                component: iro.ui.Wheel,
+                options: {},
+            },
+            {
+                component: iro.ui.Slider,
+                options: { sliderType: 'value' },
+            },
+        ],
+        resizeWidth: resizeToMainPickerBound,
+        gap: gapBesideMainPicker,
+    },
+    box: {
+        layout: () => [
+            {
+                component: iro.ui.Box,
+                options: { boxLightness: false },
+            },
+            {
+                component: iro.ui.Slider,
+                options: { sliderType: 'hue' },
+            },
+        ],
+        resizeWidth: resizeToMainPickerBound,
+        gap: gapBesideMainPicker,
+    },
+    slider: {
+        layout: () => [
+            { component: iro.ui.Slider, options: { sliderType: 'red' } },
+            { component: iro.ui.Slider, options: { sliderType: 'green' } },
+            { component: iro.ui.Slider, options: { sliderType: 'blue' } },
+        ],
+        // RGB sliders are drawn vertically: their length is the height.
+        resizeWidth: height => height,
+        // Spacing between the 3 sliders.
+        gap: (width, sliderSize) => (width - 3 * sliderSize) / 2,
+    },
+};
 
-/** The spacing between the main picker element and the value slider (or between the RGB sliders). */
-function gapOf(
-    config: PickerGeometryConfig,
-    { width, height }: ElementDimensions,
-    sliderSize: number,
-    mainPickerBound: number | undefined,
-): number {
-    if (!width || !height) {
-        return PICKER_GAP_PX;
+/** An unset or unknown UI component: nothing drawn, no resize. */
+const UNKNOWN_UI_COMPONENT_RULE: PickerKindRule = {
+    layout: () => [],
+    resizeWidth: () => 0,
+    gap: gapBesideMainPicker,
+};
+
+/** The rule of the configured picker kind: the CCT-Ansicht, else the UI component. */
+const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule => {
+    if (cctView) {
+        return CCT_VIEW_RULE;
     }
-
-    // Slider layout (RGB): spacing between the 3 sliders.
-    if (config.uiComponent === 'slider' && !config.cctView) {
-        return (width - 3 * sliderSize) / 2;
-    }
-
-    // CCT/Wheel/Box: maximize spacing between the main element and the value slider.
-    const availableSpace = width - mainPickerBound! - sliderSize;
-
-    return Math.max(PICKER_GAP_PX, availableSpace);
-}
+    return uiComponent !== undefined && Object.hasOwn(UI_COMPONENT_RULES, uiComponent)
+        ? UI_COMPONENT_RULES[uiComponent]
+        : UNKNOWN_UI_COMPONENT_RULE;
+};
 
 /**
  * The Button-Modus modal size. Height: `colorLightModalHeight`, 300px while unset. Width: an
@@ -222,15 +228,18 @@ export function modalSizeOf(config: ModalSizeConfig): ModalSize {
  * @returns All sizes and layouts the body and `Light2Picker` draw with.
  */
 export function pickerGeometry(config: PickerGeometryConfig, measured: ElementDimensions): PickerGeometry {
+    const rule = ruleOf(config);
+    const { width, height } = measured;
     const sliderSize = sliderSizeOf(config.sliderWidth);
     const mainPickerBound = mainPickerBoundOf(measured, sliderSize);
-    const gap = gapOf(config, measured, sliderSize, mainPickerBound);
+    // Nothing measurable yet: the 12px gap.
+    const gap = width && height ? rule.gap(width, sliderSize, mainPickerBound) : PICKER_GAP_PX;
     return {
         sliderSize,
         mainPickerBound,
-        resizeWidth: resizeWidthOf(config, measured.height, mainPickerBound),
+        resizeWidth: rule.resizeWidth(height, mainPickerBound),
         gap,
         secondPickerOffset: gap,
-        layouts: { main: layoutOf('main', config), brightness: layoutOf('brightness', config) },
+        layouts: { main: rule.layout('main', config), brightness: rule.layout('brightness', config) },
     };
 }
