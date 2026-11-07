@@ -46,11 +46,11 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ### HSV-Konfiguration
 
-| Feldname                | Typ | Standard | Beschreibung                    | Bedingung                                               |
-| ----------------------- | --- | -------- | ------------------------------- | ------------------------------------------------------- |
-| colorLightHueOid        | id  | -        | OID für Farbton (0-360)         | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'        |
-| colorLightSaturationOid | id  | -        | OID für Sättigung (0-100)       | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'        |
-| colorLightBrightnessOid | id  | -        | OID für Helligkeit/Wert (0-100) | Nur wenn colorLightType 'cct', 'h/s/v' oder 'h/s/v/cct' |
+| Feldname                | Typ | Standard | Beschreibung                    | Bedingung                                                                      |
+| ----------------------- | --- | -------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| colorLightHueOid        | id  | -        | OID für Farbton (0-360)         | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'                               |
+| colorLightSaturationOid | id  | -        | OID für Sättigung (0-100)       | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'                               |
+| colorLightBrightnessOid | id  | -        | OID für Helligkeit/Wert (0-100) | Nur wenn colorLightType 'cct', 'rgbcct', 'r/g/b/cct', 'h/s/v' oder 'h/s/v/cct' |
 
 ### Button-Modus
 

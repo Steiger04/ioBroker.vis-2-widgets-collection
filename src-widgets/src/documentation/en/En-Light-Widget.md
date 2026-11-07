@@ -46,11 +46,11 @@ The widget-specific settings override the more general settings.
 
 ### HSV Configuration
 
-| Field Name              | Type | Default | Description                      | Condition                                                  |
-| ----------------------- | ---- | ------- | -------------------------------- | ---------------------------------------------------------- |
-| colorLightHueOid        | id   | -       | OID for hue (0-360)              | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'         |
-| colorLightSaturationOid | id   | -       | OID for saturation (0-100)       | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'         |
-| colorLightBrightnessOid | id   | -       | OID for brightness/value (0-100) | Only when colorLightType is 'cct', 'h/s/v', or 'h/s/v/cct' |
+| Field Name              | Type | Default | Description                      | Condition                                                                         |
+| ----------------------- | ---- | ------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| colorLightHueOid        | id   | -       | OID for hue (0-360)              | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'                                |
+| colorLightSaturationOid | id   | -       | OID for saturation (0-100)       | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'                                |
+| colorLightBrightnessOid | id   | -       | OID for brightness/value (0-100) | Only when colorLightType is 'cct', 'rgbcct', 'r/g/b/cct', 'h/s/v', or 'h/s/v/cct' |
 
 ### Button Mode
 
