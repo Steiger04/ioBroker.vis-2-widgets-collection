@@ -12,7 +12,7 @@
  * const baseConfig: BaseFieldsRxData = {
  *     noHeader: true,
  *     basePadding: 16,
- *     backgroundColor: '#2196F3'
+ *     background: '#2196F3'
  * };
  * ```
  */
@@ -318,18 +318,11 @@ export interface BaseFieldsRxData {
     background?: string;
 
     /**
-     * Background color (base property without index).
-     * Global background color for the widget.
+     * Background color of a widget stored before 2026-02-12, when the field was retired.
      *
-     * @example
-     * ```typescript
-     * const config: BaseFieldsRxData = {
-     *     backgroundColor: '#2196F3'
-     * };
-     * ```
      * @remarks
-     * Base property without index. Accepts any CSS color value.
-     * @see {@link CommonFieldsRxData.backgroundColor}
+     * No field writes it any more; a stored value still wins over the widget's CSS
+     * `background-color` in useData's `backgroundColor` (read by the dialogs).
      */
     backgroundColor?: string;
 
@@ -350,18 +343,11 @@ export interface BaseFieldsRxData {
     frameBackground?: string;
 
     /**
-     * Frame background color (base property without index).
-     * Global background color for frame elements within the widget.
+     * Frame background color of a widget stored before 2026-02-12, when the field was retired.
      *
-     * @example
-     * ```typescript
-     * const config: BaseFieldsRxData = {
-     *     frameBackgroundColor: '#E0E0E0'
-     * };
-     * ```
      * @remarks
-     * Base property without index. Accepts any CSS color value.
-     * @see {@link CommonFieldsRxData.frameBackgroundColor}
+     * No field writes it any more; a stored value still wins over the widget's CSS
+     * `background-color` in useData's `frameBackgroundColor` (read by the view dialog).
      */
     frameBackgroundColor?: string;
 
@@ -469,22 +455,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.iconColor}
      */
     iconColor?: string;
-
-    /**
-     * Icon hover effect in % (base property without index).
-     * Global icon hover scale effect percentage.
-     *
-     * @example
-     * ```typescript
-     * const config: BaseFieldsRxData = {
-     *     iconHover: 110  // 110% = 10% larger on hover
-     * };
-     * ```
-     * @remarks
-     * Base property without index. Value represents percentage (100 = no change).
-     * @see {@link CommonFieldsRxData.iconHover}
-     */
-    iconHover?: number;
 
     /**
      * Horizontal icon offset (base property without index).

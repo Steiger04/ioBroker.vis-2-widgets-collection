@@ -20,7 +20,7 @@
  *     iconSize1: 24,
  *     header1: 'Living Room',
  *     value1: '22.5°C',
- *     backgroundColor1: '#FF5722'
+ *     background1: '#FF5722'
  * };
  * ```
  */
@@ -87,13 +87,8 @@ export interface CommonFieldsRxData {
     [key: `iconColor${number}`]: string | undefined;
 
     /**
-     * Icon identifier for hover state.
-     * Changes icon appearance on mouse hover.
-     *
-     * @example
-     * ```typescript
-     * iconHover1: 'mdi-home-outline' // filled icon on hover
-     * ```
+     * Icon hover effect of a row — legacy key of a former per-state field (02/2025–02/2026).
+     * A row still carries it for data preservation (`LEGACY_STATE_ROW_KEYS`); nothing reads it.
      */
     [key: `iconHover${number}`]: string | number | undefined;
 
@@ -370,13 +365,8 @@ export interface CommonFieldsRxData {
     [key: `background${number}`]: string | undefined;
 
     /**
-     * Background color as CSS color value.
-     *
-     * @example
-     * ```typescript
-     * backgroundColor1: '#2196F3'
-     * backgroundColor2: 'linear-gradient(to right, #FF5722, #FFC107)'
-     * ```
+     * Background color of a row — legacy key of a former per-state field (02/2025–02/2026).
+     * A row still carries it for data preservation (`LEGACY_STATE_ROW_KEYS`); nothing reads it.
      */
     [key: `backgroundColor${number}`]: string | undefined;
 
@@ -391,12 +381,8 @@ export interface CommonFieldsRxData {
     [key: `frameBackground${number}`]: string | undefined;
 
     /**
-     * Frame background color as CSS color value.
-     *
-     * @example
-     * ```typescript
-     * frameBackgroundColor1: '#E0E0E0'
-     * ```
+     * Frame background color of a row — legacy key of a former per-state field (02/2025–02/2026).
+     * A row still carries it for data preservation (`LEGACY_STATE_ROW_KEYS`); nothing reads it.
      */
     [key: `frameBackgroundColor${number}`]: string | undefined;
 
@@ -512,13 +498,6 @@ export interface CommonFieldsRxData {
     iconColorActive?: string;
 
     /**
-     * Icon hover brightness override for active state.
-     *
-     * @see {@link ActiveStateFieldsRxData.iconHoverActive}
-     */
-    iconHoverActive?: number;
-
-    /**
      * Horizontal icon offset override for active state.
      *
      * @see {@link ActiveStateFieldsRxData.iconXOffsetActive}
@@ -576,23 +555,9 @@ export interface CommonFieldsRxData {
     backgroundActive?: string;
 
     /**
-     * Background color override for active state.
-     *
-     * @see {@link ActiveStateFieldsRxData.backgroundColorActive}
-     */
-    backgroundColorActive?: string;
-
-    /**
      * Frame background gradient override for active state.
      *
      * @see {@link ActiveStateFieldsRxData.frameBackgroundActive}
      */
     frameBackgroundActive?: string;
-
-    /**
-     * Frame background color override for active state.
-     *
-     * @see {@link ActiveStateFieldsRxData.frameBackgroundColorActive}
-     */
-    frameBackgroundColorActive?: string;
 }
