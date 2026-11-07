@@ -20,9 +20,11 @@
  *
  * Each transition reproduces one former effect of the body (dev @ b2fb111d,
  * `Light2Collection.tsx:432-611`): a transition runs when the inputs of its former effect
- * changed, so the write behaviour stays the same (spec licht2-architektur-2026-11 ticket 10) —
- * except for the two released fixes: the Lichttyp cct follows foreign brightness changes (V1),
- * and entering the CCT-Ansicht writes the temperature only when it has no usable value (V2).
+ * changed, so the write behaviour stays the same (ADR-0108) — except for three released fixes:
+ * the Lichttyp cct follows foreign brightness changes (6e15103a); entering the CCT-Ansicht
+ * writes the temperature only when it has no usable value (6f0e0e6c); and the read on leaving
+ * the CCT-Ansicht runs under the sync guard of `useLampSync` like every other picker action, so
+ * it no longer arrives as an input that writes the main colour (2d96a48c).
  */
 import iro from '@jaames/iro';
 import { channelsOf, hasView, mainColorSyncFields, offersViewSwitch } from '../lib/light2Channels';
@@ -211,6 +213,10 @@ export function syncStep(
 
     // Verlassen der CCT-Ansicht: the main picker shows the colour view again.
     if (prev?.cctView && prevViewSwitch && !next.cctView && viewSwitch && pickers.main) {
+        // First the lamp's brightness into the main picker, which still holds the Kelvin-Picker's
+        // white: a colour view whose Kanäle are not all configured reads nothing, so the picker
+        // keeps that white at the lamp's brightness; a complete colour view overwrites it right
+        // after. As the former effect did.
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 'brightness') });
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next) });
     }

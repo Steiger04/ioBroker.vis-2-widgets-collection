@@ -10,13 +10,14 @@
  * actions; write requests go through the `useValueState` setters the body passes in. The
  * Kelvin-Kopplung runs in the drag handler itself — no state toggle, no body re-render.
  *
- * Two guards keep programmatic picker updates from writing:
- * - `isSyncingRef` wraps the sync's own picker updates. iro 5.5.2 emits `input:change` whenever
- *   its `inputActive` flag is set (`iro.es.js:1697-1701`); the slider sets the flag on every
- *   input including the release (`:1318-1322`) and only a colour change clears it, so a release
- *   that does not move the value leaves it set — the next programmatic update then arrives as
- *   an input. The guard drops it.
- * - `processingRef` drops inputs while a drag step is being handled, until the next microtask.
+ * Two refs sit in the input path:
+ * - `isSyncingRef` keeps programmatic picker updates from writing: it wraps every picker action
+ *   of the sync. iro 5.5.2 emits `input:change` whenever its `inputActive` flag is set
+ *   (`dist/iro.es.js:1697-1701`); the slider sets the flag on every input including the release
+ *   (`:1318-1322`) and only a colour change clears it, so a release that does not move the value
+ *   leaves it set — the next programmatic update then arrives as an input. The guard drops it.
+ * - `processingRef` is set while a drag step is handled and cleared on the next microtask.
+ *   Whether it ever drops an input is open (ADR-0108 Nr. 3); it is taken over unchanged.
  */
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
@@ -68,8 +69,9 @@ export function useLampSync(options: LampSyncOptions): LampSync {
     const optionsRef = useRef(options);
     optionsRef.current = options;
     const prevStateRef = useRef<LampSyncState | undefined>(undefined);
+    // Wraps the sync's own picker updates (iro's lingering `inputActive`, see the module remarks).
     const isSyncingRef = useRef(false);
-    // Its effect is open (ADR-0108 Nr. 3): kept unchanged.
+    // Set during a drag step until the next microtask; its effect is open (ADR-0108 Nr. 3).
     const processingRef = useRef(false);
 
     const readContext = (): LampReadContext => ({

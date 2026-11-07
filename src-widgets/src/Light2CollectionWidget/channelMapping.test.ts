@@ -4,7 +4,7 @@
  * @module Light2CollectionWidget/channelMapping.test
  * @remarks
  * The cases of the former `initHandlers.test.ts`, moved unchanged with the read helper into
- * the channel mapping (spec licht2-architektur-2026-11 ticket 02); only the call form follows
+ * the channel mapping (ADR-0108 Nr. 2); only the call form follows
  * the new interface (Lichttyp, view, picker). They define how the picker mirrors the device on
  * init and on backend changes: per-type channel reads, safe fallbacks (2000 K, #ffffff, 0),
  * and the Hue-254 → percent normalization. Pure functions of widget data and a

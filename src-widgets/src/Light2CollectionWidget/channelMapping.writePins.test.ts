@@ -4,15 +4,14 @@
  * @module Light2CollectionWidget/channelMapping.writePins.test
  * @remarks
  * Derived from the body's write map as it stood before the channel mapping (dev @ b2fb111d,
- * `Light2Collection.tsx:200-390`, spec licht2-architektur-2026-11 ticket 02) and made green
- * against a verbatim extraction of it first. These pins are the yardstick of every refactor
- * up to ticket 12 (ADR-0108, spec „Schreibverhalten"): a refactor must leave them green
- * unchanged; only a released fix may change a row, and says so next to it.
+ * `Light2Collection.tsx:200-390`) and made green against a verbatim extraction of it first.
+ * These pins are the yardstick of every Light2 refactor (ADR-0108): a refactor must leave them
+ * green unchanged; only a released fix may change a row, and says so next to it.
  *
  * Real `iro.Color` (it runs under node): Kanal, value, `Math.round`, Hue-Skala at `maxValue`
  * 254, HSV change flags, picker filter of the CCT-Ansicht, a Kanal without object is skipped,
- * fallback for a missing picker property. The guards of the write path (`processingRef`) stay
- * in the body and are not part of the pin.
+ * fallback for a missing picker property. The guards of the input path (`isSyncingRef`,
+ * `processingRef`) sit in `useLampSync` and are not part of the pin.
  */
 import iro from '@jaames/iro';
 import { describe, expect, it } from 'vitest';

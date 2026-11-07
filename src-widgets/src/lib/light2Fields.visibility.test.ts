@@ -3,10 +3,10 @@
  *
  * @module lib/light2Fields.visibility.test
  * @remarks
- * Written against the editor as it stood before the Lichttyp channel table (dev @ b2fb111d,
- * spec licht2-architektur-2026-11 ticket 01) and kept green unchanged by the refactor that
- * made the `hidden` rules ask `lib/light2Channels`. Only a released fix may change a row
- * here; it says so next to the row (fix ticket 03: brightness for rgbcct and r/g/b/cct).
+ * Written against the editor as it stood before the Lichttyp channel table (dev @ b2fb111d)
+ * and kept green unchanged by the refactor that made the `hidden` rules ask
+ * `lib/light2Channels` (ADR-0108 Nr. 1). Only a released fix may change a row here; it says so
+ * next to the row (fix a1efc2ec: brightness for rgbcct and r/g/b/cct).
  * Observed through the field list's public contract: each field's `hidden(data)` as vis-2
  * calls it with the raw widget data. An unset Lichttyp (a widget stored without the key) is
  * pinned too.
@@ -73,10 +73,10 @@ const PIN: [string | undefined, string[]][] = [
     ['none', []],
     ['cct', [...TYPE_DIVIDER, ...CT, 'colorLightBrightnessOid']],
     ['rgb', [...COLOR_UI, ...TYPE_DIVIDER, 'colorLightRgbHexOid']],
-    // Fix ticket 03 (V4): brightness shows — the CCT-Ansicht writes and reads it.
+    // Fix a1efc2ec: brightness shows — the CCT-Ansicht writes and reads it.
     ['rgbcct', [...COLOR_UI, ...TYPE_DIVIDER, ...CT, 'colorLightRgbHexOid', 'colorLightBrightnessOid']],
     ['r/g/b', [...COLOR_UI, ...TYPE_DIVIDER, 'colorLightRedOid', 'colorLightGreenOid', 'colorLightBlueOid']],
-    // Fix ticket 03 (V4): brightness shows — the CCT-Ansicht writes and reads it.
+    // Fix a1efc2ec: brightness shows — the CCT-Ansicht writes and reads it.
     [
         'r/g/b/cct',
         [

@@ -3,8 +3,8 @@
  *
  * @module Light2CollectionWidget/lampSync.test
  * @remarks
- * The pure transitions behind `useLampSync` (ADR-0108 Nr. 3, spec licht2-architektur-2026-11
- * Naht 3), with real `iro.Color` (it runs under node). Each transition stands for one former
+ * The pure transitions behind `useLampSync` (ADR-0108 Nr. 3), with real `iro.Color` (it runs
+ * under node). Each transition stands for one former
  * effect of the body (dev @ b2fb111d, `Light2Collection.tsx:432-611`).
  */
 import iro from '@jaames/iro';
