@@ -4,10 +4,11 @@
  * @module hooks/useOidValue
  * @remarks
  * This is a small convenience wrapper around `getPropertyValue` that handles
- * `"nothing_selected"` and keeps a local state value in sync.
+ * `"nothing_selected"`. It reads the value in every render, so the render that brings a new
+ * value already sees it (no mirrored state that lags one render behind).
  */
 
-import { useContext, useEffect, useState, useMemo } from 'react';
+import { useContext } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 
 /**
@@ -32,23 +33,11 @@ type OidIdentifier = string | undefined | null;
 const useOidValue = (oid: OidIdentifier): OidValue => {
     const { getPropertyValue } = useContext(CollectionContext);
 
-    const oidValue = useMemo(() => {
-        if (!oid || oid === 'nothing_selected') {
-            return undefined;
-        }
+    if (!oid || oid === 'nothing_selected') {
+        return undefined;
+    }
 
-        return getPropertyValue(oid);
-    }, [oid, getPropertyValue]);
-
-    const [value, setValue] = useState<OidValue>(oidValue);
-
-    useEffect(() => {
-        // Synchronize local state for ALL transitions, including undefined/null,
-        // to ensure stale values are promptly cleared when OID is unset or invalidated
-        setValue(oidValue);
-    }, [oidValue]);
-
-    return useMemo(() => value, [value]);
+    return getPropertyValue(oid);
 };
 
 export default useOidValue;
