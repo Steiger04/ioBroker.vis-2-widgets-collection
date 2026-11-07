@@ -595,7 +595,7 @@ The gauge's color fields split by contract (ADR-0004): A = text-bearing on the t
 _Avoid_: Theme-Farben (unsaid which class), mixing C fields into the contract without deciding their terminal
 
 **Canvas-Farbe**:
-The one rule for every colour the gauge hands to the canvas — option fields and zone arcs alike, applied in the Options-Builder (ADR-0107): a gradient paints its **Repräsentative Vollfarbe**; anything else is resolved at a probe inside the widget (so view variables apply and colour names, `hsl()` and `var(…)` become a colour the canvas paints); a value that does not resolve counts as unset — the cascade (A/B), the schema default (C) or, for an arc, `transparent` applies. Before the probe is mounted a `var(…)` counts as unset and everything else passes as stored.
+The one rule for every colour the gauge hands to the canvas — option fields and zone arcs alike, applied in the Options-Builder (ADR-0107): a gradient paints its **Repräsentative Vollfarbe**; anything else is resolved in the widget (so view variables apply and `var(…)` becomes a colour the canvas paints) — a colour that depends on the widget context (`var(…)`, CSS-wide and system keywords, `currentColor`, colour functions beyond `rgb()`/`hsl()`) at a probe inside the widget, every other one (hex, names, `rgb()`/`hsl()`) by the browser's colour parser, passing as written (no style recalculation); a value that does not resolve counts as unset — the cascade (A/B), the schema default (C) or, for an arc, `transparent` applies. Before the probe is mounted a `var(…)` counts as unset and everything else passes as stored.
 _Avoid_: Canvas-Auflösung (unsaid that it covers arcs too), extractColorFromValue (the legacy reader the arcs used — hex and rgb only)
 
 **Canvas-Titel**:
