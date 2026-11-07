@@ -166,12 +166,15 @@ const loadStatesAsync = async (
 
                 await oidChangeHandlerAsync(LIGHT2_OID_TYPES, targetField)(field, data, changeData, socket);
 
+                // A newly detected temperature brings its CT range where it declares one: it
+                // replaces the stored range, which vis-2 already filled with the schema defaults
+                // 2000/6500 when the widget was created (ADR-0104, Nachtrag 2026-11-07).
                 if (targetField === 'colorLightTemperatureOid') {
-                    if (!extendedData.colorLightCtMin && state.common.min) {
-                        extendedData.colorLightCtMin = state.common.min;
+                    if (state.common.min) {
+                        data.colorLightCtMin = state.common.min;
                     }
-                    if (!extendedData.colorLightCtMax && state.common.max) {
-                        extendedData.colorLightCtMax = state.common.max;
+                    if (state.common.max) {
+                        data.colorLightCtMax = state.common.max;
                     }
                 }
             }),
