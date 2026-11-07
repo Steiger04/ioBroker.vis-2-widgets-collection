@@ -523,7 +523,7 @@ The declaration, attached to a color field, that fully describes its Auflösungs
 _Avoid_: Feld-Definition (broader — covers non-color fields too).
 
 **Schlichtes Farbfeld**:
-A color field without a Field-Vertrag: no Auflösungskaskade, so its swatch shows exactly the stored value and an empty field means the widget's own built-in default (the schema default where it has one), not Erben — the text field shows no "erbt", the swatch and the Farbwähler show that default, nothing is stored until the user chooses. Always solid only; color names, `transparent` and every other CSS color can be typed. Edited with the same Farbwähler as every other color field (ADR-0102), declared through its own factory (`createPlainColorField`), so the terminal parity test, which covers contract color fields only, never sees it. Name, label, default and visibility rule are those of the former vis-2 color input; stored values and bindings carry over. Examples: the Gauge's 25 canvas colors, the Dialog close-button color, the Light2 border color, the Slider marker-icon color.
+A color field without a Field-Vertrag: no Auflösungskaskade, so its swatch shows exactly the stored value and an empty field means the widget's own built-in default (the schema default where it has one), not Erben — the text field shows no "erbt", the swatch and the Farbwähler show that default, nothing is stored until the user chooses. Always solid only; color names, `transparent` and every other CSS color can be typed. Edited with the same Farbwähler as every other color field (ADR-0102), declared through its own factory (`createPlainColorField`), so the terminal parity test, which covers contract color fields only, never sees it. Name, label, default and visibility rule are those of the former vis-2 color input; stored values and bindings carry over. Examples: the Gauge's 25 canvas colors, the Dialog close-button color, the Slider marker-icon color. (The Light2 border color left the group: its built-in default is the theme primary, which only a Field-Vertrag can show — ADR-0102 addendum.)
 _Avoid_: Host-Farbfeld, `type: 'color'`-Feld (both name the former vis-2 rendering, not the concept); Vertragsloses Feld
 
 **Vertrags-Adapter**:
@@ -692,7 +692,7 @@ _Avoid_: Container-Größe (unsaid which container), Widget-Größe (that is the
 
 **Farbwähler**:
 The one color-picking popover every Collection editor opens from a color field — vis-2 attribute panel, ECharts configurator, Theme Studio and the JSON-Table editors alike (`CollectionColorPicker`, ADR-0102). It edits the value; which colour a field resolves to when empty stays the field's business (Field-Vertrag or Schlichtes Farbfeld). Each surface keeps its own field row around it.
-_Avoid_: Color Picker, Farbpicker; Swatch (that is only the preview box in the field row); Light2-Farbsteuerung (the end-user lamp control inside the Light2 widget is not an editor)
+_Avoid_: Color Picker, Farbpicker; Swatch (that is only the preview box in the field row); Light2-Farbsteuerung (that is the **Lampen-Bedienelement**, not an editor)
 
 **Textfeld-Zeile**:
 The field row of a color in the vis-2 attribute panel and the ECharts configurator (`components/ColorTextFieldRow`, ADR-0102): text field · trash · swatch, opening the **Farbwähler** from the swatch. It knows no field definition and no cascade — it gets the stored value, the colour its swatch shows (the Effektive Farbe, from the Vertrags-Adapter, the Schlichtes-Farbfeld-Adapter or the configurator's fallback) and whether an empty field shows "erbt". The swatch lies on a checkerboard, so a translucent color reads the same in a light and a dark editor and a transparent one shows the checkerboard alone. Typed text runs through the **Regeln für Farbeingaben**; the trash removes the value. Its sibling for Theme Studio and the JSON-Table editors is the label row (`ColorPickerField`: label, optional hex text, swatch; the whole row opens the Farbwähler).
@@ -769,3 +769,49 @@ _Avoid_: Dialog-Status (unsaid whether local or backend), Öffnungslogik (that i
 **Sitzungs-OID**:
 The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it.
 _Avoid_: Steuer-OID, Steuer ID (that is the Select's `cid`), Dialog-OID, control OID
+
+# Light2 Collection Widget
+
+The collection's lamp control: one switch plus up to eight colour channels of one lamp, steered with iro.js pickers, optionally behind a button that opens them in a modal. This glossary pins down its channel and view language.
+
+## Language
+
+**Lichttyp**:
+What a Light2 widget steers of its lamp (`colorLightType`) — exactly one of none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct. It decides the colour model the pickers show, which channels are bound and whether the widget offers a CCT view beside the colour; the editor shows only the channel fields of the chosen Lichttyp. Labelled „Lichttyp" in the editor.
+_Avoid_: Farbmodus (not in the code or the UI), Light type without the channel meaning, colorLightType as a prose term
+
+**Kanal**:
+One of the colour states of the lamp a Light2 widget binds — temperature, rgb hex, red, green, blue, hue, saturation, brightness. Each Kanal is a **Hilfs-OID** (it owns only its own object metadata) and is written from exactly one property of the picker colour; the **Lichttyp** decides which Kanäle are in use. A Kanal on the **Hue-Skala** is converted on the way in and out. Brightness is shared: the h/s/v value and the brightness of the **CCT-Ansicht** are the same Kanal.
+_Avoid_: Kanal-OID beside the term (the Kanal IS the bound state), Zusatz-OID, channel for the switch (that is the **Schalter-OID**)
+
+**Schalter-OID**:
+The lamp's on/off state (`colorLightSwitchOid`). It decides whether the widget is configured at all: only a boolean state counts, any other type shows the OID hint instead of the pickers, although the editor lets it be picked. The power button writes it, and in the **Button-Modus** it carries the widget's two fixed **Zustandszeilen** (true/false), seeded on its pick. Its pick starts the **Kanalerkennung**; the Schalter-OID itself is never detected.
+_Avoid_: Haupt-OID (Light2 has none), Power-OID, Kanal (it steers no colour)
+
+**Kanalerkennung**:
+What a pick of the **Schalter-OID** does to the Kanäle: it scans the lamp's ioBroker channel and fills every Kanal field that is still empty from the state with the matching role; a Kanal the user already chose is never replaced. A temperature Kanal filled this way brings its colour-temperature range along (the state's min/max).
+_Avoid_: Auto-Konfiguration (it fills only empty Kanäle), Rollen-Mapping (that is its rule, not the action)
+
+**Hue-Skala**:
+The 0–254 scale of Philips-Hue-compatible brightness and saturation Kanäle, recognised by the Kanal's maximum 254; the pickers work in percent, so such a Kanal is converted on every read and write, everywhere by the same rule.
+_Avoid_: Hue (that is the colour angle Kanal), 8-Bit-Skala
+
+**CCT-Ansicht**:
+The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Entering it writes the temperature only when the temperature Kanal holds no usable value. A foreign change of temperature or brightness reaches its pickers in both cases.
+_Avoid_: CCT-Modus (sounds like a Lichttyp), Weiß-Modus, cctLight as a prose term
+
+**Kelvin-Picker** / **Helligkeits-Picker**:
+The two pickers of the **CCT-Ansicht** — the first writes the temperature Kanal, the second the brightness Kanal; in every other view one picker writes all colour Kanäle of the Lichttyp.
+_Avoid_: Picker 1/2, component number as a prose term
+
+**Kelvin-Kopplung**:
+The Helligkeits-Picker always shows the colour of the Kelvin-Picker at its own brightness — after a drag, a foreign temperature change and on entering the CCT-Ansicht. Pure presentation: it writes nothing.
+_Avoid_: Gradient-Sync, Kelvin-Sync (it syncs no state)
+
+**Button-Modus**:
+The Light2 face as a button (`colorLightButton`): a click toggles the **Schalter-OID**, a long press opens the **Lampen-Bedienelement** in a modal. The face shows the active Zustandszeile of the Schalter-OID like every display-first widget (the **Wert-Anzeige**, without value text).
+_Avoid_: Modal-Modus (the modal is only half of it), Button (the editor's label)
+
+**Lampen-Bedienelement**:
+The end-user control of a Light2 widget — power button, view switch and the iro.js pickers of the current view — that writes the lamp's Kanäle. It is no **Farbwähler**: it edits a lamp, not a colour field, and stays outside the one Farbwähler (ADR-0102). Its border colour follows a colour contract with the theme's primary colour as terminal.
+_Avoid_: Farbwähler, Color Picker, Light2-Farbsteuerung
