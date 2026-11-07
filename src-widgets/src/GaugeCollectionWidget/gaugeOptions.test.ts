@@ -14,7 +14,8 @@ import { describe, it, expect } from 'vitest';
 import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
-import { buildGaugeOptions, resolveGaugeRange, type BuilderField, type GaugeOptionsContext } from './gaugeOptions';
+import { buildGaugeOptions, resolveGaugeZone, type BuilderField, type GaugeOptionsContext } from './gaugeOptions';
+import type { StateStyleData } from '../hooks/useData/types';
 
 /** Minimal fake theme (same pattern as SliderCollectionWidget/chrome.test.ts). */
 const theme = {
@@ -63,12 +64,33 @@ const CTX: GaugeOptionsContext = {
     value: 42,
     unit: '°C',
     header: 'Title',
-    highlights: [],
+    states: [],
     theme,
     textStyles: undefined,
 };
 
 const build = (data: Record<string, unknown>, ctx = CTX): GaugeOptions => buildGaugeOptions(FIELDS, data, ctx);
+
+/** A state as useData publishes it, tagged by its frame background (see gaugeSegments.test.ts). */
+const state = (value: number, style: Partial<StateStyleData> = {}): StateStyleData => ({
+    fieldNumber: 1,
+    active: false,
+    value,
+    alias: undefined,
+    textColor: undefined,
+    icon: undefined,
+    iconSize: undefined,
+    iconSizeOnly: undefined,
+    iconXOffset: undefined,
+    iconYOffset: undefined,
+    iconColor: undefined,
+    iconHover: undefined,
+    forceColorMask: undefined,
+    valueSize: undefined,
+    background: undefined,
+    frameBackground: `zone-${value}`,
+    ...style,
+});
 
 describe('buildGaugeOptions — numeric coercion (schema-default policy)', () => {
     it('falls back to the schema default for unset, empty and non-finite values', () => {
@@ -245,12 +267,19 @@ describe('buildGaugeOptions — prefix strip and specials', () => {
         expect(build({}, { ...CTX, value: undefined }).value).toBe(0);
     });
 
-    it('passes unit, header and highlights through', () => {
-        const highlights = [{ from: 0, to: 10, color: '#0f0' }];
-        const options = build({}, { ...CTX, highlights });
+    it('passes unit and header through', () => {
+        const options = build({});
         expect(options.units).toBe('°C');
         expect(options.title).toBe('Title');
-        expect(options.highlights).toBe(highlights);
+    });
+
+    it('builds the Highlight-Zone arcs from the states, the last one stretched to the effective max', () => {
+        const states = [state(0, { textColor: '#00ff00' }), state(20, { textColor: '#ff0000' })];
+        expect(build({ gaugeMaxValue: 50 }, { ...CTX, states }).highlights).toStrictEqual([
+            { from: 0, to: 20, color: '#00ff00' },
+            { from: 20, to: 50, color: '#ff0000' },
+        ]);
+        expect(build({}).highlights).toStrictEqual([]);
     });
 });
 
@@ -296,19 +325,57 @@ describe('buildGaugeOptions — major ticks', () => {
     });
 });
 
-describe('resolveGaugeRange', () => {
-    it('defaults to 0..100', () => {
-        expect(resolveGaugeRange({})).toEqual({ minValue: 0, maxValue: 100 });
+describe('resolveGaugeZone — Body-Einstieg', () => {
+    it("returns the active zone's style", () => {
+        const states = [state(0), state(20, { icon: 'warm.svg', background: '#123456' })];
+        const { active } = resolveGaugeZone(FIELDS, {}, states, 21);
+        expect(active).toMatchObject({ frameBackground: 'zone-20', icon: 'warm.svg', background: '#123456' });
+        expect(resolveGaugeZone(FIELDS, {}, [state(50)], 21).active).toBeNull();
     });
 
-    it('falls back to the bound object min/max', () => {
-        expect(resolveGaugeRange({ minValue: 7, maxValue: 77 })).toEqual({ minValue: 7, maxValue: 77 });
+    it('passes the icon fit through as stored', () => {
+        expect(resolveGaugeZone(FIELDS, { gaugeIconFit: 'cover' }, [], 0).iconFit).toBe('cover');
+        expect(resolveGaugeZone(FIELDS, {}, [], 0).iconFit).toBeUndefined();
     });
+});
 
-    it('lets an explicit gauge field win over the object values', () => {
-        expect(resolveGaugeRange({ gaugeMinValue: -10, minValue: 7, gaugeMaxValue: '', maxValue: 77 })).toEqual({
-            minValue: -10,
-            maxValue: 77,
-        });
+describe('Canvas- and Body-Einstieg — one range, one value', () => {
+    /** Zones 0–60 and 60–max; the active one is identified by its frame background. */
+    const states = [state(0), state(60)];
+
+    it.each([
+        // label, widget data, raw value, expected range + value, expected active zone
+        ['unset range: 0..100', {}, 100, { minValue: 0, maxValue: 100, value: 100 }, 'zone-60'],
+        [
+            'set range: the explicit fields',
+            { gaugeMinValue: -10, gaugeMaxValue: 80 },
+            100,
+            { minValue: -10, maxValue: 80, value: 100 },
+            null,
+        ],
+        [
+            'unset range: the bound object min/max',
+            { minValue: 7, maxValue: 77 },
+            77,
+            { minValue: 7, maxValue: 77, value: 77 },
+            'zone-60',
+        ],
+        [
+            'an explicit field wins over the object, an empty one counts as unset',
+            { gaugeMinValue: -10, minValue: 7, gaugeMaxValue: '', maxValue: 77 },
+            77,
+            { minValue: -10, maxValue: 77, value: 77 },
+            'zone-60',
+        ],
+        ['a non-numeric value counts as 0', {}, 'abc', { minValue: 0, maxValue: 100, value: 0 }, 'zone-0'],
+        ['a numeric string is parsed', {}, '61', { minValue: 0, maxValue: 100, value: 61 }, 'zone-60'],
+    ])('%s', (_label, data, value, expected, activeZone) => {
+        const options = build(data, { ...CTX, states, value });
+        const { active } = resolveGaugeZone(FIELDS, data, states, value);
+
+        expect(options).toMatchObject(expected);
+        // The zone max is the canvas max: the last arc ends where the options end.
+        expect(options.highlights?.at(-1)?.to).toBe(expected.maxValue);
+        expect(active?.frameBackground ?? null).toBe(activeZone);
     });
 });

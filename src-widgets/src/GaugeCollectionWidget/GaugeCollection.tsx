@@ -4,11 +4,13 @@
  * @module widgets/GaugeCollection
  * @remarks
  * Owns everything the Options-Builder cannot know: the canvas size (the
- * frame's Content-Box, ADR-0098), the current value and the Highlight-Zones
- * derived from the state rows ({@link module:GaugeCollectionWidget/gaugeSegments}).
- * The canvas-gauges option object comes from
- * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}; the
- * active zone's styling is pre-composed into the `data` CollectionBase
+ * frame's Content-Box, ADR-0098), the current value and the states useData
+ * publishes. Range, value coercion, Highlight-Zones and icon fit live behind the
+ * builder's two entries (ADR-0107 Nr. 4): the canvas-gauges option object comes
+ * from {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions} inside
+ * the frame, the active zone's style and the icon fit from
+ * {@link module:GaugeCollectionWidget/gaugeOptions.resolveGaugeZone} outside it.
+ * The active zone's styling is pre-composed into the `data` CollectionBase
  * renders — no imperative DOM writes (K3).
  */
 
@@ -25,8 +27,7 @@ import Gauge from './Gauge';
 import SafeImg from '../components/SafeImg';
 import gaugeFields from '../lib/gaugeFields';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
-import { resolveZones } from './gaugeSegments';
+import { buildGaugeOptions, resolveGaugeZone } from './gaugeOptions';
 
 import type { GaugeOptions } from 'canvas-gauges';
 
@@ -112,20 +113,11 @@ function GaugeCollection(): React.JSX.Element {
     // Field definitions are the Options-Builder's contract — created once per widget.
     const fields = useMemo(() => gaugeFields(), []);
 
-    // Resolve effective min/max: an explicitly configured gaugeMinValue/gaugeMaxValue always
-    // wins, otherwise fall back to the min/max auto-detected from the bound object
-    // (widget.data.minValue/maxValue, set by oidChangeHandlerAsync from common.min/common.max).
-    // (minValue feeds the Options-Builder internally; the Highlight-Zones need the max.)
-    const { gaugeMinValue, minValue, gaugeMaxValue, maxValue } = widget.data;
-    const { maxValue: effectiveMaxValue } = useMemo(
-        () => resolveGaugeRange({ gaugeMinValue, minValue, gaugeMaxValue, maxValue }),
-        [gaugeMinValue, minValue, gaugeMaxValue, maxValue],
-    );
-
-    // The bare canvas arcs and the active zone's style, one resolution over useData's states.
-    const { arcs, active } = useMemo(
-        () => resolveZones(states, effectiveMaxValue, Number(oidValue) || 0),
-        [states, effectiveMaxValue, oidValue],
+    // Body-Einstieg of the builder: the active zone's style and the zone icon's fit, resolved
+    // over the same range and value the canvas sees.
+    const { active, iconFit } = useMemo(
+        () => resolveGaugeZone(fields, widget.data, states, oidValue),
+        [fields, widget.data, states, oidValue],
     );
 
     // Active-zone styling, declaratively: the zone's colors are composed INTO the style
@@ -144,10 +136,10 @@ function GaugeCollection(): React.JSX.Element {
         };
     }, [data, active]);
 
-    // Complete canvas-gauges option set — coercion, defaults, the color contract
-    // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
-    // padding, value/unit/title) live behind this seam. The canvas size joins
-    // inside the frame (SizedGauge).
+    // Canvas-Einstieg: the complete canvas-gauges option set — coercion, defaults, the color
+    // contract (ADR-0004) and computed options (min/max, major ticks, dimensions minus
+    // padding, value/unit/title, Highlight-Zone arcs) live behind this seam. The canvas size
+    // joins inside the frame (SizedGauge).
     const buildOptions = useCallback<BuildGaugeOptions>(
         ({ width, height, resolveCssColor }) =>
             buildGaugeOptions(fields, widget.data, {
@@ -157,11 +149,11 @@ function GaugeCollection(): React.JSX.Element {
                 value: oidValue,
                 unit: oidObject?.unit,
                 header: data.header,
-                highlights: arcs,
+                states,
                 theme,
                 textStyles,
             }),
-        [fields, widget.data, oidValue, oidObject?.unit, data.header, arcs, theme, textStyles],
+        [fields, widget.data, oidValue, oidObject?.unit, data.header, states, theme, textStyles],
     );
 
     // Segment icon overlay (rendered above the canvas, positioned per state row).
@@ -194,7 +186,7 @@ function GaugeCollection(): React.JSX.Element {
                         height: active?.iconSizeOnly,
 
                         boxSizing: 'border-box',
-                        objectFit: widget.data.gaugeIconFit,
+                        objectFit: iconFit,
 
                         top: `calc(0px - ${active?.iconYOffset})`,
                         left: `calc(0px + ${active?.iconXOffset})`,
