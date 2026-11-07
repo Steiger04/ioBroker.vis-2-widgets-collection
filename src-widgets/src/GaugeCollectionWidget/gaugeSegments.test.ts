@@ -25,7 +25,6 @@ const state = (value: number, style: Partial<StateStyleData> = {}): StateStyleDa
     iconXOffset: undefined,
     iconYOffset: undefined,
     iconColor: undefined,
-    iconHover: undefined,
     forceColorMask: undefined,
     valueSize: undefined,
     background: undefined,

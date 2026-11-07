@@ -77,7 +77,6 @@ describe('getStyleData — empty rxData resolves to known defaults', () => {
             forceColorMaskActive: false,
             iconColor: THEME_PRIMARY,
             iconColorActive: '',
-            iconHover: '',
             iconXOffsetCm: '0px',
             iconYOffsetCm: '0px',
             iconXOffset: '0px',
@@ -112,7 +111,6 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             iconSmall: 'base-icon-small',
             iconSize: 200,
             iconColor: '#basecolor',
-            iconHover: 50,
             iconXOffset: '5px',
             iconYOffset: '7px',
             enableIconColorMask: true,
@@ -148,7 +146,6 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             forceColorMaskActive: false,
             iconColor: '#basecolor',
             iconColorActive: '',
-            iconHover: '50%',
             iconXOffsetCm: '5px',
             iconYOffsetCm: '7px',
             iconXOffset: '5px',
@@ -360,5 +357,14 @@ describe('legacy state-row keys (LEGACY_STATE_ROW_KEYS)', () => {
         expect(sd).not.toHaveProperty('iconHoverActive');
         expect(sd).not.toHaveProperty('backgroundColorActive');
         expect(sd).not.toHaveProperty('frameBackgroundColorActive');
+    });
+});
+
+describe('retired icon hover field', () => {
+    it('resolves no iconHover — the field is gone (2026-02-12) and no renderer reads it', () => {
+        const r = buildResolvers({ rxData: { iconHover: 150, value1: 1, iconHover1: 150 } });
+
+        expect(resolve(r)).not.toHaveProperty('iconHover');
+        expect(resolve(r, 1, true)).not.toHaveProperty('iconHover');
     });
 });

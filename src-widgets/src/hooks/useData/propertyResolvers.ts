@@ -221,9 +221,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconColorActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? (resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '') : '',
 
-        iconHover: (_ext: string | number, _includeActive: boolean) =>
-            resolvePriority([{ value: rxData.iconHover ? `${rxData.iconHover}%` : undefined }]) ?? '',
-
         iconXOffsetCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: getDataValue<string>('iconXOffset', '') }]) ?? '0px',
 

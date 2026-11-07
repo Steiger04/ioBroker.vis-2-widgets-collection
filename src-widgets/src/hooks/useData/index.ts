@@ -41,12 +41,7 @@
  *       {states.map((state, index) => (
  *         <button
  *           key={index}
- *           style={{
- *             backgroundColor:
- *               state.active
- *                 ? state.backgroundActive
- *                 : state.backgroundColor
- *           }}
+ *           style={{ background: state.background }}
  *         >
  *           {state.label}
  *         </button>

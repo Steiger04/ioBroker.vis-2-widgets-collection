@@ -188,7 +188,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     iconXOffset: styleData.iconXOffset,
                     iconYOffset: styleData.iconYOffset,
                     iconColor: styleData.iconColor,
-                    iconHover: styleData.iconHover,
                     forceColorMask: styleData.forceColorMask,
                     valueSize: styleData.valueSize,
                     background: styleData.background,

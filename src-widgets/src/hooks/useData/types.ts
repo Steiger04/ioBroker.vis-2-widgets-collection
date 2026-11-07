@@ -69,8 +69,6 @@ export interface StyleData {
     iconColor?: string;
     /** Active icon color. */
     iconColorActive?: string;
-    /** Icon hover effect in percent. */
-    iconHover?: string;
     /** Icon X offset as a CSS value (with unit). */
     iconXOffsetCm?: string;
     /** Icon Y offset as a CSS value (with unit). */
@@ -117,12 +115,9 @@ export interface StateItem {
     iconXOffset: string;
     iconYOffset: string;
     iconColor?: string;
-    iconHover?: string;
     forceColorMask?: boolean;
-    backgroundColor?: string;
     background?: string;
     backgroundActive?: string;
-    frameBackgroundColor?: string;
     frameBackground?: string;
     frameBackgroundActive?: string;
 }
@@ -222,13 +217,13 @@ export interface MarkerLayer {
  * returning the resolved property value with proper fallback chain logic.
  *
  * @remarks
- * Defines 39 resolver functions across 5 categories: Icon Properties (21),
+ * Defines 38 resolver functions across 5 categories: Icon Properties (20),
  * Text Properties (3), Size Properties (5), Content Properties (4) and
  * Background Properties (6).
  * @since 2.2.0
  */
 export interface PropertyResolvers {
-    // Icon Properties (21 resolvers)
+    // Icon Properties (20 resolvers)
     icon: (ext: string | number, includeActive: boolean) => string;
     iconActive: (ext: string | number, includeActive: boolean) => string;
     iconSize: (ext: string | number, includeActive: boolean) => string;
@@ -249,7 +244,6 @@ export interface PropertyResolvers {
     forceColorMask: (ext: string | number, includeActive: boolean) => boolean;
     forceColorMaskActive: (ext: string | number, includeActive: boolean) => boolean;
     forceColorMaskCm: (ext: string | number, includeActive: boolean) => boolean;
-    iconHover: (ext: string | number, includeActive: boolean) => string | undefined;
 
     // Text Properties (3 resolvers)
     textColor: (ext: string | number, includeActive: boolean) => string;
@@ -300,15 +294,12 @@ export type StateStyleData = Pick<
     | 'iconColor'
     | 'iconXOffset'
     | 'iconYOffset'
-    | 'iconHover'
     | 'forceColorMask'
     | 'valueSize'
-    | 'backgroundColor'
     | 'background'
     | 'backgroundActive'
     | 'frameBackground'
     | 'frameBackgroundActive'
-    | 'frameBackgroundColor'
 > & {
     /**
      * Feldnummer: the 1-based suffix of this state's field row (`value{i}`, `alias{i}`,
