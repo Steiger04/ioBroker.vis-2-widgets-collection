@@ -146,19 +146,12 @@ export function channelsOf(type: string | undefined, view: Light2View): readonly
 }
 
 /**
- * Today's editor hides the brightness Kanal for these Lichttypen although their CCT-Ansicht
- * writes and reads it (V4). Kept on purpose so the refactor stays behaviour-neutral; ticket 03
- * removes it.
+ * Whether the editor shows the Kanal field for the Lichttyp: a view of the Lichttyp uses the
+ * Kanal — so the brightness shows for rgbcct and r/g/b/cct too, whose CCT-Ansicht writes and
+ * reads it.
  */
-const BRIGHTNESS_HIDDEN_FOR: readonly string[] = ['rgbcct', 'r/g/b/cct'];
-
-/** Whether the editor shows the Kanal field for the Lichttyp: a view of the Lichttyp uses the Kanal. */
-export function isChannelFieldVisible(type: string | undefined, field: Light2ChannelField): boolean {
-    if (field === 'colorLightBrightnessOid' && type !== undefined && BRIGHTNESS_HIDDEN_FOR.includes(type)) {
-        return false;
-    }
-    return viewsOf(type).some(view => channelsOf(type, view).some(channel => channel.field === field));
-}
+export const isChannelFieldVisible = (type: string | undefined, field: Light2ChannelField): boolean =>
+    viewsOf(type).some(view => channelsOf(type, view).some(channel => channel.field === field));
 
 /**
  * The Kanäle whose foreign changes re-sync the main picker, in the fixed order handed to

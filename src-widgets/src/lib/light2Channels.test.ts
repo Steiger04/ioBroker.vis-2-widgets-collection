@@ -109,11 +109,17 @@ describe('editor visibility of the Kanal fields', () => {
         none: [],
         cct: ['colorLightTemperatureOid', 'colorLightBrightnessOid'],
         rgb: ['colorLightRgbHexOid'],
-        // Brightness left out although the CCT-Ansicht uses it (V4) — until ticket 03.
-        rgbcct: ['colorLightTemperatureOid', 'colorLightRgbHexOid'],
+        // The CCT-Ansicht writes and reads the brightness, so the editor shows it (fix V4).
+        rgbcct: ['colorLightTemperatureOid', 'colorLightRgbHexOid', 'colorLightBrightnessOid'],
         'r/g/b': ['colorLightRedOid', 'colorLightGreenOid', 'colorLightBlueOid'],
-        // Brightness left out although the CCT-Ansicht uses it (V4) — until ticket 03.
-        'r/g/b/cct': ['colorLightTemperatureOid', 'colorLightRedOid', 'colorLightGreenOid', 'colorLightBlueOid'],
+        // The CCT-Ansicht writes and reads the brightness, so the editor shows it (fix V4).
+        'r/g/b/cct': [
+            'colorLightTemperatureOid',
+            'colorLightRedOid',
+            'colorLightGreenOid',
+            'colorLightBlueOid',
+            'colorLightBrightnessOid',
+        ],
         'h/s/v': ['colorLightHueOid', 'colorLightSaturationOid', 'colorLightBrightnessOid'],
         'h/s/v/cct': [
             'colorLightTemperatureOid',
