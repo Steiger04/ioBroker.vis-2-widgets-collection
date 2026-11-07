@@ -83,10 +83,6 @@ export function useLampSync(options: LampSyncOptions): LampSync {
             brightness: brightnessPickerRef.current?.color ?? null,
         };
         for (const action of actions) {
-            if (action.kind === 'read' && action.unguarded) {
-                applyPickerAction(action, colors, readContext());
-                continue;
-            }
             isSyncingRef.current = true;
             try {
                 applyPickerAction(action, colors, readContext());

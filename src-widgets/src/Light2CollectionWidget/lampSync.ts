@@ -62,11 +62,8 @@ export interface LampReadContext {
 
 /** One picker action. */
 export type PickerAction =
-    /**
-     * Mirror the Kanäle of the target into the picker. `unguarded`: applied without the sync
-     * guard, so a stale iro input flag turns it into an input (pinned, see {@link syncStep}).
-     */
-    | { kind: 'read'; picker: LampPicker; target: PickerTarget; unguarded?: true }
+    /** Mirror the Kanäle of the target into the picker. */
+    | { kind: 'read'; picker: LampPicker; target: PickerTarget }
     /** Set the Kelvin-Picker to a temperature. */
     | { kind: 'kelvin'; value: number }
     /** Kelvin-Kopplung: the Helligkeits-Picker takes the Kelvin-Picker's colour, keeping its brightness. */
@@ -221,8 +218,7 @@ export function syncStep(
 
     // Verlassen der CCT-Ansicht: the main picker shows the colour view again.
     if (prev?.cctView && prevViewSwitch && !next.cctView && viewSwitch && pickers.main) {
-        // PINNED: the former effect read the brightness into the main picker without the sync guard.
-        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 2), unguarded: true });
+        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 2) });
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next) });
     }
 

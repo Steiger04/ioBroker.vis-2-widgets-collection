@@ -176,6 +176,17 @@ describe('useLampSync', () => {
         expect(setters.colorLightTemperatureOid).not.toHaveBeenCalled();
     });
 
+    it('leaving the CCT-Ansicht after a Kelvin drag writes no colour', async () => {
+        backend = { colorLightTemperatureOid: 2700, colorLightBrightnessOid: 40, colorLightRgbHexOid: '#ff0000' };
+        const { setters, hook, kelvin } = mountCct('rgbcct');
+        await drag(kelvin.slider, 20, 150);
+
+        hook.rerender(() => useLampSync(options('rgbcct', false, setters)));
+
+        expect(setters.colorLightRgbHexOid).not.toHaveBeenCalled();
+        expect(kelvin.picker.color.hexString).toBe('#ff0000');
+    });
+
     it('a foreign brightness change moves the Helligkeits-Picker of an „& cct" Lichttyp', () => {
         backend = { colorLightTemperatureOid: 2700, colorLightBrightnessOid: 40 };
         const { setters, hook, brightness } = mountCct('rgbcct');

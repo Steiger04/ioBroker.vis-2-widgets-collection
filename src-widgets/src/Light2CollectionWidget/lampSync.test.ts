@@ -5,8 +5,7 @@
  * @remarks
  * The pure transitions behind `useLampSync` (ADR-0108 Nr. 3, spec licht2-architektur-2026-11
  * Naht 3), with real `iro.Color` (it runs under node). Each transition stands for one former
- * effect of the body (dev @ b2fb111d, `Light2Collection.tsx:432-611`); the cases marked PINNED
- * keep a former behaviour on purpose.
+ * effect of the body (dev @ b2fb111d, `Light2Collection.tsx:432-611`).
  */
 import iro from '@jaames/iro';
 import { describe, expect, it } from 'vitest';
@@ -314,13 +313,7 @@ describe('syncStep: Verlassen der CCT-Ansicht', () => {
 
         expect(step).toEqual({
             actions: [
-                // PINNED: the former effect applied this read without the sync guard.
-                {
-                    kind: 'read',
-                    picker: 'main',
-                    target: { type: 'r/g/b/cct', view: 'cct', picker: 'brightness' },
-                    unguarded: true,
-                },
+                { kind: 'read', picker: 'main', target: { type: 'r/g/b/cct', view: 'cct', picker: 'brightness' } },
                 { kind: 'read', picker: 'main', target: { type: 'r/g/b/cct', view: 'color' } },
             ],
             writes: [],
