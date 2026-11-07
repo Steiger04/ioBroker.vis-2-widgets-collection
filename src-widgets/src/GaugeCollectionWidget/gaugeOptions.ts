@@ -83,7 +83,7 @@ export interface GaugeOptionsContext {
 export interface GaugeZone {
     /** Style of the active Highlight-Zone, `null` when the value lies in none. */
     active: ZoneStyle | null;
-    /** Object fit of the zone icon (passed through raw). */
+    /** Object fit of the zone icon (stored value, the schema default while unset). */
     iconFit: GaugeFieldsRxData['gaugeIconFit'];
 }
 
@@ -392,7 +392,8 @@ export function buildGaugeOptions(
  * @returns The active zone style (or `null`) and the icon fit.
  * @remarks
  * Range and value are resolved exactly as in the Canvas-Einstieg, so the active zone always
- * matches the arcs the canvas paints. The icon fit is passed through as stored.
+ * matches the arcs the canvas paints. The icon fit follows the coercion policy like every
+ * other string field: unset falls back to its schema default (`contain`), not to CSS `fill`.
  */
 export function resolveGaugeZone(
     fields: readonly BuilderField[],
@@ -403,6 +404,9 @@ export function resolveGaugeZone(
     const data = widgetData as Record<string, unknown>;
     return {
         active: resolveMeasures(data, states, value).zones.active,
-        iconFit: data.gaugeIconFit as GaugeZone['iconFit'],
+        iconFit: resolveString(
+            data.gaugeIconFit,
+            stringDefault(fieldDefault(fields, 'gaugeIconFit')),
+        ) as GaugeZone['iconFit'],
     };
 }

@@ -154,6 +154,20 @@ describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
     });
 });
 
+describe('GaugeCollection zone icon', () => {
+    it('fits the zone icon with the schema default contain when the widget data lacks the key', () => {
+        // One zone from 0 with an icon; the value 21 lies in it. `gaugeIconFit` is absent (import, script).
+        const { container } = mountBody(
+            GaugeCollection,
+            scene({ gaugeMaxValue: 100, values_count: 1, value1: 0, icon1: 'warm.svg' }),
+        );
+
+        const zoneIcon = [...container.querySelectorAll('img')].at(-1);
+        expect(zoneIcon?.getAttribute('src')).toBe('warm.svg');
+        expect(zoneIcon?.style.objectFit).toBe('contain');
+    });
+});
+
 describe('GaugeCollection CSS variables', () => {
     it('hands the canvas the colour a var(…) resolves to in the widget, the default when it does not', () => {
         document.documentElement.style.setProperty('--gauge-test-accent', 'rgb(10, 20, 30)');

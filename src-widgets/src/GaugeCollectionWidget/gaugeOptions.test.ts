@@ -333,9 +333,13 @@ describe('resolveGaugeZone — Body-Einstieg', () => {
         expect(resolveGaugeZone(FIELDS, {}, [state(50)], 21).active).toBeNull();
     });
 
-    it('passes the icon fit through as stored', () => {
-        expect(resolveGaugeZone(FIELDS, { gaugeIconFit: 'cover' }, [], 0).iconFit).toBe('cover');
-        expect(resolveGaugeZone(FIELDS, {}, [], 0).iconFit).toBeUndefined();
+    it.each([
+        // label, stored icon fit, expected
+        ['unset → the schema default', undefined, 'contain'],
+        ['empty → the schema default', '', 'contain'],
+        ['set → as stored', 'cover', 'cover'],
+    ])('resolves the icon fit like every other field: %s', (_label, gaugeIconFit, expected) => {
+        expect(resolveGaugeZone(FIELDS, { gaugeIconFit }, [], 0).iconFit).toBe(expected);
     });
 });
 
