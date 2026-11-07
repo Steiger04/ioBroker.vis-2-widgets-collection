@@ -6,7 +6,7 @@
  * The pure transitions behind `useLampSync` (ADR-0108 Nr. 3, spec licht2-architektur-2026-11
  * Naht 3), with real `iro.Color` (it runs under node). Each transition stands for one former
  * effect of the body (dev @ b2fb111d, `Light2Collection.tsx:432-611`); the cases marked PINNED
- * keep its known defects until their fix tickets (V1 → 11, V2 → 12).
+ * keep its known defects until their fix tickets (V2 → 12).
  */
 import iro from '@jaames/iro';
 import { describe, expect, it } from 'vitest';
@@ -157,11 +157,29 @@ describe('syncStep: Fremdänderung Helligkeit', () => {
         ]);
     });
 
-    it('PINNED (V1, ticket 11): the Lichttyp cct leaves its Helligkeits-Picker behind', () => {
+    it('mirrors the brightness into the Helligkeits-Picker of the Lichttyp cct too, on the Hue-Skala (V1)', () => {
         const prev = state('cct', true);
-        const next = state('cct', true, { colorLightBrightnessOid: 40 });
+        const next = state('cct', true, { colorLightBrightnessOid: 127 });
+        const step = syncStep(prev, next, BOTH, readContext());
 
-        expect(syncStep(prev, next, BOTH, readContext()).actions).toEqual([]);
+        expect(step.actions).toEqual([
+            { kind: 'read', picker: 'brightness', target: { type: 'cct', view: 'cct', picker: 'brightness' } },
+        ]);
+
+        // 127 of 254 is 50 % on the Helligkeits-Picker.
+        const brightness = new iro.Color({ h: 0, s: 0, v: 100 });
+        applyPickerAction(
+            step.actions[0],
+            { main: null, brightness },
+            {
+                widgetData: {
+                    ...DATA,
+                    colorLightBrightnessOidObject: { maxValue: 254 },
+                } as unknown as Light2WidgetData,
+                getPropertyValue: name => (name === 'colorLightBrightnessOid' ? 127 : null),
+            },
+        );
+        expect(brightness.value).toBe(50);
     });
 
     it('does nothing in the colour view (the main colour carries the h/s/v brightness there)', () => {

@@ -162,12 +162,9 @@ export function syncStep(
     }
 
     // Fremdänderung Helligkeit: the Helligkeits-Picker follows.
-    // PINNED (V1, fix in ticket 11): the Lichttyp cct is left out — the former effect asked the
-    // view switch, which the Lichttyp cct has not, so its Helligkeits-Picker never follows.
     if (
         (!before || before.view !== now.view || before.brightness !== now.brightness) &&
         next.cctView &&
-        viewSwitch &&
         now.brightness !== null &&
         pickers.brightness
     ) {
