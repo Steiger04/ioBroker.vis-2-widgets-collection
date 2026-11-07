@@ -123,6 +123,16 @@ describe('buildGaugeOptions — string and boolean coercion', () => {
         expect(build({}).valueText).toBe('');
         expect(build({ gaugeValueText: 'ON' }).valueText).toBe('ON');
     });
+
+    it('hands a numeric schema default of a string field over as a string', () => {
+        const fields: BuilderField[] = [
+            { name: 'gaugeSomeSelect', type: 'select', default: 3 },
+            { name: 'gaugeSomeText', type: 'text', default: 0 },
+        ];
+        const options = buildGaugeOptions(fields, {}, CTX) as Record<string, unknown>;
+        expect(options.someSelect).toBe('3');
+        expect(options.someText).toBe('0');
+    });
 });
 
 describe('buildGaugeOptions — color contract fields (ADR-0004)', () => {

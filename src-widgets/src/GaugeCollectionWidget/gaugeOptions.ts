@@ -167,9 +167,9 @@ function resolveString(value: unknown, fallback: string): string {
     return typeof value === 'string' && value !== '' ? value : fallback;
 }
 
-/** Schema default as a string ('' for non-string defaults — none exist today). */
+/** Schema default as a string: numbers are stringified, any other non-string default yields ''. */
 function stringDefault(value: unknown): string {
-    return typeof value === 'string' ? value : value === 'number' ? String(value) : '';
+    return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';
 }
 
 /** The basic entities the Canvas-Titel decodes; `&amp;` runs last so `&amp;lt;` stays `&lt;`. */
