@@ -20,6 +20,8 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
  * when the runtime has states to snap to (ADR-0106 decision 8).
  *
  * @param data The raw widget data vis-2 hands a hidden predicate.
+ * @remarks Twin of `countOf` in `stateFields.tsx` — kept apart because the shared state layer
+ * is used, not changed, by the slider rework; change both together.
  */
 const stateCountOf = (data: WidgetData): number =>
     effectiveStateCount({

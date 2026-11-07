@@ -13,8 +13,9 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { sliderColorContracts } from './sliderColorContract';
 
-// The field list renders CollectionDivider / ContractColorField, which pull Generic (extends
-// window.visRxWidget, absent outside vis-2). The field tests read only the field data.
+// The field list pulls CollectionDivider, ContractColorField and PlainColorField, which all pull
+// Generic (extends window.visRxWidget, absent outside vis-2) — each mock is needed. The tests
+// read only the field data.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));

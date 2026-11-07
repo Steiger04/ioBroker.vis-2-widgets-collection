@@ -9,8 +9,9 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-// The field list pulls the field components, which pull Generic (extends window.visRxWidget,
-// absent outside vis-2). Only the field DATA is read here.
+// The field list pulls CollectionDivider, ContractColorField and PlainColorField, which all pull
+// Generic (extends window.visRxWidget, absent outside vis-2) — each mock is needed. The tests
+// read only the field data.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
