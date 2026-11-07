@@ -1,7 +1,7 @@
 /**
  * Light2 collection widget.
  *
- * @module widgets/Light2CollectionWidget
+ * @module Light2CollectionWidget/Light2CollectionWidget
  */
 
 import React from 'react';

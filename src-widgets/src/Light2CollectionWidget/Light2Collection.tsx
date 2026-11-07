@@ -1,7 +1,7 @@
 /**
  * Light2 collection renderer.
  *
- * @module widgets/Light2Collection
+ * @module Light2CollectionWidget/Light2Collection
  */
 
 import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
@@ -80,7 +80,7 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
     const [boxElement, setBoxElement] = useState<HTMLDivElement | null>(null);
     const measuredBox = useElementDimensions(boxElement);
 
-    const isCctLight = offersViewSwitch(rxData.colorLightType);
+    const hasViewSwitch = offersViewSwitch(rxData.colorLightType);
     const cctView = isCctViewActive(rxData.colorLightType, cctSelected);
 
     // The Kanäle: their values and Fremdänderung flags feed the lamp sync, their setters carry
@@ -188,7 +188,7 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
                         />
                     </IconButton>
 
-                    {isCctLight && (
+                    {hasViewSwitch && (
                         <Box
                             sx={{
                                 display: 'inline-block',
@@ -210,7 +210,7 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
                         </Box>
                     )}
 
-                    {isCctLight && (
+                    {hasViewSwitch && (
                         <Box
                             sx={{
                                 display: 'block',
@@ -252,19 +252,19 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
                     rxData.colorLightType !== 'none' && (
                         <>
                             <LightPicker
-                                cctComponentNumber={1} // kelvin
+                                picker="main"
                                 ref={mainPickerRef}
                                 onColorInit={onColorInit}
-                                onInputChange={(color, changes) => onInputChange(color, 1, changes)}
+                                onInputChange={onInputChange}
                                 {...commonLightPickerProps}
                             />
 
                             {cctView && (
                                 <Box sx={{ ml: `${geometry.secondPickerOffset}px` }}>
                                     <LightPicker
-                                        cctComponentNumber={2} // brightness
+                                        picker="brightness"
                                         onColorInit={onColorInit}
-                                        onInputChange={(color, changes) => onInputChange(color, 2, changes)}
+                                        onInputChange={onInputChange}
                                         ref={brightnessPickerRef}
                                         {...commonLightPickerProps}
                                     />

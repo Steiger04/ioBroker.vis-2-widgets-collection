@@ -89,12 +89,12 @@ describe('isCctViewActive', () => {
 
 describe('pickerTargetOf (init of a picker)', () => {
     it('reads the Kelvin- and the Helligkeits-Picker in the CCT-Ansicht', () => {
-        expect(pickerTargetOf({ type: 'rgbcct', cctView: true }, 1)).toEqual({
+        expect(pickerTargetOf({ type: 'rgbcct', cctView: true }, 'main')).toEqual({
             type: 'rgbcct',
             view: 'cct',
             picker: 'kelvin',
         });
-        expect(pickerTargetOf({ type: 'cct', cctView: true }, 2)).toEqual({
+        expect(pickerTargetOf({ type: 'cct', cctView: true }, 'brightness')).toEqual({
             type: 'cct',
             view: 'cct',
             picker: 'brightness',
@@ -102,7 +102,7 @@ describe('pickerTargetOf (init of a picker)', () => {
     });
 
     it('reads the colour view of the Lichttyp otherwise', () => {
-        expect(pickerTargetOf({ type: 'rgbcct', cctView: false }, 1)).toEqual({ type: 'rgbcct', view: 'color' });
+        expect(pickerTargetOf({ type: 'rgbcct', cctView: false }, 'main')).toEqual({ type: 'rgbcct', view: 'color' });
     });
 });
 
@@ -355,7 +355,7 @@ describe('inputStep: Ziehen', () => {
     };
 
     it('the Kelvin-Picker writes the rounded temperature and couples (Kelvin-Kopplung)', () => {
-        expect(inputStep({ type: 'cct', cctView: true }, 1, kelvinColor(), undefined, DATA)).toEqual({
+        expect(inputStep({ type: 'cct', cctView: true }, 'main', kelvinColor(), undefined, DATA)).toEqual({
             actions: [{ kind: 'couple' }],
             writes: [{ field: 'colorLightTemperatureOid', value: 3989 }],
         });
@@ -364,7 +364,7 @@ describe('inputStep: Ziehen', () => {
     it('the Helligkeits-Picker writes the brightness, uncoupled', () => {
         const color = new iro.Color({ h: 0, s: 0, v: 66.6 });
 
-        expect(inputStep({ type: 'rgbcct', cctView: true }, 2, color, undefined, DATA)).toEqual({
+        expect(inputStep({ type: 'rgbcct', cctView: true }, 'brightness', color, undefined, DATA)).toEqual({
             actions: [],
             writes: [{ field: 'colorLightBrightnessOid', value: 67 }],
         });
@@ -373,15 +373,15 @@ describe('inputStep: Ziehen', () => {
     it('the main picker of the colour view writes its Kanäle, gated by the HSV flags', () => {
         const color = new iro.Color({ h: 120.4, s: 33.3, v: 66.6 });
 
-        expect(inputStep({ type: 'h/s/v/cct', cctView: false }, 1, color, { h: true }, DATA)).toEqual({
+        expect(inputStep({ type: 'h/s/v/cct', cctView: false }, 'main', color, { h: true }, DATA)).toEqual({
             actions: [],
             writes: [{ field: 'colorLightHueOid', value: 120 }],
         });
     });
 
     it('does nothing without a Lichttyp or without Kanäle', () => {
-        expect(inputStep({ type: undefined, cctView: false }, 1, kelvinColor(), undefined, DATA)).toBeNull();
-        expect(inputStep({ type: 'none', cctView: false }, 1, kelvinColor(), undefined, DATA)).toEqual({
+        expect(inputStep({ type: undefined, cctView: false }, 'main', kelvinColor(), undefined, DATA)).toBeNull();
+        expect(inputStep({ type: 'none', cctView: false }, 'main', kelvinColor(), undefined, DATA)).toEqual({
             actions: [],
             writes: [],
         });

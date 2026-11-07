@@ -22,6 +22,7 @@ import type { Light2ChannelField } from '../lib/light2Channels';
 import { renderHook } from '../lib/testing/testHarness';
 import type { SyncChannel } from './backendSyncKey';
 import type { Light2WidgetData } from './channelMapping';
+import type { LampPicker } from './lampSync';
 import { useLampSync } from './useLampSync';
 import type { LampSync, LampSyncOptions } from './useLampSync';
 
@@ -64,11 +65,11 @@ const options = (
     };
 };
 
-/** A real iro picker with one slider, wired to the hook as picker `pickerNumber`. */
+/** A real iro picker with one slider, wired to the hook as `lampPicker`. */
 const mountPicker = (
     sliderType: 'kelvin' | 'value',
     sync: { current: LampSync },
-    pickerNumber: 1 | 2,
+    lampPicker: LampPicker,
 ): { picker: iro.ColorPicker; slider: HTMLElement } => {
     const element = document.createElement('div');
     document.body.appendChild(element);
@@ -82,9 +83,9 @@ const mountPicker = (
             },
         ],
     });
-    picker.on('color:init', (color: iro.Color) => sync.current.onColorInit(color, pickerNumber));
+    picker.on('color:init', (color: iro.Color) => sync.current.onColorInit(color, lampPicker));
     picker.on('input:change', (color: iro.Color, changes: { h?: boolean; s?: boolean; v?: boolean }) =>
-        sync.current.onInputChange(color, pickerNumber, changes),
+        sync.current.onInputChange(color, lampPicker, changes),
     );
     const slider = element.querySelector('.IroSlider') as HTMLElement;
     slider.getBoundingClientRect = () =>
@@ -127,8 +128,8 @@ const mountCct = (
 } => {
     const setters = makeSetters();
     const hook = renderHook(() => useLampSync(options(type, true, setters)));
-    const kelvin = mountPicker('kelvin', hook.result, 1);
-    const brightness = mountPicker('value', hook.result, 2);
+    const kelvin = mountPicker('kelvin', hook.result, 'main');
+    const brightness = mountPicker('value', hook.result, 'brightness');
     hook.result.current.mainPickerRef.current = kelvin.picker;
     hook.result.current.brightnessPickerRef.current = brightness.picker;
     return { setters, hook, kelvin, brightness };

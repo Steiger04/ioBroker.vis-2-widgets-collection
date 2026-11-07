@@ -26,7 +26,7 @@ import type { SyncChannel } from './backendSyncKey';
 import { readChannelsIntoColor } from './channelMapping';
 import type { ChannelWrite, ColorChanges, Light2WidgetData } from './channelMapping';
 import { applyPickerAction, inputStep, pickerTargetOf, syncStep } from './lampSync';
-import type { LampPickerNumber, LampReadContext, LampSyncState, PickerAction } from './lampSync';
+import type { LampPicker, LampReadContext, LampSyncState, PickerAction } from './lampSync';
 
 /** What the body hands the lamp sync each render. */
 export interface LampSyncOptions {
@@ -50,10 +50,10 @@ export interface LampSync {
     mainPickerRef: MutableRefObject<iro.ColorPicker | null>;
     /** Ref of the Helligkeits-Picker of the CCT-Ansicht. */
     brightnessPickerRef: MutableRefObject<iro.ColorPicker | null>;
-    /** iro's `color:init`: mirrors the Kanäle into the picker. */
-    onColorInit: (color: iro.Color, pickerNumber?: number) => void;
+    /** iro's `color:init` of a picker: mirrors the Kanäle into it. */
+    onColorInit: (color: iro.Color, picker: LampPicker) => void;
     /** iro's `input:change` of a picker: writes the Kanäle (and couples the Kelvin-Picker). */
-    onInputChange: (color: iro.Color, pickerNumber: LampPickerNumber, changes?: ColorChanges) => void;
+    onInputChange: (color: iro.Color, picker: LampPicker, changes?: ColorChanges) => void;
 }
 
 /**
@@ -114,21 +114,16 @@ export function useLampSync(options: LampSyncOptions): LampSync {
         runWrites(step.writes);
     });
 
-    const onColorInit = (color: iro.Color, pickerNumber?: number): void => {
+    const onColorInit = (color: iro.Color, picker: LampPicker): void => {
         const { widgetData, getPropertyValue } = optionsRef.current;
-        readChannelsIntoColor(
-            color,
-            pickerTargetOf(optionsRef.current, pickerNumber === 1 || pickerNumber === 2 ? pickerNumber : undefined),
-            widgetData,
-            getPropertyValue,
-        );
+        readChannelsIntoColor(color, pickerTargetOf(optionsRef.current, picker), widgetData, getPropertyValue);
     };
 
-    const onInputChange = (color: iro.Color, pickerNumber: LampPickerNumber, changes?: ColorChanges): void => {
+    const onInputChange = (color: iro.Color, picker: LampPicker, changes?: ColorChanges): void => {
         if (processingRef.current || isSyncingRef.current) {
             return;
         }
-        const step = inputStep(optionsRef.current, pickerNumber, color, changes, optionsRef.current.widgetData);
+        const step = inputStep(optionsRef.current, picker, color, changes, optionsRef.current.widgetData);
         if (!step) {
             return;
         }

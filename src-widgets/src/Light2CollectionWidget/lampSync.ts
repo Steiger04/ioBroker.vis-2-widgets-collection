@@ -32,11 +32,11 @@ import type { SyncChannel } from './backendSyncKey';
 import { channelWrites, readChannelsIntoColor } from './channelMapping';
 import type { ChannelWrite, ColorChanges, Light2WidgetData, PickerTarget } from './channelMapping';
 
-/** The two pickers of the Lampen-Bedienelement: the main (in the CCT-Ansicht: Kelvin-) and the Helligkeits-Picker. */
+/**
+ * The two pickers of the Lampen-Bedienelement: the main picker (the only one of the colour view,
+ * in the CCT-Ansicht the Kelvin-Picker) and the Helligkeits-Picker of the CCT-Ansicht.
+ */
 export type LampPicker = 'main' | 'brightness';
-
-/** The picker number the picker component reports: 1 main / Kelvin, 2 Helligkeit. */
-export type LampPickerNumber = 1 | 2;
 
 /** What the sync sees of one render: the Lichttyp, the view and every Kanal's value and flag. */
 export interface LampSyncState {
@@ -86,19 +86,16 @@ export const isCctViewActive = (type: string | undefined, cctSelected: boolean):
     hasView(type, 'cct') && (!offersViewSwitch(type) || cctSelected);
 
 /**
- * The channel-mapping target of a picker: in the CCT-Ansicht the Kelvin- (1) or the
- * Helligkeits-Picker (2) — without a number neither, so nothing is read or written there —,
- * else the colour view of the Lichttyp.
+ * The channel-mapping target of a picker: in the CCT-Ansicht the Kelvin- (main) or the
+ * Helligkeits-Picker — without a picker neither, so nothing is read or written there —, else
+ * the colour view of the Lichttyp.
  */
-export const pickerTargetOf = (
-    state: Pick<LampSyncState, 'type' | 'cctView'>,
-    pickerNumber?: LampPickerNumber,
-): PickerTarget =>
+export const pickerTargetOf = (state: Pick<LampSyncState, 'type' | 'cctView'>, picker?: LampPicker): PickerTarget =>
     state.cctView
         ? {
               type: state.type,
               view: 'cct',
-              picker: pickerNumber === 1 ? 'kelvin' : pickerNumber === 2 ? 'brightness' : undefined,
+              picker: picker === 'main' ? 'kelvin' : picker,
           }
         : { type: state.type, view: 'color' };
 
@@ -137,7 +134,7 @@ const enterViewWrites = (
     }
     const color = new iro.Color('#ffffff');
     color.kelvin = DEFAULT_KELVIN;
-    return channelWrites(color, pickerTargetOf({ type, cctView: true }, 1), undefined, widgetData);
+    return channelWrites(color, pickerTargetOf({ type, cctView: true }, 'main'), undefined, widgetData);
 };
 
 /**
@@ -186,7 +183,7 @@ export function syncStep(
         now.brightness !== null &&
         pickers.brightness
     ) {
-        actions.push({ kind: 'read', picker: 'brightness', target: pickerTargetOf(next, 2) });
+        actions.push({ kind: 'read', picker: 'brightness', target: pickerTargetOf(next, 'brightness') });
     }
 
     // Fremdänderung Hauptfarbe: the main picker follows the colour-view Kanäle.
@@ -208,7 +205,7 @@ export function syncStep(
         pickers.main &&
         pickers.brightness
     ) {
-        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next, 1) });
+        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next, 'main') });
         // The view switch itself: a lamp without a usable temperature starts at 2000 K.
         if (prevViewSwitch && !prev.cctView) {
             writes.push(...enterViewWrites(next.type, temperature, read.widgetData));
@@ -218,7 +215,7 @@ export function syncStep(
 
     // Verlassen der CCT-Ansicht: the main picker shows the colour view again.
     if (prev?.cctView && prevViewSwitch && !next.cctView && viewSwitch && pickers.main) {
-        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 2) });
+        actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 'brightness') });
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next) });
     }
 
@@ -229,7 +226,7 @@ export function syncStep(
  * The write requests and picker actions of one drag step of a picker.
  *
  * @param state The sync state of the render the picker was drawn with.
- * @param pickerNumber The picker that changed.
+ * @param picker The picker that changed.
  * @param color Its colour after the change.
  * @param changes The hsv components the input changed.
  * @param widgetData The widget data (the Kanal objects).
@@ -238,7 +235,7 @@ export function syncStep(
  */
 export function inputStep(
     state: Pick<LampSyncState, 'type' | 'cctView'>,
-    pickerNumber: LampPickerNumber,
+    picker: LampPicker,
     color: iro.Color,
     changes: ColorChanges | undefined,
     widgetData: Light2WidgetData,
@@ -246,7 +243,7 @@ export function inputStep(
     if (!state.cctView && !state.type) {
         return null;
     }
-    const target = pickerTargetOf(state, pickerNumber);
+    const target = pickerTargetOf(state, picker);
 
     // No Kanäle (none, an unknown Lichttyp): nothing to write, nothing to couple.
     if (!channelsOf(target.type, target.view).length) {

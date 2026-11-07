@@ -1,7 +1,7 @@
 /**
  * Light2 color picker wrapper (iro.js).
  *
- * @module widgets/Light2Picker
+ * @module Light2CollectionWidget/Light2Picker
  * @remarks
  * Draws one iro picker of the Lampen-Bedienelement from the picker geometry
  * ({@link module:Light2CollectionWidget/pickerGeometry}): creates the iro instance and wires its
@@ -17,6 +17,7 @@ import { Box } from '@mui/material';
 import type { Light2FieldsRxData } from '../types';
 import { INITIAL_IRO_GEOMETRY, type PickerGeometry } from './pickerGeometry';
 import type { ColorChanges } from './channelMapping';
+import type { LampPicker } from './lampSync';
 import { CollectionContext } from '../components/CollectionProvider';
 import { resolveLight2BorderColor } from '../lib/light2ColorContract';
 
@@ -37,12 +38,12 @@ interface LightPickerProps {
     colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];
     colorLightBorderColor: Light2FieldsRxData['colorLightBorderColor'];
     colorWheelLightness: Light2FieldsRxData['colorWheelLightness'];
-    /** 1 = CCT kelvin picker, 2 = CCT brightness picker (only relevant for CCT mode). */
-    cctComponentNumber: 1 | 2;
-    /** Called on user interaction (includes granular change info where available). */
-    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void;
-    /** Called after picker initialization to sync the initial color from backend state. */
-    onColorInit?: (color: iro.Color, cctComponentNumber?: number) => void;
+    /** Which picker this is: the main picker, or the Helligkeits-Picker of the CCT view. */
+    picker: LampPicker;
+    /** Called on user interaction with this picker (includes granular change info where available). */
+    onInputChange?: (color: iro.Color, picker: LampPicker, changes?: ColorChanges) => void;
+    /** Called after picker initialization to sync the initial color of this picker from backend state. */
+    onColorInit?: (color: iro.Color, picker: LampPicker) => void;
 }
 
 const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
@@ -52,7 +53,7 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
             colorLightBorderWidth,
             colorLightBorderColor,
             colorWheelLightness,
-            cctComponentNumber,
+            picker,
             onInputChange,
             onColorInit,
         },
@@ -67,12 +68,12 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
         onInputChangeRef.current = onInputChange;
 
         const { resizeWidth, gap, sliderSize } = geometry;
-        const layout = geometry.layouts[cctComponentNumber - 1];
+        const layout = geometry.layouts[picker];
 
         // Create the iro instance and wire its init and input events.
         useEffect(() => {
             if (colorPickerRef.current) {
-                const picker = iro.ColorPicker(colorPickerRef.current, {
+                const iroPicker = iro.ColorPicker(colorPickerRef.current, {
                     color: '#ffffff',
                     ...INITIAL_IRO_GEOMETRY,
                     display: 'flex',
@@ -80,20 +81,20 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
                     handleRadius: 8,
                     layoutDirection: 'horizontal',
                 });
-                iroPickerRef.current = picker;
+                iroPickerRef.current = iroPicker;
 
                 // Initialize the current color when iro fires its init event.
-                picker.on('color:init', (color: iro.Color) => onColorInitRef.current?.(color, cctComponentNumber));
+                iroPicker.on('color:init', (color: iro.Color) => onColorInitRef.current?.(color, picker));
                 // Subscribe to interactive changes (optionally with HSV change flags).
-                picker.on('input:change', (color: iro.Color, changes: ColorChanges) =>
-                    onInputChangeRef.current?.(color, changes),
+                iroPicker.on('input:change', (color: iro.Color, changes: ColorChanges) =>
+                    onInputChangeRef.current?.(color, picker, changes),
                 );
             }
             setRef(ref, iroPickerRef.current);
             return () => {
                 iroPickerRef.current = null;
             };
-        }, [ref, cctComponentNumber]);
+        }, [ref, picker]);
 
         useEffect(() => {
             if (iroPickerRef.current && resizeWidth) {

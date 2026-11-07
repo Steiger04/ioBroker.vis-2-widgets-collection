@@ -1,7 +1,7 @@
 /**
  * Light2Collection — the Button-Modus and the Lampen-Bedienelement, rendered.
  *
- * @module widgets/Light2Collection.test
+ * @module Light2CollectionWidget/Light2Collection.test
  * @remarks
  * DOM contract of the body on the preview context (real useData/useValueState): in the
  * Button-Modus a click on the face toggles the Schalter-OID and a long press (after

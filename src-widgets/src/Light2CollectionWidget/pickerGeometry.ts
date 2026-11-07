@@ -15,6 +15,7 @@
 import iro from '@jaames/iro';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 import type { Light2FieldsRxData } from '../types';
+import type { LampPicker } from './lampSync';
 
 /** One iro slider unit (`colorLightSliderWidth` 1), in px. */
 const SLIDER_UNIT_PX = 28;
@@ -79,8 +80,8 @@ export interface PickerGeometry {
     gap: number;
     /** Left offset of the second picker of the CCT-Ansicht, in px — the gap. */
     secondPickerOffset: number;
-    /** iro layout of the first and the second picker (index = picker number − 1). */
-    layouts: readonly [IroLayout, IroLayout];
+    /** iro layout of the main and of the Helligkeits-Picker (the latter drawn only in the CCT-Ansicht). */
+    layouts: Readonly<Record<LampPicker, IroLayout>>;
 }
 
 const sliderSizeOf = (sliderWidth: PickerGeometryConfig['sliderWidth']): number => (sliderWidth || 1) * SLIDER_UNIT_PX;
@@ -97,26 +98,28 @@ function mainPickerBoundOf({ width, height }: ElementDimensions, sliderSize: num
     return width <= height + sliderSize + PICKER_GAP_PX ? width - sliderSize - PICKER_GAP_PX : height;
 }
 
-/** The iro layout of one picker (1 or 2; the number matters only in the CCT-Ansicht). */
-function layoutOf(pickerNumber: 1 | 2, config: PickerGeometryConfig): IroLayout {
+/** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
+function layoutOf(picker: LampPicker, config: PickerGeometryConfig): IroLayout {
     if (config.cctView) {
-        const cctLayout = [
-            {
-                component: iro.ui.Slider,
-                options: {
-                    sliderType: 'kelvin',
-                    sliderShape: 'circle',
-                    minTemperature: config.ctMin,
-                    maxTemperature: config.ctMax,
-                },
-            },
-            {
-                component: iro.ui.Slider,
-                options: { sliderType: 'value' },
-            },
-        ];
-        // CCT-Ansicht: the Kelvin-Picker first, the Helligkeits-Picker second.
-        return [cctLayout[pickerNumber - 1]];
+        // CCT-Ansicht: the Kelvin-Picker (main) and the Helligkeits-Picker.
+        return picker === 'main'
+            ? [
+                  {
+                      component: iro.ui.Slider,
+                      options: {
+                          sliderType: 'kelvin',
+                          sliderShape: 'circle',
+                          minTemperature: config.ctMin,
+                          maxTemperature: config.ctMax,
+                      },
+                  },
+              ]
+            : [
+                  {
+                      component: iro.ui.Slider,
+                      options: { sliderType: 'value' },
+                  },
+              ];
     }
     switch (config.uiComponent) {
         case 'wheel':
@@ -228,6 +231,6 @@ export function pickerGeometry(config: PickerGeometryConfig, measured: ElementDi
         resizeWidth: resizeWidthOf(config, measured.height, mainPickerBound),
         gap,
         secondPickerOffset: gap,
-        layouts: [layoutOf(1, config), layoutOf(2, config)],
+        layouts: { main: layoutOf('main', config), brightness: layoutOf('brightness', config) },
     };
 }

@@ -69,7 +69,7 @@ const seedSwitchRows = (data: WidgetData): void => {
  * Mapping of ioBroker state roles to the Light2 channel OID field they fill. The switch itself is
  * never detected: it is the user's pick that starts the detection.
  */
-const RGB_ROLES: Record<string, string> = {
+const RGB_ROLES: Record<string, Light2ChannelField> = {
     'level.color.rgb': 'colorLightRgbHexOid',
     'level.color.red': 'colorLightRedOid',
     'level.color.green': 'colorLightGreenOid',
@@ -126,7 +126,7 @@ const loadStatesAsync = async (
     const states = await socket.getObjectView(`${id.join('.')}.`, `${id.join('.')}.\u9999`, 'state');
 
     if (states) {
-        const extendedData = data as Light2FieldsRxData;
+        const channelData = data as Light2FieldsRxData;
 
         await Promise.all(
             Object.values(states).map(async state => {
@@ -138,8 +138,8 @@ const loadStatesAsync = async (
                 if (!targetField || !isUnset(data[targetField])) {
                     return;
                 }
-                // Type-safe assignment to Light2FieldsRxData
-                extendedData[targetField as Light2ChannelField] = state._id;
+                // A cast, not a check: the raw widget data written through its Light2 field view.
+                channelData[targetField] = state._id;
 
                 await oidChangeHandlerAsync(LIGHT2_OID_TYPES, targetField)(field, data, changeData, socket);
 

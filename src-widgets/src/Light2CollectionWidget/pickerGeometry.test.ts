@@ -27,8 +27,8 @@ const config = (overrides: Partial<PickerGeometryConfig> = {}): PickerGeometryCo
 const box = (width?: number, height?: number): ElementDimensions => ({ width, height });
 
 describe('pickerGeometry: iro layout per picker', () => {
-    it('builds the kelvin slider for the first picker of the CCT-Ansicht with the configured range', () => {
-        const [layout] = pickerGeometry(config({ cctView: true }), box(400, 300)).layouts;
+    it('builds the kelvin slider for the Kelvin-Picker of the CCT-Ansicht with the configured range', () => {
+        const layout = pickerGeometry(config({ cctView: true }), box(400, 300)).layouts.main;
 
         expect(layout).toHaveLength(1);
         expect(layout[0].component).toBe(iro.ui.Slider);
@@ -40,8 +40,8 @@ describe('pickerGeometry: iro layout per picker', () => {
         });
     });
 
-    it('builds the value slider for the second picker of the CCT-Ansicht', () => {
-        const [, layout] = pickerGeometry(config({ cctView: true }), box(400, 300)).layouts;
+    it('builds the value slider for the Helligkeits-Picker of the CCT-Ansicht', () => {
+        const layout = pickerGeometry(config({ cctView: true }), box(400, 300)).layouts.brightness;
 
         expect(layout).toHaveLength(1);
         expect(layout[0].component).toBe(iro.ui.Slider);
@@ -49,7 +49,7 @@ describe('pickerGeometry: iro layout per picker', () => {
     });
 
     it('pairs the wheel with a value slider in wheel mode', () => {
-        const [layout] = pickerGeometry(config({ uiComponent: 'wheel' }), box(400, 300)).layouts;
+        const layout = pickerGeometry(config({ uiComponent: 'wheel' }), box(400, 300)).layouts.main;
 
         expect(layout).toHaveLength(2);
         expect(layout[0].component).toBe(iro.ui.Wheel);
@@ -58,7 +58,7 @@ describe('pickerGeometry: iro layout per picker', () => {
     });
 
     it('pairs the box with a hue slider and disables box lightness in box mode', () => {
-        const [layout] = pickerGeometry(config({ uiComponent: 'box' }), box(400, 300)).layouts;
+        const layout = pickerGeometry(config({ uiComponent: 'box' }), box(400, 300)).layouts.main;
 
         expect(layout).toHaveLength(2);
         expect(layout[0].component).toBe(iro.ui.Box);
@@ -67,7 +67,7 @@ describe('pickerGeometry: iro layout per picker', () => {
     });
 
     it('stacks the three channel sliders in slider mode', () => {
-        const [layout] = pickerGeometry(config({ uiComponent: 'slider' }), box(400, 300)).layouts;
+        const layout = pickerGeometry(config({ uiComponent: 'slider' }), box(400, 300)).layouts.main;
 
         expect(layout).toHaveLength(3);
         expect(layout.map(entry => entry.options?.sliderType)).toEqual(['red', 'green', 'blue']);
@@ -76,7 +76,7 @@ describe('pickerGeometry: iro layout per picker', () => {
 
     it('returns an empty layout for an unknown UI component', () => {
         // colorLightUIComponent undefined (never configured) must not throw.
-        expect(pickerGeometry(config({ uiComponent: undefined }), box(400, 300)).layouts[0]).toEqual([]);
+        expect(pickerGeometry(config({ uiComponent: undefined }), box(400, 300)).layouts.main).toEqual([]);
     });
 });
 
