@@ -41,16 +41,70 @@ type BuildGaugeOptions = (input: {
 /** Colour of the probe's parent: a probe that still shows it took no colour from its value. */
 const UNRESOLVED = 'rgb(1, 2, 3)';
 
+/** Colour keywords whose value comes from the element or its colour scheme, not from the text. */
+const CONTEXT_KEYWORDS = new Set([
+    'inherit',
+    'initial',
+    'unset',
+    'revert',
+    'revert-layer',
+    'currentcolor',
+    'canvas',
+    'canvastext',
+    'linktext',
+    'visitedtext',
+    'activetext',
+    'buttonface',
+    'buttontext',
+    'buttonborder',
+    'field',
+    'fieldtext',
+    'highlight',
+    'highlighttext',
+    'selecteditem',
+    'selecteditemtext',
+    'mark',
+    'marktext',
+    'graytext',
+    'accentcolor',
+    'accentcolortext',
+]);
+
+/** Colour functions a canvas paints as written — the only ones that skip the probe. */
+const PLAIN_FUNCTION = /^(?:rgba?|hsla?)\(/;
+
+/** Text inside a colour that ties it to the widget context: a variable, `currentColor`, a scheme. */
+const CONTEXT_TEXT = /var\(|env\(|attr\(|currentcolor|light-dark\(/;
+
 /**
- * Computes a CSS colour at a probe inside the widget (the builder's Canvas-Farbe), so the
- * variables of view and widget apply. An unresolvable value — rejected by the parser, or invalid
- * at computed-value time — leaves the probe on the parent's sentinel colour.
+ * Whether a colour's value is only known inside the widget: a `var(…)`, a CSS-wide or system
+ * keyword, `currentColor`, or any colour function beyond rgb/hsl (color-mix, light-dark, …).
+ * Hex, names and plain rgb/hsl paint as written.
+ */
+function dependsOnContext(value: string): boolean {
+    const text = value.trim().toLowerCase();
+    if (CONTEXT_KEYWORDS.has(text) || CONTEXT_TEXT.test(text)) {
+        return true;
+    }
+    return text.includes('(') && !PLAIN_FUNCTION.test(text);
+}
+
+/**
+ * Computes a CSS colour for the canvas (the builder's Canvas-Farbe). A colour that depends on
+ * the widget context is computed at a probe inside the widget, so the variables of view and
+ * widget apply; an unresolvable value — rejected by the parser, or invalid at computed-value
+ * time — leaves the probe on the parent's sentinel colour. Every other colour skips the probe
+ * (a forced style recalculation per value): the parser decides, and a valid one passes as
+ * written.
  *
  * @param probe - Hidden element inside the widget.
  * @param value - CSS colour text.
- * @returns The computed colour, or null when it does not resolve.
+ * @returns The colour to paint, or null when it does not resolve.
  */
 function resolveCssColorAt(probe: HTMLElement, value: string): string | null {
+    if (!dependsOnContext(value)) {
+        return typeof CSS === 'undefined' || CSS.supports('color', value) ? value : null;
+    }
     probe.style.setProperty('color', value);
     const computed = getComputedStyle(probe).color;
     probe.style.removeProperty('color');

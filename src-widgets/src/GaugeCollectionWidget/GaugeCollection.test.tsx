@@ -200,6 +200,79 @@ describe('GaugeCollection CSS variables', () => {
     });
 });
 
+describe('GaugeCollection probe (cost of the Canvas-Farbe)', () => {
+    /** Whether an element is the hidden probe: the span inside the sentinel-coloured hidden span. */
+    const isProbe = (element: Element): boolean => {
+        const parent = element.parentElement;
+        return !!parent && parent.hidden && parent.style.color === 'rgb(1, 2, 3)';
+    };
+
+    /** Mounts the scene and counts the getComputedStyle calls that hit the probe. */
+    const probeCallsFor = (data: Record<string, unknown>): number => {
+        const spy = vi.spyOn(window, 'getComputedStyle');
+        try {
+            handedOver.options.length = 0;
+            mountBody(GaugeCollection, scene(data));
+            return spy.mock.calls.filter(([element]) => isProbe(element)).length;
+        } finally {
+            spy.mockRestore();
+        }
+    };
+
+    it('paints colours the canvas reads as written without asking the probe', () => {
+        // The shape vis-2 stores: schema defaults in every Schlichtes Farbfeld, plus a name and hsl().
+        const calls = probeCallsFor({
+            gaugeColorBorderOuter: '#ddd',
+            gaugeColorPlate: 'rgba(0,0,0,0)',
+            gaugeColorNeedle: 'red',
+            gaugeColorBar: 'hsl(0, 100%, 50%)',
+            gaugeMaxValue: 100,
+            values_count: 1,
+            value1: 0,
+            textColor1: '#00ff00',
+        });
+
+        expect(calls).toBe(0);
+        expect(lastOptions()).toMatchObject({
+            colorBorderOuter: '#ddd',
+            colorPlate: 'rgba(0,0,0,0)',
+            colorNeedle: 'red',
+            colorBar: 'hsl(0, 100%, 50%)',
+        });
+        expect(lastOptions()?.highlights).toStrictEqual([{ from: 0, to: 100, color: '#00ff00' }]);
+    });
+
+    it('treats a colour the browser rejects as unset — the schema default paints', () => {
+        // happy-dom accepts everything; the stub plays the browser's colour parser. happy-dom hands
+        // out a new CSS object per access, so the stub sits on the shared prototype.
+        const parser = Object.getPrototypeOf(CSS) as { supports: (property: string, value?: string) => boolean };
+        const supports = vi
+            .spyOn(parser, 'supports')
+            .mockImplementation((_property: string, value?: string) => value !== 'not a colour');
+        try {
+            const calls = probeCallsFor({ gaugeColorPlate: 'not a colour' });
+
+            expect(calls).toBe(0);
+            expect(lastOptions()?.colorPlate).toBe('rgba(0,0,0,0)');
+        } finally {
+            supports.mockRestore();
+        }
+    });
+
+    it('asks the probe for colours that depend on the widget context', () => {
+        // Their value is only known inside the widget (happy-dom does not compute currentColor;
+        // a browser computes it to the inherited sentinel → unresolved → schema default).
+        const calls = probeCallsFor({
+            gaugeColorPlate: 'currentColor',
+            gaugeColorBar: 'var(--gauge-test-none)',
+            gaugeColorNeedle: 'inherit',
+            gaugeColorBorderOuter: 'color-mix(in srgb, red 50%, blue)',
+        });
+
+        expect(calls).toBe(4);
+    });
+});
+
 describe('GaugeCollection Canvas-Titel', () => {
     it('hands the header to the canvas as plain text, even with the frame header hidden', () => {
         handedOver.options.length = 0;
