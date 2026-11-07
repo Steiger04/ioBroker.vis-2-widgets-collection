@@ -19,7 +19,7 @@ import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
-import { modalWidthOf } from './pickerGeometry';
+import { modalSizeOf } from './pickerGeometry';
 
 /** Props of {@link Light2ButtonMode}. */
 interface Light2ButtonModeProps {
@@ -57,8 +57,8 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
         ms: rxData.colorLightDelayLongPress ?? 500,
     });
 
-    // Explicit width or the auto width from the picker geometry (height + slider + gap).
-    const modalWidth = modalWidthOf({
+    // Height, and explicit width or the auto width from the picker geometry (height + slider + gap).
+    const modalSize = modalSizeOf({
         modalWidth: rxData.colorLightModalWidth,
         modalHeight: rxData.colorLightModalHeight,
         sliderWidth: rxData.colorLightSliderWidth,
@@ -116,8 +116,8 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: modalWidth,
-                        height: rxData.colorLightModalHeight || 300,
+                        width: modalSize.width,
+                        height: modalSize.height,
                     }}
                 >
                     {children}

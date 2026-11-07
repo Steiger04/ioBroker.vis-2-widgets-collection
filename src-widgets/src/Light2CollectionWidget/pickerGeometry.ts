@@ -3,10 +3,11 @@
  *
  * @module Light2CollectionWidget/pickerGeometry
  * @remarks
- * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range,
- * modal size) and the measured picker box one result — slider size, main picker bound, resize
- * width, gap, offset of the second picker, iro layout per picker and the Button-Modus modal
- * auto width. The 28px slider unit and the 12px gap live only here.
+ * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range)
+ * and the measured picker box one result — slider size, main picker bound, resize width, gap,
+ * offset of the second picker and iro layout per picker. Beside it {@link modalSizeOf} gives the
+ * size of the Button-Modus modal. The 28px slider unit, the 12px gap and the 300px default modal
+ * height live only here.
  *
  * Pure: the body measures its picker box itself (callback ref + useElementDimensions, no
  * Content-Box — ADR-0098 Nr. 3/4) and hands the box in; `Light2Picker` draws the result.
@@ -51,8 +52,19 @@ export interface PickerGeometryConfig {
     sliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
     ctMin: Light2FieldsRxData['colorLightCtMin'];
     ctMax: Light2FieldsRxData['colorLightCtMax'];
-    modalWidth: Light2FieldsRxData['colorLightModalWidth'];
-    modalHeight: Light2FieldsRxData['colorLightModalHeight'];
+}
+
+/** The widget configuration the Button-Modus modal size depends on. */
+export interface ModalSizeConfig {
+    modalWidth?: Light2FieldsRxData['colorLightModalWidth'];
+    modalHeight?: Light2FieldsRxData['colorLightModalHeight'];
+    sliderWidth?: Light2FieldsRxData['colorLightSliderWidth'];
+}
+
+/** The size of the Button-Modus modal, in px. */
+export interface ModalSize {
+    width: number;
+    height: number;
 }
 
 /** Everything the body and the picker draw with. */
@@ -69,8 +81,6 @@ export interface PickerGeometry {
     secondPickerOffset: number;
     /** iro layout of the first and the second picker (index = picker number − 1). */
     layouts: readonly [IroLayout, IroLayout];
-    /** Width of the Button-Modus modal, in px ({@link modalWidthOf}). */
-    modalWidth: number;
 }
 
 const sliderSizeOf = (sliderWidth: PickerGeometryConfig['sliderWidth']): number => (sliderWidth || 1) * SLIDER_UNIT_PX;
@@ -185,25 +195,20 @@ function gapOf(
 }
 
 /**
- * The Button-Modus modal width: an explicit positive `colorLightModalWidth` as is, otherwise the
- * auto width. The picker draws its main element from the modal HEIGHT (square-ish), so the optimum
- * width derives from height + slider + gap (see color_light_modal_width_tooltip).
+ * The Button-Modus modal size. Height: `colorLightModalHeight`, 300px while unset. Width: an
+ * explicit positive `colorLightModalWidth` as is, otherwise the auto width — the picker draws its
+ * main element from the modal HEIGHT (square-ish), so the optimum width derives from height +
+ * slider + gap (see color_light_modal_width_tooltip).
  *
  * @param config - Modal width/height and slider width of the widget.
- * @returns The modal width in px.
+ * @returns The modal width and height in px.
  */
-export function modalWidthOf(
-    config: Partial<Pick<PickerGeometryConfig, 'modalWidth' | 'modalHeight' | 'sliderWidth'>>,
-): number {
+export function modalSizeOf(config: ModalSizeConfig): ModalSize {
+    const height = config.modalHeight || DEFAULT_MODAL_HEIGHT_PX;
     if (typeof config.modalWidth === 'number' && config.modalWidth > 0) {
-        return config.modalWidth;
+        return { width: config.modalWidth, height };
     }
-    return (
-        (config.modalHeight || DEFAULT_MODAL_HEIGHT_PX) +
-        MODAL_EXTRA_WIDTH_PX +
-        PICKER_GAP_PX +
-        sliderSizeOf(config.sliderWidth)
-    );
+    return { width: height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSizeOf(config.sliderWidth), height };
 }
 
 /**
@@ -224,6 +229,5 @@ export function pickerGeometry(config: PickerGeometryConfig, measured: ElementDi
         gap,
         secondPickerOffset: gap,
         layouts: [layoutOf(1, config), layoutOf(2, config)],
-        modalWidth: modalWidthOf(config),
     };
 }

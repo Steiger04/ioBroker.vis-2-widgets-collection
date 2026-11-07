@@ -5,14 +5,14 @@
  * @remarks
  * The geometry decides which iro components render per picker and view, how wide the main
  * picker may get next to its value slider, how the twin CCT pickers share the width and how
- * wide the Button-Modus modal opens — pure functions of widget config and the measured box
+ * large the Button-Modus modal opens — pure functions of widget config and the measured box
  * (the view itself is untested, project rule). Every pixel value below is a pin of the layout
  * before the geometry moved behind one interface (ADR-0108 Nr. 5).
  */
 import { describe, expect, it } from 'vitest';
 import iro from '@jaames/iro';
 
-import { modalWidthOf, pickerGeometry, type PickerGeometryConfig } from './pickerGeometry';
+import { modalSizeOf, pickerGeometry, type PickerGeometryConfig } from './pickerGeometry';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 
 const config = (overrides: Partial<PickerGeometryConfig> = {}): PickerGeometryConfig => ({
@@ -21,8 +21,6 @@ const config = (overrides: Partial<PickerGeometryConfig> = {}): PickerGeometryCo
     sliderWidth: 1,
     ctMin: 2000,
     ctMax: 6500,
-    modalWidth: undefined,
-    modalHeight: undefined,
     ...overrides,
 });
 
@@ -165,27 +163,29 @@ describe('pickerGeometry: gap between the pickers', () => {
     });
 });
 
-describe('modalWidthOf (Button-Modus auto width)', () => {
+describe('modalSizeOf (Button-Modus modal size)', () => {
     it('derives the auto width from modal height + slider + gap (+ 40px)', () => {
         // 300 + 40 + 12 + 28 = 380.
-        expect(modalWidthOf({ modalHeight: 300, sliderWidth: 1 })).toBe(380);
+        expect(modalSizeOf({ modalHeight: 300, sliderWidth: 1 }).width).toBe(380);
         // 400 + 40 + 12 + 56 = 508.
-        expect(modalWidthOf({ modalHeight: 400, sliderWidth: 2 })).toBe(508);
+        expect(modalSizeOf({ modalHeight: 400, sliderWidth: 2 }).width).toBe(508);
     });
 
     it('falls back to a 300px modal height and one slider unit', () => {
-        expect(modalWidthOf({})).toBe(380);
-        expect(modalWidthOf({ modalHeight: 0, sliderWidth: 0 })).toBe(380);
+        expect(modalSizeOf({}).width).toBe(380);
+        expect(modalSizeOf({ modalHeight: 0, sliderWidth: 0 }).width).toBe(380);
     });
 
     it('takes an explicit positive modal width as is', () => {
-        expect(modalWidthOf({ modalWidth: 640, modalHeight: 400, sliderWidth: 2 })).toBe(640);
+        expect(modalSizeOf({ modalWidth: 640, modalHeight: 400, sliderWidth: 2 }).width).toBe(640);
         // 0 means "not set" → auto width.
-        expect(modalWidthOf({ modalWidth: 0, modalHeight: 300, sliderWidth: 1 })).toBe(380);
+        expect(modalSizeOf({ modalWidth: 0, modalHeight: 300, sliderWidth: 1 }).width).toBe(380);
     });
 
-    it('is part of the picker geometry', () => {
-        expect(pickerGeometry(config({ modalHeight: 400, sliderWidth: 2 }), box()).modalWidth).toBe(508);
-        expect(pickerGeometry(config({ modalWidth: 640 }), box()).modalWidth).toBe(640);
+    it('opens the modal at the configured height, 300px while unset', () => {
+        expect(modalSizeOf({ modalHeight: 400 }).height).toBe(400);
+        expect(modalSizeOf({ modalWidth: 640, modalHeight: 400 }).height).toBe(400);
+        expect(modalSizeOf({}).height).toBe(300);
+        expect(modalSizeOf({ modalHeight: 0 }).height).toBe(300);
     });
 });

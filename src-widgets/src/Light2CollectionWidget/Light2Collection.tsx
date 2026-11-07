@@ -129,8 +129,6 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
                     sliderWidth: rxData.colorLightSliderWidth,
                     ctMin: rxData.colorLightCtMin,
                     ctMax: rxData.colorLightCtMax,
-                    modalWidth: rxData.colorLightModalWidth,
-                    modalHeight: rxData.colorLightModalHeight,
                 },
                 measuredBox,
             ),
@@ -141,8 +139,6 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
             rxData.colorLightSliderWidth,
             rxData.colorLightCtMin,
             rxData.colorLightCtMax,
-            rxData.colorLightModalWidth,
-            rxData.colorLightModalHeight,
         ],
     );
 
