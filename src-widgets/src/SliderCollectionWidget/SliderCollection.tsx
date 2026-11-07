@@ -4,107 +4,46 @@
  * @module widgets/SliderCollection
  */
 
-import { Box, Slider, type SliderProps, styled } from '@mui/material';
+import { Box, Slider } from '@mui/material';
 import { useMemo, useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData, { sameStateValue } from '../hooks/useData';
+import useData from '../hooks/useData';
 import CollectionMark from './CollectionMark';
-import { buildSliderMarks } from './marks';
-import { buildSliderChromeStyles, type SliderChromeStyles } from './chrome';
+import { buildScale } from './scale';
+import { buildSliderChrome } from './chrome';
+import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
-import { MARK_LABEL_SPACE, railOffset } from './railOffset';
-import { alphaOf } from '../lib/helper/colorDerivation';
-import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
-import { type Mark } from '@mui/material/Slider/useSlider.types';
 import SafeImg from '../components/SafeImg';
 
-type CollectionSliderProps = SliderProps & {
-    data?: SliderCollectionContextProps['widget']['data'];
-    chrome: SliderChromeStyles;
-    slots: {
-        markLabel: typeof CollectionMark;
-    };
-    slotProps: {
-        markLabel: SliderMarkLabelProps;
-    };
-};
-
-const CollectionSlider = styled(Slider, {
-    shouldForwardProp: prop => prop !== 'data' && prop !== 'chrome',
-})<CollectionSliderProps>(({ data, chrome }) => {
-    // Calculate border width with fallback chain
-    const borderWidth = data?.thumbBorderWidth ?? 0;
-    // Hover/active halo; none when the thumb cascade has no Repräsentative Vollfarbe.
-    const thumbShadow = alphaOf(chrome.thumbShadowBase, 0.32);
-
-    return {
-        '& .MuiSlider-thumb': {
-            width: `${data?.thumbWidth ?? 20}px`,
-            height: `${data?.thumbHeight ?? 20}px`,
-            background: chrome.thumbBackground,
-            // Apply border only when borderWidth > 0; without a solid border
-            // color it draws in currentColor, the CSS default of the shorthand.
-            ...(borderWidth > 0 && {
-                border: `${borderWidth}px solid ${chrome.thumbBorder ?? 'currentColor'}`,
-            }),
-            '&:hover': {
-                boxShadow: thumbShadow && `0px 0px 0px 8px ${thumbShadow}`,
-            },
-            '&:active': {
-                boxShadow: thumbShadow && `0px 0px 0px 14px ${thumbShadow}`,
-            },
-        },
-        '& .MuiSlider-track': {
-            height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
-            width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
-            borderColor: chrome.trackBorder,
-            background: chrome.trackBackground,
-
-            borderWidth: data?.trackBorderWidth ? `${data.trackBorderWidth}px` : '0px',
-            borderStyle: 'solid',
-        },
-        '& .MuiSlider-rail': {
-            height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
-            width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
-            background: chrome.railBackground,
-
-            borderWidth: data?.railBorderWidth ? `${data.railBorderWidth}px` : '0px',
-            borderStyle: 'solid',
-            borderColor: chrome.railBorder,
-        },
-        '& .MuiSlider-mark': {
-            width:
-                data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
-            height:
-                data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-            background: chrome.markBackground,
-        },
-        // Single styling source for the active mark (the legacy double layer —
-        // styled cascade + sx bgcolor — collapsed into this one; the sx
-        // brightness filter lives on here).
-        '& .MuiSlider-markActive': {
-            width:
-                data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
-            height:
-                data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-            backgroundColor: chrome.markBackground,
-            background: chrome.markBackground,
-            filter: 'brightness(2.5)',
-        },
-    };
-});
-
-interface SliderMarkLabelProps {
-    marks: boolean;
-    sliderOrientation: 'horizontal' | 'vertical';
-    aliasActive?: string;
-    activeMarkIndex?: number | null;
-}
+/**
+ * One end symbol in the normal layout flow beside the slider; nothing without a source icon.
+ * The transform moves it onto the rail axis.
+ */
+const EndSymbolIcon: FC<{ symbol: EndSymbol; transform: string }> = ({ symbol, transform }) =>
+    symbol.icon ? (
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexShrink: 0,
+                transform,
+            }}
+        >
+            <SafeImg
+                alt=""
+                src={symbol.icon}
+                style={{
+                    width: symbol.size,
+                    ...getIconColorStyles(symbol.icon, symbol.color, true),
+                }}
+            />
+        </Box>
+    ) : null;
 
 const SliderCollection: FC = () => {
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
@@ -137,85 +76,43 @@ const SliderCollection: FC = () => {
         locked,
     } = useOptimisticNumber('oid');
 
-    const isHorizontal = widget.data.sliderOrientation === 'horizontal';
+    // Slider-Chrome (CONTEXT "Slider-Chrome"): the whole presentation of the MUI Slider as sx —
+    // colours from the slider colour contracts, geometry, label space and positions — plus the
+    // end symbols' rail offset. The label containers take the resolved active style. Its
+    // orientation (unset → horizontal, as MUI renders) is the one every rule below reads.
+    const { valueSize, textColor } = data;
+    const chrome = useMemo(
+        () => buildSliderChrome({ data: widget.data, label: { valueSize, textColor }, theme }),
+        [widget.data, valueSize, textColor, theme],
+    );
+    const { orientation } = chrome;
+    const isHorizontal = orientation === 'horizontal';
 
-    // The end icons follow the rail axis, which the mark-label space shifts off center.
-    const trackOffset = railOffset(!!widget.data.marks, isHorizontal ? 'horizontal' : 'vertical');
-
-    // Chrome-Farbvertrag: the color cascade of thumb/track/rail/mark comes from
-    // the field contracts (sliderColorContracts), resolved in one place.
-    const chrome = useMemo(() => buildSliderChromeStyles(widget.data, theme), [widget.data, theme]);
-
-    // Source icons (orientation-independent).
-    const minIcon = widget.data.iconMin || widget.data.iconSmallMin;
-    const maxIcon = widget.data.iconMax || widget.data.iconSmallMax;
-
-    // Color follows the SOURCE icon, not the rendered position: startIconColor is
-    // the color of iconMin, endIconColor of iconMax — in BOTH orientations. The
-    // default-primary fallback is checked against the source icon, so a single
-    // configured icon keeps its color when orientation swaps its position.
-    // The primary fallback applies to a Base64 icon only: an image icon (URL, path)
-    // without a value stays uncoloured (its own colours), with a value it is coloured
-    // through the forced mask below. The swatch shows the Base64 colour (ADR-0004).
-    const minIconColor = widget.data.startIconColor || (isBase64Icon(minIcon) ? theme.palette.primary.main : undefined);
-    const maxIconColor = widget.data.endIconColor || (isBase64Icon(maxIcon) ? theme.palette.primary.main : undefined);
-
-    // Positions (and their colors) swap by orientation: start = min in horizontal,
-    // max in vertical. The color travels with its source icon.
-    const startIcon = isHorizontal ? minIcon : maxIcon;
-    const endIcon = isHorizontal ? maxIcon : minIcon;
-    const startIconColor = isHorizontal ? minIconColor : maxIconColor;
-    const endIconColor = isHorizontal ? maxIconColor : minIconColor;
+    // Endsymbol rule (CONTEXT "Endsymbol"): icon, colour and size follow the source icon;
+    // only the position swaps with the orientation.
+    const endSymbols = resolveEndSymbols(widget.data, theme, orientation);
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
 
-    const sliderMinValue = useMemo(
-        () => (!widget.data.onlyStates && widget.data.minValue !== undefined ? Number(widget.data.minValue) : minValue),
-        [widget.data.onlyStates, widget.data.minValue, minValue],
-    );
-
-    const sliderMaxValue = useMemo(
-        () => (!widget.data.onlyStates && widget.data.maxValue !== undefined ? Number(widget.data.maxValue) : maxValue),
-        [widget.data.onlyStates, widget.data.maxValue, maxValue],
-    );
-
-    const sliderMarks = useMemo(
+    // Skala (CONTEXT "Skala"): range, grid, marks and the selected mark in one pure
+    // module. Reference-keyed like the chrome memo: a move in the editor churns
+    // widget.data, states and markBaseStyle alike, and the recompute is pure and
+    // cheap — a content key on the mark style alone would not stop it.
+    const scale = useMemo(
         () =>
-            buildSliderMarks({
+            buildScale({
+                fields: widget.data,
                 states,
-                minValue: sliderMinValue,
-                maxValue: sliderMaxValue,
-                markStep: widget.data.markStep,
-                onlyStates: widget.data.onlyStates,
+                stateMin: minValue,
+                stateMax: maxValue,
+                markBaseStyle,
                 unit: oidObject?.unit,
                 oidValue,
-                baseStyle: markBaseStyle.inactive,
-                activeStyle: markBaseStyle.active,
-                iconColorActive: widget.data.iconColorActive,
             }),
-        [
-            states,
-            widget.data.onlyStates,
-            widget.data.markStep,
-            sliderMinValue,
-            sliderMaxValue,
-            oidObject?.unit,
-            oidValue,
-            markBaseStyle,
-            widget.data.iconColorActive,
-        ],
+        [widget.data, states, minValue, maxValue, markBaseStyle, oidObject?.unit, oidValue],
     );
-    // Derive the index of the mark corresponding to the current oidValue
-    const sliderMarksIndex = useMemo(() => {
-        if (oidValue === undefined) {
-            return null;
-        }
-
-        const index = sliderMarks.findIndex(mark => sameStateValue(mark.value, oidValue));
-        return index !== -1 ? index : null;
-    }, [oidValue, sliderMarks]);
 
     return (
         <CollectionBase
@@ -238,31 +135,10 @@ const SliderCollection: FC = () => {
                     height: '100%',
                 }}
             >
-                {/* Start icon - in normal layout flow */}
-                {startIcon && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexShrink: 0,
-                            transform: isHorizontal
-                                ? `translateY(${trackOffset.y}px)`
-                                : `translateX(${trackOffset.x}px)`,
-                        }}
-                    >
-                        <SafeImg
-                            alt=""
-                            src={startIcon}
-                            style={{
-                                width: isHorizontal
-                                    ? widget.data.iconSizeStart || '24px'
-                                    : widget.data.iconSizeEnd || '24px',
-                                ...getIconColorStyles(startIcon, startIconColor, true),
-                            }}
-                        />
-                    </Box>
-                )}
+                <EndSymbolIcon
+                    symbol={endSymbols.start}
+                    transform={chrome.endSymbolTransform}
+                />
 
                 {/* Slider container - takes available space */}
                 <Box
@@ -276,33 +152,23 @@ const SliderCollection: FC = () => {
                     }}
                 >
                     {typeof sliderValue === 'number' && (
-                        <CollectionSlider
-                            data={widget.data}
-                            chrome={chrome}
+                        <Slider
                             slots={{
                                 markLabel: CollectionMark,
                             }}
                             slotProps={{
                                 markLabel: {
-                                    marks: widget.data.marks,
-                                    sliderOrientation: widget.data.sliderOrientation,
-                                    aliasActive: widget.data.aliasActive,
-                                    activeMarkIndex: sliderMarksIndex,
-                                } as SliderMarkLabelProps,
+                                    showMarkLabels: widget.data.marks,
+                                    orientation,
+                                },
                             }}
                             disabled={locked}
                             valueLabelDisplay={widget.data.valueLabelDisplay}
-                            orientation={widget.data.sliderOrientation}
-                            min={sliderMinValue ?? undefined}
-                            max={sliderMaxValue ?? undefined}
-                            marks={sliderMarks as Mark[]}
-                            step={
-                                widget.data.onlyStates
-                                    ? null // For onlyStates: null means only mark values can be selected
-                                    : widget.data.step !== undefined
-                                      ? Number(widget.data.step)
-                                      : undefined
-                            }
+                            orientation={orientation}
+                            min={scale.min ?? undefined}
+                            max={scale.max ?? undefined}
+                            marks={scale.marks}
+                            step={scale.step}
                             size={widget.data.sliderSize}
                             value={sliderValue}
                             onChange={(_, newValue: number | number[]) => {
@@ -310,93 +176,15 @@ const SliderCollection: FC = () => {
                                     commitSliderValue(newValue);
                                 }
                             }}
-                            sx={{
-                                mb: widget.data.marks && isHorizontal ? `${MARK_LABEL_SPACE.horizontal}px` : '0px',
-                                mr: widget.data.marks && !isHorizontal ? `${MARK_LABEL_SPACE.vertical}px` : '0px',
-                                '& .MuiSlider-valueLabel': {
-                                    fontSize:
-                                        formatSizeRem(widget.data.valueSizeActive) ||
-                                        data.valueSizeActive ||
-                                        data.valueSize,
-                                    // No marker layer: the value label is not a mark.
-                                    color:
-                                        widget.data.textColorActive ||
-                                        data.textColorActive ||
-                                        data.textColor ||
-                                        theme.palette.text.primary,
-                                    bgcolor: 'transparent',
-                                    top: isHorizontal ? widget.data.labelPosition : undefined,
-                                    right: !isHorizontal ? widget.data.labelPosition : undefined,
-                                },
-                                '& .MuiSlider-markLabel': {
-                                    // Not the text size (CollectionMark's Typography sets its
-                                    // own): the inherited size sets the line box of the icon
-                                    // row, so it moves the mark icon. No colour here: the mark
-                                    // text paints its own resolved colour, and an inherited
-                                    // colour never tints the icon — the <img> shows its image as
-                                    // is unless getIconColorStyles applies its colour mask.
-                                    fontSize: data.valueSize,
-                                    top: isHorizontal ? widget.data.markPosition : undefined,
-                                    left: !isHorizontal ? widget.data.markPosition : undefined,
-                                },
-                                '& .MuiSlider-markLabelActive': {
-                                    [`&[data-index='${sliderMarksIndex}']`]: {
-                                        // No tag: the mark text is a Typography, rendered as <p>.
-                                        "& [data-font='active']": {
-                                            color: widget.data.textColorActive
-                                                ? `${widget.data.textColorActive} !important`
-                                                : undefined,
-                                            fontSize:
-                                                typeof widget.data.valueSizeActive === 'number'
-                                                    ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
-                                                    : undefined,
-                                        },
-                                        "& div[data-position='active']": {
-                                            left:
-                                                widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
-                                                    ? `${widget.data.iconXOffsetActive} !important`
-                                                    : widget.data.iconXOffsetActive === ''
-                                                      ? undefined
-                                                      : '0px !important',
-                                            bottom:
-                                                widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
-                                                    ? `${widget.data.iconYOffsetActive} !important`
-                                                    : widget.data.iconYOffsetActive === ''
-                                                      ? undefined
-                                                      : '0px !important',
-                                        },
-                                    },
-                                },
-                            }}
+                            sx={chrome.sx}
                         />
                     )}
                 </Box>
 
-                {/* End icon - in normal layout flow */}
-                {endIcon && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexShrink: 0,
-                            transform: isHorizontal
-                                ? `translateY(${trackOffset.y}px)`
-                                : `translateX(${trackOffset.x}px)`,
-                        }}
-                    >
-                        <SafeImg
-                            alt=""
-                            src={endIcon}
-                            style={{
-                                width: isHorizontal
-                                    ? widget.data.iconSizeEnd || '24px'
-                                    : widget.data.iconSizeStart || '24px',
-                                ...getIconColorStyles(endIcon, endIconColor, true),
-                            }}
-                        />
-                    </Box>
-                )}
+                <EndSymbolIcon
+                    symbol={endSymbols.end}
+                    transform={chrome.endSymbolTransform}
+                />
             </Box>
         </CollectionBase>
     );

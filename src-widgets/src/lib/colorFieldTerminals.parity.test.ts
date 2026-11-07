@@ -12,7 +12,7 @@
  *
  * Scope — the "contract colour fields": every attribute field whose editor is the
  * `ContractColorField`, i.e. every product of `createColorField` (and of
- * `createColorFields` / `createSliderColorField`, which delegate to it). They are recognised
+ * `createColorFields`, which delegates to it). They are recognised
  * by what their `component` renders, NOT by their contract properties: `fallbackFields`,
  * `noGradient`, `terminal` and `inheritTextStyle` are all optional, and a bare
  * `createColorField({ name, label })` — the very case this test exists for — carries none.

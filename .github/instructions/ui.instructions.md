@@ -294,52 +294,49 @@ Use `styled()` for **complex, reusable components** with:
 - Need TypeScript props for styling
 - Performance bottleneck identified
 
+**Not for widget chromes:** the full presentation of a widget's MUI control (Schalter-Chrome
+`buildSwitchChrome` in `SwitchCollectionWidget/chrome.ts`, Slider-Chrome `buildSliderChrome` in
+`SliderCollectionWidget/chrome.ts`) is built by a pure function that returns an `sx` object and is
+handed to the MUI component directly — no `styled()` wrapper, even past 20 lines of style logic.
+The pure function stays testable without mounting, and no custom prop can leak into the DOM.
+
 **Example:**
 
 ```tsx
 import { styled } from '@mui/material/styles';
-import { Slider } from '@mui/material';
+import { Chip } from '@mui/material';
 
-interface CollectionSliderProps {
-    data: SliderData;
+interface StatusChipProps {
+    tone: 'ok' | 'warning' | 'off';
     hasError?: boolean;
 }
 
-const CollectionSlider = styled(Slider, {
-    shouldForwardProp: prop => prop !== 'data' && prop !== 'hasError',
-})<CollectionSliderProps>(({ theme, data, hasError }) => ({
-    color: data.color || theme.palette.primary.main,
-    height: data.height || 8,
+const StatusChip = styled(Chip, {
+    shouldForwardProp: prop => prop !== 'tone' && prop !== 'hasError',
+})<StatusChipProps>(({ theme, tone, hasError }) => ({
+    color: theme.palette.getContrastText(theme.palette.background.paper),
+    backgroundColor:
+        tone === 'ok'
+            ? theme.palette.success.light
+            : tone === 'warning'
+              ? theme.palette.warning.light
+              : theme.palette.action.disabledBackground,
+    border: hasError ? `2px solid ${theme.palette.error.main}` : 'none',
 
-    '& .MuiSlider-thumb': {
-        width: data.thumbSize || 20,
-        height: data.thumbSize || 20,
-        border: hasError ? `2px solid ${theme.palette.error.main}` : 'none',
+    '& .MuiChip-label': {
+        fontWeight: tone === 'off' ? 400 : 600,
     },
 
-    '& .MuiSlider-track': {
-        border: 'none',
-        background: data.gradient || theme.palette.primary.main,
-    },
-
-    '& .MuiSlider-rail': {
-        opacity: 0.3,
-        backgroundColor: theme.palette.grey[400],
-    },
-
-    '& .MuiSlider-mark': {
-        backgroundColor: theme.palette.background.paper,
-        height: 8,
-        width: 2,
+    '& .MuiChip-icon': {
+        color: 'inherit',
     },
 }));
 
 // Usage
-<CollectionSlider
-    data={widgetData}
+<StatusChip
+    tone={status}
     hasError={validationError}
-    value={value}
-    onChange={handleChange}
+    label={label}
 />;
 ```
 
