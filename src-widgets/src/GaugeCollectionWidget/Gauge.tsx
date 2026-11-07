@@ -86,7 +86,16 @@ const Gauge = ({ options }: GaugeAdapterProps): React.JSX.Element => {
     }, [options]);
 
     // Destroy on unmount — the instance keeps its own draw machinery alive otherwise.
-    useEffect(() => () => gaugeRef.current?.destroy(), []);
+    // Forgetting it (and its signature) lets an effect re-run without unmount
+    // (StrictMode) create and update a fresh instance instead of the destroyed one.
+    useEffect(
+        () => () => {
+            gaugeRef.current?.destroy();
+            gaugeRef.current = null;
+            appliedSignatureRef.current = null;
+        },
+        [],
+    );
 
     return (
         <canvas

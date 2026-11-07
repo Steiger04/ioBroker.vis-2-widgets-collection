@@ -5,6 +5,8 @@
  * @module GaugeCollectionWidget/Gauge.test
  */
 
+import { act, StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GaugeOptions } from 'canvas-gauges';
 
@@ -193,5 +195,36 @@ describe('Gauge Canvas-Adapter', () => {
         const instance = fakes.FakeGauge.instances[0];
         handle.unmount();
         expect(instance.destroyed).toBe(1);
+    });
+
+    it('survives a StrictMode effect re-run with a fresh, updated instance', async () => {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        const root = createRoot(container);
+        const render = (options: GaugeOptions): Promise<void> =>
+            act(() => {
+                root.render(
+                    <StrictMode>
+                        <Gauge options={options} />
+                    </StrictMode>,
+                );
+                return Promise.resolve();
+            });
+        // The sync act of renderComponent does not flush StrictMode's effect re-run — the
+        // async act (thenable callback) does: mount, cleanup (destroy), mount again.
+        await render(baseOptions());
+
+        const live = fakes.FakeGauge.instances.filter(instance => instance.destroyed === 0);
+        expect(live).toHaveLength(1);
+        expect(live[0].updates).toHaveLength(1);
+
+        await render(baseOptions({ value: 3 }));
+        expect(live[0].value).toBe(3);
+        await act(() => {
+            root.unmount();
+            return Promise.resolve();
+        });
+        container.remove();
+        expect(live[0].destroyed).toBe(1);
     });
 });
