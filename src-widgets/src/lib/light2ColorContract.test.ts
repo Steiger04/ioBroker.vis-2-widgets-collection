@@ -6,10 +6,19 @@
  * @remarks
  * Expected colours are the stock MUI light and dark primaries `#1976d2` / `#90caf9`.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createTheme } from '@mui/material/styles';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { light2BorderColorContract, resolveLight2BorderColor } from './light2ColorContract';
+
+// The field list renders CollectionDivider and the colour field adapters, which pull Generic
+// (extends window.visRxWidget, absent outside vis-2). The field test reads only the field data.
+vi.mock('../components/ContractColorField', () => ({ default: () => null }));
+vi.mock('../components/PlainColorField', () => ({ default: () => null }));
+vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+
+import light2Fields from './light2Fields';
 
 const LIGHT = createTheme({ palette: { mode: 'light' } });
 const DARK = createTheme({ palette: { mode: 'dark' } });
@@ -21,6 +30,28 @@ describe('light2BorderColorContract — field → theme primary, no intermediate
             fallbackFields: [],
             terminal: 'primary',
         });
+    });
+});
+
+describe('colorLightBorderColor field — declares the contract the picker resolves (ADR-0004)', () => {
+    const field = light2Fields().find(
+        candidate => (candidate as { name?: string }).name === 'colorLightBorderColor',
+    ) as ExtendedField;
+
+    it('spreads the contract, solid only', () => {
+        const { name, fallbackFields, terminal, inheritTextStyle } = field;
+        expect({ name, fallbackFields, terminal, inheritTextStyle }).toEqual({
+            ...light2BorderColorContract,
+            inheritTextStyle: undefined,
+        });
+        expect(field.noGradient).toBe(true);
+        expect(field.plainColor).toBeUndefined();
+    });
+
+    it('keeps its label and shows without a hidden rule', () => {
+        const { label, hidden } = field as ExtendedField & { label?: string; hidden?: unknown };
+        expect(label).toBe('color_light_border_color');
+        expect(hidden).toBeUndefined();
     });
 });
 

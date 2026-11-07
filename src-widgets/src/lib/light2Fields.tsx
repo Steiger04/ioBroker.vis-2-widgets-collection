@@ -10,7 +10,8 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
-import { createPlainColorField } from './fieldFactories';
+import { createColorField } from './fieldFactories';
+import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
@@ -246,9 +247,11 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 3,
         step: 1,
     },
-    createPlainColorField({
-        name: 'colorLightBorderColor',
+    // Field-Vertrag (ADR-0102 Nachtrag 2026-11-07): the swatch shows the primary the empty border draws.
+    createColorField({
+        ...light2BorderColorContract,
         label: 'color_light_border_color',
+        noGradient: true,
     }),
     {
         name: 'colorLightPadding',
