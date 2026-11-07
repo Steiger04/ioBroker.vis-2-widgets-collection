@@ -156,7 +156,9 @@ function GaugeCollection(): React.JSX.Element {
         [fields, widget.data, oidValue, oidObject?.unit, data.header, states, theme, textStyles],
     );
 
-    // Segment icon overlay (rendered above the canvas, positioned per state row).
+    // Zone icon, positioned per state row. It renders BEHIND the canvas (the absolutely
+    // positioned canvas follows it in DOM order), so it shows through the default transparent
+    // plate as a background icon; a plate colour covers it.
     const iconColorStyles = getIconColorStyles(active?.icon, active?.iconColor, active?.forceColorMask ?? false);
 
     return (
