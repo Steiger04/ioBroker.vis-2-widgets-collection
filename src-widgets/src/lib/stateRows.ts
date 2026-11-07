@@ -25,7 +25,8 @@ import type { WidgetData } from '@iobroker/types-vis-2';
 
 /**
  * Keys of former per-state editor fields (02/2025–02/2026) a row still carries — data preservation
- * only, no runtime reader.
+ * only, no renderer reads them (useData still resolves them into the base data's unused `…Active`
+ * keys).
  */
 export const LEGACY_STATE_ROW_KEYS = ['iconHover', 'backgroundColor', 'frameBackgroundColor'] as const;
 
