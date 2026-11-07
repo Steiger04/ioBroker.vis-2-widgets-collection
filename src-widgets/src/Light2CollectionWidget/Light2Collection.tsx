@@ -14,7 +14,7 @@ import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
-import { getMarginBetweenPickers, withMainPickerBound } from './colorPickerUtils/colorPickerMemos';
+import { pickerGeometry } from './pickerGeometry';
 import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
@@ -81,11 +81,9 @@ function Light2CollectionContent(): React.ReactElement {
     // Callback-ref-as-state: useElementDimensions re-runs when the element mounts.
     // (A plain useRef would leave the hook memoizing the null of the first render.)
     // Measured locally, not the frame's Content-Box: the picker box carries its own
-    // colorLightPadding (ADR-0098). Light2 adds its main-picker bound itself.
+    // colorLightPadding (ADR-0098). Light2 derives its picker geometry from it itself.
     const [boxElement, setBoxElement] = useState<HTMLDivElement | null>(null);
     const measuredBox = useElementDimensions(boxElement);
-    const sliderSize = (rxData.colorLightSliderWidth || 1) * 28;
-    const dimensions = useMemo(() => withMainPickerBound(measuredBox, sliderSize), [measuredBox, sliderSize]);
     const mainPickerRef = useRef<iro.ColorPicker | null>(null);
     const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
     const prevCctLightRef = useRef(cctLight);
@@ -227,41 +225,43 @@ function Light2CollectionContent(): React.ReactElement {
         [effectiveColorLightType, channelSetters, widget, processingRef],
     );
 
-    const marginLeft = useMemo(
+    // All picker sizes and layouts from the measured box (ADR-0108 Nr. 5).
+    const cctView = effectiveColorLightType === 'cct';
+    const geometry = useMemo(
         () =>
-            getMarginBetweenPickers(
-                dimensions,
-                rxData.colorLightUIComponent,
-                rxData.colorLightSliderWidth,
-                effectiveColorLightType,
+            pickerGeometry(
+                {
+                    uiComponent: rxData.colorLightUIComponent,
+                    cctView,
+                    sliderWidth: rxData.colorLightSliderWidth,
+                    ctMin: rxData.colorLightCtMin,
+                    ctMax: rxData.colorLightCtMax,
+                    modalWidth: rxData.colorLightModalWidth,
+                    modalHeight: rxData.colorLightModalHeight,
+                },
+                measuredBox,
             ),
-        [dimensions, rxData.colorLightUIComponent, rxData.colorLightSliderWidth, effectiveColorLightType],
+        [
+            measuredBox,
+            rxData.colorLightUIComponent,
+            cctView,
+            rxData.colorLightSliderWidth,
+            rxData.colorLightCtMin,
+            rxData.colorLightCtMax,
+            rxData.colorLightModalWidth,
+            rxData.colorLightModalHeight,
+        ],
     );
 
     // Shared props for LightPicker.
     const commonLightPickerProps = useMemo(
         () => ({
-            dimensions,
+            geometry,
             colorWheelLightness: rxData.colorWheelLightness,
-            colorLightUIComponent: rxData.colorLightUIComponent,
-            colorLightSliderWidth: rxData.colorLightSliderWidth,
             colorLightBorderWidth: rxData.colorLightBorderWidth,
             colorLightBorderColor: rxData.colorLightBorderColor,
-            colorLightType: effectiveColorLightType,
-            colorLightCtMin: rxData.colorLightCtMin,
-            colorLightCtMax: rxData.colorLightCtMax,
         }),
-        [
-            dimensions,
-            rxData.colorWheelLightness,
-            rxData.colorLightUIComponent,
-            rxData.colorLightSliderWidth,
-            rxData.colorLightBorderWidth,
-            rxData.colorLightBorderColor,
-            rxData.colorLightCtMin,
-            rxData.colorLightCtMax,
-            effectiveColorLightType,
-        ],
+        [geometry, rxData.colorWheelLightness, rxData.colorLightBorderWidth, rxData.colorLightBorderColor],
     );
 
     /*
@@ -550,7 +550,7 @@ function Light2CollectionContent(): React.ReactElement {
                 }}
             >
                 {Object.keys(values).length !== 0 &&
-                    dimensions.width !== undefined &&
+                    measuredBox.width !== undefined &&
                     rxData.colorLightType !== 'none' && (
                         <>
                             <LightPicker
@@ -562,7 +562,7 @@ function Light2CollectionContent(): React.ReactElement {
                             />
 
                             {effectiveColorLightType === 'cct' && (
-                                <Box sx={{ ml: `${marginLeft}px` }}>
+                                <Box sx={{ ml: `${geometry.secondPickerOffset}px` }}>
                                     <LightPicker
                                         cctComponentNumber={2} // brightness
                                         onColorInit={initHandler}

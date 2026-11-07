@@ -2,29 +2,23 @@
  * Light2 color picker wrapper (iro.js).
  *
  * @module widgets/Light2Picker
+ * @remarks
+ * Draws one iro picker of the Lampen-Bedienelement from the picker geometry
+ * ({@link module:Light2CollectionWidget/pickerGeometry}): creates the iro instance and wires its
+ * events, resizes it and keeps its options in step. Only the border and the wheel lightness come
+ * from the widget directly; the border colour resolves through the field contract here, where
+ * the theme is (ADR-0078).
  */
 
-import { useContext, useEffect, useMemo, useRef, forwardRef } from 'react';
+import { useContext, useEffect, useRef, forwardRef } from 'react';
 import type { MutableRefObject, Ref } from 'react';
-import type iro from '@jaames/iro';
+import iro from '@jaames/iro';
 import { Box } from '@mui/material';
 import type { Light2FieldsRxData } from '../types';
-import {
-    getColorLightLayout,
-    getColorLightWidth,
-    getMarginBetweenPickers,
-    type PickerDimensions,
-} from './colorPickerUtils/colorPickerMemos';
+import { INITIAL_IRO_GEOMETRY, type PickerGeometry } from './pickerGeometry';
+import type { ColorChanges } from './channelMapping';
 import { CollectionContext } from '../components/CollectionProvider';
 import { resolveLight2BorderColor } from '../lib/light2ColorContract';
-
-import {
-    initializeColorPicker,
-    cleanupColorPicker,
-    resizeColorPicker,
-    setColorPickerOptions,
-    type ColorChanges,
-} from './colorPickerUtils/colorPickerEffects';
 
 /**
  * Assigns a value to a forwarded ref (callback or object ref).
@@ -38,18 +32,13 @@ function setRef<T>(ref: Ref<T> | undefined, value: T): void {
 }
 
 interface LightPickerProps {
-    /** Host element dimensions used to compute picker layout. */
-    dimensions: PickerDimensions;
-    colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'];
-    colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
+    /** Sizes and layouts from the picker geometry (the body measures the box). */
+    geometry: PickerGeometry;
     colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];
     colorLightBorderColor: Light2FieldsRxData['colorLightBorderColor'];
     colorWheelLightness: Light2FieldsRxData['colorWheelLightness'];
-    colorLightType: Light2FieldsRxData['colorLightType'];
-    colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
-    colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
     /** 1 = CCT kelvin picker, 2 = CCT brightness picker (only relevant for CCT mode). */
-    cctComponentNumber: number;
+    cctComponentNumber: 1 | 2;
     /** Called on user interaction (includes granular change info where available). */
     onInputChange?: (color: iro.Color, changes?: ColorChanges) => void;
     /** Called after picker initialization to sync the initial color from backend state. */
@@ -59,15 +48,10 @@ interface LightPickerProps {
 const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
     (
         {
-            dimensions,
-            colorLightUIComponent,
-            colorLightSliderWidth,
+            geometry,
             colorLightBorderWidth,
             colorLightBorderColor,
             colorWheelLightness,
-            colorLightType,
-            colorLightCtMin,
-            colorLightCtMax,
             cctComponentNumber,
             onInputChange,
             onColorInit,
@@ -82,75 +66,55 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
         onColorInitRef.current = onColorInit;
         onInputChangeRef.current = onInputChange;
 
-        const colorLightLayout = useMemo(
-            () =>
-                getColorLightLayout(
-                    cctComponentNumber,
-                    colorLightUIComponent,
-                    colorLightType,
-                    colorLightCtMin,
-                    colorLightCtMax,
-                ),
-            [cctComponentNumber, colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax],
-        );
+        const { resizeWidth, gap, sliderSize } = geometry;
+        const layout = geometry.layouts[cctComponentNumber - 1];
 
-        const colorLightWidth = useMemo(
-            () => getColorLightWidth(dimensions, colorLightUIComponent, colorLightType),
-            [dimensions, colorLightUIComponent, colorLightType],
-        );
-
-        const marginBetweenPickers = useMemo(
-            () => getMarginBetweenPickers(dimensions, colorLightUIComponent, colorLightSliderWidth, colorLightType),
-            [dimensions, colorLightUIComponent, colorLightSliderWidth, colorLightType],
-        );
-
+        // Create the iro instance and wire its init and input events.
         useEffect(() => {
-            initializeColorPicker(
-                colorPickerRef,
-                iroPickerRef,
-                {
+            if (colorPickerRef.current) {
+                const picker = iro.ColorPicker(colorPickerRef.current, {
                     color: '#ffffff',
-                    width: 0,
-                    margin: 12,
-                    sliderSize: 28,
+                    ...INITIAL_IRO_GEOMETRY,
                     display: 'flex',
                     padding: 6,
                     handleRadius: 8,
                     layoutDirection: 'horizontal',
-                },
-                (color, changes) => onInputChangeRef.current?.(color, changes),
-                (color, componentNumber) => onColorInitRef.current?.(color, componentNumber),
-                cctComponentNumber,
-            );
+                });
+                iroPickerRef.current = picker;
+
+                // Initialize the current color when iro fires its init event.
+                picker.on('color:init', (color: iro.Color) => onColorInitRef.current?.(color, cctComponentNumber));
+                // Subscribe to interactive changes (optionally with HSV change flags).
+                picker.on('input:change', (color: iro.Color, changes: ColorChanges) =>
+                    onInputChangeRef.current?.(color, changes),
+                );
+            }
             setRef(ref, iroPickerRef.current);
-            return () => cleanupColorPicker(iroPickerRef);
+            return () => {
+                iroPickerRef.current = null;
+            };
         }, [ref, cctComponentNumber]);
 
         useEffect(() => {
-            resizeColorPicker(iroPickerRef.current, colorLightWidth);
-        }, [colorLightWidth]);
+            if (iroPickerRef.current && resizeWidth) {
+                iroPickerRef.current.resize(resizeWidth);
+            }
+        }, [resizeWidth]);
 
         // A string: the options effect runs again only when the drawn colour changes, not on every
         // new theme object.
         const borderColor = resolveLight2BorderColor({ colorLightBorderColor }, theme);
 
         useEffect(() => {
-            setColorPickerOptions(iroPickerRef.current, {
-                layout: colorLightLayout,
-                margin: marginBetweenPickers,
+            iroPickerRef.current?.setOptions({
+                layout,
+                margin: gap,
                 wheelLightness: colorWheelLightness,
-                sliderSize: (colorLightSliderWidth || 1) * 28,
+                sliderSize,
                 borderWidth: colorLightBorderWidth || 0,
                 borderColor,
             });
-        }, [
-            colorLightLayout,
-            marginBetweenPickers,
-            colorLightSliderWidth,
-            colorLightBorderWidth,
-            borderColor,
-            colorWheelLightness,
-        ]);
+        }, [layout, gap, sliderSize, colorLightBorderWidth, borderColor, colorWheelLightness]);
 
         return <Box ref={colorPickerRef} />;
     },

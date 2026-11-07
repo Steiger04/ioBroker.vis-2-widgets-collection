@@ -21,6 +21,7 @@ import useValueState from '../hooks/useValueState';
 import type { Light2FieldsRxData } from '../types/field-definitions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import SafeImg from '../components/SafeImg';
+import { modalWidthOf } from './pickerGeometry';
 
 type WithButtonModalProps<P> = P;
 
@@ -72,20 +73,16 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
             ms: isLight2ButtonMode ? (widgetData.colorLightDelayLongPress ?? 500) : 500,
         });
 
-        const sliderSize = isLight2ButtonMode ? (widgetData.colorLightSliderWidth || 1) * 28 : 28;
-        const hasModalWidth =
-            isLight2ButtonMode &&
-            typeof widgetData.colorLightModalWidth === 'number' &&
-            widgetData.colorLightModalWidth > 0;
-        // Auto width: the picker draws its main element from the modal HEIGHT (square-ish), so the
-        // optimum width derives from height + slider + margins (see color_light_modal_width_tooltip).
-        const modalWidth = hasModalWidth
-            ? widgetData.colorLightModalWidth!
-            : (isLight2ButtonMode ? widgetData.colorLightModalHeight || 300 : 300) + 40 + 12 + sliderSize;
-
         if (!isLight2ButtonMode) {
             return <Component {...props} />;
         }
+
+        // Explicit width or the auto width from the picker geometry (height + slider + gap).
+        const modalWidth = modalWidthOf({
+            modalWidth: widgetData.colorLightModalWidth,
+            modalHeight: widgetData.colorLightModalHeight,
+            sliderWidth: widgetData.colorLightSliderWidth,
+        });
 
         return (
             <>

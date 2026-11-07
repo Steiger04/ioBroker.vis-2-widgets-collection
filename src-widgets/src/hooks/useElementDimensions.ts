@@ -4,7 +4,7 @@
  * @module hooks/useElementDimensions
  * @remarks
  * Generic measurement only — a widget's own bounds are derived at its call site (Light2's
- * main-picker bound lives in its colorPickerMemos). Bodies inside CollectionBase read the
+ * main-picker bound lives in its pickerGeometry). Bodies inside CollectionBase read the
  * frame's Content-Box ({@link module:hooks/useContentBox}) instead of measuring themselves.
  */
 
