@@ -69,12 +69,31 @@ const channelsFor = ({ type, view, picker }: PickerTarget): readonly Light2Chann
 const objectOf = (field: Light2ChannelField, widgetData: Light2WidgetData): OidObjectMeta | undefined =>
     (widgetData as unknown as Record<string, OidObjectMeta | undefined>)[`${field}Object`];
 
+/**
+ * Whether the Kanal field holds a usable OID: a non-blank string.
+ *
+ * @param field The Kanal field.
+ * @param widgetData The widget data.
+ */
+export const hasChannelOid = (field: Light2ChannelField, widgetData: Light2WidgetData): boolean => {
+    const oid = widgetData[field];
+    return typeof oid === 'string' && oid.trim() !== '';
+};
+
+/** The temperature of a lamp without one, in K: the read and write fallback, and where the CCT-Ansicht starts it. */
+export const FALLBACK_KELVIN = 2000;
+
 /** Read fallbacks: a missing temperature reads as 2000 K, a missing r/g/b component as 0; others stay untouched. */
-const READ_FALLBACK: Partial<Record<Light2PickerProperty, number>> = { kelvin: 2000, red: 0, green: 0, blue: 0 };
+const READ_FALLBACK: Partial<Record<Light2PickerProperty, number>> = {
+    kelvin: FALLBACK_KELVIN,
+    red: 0,
+    green: 0,
+    blue: 0,
+};
 
 /** Write fallbacks for a picker colour without the property: 2000 K, `#ffffff`, else 0. */
 const writeFallback = (property: Light2PickerProperty): string | number =>
-    property === 'kelvin' ? 2000 : property === 'hexString' ? '#ffffff' : 0;
+    property === 'kelvin' ? FALLBACK_KELVIN : property === 'hexString' ? '#ffffff' : 0;
 
 /**
  * Reads a numeric Kanal (referenced by field name — the accessor resolves it to the OID).
@@ -86,8 +105,7 @@ const readNumber = (
     widgetData: Light2WidgetData,
     getPropertyValue: (stateName: string) => ioBroker.StateValue,
 ): number | undefined => {
-    const oid = widgetData[field];
-    if (typeof oid !== 'string' || !oid.trim()) {
+    if (!hasChannelOid(field, widgetData)) {
         return undefined;
     }
     const value = Number(getPropertyValue(field));

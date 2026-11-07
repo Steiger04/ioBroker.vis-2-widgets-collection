@@ -29,7 +29,7 @@ import { channelsOf, hasView, mainColorSyncFields, offersViewSwitch } from '../l
 import type { Light2ChannelField } from '../lib/light2Channels';
 import { backendSyncKey } from './backendSyncKey';
 import type { SyncChannel } from './backendSyncKey';
-import { channelWrites, readChannelsIntoColor } from './channelMapping';
+import { channelWrites, FALLBACK_KELVIN, hasChannelOid, readChannelsIntoColor } from './channelMapping';
 import type { ChannelWrite, ColorChanges, Light2WidgetData, PickerTarget } from './channelMapping';
 
 /**
@@ -111,9 +111,6 @@ const keysOf = (
     ),
 });
 
-/** The temperature the CCT-Ansicht starts a lamp at that has none (the read fallback). */
-const DEFAULT_KELVIN = 2000;
-
 /** Whether a temperature state value is usable: present, not blank, numeric. */
 const isUsableTemperature = (value: unknown): boolean =>
     (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value));
@@ -128,12 +125,11 @@ const enterViewWrites = (
     temperature: unknown,
     widgetData: Light2WidgetData,
 ): ChannelWrite[] => {
-    const oid = widgetData.colorLightTemperatureOid;
-    if (typeof oid !== 'string' || !oid.trim() || isUsableTemperature(temperature)) {
+    if (!hasChannelOid('colorLightTemperatureOid', widgetData) || isUsableTemperature(temperature)) {
         return [];
     }
     const color = new iro.Color('#ffffff');
-    color.kelvin = DEFAULT_KELVIN;
+    color.kelvin = FALLBACK_KELVIN;
     return channelWrites(color, pickerTargetOf({ type, cctView: true }, 'main'), undefined, widgetData);
 };
 

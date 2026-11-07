@@ -47,8 +47,8 @@ interface LampControlProps {
     isValidType: boolean;
     /** The current value of the Schalter-OID. */
     onOffValue: UseValueStateReturn['value'];
-    /** Writes the Schalter-OID. */
-    setOnOffValue: (value: boolean) => void;
+    /** Toggles the Schalter-OID (the power button). */
+    onToggle: () => void;
 }
 
 /**
@@ -57,10 +57,10 @@ interface LampControlProps {
  * @param props - Component props.
  * @param props.isValidType - Whether the Schalter-OID is a boolean.
  * @param props.onOffValue - The current value of the Schalter-OID.
- * @param props.setOnOffValue - Writes the Schalter-OID.
+ * @param props.onToggle - Toggles the Schalter-OID.
  * @returns The Lampen-Bedienelement in its frame.
  */
-function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProps): React.ReactElement {
+function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): React.ReactElement {
     const [cctSelected, setCctSelected] = useState(false);
     const context = useContext(CollectionContext) as Light2CollectionContextProps;
     const {
@@ -170,15 +170,7 @@ function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProp
                         alignItems: 'center',
                     }}
                 >
-                    <IconButton
-                        onClick={() => {
-                            if (onOffValue) {
-                                setOnOffValue(false);
-                            } else {
-                                setOnOffValue(true);
-                            }
-                        }}
-                    >
+                    <IconButton onClick={onToggle}>
                         <PowerSettingsNewIcon
                             sx={{
                                 color: onOffValue ? 'red' : 'green',
@@ -293,11 +285,14 @@ function Light2Collection(): React.ReactElement {
     // Only a boolean Schalter-OID counts (ADR-0108 Nr. 8); any other type shows the OID hint.
     const isValidType = rxData.colorLightSwitchOidObject?.type === 'boolean';
 
+    // The one toggle of the power button and the Button-Modus face: true when off, false when on.
+    const toggleOnOff = (): void => setOnOffValueState(!onOffValue);
+
     const lampControl = (
         <LampControl
             isValidType={isValidType}
             onOffValue={onOffValue}
-            setOnOffValue={setOnOffValueState}
+            onToggle={toggleOnOff}
         />
     );
 
@@ -309,7 +304,7 @@ function Light2Collection(): React.ReactElement {
         <Light2ButtonMode
             isValidType={isValidType}
             onOffValue={onOffValue}
-            onToggle={() => setOnOffValueState(!onOffValue)}
+            onToggle={toggleOnOff}
         >
             {lampControl}
         </Light2ButtonMode>
