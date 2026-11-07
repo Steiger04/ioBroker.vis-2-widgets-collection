@@ -8,7 +8,7 @@ import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { Light2CollectionContextProps, OidObjectMeta } from '../types';
+import type { Light2CollectionContextProps } from '../types';
 import withButtonModal from './withButtonModal';
 import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
@@ -19,52 +19,30 @@ import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
-import { initializeColorFromStates, initializeKelvin, initializeBrightness } from './initHandlers';
-import { isHueScale, toHueScale } from './hueScale';
+import { channelWrites, readChannelsIntoColor } from './channelMapping';
+import type { ColorChanges, PickerTarget } from './channelMapping';
+import { channelsOf, mainColorSyncFields, offersViewSwitch } from '../lib/light2Channels';
+import type { Light2CctPicker, Light2ChannelField } from '../lib/light2Channels';
 import { backendSyncKey } from './backendSyncKey';
+import type { SyncChannel } from './backendSyncKey';
 
-// Changes type used for H/S/V change information.
-type ColorChanges = {
-    h?: boolean;
-    s?: boolean;
-    v?: boolean;
-};
+/** The picker of the CCT-Ansicht behind a component number (1 Kelvin, 2 Helligkeit). */
+const cctPickerOf = (cctComponentNumber?: number): Light2CctPicker | undefined =>
+    cctComponentNumber === 1 ? 'kelvin' : cctComponentNumber === 2 ? 'brightness' : undefined;
 
-// Scalar properties that are actually used in the config map.
-type ScalarColorProp = 'kelvin' | 'hexString' | 'red' | 'green' | 'blue' | 'hue' | 'saturation' | 'value';
-// Configuration type for light-type to OID mapping.
-type ColorPropertyConfig = {
-    colorProp: ScalarColorProp;
-    oidField: string;
-    setter: (value: string | number) => void;
-    normalize?: boolean;
-    cctComponent?: 1 | 2;
-    changeKey?: 'h' | 's' | 'v'; // Optional key for changes-based filtering.
-};
+/**
+ * The channel-mapping target of a picker, from the effective Lichttyp: 'cct' stands for the
+ * CCT-Ansicht (of the Lichttyp cct or of an „& cct“ one — both bind the same Kanäle there).
+ * Bridge until the one view notion replaces `effectiveColorLightType` (ADR-0108, ticket 10).
+ */
+const pickerTargetOf = (effectiveColorLightType: string | undefined, cctComponentNumber?: number): PickerTarget =>
+    effectiveColorLightType === 'cct'
+        ? { type: 'cct', view: 'cct', picker: cctPickerOf(cctComponentNumber) }
+        : { type: effectiveColorLightType, view: 'color' };
 
-const shouldApplyChange = (changeKey: ColorPropertyConfig['changeKey'], changes?: ColorChanges): boolean => {
-    if (!changeKey) {
-        return true;
-    }
-
-    if (!changes) {
-        return true;
-    }
-
-    return Boolean(changes[changeKey]);
-};
-
-const getDefaultValueForColorProp = (colorProp: ScalarColorProp): string | number => {
-    if (colorProp === 'kelvin') {
-        return 2000;
-    }
-
-    if (colorProp === 'hexString') {
-        return '#ffffff';
-    }
-
-    return 0;
-};
+/** The Kelvin- and the Helligkeits-Picker of the CCT-Ansicht as channel-mapping targets. */
+const KELVIN_PICKER: PickerTarget = { type: 'cct', view: 'cct', picker: 'kelvin' };
+const BRIGHTNESS_PICKER: PickerTarget = { type: 'cct', view: 'cct', picker: 'brightness' };
 
 const syncKelvinHexToBrightness = (kelvinColor: iro.Color, brightnessColor: iro.Color): void => {
     const tmpValue = brightnessColor.value;
@@ -119,10 +97,7 @@ function Light2CollectionContent(): React.ReactElement {
     const isSyncingRef = useRef(false);
     const processingRef = useRef(false);
 
-    const isCctLight =
-        rxData.colorLightType === 'rgbcct' ||
-        rxData.colorLightType === 'r/g/b/cct' ||
-        rxData.colorLightType === 'h/s/v/cct';
+    const isCctLight = offersViewSwitch(rxData.colorLightType);
 
     const effectiveColorLightType = cctLight && isCctLight ? 'cct' : rxData.colorLightType;
 
@@ -185,127 +160,25 @@ function Light2CollectionContent(): React.ReactElement {
     const isValidType = oidType === 'boolean';
 
     const initHandler = (color: iro.Color, cctComponentNumber?: number): void => {
-        initializeColorFromStates(color, effectiveColorLightType, getPropertyValue, widget.data, cctComponentNumber);
+        readChannelsIntoColor(
+            color,
+            pickerTargetOf(effectiveColorLightType, cctComponentNumber),
+            widget.data,
+            getPropertyValue,
+        );
     };
 
-    // Helper for value normalization (Hue-compatible 0-254 channels; see hueScale.ts).
-    const normalizeValue = useMemo(
-        () =>
-            (value: number, oidObject: OidObjectMeta | undefined): number =>
-                isHueScale(oidObject?.maxValue) ? toHueScale(value) : Math.round(value),
-        [],
-    );
-
-    // Config map for light-type to OID mapping.
-    const lightTypeConfigMap = useMemo(
-        (): Record<string, ColorPropertyConfig[]> => ({
-            cct: [
-                {
-                    colorProp: 'kelvin',
-                    oidField: 'colorLightTemperatureOid',
-                    setter: setTemperatureValueState,
-                    cctComponent: 1,
-                },
-                {
-                    colorProp: 'value',
-                    oidField: 'colorLightBrightnessOid',
-                    setter: setBrightnessValueState,
-                    normalize: true,
-                    cctComponent: 2,
-                },
-            ],
-            rgb: [
-                {
-                    colorProp: 'hexString',
-                    oidField: 'colorLightRgbHexOid',
-                    setter: setRgbHexValueState,
-                },
-            ],
-            rgbcct: [
-                {
-                    colorProp: 'hexString',
-                    oidField: 'colorLightRgbHexOid',
-                    setter: setRgbHexValueState,
-                },
-            ],
-            'r/g/b': [
-                {
-                    colorProp: 'red',
-                    oidField: 'colorLightRedOid',
-                    setter: setRedValueState,
-                },
-                {
-                    colorProp: 'green',
-                    oidField: 'colorLightGreenOid',
-                    setter: setGreenValueState,
-                },
-                {
-                    colorProp: 'blue',
-                    oidField: 'colorLightBlueOid',
-                    setter: setBlueValueState,
-                },
-            ],
-            'r/g/b/cct': [
-                {
-                    colorProp: 'red',
-                    oidField: 'colorLightRedOid',
-                    setter: setRedValueState,
-                },
-                {
-                    colorProp: 'green',
-                    oidField: 'colorLightGreenOid',
-                    setter: setGreenValueState,
-                },
-                {
-                    colorProp: 'blue',
-                    oidField: 'colorLightBlueOid',
-                    setter: setBlueValueState,
-                },
-            ],
-            'h/s/v': [
-                {
-                    colorProp: 'hue',
-                    oidField: 'colorLightHueOid',
-                    setter: setHueValueState,
-                    changeKey: 'h',
-                },
-                {
-                    colorProp: 'saturation',
-                    oidField: 'colorLightSaturationOid',
-                    setter: setSaturationValueState,
-                    normalize: true,
-                    changeKey: 's',
-                },
-                {
-                    colorProp: 'value',
-                    oidField: 'colorLightBrightnessOid',
-                    setter: setBrightnessValueState,
-                    normalize: true,
-                    changeKey: 'v',
-                },
-            ],
-            'h/s/v/cct': [
-                {
-                    colorProp: 'hue',
-                    oidField: 'colorLightHueOid',
-                    setter: setHueValueState,
-                    changeKey: 'h',
-                },
-                {
-                    colorProp: 'saturation',
-                    oidField: 'colorLightSaturationOid',
-                    setter: setSaturationValueState,
-                    normalize: true,
-                    changeKey: 's',
-                },
-                {
-                    colorProp: 'value',
-                    oidField: 'colorLightBrightnessOid',
-                    setter: setBrightnessValueState,
-                    normalize: true,
-                    changeKey: 'v',
-                },
-            ],
+    // The useValueState setter of each Kanal: the write requests of the channel mapping run through them.
+    const channelSetters = useMemo(
+        (): Record<Light2ChannelField, (value: string | number) => void> => ({
+            colorLightTemperatureOid: setTemperatureValueState,
+            colorLightRgbHexOid: setRgbHexValueState,
+            colorLightRedOid: setRedValueState,
+            colorLightGreenOid: setGreenValueState,
+            colorLightBlueOid: setBlueValueState,
+            colorLightHueOid: setHueValueState,
+            colorLightSaturationOid: setSaturationValueState,
+            colorLightBrightnessOid: setBrightnessValueState,
         }),
         [
             setTemperatureValueState,
@@ -330,51 +203,16 @@ function Light2CollectionContent(): React.ReactElement {
                 processingRef.current = true;
 
                 try {
-                    const config = lightTypeConfigMap[effectiveColorLightType];
+                    const target = pickerTargetOf(effectiveColorLightType, cctComponentNumber);
 
-                    if (!config) {
+                    // No Kanäle (none, an unknown Lichttyp): nothing to write, no Kelvin toggle.
+                    if (!channelsOf(target.type, target.view).length) {
                         return;
                     }
 
-                    config.forEach((configItem: ColorPropertyConfig) => {
-                        const { colorProp, oidField, setter, normalize, cctComponent, changeKey } = configItem;
-
-                        // For CCT mode: only process the relevant picker component.
-                        if (cctComponent !== undefined && cctComponentNumber !== cctComponent) {
-                            return;
-                        }
-
-                        // For H/S/V types: only write when the corresponding change flag is set.
-                        if (!shouldApplyChange(changeKey, changes)) {
-                            return;
-                        }
-
-                        // Ensure the OID object exists.
-                        const oidObjectKey = `${oidField}Object` as keyof typeof widget.data;
-                        const oidObject = widget.data[oidObjectKey] as OidObjectMeta | undefined;
-
-                        if (!oidObject) {
-                            return;
-                        }
-
-                        // Extract the value from iro.Color.
-                        let value: string | number | undefined = color[colorProp];
-
-                        // Normalize if needed.
-                        if (normalize && typeof value === 'number') {
-                            value = normalizeValue(value, oidObject);
-                        } else if (typeof value === 'number') {
-                            value = Math.round(value);
-                        }
-
-                        // Fallback for undefined/null.
-                        if (value === undefined || value === null) {
-                            value = getDefaultValueForColorProp(colorProp);
-                        }
-
-                        // Update state.
-                        setter(value);
-                    });
+                    for (const { field, value } of channelWrites(color, target, changes, widget.data)) {
+                        channelSetters[field](value);
+                    }
 
                     // For kelvin changes: toggle a flag (used to sync gradients into brightness picker).
                     if (cctComponentNumber === 1) {
@@ -386,7 +224,7 @@ function Light2CollectionContent(): React.ReactElement {
                     });
                 }
             },
-        [effectiveColorLightType, lightTypeConfigMap, widget, normalizeValue, processingRef],
+        [effectiveColorLightType, channelSetters, widget, processingRef],
     );
 
     const marginLeft = useMemo(
@@ -458,22 +296,19 @@ function Light2CollectionContent(): React.ReactElement {
      */
     const temperatureSyncKey = backendSyncKey([{ changed: temperatureChanged, value: temperatureValue }]);
     const brightnessSyncKey = backendSyncKey([{ changed: brightnessChanged, value: brightnessValue }]);
+    const channelSyncStates: Record<Light2ChannelField, SyncChannel> = {
+        colorLightTemperatureOid: { changed: temperatureChanged, value: temperatureValue },
+        colorLightRgbHexOid: { changed: rgbHexChanged, value: rgbHexValue },
+        colorLightRedOid: { changed: redChanged, value: redValue },
+        colorLightGreenOid: { changed: greenChanged, value: greenValue },
+        colorLightBlueOid: { changed: blueChanged, value: blueValue },
+        colorLightHueOid: { changed: hueChanged, value: hueValue },
+        colorLightSaturationOid: { changed: saturationChanged, value: saturationValue },
+        colorLightBrightnessOid: { changed: brightnessChanged, value: brightnessValue },
+    };
+    const mainColorTarget = pickerTargetOf(effectiveColorLightType);
     const mainColorSyncKey = backendSyncKey(
-        ['rgb', 'rgbcct'].includes(effectiveColorLightType || '')
-            ? [{ changed: rgbHexChanged, value: rgbHexValue }]
-            : ['r/g/b', 'r/g/b/cct'].includes(effectiveColorLightType || '')
-              ? [
-                    { changed: redChanged, value: redValue },
-                    { changed: greenChanged, value: greenValue },
-                    { changed: blueChanged, value: blueValue },
-                ]
-              : ['h/s/v', 'h/s/v/cct'].includes(effectiveColorLightType || '')
-                ? [
-                      { changed: hueChanged, value: hueValue },
-                      { changed: saturationChanged, value: saturationValue },
-                      { changed: brightnessChanged, value: brightnessValue },
-                  ]
-                : [],
+        mainColorSyncFields(mainColorTarget.type, mainColorTarget.view).map(field => channelSyncStates[field]),
     );
 
     /*
@@ -518,7 +353,12 @@ function Light2CollectionContent(): React.ReactElement {
 
         isSyncingRef.current = true;
         try {
-            initializeBrightness(brightnessPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
+            readChannelsIntoColor(
+                brightnessPickerRef.current.color,
+                BRIGHTNESS_PICKER,
+                widgetDataRef.current,
+                getPropertyValueRef.current,
+            );
         } finally {
             isSyncingRef.current = false;
         }
@@ -534,11 +374,11 @@ function Light2CollectionContent(): React.ReactElement {
 
         isSyncingRef.current = true;
         try {
-            initializeColorFromStates(
+            readChannelsIntoColor(
                 mainPickerRef.current.color,
-                effectiveColorLightType,
-                getPropertyValueRef.current,
+                pickerTargetOf(effectiveColorLightType),
                 widgetDataRef.current,
+                getPropertyValueRef.current,
             );
         } finally {
             isSyncingRef.current = false;
@@ -562,7 +402,7 @@ function Light2CollectionContent(): React.ReactElement {
 
         isSyncingRef.current = true;
         try {
-            initializeKelvin(kelvinColor, widgetDataRef.current, getPropertyValueRef.current);
+            readChannelsIntoColor(kelvinColor, KELVIN_PICKER, widgetDataRef.current, getPropertyValueRef.current);
 
             if (prevCctLightRef.current === false) {
                 if (Number(temperatureValue) !== Number(kelvinColor.kelvin)) {
@@ -585,7 +425,12 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        initializeBrightness(mainPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
+        readChannelsIntoColor(
+            mainPickerRef.current.color,
+            BRIGHTNESS_PICKER,
+            widgetDataRef.current,
+            getPropertyValueRef.current,
+        );
     }, [cctLight, isCctLight]);
 
     useEffect(() => {
@@ -595,11 +440,11 @@ function Light2CollectionContent(): React.ReactElement {
 
         isSyncingRef.current = true;
         try {
-            initializeColorFromStates(
+            readChannelsIntoColor(
                 mainPickerRef.current.color,
-                effectiveColorLightType,
-                getPropertyValueRef.current,
+                pickerTargetOf(effectiveColorLightType),
                 widgetDataRef.current,
+                getPropertyValueRef.current,
             );
         } finally {
             isSyncingRef.current = false;
