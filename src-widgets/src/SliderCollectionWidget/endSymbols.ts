@@ -39,28 +39,6 @@ export interface EndSymbols {
 }
 
 /**
- * Resolves the end symbol of one source icon.
- *
- * The colour runs through the field contract with `resolveStoredChromeColor`: the
- * stored value raw, as stored, else the terminal `primary`. On top sits the documented
- * Base64 rule (ADR-0004, pattern Select arrow): only a Base64 icon takes the terminal —
- * an image icon without a value stays uncoloured and keeps its own colours.
- */
-const resolveSource = (
-    icon: string | undefined,
-    contract: ColorFieldContract,
-    size: string | undefined,
-    data: Record<string, unknown>,
-    theme: Theme,
-): EndSymbol => ({
-    icon,
-    color:
-        resolveStoredChromeColor(isBase64Icon(icon) ? contract : { ...contract, terminal: undefined }, data, theme) ||
-        undefined,
-    size: size || DEFAULT_ICON_SIZE,
-});
-
-/**
  * Resolves icon, colour and size of both slider end symbols.
  *
  * @param rxData - Widget data (slider icon fields).
@@ -75,19 +53,38 @@ export function resolveEndSymbols(
 ): EndSymbols {
     const data = rxData as Record<string, unknown>;
 
+    /**
+     * Resolves the end symbol of one source icon.
+     *
+     * The colour runs through the field contract with `resolveStoredChromeColor`: the
+     * stored value raw, as stored, else the terminal `primary`. On top sits the documented
+     * Base64 rule (ADR-0004, pattern Select arrow): only a Base64 icon takes the terminal —
+     * an image icon without a value stays uncoloured and keeps its own colours.
+     */
+    const resolveSource = (
+        icon: string | undefined,
+        contract: ColorFieldContract,
+        size: string | undefined,
+    ): EndSymbol => ({
+        icon,
+        color:
+            resolveStoredChromeColor(
+                isBase64Icon(icon) ? contract : { ...contract, terminal: undefined },
+                data,
+                theme,
+            ) || undefined,
+        size: size || DEFAULT_ICON_SIZE,
+    });
+
     const min = resolveSource(
         rxData.iconMin || rxData.iconSmallMin,
         sliderColorContracts.startIconColor,
         rxData.iconSizeStart,
-        data,
-        theme,
     );
     const max = resolveSource(
         rxData.iconMax || rxData.iconSmallMax,
         sliderColorContracts.endIconColor,
         rxData.iconSizeEnd,
-        data,
-        theme,
     );
 
     return orientation === 'horizontal' ? { start: min, end: max } : { start: max, end: min };
