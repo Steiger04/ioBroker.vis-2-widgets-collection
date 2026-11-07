@@ -244,6 +244,29 @@ describe('buildGaugeOptions — prefix strip and specials', () => {
     });
 });
 
+describe('buildGaugeOptions — Canvas-Titel as plain text (ADR-0107 Nr. 6)', () => {
+    const titleOf = (header: string | undefined): string | undefined => build({}, { ...CTX, header }).title;
+
+    it.each([
+        ['strips tags', '<b>Wohn</b>zimmer', 'Wohnzimmer'],
+        ['decodes &amp;', 'A &amp; B', 'A & B'],
+        ['decodes &lt; and &gt;', '&lt;5 &gt;3', '<5 >3'],
+        ['decodes &quot; and &#39;', '&quot;x&quot; &#39;y&#39;', '"x" \'y\''],
+        ['turns &nbsp; into a space', 'A&nbsp;B', 'A B'],
+        ['decodes &amp; only once', '&amp;lt;', '&lt;'],
+        ['collapses repeated whitespace into one space', '  Wohn   \t zimmer  ', 'Wohn zimmer'],
+        ['leaves plain text unchanged', 'Wohnzimmer', 'Wohnzimmer'],
+    ])('%s', (_label, header, expected) => {
+        expect(titleOf(header)).toBe(expected);
+    });
+
+    it('draws no title when nothing but markup remains', () => {
+        expect(titleOf('<br/><span style="color:red"></span>&nbsp;')).toBe('');
+        expect(titleOf('')).toBe('');
+        expect(titleOf(undefined)).toBe('');
+    });
+});
+
 describe('buildGaugeOptions — major ticks', () => {
     it('spreads the configured count across the effective range', () => {
         const options = build({ gaugeMajorTicks: 2 });

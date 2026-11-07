@@ -123,3 +123,13 @@ describe('GaugeCollection CSS variables', () => {
         }
     });
 });
+
+describe('GaugeCollection Canvas-Titel', () => {
+    it('hands the header to the canvas as plain text, even with the frame header hidden', () => {
+        handedOver.options.length = 0;
+        // The test scene sets noHeader: the frame header is off, the Canvas-Titel stays.
+        mountBody(GaugeCollection, scene({ header: '<b>Wohn</b>zimmer &amp; Bad' }));
+
+        expect(lastOptions()?.title).toBe('Wohnzimmer & Bad');
+    });
+});

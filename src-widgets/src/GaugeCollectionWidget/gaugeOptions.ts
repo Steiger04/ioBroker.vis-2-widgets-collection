@@ -54,7 +54,7 @@ export interface GaugeOptionsContext {
     value: unknown;
     /** Unit of the bound object (rendered next to the value). */
     unit?: string;
-    /** Header text (becomes the gauge title). */
+    /** Header text (becomes the gauge title as plain text, see canvasTitle). */
     header?: string;
     /** Pre-built highlight zones from the widget's state rows. */
     highlights: GaugeOptions['highlights'];
@@ -170,6 +170,35 @@ function resolveString(value: unknown, fallback: string): string {
 /** Schema default as a string ('' for non-string defaults — none exist today). */
 function stringDefault(value: unknown): string {
     return typeof value === 'string' ? value : value === 'number' ? String(value) : '';
+}
+
+/** The basic entities the Canvas-Titel decodes; `&amp;` runs last so `&amp;lt;` stays `&lt;`. */
+const TITLE_ENTITIES: ReadonlyArray<[RegExp, string]> = [
+    [/&lt;/g, '<'],
+    [/&gt;/g, '>'],
+    [/&quot;/g, '"'],
+    [/&#39;/g, "'"],
+    [/&nbsp;/g, ' '],
+    [/&amp;/g, '&'],
+];
+
+/**
+ * Canvas-Titel: the resolved header as plain text.
+ *
+ * @param header - Resolved header text (may carry HTML).
+ * @returns The plain text; `''` when nothing but markup remains.
+ * @remarks
+ * The canvas paints text, not HTML: tags go, the basic entities are decoded and whitespace
+ * collapses into single spaces. An empty result means no title — canvas-gauges draws one
+ * only for a truthy `title`, and the key stays present so `update()` clears a previous one.
+ * Regex-based by design (no DOMParser): the builder stays node-testable.
+ */
+function canvasTitle(header: string | undefined): string {
+    let text = (header ?? '').replace(/<[^>]*>/g, '');
+    for (const [entity, char] of TITLE_ENTITIES) {
+        text = text.replace(entity, char);
+    }
+    return text.replace(/\s+/g, ' ').trim();
 }
 
 /** Boolean resolution: only genuinely unset falls back (false is a valid choice). */
@@ -294,7 +323,7 @@ export function buildGaugeOptions(
     options.height = (ctx.height || 0) - padding;
     options.value = Number(ctx.value) || 0;
     options.units = ctx.unit;
-    options.title = ctx.header;
+    options.title = canvasTitle(ctx.header);
     options.highlights = ctx.highlights;
 
     // Defense in depth: the schema caps gaugeBarWidth at 50 (editor-side only);
