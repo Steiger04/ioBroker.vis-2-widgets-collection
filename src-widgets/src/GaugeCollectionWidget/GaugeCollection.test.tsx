@@ -184,6 +184,20 @@ describe('GaugeCollection CSS variables', () => {
             document.documentElement.style.removeProperty('--gauge-test-accent');
         }
     });
+
+    it("hands the canvas the colour a zone's var(…) text colour resolves to in the widget", () => {
+        document.documentElement.style.setProperty('--gauge-test-zone', 'rgb(40, 50, 60)');
+        try {
+            handedOver.options.length = 0;
+            mountBody(
+                GaugeCollection,
+                scene({ gaugeMaxValue: 100, values_count: 1, value1: 0, textColor1: 'var(--gauge-test-zone)' }),
+            );
+            expect(lastOptions()?.highlights).toStrictEqual([{ from: 0, to: 100, color: 'rgb(40, 50, 60)' }]);
+        } finally {
+            document.documentElement.style.removeProperty('--gauge-test-zone');
+        }
+    });
 });
 
 describe('GaugeCollection Canvas-Titel', () => {

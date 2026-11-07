@@ -15,6 +15,7 @@ import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
 import { buildGaugeOptions, resolveGaugeZone, type BuilderField, type GaugeOptionsContext } from './gaugeOptions';
+import { solidOf } from '../lib/helper/colorDerivation';
 import type { StateStyleData } from '../hooks/useData/types';
 
 /** Minimal fake theme (same pattern as SliderCollectionWidget/chrome.test.ts). */
@@ -222,14 +223,66 @@ describe('buildGaugeOptions — CSS variables the canvas cannot paint', () => {
         );
     });
 
-    it('leaves colours the canvas paints alone', () => {
+    it('hands every colour that is no gradient to the probe — the canvas paints what it computes', () => {
         const resolver = (): string => 'rgb(9, 9, 9)';
         const options = build(
             { gaugeColorNeedle: '#123456', gaugeColorBar: 'red' },
             { ...CTX, resolveCssColor: resolver },
         );
-        expect(options.colorNeedle).toBe('#123456');
-        expect(options.colorBar).toBe('red');
+        expect(options.colorNeedle).toBe('rgb(9, 9, 9)');
+        expect(options.colorBar).toBe('rgb(9, 9, 9)');
+    });
+});
+
+describe('buildGaugeOptions — Canvas-Farbe for option fields and zone arcs (ADR-0107 Nr. 3)', () => {
+    const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+    /** Probe stub: the colours a browser computes; anything else does not resolve. */
+    const computed: Record<string, string> = {
+        red: 'rgb(255, 0, 0)',
+        'hsl(120, 100%, 50%)': 'rgb(0, 255, 0)',
+        'var(--x)': 'rgb(10, 20, 30)',
+        transparent: 'rgba(0, 0, 0, 0)',
+    };
+    const resolveCssColor = (value: string): string | null => computed[value] ?? null;
+    const withProbe = { ...CTX, resolveCssColor };
+
+    /** The colour the canvas paints for one zone whose state carries `textColor`. */
+    const arcColor = (textColor: string, ctx: GaugeOptionsContext): string | undefined =>
+        build({}, { ...ctx, states: [state(0, { textColor })] }).highlights?.[0]?.color;
+
+    it('takes the Repräsentative Vollfarbe of a gradient', () => {
+        expect(solidOf(GRADIENT)).toBeDefined();
+    });
+
+    it.each([
+        // label, stored text colour, painted with probe, painted without probe
+        ['a colour name', 'red', 'rgb(255, 0, 0)', 'red'],
+        ['hsl()', 'hsl(120, 100%, 50%)', 'rgb(0, 255, 0)', 'hsl(120, 100%, 50%)'],
+        ['a CSS variable', 'var(--x)', 'rgb(10, 20, 30)', 'transparent'],
+        ['a gradient', GRADIENT, solidOf(GRADIENT), solidOf(GRADIENT)],
+        ['transparent', 'transparent', 'rgba(0, 0, 0, 0)', 'transparent'],
+        ['an unresolvable value', 'some text', 'transparent', 'some text'],
+    ])('arc in %s', (_label, textColor, withProbeColor, withoutProbeColor) => {
+        expect(arcColor(textColor, withProbe)).toBe(withProbeColor);
+        expect(arcColor(textColor, CTX)).toBe(withoutProbeColor);
+    });
+
+    it.each([
+        // label, stored value, Schlichtes Farbfeld with probe, without probe
+        ['invalid free text → the schema default', 'not a colour', '#ccc', 'not a colour'],
+        ['a colour name → computed', 'red', 'rgb(255, 0, 0)', 'red'],
+        ['hsl() → computed', 'hsl(120, 100%, 50%)', 'rgb(0, 255, 0)', 'hsl(120, 100%, 50%)'],
+        ['a CSS variable → computed, unset without probe', 'var(--x)', 'rgb(10, 20, 30)', '#ccc'],
+        ['a gradient → its Repräsentative Vollfarbe', GRADIENT, solidOf(GRADIENT), solidOf(GRADIENT)],
+    ])('Schlichtes Farbfeld with %s', (_label, gaugeColorBar, withProbeColor, withoutProbeColor) => {
+        expect(build({ gaugeColorBar }, withProbe).colorBar).toBe(withProbeColor);
+        expect(build({ gaugeColorBar }).colorBar).toBe(withoutProbeColor);
+    });
+
+    it('lets a contract field with invalid free text or an unresolvable value fall through to its cascade', () => {
+        expect(build({ gaugeColorNeedle: 'not a colour' }, withProbe).colorNeedle).toBe('#1976d2');
+        expect(build({ gaugeColorTitle: 'red' }, withProbe).colorTitle).toBe('rgb(255, 0, 0)');
+        expect(build({ gaugeColorNeedle: GRADIENT }).colorNeedle).toBe(solidOf(GRADIENT));
     });
 });
 
@@ -282,8 +335,9 @@ describe('buildGaugeOptions — prefix strip and specials', () => {
         expect(build({}).highlights).toStrictEqual([]);
     });
 
-    it('paints an arc without a plottable text colour transparent', () => {
-        const states = [state(0), state(10, { textColor: 'some text' })];
+    it('paints an arc whose colour is unset transparent', () => {
+        // No text colour; a CSS variable without a probe counts as unset (Canvas-Farbe).
+        const states = [state(0), state(10, { textColor: 'var(--x)' })];
         expect(build({}, { ...CTX, states }).highlights?.map(arc => arc.color)).toStrictEqual([
             'transparent',
             'transparent',

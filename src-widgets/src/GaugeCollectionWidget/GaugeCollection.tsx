@@ -42,9 +42,9 @@ type BuildGaugeOptions = (input: {
 const UNRESOLVED = 'rgb(1, 2, 3)';
 
 /**
- * Resolves a CSS colour the canvas cannot paint (`var(…)`) at a probe inside the widget, so the
- * variables of view and widget apply. An unresolvable value is invalid at computed-value time
- * and inherits the parent's sentinel colour.
+ * Computes a CSS colour at a probe inside the widget (the builder's Canvas-Farbe), so the
+ * variables of view and widget apply. An unresolvable value — rejected by the parser, or invalid
+ * at computed-value time — leaves the probe on the parent's sentinel colour.
  *
  * @param probe - Hidden element inside the widget.
  * @param value - CSS colour text.
@@ -60,8 +60,8 @@ function resolveCssColorAt(probe: HTMLElement, value: string): string | null {
 /**
  * The canvas, sized by the frame's Content-Box — a child of CollectionBase, where the box is
  * published. An unmeasured box counts as 0 × 0 (the adapter draws nothing below its minimum).
- * A hidden probe next to it resolves CSS variables for the canvas (canvas-gauges paints no
- * `var(…)`); until it is mounted such colours fall back like unset ones.
+ * A hidden probe next to it computes the colours for the canvas (canvas-gauges paints no
+ * `var(…)`); until it is mounted a `var(…)` falls back like an unset colour.
  */
 function SizedGauge({ buildOptions }: { buildOptions: BuildGaugeOptions }): React.JSX.Element {
     const { width, height } = useContentBox();

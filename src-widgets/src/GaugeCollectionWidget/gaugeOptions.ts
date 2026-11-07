@@ -35,7 +35,8 @@
 import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import { solidOf } from '../lib/helper/colorDerivation';
+import { isGradientColor } from '../lib/helper/colorValidation';
 import { resolveEffectiveColor, type ColorFieldContract, type StyleColor } from '../lib/helper/resolveEffectiveColor';
 import { resolveZones, type ZoneArc, type ZoneStyle, type Zones } from './gaugeSegments';
 // Type-only (erased at runtime): keeps the builder free of editor imports in the node test env.
@@ -80,8 +81,9 @@ export interface GaugeOptionsContext {
     /** vis-2 widget style fragment (cascade level 3: inherit the widget text color). */
     textStyles: StyleColor;
     /**
-     * Resolves a CSS colour the canvas cannot paint (`var(…)`) in the widget's context; `null`
-     * when it does not resolve. Without it such colours count as unset (fallback/default).
+     * Probe: computes a CSS colour in the widget's context (`var(…)` included); `null` when it
+     * does not resolve. Without it a `var(…)` counts as unset and other colours pass as stored
+     * (see canvasColor).
      */
     resolveCssColor?: (value: string) => string | null;
 }
@@ -128,14 +130,27 @@ const needsResolving = (value: unknown): value is string => typeof value === 'st
  * @param resolve - The injected probe ({@link GaugeOptionsContext.resolveCssColor}).
  * @returns The colour to paint, or `undefined` when the value counts as unset.
  * @remarks
- * A `var(…)` is resolved by the probe — unresolvable, or without a probe, it is unset —;
- * any other string passes as stored.
+ * 1. A gradient becomes its Repräsentative Vollfarbe (`solidOf`) — the canvas fills with
+ *    solid colours only.
+ * 2. Otherwise the probe computes the colour in the widget's context (CSS variables of view
+ *    and widget apply); what it does not resolve — invalid free text — is unset.
+ * 3. Without a probe (no widget element yet) a `var(…)` is unset, anything else passes as
+ *    stored.
+ *
+ * So every value the Farbwähler stores becomes paintable (ADR-0102). An empty value is unset
+ * without asking the probe.
  */
 function canvasColor(value: unknown, resolve: GaugeOptionsContext['resolveCssColor']): string | undefined {
-    if (typeof value !== 'string') {
+    if (typeof value !== 'string' || value.trim() === '') {
         return undefined;
     }
-    return needsResolving(value) ? (resolve?.(value) ?? undefined) : value;
+    if (isGradientColor(value)) {
+        return solidOf(value);
+    }
+    if (resolve) {
+        return resolve(value) ?? undefined;
+    }
+    return needsResolving(value) ? undefined : value;
 }
 
 /**
@@ -165,9 +180,8 @@ function canvasColors(
 }
 
 /**
- * The Highlight-Zone arcs with the Canvas-Farbe applied — an arc whose colour is unset paints
- * `transparent`. The zone model hands the raw state colour; the hex/rgb reader still narrows
- * it first, as before the rule.
+ * The Highlight-Zone arcs with the Canvas-Farbe applied to the raw state colour the zone model
+ * hands — an arc whose colour is unset paints `transparent`.
  */
 function canvasArcs(
     arcs: readonly ZoneArc[],
@@ -176,7 +190,7 @@ function canvasArcs(
     return arcs.map(({ from, to, color }) => ({
         from,
         to,
-        color: canvasColor(extractColorFromValue(color), resolve) ?? 'transparent',
+        color: canvasColor(color, resolve) ?? 'transparent',
     }));
 }
 
