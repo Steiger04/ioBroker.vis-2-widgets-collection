@@ -11,6 +11,13 @@
  * prefix-strip are handled in the special cases below (protected by the parity
  * test in `gaugeFields.parity.test.ts`).
  *
+ * The measures live behind this seam too (ADR-0107 Nr. 4): value range, value
+ * coercion and the Highlight-Zones are private here and shared by the two entries.
+ * {@link buildGaugeOptions} is the Canvas-Einstieg (option object, zone arcs
+ * included); {@link resolveGaugeZone} is the Body-Einstieg (active zone style and
+ * icon fit). Two entries because the body needs the zone style OUTSIDE the frame
+ * (CollectionBase `data`), while the canvas size exists only INSIDE it (Content-Box).
+ *
  * Coercion policy (all types): an unset field (`undefined` / `null` / `''`) or a
  * non-finite number falls back to the SCHEMA DEFAULT from the field definition —
  * never to a canvas-gauges library default (those are invisible to users and
@@ -23,8 +30,11 @@ import type { GaugeOptions } from 'canvas-gauges';
 import type { Theme } from '@mui/material';
 
 import { resolveEffectiveColor, type ColorFieldContract, type StyleColor } from '../lib/helper/resolveEffectiveColor';
+import { resolveZones, type ZoneStyle, type Zones } from './gaugeSegments';
 // Type-only (erased at runtime): keeps the builder free of editor imports in the node test env.
 import type { ColorTerminal } from '../types/field-definitions/extended-field';
+import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
+import type { StateStyleData } from '../hooks/useData/types';
 
 /**
  * Field slice the builder reads. Structurally satisfied by both plain schema
@@ -44,7 +54,7 @@ export interface BuilderField {
     inheritTextStyle?: boolean | undefined;
 }
 
-/** Inputs the widget body owns (measured dimensions, current value, highlight zones). */
+/** Inputs the widget body owns (measured dimensions, current value, states of the zones). */
 export interface GaugeOptionsContext {
     /** Measured content width of the gauge area (px). */
     width: number;
@@ -56,8 +66,8 @@ export interface GaugeOptionsContext {
     unit?: string;
     /** Header text (becomes the gauge title as plain text, see canvasTitle). */
     header?: string;
-    /** Pre-built highlight zones from the widget's state rows. */
-    highlights: GaugeOptions['highlights'];
+    /** The states as useData publishes them — the builder derives the Highlight-Zone arcs. */
+    states: StateStyleData[];
     /** Effective MUI theme (terminal defaults of the color contract). */
     theme: Theme;
     /** vis-2 widget style fragment (cascade level 3: inherit the widget text color). */
@@ -69,8 +79,16 @@ export interface GaugeOptionsContext {
     resolveCssColor?: (value: string) => string | null;
 }
 
+/** Result of {@link resolveGaugeZone}: what the body composes outside the frame. */
+export interface GaugeZone {
+    /** Style of the active Highlight-Zone, `null` when the value lies in none. */
+    active: ZoneStyle | null;
+    /** Object fit of the zone icon (passed through raw). */
+    iconFit: GaugeFieldsRxData['gaugeIconFit'];
+}
+
 /** Effective value range (explicit gauge fields win over the bound object's min/max). */
-export interface GaugeRange {
+interface GaugeRange {
     minValue: number;
     maxValue: number;
 }
@@ -78,9 +96,9 @@ export interface GaugeRange {
 /**
  * Fields the prefix-strip cannot map:
  * - `gaugeType`      → included as `gaugeType` (class selector, not an option key)
- * - `gaugeIconFit`   → consumed by the icon overlay, not the gauge instance
+ * - `gaugeIconFit`   → consumed by the icon overlay (resolveGaugeZone), not the gauge instance
  * - `gaugePadding`   → subtracted from width/height
- * - `gaugeMinValue`  → `minValue` (with object min/max fallback, see resolveGaugeRange)
+ * - `gaugeMinValue`  → `minValue` (with object min/max fallback, see resolveRange)
  * - `gaugeMaxValue`  → `maxValue` (ditto)
  * - `gaugeMajorTicks`→ `majorTicks` (count → computed tick array)
  */
@@ -217,12 +235,35 @@ function stripGaugePrefix(name: string): string {
  * (`rxData.minValue`/`maxValue`, set by oidChangeHandlerAsync from
  * `common.min`/`common.max`) applies, and finally the hardcoded fallback.
  */
-export function resolveGaugeRange(widgetData: object): GaugeRange {
-    const data = widgetData as Record<string, unknown>;
+function resolveRange(data: Record<string, unknown>): GaugeRange {
     return {
         minValue: resolveNumeric(data.gaugeMinValue, typeof data.minValue === 'number' ? data.minValue : 0),
         maxValue: resolveNumeric(data.gaugeMaxValue, typeof data.maxValue === 'number' ? data.maxValue : 100),
     };
+}
+
+/** Value coercion: the raw OID value as a number, non-finite (and unset) → 0. */
+const coerceValue = (value: unknown): number => Number(value) || 0;
+
+/** The measures both entries share: range, coerced value and the Highlight-Zones over them. */
+interface Measures {
+    range: GaugeRange;
+    value: number;
+    zones: Zones;
+}
+
+/**
+ * Resolves the measures once for an entry, so canvas and body see the same range and value.
+ *
+ * @param data   - Widget rxData.
+ * @param states - The states as useData publishes them.
+ * @param value  - The raw OID value.
+ * @returns Range, coerced value and the zones (zone max = effective max).
+ */
+function resolveMeasures(data: Record<string, unknown>, states: StateStyleData[], value: unknown): Measures {
+    const range = resolveRange(data);
+    const coerced = coerceValue(value);
+    return { range, value: coerced, zones: resolveZones(states, range.maxValue, coerced) };
 }
 
 /**
@@ -243,13 +284,14 @@ function buildMajorTicks(count: number, minValue: number, maxValue: number): num
 }
 
 /**
- * Builds the complete canvas-gauges option object.
+ * Canvas-Einstieg: builds the complete canvas-gauges option object.
  *
  * @param fields - Field definitions (injected — `gaugeFields()` at runtime,
  *                 synthetic arrays in tests; keeps this module node-testable).
  * @param widgetData - Widget rxData (values + schema-default-merged fields).
- * @param ctx    - Body-owned inputs: dimensions, value, unit, header, highlight zones.
- * @returns The option object, including `gaugeType` (the Canvas-Adapter's class selector).
+ * @param ctx    - Body-owned inputs: dimensions, value, unit, header, states of the zones.
+ * @returns The option object, including `gaugeType` (the Canvas-Adapter's class selector)
+ *          and the Highlight-Zone arcs as the computed `highlights` key.
  */
 export function buildGaugeOptions(
     fields: readonly BuilderField[],
@@ -312,7 +354,11 @@ export function buildGaugeOptions(
     }
 
     // Special cases (see SPECIAL_FIELDS).
-    const { minValue, maxValue } = resolveGaugeRange(data);
+    const {
+        range: { minValue, maxValue },
+        value,
+        zones,
+    } = resolveMeasures(data, ctx.states, ctx.value);
     const padding = resolveNumeric(data.gaugePadding, Number(fieldDefault(fields, 'gaugePadding') ?? 0));
     const majorTickCount = resolveNumeric(data.gaugeMajorTicks, Number(fieldDefault(fields, 'gaugeMajorTicks') ?? 10));
 
@@ -321,10 +367,10 @@ export function buildGaugeOptions(
     options.majorTicks = buildMajorTicks(majorTickCount, minValue, maxValue);
     options.width = (ctx.width || 0) - padding;
     options.height = (ctx.height || 0) - padding;
-    options.value = Number(ctx.value) || 0;
+    options.value = value;
     options.units = ctx.unit;
     options.title = canvasTitle(ctx.header);
-    options.highlights = ctx.highlights;
+    options.highlights = zones.arcs;
 
     // Defense in depth: the schema caps gaugeBarWidth at 50 (editor-side only);
     // stored values can exceed it, so the builder enforces it too.
@@ -333,4 +379,30 @@ export function buildGaugeOptions(
     }
 
     return options as GaugeOptions;
+}
+
+/**
+ * Body-Einstieg: what the body composes outside the frame — the active zone's style (for
+ * `baseData`, the Eck-Icon and the zone icon) and the zone icon's object fit.
+ *
+ * @param fields     - Field definitions (injected, as for {@link buildGaugeOptions}).
+ * @param widgetData - Widget rxData.
+ * @param states     - The states as useData publishes them.
+ * @param value      - The raw OID value.
+ * @returns The active zone style (or `null`) and the icon fit.
+ * @remarks
+ * Range and value are resolved exactly as in the Canvas-Einstieg, so the active zone always
+ * matches the arcs the canvas paints. The icon fit is passed through as stored.
+ */
+export function resolveGaugeZone(
+    fields: readonly BuilderField[],
+    widgetData: object,
+    states: StateStyleData[],
+    value: unknown,
+): GaugeZone {
+    const data = widgetData as Record<string, unknown>;
+    return {
+        active: resolveMeasures(data, states, value).zones.active,
+        iconFit: data.gaugeIconFit as GaugeZone['iconFit'],
+    };
 }
