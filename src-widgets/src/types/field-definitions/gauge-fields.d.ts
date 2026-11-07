@@ -436,11 +436,6 @@ export interface GaugeFieldsRxData {
     gaugeColorBarStroke?: string;
 
     /**
-     * Needle circle shadow up color (CSS color).
-     */
-    gaugeColorNeedleCircleShadowUp?: string;
-
-    /**
      * Bar color (CSS color).
      */
     gaugeColorBar?: string;

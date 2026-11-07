@@ -4,11 +4,13 @@
  * @module widgets/GaugeCollection
  * @remarks
  * Owns everything the Options-Builder cannot know: the canvas size (the
- * frame's Content-Box, ADR-0098), the current value and the Highlight-Zones
- * derived from the state rows ({@link module:GaugeCollectionWidget/gaugeSegments}).
- * The canvas-gauges option object comes from
- * {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions}; the
- * active zone's styling is pre-composed into the `data` CollectionBase
+ * frame's Content-Box, ADR-0098), the current value and the states useData
+ * publishes. Range, value coercion, Highlight-Zones and icon fit live behind the
+ * builder's two entries (ADR-0107 Nr. 4): the canvas-gauges option object comes
+ * from {@link module:GaugeCollectionWidget/gaugeOptions.buildGaugeOptions} inside
+ * the frame, the active zone's style and the icon fit from
+ * {@link module:GaugeCollectionWidget/gaugeOptions.resolveGaugeZone} outside it.
+ * The active zone's styling is pre-composed into the `data` CollectionBase
  * renders — no imperative DOM writes (K3).
  */
 
@@ -25,8 +27,7 @@ import Gauge from './Gauge';
 import SafeImg from '../components/SafeImg';
 import gaugeFields from '../lib/gaugeFields';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { buildGaugeOptions, resolveGaugeRange } from './gaugeOptions';
-import { buildHighlights, findSegment, resolveSegmentBackground, resolveSegmentFrame } from './gaugeSegments';
+import { buildGaugeOptions, resolveGaugeZone } from './gaugeOptions';
 
 import type { GaugeOptions } from 'canvas-gauges';
 
@@ -41,9 +42,9 @@ type BuildGaugeOptions = (input: {
 const UNRESOLVED = 'rgb(1, 2, 3)';
 
 /**
- * Resolves a CSS colour the canvas cannot paint (`var(…)`) at a probe inside the widget, so the
- * variables of view and widget apply. An unresolvable value is invalid at computed-value time
- * and inherits the parent's sentinel colour.
+ * Computes a CSS colour at a probe inside the widget (the builder's Canvas-Farbe), so the
+ * variables of view and widget apply. An unresolvable value — rejected by the parser, or invalid
+ * at computed-value time — leaves the probe on the parent's sentinel colour.
  *
  * @param probe - Hidden element inside the widget.
  * @param value - CSS colour text.
@@ -59,8 +60,8 @@ function resolveCssColorAt(probe: HTMLElement, value: string): string | null {
 /**
  * The canvas, sized by the frame's Content-Box — a child of CollectionBase, where the box is
  * published. An unmeasured box counts as 0 × 0 (the adapter draws nothing below its minimum).
- * A hidden probe next to it resolves CSS variables for the canvas (canvas-gauges paints no
- * `var(…)`); until it is mounted such colours fall back like unset ones.
+ * A hidden probe next to it computes the colours for the canvas (canvas-gauges paints no
+ * `var(…)`); until it is mounted a `var(…)` falls back like an unset colour.
  */
 function SizedGauge({ buildOptions }: { buildOptions: BuildGaugeOptions }): React.JSX.Element {
     const { width, height } = useContentBox();
@@ -112,43 +113,33 @@ function GaugeCollection(): React.JSX.Element {
     // Field definitions are the Options-Builder's contract — created once per widget.
     const fields = useMemo(() => gaugeFields(), []);
 
-    // Resolve effective min/max: an explicitly configured gaugeMinValue/gaugeMaxValue always
-    // wins, otherwise fall back to the min/max auto-detected from the bound object
-    // (widget.data.minValue/maxValue, set by oidChangeHandlerAsync from common.min/common.max).
-    // (minValue feeds the Options-Builder internally; the Highlight-Zones need the max.)
-    const { gaugeMinValue, minValue, gaugeMaxValue, maxValue } = widget.data;
-    const { maxValue: effectiveMaxValue } = useMemo(
-        () => resolveGaugeRange({ gaugeMinValue, minValue, gaugeMaxValue, maxValue }),
-        [gaugeMinValue, minValue, gaugeMaxValue, maxValue],
+    // Body-Einstieg of the builder: the active zone's style and the zone icon's fit, resolved
+    // over the same range and value the canvas sees.
+    const { active, iconFit } = useMemo(
+        () => resolveGaugeZone(fields, widget.data, states, oidValue),
+        [fields, widget.data, states, oidValue],
     );
 
-    const highlights = useMemo(() => buildHighlights(states, effectiveMaxValue), [states, effectiveMaxValue]);
-
-    const segment = useMemo(
-        () => findSegment(highlights, Number(oidValue) || 0, effectiveMaxValue),
-        [highlights, oidValue, effectiveMaxValue],
-    );
-
-    // Active-zone styling, declaratively: the resolved segment colors are composed INTO
-    // the style data CollectionBase renders through its sx cascade — the replacement for
-    // the retired paper0/paper1 imperative handle writes. Without an active zone (or when
-    // the zone sets nothing) the base data passes through unchanged, exactly like every
-    // other Collection widget.
+    // Active-zone styling, declaratively: the zone's colors are composed INTO the style
+    // data CollectionBase renders through its sx cascade — the replacement for the retired
+    // paper0/paper1 imperative handle writes. Without an active zone (or where the zone
+    // value is empty) the base data passes through unchanged, exactly like every other
+    // Collection widget.
     const baseData = useMemo(() => {
-        if (!segment) {
+        if (!active) {
             return data;
         }
         return {
             ...data,
-            frameBackground: resolveSegmentFrame(segment) ?? data.frameBackground,
-            background: resolveSegmentBackground(segment) ?? data.background,
+            frameBackground: active.frameBackground || data.frameBackground,
+            background: active.background || data.background,
         };
-    }, [data, segment]);
+    }, [data, active]);
 
-    // Complete canvas-gauges option set — coercion, defaults, the color contract
-    // (ADR-0004) and computed options (min/max, major ticks, dimensions minus
-    // padding, value/unit/title) live behind this seam. The canvas size joins
-    // inside the frame (SizedGauge).
+    // Canvas-Einstieg: the complete canvas-gauges option set — coercion, defaults, the color
+    // contract (ADR-0004) and computed options (min/max, major ticks, dimensions minus
+    // padding, value/unit/title, Highlight-Zone arcs) live behind this seam. The canvas size
+    // joins inside the frame (SizedGauge).
     const buildOptions = useCallback<BuildGaugeOptions>(
         ({ width, height, resolveCssColor }) =>
             buildGaugeOptions(fields, widget.data, {
@@ -158,26 +149,22 @@ function GaugeCollection(): React.JSX.Element {
                 value: oidValue,
                 unit: oidObject?.unit,
                 header: data.header,
-                highlights,
+                states,
                 theme,
                 textStyles,
             }),
-        [fields, widget.data, oidValue, oidObject?.unit, data.header, highlights, theme, textStyles],
+        [fields, widget.data, oidValue, oidObject?.unit, data.header, states, theme, textStyles],
     );
 
     // Segment icon overlay (rendered above the canvas, positioned per state row).
-    const iconColorStyles = getIconColorStyles(
-        segment?.state.icon,
-        segment?.state.iconColor,
-        segment?.state.forceColorMask ?? false,
-    );
+    const iconColorStyles = getIconColorStyles(active?.icon, active?.iconColor, active?.forceColorMask ?? false);
 
     return (
         <CollectionBase
             isValidType={isValidType}
             data={baseData}
             oidValue={oidValue}
-            cornerIcon={{ ...data, icon: segment?.state.icon, iconColor: segment?.state.iconColor }}
+            cornerIcon={{ ...data, icon: active?.icon, iconColor: active?.iconColor }}
         >
             <Box
                 sx={{
@@ -191,18 +178,18 @@ function GaugeCollection(): React.JSX.Element {
             >
                 <SafeImg
                     alt=""
-                    src={segment?.state.icon}
+                    src={active?.icon}
                     style={{
                         position: 'relative',
 
-                        width: segment?.state.iconSizeOnly,
-                        height: segment?.state.iconSizeOnly,
+                        width: active?.iconSizeOnly,
+                        height: active?.iconSizeOnly,
 
                         boxSizing: 'border-box',
-                        objectFit: widget.data.gaugeIconFit,
+                        objectFit: iconFit,
 
-                        top: `calc(0px - ${segment?.state.iconYOffset})`,
-                        left: `calc(0px + ${segment?.state.iconXOffset})`,
+                        top: `calc(0px - ${active?.iconYOffset})`,
+                        left: `calc(0px + ${active?.iconXOffset})`,
 
                         ...iconColorStyles,
                     }}

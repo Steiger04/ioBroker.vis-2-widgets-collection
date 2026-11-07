@@ -94,7 +94,7 @@ function buildFullyPopulated(): Record<string, unknown> {
         value: 42,
         unit: '°C',
         header: 'Title',
-        highlights: [],
+        states: [],
         theme,
         textStyles: undefined,
     }) as Record<string, unknown>;
