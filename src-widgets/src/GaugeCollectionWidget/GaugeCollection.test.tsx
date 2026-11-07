@@ -106,6 +106,54 @@ describe('GaugeCollection corner icon (Eck-Icon)', () => {
     });
 });
 
+describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
+    /** Base frame colour plus two zones with their own frame colour; the scene value is 21. */
+    const zoneScene = (firstZoneStart: number): PreviewScene =>
+        scene({
+            frameBackground: '#112233',
+            gaugeMaxValue: 100,
+            values_count: 2,
+            value1: firstZoneStart,
+            textColor1: '#00ff00',
+            frameBackground1: '#445566',
+            value2: firstZoneStart + 20,
+            textColor2: '#ff0000',
+            frameBackground2: '#336699',
+            icon2: 'warm.svg',
+        });
+
+    /** The background colour the frame (BASE-PAPER-0) paints. */
+    const frameColor = (container: HTMLElement): string => {
+        const frame = container.querySelector('.BASE-PAPER-0');
+        expect(frame).not.toBeNull();
+        return getComputedStyle(frame!).backgroundColor;
+    };
+
+    it("paints the frame in the active zone's own frame colour", () => {
+        // Zones 0–20 and 20–100: the value 21 lies in the second.
+        const { container } = mountBody(GaugeCollection, zoneScene(0));
+
+        expect(frameColor(container)).toBe('#336699');
+    });
+
+    it('keeps the base frame colour when the value lies in no zone', () => {
+        // Zones 50–70 and 70–100: the value 21 lies below both.
+        const { container } = mountBody(GaugeCollection, zoneScene(50));
+
+        expect(frameColor(container)).toBe('#112233');
+    });
+
+    it('hands the canvas bare arcs — from, to and colour only', () => {
+        handedOver.options.length = 0;
+        mountBody(GaugeCollection, zoneScene(0));
+
+        expect(lastOptions()?.highlights).toStrictEqual([
+            { from: 0, to: 20, color: '#00ff00' },
+            { from: 20, to: 100, color: '#ff0000' },
+        ]);
+    });
+});
+
 describe('GaugeCollection CSS variables', () => {
     it('hands the canvas the colour a var(…) resolves to in the widget, the default when it does not', () => {
         document.documentElement.style.setProperty('--gauge-test-accent', 'rgb(10, 20, 30)');
