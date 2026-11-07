@@ -9,10 +9,11 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { Light2CollectionContextProps } from '../types';
-import withButtonModal from './withButtonModal';
+import Light2ButtonMode from './Light2ButtonMode';
 import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
+import type { UseValueStateReturn } from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
 import { pickerGeometry } from './pickerGeometry';
 import type iro from '@jaames/iro';
@@ -66,7 +67,26 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     />
 );
 
-function Light2CollectionContent(): React.ReactElement {
+/** Props of {@link LampControl}: the switch binding comes from the body, which holds it once. */
+interface LampControlProps {
+    /** Whether the Schalter-OID is a boolean (otherwise the frame shows the OID hint). */
+    isValidType: boolean;
+    /** The current value of the Schalter-OID. */
+    onOffValue: UseValueStateReturn['value'];
+    /** Writes the Schalter-OID. */
+    setOnOffValue: (value: boolean) => void;
+}
+
+/**
+ * The Lampen-Bedienelement: power button, view switch and the iro pickers of the current view.
+ *
+ * @param props - Component props.
+ * @param props.isValidType - Whether the Schalter-OID is a boolean.
+ * @param props.onOffValue - The current value of the Schalter-OID.
+ * @param props.setOnOffValue - Writes the Schalter-OID.
+ * @returns The Lampen-Bedienelement in its frame.
+ */
+function LampControl({ isValidType, onOffValue, setOnOffValue }: LampControlProps): React.ReactElement {
     const [cctLight, setCctLight] = useState(false);
     const context = useContext(CollectionContext) as Light2CollectionContextProps;
     const {
@@ -76,6 +96,7 @@ function Light2CollectionContent(): React.ReactElement {
         getPropertyValue,
     } = context;
 
+    // Widget style without a state: the Zustandszeilen exist only in the Button-Modus (ADR-0108 Nr. 8).
     const { data } = useData('');
 
     // Callback-ref-as-state: useElementDimensions re-runs when the element mounts.
@@ -98,9 +119,6 @@ function Light2CollectionContent(): React.ReactElement {
     const isCctLight = offersViewSwitch(rxData.colorLightType);
 
     const effectiveColorLightType = cctLight && isCctLight ? 'cct' : rxData.colorLightType;
-
-    // ON/OFF
-    const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
 
     // Temperature (Backend/OID)
     const {
@@ -151,11 +169,6 @@ function Light2CollectionContent(): React.ReactElement {
         updateValue: setSaturationValueState,
         hasBackendChange: saturationChanged,
     } = useValueState('colorLightSaturationOid');
-
-    // Type-safe access to the OID object.
-    const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
-    const oidType = colorLightSwitchOidObject?.type;
-    const isValidType = oidType === 'boolean';
 
     const initHandler = (color: iro.Color, cctComponentNumber?: number): void => {
         readChannelsIntoColor(
@@ -475,9 +488,9 @@ function Light2CollectionContent(): React.ReactElement {
                     <IconButton
                         onClick={() => {
                             if (onOffValue) {
-                                setOnOffValueState(false);
+                                setOnOffValue(false);
                             } else {
-                                setOnOffValueState(true);
+                                setOnOffValue(true);
                             }
                         }}
                     >
@@ -579,6 +592,43 @@ function Light2CollectionContent(): React.ReactElement {
     );
 }
 
-const Light2Collection = withButtonModal(Light2CollectionContent);
+/**
+ * Light2 body: holds the Schalter-OID binding once and composes the Lampen-Bedienelement —
+ * directly, or in the Button-Modus behind the button face and its modal (ADR-0108 Nr. 4).
+ *
+ * @returns Widget body element.
+ */
+function Light2Collection(): React.ReactElement {
+    const {
+        widget: { data: rxData },
+    } = useContext(CollectionContext) as Light2CollectionContextProps;
+
+    const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
+
+    // Only a boolean Schalter-OID counts (ADR-0108 Nr. 8); any other type shows the OID hint.
+    const isValidType = rxData.colorLightSwitchOidObject?.type === 'boolean';
+
+    const lampControl = (
+        <LampControl
+            isValidType={isValidType}
+            onOffValue={onOffValue}
+            setOnOffValue={setOnOffValueState}
+        />
+    );
+
+    if (!rxData.colorLightButton) {
+        return lampControl;
+    }
+
+    return (
+        <Light2ButtonMode
+            isValidType={isValidType}
+            onOffValue={onOffValue}
+            onToggle={() => setOnOffValueState(!onOffValue)}
+        >
+            {lampControl}
+        </Light2ButtonMode>
+    );
+}
 
 export default Light2Collection;
