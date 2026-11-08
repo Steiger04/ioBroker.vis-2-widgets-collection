@@ -1962,7 +1962,7 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('onlyDisplay taking hold while the dialog is open: the row still sends', () => {
+    it('onlyDisplay taking hold while the dialog is open: the row sends nothing, the dialog stays open', () => {
         const state = mountState(THREE_ROWS);
 
         click(state);
@@ -1971,7 +1971,8 @@ describe('StateCollection Sperre up to the socket', () => {
         settle();
 
         expect(buttonOf(state).disabled).toBe(true);
-        expect(writes(state).sent).toEqual([2]);
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        expect(dialogOf()).not.toBeNull();
     });
 
     it('write === false taking hold while the dialog is open: the guard holds the row back', () => {
@@ -1983,6 +1984,56 @@ describe('StateCollection Sperre up to the socket', () => {
         settle();
 
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection change dialog under the Sperre (review)', () => {
+    const WITH_SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+    it.each<[string, Record<string, unknown>]>([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { ...RANGE, write: false }) }],
+    ])('%s taking hold locks the rows and the slider', (_case, lock) => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure(lock);
+
+        expect(rowsOf().every(row => row.classList.contains('Mui-disabled'))).toBe(true);
+        expect(rangeOf().disabled).toBe(true);
+    });
+
+    it('the display still follows a Fremdänderung', () => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        state.backend(2, 2000);
+
+        expect(markedRows()).toEqual(['AUTO']);
+        expect(thumb()).toBe(2);
+    });
+
+    it('the dialog can still be closed', () => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        closeDialog();
+
+        expect(dialogOf()).toBeNull();
+    });
+
+    it('the Sperre lifting hands the row back', () => {
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        state.configure({ onlyDisplay: false });
+        fire(rowNamed('AUTO'), mouse('click'));
+        settle();
+
+        expect(writes(state).sent).toEqual([2]);
     });
 });
 

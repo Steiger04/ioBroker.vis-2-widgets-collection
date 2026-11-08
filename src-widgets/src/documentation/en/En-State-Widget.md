@@ -112,6 +112,7 @@ The click opens the dialog when onlyStates is off or more than 2 rows have a val
 - **Title**: The widget's header text, otherwise the name of the OID, otherwise "Change value".
 - **Colors**: The widget's background and text color apply to the surface, the title and the list. With a gradient as text color, the title shows the gradient and the list a solid color taken from it. Without a background, the surface of the theme stays.
 - **Writing**: The list and the slider write through the [Write Value](En-Home.md#write-value) settings, only the push button passes them by.
+- **Lock taking hold**: If the widget locks while the dialog is open, the list and the slider write nothing more and keep showing the value. The dialog stays open and can be closed.
 
 ### List
 

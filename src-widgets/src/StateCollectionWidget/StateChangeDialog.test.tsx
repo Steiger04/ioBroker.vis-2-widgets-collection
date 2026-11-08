@@ -335,6 +335,62 @@ describe('StateChangeDialog colours (ticket 18)', () => {
     });
 });
 
+describe('StateChangeDialog under the Sperre (review)', () => {
+    let handle: RenderComponentHandle<StateChangeDialogProps> | undefined;
+
+    afterEach(() => {
+        handle?.unmount();
+        handle = undefined;
+    });
+
+    it('disables the rows and the slider', () => {
+        handle = mount({ locked: true, slider: { min: 0, max: 100 } });
+
+        expect(listItems().map(item => item.getAttribute('aria-disabled'))).toEqual(['true', 'true']);
+        expect(document.querySelector<HTMLInputElement>('.MuiSlider-thumb input')?.disabled).toBe(true);
+    });
+
+    it('commits nothing on a click: the row is no native button, React holds nothing back', () => {
+        const onCommit = vi.fn();
+        handle = mount({ locked: true, onCommit });
+
+        clickItem(listItems()[1]);
+
+        expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it('commits nothing on the space key of a row that kept the focus: ButtonBase fires it even disabled', () => {
+        const onCommit = vi.fn();
+        handle = mount({ locked: true, onCommit });
+
+        act(() => {
+            listItems()[1].dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+        });
+
+        expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it('keeps the mark on the Aktiver Zustand', () => {
+        const [off, on] = rows([0, 'OFF'], [1, 'ON']);
+        handle = mount({ locked: true, states: [off, { ...on, active: true }] });
+
+        expect(listItems()[1].classList.contains('Mui-selected')).toBe(true);
+    });
+
+    it('still closes through the X button', () => {
+        const closeHandler = vi.fn();
+        handle = mount({ locked: true, closeHandler });
+
+        act(() => {
+            document
+                .querySelector('button[aria-label="close"]')
+                ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        expect(closeHandler).toHaveBeenCalledTimes(1);
+    });
+});
+
 describe('StateChangeDialog accessibility (ticket 19)', () => {
     let handle: RenderComponentHandle<StateChangeDialogProps> | undefined;
 

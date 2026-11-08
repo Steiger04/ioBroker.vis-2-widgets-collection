@@ -112,6 +112,7 @@ Der Klick öffnet den Dialog, wenn onlyStates aus ist oder mehr als 2 Zeilen ein
 - **Titel**: Der Header-Text des Widgets, sonst der Name der OID, sonst „Wert ändern".
 - **Farben**: Hintergrund und Textfarbe des Widgets gelten für Fläche, Titel und Liste. Bei einem Verlauf als Textfarbe zeigt der Titel den Verlauf, die Liste eine Vollfarbe daraus. Ohne Hintergrund bleibt die Fläche des Themes.
 - **Schreiben**: Liste und Slider schreiben über die Einstellungen [Wert schreiben](De-Home.md#wert-schreiben), nur der Taster geht daran vorbei.
+- **Einsetzende Sperre**: Sperrt sich das Widget bei offenem Dialog, schreiben Liste und Slider nichts mehr und zeigen weiter den Wert. Der Dialog bleibt offen und lässt sich schließen.
 
 ### Liste
 

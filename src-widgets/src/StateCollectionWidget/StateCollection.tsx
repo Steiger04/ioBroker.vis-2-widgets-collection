@@ -98,6 +98,7 @@ function StateCollection(): React.ReactElement {
                     currentValue={oidValue}
                     hasForeignChange={hasForeignChange}
                     onCommit={setOidValueState}
+                    locked={locked}
                     slider={dialog.slider}
                 />
             )}

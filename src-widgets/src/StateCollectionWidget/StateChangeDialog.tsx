@@ -17,6 +17,9 @@
  * after a choice (ADR-0110 Nr. 10). The slider's range is the object copy's, which a pick seeds
  * with 0..100 where the object declares no bound (ADR-0109 Nr. 8); its local position keeps a
  * drag off the echo and follows a Fremdänderung (ADR-0110 Nr. 11).
+ *
+ * The Sperre can take hold while the dialog is open: rows and slider then commit nothing and keep
+ * showing the value, and the dialog neither closes on its own nor stops being closable.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -64,6 +67,8 @@ export interface StateChangeDialogProps {
     hasForeignChange?: boolean;
     /** The body's single write chain — every list/slider commit goes through it. */
     onCommit: (value: string | number | boolean) => void;
+    /** The Sperre (CONTEXT): rows and slider commit nothing; the list and the position keep following the value. */
+    locked?: boolean;
     /** Range bounds and step (default 1); omit to render the state list without a slider. */
     slider?: { min: number; max: number; step?: number };
 }
@@ -90,6 +95,7 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  * @param props.currentValue - Current OID value; seeds the slider position and moves it on a Fremdänderung.
  * @param props.hasForeignChange - The body's Fremdänderung flag; the slider position follows `currentValue`.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
+ * @param props.locked - The Sperre: rows and slider commit nothing, the dialog can still be closed.
  * @param props.slider - Range bounds and step (default 1); omit to render the list without a slider.
  * @returns Dialog UI.
  * @example
@@ -118,6 +124,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     currentValue,
     hasForeignChange,
     onCommit,
+    locked,
     slider,
 }) => {
     const [sliderValue, setSliderValue] = useState<number>(() => sliderPosition(currentValue) ?? 0);
@@ -223,6 +230,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                                     },
                                 ]}
                                 valueLabelDisplay="auto"
+                                disabled={locked}
                                 value={sliderValue}
                                 onChange={handleSliderChange}
                             />
@@ -236,8 +244,11 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                                     key={state.fieldNumber}
                                 >
                                     <ListItemButton
+                                        disabled={locked}
                                         selected={state.active}
-                                        onClick={createListItemClickHandler(state.value)}
+                                        // `disabled` alone is no guard here: ButtonBase still fires its
+                                        // onClick on the space key of a row that kept the focus.
+                                        onClick={locked ? undefined : createListItemClickHandler(state.value)}
                                     >
                                         <ListItemText
                                             primaryTypographyProps={{ variant: 'body2' }}
