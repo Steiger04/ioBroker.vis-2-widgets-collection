@@ -1157,7 +1157,7 @@
     "select_collection_widget": "SELECT (booléen, numéro, chaîne)",
     "selection": "Sélection",
     "show_ok_button": "Afficher le bouton OK",
-    "show_ok_button_tooltip": "Si activé, la valeur est envoyée uniquement après un clic sur OK, sur la touche Entrée, ou en quittant le champ. Sinon, chaque frappe est envoyée (avec anti-rebond).",
+    "show_ok_button_tooltip": "Si activé, la valeur est envoyée uniquement après un clic sur OK ou sur la touche Entrée, ou en quittant le champ si elle a été modifiée. Sinon, chaque frappe est envoyée (avec anti-rebond).",
     "slider_collection_widget": "Curseur (numéro)",
     "slider_color": "Couleur du curseur",
     "slider_gap": "Espacement entre curseur et icônes (min/max)",

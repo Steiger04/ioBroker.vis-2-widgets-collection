@@ -5,13 +5,15 @@
  */
 
 import { Box, Button, InputAdornment, TextField } from '@mui/material';
-import { useContext, useEffect, useRef, type FC } from 'react';
+import { useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import { solidOf } from '../lib/helper/colorDerivation';
+import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
 
 import type { InputCollectionContextProps } from '../types';
@@ -22,10 +24,14 @@ import type { InputCollectionContextProps } from '../types';
  * @remarks
  * Whatever is present (icon, value, or both) is shown centered as one group. A click
  * switches inline to a TextField (the icon is hidden while editing); the session
- * rules (draft sync, live vs. OK-button commit) live in
+ * rules (draft, live vs. OK-button commit, the Sperre at the start) live in
+ * {@link module:InputCollectionWidget/inlineEditSession}, behind
  * {@link module:widgets/InputCollectionWidget/useInlineEdit}:
- * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
+ * - OK-button mode (`showOkButton`): keeps a local draft; Enter and OK commit it, a blur only a changed one.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
+ *
+ * The field's type, unit and spinner attributes come from
+ * {@link module:InputCollectionWidget/entryFieldAttributes}.
  *
  * Locked widgets (the binding's Sperre: `onlyDisplay` or non-writable OID) never enter edit mode.
  * Type conversion and debouncing are handled by `useValueState`.
@@ -39,47 +45,21 @@ const InputCollection: FC = () => {
         },
     } = context;
 
-    const { data } = useData('oid');
+    const { data, oidValue } = useData('oid');
     const showOkButton = Boolean(widget.data.showOkButton);
-    const {
-        value: oidValue,
-        hasBackendChange,
-        locked,
-        editing,
-        draft,
-        enterEdit,
-        handleChange,
-        handleBlur,
-        handleKeyDown,
-        commit,
-    } = useInlineEdit('oid', { showOkButton });
+    const { editing, locked, start, confirm, field } = useInlineEdit('oid', { showOkButton });
 
     // Formatted display value (alias → value → oidValue+unit, may contain HTML).
     const htmlValue = useHtmlValue(oidValue, widget, data);
-    const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
+    const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
 
-    const oidType = oidObject?.type;
-    const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidType);
-    const isNumber = oidType === 'number';
-    const editable = !locked;
+    const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidObject?.type);
+    const attributes = buildEntryFieldAttributes({ fields: widget.data, object: oidObject, draft: field.value });
 
-    const textColor = data.textColor;
+    // A field cannot clip a gradient through its text without losing the caret, so it paints the
+    // Repräsentative Vollfarbe. Without one the rule stays out and the theme text colour remains.
+    const fieldColor = solidOf(data.textColor);
     const inputVariant = widget.data.inputVariant ?? 'standard';
-
-    const minValue = widget.data.minValue !== undefined ? Number(widget.data.minValue) : undefined;
-    const maxValue = widget.data.maxValue !== undefined ? Number(widget.data.maxValue) : undefined;
-    const step = widget.data.step !== undefined ? Number(widget.data.step) : undefined;
-
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    // Auto-focus the field when entering edit mode.
-    useEffect(() => {
-        if (editing) {
-            inputRef.current?.focus();
-        }
-    }, [editing]);
-
-    const enter = (): void => enterEdit(editable);
 
     return (
         <CollectionBase
@@ -98,27 +78,27 @@ const InputCollection: FC = () => {
                     }}
                 >
                     <TextField
-                        inputRef={inputRef}
+                        // The field mounts only when a session starts.
+                        autoFocus
                         fullWidth
                         size="small"
                         variant={inputVariant}
-                        type={isNumber ? 'number' : 'text'}
-                        value={draft}
-                        error={hasBackendChange}
-                        onChange={e => handleChange(e.target.value)}
-                        onBlur={handleBlur}
-                        onKeyDown={e => handleKeyDown(e.key)}
+                        type={attributes.type}
+                        {...field}
                         slotProps={{
                             input: {
-                                endAdornment: oidObject?.unit ? (
-                                    <InputAdornment position="end">{oidObject.unit}</InputAdornment>
+                                endAdornment: attributes.unit ? (
+                                    <InputAdornment position="end">{attributes.unit}</InputAdornment>
                                 ) : undefined,
                             },
-                            htmlInput: isNumber ? { step, min: minValue, max: maxValue } : undefined,
+                            htmlInput: attributes.htmlInput,
                         }}
+                        // The InputBase sets size and colour again, so both go to the input itself. MUI's
+                        // error red is the line around it, not the text. The unit's Typography has a
+                        // size of its own and keeps its colour. Unset values drop out of the rule.
                         sx={{
-                            fontSize: data.valueSize,
-                            color: textColor,
+                            '& .MuiInputBase-input': { fontSize: data.valueSize, color: fieldColor },
+                            '& .MuiInputAdornment-root .MuiTypography-root': { fontSize: data.valueSize },
                         }}
                     />
                     {showOkButton && (
@@ -127,7 +107,7 @@ const InputCollection: FC = () => {
                             size="small"
                             // Prevent the field from blurring before the click registers.
                             onMouseDown={e => e.preventDefault()}
-                            onClick={commit}
+                            onClick={confirm}
                         >
                             OK
                         </Button>
@@ -135,14 +115,14 @@ const InputCollection: FC = () => {
                 </Box>
             ) : (
                 <Box
-                    onClick={enter}
+                    onClick={start}
                     sx={{
                         width: '100%',
                         height: '100%',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        cursor: editable ? 'text' : 'default',
+                        cursor: locked ? 'default' : 'text',
                     }}
                 >
                     <CollectionValueDisplay

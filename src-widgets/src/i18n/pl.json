@@ -1157,7 +1157,7 @@
     "select_collection_widget": "Wybierz (boolean, liczba, ciąg)",
     "selection": "Wybór",
     "show_ok_button": "Pokaż przycisk OK",
-    "show_ok_button_tooltip": "Jeśli włączone, wartość jest wysyłana dopiero po kliknięciu przycisku OK, naciśnięciu klawisza Enter lub opuszczeniu pola. W przeciwnym razie wysyłane jest każde naciśnięcie klawisza (z opóźnieniem).",
+    "show_ok_button_tooltip": "Jeśli włączone, wartość jest wysyłana dopiero po kliknięciu przycisku OK lub naciśnięciu klawisza Enter albo przy opuszczeniu pola, jeśli została zmieniona. W przeciwnym razie wysyłane jest każde naciśnięcie klawisza (z opóźnieniem).",
     "slider_collection_widget": "Suwak (liczba)",
     "slider_color": "Kolor suwaka",
     "slider_gap": "Odstęp między suwakiem a ikonami (min/max)",

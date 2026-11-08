@@ -9,7 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
-import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 // The module's field lists (its own, and the per-state list its row keys come from) render
 // CollectionDivider and colour fields, which pull Generic (extends window.visRxWidget, absent
@@ -55,6 +55,7 @@ const OBJECTS: Record<string, unknown> = {
             min: 10,
             max: 20,
             icon: 'command.png',
+            unit: 'W',
             states: MODES,
         },
     },
@@ -73,6 +74,25 @@ OBJECTS[POWER] = {
     common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
 };
 
+const numberState = (id: string, common: { min?: number; max?: number; unit?: string }): unknown => ({
+    _id: id,
+    type: 'state',
+    common: { name: id, type: 'number', role: 'level', read: true, write: true, ...common },
+});
+
+// Numbers without common.states, one per shape a real range can take.
+const COOLING = 'zigbee.0.lamp.cooling';
+const NO_RANGE = 'zigbee.0.lamp.no_range';
+const MIN_ONLY = 'zigbee.0.lamp.min_only';
+const MAX_ONLY = 'zigbee.0.lamp.max_only';
+OBJECTS[COOLING] = numberState(COOLING, { min: -10, max: 0 });
+OBJECTS[NO_RANGE] = numberState(NO_RANGE, {});
+OBJECTS[MIN_ONLY] = numberState(MIN_ONLY, { min: 5 });
+OBJECTS[MAX_ONLY] = numberState(MAX_ONLY, { max: 50 });
+
+const TEMPERATURE = 'zigbee.0.lamp.temperature';
+OBJECTS[TEMPERATURE] = numberState(TEMPERATURE, { unit: '°C' });
+
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
 } as unknown as Connection;
@@ -80,9 +100,13 @@ const fakeSocket = {
 const FIELD = {} as RxWidgetInfoAttributesField;
 
 /** Runs one editor pick of `idName` and returns the data the handler hands to vis-2. */
-async function pick(idName: string, data: WidgetData): Promise<WidgetData> {
+async function pick(
+    idName: string,
+    data: WidgetData,
+    handler: RxWidgetInfoFieldChangeHandler = oidChangeHandlerAsync(ANY_VALUE_TYPES, idName),
+): Promise<WidgetData> {
     let emitted: WidgetData | undefined;
-    await oidChangeHandlerAsync(ANY_VALUE_TYPES, idName)(
+    await handler(
         FIELD,
         data,
         newData => {
@@ -115,6 +139,7 @@ const STATUS_PICKED = {
     icon: 'lamp.png',
     write: false,
     onlyDisplay: true,
+    unit: '',
     minValue: 0,
     maxValue: 2,
     values_count: 3,
@@ -142,6 +167,66 @@ describe('oidChangeHandlerAsync — main OID without a control ID (unchanged)', 
 
     it('suggests an interactive control for a writable main OID', async () => {
         expect((await pick('oid', { oid: COMMAND })).onlyDisplay).toBe(false);
+    });
+});
+
+describe('oidChangeHandlerAsync — the seeded range of a main-OID pick', () => {
+    it('keeps a real common.max of 0 in the root field and the object copy', async () => {
+        const picked = await pick('oid', { oid: COOLING });
+
+        expect(picked).toMatchObject({ minValue: -10, maxValue: 0 });
+        expect(picked.oidObject).toMatchObject({ minValue: -10, maxValue: 0 });
+    });
+
+    it('seeds a missing range with 0..100', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE });
+
+        expect(picked).toMatchObject({ minValue: 0, maxValue: 100 });
+        expect(picked.oidObject).toMatchObject({ minValue: 0, maxValue: 100 });
+    });
+});
+
+describe('commonObjectFields — { inventRange: false }: a pick takes only the real range (ADR-0109 Nr. 8)', () => {
+    /** A main-OID pick through the field the option builds. */
+    const pickReal = (data: WidgetData): Promise<WidgetData> => {
+        const field = commonObjectFields(ANY_VALUE_TYPES, { inventRange: false }).find(f => f.name === 'oid');
+
+        return pick('oid', data, (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange);
+    };
+
+    it('leaves the root fields empty for an object without a range, the object copy stays seeded', async () => {
+        const picked = await pickReal({ oid: NO_RANGE });
+
+        expect(picked).not.toHaveProperty('minValue');
+        expect(picked).not.toHaveProperty('maxValue');
+        expect(picked.oidObject).toMatchObject({ minValue: 0, maxValue: 100 });
+    });
+
+    it('takes a real range, a bound of 0 included', async () => {
+        expect(await pickReal({ oid: COOLING })).toMatchObject({ minValue: -10, maxValue: 0 });
+    });
+
+    it('removes the old range when the next object has none', async () => {
+        const ranged = await pickReal({ oid: COOLING });
+
+        const repicked = await pickReal({ ...ranged, oid: NO_RANGE });
+
+        expect(repicked).not.toHaveProperty('minValue');
+        expect(repicked).not.toHaveProperty('maxValue');
+    });
+
+    it.each([
+        { oid: MIN_ONLY, kept: { minValue: 5 }, removed: 'maxValue' },
+        { oid: MAX_ONLY, kept: { maxValue: 50 }, removed: 'minValue' },
+    ])('checks each bound on its own: $oid takes $kept and loses $removed', async ({ oid, kept, removed }) => {
+        const picked = await pickReal({ oid, minValue: 1, maxValue: 9 });
+
+        expect(picked).toMatchObject(kept);
+        expect(picked).not.toHaveProperty(removed);
+    });
+
+    it('changes nothing else of the pick', async () => {
+        expect(await pickReal({ oid: STATUS })).toEqual(STATUS_PICKED);
     });
 });
 
@@ -231,6 +316,75 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
     });
 });
 
+describe('oidChangeHandlerAsync — the unit field of a main-OID pick (ADR-0109 Nr. 12)', () => {
+    it('fills the field from the object, next to the object copy', async () => {
+        const picked = await pick('oid', { oid: TEMPERATURE });
+
+        expect(picked.unit).toBe('°C');
+        expect(picked.oidObject?.unit).toBe('°C');
+    });
+
+    it('replaces an old override with the next object unit', async () => {
+        const picked = await pick('oid', { oid: TEMPERATURE, unit: 'kWh', oidObject: { unit: 'kWh' } });
+
+        expect(picked.unit).toBe('°C');
+        expect(picked.oidObject?.unit).toBe('°C');
+    });
+
+    it('replaces an old unit with nothing when the next object has none', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE, unit: '°C', oidObject: { unit: '°C' } });
+
+        expect(picked.unit).toBe('');
+        expect(picked.oidObject?.unit).toBe('');
+    });
+
+    it.each([
+        { how: 'field cleared', oid: '' },
+        { how: 'object no longer exists', oid: 'zigbee.0.lamp.removed' },
+    ])('removes the field with the OID ($how)', async ({ oid }) => {
+        const picked = await pick('oid', { oid: TEMPERATURE });
+
+        const cleared = await pick('oid', { ...picked, unit: 'K', oid });
+
+        expect(cleared.unit).toBeUndefined();
+        expect(cleared.oidObject).toBeUndefined();
+    });
+});
+
+describe('commonObjectFields — the unit field feeds the object copy', () => {
+    const unitField = (): RxWidgetInfoAttributesField => {
+        const field = commonObjectFields(ANY_VALUE_TYPES).find(f => f.name === 'unit');
+        if (!field) {
+            throw new Error('commonObjectFields built no unit field');
+        }
+        return field;
+    };
+
+    /** The panel's edit of the field: vis-2 stores the value, then runs the field's onChange. */
+    const edit = (data: WidgetData, unit: string): Promise<WidgetData> =>
+        pick('unit', { ...data, unit }, (unitField() as { onChange: RxWidgetInfoFieldChangeHandler }).onChange);
+
+    it('overrides the copy with what the field says', async () => {
+        const edited = await edit(await pick('oid', { oid: TEMPERATURE }), 'K');
+
+        expect(edited.unit).toBe('K');
+        expect(edited.oidObject?.unit).toBe('K');
+    });
+
+    it('removes the unit from the copy when the field is emptied', async () => {
+        const edited = await edit(await pick('oid', { oid: TEMPERATURE }), '');
+
+        expect(edited.unit).toBe('');
+        expect(edited.oidObject?.unit).toBe('');
+    });
+
+    it('offers no unit field with { unit: false } (JSON table)', () => {
+        const names = commonObjectFields(ANY_VALUE_TYPES, { unit: false }).map(field => field.name);
+
+        expect(names).toEqual(['oid']);
+    });
+});
+
 describe('commonObjectFields — the panel no longer offers the value-group switches', () => {
     it('has no ignoreCommonStates checkbox and no values_count number field', () => {
         const names = commonObjectFields(ANY_VALUE_TYPES).map(field => field.name);
@@ -277,7 +431,7 @@ describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {
         icon: 'command.png',
         write: true,
         onlyDisplay: false,
-        unit: '',
+        unit: 'W',
         minValue: 10,
         maxValue: 20,
         commonStates: MODES,
@@ -321,7 +475,7 @@ describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {
 
 describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
     /** Root fields owned by the main OID; each differs from the command state's metadata. */
-    const ROOT = { icon: 'button.png', write: false, onlyDisplay: true, minValue: 1, maxValue: 5 };
+    const ROOT = { icon: 'button.png', write: false, onlyDisplay: true, unit: 'kWh', minValue: 1, maxValue: 5 };
 
     /** The command state's metadata as stored in `<name>Object`. */
     const COMMAND_OBJECT = {
@@ -331,7 +485,7 @@ describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
         icon: 'command.png',
         write: true,
         onlyDisplay: false,
-        unit: '',
+        unit: 'W',
         minValue: 10,
         maxValue: 20,
         commonStates: MODES,

@@ -212,3 +212,26 @@ describe('CheckboxCollection Sperre', () => {
         expect(container.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled).toBe(true);
     });
 });
+
+describe('CheckboxCollection value text (Ticket 12)', () => {
+    /** The label's text for the value `true`. */
+    const labelOf = (data: Record<string, unknown>): string | null | undefined =>
+        mountCheckbox({ [`${OID}.val`]: true }, data).querySelector('.MuiFormControlLabel-root > div')?.textContent;
+
+    it('appends the object unit when no row matches', () => {
+        const label = labelOf({
+            oidObject: { _id: OID, type: 'boolean', unit: 'x' },
+            values_count: 0,
+            value1: undefined,
+            alias1: undefined,
+            value2: undefined,
+            alias2: undefined,
+        });
+
+        expect(label).toBe('truex');
+    });
+
+    it('lets the alias of a matching row win over the object unit', () => {
+        expect(labelOf({ oidObject: { _id: OID, type: 'boolean', unit: 'x' } })).toBe('AN');
+    });
+});

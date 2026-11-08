@@ -989,3 +989,40 @@ describe('SliderCollection chrome geometry and colours', () => {
         });
     });
 });
+
+// The host keeps '' for an emptied field. It falls back like an unset one: the Skala hands over the
+// State-Spanne, and `null` without numeric states leaves MUI's defaults 0, 100 and 1.
+describe('SliderCollection with emptied range fields', () => {
+    const attributesOf = (data: Record<string, unknown>): (string | null)[] => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-emptied-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    sliderOrientation: 'horizontal',
+                    minValue: '',
+                    maxValue: '',
+                    step: '',
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                20,
+            ),
+        );
+        const input = rangeOf(container);
+
+        return ['min', 'max', 'step'].map(name => input.getAttribute(name));
+    };
+
+    it("takes MUI's defaults without state rows", () => {
+        expect(attributesOf({})).toEqual(['0', '100', '1']);
+    });
+
+    it('takes the State-Spanne with state rows', () => {
+        expect(attributesOf({ values_count: 2, value1: '10', value2: '30' })).toEqual(['10', '30', '1']);
+    });
+});

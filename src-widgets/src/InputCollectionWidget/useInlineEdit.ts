@@ -3,181 +3,112 @@
  *
  * @module widgets/InputCollectionWidget/useInlineEdit
  * @remarks
- * One truth for the display-first inline edit: the optimistic backend binding from
- * {@link module:hooks/useValueState} plus the draft/editing state machine around
- * it. The session rules are pure and exported for tests (the useOptimisticNumber /
- * useEditorHistory pattern); the hook itself is a thin React shell. The autofocus
- * effect stays in the component — presentational, it needs the input ref.
- */
-
-import { useCallback, useEffect, useState } from 'react';
-
-import useValueState, { type UseValueStateReturn } from '../hooks/useValueState';
-
-/**
- * Draft sync: adopt the backend value only while NOT editing.
+ * ADR-0109 Nr. 1, 2: the thin shell around the pure transition
+ * ({@link module:InputCollectionWidget/inlineEditSession}) over the optimistic binding from
+ * {@link module:hooks/useValueState}. It feeds the transition the events of the field, the backend
+ * observations, the mode, the Sperre and the conversion, and carries a value to write out through
+ * `updateValue`. The backend value to display comes from `useData`.
  *
- * @param local - Current local draft.
- * @param rawValue - Raw OID value as plain string.
- * @param editing - Whether the edit session is active.
- * @returns The next draft (the old one when the case does not apply).
+ * The backend observations run in an effect, because the transition moves the session ref and a
+ * render must not. The field is only ever red after the observation that raised the conflict, one
+ * render after the value, so nothing paints red and takes it back. An observation without a new
+ * conflict keeps the session object and renders nothing.
  */
-export function syncDraft(local: string, rawValue: string, editing: boolean): string {
-    return editing ? local : rawValue;
-}
 
-/**
- * Blur decision: OK-button mode commits the draft, live mode only leaves.
- *
- * @param showOkButton - Whether the widget shows the OK button (commit mode).
- * @returns The action to take on blur.
- */
-export function blurAction(showOkButton: boolean): 'commit' | 'leave' {
-    return showOkButton ? 'commit' : 'leave';
-}
+import { useContext, useEffect, useRef, useState } from 'react';
 
-/**
- * Key decision for the edit session.
- *
- * @param key - The pressed key.
- * @returns `'commit'` for Enter (runs the blur path), `'cancel'` for Escape
- * (leaves without committing), `'none'` otherwise.
- * @remarks
- * Escape semantics: in OK-button mode the buffered draft is DISCARDED (nothing
- * was written); in live mode it equals blur — already-written keystrokes remain,
- * because they are already on their way through the debounce. After leaving, the
- * draft resyncs from the backend value via {@link syncDraft}.
- */
-export function keyAction(key: string): 'commit' | 'cancel' | 'none' {
-    if (key === 'Enter') {
-        return 'commit';
-    }
-
-    return key === 'Escape' ? 'cancel' : 'none';
-}
+import { CollectionContext } from '../components/CollectionProvider';
+import useValueState, { convertToOidType } from '../hooks/useValueState';
+import type { CommonObjectFieldsRxData, OidObject } from '../types';
+import { NO_SESSION, sessionStep } from './inlineEditSession';
+import type { InlineEditEvent } from './inlineEditSession';
 
 /** Options controlling the session mode. */
 export interface UseInlineEditOptions {
-    /** OK-button mode: draft commits on blur/Enter/OK; otherwise every keystroke writes (live). */
+    /** OK-button mode: the draft buffers until Enter, OK or a blur with a change; otherwise every keystroke writes (live). */
     showOkButton: boolean;
+}
+
+/** What the TextField of the session takes. */
+export interface InlineEditField {
+    /** The draft. */
+    value: string;
+    /** The Sitzungskonflikt (ADR-0109 Nr. 3). */
+    error: boolean;
+    /** Draft change: live mode writes through per keystroke, OK mode buffers. */
+    onChange: (event: { target: { value: string } }) => void;
+    /** Blur: OK mode commits a changed draft, live mode just leaves. */
+    onBlur: () => void;
+    /** Keys: Enter commits explicitly in OK mode and just leaves in live mode; Escape leaves without a commit. */
+    onKeyDown: (event: { key: string }) => void;
 }
 
 /** Return type for {@link useInlineEdit}. */
 export interface UseInlineEditReturn {
-    /** Optimistic backend value (raw, may be non-string). */
-    value: UseValueStateReturn['value'];
-    /** Significant foreign backend change (see ADR-0087). */
-    hasBackendChange: boolean;
-    /** Sperre of the OID binding (CONTEXT "Sperre"): the widget must not enter edit mode. */
-    locked: UseValueStateReturn['locked'];
     /** Whether the edit session is active. */
     editing: boolean;
-    /** Current local draft (the TextField value while editing). */
-    draft: string;
-    /** Starts the session — only when the widget is editable. */
-    enterEdit: (editable: boolean) => void;
-    /** Draft change: live mode writes through per keystroke, OK mode buffers. */
-    handleChange: (value: string) => void;
-    /** Blur path: OK mode commits, live mode just leaves. */
-    handleBlur: () => void;
-    /** Key path: Enter runs the blur path; Escape cancels (leave without commit). */
-    handleKeyDown: (key: string) => void;
+    /** Sperre of the OID binding (CONTEXT "Sperre"): {@link UseInlineEditReturn.start} does nothing. */
+    locked: boolean;
+    /** Starts the session, unless the Sperre holds. */
+    start: () => void;
     /** Explicit commit (the OK button). */
-    commit: () => void;
+    confirm: () => void;
+    /** The bundle for the TextField. */
+    field: InlineEditField;
 }
-
-/** Raw OID value as plain string for the editable TextField. */
-const toRawString = (value: UseValueStateReturn['value']): string =>
-    value === undefined || value === null ? '' : String(value);
 
 /**
  * Binds the display-first inline edit to an ioBroker state.
  *
  * @param idName - Name of the OID property (e.g. `"oid"`).
  * @param options - Session mode options.
- * @returns The backend value, the session state and the event handlers.
- * @remarks
- * The sync cases, in the order they apply:
- * 1. **Draft sync** — while editing, the draft ignores backend changes (a foreign
- *    change surfaces as `hasBackendChange` instead); after leaving, the draft
- *    adopts the backend value ({@link syncDraft}).
- * 2. **Live mode** — every keystroke goes straight to `updateValue` (optimistic
- *    plus debounced write); OK mode buffers in the draft and commits on
- *    blur/Enter/OK ({@link blurAction}).
+ * @returns The session state, its commands and the bundle for the TextField.
  */
 const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInlineEditReturn => {
-    const { value: oidValue, updateValue, hasBackendChange, locked } = useValueState(idName);
+    const { value, updateValue, hasBackendChange, locked } = useValueState(idName);
+    const { widget } = useContext(CollectionContext);
+    const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
+    const oidType = oidObject?.type;
 
-    const rawValue = toRawString(oidValue);
+    const [session, setSession] = useState(NO_SESSION);
+    // The latest step, not the last render: two events in one tick build on each other.
+    const sessionRef = useRef(NO_SESSION);
 
-    const [draft, setDraft] = useState(rawValue);
-    const [editing, setEditing] = useState(false);
+    const dispatch = (event: InlineEditEvent): void => {
+        const step = sessionStep(sessionRef.current, event, {
+            showOkButton: options.showOkButton,
+            locked,
+            convert: raw => convertToOidType(raw, oidType),
+        });
 
-    // Draft sync: adopt the backend value while not editing.
+        if (step.session !== sessionRef.current) {
+            sessionRef.current = step.session;
+            setSession(step.session);
+        }
+
+        if (step.write !== undefined) {
+            updateValue(step.write);
+        }
+    };
+
+    // Only when something changed: a stale flag over an unchanged value is no observation.
     useEffect(() => {
-        setDraft(prev => syncDraft(prev, rawValue, editing));
-    }, [rawValue, editing]);
-
-    const enterEdit = useCallback((editable: boolean): void => {
-        if (editable) {
-            setEditing(true);
-        }
-    }, []);
-
-    const commit = useCallback((): void => {
-        setEditing(false);
-        updateValue(draft);
-    }, [draft, updateValue]);
-
-    const handleChange = useCallback(
-        (value: string): void => {
-            setDraft(value);
-            // Live mode writes per keystroke; OK mode writes only on commit.
-            if (!options.showOkButton) {
-                updateValue(value);
-            }
-        },
-        [options.showOkButton, updateValue],
-    );
-
-    const handleBlur = useCallback((): void => {
-        if (blurAction(options.showOkButton) === 'commit') {
-            commit();
-        } else {
-            setEditing(false);
-        }
-    }, [commit, options.showOkButton]);
-
-    // Leaves without committing: the draft resyncs from the backend value via
-    // the syncDraft gate once editing is false.
-    const cancel = useCallback((): void => {
-        setEditing(false);
-    }, []);
-
-    const handleKeyDown = useCallback(
-        (key: string): void => {
-            const action = keyAction(key);
-
-            if (action === 'commit') {
-                handleBlur();
-            } else if (action === 'cancel') {
-                cancel();
-            }
-        },
-        [cancel, handleBlur],
-    );
+        dispatch({ kind: 'backend', value, significant: hasBackendChange });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- `dispatch` reads only the latest refs and inputs
+    }, [value, hasBackendChange]);
 
     return {
-        value: oidValue,
-        hasBackendChange,
+        editing: session.editing,
         locked,
-        editing,
-        draft,
-        enterEdit,
-        handleChange,
-        handleBlur,
-        handleKeyDown,
-        commit,
+        start: () => dispatch({ kind: 'start', value }),
+        confirm: () => dispatch({ kind: 'ok' }),
+        field: {
+            value: session.draft,
+            error: session.conflict,
+            onChange: event => dispatch({ kind: 'input', value: event.target.value }),
+            onBlur: () => dispatch({ kind: 'blur' }),
+            onKeyDown: event => dispatch({ kind: 'key', key: event.key }),
+        },
     };
 };
 

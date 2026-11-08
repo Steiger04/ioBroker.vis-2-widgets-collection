@@ -1179,7 +1179,7 @@
     "select_collection_widget": "Select (boolean, number, string, mixed)",
     "selection": "Selection",
     "show_ok_button": "Show OK button",
-    "show_ok_button_tooltip": "If enabled, the value is sent only after clicking OK, pressing Enter, or leaving the field. Otherwise each keystroke is sent (debounced).",
+    "show_ok_button_tooltip": "If enabled, the value is sent only after clicking OK or pressing Enter, or on leaving the field if it was changed. Otherwise each keystroke is sent (debounced).",
     "slider_collection_widget": "Slider (number)",
     "slider_color": "Slider color",
     "slider_gap": "Gap between slider and icons (min/max)",

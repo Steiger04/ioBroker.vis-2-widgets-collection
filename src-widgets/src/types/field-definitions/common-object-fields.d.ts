@@ -119,8 +119,9 @@ export interface CommonObjectFieldsRxData {
     oid: string;
 
     /**
-     * Unit of measurement for the value.
-     * Displayed alongside the value (e.g., °C, %, km/h).
+     * The panel's unit field (e.g., °C, %, km/h).
+     * A main-OID pick fills it from the object; what it says here reaches the display through
+     * `oidObject.unit`, the one source every reader uses (emptying it removes the unit).
      *
      * @example
      * ```typescript

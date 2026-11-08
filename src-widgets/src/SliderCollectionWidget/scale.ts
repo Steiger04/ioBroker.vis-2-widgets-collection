@@ -11,6 +11,7 @@
  */
 
 import { buildSliderMarks, type SliderMark } from './marks';
+import optionalNumber from '../lib/helper/optionalNumber';
 import type { MarkBaseStyle, StateStyleData } from '../hooks/useData/types';
 import type { SliderCollectionContextProps } from '../types';
 
@@ -68,13 +69,13 @@ export interface Scale {
 export function buildScale(params: BuildScaleParams): Scale {
     const { fields, states, stateMin, stateMax, markBaseStyle, unit, oidValue } = params;
 
-    // Range rule: Nur Zustände spans the states; otherwise the field, unset → State-Spanne.
-    const min = !fields.onlyStates && fields.minValue !== undefined ? Number(fields.minValue) : stateMin;
-    const max = !fields.onlyStates && fields.maxValue !== undefined ? Number(fields.maxValue) : stateMax;
+    // Range rule: Nur Zustände spans the states; otherwise the field, unset or emptied → State-Spanne.
+    const min = fields.onlyStates ? stateMin : (optionalNumber(fields.minValue) ?? stateMin);
+    const max = fields.onlyStates ? stateMax : (optionalNumber(fields.maxValue) ?? stateMax);
 
     // Grid rule (ADR-0002): Nur Zustände snaps to the marks (`null`); otherwise
-    // the field, unset → MUI's default.
-    const step = fields.onlyStates ? null : fields.step !== undefined ? Number(fields.step) : undefined;
+    // the field, unset or emptied → MUI's default.
+    const step = fields.onlyStates ? null : optionalNumber(fields.step);
 
     // The mark function decides the selection (the first active mark); the Skala passes it through.
     const { marks, selectedIndex } = buildSliderMarks({

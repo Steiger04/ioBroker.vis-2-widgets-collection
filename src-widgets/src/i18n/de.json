@@ -1170,7 +1170,7 @@
     "select_collection_widget": "Auswahl (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
     "selection": "Auswahl",
     "show_ok_button": "OK-Button anzeigen",
-    "show_ok_button_tooltip": "Wenn aktiviert, wird der Wert erst nach Klick auf OK, Enter oder beim Verlassen des Feldes gesendet. Andernfalls wird jeder Tastenanschlag gesendet (verzögert).",
+    "show_ok_button_tooltip": "Wenn aktiviert, wird der Wert erst nach Klick auf OK oder Enter gesendet, beim Verlassen des Feldes nur, wenn er geändert wurde. Andernfalls wird jeder Tastenanschlag gesendet (verzögert).",
     "slider_collection_widget": "Schieberegler (Zahl)",
     "slider_color": "Farbe",
     "slider_gap": "Abstand Slider - Icon (min/max)",

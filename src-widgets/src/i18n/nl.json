@@ -1157,7 +1157,7 @@
     "select_collection_widget": "Selecteer (Boolean, Number, String)",
     "selection": "Selectie",
     "show_ok_button": "OK-knop weergeven",
-    "show_ok_button_tooltip": "Indien ingeschakeld, wordt de waarde pas verzonden na het klikken op OK, het indrukken van Enter of het verlaten van het veld. Anders wordt elke toetsaanslag verzonden (gedebounceerd).",
+    "show_ok_button_tooltip": "Indien ingeschakeld, wordt de waarde pas verzonden na het klikken op OK of het indrukken van Enter, of bij het verlaten van het veld als deze is gewijzigd. Anders wordt elke toetsaanslag verzonden (gedebounceerd).",
     "slider_collection_widget": "Schuifregelaar (nummer)",
     "slider_color": "Kleur schuifregelaar",
     "slider_gap": "Afstand tussen schuifregelaar en pictogrammen (min/max)",
