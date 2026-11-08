@@ -29,6 +29,9 @@ import {
 } from '@mui/material';
 import { useCallback, useMemo, useState, type FC, type MouseEvent } from 'react';
 import type { StateStyleData } from '../hooks/useData/types';
+import { solidOf } from '../lib/helper/colorDerivation';
+import { isGradientColor } from '../lib/helper/colorValidation';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 /**
  * Props for {@link module:widgets/StateCollectionWidget/StateChangeDialog.default}.
@@ -42,9 +45,9 @@ export interface StateChangeDialogProps {
     closeHandler: () => void;
     /** Dialog title; the body resolves the header/OID-name/i18n fallback chain. */
     title: string;
-    /** Dialog paper background color. */
+    /** Background of the whole dialog, a gradient included; empty keeps the theme surface. */
     backgroundColor?: string;
-    /** Dialog paper text color. */
+    /** Text color of the whole dialog; a gradient clips through the title, the rest paints its Vollfarbe. */
     textColor?: string;
     /** Current OID value; seeds the slider position. */
     currentValue?: string | number | boolean | null;
@@ -62,8 +65,8 @@ export interface StateChangeDialogProps {
  * @param props.open - Whether the dialog is open.
  * @param props.closeHandler - Callback to close the dialog.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
- * @param props.backgroundColor - Dialog paper background color.
- * @param props.textColor - Dialog paper text color.
+ * @param props.backgroundColor - Background of the whole dialog.
+ * @param props.textColor - Text color of the whole dialog.
  * @param props.currentValue - Current OID value; seeds the slider position.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
  * @param props.slider - Range bounds; omit to render the list without a slider.
@@ -181,6 +184,10 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
         );
     }, [hasStates, states, createListItemClickHandler]);
 
+    // `color` cannot draw a gradient: only the title clips it, everything below reads the
+    // Repräsentative Vollfarbe. Any other value is drawn as given, a color name included.
+    const bodyTextColor = isGradientColor(textColor) ? solidOf(textColor) : textColor;
+
     return (
         <Dialog
             open={open}
@@ -189,13 +196,14 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
             fullWidth
             PaperProps={{
                 sx: {
-                    bgcolor: backgroundColor,
-                    color: textColor,
+                    // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
+                    background: backgroundColor || undefined,
+                    color: bodyTextColor,
                 },
             }}
         >
             <DialogTitle
-                sx={{ m: 0, p: 2 }}
+                sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}
                 id="customized-dialog-title"
             >
                 {title}
@@ -221,6 +229,12 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                     divider={hasStates && <Divider />}
                     spacing={0}
                     component={Paper}
+                    sx={{
+                        color: 'inherit',
+                        // Shows the dialog's surface through: `inherit` would restart a gradient
+                        // on the card's own box and stack a translucent color on itself.
+                        background: backgroundColor ? 'transparent' : undefined,
+                    }}
                 >
                     {ChangeSlider}
                     {ChangeList}

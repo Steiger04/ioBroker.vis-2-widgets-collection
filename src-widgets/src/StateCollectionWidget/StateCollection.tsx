@@ -121,7 +121,7 @@ function StateCollection(): React.ReactElement {
                     open={open}
                     closeHandler={() => setOpen(false)}
                     title={dialogTitle}
-                    backgroundColor={data.backgroundColor}
+                    backgroundColor={data.backgroundColor || data.background}
                     textColor={data.textColor}
                     currentValue={oidValue}
                     onCommit={setOidValueState}

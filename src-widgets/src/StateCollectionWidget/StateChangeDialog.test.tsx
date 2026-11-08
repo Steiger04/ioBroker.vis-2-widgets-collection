@@ -10,7 +10,7 @@
  * without a provider. The MUI Dialog portals into document.body, hence the
  * `document` queries instead of the mount container.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 
 import type { StateStyleData } from '../hooks/useData/types';
@@ -238,5 +238,99 @@ describe('StateChangeDialog list over the resolved states (ticket 13)', () => {
 
         expect(thumbValue()).toBe('55');
         handle.unmount();
+    });
+});
+
+describe('StateChangeDialog colours (ticket 18)', () => {
+    let handle: RenderComponentHandle<StateChangeDialogProps> | undefined;
+
+    /** Unmounts after a failed expect as well: a dialog left behind would answer the next case's queries. */
+    const open = (overrides: Partial<StateChangeDialogProps> = {}): void => {
+        handle = mount(overrides);
+    };
+
+    afterEach(() => {
+        handle?.unmount();
+        handle = undefined;
+    });
+
+    const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+    /** The gradient's midpoint, documented on solidOf. */
+    const GRADIENT_MIDPOINT = 'rgb(128, 0, 128)';
+
+    const element = (selector: string): Element => {
+        const found = document.querySelector(selector);
+        if (!found) {
+            throw new Error(`the dialog rendered no ${selector}`);
+        }
+        return found;
+    };
+
+    /** The colour a browser draws: happy-dom hands the `inherit` keyword down instead of resolving it. */
+    const paintedColor = (element: Element): string => {
+        const { color } = getComputedStyle(element);
+        return color === 'inherit' && element.parentElement ? paintedColor(element.parentElement) : color;
+    };
+
+    const paper = (): Element => element('.MuiDialog-paper');
+    const card = (): Element => element('.MuiDialogContent-root > .MuiPaper-root');
+    const title = (): Element => element('.MuiDialogTitle-root');
+    const list = (): Element => element('.MuiList-root');
+
+    it('clips a gradient text colour through the title', () => {
+        open({ textColor: GRADIENT });
+
+        expect(paintedColor(title())).toBe('transparent');
+        expect(getComputedStyle(title()).background).toContain('linear-gradient');
+        expect(getComputedStyle(title()).backgroundClip).toBe('text');
+    });
+
+    it('paints the list in the Repräsentative Vollfarbe of a gradient text colour', () => {
+        open({ textColor: GRADIENT });
+
+        expect(paintedColor(list())).toBe(GRADIENT_MIDPOINT);
+    });
+
+    it('lets a solid text colour reach paper, card, title and list', () => {
+        open({ textColor: '#0000aa' });
+
+        expect(paintedColor(paper())).toBe('#0000aa');
+        expect(paintedColor(card())).toBe('#0000aa');
+        expect(paintedColor(title())).toBe('#0000aa');
+        expect(paintedColor(list())).toBe('#0000aa');
+    });
+
+    it('keeps a colour name on the list, which has no Vollfarbe but can be drawn', () => {
+        open({ textColor: 'red' });
+
+        expect(paintedColor(list())).toBe('red');
+    });
+
+    it('shows the background through the card instead of covering it', () => {
+        open({ backgroundColor: '#123456' });
+
+        expect(getComputedStyle(paper()).backgroundColor).toBe('#123456');
+        expect(getComputedStyle(card()).backgroundColor).toBe('transparent');
+    });
+
+    it('draws a gradient background on the paper', () => {
+        open({ backgroundColor: GRADIENT });
+
+        expect(getComputedStyle(paper()).background).toContain('linear-gradient');
+        expect(getComputedStyle(card()).backgroundColor).toBe('transparent');
+    });
+
+    it('without colours leaves paper and card on the theme surface', () => {
+        open();
+
+        expect(getComputedStyle(paper()).backgroundColor).toBe('#fff');
+        expect(getComputedStyle(card()).backgroundColor).toBe('#fff');
+    });
+
+    it('treats an empty background like an unset one', () => {
+        open({ backgroundColor: '' });
+
+        expect(getComputedStyle(paper()).backgroundColor).toBe('#fff');
+        expect(getComputedStyle(card()).backgroundColor).toBe('#fff');
     });
 });
