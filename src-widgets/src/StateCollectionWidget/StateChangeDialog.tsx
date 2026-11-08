@@ -11,6 +11,11 @@
  * label by the body (StateCollection); they arrive here as `slider` / `title` /
  * `closeLabel` and the dialog only renders what it is given. The title carries no id
  * of its own: MUI links it to the dialog's `aria-labelledby` through the id it generates.
+ *
+ * The list follows the rows, duplicates included, marks every Aktiver Zustand and stays open
+ * after a choice (ADR-0110 Nr. 10). The slider's range is the object copy's, which a pick seeds
+ * with 0..100 where the object declares no bound (ADR-0109 Nr. 8); its local position keeps a
+ * drag off the echo and follows a Fremdänderung (ADR-0110 Nr. 11).
  */
 
 import CloseIcon from '@mui/icons-material/Close';
