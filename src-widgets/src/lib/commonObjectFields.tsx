@@ -150,8 +150,9 @@ export const oidChangeHandlerAsync =
                 write: object.common.write,
                 onlyDisplay: object.common.write === false,
                 unit: object.common.unit || '',
-                minValue: object.common.min || 0,
-                maxValue: object.common.max || 100,
+                // `??`: a real bound of 0 is a range, only a missing one gets seeded.
+                minValue: object.common.min ?? 0,
+                maxValue: object.common.max ?? 100,
             };
 
             data[`${oid}Object`] = objectData;

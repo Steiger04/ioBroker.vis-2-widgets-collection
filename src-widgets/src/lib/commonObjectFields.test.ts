@@ -73,6 +73,18 @@ OBJECTS[POWER] = {
     common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
 };
 
+const numberState = (id: string, range: { min?: number; max?: number }): unknown => ({
+    _id: id,
+    type: 'state',
+    common: { name: id, type: 'number', role: 'level', read: true, write: true, ...range },
+});
+
+// Numbers without common.states, one per shape a real range can take.
+const COOLING = 'zigbee.0.lamp.cooling';
+const NO_RANGE = 'zigbee.0.lamp.no_range';
+OBJECTS[COOLING] = numberState(COOLING, { min: -10, max: 0 });
+OBJECTS[NO_RANGE] = numberState(NO_RANGE, {});
+
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
 } as unknown as Connection;
@@ -142,6 +154,22 @@ describe('oidChangeHandlerAsync — main OID without a control ID (unchanged)', 
 
     it('suggests an interactive control for a writable main OID', async () => {
         expect((await pick('oid', { oid: COMMAND })).onlyDisplay).toBe(false);
+    });
+});
+
+describe('oidChangeHandlerAsync — the seeded range of a main-OID pick', () => {
+    it('keeps a real common.max of 0 in the root field and the object copy', async () => {
+        const picked = await pick('oid', { oid: COOLING });
+
+        expect(picked).toMatchObject({ minValue: -10, maxValue: 0 });
+        expect(picked.oidObject).toMatchObject({ minValue: -10, maxValue: 0 });
+    });
+
+    it('seeds a missing range with 0..100', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE });
+
+        expect(picked).toMatchObject({ minValue: 0, maxValue: 100 });
+        expect(picked.oidObject).toMatchObject({ minValue: 0, maxValue: 100 });
     });
 });
 
