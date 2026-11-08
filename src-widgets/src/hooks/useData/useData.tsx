@@ -127,8 +127,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     );
 
     // Independent per-state resolution using active-aware styles.
-    const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-        const widgetStates: Record<string, string> = {};
+    const { states, minValue, maxValue } = useMemo(() => {
         let minValue: number | null = null;
         let maxValue: number | null = null;
         const states: StateStyleData[] = [];
@@ -146,8 +145,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
             for (let i = 1; i <= effectiveCount; i++) {
                 const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
-                const _alias = rxData[`alias${i}`];
-                const _unit = oidObject?.unit;
 
                 if (isBlankStateValue(_value)) {
                     continue;
@@ -195,10 +192,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     background: styleData.background,
                     frameBackground: styleData.frameBackground,
                 });
-
-                // Map state value to label for widget-specific use
-                const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
             }
         }
 
@@ -213,16 +206,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             }
         }
 
-        return { states, widgetStates, minValue, maxValue };
-    }, [
-        oidObject?.type,
-        oidObject?.commonStates,
-        oidObject?.unit,
-        rxData,
-        getDataValue,
-        oidValue,
-        resolveMarkStyleData,
-    ]);
+        return { states, minValue, maxValue };
+    }, [oidObject?.type, oidObject?.commonStates, rxData, getDataValue, oidValue, resolveMarkStyleData]);
 
     // `data`, `activeFieldNumber` and `activePosition` are pure functions of the
     // current OID value and resolved states, so they are derived together here — no
@@ -260,7 +245,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     }, [oidObject, states, resolveStyleData, baseStyle]);
 
     return {
-        widgetStates,
         minValue,
         maxValue,
         data,

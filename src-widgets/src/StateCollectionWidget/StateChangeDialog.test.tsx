@@ -13,13 +13,26 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 
+import type { StateStyleData } from '../hooks/useData/types';
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import StateChangeDialog, { type StateChangeDialogProps } from './StateChangeDialog';
+
+/** One resolved state row the way useData publishes it; its Feldnummer follows its position here. */
+const row = (position: number, value: StateStyleData['value'], label: string): StateStyleData => ({
+    fieldNumber: position + 1,
+    active: false,
+    value,
+    label,
+});
+
+/** The resolved rows for `[value, label]` pairs, in the order they are given. */
+const rows = (...entries: [StateStyleData['value'], string][]): StateStyleData[] =>
+    entries.map(([value, label], position) => row(position, value, label));
 
 /** Mounts the dialog fully prop-typed; defaults mirror a two-state boolean widget. */
 const mount = (overrides: Partial<StateChangeDialogProps> = {}): RenderComponentHandle<StateChangeDialogProps> => {
     const props: StateChangeDialogProps = {
-        widgetStates: { 0: 'OFF', 1: 'ON' },
+        states: rows([0, 'OFF'], [1, 'ON']),
         open: true,
         closeHandler: vi.fn(),
         title: 'Wert ändern',
@@ -31,11 +44,22 @@ const mount = (overrides: Partial<StateChangeDialogProps> = {}): RenderComponent
     return renderComponent(StateChangeDialog, props);
 };
 
-describe('StateChangeDialog', () => {
-    it('renders every widgetStates entry as a selectable list item', () => {
-        const handle = mount({ widgetStates: { 0: 'OFF', 1: 'ON', 50: 'Dim 50%' } });
+const listItems = (): Element[] => Array.from(document.querySelectorAll('.MuiListItemButton-root'));
 
-        expect(document.querySelectorAll('.MuiListItemButton-root')).toHaveLength(3);
+const clickItem = (item: Element | undefined): void => {
+    act(() => {
+        item?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+};
+
+const thumbValue = (): string | null =>
+    document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow') ?? null;
+
+describe('StateChangeDialog', () => {
+    it('renders every state as a selectable list item', () => {
+        const handle = mount({ states: rows([0, 'OFF'], [1, 'ON'], [50, 'Dim 50%']) });
+
+        expect(listItems()).toHaveLength(3);
         const dialogText = document.querySelector('.MuiDialog-root')?.textContent ?? '';
         expect(dialogText).toContain('OFF');
         expect(dialogText).toContain('ON');
@@ -43,17 +67,14 @@ describe('StateChangeDialog', () => {
         handle.unmount();
     });
 
-    it('commits the clicked state key through onCommit', () => {
+    it('commits the value of the clicked state through onCommit', () => {
         const onCommit = vi.fn();
         const handle = mount({ onCommit });
 
-        const items = document.querySelectorAll('.MuiListItemButton-root');
-        act(() => {
-            items[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
+        clickItem(listItems()[1]);
 
         expect(onCommit).toHaveBeenCalledTimes(1);
-        expect(onCommit).toHaveBeenCalledWith('1');
+        expect(onCommit).toHaveBeenCalledWith(1);
         handle.unmount();
     });
 
@@ -68,7 +89,7 @@ describe('StateChangeDialog', () => {
     });
 
     it('labels the slider marks with the passed bounds', () => {
-        const handle = mount({ widgetStates: {}, slider: { min: -20, max: 40 } });
+        const handle = mount({ states: [], slider: { min: -20, max: 40 } });
 
         const dialogText = document.querySelector('.MuiDialog-root')?.textContent ?? '';
         expect(dialogText).toContain('-20');
@@ -127,47 +148,73 @@ describe('StateChangeDialog', () => {
         handle.unmount();
     });
 
-    it('does not seed the slider from an empty state key', () => {
-        // Number('') is 0, not NaN — a blank key must not drag the slider to 0.
-        const handle = mount({
-            widgetStates: { '': 'Blank' },
-            slider: { min: 0, max: 100 },
-            currentValue: 55,
-        });
-
-        const sliderValue = (): string | null =>
-            document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow') ?? null;
-        expect(sliderValue()).toBe('55');
-
-        const blankItem = Array.from(document.querySelectorAll('.MuiListItemButton-root')).find(
-            item => item.textContent === 'Blank',
-        );
-        act(() => {
-            blankItem?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
-
-        expect(sliderValue()).toBe('55');
-        handle.unmount();
-    });
-
-    it('seeds the slider with a clicked numeric state key', () => {
+    it('seeds the slider with the value of a clicked numeric state', () => {
         const onCommit = vi.fn();
         const handle = mount({
-            widgetStates: { 80: 'Dim 80%' },
+            states: rows([80, 'Dim 80%']),
             slider: { min: 0, max: 100 },
             currentValue: 55,
             onCommit,
         });
 
-        const dimItem = Array.from(document.querySelectorAll('.MuiListItemButton-root')).find(
-            item => item.textContent === 'Dim 80%',
-        );
-        act(() => {
-            dimItem?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        clickItem(listItems()[0]);
+
+        expect(thumbValue()).toBe('80');
+        expect(onCommit).toHaveBeenCalledWith(80);
+        handle.unmount();
+    });
+});
+
+describe('StateChangeDialog list over the resolved states (ticket 13)', () => {
+    it('draws the states in the order they arrive', () => {
+        const handle = mount({ states: rows([100, 'hundert'], [50, 'fünfzig'], [0, 'null']) });
+
+        expect(listItems().map(item => item.textContent)).toEqual(['hundert', 'fünfzig', 'null']);
+        handle.unmount();
+    });
+
+    it('keeps duplicate values as entries of their own, each committing its value', () => {
+        const onCommit = vi.fn();
+        const handle = mount({ states: rows([1, 'A'], [1, 'B']), onCommit });
+
+        expect(listItems().map(item => item.textContent)).toEqual(['A', 'B']);
+
+        clickItem(listItems()[1]);
+
+        expect(onCommit).toHaveBeenCalledTimes(1);
+        expect(onCommit).toHaveBeenCalledWith(1);
+        handle.unmount();
+    });
+
+    it.each([
+        ['a text', 'an'],
+        ['a boolean', true],
+    ])('commits %s value as it is and leaves the slider where it was', (_case, value) => {
+        const onCommit = vi.fn();
+        const handle = mount({
+            states: rows([value, 'A']),
+            slider: { min: 0, max: 100 },
+            currentValue: 55,
+            onCommit,
         });
 
-        expect(document.querySelector('.MuiSlider-thumb input')?.getAttribute('aria-valuenow')).toBe('80');
-        expect(onCommit).toHaveBeenCalledWith('80');
+        clickItem(listItems()[0]);
+
+        expect(thumbValue()).toBe('55');
+        expect(onCommit).toHaveBeenCalledWith(value);
+        handle.unmount();
+    });
+
+    it('a row on a number OID that is no number leaves the slider where it was', () => {
+        const handle = mount({
+            states: rows([NaN, 'A']),
+            slider: { min: 0, max: 100 },
+            currentValue: 55,
+        });
+
+        clickItem(listItems()[0]);
+
+        expect(thumbValue()).toBe('55');
         handle.unmount();
     });
 });

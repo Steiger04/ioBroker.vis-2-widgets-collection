@@ -895,7 +895,7 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(rowTexts()).toEqual(['first', 'second']);
         });
 
-        it('V8 (ticket 13): integer values list in numeric order, not in the order of the rows', () => {
+        it('ticket 13: integer values keep the order of the rows', () => {
             const state = mountState({
                 ...THREE_ROWS,
                 value1: '100',
@@ -908,10 +908,10 @@ describe('StateCollection change dialog up to the socket', () => {
 
             click(state);
 
-            expect(rowTexts()).toEqual(['null', 'fünfzig', 'hundert']);
+            expect(rowTexts()).toEqual(['hundert', 'fünfzig', 'null']);
         });
 
-        it('V9 (ticket 13): duplicate values merge into one row, the last alias wins', () => {
+        it('ticket 13: duplicate values stay rows of their own, each with its alias', () => {
             const state = mountState({
                 ...THREE_ROWS,
                 value1: '1',
@@ -924,15 +924,15 @@ describe('StateCollection change dialog up to the socket', () => {
 
             click(state);
 
-            expect(rowTexts()).toEqual(['B', 'C']);
+            expect(rowTexts()).toEqual(['A', 'B', 'C']);
         });
 
-        it('V10 (ticket 13): a row without an alias on an object copy without a unit key reads 1undefined', () => {
+        it('ticket 13: a row without an alias on an object copy without a unit key reads the bare value', () => {
             const state = mountState({ ...THREE_ROWS, alias1: '', alias2: undefined });
 
             click(state);
 
-            expect(rowTexts()).toEqual(['0undefined', '1undefined', 'AUTO']);
+            expect(rowTexts()).toEqual(['0', '1', 'AUTO']);
         });
 
         it.each([
