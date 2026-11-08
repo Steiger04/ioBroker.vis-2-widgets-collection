@@ -25,7 +25,7 @@ function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget } = context;
     const oidObject = widget.data.oidObject;
-    const { data, widgetStates, states } = useData('oid');
+    const { data, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
 
     const oidType = oidObject?.type;
@@ -95,7 +95,7 @@ function StateCollection(): React.ReactElement {
         <>
             {dialog.open && (
                 <StateChangeDialog
-                    widgetStates={widgetStates}
+                    states={states}
                     open={dialog.open}
                     closeHandler={dialog.close}
                     title={dialogTitle}

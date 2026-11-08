@@ -28,13 +28,14 @@ import {
     Stack,
 } from '@mui/material';
 import { useCallback, useMemo, useState, type FC, type MouseEvent } from 'react';
+import type { StateStyleData } from '../hooks/useData/types';
 
 /**
  * Props for {@link module:widgets/StateCollectionWidget/StateChangeDialog.default}.
  */
 export interface StateChangeDialogProps {
-    /** Available states to render as a selectable list (state key → display label). */
-    widgetStates: Record<string, string>;
+    /** The resolved states from useData, one list entry per state in the order of the rows. */
+    states: StateStyleData[];
     /** Whether the dialog is open. */
     open: boolean;
     /** Callback to close the dialog. */
@@ -57,7 +58,7 @@ export interface StateChangeDialogProps {
  * Dialog for changing a widget's current value.
  *
  * @param props - Component props.
- * @param props.widgetStates - Available states to render as a selectable list.
+ * @param props.states - The resolved states to render as a selectable list.
  * @param props.open - Whether the dialog is open.
  * @param props.closeHandler - Callback to close the dialog.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
@@ -72,7 +73,7 @@ export interface StateChangeDialogProps {
  * <StateChangeDialog
  *   open={open}
  *   closeHandler={() => setOpen(false)}
- *   widgetStates={widgetStates}
+ *   states={states}
  *   title={dialogTitle}
  *   currentValue={oidValue}
  *   onCommit={setOidValueState}
@@ -81,7 +82,7 @@ export interface StateChangeDialogProps {
  * ```
  */
 const StateChangeDialog: FC<StateChangeDialogProps> = ({
-    widgetStates,
+    states,
     open,
     closeHandler,
     title,
@@ -93,7 +94,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
 }) => {
     const [sliderValue, setSliderValue] = useState<number>(() => (typeof currentValue === 'number' ? currentValue : 0));
 
-    const hasWidgetStates = Boolean(widgetStates && Object.keys(widgetStates).length);
+    const hasStates = states.length > 0;
 
     const handleSliderChange = useCallback(
         (_event: Event, value: number | number[]) => {
@@ -105,15 +106,17 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     );
 
     const createListItemClickHandler = useCallback(
-        (key: string) => (event: MouseEvent<HTMLDivElement>) => {
+        (value: StateStyleData['value']) => (event: MouseEvent<HTMLDivElement>) => {
             event.preventDefault();
-            const numericValue = Number(key);
-            // Number('') and Number('  ') are 0, not NaN — a blank key must not
-            // drag the slider to 0; real numeric keys still seed the position.
-            if (key.trim() !== '' && !isNaN(numericValue)) {
-                setSliderValue(numericValue);
+            // A state without a value is statically possible; useData skips it at runtime.
+            if (value === undefined) {
+                return;
             }
-            onCommit(key);
+            // A row on a number OID that is no number resolves to NaN: no position.
+            if (typeof value === 'number' && !isNaN(value)) {
+                setSliderValue(value);
+            }
+            onCommit(value);
         },
         [onCommit],
     );
@@ -129,7 +132,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                     // Room for the list below — the old commonStates condition
                     // reads as "the dialog shows a list" now that the list is
                     // the only thing besides the slider.
-                    sx={{ pb: hasWidgetStates ? 4 : 3 }}
+                    sx={{ pb: hasStates ? 4 : 3 }}
                     size="small"
                     min={slider.min}
                     max={slider.max}
@@ -149,31 +152,34 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 />
             </Box>
         );
-    }, [slider, hasWidgetStates, sliderValue, handleSliderChange]);
+    }, [slider, hasStates, sliderValue, handleSliderChange]);
 
     const ChangeList = useMemo(() => {
-        if (!hasWidgetStates) {
+        if (!hasStates) {
             return null;
         }
 
         return (
             <List>
-                {Object.entries(widgetStates).map(([key, value]) => (
+                {states.map(state => (
                     <ListItem
                         disablePadding
-                        key={key}
+                        key={state.fieldNumber}
                     >
-                        <ListItemButton onClick={createListItemClickHandler(key)}>
+                        <ListItemButton
+                            selected={state.active}
+                            onClick={createListItemClickHandler(state.value)}
+                        >
                             <ListItemText
                                 primaryTypographyProps={{ variant: 'body2' }}
-                                primary={String(value)}
+                                primary={state.label}
                             />
                         </ListItemButton>
                     </ListItem>
                 ))}
             </List>
         );
-    }, [hasWidgetStates, widgetStates, createListItemClickHandler]);
+    }, [hasStates, states, createListItemClickHandler]);
 
     return (
         <Dialog
@@ -212,7 +218,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 }}
             >
                 <Stack
-                    divider={hasWidgetStates && <Divider />}
+                    divider={hasStates && <Divider />}
                     spacing={0}
                     component={Paper}
                 >

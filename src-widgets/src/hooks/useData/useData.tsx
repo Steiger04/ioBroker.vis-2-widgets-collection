@@ -4,6 +4,7 @@ import useStyles from '../useStyles';
 import { getDynamicProperty } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import effectiveStateCount from '../../lib/effectiveStateCount';
+import { isBlankStateValue } from '../../lib/filledStateRows';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
 import { sameStateValue } from './stateValueEquality';
@@ -126,8 +127,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     );
 
     // Independent per-state resolution using active-aware styles.
-    const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-        const widgetStates: Record<string, string> = {};
+    const { states, minValue, maxValue } = useMemo(() => {
         let minValue: number | null = null;
         let maxValue: number | null = null;
         const states: StateStyleData[] = [];
@@ -145,10 +145,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
             for (let i = 1; i <= effectiveCount; i++) {
                 const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
-                const _alias = rxData[`alias${i}`];
-                const _unit = oidObject?.unit;
 
-                if (_value === undefined || !/\S/.test(String(_value))) {
+                if (isBlankStateValue(_value)) {
                     continue;
                 }
 
@@ -176,7 +174,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     // Aktiver Zustand: published so renderers never re-derive it (ADR-0105).
                     active: isActive,
                     value: convertedValue,
-                    label: styleData.alias || String(styleData.value),
+                    // A blank alias names nothing; the value resolver brings the unit along.
+                    label: isBlankStateValue(styleData.alias) ? String(styleData.value) : styleData.alias,
                     alias: styleData.alias,
                     fontSize: styleData.valueSize,
                     textColor: styleData.textColor,
@@ -193,10 +192,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     background: styleData.background,
                     frameBackground: styleData.frameBackground,
                 });
-
-                // Map state value to label for widget-specific use
-                const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
             }
         }
 
@@ -211,16 +206,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
             }
         }
 
-        return { states, widgetStates, minValue, maxValue };
-    }, [
-        oidObject?.type,
-        oidObject?.commonStates,
-        oidObject?.unit,
-        rxData,
-        getDataValue,
-        oidValue,
-        resolveMarkStyleData,
-    ]);
+        return { states, minValue, maxValue };
+    }, [oidObject?.type, oidObject?.commonStates, rxData, getDataValue, oidValue, resolveMarkStyleData]);
 
     // `data`, `activeFieldNumber` and `activePosition` are pure functions of the
     // current OID value and resolved states, so they are derived together here — no
@@ -258,7 +245,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     }, [oidObject, states, resolveStyleData, baseStyle]);
 
     return {
-        widgetStates,
         minValue,
         maxValue,
         data,

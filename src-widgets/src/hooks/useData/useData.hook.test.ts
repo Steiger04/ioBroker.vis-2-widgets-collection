@@ -199,6 +199,45 @@ const duplicateRows = {
     value3: 'a',
 };
 
+describe('useData — the label of a state — ticket 12', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    const labelledRow = (alias: unknown): StateStyleData => {
+        const { states } = resolve(
+            {
+                oidObject: { _id: OID, type: 'number', unit: ' °C' },
+                values_count: 1,
+                value1: 21,
+                alias1: alias,
+            },
+            21,
+        );
+        return states[0];
+    };
+
+    it.each<[string, unknown]>([
+        ['only spaces', '  '],
+        ['spaces and a tab', ' \t '],
+        ['a non-breaking space', ' '],
+        ['an empty alias', ''],
+        ['no alias', undefined],
+    ])('falls back to the value with its unit: %s', (_label, alias) => {
+        expect(labelledRow(alias).label).toBe('21 °C');
+    });
+
+    it('keeps a set alias as it is, edge spaces included', () => {
+        expect(labelledRow(' warm ').label).toBe(' warm ');
+    });
+
+    it('leaves the alias of the state raw', () => {
+        expect(labelledRow('  ').alias).toBe('  ');
+    });
+});
+
 describe('useData — the active flag of each state (Aktiver Zustand)', () => {
     afterEach(() => {
         for (const host of mounted.splice(0)) {

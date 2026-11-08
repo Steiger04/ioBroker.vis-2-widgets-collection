@@ -124,11 +124,11 @@ const hasFixedRows = (data: WidgetData, config: StateRowsConfig): boolean =>
  * The number of Zustandszeilen the editor shows: the Zustandsmenge the runtime walks.
  *
  * @param data The widget data.
- * @param config Schema and OID property of the widget.
+ * @param config The OID property of the widget.
  * @returns The row count — for a widget saved with `ignoreCommonStates` on (`values_count` 0,
  *   rows filled) the OID's `common.states` count, exactly the rows the runtime shows.
  */
-export const stateRowCount = (data: WidgetData, config: StateRowsConfig): number =>
+export const stateRowCount = (data: WidgetData, config: Pick<StateRowsConfig, 'oidProperty'>): number =>
     effectiveStateCount({
         valuesCount: data.values_count as number | undefined,
         commonStatesCount: Object.keys(stateRowOidObject(data, config)?.commonStates || {}).length,
