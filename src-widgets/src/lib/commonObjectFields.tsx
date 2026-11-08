@@ -6,7 +6,7 @@
  * The main export in this module is `oidChangeHandlerAsync()`, an `onChange` handler factory used by several
  * widgets. It resolves the selected object and stores its metadata; the field's OID role decides which
  * widget data the pick owns beyond that (ADR-0096): only the main OID populates the root fields (icon,
- * min/max, value rows, etc.); the Select's control ID owns only `cidObject` and the `onlyDisplay`
+ * unit, min/max, value rows, etc.); the Select's control ID owns only `cidObject` and the `onlyDisplay`
  * suggestion (Schreibziel, ADR-0090); an auxiliary ID owns only its own `<name>Object`.
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
@@ -69,6 +69,7 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
     if (role === 'main') {
         delete data.icon;
         delete data.write;
+        delete data.unit;
 
         for (let i = 1; i <= rowCount; i++) {
             MAIN_STATE_ROWS.schema.keys.forEach(key => {
@@ -121,12 +122,14 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
  * @remarks
  * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role
  * ({@link module:lib/oidRole}) decides what the pick owns:
- * - `main` (Haupt-OID `oid`): root `icon`/`write`/`minValue`/`maxValue`, the Zustandszeilen, and
- *   the `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
- *   control ID keeps its suggestion, whatever the picking order. The pick supplements the rows
- *   from the object's `common.states` (boolean without them: TRUE/FALSE) and writes
+ * - `main` (Haupt-OID `oid`): root `icon`/`write`/`unit`/`minValue`/`maxValue`, the Zustandszeilen,
+ *   and the `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a
+ *   resolved control ID keeps its suggestion, whatever the picking order. The pick supplements the
+ *   rows from the object's `common.states` (boolean without them: TRUE/FALSE) and writes
  *   `ignoreCommonStates: false` with `values_count` (ADR-0104 §5, §6). A missing bound of the root
- *   range is seeded unless {@link OidPickOptions.inventRange} is off.
+ *   range is seeded unless {@link OidPickOptions.inventRange} is off. Root `unit` shows the object's
+ *   unit in the panel and replaces an earlier override; readers use the copy `oidObject.unit`
+ *   (ADR-0109 Nr. 12).
  * - `control` (the Select's Steuer ID, ADR-0090): only `cidObject` and the `onlyDisplay`
  *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
  * - `auxiliary` (Hilfs-OID — Dialog's `dialogId`, Light2's channel IDs, ADR-0096): only its own
@@ -189,6 +192,7 @@ export const oidChangeHandlerAsync =
                 // Root level properties belong to the main OID alone (required for compatibility).
                 data.icon = objectData.icon;
                 data.write = objectData.write;
+                data.unit = objectData.unit;
                 // The main OID's suggestion yields to a resolved control ID (the write target).
                 data.onlyDisplay = writeTargetDeniesWrite(data);
                 if (inventRange) {
