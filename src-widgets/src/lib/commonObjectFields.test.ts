@@ -55,6 +55,7 @@ const OBJECTS: Record<string, unknown> = {
             min: 10,
             max: 20,
             icon: 'command.png',
+            unit: 'W',
             states: MODES,
         },
     },
@@ -73,10 +74,10 @@ OBJECTS[POWER] = {
     common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
 };
 
-const numberState = (id: string, range: { min?: number; max?: number }): unknown => ({
+const numberState = (id: string, common: { min?: number; max?: number; unit?: string }): unknown => ({
     _id: id,
     type: 'state',
-    common: { name: id, type: 'number', role: 'level', read: true, write: true, ...range },
+    common: { name: id, type: 'number', role: 'level', read: true, write: true, ...common },
 });
 
 // Numbers without common.states, one per shape a real range can take.
@@ -88,6 +89,9 @@ OBJECTS[COOLING] = numberState(COOLING, { min: -10, max: 0 });
 OBJECTS[NO_RANGE] = numberState(NO_RANGE, {});
 OBJECTS[MIN_ONLY] = numberState(MIN_ONLY, { min: 5 });
 OBJECTS[MAX_ONLY] = numberState(MAX_ONLY, { max: 50 });
+
+const TEMPERATURE = 'zigbee.0.lamp.temperature';
+OBJECTS[TEMPERATURE] = numberState(TEMPERATURE, { unit: '°C' });
 
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
@@ -135,6 +139,7 @@ const STATUS_PICKED = {
     icon: 'lamp.png',
     write: false,
     onlyDisplay: true,
+    unit: '',
     minValue: 0,
     maxValue: 2,
     values_count: 3,
@@ -311,6 +316,75 @@ describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandsze
     });
 });
 
+describe('oidChangeHandlerAsync — the unit field of a main-OID pick (ADR-0109 Nr. 12)', () => {
+    it('fills the field from the object, next to the object copy', async () => {
+        const picked = await pick('oid', { oid: TEMPERATURE });
+
+        expect(picked.unit).toBe('°C');
+        expect(picked.oidObject?.unit).toBe('°C');
+    });
+
+    it('replaces an old override with the next object unit', async () => {
+        const picked = await pick('oid', { oid: TEMPERATURE, unit: 'kWh', oidObject: { unit: 'kWh' } });
+
+        expect(picked.unit).toBe('°C');
+        expect(picked.oidObject?.unit).toBe('°C');
+    });
+
+    it('replaces an old unit with nothing when the next object has none', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE, unit: '°C', oidObject: { unit: '°C' } });
+
+        expect(picked.unit).toBe('');
+        expect(picked.oidObject?.unit).toBe('');
+    });
+
+    it.each([
+        { how: 'field cleared', oid: '' },
+        { how: 'object no longer exists', oid: 'zigbee.0.lamp.removed' },
+    ])('removes the field with the OID ($how)', async ({ oid }) => {
+        const picked = await pick('oid', { oid: TEMPERATURE });
+
+        const cleared = await pick('oid', { ...picked, unit: 'K', oid });
+
+        expect(cleared.unit).toBeUndefined();
+        expect(cleared.oidObject).toBeUndefined();
+    });
+});
+
+describe('commonObjectFields — the unit field feeds the object copy', () => {
+    const unitField = (): RxWidgetInfoAttributesField => {
+        const field = commonObjectFields(ANY_VALUE_TYPES).find(f => f.name === 'unit');
+        if (!field) {
+            throw new Error('commonObjectFields built no unit field');
+        }
+        return field;
+    };
+
+    /** The panel's edit of the field: vis-2 stores the value, then runs the field's onChange. */
+    const edit = (data: WidgetData, unit: string): Promise<WidgetData> =>
+        pick('unit', { ...data, unit }, (unitField() as { onChange: RxWidgetInfoFieldChangeHandler }).onChange);
+
+    it('overrides the copy with what the field says', async () => {
+        const edited = await edit(await pick('oid', { oid: TEMPERATURE }), 'K');
+
+        expect(edited.unit).toBe('K');
+        expect(edited.oidObject?.unit).toBe('K');
+    });
+
+    it('removes the unit from the copy when the field is emptied', async () => {
+        const edited = await edit(await pick('oid', { oid: TEMPERATURE }), '');
+
+        expect(edited.unit).toBe('');
+        expect(edited.oidObject?.unit).toBe('');
+    });
+
+    it('offers no unit field with { unit: false } (JSON table)', () => {
+        const names = commonObjectFields(ANY_VALUE_TYPES, { unit: false }).map(field => field.name);
+
+        expect(names).toEqual(['oid']);
+    });
+});
+
 describe('commonObjectFields — the panel no longer offers the value-group switches', () => {
     it('has no ignoreCommonStates checkbox and no values_count number field', () => {
         const names = commonObjectFields(ANY_VALUE_TYPES).map(field => field.name);
@@ -357,7 +431,7 @@ describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {
         icon: 'command.png',
         write: true,
         onlyDisplay: false,
-        unit: '',
+        unit: 'W',
         minValue: 10,
         maxValue: 20,
         commonStates: MODES,
@@ -401,7 +475,7 @@ describe('oidChangeHandlerAsync — control ID (Schreibziel, ADR-0090)', () => {
 
 describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
     /** Root fields owned by the main OID; each differs from the command state's metadata. */
-    const ROOT = { icon: 'button.png', write: false, onlyDisplay: true, minValue: 1, maxValue: 5 };
+    const ROOT = { icon: 'button.png', write: false, onlyDisplay: true, unit: 'kWh', minValue: 1, maxValue: 5 };
 
     /** The command state's metadata as stored in `<name>Object`. */
     const COMMAND_OBJECT = {
@@ -411,7 +485,7 @@ describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
         icon: 'command.png',
         write: true,
         onlyDisplay: false,
-        unit: '',
+        unit: 'W',
         minValue: 10,
         maxValue: 20,
         commonStates: MODES,

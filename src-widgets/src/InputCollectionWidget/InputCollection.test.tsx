@@ -33,6 +33,10 @@ vi.hoisted(() => {
 
 import { act } from 'react';
 
+import type { Connection } from '@iobroker/adapter-react-v5';
+import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
+
+import commonObjectFields from '../lib/commonObjectFields';
 import { DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
 import {
     collectionScene,
@@ -706,5 +710,45 @@ describe('InputCollection red field', () => {
         backend(50.5, 3000);
 
         expect(isRed(container)).toBe(false);
+    });
+});
+
+describe('InputCollection unit through the panel field (Ticket 12)', () => {
+    const socket = {
+        getObject: (): Promise<unknown> =>
+            Promise.resolve({ _id: OID, type: 'state', common: { name: 'Setpoint', type: 'number', unit: '°C' } }),
+    } as unknown as Connection;
+
+    /** Runs a field's real `onChange` over the data vis-2 stored and returns what it hands back. */
+    const change = async (name: string, data: WidgetData): Promise<WidgetData> => {
+        const field = commonObjectFields(['number']).find(candidate => candidate.name === name);
+        let emitted: WidgetData | undefined;
+
+        await (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange(
+            field as RxWidgetInfoAttributesField,
+            data,
+            next => {
+                emitted = next;
+            },
+            socket,
+        );
+        vi.runAllTimers();
+
+        return emitted as WidgetData;
+    };
+
+    it('shows the picked unit, then the override, and nothing once the field is emptied', async () => {
+        const picked = await change('oid', { oid: OID } as WidgetData);
+        const { container, configure } = mountInput(picked);
+        expect(displayOf(container).textContent).toBe('40°C');
+        expect(picked.unit).toBe('°C');
+
+        const overridden = await change('unit', { ...picked, unit: 'K' });
+        configure(overridden);
+        expect(displayOf(container).textContent).toBe('40K');
+
+        const emptied = await change('unit', { ...overridden, unit: '' });
+        configure(emptied);
+        expect(displayOf(container).textContent).toBe('40');
     });
 });
