@@ -16,8 +16,6 @@ import type { StateTriggerConfig, TriggerEvent } from './stateTrigger';
 
 /** What the body hands the trigger each render. */
 export interface StateTriggerOptions extends StateTriggerConfig {
-    /** Current OID value (used for the toggle direction only). */
-    currentValue: string | number | boolean | undefined | null;
     /** The `useValueState` setter of the OID. */
     write: (value: string | number | boolean) => void;
 }
@@ -52,7 +50,7 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     const pressRef = useRef(NO_PRESS);
 
     const fire = (event: TriggerEvent): void => {
-        const step = triggerStep(pressRef.current, event, options, options.currentValue);
+        const step = triggerStep(pressRef.current, event, options);
         pressRef.current = step.press;
 
         if (step.action.type === 'write') {

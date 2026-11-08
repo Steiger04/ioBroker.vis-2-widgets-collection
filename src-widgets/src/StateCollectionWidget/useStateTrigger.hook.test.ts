@@ -14,7 +14,10 @@ import { renderHook } from '../lib/testing/testHarness';
 import { useStateTrigger } from './useStateTrigger';
 import type { StateTrigger, StateTriggerOptions } from './useStateTrigger';
 
-const TWO_STATES = [{ value: 1 }, { value: 0 }];
+const TWO_STATES = [
+    { value: 1, active: false },
+    { value: 0, active: false },
+];
 
 const mountTrigger = (
     options: Partial<StateTriggerOptions> = {},
@@ -25,7 +28,6 @@ const mountTrigger = (
             states: TWO_STATES,
             onlyStates: true,
             statePushButton: true,
-            currentValue: 0,
             write,
             ...options,
         }),
@@ -64,8 +66,14 @@ describe('useStateTrigger', () => {
         expect(written(write)).toEqual([1, 0]);
     });
 
-    it('a click on two states writes the other state', () => {
-        const { result, write } = mountTrigger({ statePushButton: false, currentValue: 1 });
+    it('a click on two states writes the state after the active one', () => {
+        const { result, write } = mountTrigger({
+            statePushButton: false,
+            states: [
+                { value: 1, active: true },
+                { value: 0, active: false },
+            ],
+        });
 
         act(() => result.current.buttonProps.onClick());
 

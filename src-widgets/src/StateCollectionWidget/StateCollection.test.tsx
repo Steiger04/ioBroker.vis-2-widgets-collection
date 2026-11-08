@@ -806,6 +806,35 @@ describe('StateCollection click up to the socket', () => {
     });
 });
 
+describe('StateCollection toggle on the Aktiver Zustand (ticket 03)', () => {
+    it('a String value meets the configured number: first row active, sends the second', () => {
+        const state = mountState({ value1: '1', value2: '0' }, '1');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([0]);
+    });
+
+    it('a String value meets the configured boolean: first row active, sends the second', () => {
+        const state = mountState({ oidObject: object('boolean'), value1: 'true', value2: 'false' }, 'true');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([false]);
+    });
+
+    it('two rows with the same value: both active, sends that value', () => {
+        const state = mountState({ value1: '1', value2: '1' }, 1);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+});
+
 describe('StateCollection change dialog up to the socket', () => {
     describe('the list', () => {
         it('a row sends its typed value behind the debounce and the dialog stays open', () => {

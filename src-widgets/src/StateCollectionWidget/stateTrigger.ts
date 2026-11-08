@@ -11,8 +11,8 @@
  *
  * The config carries the RESOLVED `states[]` from useData — never the raw `value1`/
  * `value2` fields. Blank rows are already absent there, so a blank configured row
- * simply does not trigger. Toggle matching goes through the `sameStateValue`
- * string-coercion contract (String `"true"` meets configured `true`).
+ * simply does not trigger. The toggle reads the first state's `active` flag, the one
+ * match decision of useData (ADR-0110 Nr. 8, ADR-0105), and compares no values itself.
  *
  * Push-button correctness is suppression, not a timer race: press/release write
  * synchronously in the wiring, and the trailing browser click after release returns
@@ -20,7 +20,6 @@
  * click only, no mouse events) is an honest no-op instead of latching the press
  * value on a momentary control.
  */
-import { sameStateValue } from '../hooks/useData/stateValueEquality';
 
 /** What the transition carries from step to step: the Taster-Betätigung (CONTEXT), once one is open. */
 export interface TriggerPress {
@@ -62,6 +61,8 @@ export interface TriggerState {
      * are skipped there. A valueless row never triggers (see {@link writeState}).
      */
     value?: string | number | boolean;
+    /** Aktiver Zustand: whether the OID value matches this state, as useData decided it. */
+    active: boolean;
 }
 
 /** Decision inputs the wiring extracts from the widget context. */
@@ -83,10 +84,7 @@ const writeState = (state: TriggerState | undefined): TriggerAction =>
     state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value };
 
 /** What a click does. It leaves the open press alone: a click neither starts nor ends one. */
-const clickAction = (
-    config: StateTriggerConfig,
-    currentValue: string | number | boolean | undefined | null,
-): TriggerAction => {
+const clickAction = (config: StateTriggerConfig): TriggerAction => {
     const { states, onlyStates } = config;
 
     if (!onlyStates) {
@@ -102,7 +100,7 @@ const clickAction = (
                 // synchronously; the trailing click must not overwrite the release.
                 return { type: 'none' };
             }
-            return sameStateValue(currentValue, states[0].value) ? writeState(states[1]) : writeState(states[0]);
+            return states[0].active ? writeState(states[1]) : writeState(states[0]);
         default:
             return { type: 'open-dialog' };
     }
@@ -114,20 +112,15 @@ const clickAction = (
  * @param press - The press after the last step.
  * @param event - The fired event.
  * @param config - Widget trigger configuration with the RESOLVED states from useData.
- * @param currentValue - Current OID value (used for the toggle direction only).
  * @returns The press after this event and the action for the wiring to execute.
  * @example
  * ```ts
- * triggerStep(NO_PRESS, { kind: 'click' }, { states: [{ value: 0 }, { value: 1 }], onlyStates: true }, 0);
+ * const states = [{ value: 0, active: true }, { value: 1, active: false }];
+ * triggerStep(NO_PRESS, { kind: 'click' }, { states, onlyStates: true });
  * // → { press: NO_PRESS, action: { type: 'write', value: 1 } } — toggle to Wert[2]
  * ```
  */
-export function triggerStep(
-    press: TriggerPress,
-    event: TriggerEvent,
-    config: StateTriggerConfig,
-    currentValue: string | number | boolean | undefined | null,
-): TriggerStep {
+export function triggerStep(press: TriggerPress, event: TriggerEvent, config: StateTriggerConfig): TriggerStep {
     switch (event.kind) {
         case 'press':
             return isPushButtonMode(config)
@@ -139,6 +132,6 @@ export function triggerStep(
                 action: isPushButtonMode(config) ? writeState(config.states[1]) : { type: 'none' },
             };
         case 'click':
-            return { press, action: clickAction(config, currentValue) };
+            return { press, action: clickAction(config) };
     }
 }

@@ -49,7 +49,6 @@ function StateCollection(): React.ReactElement {
         states,
         onlyStates,
         statePushButton: widget.data.statePushButton,
-        currentValue: oidValue,
         write: setOidValueState,
     });
 
