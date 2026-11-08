@@ -179,6 +179,10 @@ describe('CollectionBase Rahmen-Fußzeile', () => {
         expect(footerOf({ ...MATCHING_ROW, alias1: 'warm' }, 21)).toBe('warm');
     });
 
+    it('shows the current value instead of the lone unit of an empty value', () => {
+        expect(footerOf({ ...WITH_UNIT, value: '' }, 21)).toBe('21°C');
+    });
+
     it('shows the value for an alias of only spaces', () => {
         expect(footerOf({ ...MATCHING_ROW, alias1: '   ' }, 21)).toBe('0');
     });

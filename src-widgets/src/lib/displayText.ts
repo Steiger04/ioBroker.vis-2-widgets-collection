@@ -41,8 +41,8 @@ export const valueWithUnit = (value: unknown, unit: string | undefined): TextVal
         return undefined;
     }
 
-    // An empty value has nothing to carry a unit: no lone "°C".
-    return unit && value !== '' ? `${value}${unit}` : value;
+    // A blank value has nothing to carry a unit: no lone "°C".
+    return unit && !isBlankStateValue(value) ? `${value}${unit}` : value;
 };
 
 /**
@@ -52,7 +52,7 @@ export const valueWithUnit = (value: unknown, unit: string | undefined): TextVal
  * @returns The raw text, `undefined` when there is nothing to show.
  */
 export const displayText = (input: DisplayTextInput): TextValue | undefined =>
-    // A blank alias names nothing (ADR-0110 Nr. 10).
+    // A blank alias names nothing (ADR-0110 Nr. 10), a blank row is no state.
     (isBlankStateValue(input.alias) ? undefined : input.alias) ||
-    input.rowValue ||
+    (isBlankStateValue(input.rowValue) ? undefined : input.rowValue) ||
     valueWithUnit(input.value, input.unit);

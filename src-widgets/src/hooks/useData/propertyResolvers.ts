@@ -441,7 +441,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
 
         value: (ext: string | number, _includeActive: boolean) => {
             const val = getDataValue<ioBroker.StateValue>('value', String(ext));
-            const text = val === '' ? (oidObject?.unit ?? '') : valueWithUnit(val, oidObject?.unit);
+            const text = valueWithUnit(val, oidObject?.unit);
             return text === undefined ? undefined : String(text);
         },
 
