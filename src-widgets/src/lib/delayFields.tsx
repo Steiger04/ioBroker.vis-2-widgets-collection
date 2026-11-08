@@ -19,7 +19,7 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
 type DelayFieldsSettings = {
     /**
      * Hides the whole block, its divider included, while the options have no effect. Stored values
-     * stay and apply again once the predicate turns `false` (ADR-0110, decision 6: State widget).
+     * stay and apply again once the predicate turns `false` (ADR-0110 Nr. 6: State widget).
      *
      * vis-2 hands it the raw widget data.
      */
@@ -36,10 +36,8 @@ const delayFields = (settings?: DelayFieldsSettings): RxWidgetInfoAttributesFiel
 
     // A string condition cannot be combined with a predicate without `eval`, so `hiddenWhen` takes
     // the rule as a predicate too; a widget without it keeps vis-2's string condition.
-    const unlessHidden = (
-        condition: string,
-        rule: (data: WidgetData) => boolean,
-    ): RxWidgetInfoAttributesField['hidden'] => (hiddenWhen ? data => hiddenWhen(data) || rule(data) : condition);
+    const hiddenBy = (condition: string, rule: (data: WidgetData) => boolean): RxWidgetInfoAttributesField['hidden'] =>
+        hiddenWhen ? data => hiddenWhen(data) || rule(data) : condition;
 
     return [
         {
@@ -64,7 +62,7 @@ const delayFields = (settings?: DelayFieldsSettings): RxWidgetInfoAttributesFiel
             min: 0,
             max: 10000,
             step: 1,
-            hidden: unlessHidden('!data.sampleInterval', data => !data.sampleInterval),
+            hidden: hiddenBy('!data.sampleInterval', data => !data.sampleInterval),
         },
         {
             name: 'delay',
@@ -75,7 +73,7 @@ const delayFields = (settings?: DelayFieldsSettings): RxWidgetInfoAttributesFiel
             min: 0,
             max: 10000,
             step: 1,
-            hidden: unlessHidden('data.sampleInterval', data => Boolean(data.sampleInterval)),
+            hidden: hiddenBy('data.sampleInterval', data => Boolean(data.sampleInterval)),
         },
     ];
 };

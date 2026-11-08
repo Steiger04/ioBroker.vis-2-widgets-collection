@@ -99,10 +99,10 @@ export function renderComponent<P extends object>(type: FC<P>, initialProps: P):
         unmount: (): void => {
             // Cleared first: a re-render coming out of an effect cleanup lands nowhere, as a
             // setState on a component going down does.
-            const going = root;
+            const rootToUnmount = root;
             root = null;
             act(() => {
-                going?.unmount();
+                rootToUnmount?.unmount();
             });
             container.remove();
         },

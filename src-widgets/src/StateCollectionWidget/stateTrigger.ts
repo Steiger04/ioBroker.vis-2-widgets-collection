@@ -158,17 +158,16 @@ export const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateT
     Boolean(onlyStates && states.length === 2 && statePushButton);
 
 /** A state without a value (statically possible, skipped by useData at runtime) never triggers. */
-const writeState = (state: TriggerState | undefined): TriggerAction =>
-    state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value };
+const writeState = (state: TriggerState | undefined, options?: { immediate: true }): TriggerAction =>
+    state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value, ...options };
 
 /** The push button writes past the debounce: a short tap would otherwise lose its Wert[1]. */
-const writeAtOnce = (state: TriggerState | undefined): TriggerAction =>
-    state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value, immediate: true };
+const AT_ONCE = { immediate: true } as const;
 
 /** Whatever ends a press: Wert[2] comes only out of an open one; a leftover of a former mode ends silently. */
 const endPress = (pressState: PressState, config: StateTriggerConfig): TriggerStep => ({
     pressState: NO_OPEN_PRESS,
-    action: pressState.pressOpen && isPushButtonMode(config) ? writeAtOnce(config.states[1]) : { type: 'none' },
+    action: pressState.pressOpen && isPushButtonMode(config) ? writeState(config.states[1], AT_ONCE) : { type: 'none' },
 });
 
 /** What a click does. It leaves the open press alone: a click neither starts nor ends one. */
@@ -219,7 +218,7 @@ export function triggerStep(pressState: PressState, event: TriggerEvent, config:
             }
             return {
                 pressState: { pressOpen: true, pointerId: event.pointerId },
-                action: writeAtOnce(config.states[0]),
+                action: writeState(config.states[0], AT_ONCE),
             };
         case 'release':
             if (pressState.pressOpen && pressState.pointerId !== event.pointerId) {

@@ -58,7 +58,7 @@ export const pushButtonModeOffered = (data: WidgetData): boolean =>
     Boolean(data.onlyStates) && filledStateRowCount(data) === 2;
 
 /**
- * "Taster-Modus aktiv" on the raw widget data — the condition `stateTrigger` applies to the
+ * The push-button mode on the raw widget data — the condition `stateTrigger` applies to the
  * resolved states at runtime.
  *
  * @param data The raw widget data.

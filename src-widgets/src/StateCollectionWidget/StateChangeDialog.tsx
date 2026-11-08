@@ -44,6 +44,7 @@ import { solidOf } from '../lib/helper/colorDerivation';
 import { isGradientColor } from '../lib/helper/colorValidation';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isNumber from '../lib/helper/isNumber';
+import type { SliderRange } from './stateTrigger';
 
 /**
  * Props for {@link module:widgets/StateCollectionWidget/StateChangeDialog.default}.
@@ -70,7 +71,7 @@ export interface StateChangeDialogProps {
     /** The Sperre (CONTEXT): rows and slider commit nothing; the list and the position keep following the value. */
     locked?: boolean;
     /** Range bounds and step (default 1); omit to render the state list without a slider. */
-    slider?: { min: number; max: number; step?: number };
+    slider?: SliderRange;
 }
 
 /**
