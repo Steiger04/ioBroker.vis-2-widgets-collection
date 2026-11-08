@@ -26,6 +26,7 @@ import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
+import { displayText } from '../lib/displayText';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { cleanSx } from '../lib/helper/sxUtils';
@@ -111,19 +112,15 @@ function CollectionBase({
     const oidObject = widget.data.oidObject;
     const oid = oidObject?._id;
 
-    // Calculate footer value with proper fallback using nullish coalescing
+    // The active state's footer text, else the Anzeigetext; a `false` reads as text here.
     const footerValue = useMemo(() => {
         if (widget.data.noFooter) {
             return '';
         }
 
-        // An object gives no text (ADR-0111 Nr. 6); NaN is falsy and drops out with the empty values.
-        const valueWithUnit =
-            typeof oidValue !== 'object' && (oidValue || oidValue === 0 || String(oidValue) === 'false')
-                ? `${oidValue}${oidObject?.unit ?? ''}`
-                : '';
+        const text = displayText({ value: oidValue, unit: oidObject?.unit, alias: data.alias, rowValue: data.value });
 
-        return data.footer || data.alias || data.value || valueWithUnit || '';
+        return data.footer || String(text ?? '');
     }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);
 
     // Build memoized sx object for outer Paper

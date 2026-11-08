@@ -234,4 +234,10 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
     it('lets the alias of a matching row win over the object unit', () => {
         expect(labelOf({ oidObject: { _id: OID, type: 'boolean', unit: 'x' } })).toBe('AN');
     });
+
+    it('leaves the label empty for a false', () => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0 });
+
+        expect(container.querySelector('.MuiFormControlLabel-root > div')?.textContent).toBe('');
+    });
 });

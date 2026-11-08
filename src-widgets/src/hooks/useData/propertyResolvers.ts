@@ -13,6 +13,7 @@ import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
 import type { MarkerLayer, PropertyResolvers } from './types';
 import { resolvePriority } from './priorityResolver';
+import { valueWithUnit } from '../../lib/displayText';
 import { terminalColor } from '../../lib/helper/resolveEffectiveColor';
 
 /**
@@ -440,10 +441,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
 
         value: (ext: string | number, _includeActive: boolean) => {
             const val = getDataValue<ioBroker.StateValue>('value', String(ext));
-            // An object or NaN gives no text (ADR-0111 Nr. 6).
-            return val !== undefined && typeof val !== 'object' && !Number.isNaN(val)
-                ? `${val}${oidObject?.unit !== undefined ? oidObject.unit : ''}`
-                : undefined;
+            const text = val === '' ? (oidObject?.unit ?? '') : valueWithUnit(val, oidObject?.unit);
+            return text === undefined ? undefined : String(text);
         },
 
         // Background Properties

@@ -368,6 +368,11 @@ describe('value — the row value with its unit', () => {
         expect(buildResolvers({ rxData: { value1: value } }).value(1, false)).toBe(text);
     });
 
+    // As it reads today; corrected in its own commit.
+    it('an empty value still carries the unit alone', () => {
+        expect(rowValue('')).toBe('°C');
+    });
+
     it.each([
         ['no value', undefined],
         ['null', null],

@@ -353,6 +353,12 @@ describe('StateCollection value text (Ticket 12)', () => {
 
         expect(buttonOf(state).textContent).toBe('ON');
     });
+
+    it('shows a false as text', () => {
+        const state = mountState({ oidObject: object('boolean'), values_count: 0 }, false);
+
+        expect(buttonOf(state).textContent).toBe('false');
+    });
 });
 
 describe('StateCollection push button up to the socket', () => {
