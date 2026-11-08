@@ -9,7 +9,6 @@ import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData/useData';
-import useOidValue from '../hooks/useOidValue';
 import type { TemplateCollectionContextProps } from '../types';
 
 /**
@@ -22,8 +21,7 @@ function TemplateCollection(): React.ReactElement {
     const { widget } = context;
     const oidObject = widget.data.oidObject;
 
-    const { data } = useData('oid');
-    const oidValue = useOidValue('oid');
+    const { data, oidValue } = useData('oid');
 
     const oidType = oidObject?.type;
 

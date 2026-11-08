@@ -9,7 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/dialog-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { oidChangeHandlerAsync } from './commonObjectFields';
+import { createIdField } from './commonObjectFields';
 import { createColorField, createPlainColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -40,11 +40,9 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider />,
     },
     {
-        name: 'dialogId',
-        type: 'id',
+        ...createIdField('dialogId', ['boolean']),
         label: 'oid',
         tooltip: 'dialog_set_oid_tooltip',
-        onChange: oidChangeHandlerAsync(['boolean'], 'dialogId'),
     },
     {
         label: '',

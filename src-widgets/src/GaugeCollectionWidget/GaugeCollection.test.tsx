@@ -273,6 +273,18 @@ describe('GaugeCollection probe (cost of the Canvas-Farbe)', () => {
     });
 });
 
+describe('GaugeCollection options per value change', () => {
+    it('builds one option set from the new value, none from the old one', () => {
+        const first = withContentBox(scene(), { width: 300, height: 200 });
+        const { rerender } = mountBody(GaugeCollection, first);
+        handedOver.options.length = 0;
+
+        rerender({ ...first, context: { ...first.context, values: { [`${OID}.val`]: 22 } } });
+
+        expect([...new Set(handedOver.options)].map(options => options.value)).toStrictEqual([22]);
+    });
+});
+
 describe('GaugeCollection Canvas-Titel', () => {
     it('hands the header to the canvas as plain text, even with the frame header hidden', () => {
         handedOver.options.length = 0;

@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/light2-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { oidTypeFilter } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
 import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
@@ -86,6 +87,13 @@ const RGB_ROLES: Record<string, Light2ChannelField> = {
 /** The JS types a Light2 OID may have — the switch and every channel state. */
 const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
 
+/** What every Light2 id field shares: its object dialog offers only those types (ADR-0111 Nr. 4). */
+const LIGHT2_ID_FIELD = {
+    type: 'id',
+    allowedTypes: LIGHT2_OID_TYPES,
+    filter: oidTypeFilter(LIGHT2_OID_TYPES),
+} as const;
+
 /** A channel field may be filled by the detection only while it holds no pick of the user. */
 const isUnset = (value: unknown): boolean => !value || value === 'nothing_selected';
 
@@ -98,7 +106,9 @@ const isUnset = (value: unknown): boolean => !value || value === 'nothing_select
  * from the state with the matching ioBroker role. A pick never replaces the picked switch nor a
  * channel OID the user already chose (ADR-0104 §6, Nachtrag Fix Light2-Kanalerkennung): picking
  * another lamp leaves set channel fields alone, the user empties them to have them detected again.
- * Emptying the switch (or picking one that does not resolve) drops its object and keeps its rows.
+ * Emptying the switch, or a pick without a usable object (no such id, a type no Light2 OID may have,
+ * a socket error), drops its object and keeps its rows: the decision is the handler's result, the
+ * object it stored or dropped (ADR-0111 Nr. 3).
  */
 const loadStatesAsync = async (
     field: RxWidgetInfoAttributesField,
@@ -110,11 +120,10 @@ const loadStatesAsync = async (
     if (!fieldName) {
         return;
     }
-    const object = data[fieldName] ? await socket.getObject(data[fieldName] as string) : undefined;
     await oidChangeHandlerAsync(LIGHT2_OID_TYPES, fieldName)(field, data, changeData, socket);
-    if (!object?.common) {
-        // Emptied or unresolvable: the switch behaves like every auxiliary ID (ADR-0096) — the
-        // shared OID handler dropped its object; the rows stay, the values group asks for an OID.
+    if (!data[`${fieldName}Object`]) {
+        // The switch behaves like every auxiliary ID (ADR-0096) — the shared OID handler dropped
+        // its object; the rows stay, the values group asks for an OID.
         changeData(data);
         return;
     }
@@ -243,7 +252,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
     },
     {
         name: 'colorLightSwitchOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_switch_oid',
         onChange: loadStatesAsync,
     },
@@ -301,7 +310,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
     },
     {
         name: 'colorLightTemperatureOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_temperature_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid'),
     },
@@ -334,43 +343,43 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
     },
     {
         name: 'colorLightRgbHexOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_rgb_hex_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRgbHexOid'),
     },
     {
         name: 'colorLightRedOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_red_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRedOid'),
     },
     {
         name: 'colorLightGreenOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_green_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightGreenOid'),
     },
     {
         name: 'colorLightBlueOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_blue_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBlueOid'),
     },
     {
         name: 'colorLightHueOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_hue_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightHueOid'),
     },
     {
         name: 'colorLightSaturationOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_saturation_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightSaturationOid'),
     },
     {
         name: 'colorLightBrightnessOid',
-        type: 'id',
+        ...LIGHT2_ID_FIELD,
         label: 'color_light_brightness_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBrightnessOid'),
     },

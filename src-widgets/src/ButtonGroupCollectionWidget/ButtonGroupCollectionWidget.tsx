@@ -43,7 +43,10 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
                 {
                     name: 'active',
                     label: 'group_active',
-                    fields: [...commonFields({ groupName: 'Active', allFields: false })],
+                    // No aliasActive: the alias resolver has no Active stage, a stored value stays without effect.
+                    fields: commonFields({ groupName: 'Active', allFields: false }).filter(
+                        field => field.name !== 'aliasActive',
+                    ),
                 },
                 stateEditorGroup(),
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md

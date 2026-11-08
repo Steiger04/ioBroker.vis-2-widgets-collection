@@ -8,7 +8,7 @@
  * seeds the two rows TRUE/FALSE with the power icon — supplementing like the main-OID pick
  * (ADR-0104 §6, Nachtrag Ticket 02): rows the user already has keep order, alias and styles.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
@@ -274,5 +274,79 @@ describe('Light2 switch-OID pick — emptying the switch', () => {
 
         expect(unresolved.colorLightSwitchOidObject).toBeUndefined();
         expect(rowsOf(unresolved)).toEqual(rowsOf(picked));
+    });
+});
+
+describe('Light2 id fields — the object dialog offers only the allowed types (ADR-0111 Nr. 4)', () => {
+    const idFields = light2Fields().filter(
+        field => (field as { type?: string }).type === 'id',
+    ) as (RxWidgetInfoAttributesField & { filter?: unknown })[];
+
+    it('covers the switch and all eight channels', () => {
+        expect(idFields.map(field => field.name)).toEqual([
+            'colorLightSwitchOid',
+            'colorLightTemperatureOid',
+            'colorLightRgbHexOid',
+            'colorLightRedOid',
+            'colorLightGreenOid',
+            'colorLightBlueOid',
+            'colorLightHueOid',
+            'colorLightSaturationOid',
+            'colorLightBrightnessOid',
+        ]);
+    });
+
+    it.each(idFields.map(field => [field.name, field] as const))('%s filters on the Light2 OID types', (_, field) => {
+        expect(field.filter).toEqual({ common: { type: ['boolean', 'number', 'string', 'mixed'] } });
+    });
+});
+
+describe('Light2 switch-OID pick — without a usable object (ADR-0111 Nr. 3)', () => {
+    const DIMMER = 'hue.0.lamp.level';
+    const REJECTED = 'hue.0.lamp.scene';
+    /** A state of a type no Light2 OID may have, next to a channel state of a matching role. */
+    const rejectedChannel = (): Connection =>
+        socketWith([channelState(REJECTED, 'switch.light', 'object'), channelState(DIMMER, 'level.dimmer')]);
+    const failingSocket = {
+        getObject: (): Promise<unknown> => Promise.reject(new Error('socket down')),
+        getObjectView: (): Promise<unknown> => Promise.resolve({ [DIMMER]: channelState(DIMMER, 'level.dimmer') }),
+    } as unknown as Connection;
+
+    beforeEach(() => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    describe.each([
+        { how: 'a rejected type', socket: rejectedChannel },
+        { how: 'a socket error', socket: (): Connection => failingSocket },
+    ])('$how', ({ socket }) => {
+        it('fills neither rows nor channels on a first pick', async () => {
+            const picked = await pickSwitch({ colorLightButton: true, values_count: 0 }, socket(), REJECTED);
+
+            expect(picked.values_count).toBe(0);
+            expect(picked.value1).toBeUndefined();
+            expect(picked.iconSize).toBeUndefined();
+            expect(picked.colorLightBrightnessOid).toBeUndefined();
+            expect(picked.colorLightSwitchOidObject).toBeUndefined();
+        });
+
+        it('keeps the rows and the channel fields of a working widget and drops the switch object', async () => {
+            const working = await pickSwitch(
+                { colorLightButton: true, values_count: 0 },
+                socketWith([SWITCH_OBJECT, channelState('hue.0.lamp.ct', 'level.color.temperature')]),
+            );
+
+            const rejected = await pickSwitch(working, socket(), REJECTED);
+
+            expect(rowsOf(rejected)).toEqual(rowsOf(working));
+            expect(rejected.colorLightTemperatureOid).toBe('hue.0.lamp.ct');
+            expect(rejected.colorLightBrightnessOid).toBeUndefined();
+            expect(rejected.colorLightSwitchOid).toBe(REJECTED);
+            expect(rejected.colorLightSwitchOidObject).toBeUndefined();
+        });
     });
 });

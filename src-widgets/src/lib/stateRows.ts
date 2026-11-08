@@ -94,6 +94,9 @@ export type StateRowOperation =
     /** Supplement from common.states: appends the states no row carries yet; existing rows stay. */
     | { kind: 'supplement' };
 
+/** The rows of the main OID: the config of a reader that needs nothing but their count. */
+export const MAIN_OID_ROWS: Pick<StateRowsConfig, 'oidProperty'> = { oidProperty: 'oid' };
+
 /** Actions a boolean OID refuses: its two rows are fixed (ADR-0104 §3). */
 const FIXED_ROW_KINDS: readonly StateRowOperation['kind'][] = ['add', 'clone', 'delete'];
 

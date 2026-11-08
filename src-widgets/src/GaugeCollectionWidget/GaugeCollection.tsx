@@ -20,7 +20,6 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
-import useOidValue from '../hooks/useOidValue';
 import useContentBox from '../hooks/useContentBox';
 import useStyles from '../hooks/useStyles';
 import Gauge from './Gauge';
@@ -156,8 +155,7 @@ function GaugeCollection(): React.JSX.Element {
         widget,
     } = context;
 
-    const { data, states } = useData('oid');
-    const oidValue = useOidValue('oid');
+    const { data, states, oidValue } = useData('oid');
     const { textStyles } = useStyles(widget.style);
 
     const oidType = oidObject?.type;
