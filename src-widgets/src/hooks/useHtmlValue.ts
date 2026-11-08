@@ -58,7 +58,8 @@ const useHtmlValue = (
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
             const unit = widget?.data.oidObject?.unit;
-            const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
+            // An empty value has nothing to carry a unit: no lone "°C" (the footer's rule, too).
+            const result = unit && unit !== '' && oidValue !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;
         }

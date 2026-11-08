@@ -70,6 +70,10 @@ describe('useHtmlValue — the Einheit', () => {
         expect(htmlValue(21, widgetData)).toBe(21);
     });
 
+    it('shows no lone unit for an empty string, like the footer', () => {
+        expect(htmlValue('', WITH_UNIT)).toBe('');
+    });
+
     it('leaves the raw value without a widget', () => {
         expect(htmlValue(21)).toBe(21);
     });
