@@ -78,6 +78,8 @@ export interface TriggerOidObject {
     minValue?: number;
     /** Upper bound; the copy is pre-filled with 100 on the OID pick (ADR-0109 Nr. 8). */
     maxValue?: number;
+    /** `common.step`, only on a pick of an object that has one (ADR-0110 Nr. 12). */
+    step?: number;
 }
 
 /** Decision inputs the wiring extracts from the widget context. */
@@ -98,6 +100,8 @@ export interface SliderRange {
     min: number;
     /** Upper bound, above `min`. */
     max: number;
+    /** The step of the object copy, above 0; without one the dialog's slider steps by 1. */
+    step?: number;
 }
 
 /**
@@ -116,9 +120,12 @@ export const sliderRange = ({
         return undefined;
     }
 
-    const { minValue: min, maxValue: max } = oidObject;
+    const { minValue: min, maxValue: max, step } = oidObject;
 
-    return min !== undefined && max !== undefined && min < max ? { min, max } : undefined;
+    // A step of 0 would round a drag to NaN in MUI; it is no raster, so it falls back like a missing one.
+    return min !== undefined && max !== undefined && min < max
+        ? { min, max, step: step !== undefined && step > 0 ? step : undefined }
+        : undefined;
 };
 
 /** The dialog opens only with something to show: without a list and without a slider it would be empty. */

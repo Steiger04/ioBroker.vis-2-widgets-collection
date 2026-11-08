@@ -209,6 +209,26 @@ describe('the slider gate (ticket 17)', () => {
     });
 });
 
+describe('the slider step (ticket 16)', () => {
+    const copy = (step?: number): TriggerOidObject => ({ type: 'number', minValue: 0, maxValue: 100, step });
+
+    it('takes the step from the object copy', () => {
+        expect(sliderRange({ oidObject: copy(0.5) })?.step).toBe(0.5);
+    });
+
+    it.each<[string, number | undefined]>([
+        ['a copy without a step', undefined],
+        // MUI rounds a drag over a step of 0 to NaN.
+        ['a step of 0', 0],
+        ['a negative step', -2],
+    ])('%s hands on no step', (_case, step) => {
+        const range = sliderRange({ oidObject: copy(step) });
+
+        expect(range).toBeDefined();
+        expect(range?.step).toBeUndefined();
+    });
+});
+
 describe('triggerStep — a state without a value', () => {
     it('never writes it (worthless rows do not trigger)', () => {
         const config: StateTriggerConfig = { states: [row(undefined), row(1)], onlyStates: true };

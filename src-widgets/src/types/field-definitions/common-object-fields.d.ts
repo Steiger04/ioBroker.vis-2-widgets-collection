@@ -288,6 +288,9 @@ export interface CommonObjectFieldsRxData {
 
         /** Maximum value */
         maxValue?: number;
+
+        /** `common.step` of the object; only on a pick of an object that has one (ADR-0110 Nr. 12) */
+        step?: number;
     };
 
     /**

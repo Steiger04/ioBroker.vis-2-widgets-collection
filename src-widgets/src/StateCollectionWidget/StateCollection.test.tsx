@@ -1087,7 +1087,7 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(thumb()).toBe(70);
         });
 
-        it('V11 (ticket 16): the step is 1, whatever the object copy says', () => {
+        it('ticket 16: the step comes from the object copy', () => {
             const state = mountState(
                 { ...THREE_ROWS, oidObject: object('number', { minValue: 0, maxValue: 1, step: 0.1 }) },
                 0,
@@ -1095,7 +1095,7 @@ describe('StateCollection change dialog up to the socket', () => {
 
             click(state);
 
-            expect(rangeOf().getAttribute('step')).toBe('1');
+            expect(rangeOf().getAttribute('step')).toBe('0.1');
         });
 
         it('ticket 15: a numeric string seeds the thumb at its number', () => {
@@ -1472,6 +1472,41 @@ describe('StateCollection dialog slider follows a Fremdänderung (ticket 15)', (
         settle();
 
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection dialog slider step (ticket 16)', () => {
+    const sliderWith = (range: Record<string, unknown>): void => {
+        click(mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 0));
+    };
+
+    it('uses the step of the object copy', () => {
+        sliderWith({ ...RANGE, step: 0.5 });
+
+        expect(rangeOf().getAttribute('step')).toBe('0.5');
+    });
+
+    it('stays on 1 for an object copy without a step', () => {
+        sliderWith(RANGE);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it('a root field step does not reach the slider: the copy is its only source', () => {
+        const state = mountState({ ...THREE_ROWS, oidObject: object('number', RANGE), step: 0.5 }, 0);
+
+        click(state);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it.each([
+        ['0', 0],
+        ['a negative step', -2],
+    ])('%s falls back to 1: MUI rounds a drag over it to NaN', (_case, step) => {
+        sliderWith({ ...RANGE, step });
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
     });
 });
 

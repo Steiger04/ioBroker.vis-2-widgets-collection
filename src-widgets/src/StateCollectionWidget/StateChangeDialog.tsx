@@ -53,8 +53,8 @@ export interface StateChangeDialogProps {
     hasForeignChange?: boolean;
     /** The body's single write chain — every list/slider commit goes through it. */
     onCommit: (value: string | number | boolean) => void;
-    /** Range bounds; omit to render the state list without a slider. */
-    slider?: { min: number; max: number };
+    /** Range bounds and step (default 1); omit to render the state list without a slider. */
+    slider?: { min: number; max: number; step?: number };
 }
 
 /**
@@ -79,7 +79,7 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  * @param props.currentValue - Current OID value; seeds the slider position and moves it on a Fremdänderung.
  * @param props.hasForeignChange - The body's Fremdänderung flag; the slider position follows `currentValue`.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
- * @param props.slider - Range bounds; omit to render the list without a slider.
+ * @param props.slider - Range bounds and step (default 1); omit to render the list without a slider.
  * @returns Dialog UI.
  * @example
  * ```tsx
@@ -160,6 +160,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                     size="small"
                     min={slider.min}
                     max={slider.max}
+                    step={slider.step ?? 1}
                     marks={[
                         {
                             value: slider.min,
