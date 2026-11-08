@@ -1,5 +1,5 @@
 /**
- * useDebounce — what leaves the write stream.
+ * useDebounce — what leaves the write stream, and when the widget goes away.
  *
  * @module hooks/useDebounce.hook.test
  * @remarks
@@ -84,6 +84,9 @@ const advance = async (ms: number): Promise<void> => {
     });
 };
 
+/** Far past every window: whatever a forgotten timer holds has gone out by then. */
+const SETTLE_MS = 5000;
+
 describe('useDebounce under StrictMode', () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -101,5 +104,143 @@ describe('useDebounce under StrictMode', () => {
 
         expect(setValue.mock.calls).toEqual([[OID, 1]]);
         await unmount();
+    });
+});
+
+describe('useDebounce: the waiting value on unmount (ticket 11)', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it.each(WINDOWS)('%s: unmounting inside the window sends the last value, once and at once', async (_case, data) => {
+        const { writer, setValue, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        await advance(100);
+        writer().next(2);
+        await unmount();
+
+        expect(setValue.mock.calls).toEqual([[OID, 2]]);
+
+        await advance(SETTLE_MS);
+
+        expect(setValue).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(WINDOWS)('%s: unmounting with nothing ever waiting sends nothing', async (_case, data) => {
+        const { setValue, unmount } = await mount({ oid: OID, data });
+
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it.each(WINDOWS)('%s: a value already sent does not go out again', async (_case, data, window) => {
+        const { writer, setValue, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        await advance(window);
+        expect(setValue.mock.calls).toEqual([[OID, 1]]);
+
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(WINDOWS)('%s: a value dropped by cancel does not come back', async (_case, data) => {
+        const { writer, setValue, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        writer().cancel();
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it.each(WINDOWS)('%s: the value after a cancel is the one that waits', async (_case, data) => {
+        const { writer, setValue, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        writer().cancel();
+        writer().next(2);
+        await unmount();
+
+        expect(setValue.mock.calls).toEqual([[OID, 2]]);
+    });
+
+    it.each(WINDOWS)('%s: a changed OID still drops what waited, up to the unmount', async (_case, data) => {
+        const { writer, setValue, rerender, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        await rerender({ oid: 'adapter.0.other', data });
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it.each(WINDOWS)('%s: a removed OID still drops what waited, up to the unmount', async (_case, data) => {
+        const { writer, setValue, rerender, unmount } = await mount({ oid: OID, data });
+
+        writer().next(1);
+        await rerender({ data });
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it('a changed interval still drops what waited, up to the unmount', async () => {
+        const { writer, setValue, rerender, unmount } = await mount({ oid: OID, data: DEBOUNCE });
+
+        writer().next(1);
+        await rerender({ oid: OID, data: { delay: 500 } });
+        await unmount();
+        await advance(SETTLE_MS);
+
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it('a value waiting on a changed OID goes to that OID', async () => {
+        const { writer, setValue, rerender, unmount } = await mount({ oid: OID, data: DEBOUNCE });
+
+        await rerender({ oid: 'adapter.0.other', data: DEBOUNCE });
+        writer().next(1);
+        await unmount();
+
+        expect(setValue.mock.calls).toEqual([['adapter.0.other', 1]]);
+    });
+
+    describe('under StrictMode', () => {
+        const STRICT = { strict: true };
+
+        it.each(WINDOWS)('%s: the double mount sends nothing', async (_case, data) => {
+            const { setValue, unmount } = await mount({ oid: OID, data }, STRICT);
+
+            await advance(SETTLE_MS);
+            expect(setValue).not.toHaveBeenCalled();
+
+            await unmount();
+            await advance(SETTLE_MS);
+
+            expect(setValue).not.toHaveBeenCalled();
+        });
+
+        it.each(WINDOWS)('%s: the waiting value goes out once on the real unmount', async (_case, data) => {
+            const { writer, setValue, unmount } = await mount({ oid: OID, data }, STRICT);
+
+            writer().next(1);
+            await unmount();
+            await advance(SETTLE_MS);
+
+            expect(setValue.mock.calls).toEqual([[OID, 1]]);
+        });
     });
 });
