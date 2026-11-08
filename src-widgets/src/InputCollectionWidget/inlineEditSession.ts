@@ -4,9 +4,10 @@
  * @module InputCollectionWidget/inlineEditSession
  * @remarks
  * ADR-0109 Nr. 1: the pure transition behind `useInlineEdit`, as `lampSync` is behind `useLampSync`.
- * From the session, one event and the inputs of this moment (mode and Sperre) it decides the next
- * session and the value to write, if any. It writes nothing itself: the hook carries the value out
- * through `updateValue`, which also converts it to the OID type and drops what does not convert.
+ * From the session, one event and the inputs of this moment (mode, Sperre, conversion) it decides the
+ * next session and the value to write, if any. It writes nothing itself: the hook carries the value
+ * out through `updateValue`, which also converts it to the OID type and drops what does not convert.
+ * The conversion it reads is that same rule, handed in so the core stays free of React.
  *
  * - **Sperre**: decides the start only. A running session survives a lock arriving later.
  * - **Draft**: exists only during a session. The start seeds it from the backend value, from then
@@ -23,6 +24,12 @@
  *   differs from the reference: the value at the start, in live mode the last own value as the OID
  *   receives it. The conflict warns, it decides no write. In live mode the own keystroke ends it,
  *   unless `updateValue` drops that keystroke, because then the value is not in the backend.
+ * - **A blur is no command** (ADR-0109 Nr. 4): in OK mode it commits only a draft that differs from
+ *   the one at the start, so it cannot write an untouched draft over a foreign change. Enter and the
+ *   OK button are explicit: they commit a changed draft, and re-send an unchanged one when the OID
+ *   would receive exactly the value of the start. They compare with the start, not with the current
+ *   backend value, so a deliberate re-send also works on a red field. All of them end the session,
+ *   so the blur a browser fires when the field unmounts finds none and writes nothing.
  */
 
 /** The state of the session. */
@@ -75,12 +82,34 @@ export interface InlineEditStep {
     write?: string;
 }
 
+/** The text a backend value shows as a draft. */
+const draftOf = (value: ioBroker.StateValue | undefined): string => String(value ?? '');
+
 /** Ends the session and writes its draft. */
 const commitStep = (session: InlineEditSession): InlineEditStep => ({ session: NO_SESSION, write: session.draft });
 
-/** The blur path, which Enter runs as well: OK mode commits, live mode only leaves. */
+/** Ends the session without a write. */
+const LEAVE: InlineEditStep = { session: NO_SESSION };
+
+/** Whether the draft differs from the one the session started with. */
+const isChanged = (session: InlineEditSession): boolean => session.draft !== draftOf(session.startValue);
+
+/** A blur: OK mode commits only a changed draft, live mode only leaves. */
 const blurStep = (session: InlineEditSession, inputs: InlineEditInputs): InlineEditStep =>
-    inputs.showOkButton ? commitStep(session) : { session: NO_SESSION };
+    inputs.showOkButton && isChanged(session) ? commitStep(session) : LEAVE;
+
+/**
+ * Enter or the OK button in OK mode: commits a changed draft. An unchanged one goes out again only
+ * when the OID would receive the value of the start; what the conversion alters or drops just leaves.
+ */
+const explicitStep = (session: InlineEditSession, inputs: InlineEditInputs): InlineEditStep => {
+    if (isChanged(session)) {
+        return commitStep(session);
+    }
+    const converted = inputs.convert(session.draft);
+
+    return converted !== undefined && converted === session.startValue ? commitStep(session) : LEAVE;
+};
 
 /** Whether the backend holds the same value, the way `isSignificantBackendChange` reads it first. */
 const sameValue = (a: ioBroker.StateValue | undefined, b: ioBroker.StateValue | undefined): boolean =>
@@ -114,7 +143,7 @@ const backendStep = (
  *
  * @param session The session before the event.
  * @param event The event.
- * @param inputs The mode and the Sperre of this moment.
+ * @param inputs The mode, the Sperre and the conversion of this moment.
  * @returns The next session, and the raw value to write if there is one.
  */
 export function sessionStep(
@@ -124,7 +153,7 @@ export function sessionStep(
 ): InlineEditStep {
     if (!session.editing) {
         return event.kind === 'start' && !inputs.locked
-            ? { session: { editing: true, draft: String(event.value ?? ''), conflict: false, startValue: event.value } }
+            ? { session: { editing: true, draft: draftOf(event.value), conflict: false, startValue: event.value } }
             : { session };
     }
 
@@ -139,10 +168,10 @@ export function sessionStep(
             return blurStep(session, inputs);
         case 'key':
             if (event.key === 'Enter') {
-                return blurStep(session, inputs);
+                return inputs.showOkButton ? explicitStep(session, inputs) : LEAVE;
             }
-            return { session: event.key === 'Escape' ? NO_SESSION : session };
+            return event.key === 'Escape' ? LEAVE : { session };
         case 'ok':
-            return commitStep(session);
+            return inputs.showOkButton ? explicitStep(session, inputs) : commitStep(session);
     }
 }

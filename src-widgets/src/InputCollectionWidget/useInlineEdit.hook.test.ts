@@ -250,7 +250,7 @@ describe('useInlineEdit hook', () => {
         live.unmount();
     });
 
-    it('Enter runs the blur path', () => {
+    it('Enter commits a changed draft once, and the blur of the unmount adds nothing', () => {
         const box = stringBox();
         const { captured, unmount } = mount(box, { showOkButton: true });
 
@@ -262,10 +262,53 @@ describe('useInlineEdit hook', () => {
         });
         act(() => {
             captured.current.field.onKeyDown({ key: 'Enter' });
+            captured.current.field.onBlur();
         });
 
         expect(captured.current.editing).toBe(false);
+        expect(box.setState).toHaveBeenCalledTimes(1);
         expect(box.values[`${OID}.val`]).toBe('neu');
+        unmount();
+    });
+
+    it('a blur without a change writes nothing through the Schreibkette', () => {
+        const box = stringBox();
+        const { captured, unmount } = mount(box, { showOkButton: true });
+
+        act(() => {
+            captured.current.start();
+        });
+        act(() => {
+            captured.current.field.onBlur();
+        });
+
+        expect(captured.current.editing).toBe(false);
+        expect(box.setState).not.toHaveBeenCalled();
+        unmount();
+    });
+
+    // The conversion handed to the core is the one of the bound object's type.
+    it.each([
+        ['mixed', '007'],
+        ['string', null],
+        ['number', 'abc'],
+    ])('Enter without a change on a %s OID at %j leaves without touching the Schreibkette', (oidType, value) => {
+        const box = makeBox(
+            { oid: OID, oidObject: { _id: OID, type: oidType, write: true }, delay: 0 },
+            { [`${OID}.val`]: value, [`${OID}.lc`]: 1000 },
+        );
+        const { captured, unmount } = mount(box, { showOkButton: true });
+
+        act(() => {
+            captured.current.start();
+        });
+        act(() => {
+            captured.current.field.onKeyDown({ key: 'Enter' });
+            captured.current.field.onBlur();
+        });
+
+        expect(captured.current.editing).toBe(false);
+        expect(box.setState).not.toHaveBeenCalled();
         unmount();
     });
 

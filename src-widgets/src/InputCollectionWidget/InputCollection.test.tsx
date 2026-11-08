@@ -535,17 +535,18 @@ describe('InputCollection OK mode', () => {
         expect(setValue.mock.calls).toEqual([[OID, 40]]);
     });
 
-    it('writes the start value on a blur without a change (Ist-Verhalten, kippt in 05)', () => {
+    it('writes nothing on a blur without a change', () => {
         const { container, setValue } = mountInput(OK_MODE);
         start(container);
 
         blur(container);
         flushWrites();
 
-        expect(setValue.mock.calls).toEqual([[OID, 40]]);
+        expect(fieldOf(container)).toBeNull();
+        expect(setValue).not.toHaveBeenCalled();
     });
 
-    it('overwrites a Fremdänderung with the untouched draft on blur (Ist-Verhalten, kippt in 05)', () => {
+    it('leaves a Fremdänderung alone on a blur with the untouched draft', () => {
         const { container, backend, setValue } = mountInput(OK_MODE);
         start(container);
         backend(50, 2000);
@@ -553,10 +554,11 @@ describe('InputCollection OK mode', () => {
         blur(container);
         flushWrites();
 
-        expect(setValue.mock.calls).toEqual([[OID, 40]]);
+        expect(displayOf(container).textContent).toBe('50');
+        expect(setValue).not.toHaveBeenCalled();
     });
 
-    it('writes a draft typed back to the start value on blur (Ist-Verhalten, kippt in 05)', () => {
+    it('writes nothing on a blur after a draft typed back to the start value', () => {
         const { container, setValue } = mountInput(OK_MODE);
         start(container);
         type(container, '41');
@@ -565,28 +567,32 @@ describe('InputCollection OK mode', () => {
         blur(container);
         flushWrites();
 
-        expect(setValue.mock.calls).toEqual([[OID, 40]]);
+        expect(setValue).not.toHaveBeenCalled();
     });
 
     describe.each(EXPLICIT_COMMITS)('on %s without a change', (_way, commit) => {
-        it('turns a mixed "007" into 7 (Ist-Verhalten, kippt in 05)', () => {
-            const { container, setValue } = mountInput({ ...OK_MODE, oidObject: object('mixed') }, '007');
+        it('leaves a mixed "007" as it is', () => {
+            const { container, setState, setValue } = mountInput({ ...OK_MODE, oidObject: object('mixed') }, '007');
             start(container);
 
             commit(container);
             flushWrites();
 
-            expect(setValue.mock.calls).toEqual([[OID, 7]]);
+            expect(fieldOf(container)).toBeNull();
+            expect(setState).not.toHaveBeenCalled();
+            expect(setValue).not.toHaveBeenCalled();
         });
 
-        it('turns a null on a string OID into an empty string (Ist-Verhalten, kippt in 05)', () => {
-            const { container, setValue } = mountInput({ ...OK_MODE, oidObject: object('string') }, null);
+        it('leaves a null on a string OID as it is', () => {
+            const { container, setState, setValue } = mountInput({ ...OK_MODE, oidObject: object('string') }, null);
             start(container);
 
             commit(container);
             flushWrites();
 
-            expect(setValue.mock.calls).toEqual([[OID, '']]);
+            expect(fieldOf(container)).toBeNull();
+            expect(setState).not.toHaveBeenCalled();
+            expect(setValue).not.toHaveBeenCalled();
         });
     });
 });
@@ -787,5 +793,65 @@ describe('InputCollection Sitzungskonflikt (04)', () => {
         flushWrites();
 
         expect(setValue.mock.calls).toEqual([[OID, 41]]);
+    });
+});
+
+describe('InputCollection a blur is no command (05)', () => {
+    it('writes a changed draft on a blur in a conflict', () => {
+        const { container, backend, setValue } = mountInput(OK_MODE);
+        start(container);
+        backend(50, 2000);
+        type(container, '41');
+
+        blur(container);
+        flushWrites();
+
+        expect(setValue.mock.calls).toEqual([[OID, 41]]);
+    });
+
+    it.each(EXPLICIT_COMMITS)('sends the start value again on %s in a conflict', (_way, commit) => {
+        const { container, backend, setValue } = mountInput(OK_MODE);
+        start(container);
+        backend(50, 2000);
+
+        commit(container);
+        flushWrites();
+
+        expect(setValue.mock.calls).toEqual([[OID, 40]]);
+    });
+
+    it.each(EXPLICIT_COMMITS)('leaves on %s without a write when the conversion drops the value', (_way, commit) => {
+        const { container, setState, setValue } = mountInput(OK_MODE, null);
+        start(container);
+
+        commit(container);
+        flushWrites();
+
+        expect(fieldOf(container)).toBeNull();
+        expect(setState).not.toHaveBeenCalled();
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it.each(EXPLICIT_COMMITS)('leaves on %s without a write on an emptied number field', (_way, commit) => {
+        const { container, setState, setValue } = mountInput(OK_MODE);
+        start(container);
+        type(container, '');
+
+        commit(container);
+        flushWrites();
+
+        expect(fieldOf(container)).toBeNull();
+        expect(setState).not.toHaveBeenCalled();
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it.each(LIVE_LEAVE_WAYS)('writes nothing on %s in live mode, also on a mixed "007"', (_way, leave) => {
+        const { container, setValue } = mountInput({ oidObject: object('mixed') }, '007');
+        start(container);
+
+        leave(container);
+        flushWrites();
+
+        expect(setValue).not.toHaveBeenCalled();
     });
 });

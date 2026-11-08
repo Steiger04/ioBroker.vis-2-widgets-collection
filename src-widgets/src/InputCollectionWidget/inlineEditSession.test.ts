@@ -46,7 +46,8 @@ const sessionAfter = (
         sessionStep(NO_SESSION, { kind: 'start', value }, inputs).session,
     );
 
-const RUNNING = sessionAfter(LIVE, 'draft');
+/** A running session whose draft differs from where it started. */
+const RUNNING = sessionAfter(OK, 'start', [input('draft')]);
 
 /** What the session shows, without what it compares against. */
 const seen = ({ editing, draft }: InlineEditSession): Pick<InlineEditSession, 'editing' | 'draft'> => ({
@@ -101,11 +102,11 @@ describe('sessionStep: during a session', () => {
         ['live: OK commits the draft', LIVE, OK_CLICK, LEFT, 'draft'],
 
         ['OK: a keystroke only buffers', OK, input('41'), running('41')],
-        ['OK: a blur commits the draft', OK, BLUR, LEFT, 'draft'],
-        ['OK: Enter commits the draft', OK, key('Enter'), LEFT, 'draft'],
+        ['OK: a blur commits the changed draft', OK, BLUR, LEFT, 'draft'],
+        ['OK: Enter commits the changed draft', OK, key('Enter'), LEFT, 'draft'],
         ['OK: Escape discards the draft', OK, key('Escape'), LEFT],
         ['OK: another key does nothing', OK, key('Tab'), running('draft')],
-        ['OK: the OK button commits the draft', OK, OK_CLICK, LEFT, 'draft'],
+        ['OK: the OK button commits the changed draft', OK, OK_CLICK, LEFT, 'draft'],
     ])('%s', (_case, inputs, event, session, write) => {
         const step = sessionStep(RUNNING, event, inputs);
 
@@ -256,6 +257,130 @@ describe('sessionStep: Sitzungskonflikt', () => {
         ])('%s', (_case, events, conflict) => {
             expect(sessionAfter(NUMBER_OK, 40, events).conflict).toBe(conflict);
         });
+    });
+});
+
+describe('sessionStep: a blur is no command', () => {
+    const inOkMode = (oidType: OidType): InlineEditInputs => inputsOf(true, oidType);
+
+    it.each<[string, OidType, ioBroker.StateValue | undefined, InlineEditEvent[], string?]>([
+        ['without a change writes nothing', 'number', 40, []],
+        ['with a change writes the draft', 'number', 40, [input('41')], '41'],
+        ['typed back to the start writes nothing', 'number', 40, [input('41'), input('40')]],
+        ['on an emptied draft writes the empty string', 'string', 'abc', [input('')], ''],
+        ['on a mixed "007" without a change writes nothing', 'mixed', '007', []],
+        ['on a null without a change writes nothing', 'string', null, []],
+        ['in a conflict without a change writes nothing', 'number', 40, [backend(50)]],
+        ['in a conflict with a change writes the draft', 'number', 40, [backend(50), input('41')], '41'],
+    ])('%s', (_case, oidType, value, events, write) => {
+        const inputs = inOkMode(oidType);
+
+        const step = sessionStep(sessionAfter(inputs, value, events), BLUR, inputs);
+
+        expect(seen(step.session)).toEqual(LEFT);
+        expect(step.write).toBe(write);
+    });
+});
+
+describe('sessionStep: Enter and OK are explicit', () => {
+    describe.each<[string, InlineEditEvent]>([
+        ['Enter', key('Enter')],
+        ['the OK button', OK_CLICK],
+    ])('%s', (_way, commit) => {
+        const stepOf = (
+            oidType: OidType,
+            value: ioBroker.StateValue | undefined,
+            events: InlineEditEvent[] = [],
+        ): ReturnType<typeof sessionStep> => {
+            const inputs = inputsOf(true, oidType);
+
+            return sessionStep(sessionAfter(inputs, value, events), commit, inputs);
+        };
+
+        it.each<[string, OidType, ioBroker.StateValue, string]>([
+            ['a number', 'number', 5, '5'],
+            ['zero', 'number', 0, '0'],
+            ['a string', 'string', 'abc', 'abc'],
+            ['an empty string', 'string', '', ''],
+            ['a mixed number', 'mixed', 5, '5'],
+            ['a mixed true', 'mixed', true, 'true'],
+            ['a mixed false', 'mixed', false, 'false'],
+            ['a mixed text', 'mixed', 'abc', 'abc'],
+            ['a boolean true', 'boolean', true, 'true'],
+            ['a boolean false', 'boolean', false, 'false'],
+        ])('sends %s again that the conversion leaves as it is', (_case, oidType, value, write) => {
+            const step = stepOf(oidType, value);
+
+            expect(seen(step.session)).toEqual(LEFT);
+            expect(step.write).toBe(write);
+        });
+
+        it.each<[string, OidType, ioBroker.StateValue | undefined]>([
+            ['a mixed "007" the conversion would turn into 7', 'mixed', '007'],
+            ['a mixed "5" the conversion would turn into 5', 'mixed', '5'],
+            ['a null on a string OID the conversion would turn into ""', 'string', null],
+            ['an undefined on a string OID the conversion would turn into ""', 'string', undefined],
+            ['a number on a string OID the conversion would turn into a string', 'string', 5],
+            // What `updateValue` would drop has nothing to send: these leave without a write as well.
+            ['a null on a number OID the conversion drops', 'number', null],
+            ['an undefined on a number OID the conversion drops', 'number', undefined],
+            ['a text on a number OID the conversion drops', 'number', 'abc'],
+        ])('leaves silently on %s', (_case, oidType, value) => {
+            const step = stepOf(oidType, value);
+
+            expect(seen(step.session)).toEqual(LEFT);
+            expect(step.write).toBeUndefined();
+        });
+
+        it.each<[string, OidType, ioBroker.StateValue, InlineEditEvent[], string]>([
+            ['a typed "007", which is a changed input', 'mixed', 'abc', [input('007')], '007'],
+            ['a draft the conversion drops, which `updateValue` then drops', 'number', 40, [input('')], ''],
+            ['a changed draft in a conflict', 'number', 40, [backend(50), input('41')], '41'],
+            ['the start value again in a conflict', 'number', 40, [backend(50)], '40'],
+            ['a draft typed back to the start, as a re-send', 'number', 40, [input('41'), input('40')], '40'],
+        ])('writes %s', (_case, oidType, value, events, write) => {
+            const step = stepOf(oidType, value, events);
+
+            expect(seen(step.session)).toEqual(LEFT);
+            expect(step.write).toBe(write);
+        });
+
+        it('leaves silently on a draft typed back to a value the conversion would change', () => {
+            const step = stepOf('mixed', '007', [input('7'), input('007')]);
+
+            expect(seen(step.session)).toEqual(LEFT);
+            expect(step.write).toBeUndefined();
+        });
+
+        it.each<[string, OidType, ioBroker.StateValue, InlineEditEvent[]]>([
+            ['a changed draft', 'number', 40, [input('41')]],
+            ['a re-send', 'number', 40, []],
+            ['a silent leave', 'mixed', '007', []],
+        ])('ends the session on %s, so the blur of the unmount writes nothing', (_case, oidType, value, events) => {
+            const inputs = inputsOf(true, oidType);
+            const left = sessionStep(sessionAfter(inputs, value, events), commit, inputs).session;
+
+            expect(sessionStep(left, BLUR, inputs)).toEqual({ session: NO_SESSION });
+        });
+    });
+});
+
+describe('sessionStep: live mode stays as it is', () => {
+    it.each<[string, InlineEditEvent]>([
+        ['a blur', BLUR],
+        ['Enter', key('Enter')],
+        ['Escape', key('Escape')],
+    ])('%s leaves without a write, with and without a change', (_case, leave) => {
+        const inputs = inputsOf(false, 'mixed');
+
+        expect(sessionStep(sessionAfter(inputs, '007'), leave, inputs)).toEqual({ session: NO_SESSION });
+        expect(sessionStep(sessionAfter(inputs, '007', [input('8')]), leave, inputs)).toEqual({ session: NO_SESSION });
+    });
+
+    it('the OK event keeps committing the draft, whatever the conversion makes of it', () => {
+        const inputs = inputsOf(false, 'mixed');
+
+        expect(sessionStep(sessionAfter(inputs, '007'), OK_CLICK, inputs).write).toBe('007');
     });
 });
 

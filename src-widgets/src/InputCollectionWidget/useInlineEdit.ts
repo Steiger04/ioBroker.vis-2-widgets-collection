@@ -26,7 +26,7 @@ import type { InlineEditEvent } from './inlineEditSession';
 
 /** Options controlling the session mode. */
 export interface UseInlineEditOptions {
-    /** OK-button mode: draft commits on blur/Enter/OK; otherwise every keystroke writes (live). */
+    /** OK-button mode: the draft buffers until Enter, OK or a blur with a change; otherwise every keystroke writes (live). */
     showOkButton: boolean;
 }
 
@@ -38,9 +38,9 @@ export interface InlineEditField {
     error: boolean;
     /** Draft change: live mode writes through per keystroke, OK mode buffers. */
     onChange: (event: { target: { value: string } }) => void;
-    /** Blur path: OK mode commits, live mode just leaves. */
+    /** Blur: OK mode commits a changed draft, live mode just leaves. */
     onBlur: () => void;
-    /** Key path: Enter runs the blur path; Escape leaves without a commit. */
+    /** Keys: Enter commits explicitly in OK mode and just leaves in live mode; Escape leaves without a commit. */
     onKeyDown: (event: { key: string }) => void;
 }
 
