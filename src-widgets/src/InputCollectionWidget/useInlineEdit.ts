@@ -7,8 +7,7 @@
  * ({@link module:InputCollectionWidget/inlineEditSession}) over the optimistic binding from
  * {@link module:hooks/useValueState}. It feeds the transition the events of the field, the backend
  * observations, the mode, the Sperre and the conversion, and carries a value to write out through
- * `updateValue`. The backend value to display comes from `useData`. The autofocus effect stays in the
- * component — presentational, it needs the input ref.
+ * `updateValue`. The backend value to display comes from `useData`.
  *
  * The backend observations run in an effect, because the transition moves the session ref and a
  * render must not. The field is only ever red after the observation that raised the conflict, one

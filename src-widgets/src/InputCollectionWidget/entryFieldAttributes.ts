@@ -43,20 +43,20 @@ export interface EntryFieldAttributes {
  */
 export function buildEntryFieldAttributes(params: BuildEntryFieldAttributesParams): EntryFieldAttributes {
     const { fields, object, draft } = params;
-    const isNumber = object?.type === 'number';
+    const isNumberField = object?.type === 'number';
     const min = optionalNumber(fields.minValue);
     const max = optionalNumber(fields.maxValue);
 
     // Limit rule: the browser's spinner jumps onto a limit the value has crossed, and live mode would
     // write that jump. So only the crossed limit drops; the other keeps the step base stable.
-    const value = optionalNumber(draft);
-    const belowMin = value !== undefined && min !== undefined && value < min;
-    const aboveMax = value !== undefined && max !== undefined && value > max;
+    const draftNumber = optionalNumber(draft);
+    const belowMin = draftNumber !== undefined && min !== undefined && draftNumber < min;
+    const aboveMax = draftNumber !== undefined && max !== undefined && draftNumber > max;
 
     return {
-        type: isNumber ? 'number' : 'text',
+        type: isNumberField ? 'number' : 'text',
         unit: object?.unit || undefined,
-        htmlInput: isNumber
+        htmlInput: isNumberField
             ? {
                   step: optionalNumber(fields.step),
                   min: belowMin ? undefined : min,

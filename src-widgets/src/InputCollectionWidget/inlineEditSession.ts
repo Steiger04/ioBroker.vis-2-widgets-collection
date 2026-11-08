@@ -23,7 +23,10 @@
  *   (the trap of `backendSyncKey`). So an observation counts only when the backend value also
  *   differs from the reference: the value at the start, in live mode the last own value as the OID
  *   receives it. The conflict warns, it decides no write. In live mode the own keystroke ends it,
- *   unless `updateValue` drops that keystroke, because then the value is not in the backend.
+ *   unless `updateValue` drops that keystroke, because then the value is not in the backend. Only
+ *   the last own value is the reference: an older echo arriving behind a newer keystroke and past
+ *   the ignore window of `useValueState` counts as a conflict, because a list of own values would
+ *   swallow a real foreign change back to one of them.
  * - **A blur is no command** (ADR-0109 Nr. 4): in OK mode it commits only a draft that differs from
  *   the one at the start, so it cannot write an untouched draft over a foreign change. Enter and the
  *   OK button are explicit: they commit a changed draft, and re-send an unchanged one when the OID
@@ -113,7 +116,7 @@ const explicitStep = (session: InlineEditSession, inputs: InlineEditInputs): Inl
 
 /** Whether the backend holds the same value, the way `isSignificantBackendChange` reads it first. */
 const sameValue = (a: ioBroker.StateValue | undefined, b: ioBroker.StateValue | undefined): boolean =>
-    String(a ?? '') === String(b ?? '');
+    draftOf(a) === draftOf(b);
 
 /** The new text of the field: live mode writes it, and what the OID receives is the new reference. */
 const inputStep = (session: InlineEditSession, raw: string, inputs: InlineEditInputs): InlineEditStep => {
@@ -132,7 +135,7 @@ const inputStep = (session: InlineEditSession, raw: string, inputs: InlineEditIn
 /** A backend observation. Without a new conflict the session stays the same object: nothing to render. */
 const backendStep = (
     session: InlineEditSession,
-    event: { value: ioBroker.StateValue | undefined; significant: boolean },
+    event: Extract<InlineEditEvent, { kind: 'backend' }>,
 ): InlineEditStep =>
     event.significant && !session.conflict && !sameValue(event.value, session.ownValue ?? session.startValue)
         ? { session: { ...session, conflict: true } }

@@ -27,7 +27,7 @@ import type { InputCollectionContextProps } from '../types';
  * rules (draft, live vs. OK-button commit, the Sperre at the start) live in
  * {@link module:InputCollectionWidget/inlineEditSession}, behind
  * {@link module:widgets/InputCollectionWidget/useInlineEdit}:
- * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
+ * - OK-button mode (`showOkButton`): keeps a local draft; Enter and OK commit it, a blur only a changed one.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
  *
  * The field's type, unit and spinner attributes come from

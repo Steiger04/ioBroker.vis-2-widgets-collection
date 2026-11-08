@@ -240,6 +240,14 @@ describe('sessionStep: Sitzungskonflikt', () => {
                 [input('0'), backend(0, false), input('007'), backend(7)],
                 false,
             ],
+            // Accepted rest: only the last own value is the reference, a list would swallow foreign changes.
+            [
+                'an older echo behind a newer keystroke, past the ignore window, counts',
+                NUMBER_LIVE,
+                40,
+                [input('41'), input('42'), backend(41)],
+                true,
+            ],
             // `updateValue` drops what does not convert: nothing reached the backend.
             ['a keystroke that does not convert does not end it', NUMBER_LIVE, 40, [backend(50), input('')], true],
             ['nor does it move the reference', NUMBER_LIVE, 50, [input(''), backend(50)], false],

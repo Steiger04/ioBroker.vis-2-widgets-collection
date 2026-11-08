@@ -8,9 +8,6 @@
  * at `setValue` behind the debounce, the optimistic patch lands the way the host's `setState` does,
  * and a Fremdänderung is a re-render over new scene values.
  *
- * A case named `(Ist-Verhalten, kippt in NN)` pins today's behaviour on purpose: ticket NN of
- * eingabe-architektur-2026-11 flips exactly that case in its fix commit.
- *
  * What happy-dom does not show stays a live check (ticket 13):
  * - the real `stepDown` of the number spinner, which is the jump ticket 07 removes (M3); here only
  *   the `min`/`max` attributes are visible;
