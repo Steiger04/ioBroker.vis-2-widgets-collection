@@ -33,6 +33,7 @@ const DOM_TS_TESTS = [
     'src/lib/allowedOidTypes.parity.test.ts',
     'src/lib/commonObjectFields.parity.test.ts',
     'src/lib/useEditorHistory.hook.test.ts',
+    'src/StateCollectionWidget/useStateTrigger.hook.test.ts',
     'src/ThemeConfigWizard/useStudioSession.hook.test.ts',
     // Mocks Generic and every widget body (vi.mock / vi.doMock) to introspect getWidgetInfo():
     // it needs its own module registry, which the shared node cache (isolate: false) lacks.

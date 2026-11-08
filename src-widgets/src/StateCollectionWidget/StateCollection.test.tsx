@@ -448,17 +448,17 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('passing over and leaving', () => {
-        it('V1 (ticket 04): passing the mouse over without a press sends Wert[2]', () => {
+        it('passing the mouse over without a press sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             fire(buttonOf(state), mouse('mouseover'));
             leave(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0], optimistic: [0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('V1 (ticket 04): passing over twice sends Wert[2] twice', () => {
+        it('passing over twice sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             leave(state);
@@ -466,10 +466,10 @@ describe('StateCollection push button up to the socket', () => {
             leave(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0, 0], optimistic: [0, 0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('V2 (tickets 04 and 05): a mouseout from a child while holding counts as a release, the real one writes again', () => {
+        it('V2 (ticket 05): a mouseout from a child while holding counts as a release, the real one writes nothing more', () => {
             const state = mountState(PUSH_BUTTON);
             const child = buttonOf(state).firstElementChild;
             if (!child) {
@@ -487,7 +487,7 @@ describe('StateCollection push button up to the socket', () => {
             click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0, 0], optimistic: [1, 0, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
         it('leaving the button while holding counts as a release', () => {
@@ -501,7 +501,7 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('V1 (ticket 04): coming back still pressed and letting go writes a second Wert[2]', () => {
+        it('coming back still pressed and letting go writes no second Wert[2]', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -513,7 +513,7 @@ describe('StateCollection push button up to the socket', () => {
             click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0, 0], optimistic: [1, 0, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
     });
 
@@ -809,6 +809,54 @@ describe('StateCollection click up to the socket', () => {
 
         expect(dialogOf()).not.toBeNull();
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection open press (ticket 04)', () => {
+    it('a new press after coming back starts again', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        leave(state);
+        settle();
+        fire(buttonOf(state), mouse('mouseover'));
+        release(state);
+        click(state);
+        settle();
+        tap(state, 400);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+});
+
+describe('StateCollection toggle on the Aktiver Zustand (ticket 03)', () => {
+    it('a String value meets the configured number: first row active, sends the second', () => {
+        const state = mountState({ value1: '1', value2: '0' }, '1');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([0]);
+    });
+
+    it('a String value meets the configured boolean: first row active, sends the second', () => {
+        const state = mountState({ oidObject: object('boolean'), value1: 'true', value2: 'false' }, 'true');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([false]);
+    });
+
+    it('two rows with the same value: both active, sends that value', () => {
+        const state = mountState({ value1: '1', value2: '1' }, 1);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
     });
 });
 
@@ -1158,27 +1206,53 @@ describe('StateCollection change dialog up to the socket', () => {
                 'V7 (ticket 17): a number OID without rows and without a range',
                 { oidObject: object('number'), onlyStates: false },
             ],
-        ])('%s opens an empty dialog', (_case, data) => {
+            [
+                'V7 (ticket 17): a number OID without rows and with min > max',
+                { oidObject: object('number', { minValue: 200, maxValue: 100 }), onlyStates: false },
+            ],
+        ])('%s opens no dialog and writes nothing', (_case, data) => {
             const state = mountState({ ...data, values_count: 0 });
 
             click(state);
             settle();
 
-            expect(dialogOf()).not.toBeNull();
-            expect(rowsOf()).toEqual([]);
-            expect(sliderOf()).toBeNull();
+            expect(dialogOf()).toBeNull();
             expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
         it.each([
             ['min = max', { minValue: 5, maxValue: 5 }],
-            ['min > max', { minValue: 10, maxValue: 0 }],
-        ])('V12 (ticket 17): %s still gets a slider', (_case, range) => {
+            ['min > max', { minValue: 200, maxValue: 100 }],
+        ])('V12 (ticket 17): %s gets the list without a slider', (_case, range) => {
             const state = mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 5);
 
             click(state);
 
+            expect(sliderOf()).toBeNull();
+            expect(rowTexts()).toEqual(['OFF', 'ON', 'AUTO']);
+        });
+    });
+
+    describe('a gate that falls away on an open dialog (ticket 17)', () => {
+        it('the dialog stays open without the slider, and it can be closed', () => {
+            const state = mountState({ ...THREE_ROWS, values_count: 0, oidObject: object('number', RANGE) });
+
+            click(state);
             expect(sliderOf()).not.toBeNull();
+
+            state.configure({ oidObject: object('number', { minValue: 5, maxValue: 5 }) });
+
+            expect(dialogOf()).not.toBeNull();
+            expect(sliderOf()).toBeNull();
+
+            const closeButton = document.querySelector('.MuiDialog-root button[aria-label="close"]');
+            if (!closeButton) {
+                throw new Error('the dialog rendered no close button');
+            }
+            fire(closeButton, mouse('click'));
+            settle();
+
+            expect(dialogOf()).toBeNull();
         });
     });
 
@@ -1405,13 +1479,13 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('V1 (ticket 04): onlyDisplay does not hold back the mouseout, React passes it to a disabled button', () => {
+    it('onlyDisplay: the mouseout React passes to a disabled button finds no open press', () => {
         const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
 
         leave(state);
         settle();
 
-        expect(writes(state)).toEqual({ sent: [0], optimistic: [0] });
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
     it('ticket 05: onlyDisplay does not hold back a touch, React passes it to a disabled button', () => {
