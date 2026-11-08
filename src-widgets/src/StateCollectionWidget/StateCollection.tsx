@@ -1,5 +1,5 @@
 import { Box, Button } from '@mui/material';
-import React, { useCallback, useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -8,19 +8,17 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
-import { decideTriggerAction, type TriggerEvent } from './stateTrigger';
+import { useStateTrigger } from './useStateTrigger';
 import StateChangeDialog from './StateChangeDialog';
 import type { StateCollectionContextProps } from '../types';
 
 /**
- * State widget body — pure wiring over the Zustands-Auslöser (stateTrigger).
+ * State widget body — pure wiring over the Zustands-Auslöser.
  *
  * @remarks
- * Every event unconditionally becomes a `fire(<event>)` call; the decision (including
- * the push-button click suppression, ADR-0089) lives in {@link
- * module:widgets/StateCollectionWidget/stateTrigger.decideTriggerAction} over the
- * RESOLVED `states[]` from useData. Writes therefore happen synchronously — no
- * `setTimeout` race between press, release and the trailing click.
+ * The button takes the handlers of {@link module:widgets/StateCollectionWidget/useStateTrigger};
+ * the decision (including the push-button click suppression, ADR-0089) lives in its pure core
+ * over the RESOLVED `states[]` from useData.
  * @returns Widget body element.
  */
 function StateCollection(): React.ReactElement {
@@ -29,7 +27,6 @@ function StateCollection(): React.ReactElement {
     const oidObject = widget.data.oidObject;
     const { data, widgetStates, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
-    const [open, setOpen] = useState(false);
 
     const oidType = oidObject?.type;
 
@@ -48,36 +45,18 @@ function StateCollection(): React.ReactElement {
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
 
-    const fire = useCallback(
-        (event: TriggerEvent): void => {
-            const action = decideTriggerAction(
-                event,
-                {
-                    states,
-                    onlyStates,
-                    statePushButton: widget.data.statePushButton,
-                },
-                oidValue,
-            );
-
-            if (action.type === 'write') {
-                setOidValueState(action.value);
-            } else if (action.type === 'open-dialog') {
-                setOpen(true);
-            }
-        },
-        [states, onlyStates, widget.data.statePushButton, oidValue, setOidValueState],
-    );
+    const { buttonProps, dialog } = useStateTrigger({
+        states,
+        onlyStates,
+        statePushButton: widget.data.statePushButton,
+        currentValue: oidValue,
+        write: setOidValueState,
+    });
 
     const StateButton = (
         <Button
             disabled={locked}
-            onClick={(): void => fire('click')}
-            onMouseDown={(): void => fire('press')}
-            onMouseUp={(): void => fire('release')}
-            onMouseOut={(): void => fire('release')}
-            onTouchStart={(): void => fire('press')}
-            onTouchEnd={(): void => fire('release')}
+            {...buttonProps}
             sx={{
                 width: '100%',
                 height: '100%',
@@ -115,11 +94,11 @@ function StateCollection(): React.ReactElement {
 
     return (
         <>
-            {open && (
+            {dialog.open && (
                 <StateChangeDialog
                     widgetStates={widgetStates}
-                    open={open}
-                    closeHandler={() => setOpen(false)}
+                    open={dialog.open}
+                    closeHandler={dialog.close}
                     title={dialogTitle}
                     backgroundColor={data.backgroundColor}
                     textColor={data.textColor}
