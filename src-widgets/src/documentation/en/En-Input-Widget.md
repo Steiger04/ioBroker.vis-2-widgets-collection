@@ -94,6 +94,8 @@ The widget shows the value (and optionally an icon) centered. A click on the dis
 
 Enter and OK can therefore re-send a value on purpose, while clicking into the field and away again never triggers a write. A stored text `007` on a mixed OID would become the number `7`, so Enter and OK do not send it unchanged.
 
+In both modes, an input that is not a number (such as an emptied field) is never written to a **number** OID: the object keeps its value, even where this section says "written".
+
 ### Spinner and Range
 
 The range guides the spinner (the arrows of the number field and the arrow keys) and does not limit the input: A typed value outside the range is written.
@@ -101,7 +103,7 @@ The range guides the spinner (the arrows of the number field and the arrow keys)
 - **Value outside the range**: The limit the value has crossed no longer applies, so the spinner moves by one step instead of jumping to that limit. With a maximum of 100, a value of 500, and a step of 1, arrow down gives 499. The other limit keeps applying.
 - **Selecting an OID**: The widget takes only the range the object really declares (`common.min`, `common.max`). A limit the object does not declare stays empty, and a previous one is removed.
 - **Empty min/max field**: Means no limit, not 0.
-- **Widgets configured earlier**: They may have a stored range of 0 to 100 that the object never declared. It cannot be told apart from a real range and stays until the fields are emptied.
+- **Widgets configured earlier**: They may have a stored range of 0 to 100 that the object never declared. It cannot be told apart from a real range and stays until the fields are emptied or the next OID selection replaces it.
 
 ### Unit
 
@@ -120,10 +122,11 @@ When `onlyDisplay` is active or the OID is not writable (`write=false`), the wid
 The input field turns red when the value has changed significantly from another source (e.g. an adapter or script) since the click into the field:
 
 - A change before the click does not count, however recent it is.
-- For numbers, changes smaller than 1 such as sensor noise neither turn the field red nor clear the red. For text, every change counts.
-- The field stays red until editing ends. Without OK button your own next keystroke clears it, because your value is then in the object. The next editing session starts without the marking.
+- For numbers and text that reads as a number, changes smaller than 1 such as sensor noise neither turn the field red nor clear the red. For any other text, every change counts.
+- Right after your own write, the widget ignores backend changes for the write delay plus 1.5 seconds, so a foreign change in that time does not turn the field red. On a very slow connection, the late confirmation of an older keystroke can turn it red.
+- The field stays red until editing ends. Without OK button your own next keystroke clears it, because your value is then in the object; an input that is not written, such as an emptied number field, does not. The next editing session starts without the marking.
 
-Red is only a warning: The foreign value does not replace your input. A changed input and a deliberate Enter or OK are still written and overwrite the foreign value; a click outside without a change leaves it alone.
+Red is only a warning: The foreign value does not replace your input. With OK button, a changed input and a deliberate Enter or OK are still written and overwrite the foreign value; a click outside without a change leaves it alone. Without OK button, your next keystroke overwrites it, while Enter and a click outside leave it alone.
 
 ## Value-specific Settings
 

@@ -94,6 +94,8 @@ Das Widget zeigt den Wert (und wahlweise ein Icon) zentriert an. Ein Klick in di
 
 Enter und OK können einen Wert also bewusst erneut senden, während Hineinklicken und Wegklicken nie einen Schreibvorgang auslöst. Ein gespeicherter Text `007` auf einer mixed-OID würde zur Zahl `7`, darum senden Enter und OK ihn unverändert nicht.
 
+In beiden Modi wird eine Eingabe, die keine Zahl ist (etwa ein geleertes Feld), nie an eine **number**-OID geschrieben: Das Objekt behält seinen Wert, auch wo dieser Abschnitt „wird geschrieben" sagt.
+
 ### Spinner und Bereich
 
 Der Bereich führt den Spinner (die Pfeile des Zahlenfelds und die Pfeiltasten) und begrenzt die Eingabe nicht: Ein getippter Wert außerhalb des Bereichs wird geschrieben.
@@ -101,7 +103,7 @@ Der Bereich führt den Spinner (die Pfeile des Zahlenfelds und die Pfeiltasten) 
 - **Wert außerhalb des Bereichs**: Die überschrittene Grenze gilt nicht mehr, der Spinner macht also einen Schritt, statt auf diese Grenze zu springen. Bei Maximum 100, Wert 500 und Schrittweite 1 ergibt Pfeil runter 499. Die andere Grenze wirkt weiter.
 - **OID-Wahl**: Das Widget übernimmt nur den Bereich, den das Objekt wirklich angibt (`common.min`, `common.max`). Eine Grenze, die das Objekt nicht angibt, bleibt leer, eine frühere wird entfernt.
 - **Leeres Min-/Max-Feld**: Bedeutet keine Grenze, nicht 0.
-- **Früher konfigurierte Widgets**: Sie können einen gespeicherten Bereich von 0 bis 100 haben, den das Objekt nie angegeben hat. Er lässt sich nicht von einem echten Bereich unterscheiden und bleibt, bis die Felder geleert werden.
+- **Früher konfigurierte Widgets**: Sie können einen gespeicherten Bereich von 0 bis 100 haben, den das Objekt nie angegeben hat. Er lässt sich nicht von einem echten Bereich unterscheiden und bleibt, bis die Felder geleert werden oder die nächste OID-Wahl ihn ersetzt.
 
 ### Einheit
 
@@ -120,10 +122,11 @@ Wenn `onlyDisplay` aktiv ist oder die OID nicht beschreibbar ist (`write=false`)
 Das Eingabefeld wird rot, wenn sich der Wert seit dem Klick ins Feld signifikant von anderer Seite geändert hat (z. B. durch einen Adapter oder ein Skript):
 
 - Eine Änderung vor dem Klick zählt nicht, auch wenn sie gerade erst kam.
-- Bei Zahlen färben Änderungen kleiner als 1 wie Sensorrauschen das Feld nicht und nehmen das Rot auch nicht weg. Bei Text zählt jede Änderung.
-- Das Feld bleibt rot, bis die Bearbeitung endet. Ohne OK-Button beendet der eigene nächste Tastenanschlag die Markierung, weil dann der eigene Wert im Objekt steht. Die nächste Bearbeitung beginnt ohne Markierung.
+- Bei Zahlen und zahlenförmigem Text färben Änderungen kleiner als 1 wie Sensorrauschen das Feld nicht und nehmen das Rot auch nicht weg. Bei anderem Text zählt jede Änderung.
+- Direkt nach dem eigenen Schreiben ignoriert das Widget Backend-Änderungen für die Schreibverzögerung plus 1,5 Sekunden; eine Fremdänderung in dieser Zeit färbt das Feld also nicht. Bei einer sehr langsamen Verbindung kann die späte Bestätigung eines älteren Tastenanschlags es rot färben.
+- Das Feld bleibt rot, bis die Bearbeitung endet. Ohne OK-Button beendet der eigene nächste Tastenanschlag die Markierung, weil dann der eigene Wert im Objekt steht; eine Eingabe, die nicht geschrieben wird, etwa ein geleertes Zahlenfeld, beendet sie nicht. Die nächste Bearbeitung beginnt ohne Markierung.
 
-Rot ist nur eine Warnung: Der fremde Wert ersetzt die Eingabe nicht. Eine geänderte Eingabe und ein bewusstes Enter oder OK werden trotzdem geschrieben und überschreiben den fremden Wert; ein Klick außerhalb ohne Änderung lässt ihn stehen.
+Rot ist nur eine Warnung: Der fremde Wert ersetzt die Eingabe nicht. Mit OK-Button werden eine geänderte Eingabe und ein bewusstes Enter oder OK trotzdem geschrieben und überschreiben den fremden Wert; ein Klick außerhalb ohne Änderung lässt ihn stehen. Ohne OK-Button überschreibt ihn der nächste Tastenanschlag, während Enter und ein Klick außerhalb ihn stehen lassen.
 
 ## Value-spezifische Einstellungen
 
