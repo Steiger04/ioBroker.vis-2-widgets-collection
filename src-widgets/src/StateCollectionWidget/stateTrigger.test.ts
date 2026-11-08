@@ -16,7 +16,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import { isPushButtonMode, NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerOidObject, TriggerState } from './stateTrigger';
 
 const PRESS: TriggerEvent = { kind: 'press', pointerId: 1, button: 0 };
@@ -202,6 +202,49 @@ describe('triggerStep — only the push button writes at once (ticket 06)', () =
             expect(triggerStep(NO_PRESS, CLICK, config).action).not.toHaveProperty('immediate');
         },
     );
+});
+
+describe('triggerStep — a press ending from outside (ticket 07)', () => {
+    const END: TriggerEvent = { kind: 'end' };
+
+    it('ends an open press and writes Wert[2] at once', () => {
+        expect(triggerStep(OPEN, END, PUSH_BUTTON)).toEqual({ press: NO_PRESS, action: writeAtOnce(1) });
+    });
+
+    it('the Sperre does not hold it back: the guard against a read-only OID sits in the Schreibkette', () => {
+        expect(triggerStep(OPEN, END, { ...PUSH_BUTTON, locked: true })).toEqual({
+            press: NO_PRESS,
+            action: writeAtOnce(1),
+        });
+    });
+
+    it('without an open press nothing happens', () => {
+        expect(triggerStep(NO_PRESS, END, PUSH_BUTTON)).toEqual({ press: NO_PRESS, action: NONE });
+    });
+
+    it('ends the press only once: a later release finds none', () => {
+        const { press } = triggerStep(OPEN, END, PUSH_BUTTON);
+
+        expect(triggerStep(press, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
+    });
+
+    it.each(NO_PUSH_BUTTON)('%s: a leftover press ends without a write', (_case, config) => {
+        expect(triggerStep(OPEN, END, config)).toEqual({ press: NO_PRESS, action: NONE });
+    });
+});
+
+describe('isPushButtonMode (ticket 08)', () => {
+    it('all three conditions together make the push button', () => {
+        expect(isPushButtonMode(PUSH_BUTTON)).toBe(true);
+    });
+
+    it('the Sperre does not change the mode', () => {
+        expect(isPushButtonMode({ ...PUSH_BUTTON, locked: true })).toBe(true);
+    });
+
+    it.each(NO_PUSH_BUTTON)('%s: no push button', (_case, config) => {
+        expect(isPushButtonMode(config)).toBe(false);
+    });
 });
 
 describe('triggerStep — the open press', () => {

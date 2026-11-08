@@ -623,7 +623,7 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('ending from outside', () => {
-        it('V3, V20 (tickets 06 and 07): unmounting right after the press keeps the press value, nothing more', () => {
+        it('V3, V20 (tickets 06 and 07): unmounting right after the press sends both values', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -631,10 +631,10 @@ describe('StateCollection push button up to the socket', () => {
             state.unmount();
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 07: unmounting while holding writes nothing more', () => {
+        it('ticket 07: unmounting while holding sends Wert[2]', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -642,17 +642,16 @@ describe('StateCollection push button up to the socket', () => {
             state.unmount();
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 07: the Sperre taking hold while holding writes nothing until the release', () => {
+        it('ticket 07: the Sperre taking hold while holding sends Wert[2] at once, the release nothing more', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
             advance(400);
             state.configure({ onlyDisplay: true });
-            settle();
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
 
             // Unlike mouseup, React passes pointerup to a disabled button.
             release(state);
@@ -984,6 +983,184 @@ describe('StateCollection push button writes at once (ticket 06)', () => {
         settle();
 
         expect(writes(state).sent).toEqual([1, 0, 1]);
+    });
+});
+
+describe('StateCollection press ending from outside (ticket 07)', () => {
+    it('unmounting without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('unmounting after the release sends nothing more', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        tap(state, 400);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('the Sperre taking hold without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ onlyDisplay: true });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('write === false taking hold while holding: the guard of the Schreibkette holds Wert[2] back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        settle();
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+        release(state);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('unmounting right after write === false took hold: the press has ended, nothing is sent', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('the Sperre lifting while still holding starts nothing until a new press', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ onlyDisplay: true });
+        state.configure({ onlyDisplay: false });
+        release(state);
+        settle();
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+        tap(state, 400);
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+
+    it('unmounting sends the Wert[2] of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ value2: '7' });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, 7]);
+    });
+
+    it('unmounting converts by the bound object of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('string') });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, '0']);
+    });
+
+    it('Wert[2] is the last thing the socket hears, also behind a value waiting in the debounce', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        // A waiting 1 next to an open press: the toggle click of a former mode, behind the debounce.
+        press(state);
+        state.backend(0, 2000);
+        state.configure({ statePushButton: false });
+        click(state);
+        expect(writes(state).optimistic).toEqual([1, 1]);
+        state.configure({ statePushButton: true });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent.at(-1)).toBe(0);
+    });
+});
+
+describe('StateCollection push-button surface (ticket 08)', () => {
+    /** Fires a context menu request on `element`; true if the widget held the browser's menu back. */
+    const menuHeldBack = (element: Element): boolean => {
+        const event = mouse('contextmenu');
+        fire(element, event);
+        return event.defaultPrevented;
+    };
+
+    const touchActionOf = (state: MountedState): string => getComputedStyle(buttonOf(state)).touchAction;
+
+    it('push button: the browser neither pans under a finger nor opens its menu', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it('push button: the menu is held back over the children of the button too', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = buttonOf(state).firstElementChild;
+
+        expect(child && menuHeldBack(child)).toBe(true);
+    });
+
+    it('push button: the right mouse button still sends nothing, its menu stays held back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state, { button: 2 });
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+        release(state, { button: 2 });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { write: false }) }],
+    ])('push button under the Sperre (%s) keeps its surface', (_case, data) => {
+        const state = mountState({ ...PUSH_BUTTON, ...data });
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it.each([
+        ['the default toggle', {}],
+        ['without the flag', { ...PUSH_BUTTON, statePushButton: false }],
+        ['without onlyStates', { ...PUSH_BUTTON, onlyStates: false }],
+        ['with one state', { ...PUSH_BUTTON, values_count: 1 }],
+        ['with three states', { ...PUSH_BUTTON, values_count: 3, value3: '2' }],
+        ['with one of two rows blank', { ...PUSH_BUTTON, value2: '  ' }],
+    ])("%s: the button stays as it was, scrolling and the menu are the browser's", (_case, data) => {
+        const state = mountState(data);
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
+    });
+
+    it('the surface follows the mode when the configuration changes', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ statePushButton: false });
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
     });
 });
 
