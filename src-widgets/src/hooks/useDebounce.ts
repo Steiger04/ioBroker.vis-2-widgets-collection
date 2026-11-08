@@ -138,6 +138,8 @@ function useDebounce({
             }
             if (subjectRef.current) {
                 subjectRef.current.complete();
+                // A completed Subject takes no more values: a StrictMode re-mount needs a new one.
+                subjectRef.current = undefined;
             }
         };
     }, []);
