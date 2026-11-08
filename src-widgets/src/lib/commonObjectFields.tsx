@@ -86,11 +86,38 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
     }
 };
 
+/** Options of a main-OID pick; the other OID roles write no range. */
+interface OidPickOptions {
+    /**
+     * Seed a missing bound of the root `minValue`/`maxValue` (0..100, default: true). Off for a
+     * widget that draws no range: only the object's real bounds reach the root fields (ADR-0109
+     * Nr. 8). The `oidObject` copy stays seeded either way.
+     */
+    inventRange?: boolean;
+}
+
+/**
+ * Stores a bound the object really has in a root field and removes the field otherwise.
+ *
+ * @remarks
+ * `delete`, not vis-2's `null` patch: `changeData` replaces the widget's whole data, so a `null`
+ * would stay stored and read as the limit 0.
+ */
+const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: number | null | undefined): void => {
+    if (bound === undefined || bound === null) {
+        delete data[key];
+    } else {
+        data[key] = bound;
+    }
+};
+
 /**
  * Creates an async `onChange` handler for an OID/id editor field.
  *
  * @param allowedTypes Allowed JS types for the selected state/object.
  * @param oid The name of the data property that stores the selected object id.
+ * @param options See {@link OidPickOptions}.
+ * @param options.inventRange See {@link OidPickOptions.inventRange}.
  * @remarks
  * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role
  * ({@link module:lib/oidRole}) decides what the pick owns:
@@ -98,14 +125,15 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
  *   the `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a resolved
  *   control ID keeps its suggestion, whatever the picking order. The pick supplements the rows
  *   from the object's `common.states` (boolean without them: TRUE/FALSE) and writes
- *   `ignoreCommonStates: false` with `values_count` (ADR-0104 §5, §6).
+ *   `ignoreCommonStates: false` with `values_count` (ADR-0104 §5, §6). A missing bound of the root
+ *   range is seeded unless {@link OidPickOptions.inventRange} is off.
  * - `control` (the Select's Steuer ID, ADR-0090): only `cidObject` and the `onlyDisplay`
  *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
  * - `auxiliary` (Hilfs-OID — Dialog's `dialogId`, Light2's channel IDs, ADR-0096): only its own
  *   `${oid}Object`, `commonStates` included — no root field, no `onlyDisplay` suggestion.
  */
 export const oidChangeHandlerAsync =
-    (allowedTypes: readonly AllowedType[], oid = 'oid') =>
+    (allowedTypes: readonly AllowedType[], oid = 'oid', { inventRange = true }: OidPickOptions = {}) =>
     async (
         _field: RxWidgetInfoAttributesField,
         data: WidgetData,
@@ -150,8 +178,9 @@ export const oidChangeHandlerAsync =
                 write: object.common.write,
                 onlyDisplay: object.common.write === false,
                 unit: object.common.unit || '',
-                minValue: object.common.min || 0,
-                maxValue: object.common.max || 100,
+                // `??`: a real bound of 0 is a range, only a missing one gets seeded.
+                minValue: object.common.min ?? 0,
+                maxValue: object.common.max ?? 100,
             };
 
             data[`${oid}Object`] = objectData;
@@ -162,8 +191,13 @@ export const oidChangeHandlerAsync =
                 data.write = objectData.write;
                 // The main OID's suggestion yields to a resolved control ID (the write target).
                 data.onlyDisplay = writeTargetDeniesWrite(data);
-                data.minValue = objectData.minValue;
-                data.maxValue = objectData.maxValue;
+                if (inventRange) {
+                    data.minValue = objectData.minValue;
+                    data.maxValue = objectData.maxValue;
+                } else {
+                    setRealBound(data, 'minValue', object.common.min);
+                    setRealBound(data, 'maxValue', object.common.max);
+                }
             } else if (role === 'control') {
                 // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
                 // suggestion — the root fields belong to the main OID.
@@ -211,35 +245,40 @@ export const oidChangeHandlerAsync =
  * @param name - Data property the picked id is stored in — the main `'oid'`, the Select's
  *   control ID (`CONTROL_ID_FIELD`).
  * @param allowedTypes - Allowed JS types for the picked state.
+ * @param options - Passed on to {@link oidChangeHandlerAsync}.
  * @returns The field definition.
  * @remarks
  * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
  * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
  * @example createIdField('oid', ANY_VALUE_TYPES)
  */
-export const createIdField = (name: string, allowedTypes: readonly AllowedType[]): RxWidgetInfoAttributesField =>
+export const createIdField = (
+    name: string,
+    allowedTypes: readonly AllowedType[],
+    options?: OidPickOptions,
+): RxWidgetInfoAttributesField =>
     ({
         name,
         type: 'id',
         label: name,
-        onChange: oidChangeHandlerAsync(allowedTypes, name),
+        onChange: oidChangeHandlerAsync(allowedTypes, name, options),
         allowedTypes,
     }) as RxWidgetInfoAttributesField;
 
 /** Options to toggle optional sections emitted by {@link commonObjectFields}. */
-interface CommonObjectFieldsOptions {
+interface CommonObjectFieldsOptions extends OidPickOptions {
     /** Include the unit override field (default: true). */
     unit?: boolean;
 }
 
 const commonObjectFields = (
     allowedTypes: readonly AllowedType[],
-    { unit = true }: CommonObjectFieldsOptions = {},
+    { unit = true, inventRange }: CommonObjectFieldsOptions = {},
 ): RxWidgetInfoAttributesField[] => {
     // The OID picker is always present; the unit section is optional and carries its own
     // leading divider so toggling it leaves no orphan divider. The Zustandszeilen are edited in
     // the widget's values group (`lib/stateEditorFields`), not here (ADR-0104).
-    const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes)];
+    const fields: RxWidgetInfoAttributesField[] = [createIdField('oid', allowedTypes, { inventRange })];
 
     if (unit) {
         fields.push(
