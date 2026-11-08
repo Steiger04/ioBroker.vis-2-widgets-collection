@@ -8,8 +8,17 @@
  * `useValueState` binding (ADR-0089 Nr. 3), which the body hands in, or the change dialog. No timer
  * and no decision of its own. Writes happen synchronously in the handler, so there is no race
  * between press, release and the trailing click.
+ *
+ * The input is Pointer Events, as in `useLongPress` (ADR-0110 Nr. 3): the mouse events a browser
+ * fires after a touch reach no handler. `pointerleave` does not bubble, so moving between the
+ * children of the button ends nothing. Outside push-button mode only `click` does anything.
+ *
+ * A touch pointer is implicitly captured by the element it went down on, so without more a finger
+ * leaving the button would fire `pointerleave` only after it is lifted. The press hands that capture
+ * back, then touch follows the leaving rule of the mouse. Pointer Events spec, not measured here:
+ * the live check is ticket 22.
  */
-import { useRef, useState } from 'react';
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 import { NO_PRESS, triggerStep } from './stateTrigger';
 import type { StateTriggerConfig, TriggerEvent } from './stateTrigger';
@@ -20,14 +29,16 @@ export interface StateTriggerOptions extends StateTriggerConfig {
     write: (value: string | number | boolean) => void;
 }
 
+/** What the handlers read off a pointer event. */
+export type StateTriggerPointerEvent = Pick<ReactPointerEvent, 'pointerId' | 'button' | 'target'>;
+
 /** The input handlers of the button. */
 export interface StateTriggerButtonProps {
     onClick: () => void;
-    onMouseDown: () => void;
-    onMouseUp: () => void;
-    onMouseOut: () => void;
-    onTouchStart: () => void;
-    onTouchEnd: () => void;
+    onPointerDown: (event: StateTriggerPointerEvent) => void;
+    onPointerUp: (event: StateTriggerPointerEvent) => void;
+    onPointerLeave: (event: StateTriggerPointerEvent) => void;
+    onPointerCancel: (event: StateTriggerPointerEvent) => void;
 }
 
 /** What the body wires up. */
@@ -61,14 +72,25 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
         }
     };
 
+    const onPointerDown = ({ pointerId, button, target }: StateTriggerPointerEvent): void => {
+        fire({ kind: 'press', pointerId, button });
+
+        const press = pressRef.current;
+        const element = target as Element;
+        if (press.pressOpen && press.pointerId === pointerId && element.hasPointerCapture(pointerId)) {
+            element.releasePointerCapture(pointerId);
+        }
+    };
+
+    const release = ({ pointerId }: StateTriggerPointerEvent): void => fire({ kind: 'release', pointerId });
+
     return {
         buttonProps: {
             onClick: () => fire({ kind: 'click' }),
-            onMouseDown: () => fire({ kind: 'press' }),
-            onMouseUp: () => fire({ kind: 'release' }),
-            onMouseOut: () => fire({ kind: 'release' }),
-            onTouchStart: () => fire({ kind: 'press' }),
-            onTouchEnd: () => fire({ kind: 'release' }),
+            onPointerDown,
+            onPointerUp: release,
+            onPointerLeave: release,
+            onPointerCancel: release,
         },
         dialog: { open, close: () => setOpen(false) },
     };

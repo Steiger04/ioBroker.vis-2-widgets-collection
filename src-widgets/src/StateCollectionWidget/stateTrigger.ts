@@ -23,23 +23,29 @@
  * Wert[2] is written only out of an open press, and only once (ADR-0110 Nr. 2, CONTEXT
  * "Taster-Betätigung"): a release ends the press, so passing the mouse over the button writes
  * nothing, and coming back still pressed starts nothing until a new press.
+ *
+ * The events are those of the Pointer Events the wiring reads (ADR-0110 Nr. 3): the main button,
+ * touch and pen start a press, only the first pointer counts and only its release ends the press.
+ * The Sperre starts none: React holds back pointer events on a disabled button neither on press nor
+ * on release, and MUI's `pointer-events: none` is styling, not a guard (ADR-0089 Nr. 1).
  */
 
 /** What the transition carries from step to step: the Taster-Betätigung (CONTEXT), once one is open. */
-export interface TriggerPress {
-    /** Whether a press is open. */
-    pressOpen: boolean;
-}
+export type TriggerPress =
+    /** No press is open. */
+    | { pressOpen: false }
+    /** A press is open, and it belongs to the first pointer. */
+    | { pressOpen: true; pointerId: number };
 
 /** What the widget starts from and each press returns to when it ends. */
 export const NO_PRESS: TriggerPress = { pressOpen: false };
 
 /** One event the wiring delivers to the trigger. */
 export type TriggerEvent =
-    /** Mouse or touch down. */
-    | { kind: 'press' }
-    /** Mouse or touch up, or the mouse leaving. */
-    | { kind: 'release' }
+    /** A pointer down, with the button it went down with (touch and pen contact report the main button). */
+    | { kind: 'press'; pointerId: number; button: number }
+    /** A pointer up, cancelled or leaving the whole button. */
+    | { kind: 'release'; pointerId: number }
     /** The browser click, of a mouse or of the keyboard. */
     | { kind: 'click' };
 
@@ -73,11 +79,16 @@ export interface TriggerState {
 export interface StateTriggerConfig {
     /** Resolved states from useData (blank rows absent). */
     states: readonly TriggerState[];
+    /** Sperre (CONTEXT): no new press starts. */
+    locked?: boolean;
     /** "Nur Zuständen" — restrict interaction to the configured states. */
     onlyStates?: boolean;
     /** Push-button (momentary) mode. */
     statePushButton?: boolean;
 }
+
+/** `PointerEvent.button` of the main mouse button, a touch contact and a pen contact. */
+const MAIN_BUTTON = 0;
 
 /** Push-button condition: `onlyStates` AND exactly two states AND the flag set. */
 const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateTriggerConfig): boolean =>
@@ -127,10 +138,20 @@ const clickAction = (config: StateTriggerConfig): TriggerAction => {
 export function triggerStep(press: TriggerPress, event: TriggerEvent, config: StateTriggerConfig): TriggerStep {
     switch (event.kind) {
         case 'press':
-            return isPushButtonMode(config)
-                ? { press: { pressOpen: true }, action: writeState(config.states[0]) }
-                : { press: NO_PRESS, action: { type: 'none' } };
+            if (!isPushButtonMode(config)) {
+                return { press: NO_PRESS, action: { type: 'none' } };
+            }
+            if (press.pressOpen || event.button !== MAIN_BUTTON || config.locked) {
+                return { press, action: { type: 'none' } };
+            }
+            return {
+                press: { pressOpen: true, pointerId: event.pointerId },
+                action: writeState(config.states[0]),
+            };
         case 'release':
+            if (press.pressOpen && press.pointerId !== event.pointerId) {
+                return { press, action: { type: 'none' } };
+            }
             return {
                 press: NO_PRESS,
                 action: press.pressOpen && isPushButtonMode(config) ? writeState(config.states[1]) : { type: 'none' },

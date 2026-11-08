@@ -49,6 +49,7 @@ function StateCollection(): React.ReactElement {
         states,
         onlyStates,
         statePushButton: widget.data.statePushButton,
+        locked,
         write: setOidValueState,
     });
 

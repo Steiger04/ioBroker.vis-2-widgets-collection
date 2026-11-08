@@ -18,8 +18,8 @@ import { describe, expect, it } from 'vitest';
 import { NO_PRESS, triggerStep } from './stateTrigger';
 import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerState } from './stateTrigger';
 
-const PRESS: TriggerEvent = { kind: 'press' };
-const RELEASE: TriggerEvent = { kind: 'release' };
+const PRESS: TriggerEvent = { kind: 'press', pointerId: 1, button: 0 };
+const RELEASE: TriggerEvent = { kind: 'release', pointerId: 1 };
 const CLICK: TriggerEvent = { kind: 'click' };
 
 const NONE: TriggerAction = { type: 'none' };
@@ -67,17 +67,17 @@ describe('triggerStep — every event per configuration', () => {
             expect(triggerStep(press, CLICK, config).action).toEqual(click);
         });
 
-        it.each([
-            ['the first', [row(0, true), row(1)]],
-            ['the second', [row(0), row(1, true)]],
-            ['none', TWO_STATES],
-        ])('push button: press writes Wert[1], with %s active', (_active, states) => {
-            expect(triggerStep(press, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(write(0));
-        });
-
         it('push button: the click is suppressed, not outrun (ADR-0089)', () => {
             expect(triggerStep(press, CLICK, PUSH_BUTTON).action).toEqual(NONE);
         });
+    });
+
+    it.each([
+        ['the first', [row(0, true), row(1)]],
+        ['the second', [row(0), row(1, true)]],
+        ['none', TWO_STATES],
+    ])('push button: a press from no open press writes Wert[1], with %s active', (_active, states) => {
+        expect(triggerStep(NO_PRESS, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(write(0));
     });
 });
 
@@ -120,6 +120,70 @@ describe('triggerStep — Wert[2] only out of an open press (ticket 04)', () => 
 
     it('a release without an open press writes nothing', () => {
         expect(triggerStep(NO_PRESS, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
+    });
+});
+
+describe('triggerStep — Pointer Events (ticket 05)', () => {
+    const SECOND_PRESS: TriggerEvent = { kind: 'press', pointerId: 2, button: 0 };
+    const SECOND_RELEASE: TriggerEvent = { kind: 'release', pointerId: 2 };
+
+    /** What a run of events leaves behind, folded through the transition. */
+    const run = (events: TriggerEvent[], config = PUSH_BUTTON): { actions: TriggerAction[]; open: boolean } => {
+        let press = NO_PRESS;
+        const actions: TriggerAction[] = [];
+
+        for (const event of events) {
+            const step = triggerStep(press, event, config);
+            press = step.press;
+            actions.push(step.action);
+        }
+
+        return { actions, open: press.pressOpen };
+    };
+
+    it.each([
+        ['the middle button', { kind: 'press', pointerId: 1, button: 1 }],
+        ['the right button, or the barrel of a pen', { kind: 'press', pointerId: 1, button: 2 }],
+    ] as [string, TriggerEvent][])('%s starts nothing, its release writes nothing', (_case, press) => {
+        expect(run([press, RELEASE])).toEqual({ actions: [NONE, NONE], open: false });
+    });
+
+    it('a second pointer starts nothing, and the press stays with the first', () => {
+        expect(run([PRESS, SECOND_PRESS])).toEqual({ actions: [write(0), NONE], open: true });
+    });
+
+    it('the release of a second pointer ends nothing', () => {
+        expect(run([PRESS, SECOND_PRESS, SECOND_RELEASE])).toEqual({
+            actions: [write(0), NONE, NONE],
+            open: true,
+        });
+    });
+
+    it('only the release of the first pointer writes Wert[2]', () => {
+        expect(run([PRESS, SECOND_PRESS, SECOND_RELEASE, RELEASE])).toEqual({
+            actions: [write(0), NONE, NONE, write(1)],
+            open: false,
+        });
+    });
+
+    it('a new pointer can start once the first press has ended', () => {
+        expect(run([PRESS, RELEASE, SECOND_PRESS, SECOND_RELEASE])).toEqual({
+            actions: [write(0), write(1), write(0), write(1)],
+            open: false,
+        });
+    });
+
+    it('the Sperre starts nothing (ADR-0089 Nr. 1), whatever React lets through to a disabled button', () => {
+        expect(run([PRESS, RELEASE], { ...PUSH_BUTTON, locked: true })).toEqual({
+            actions: [NONE, NONE],
+            open: false,
+        });
+    });
+
+    it('the Sperre does not hold back the end of an open press', () => {
+        const step = triggerStep(OPEN, RELEASE, { ...PUSH_BUTTON, locked: true });
+
+        expect(step).toEqual({ press: NO_PRESS, action: write(1) });
     });
 });
 

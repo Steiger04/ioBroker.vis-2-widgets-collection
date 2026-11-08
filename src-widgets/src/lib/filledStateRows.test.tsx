@@ -44,7 +44,7 @@ const resolvedStates = (data: Record<string, unknown>): StateStyleData[] => {
 const runtimeIsPushButton = (data: Record<string, unknown>): boolean =>
     triggerStep(
         NO_PRESS,
-        { kind: 'press' },
+        { kind: 'press', pointerId: 1, button: 0 },
         {
             states: resolvedStates(data),
             onlyStates: data.onlyStates as boolean | undefined,

@@ -11,8 +11,9 @@
  *
  * This suite pins what the widget does today, including its known findings. A case named
  * `Vn (ticket NN)` or `ticket NN` is an Ist that the fix of that ticket turns over, and that ticket
- * changes the case. The other cases are meant to hold through the whole series; ticket 05 moves the
- * gesture helpers below to Pointer Events, not the cases on top of them.
+ * changes the case. The other cases are meant to hold through the whole series. The gesture helpers
+ * below speak Pointer Events (ticket 05), the input of the push button; raw mouse events only stand
+ * for what a browser fires after them.
  *
  * What happy-dom does not show stays a live check (ticket 22): whether a browser fires the
  * mouse events after a touch, what it sends on a cancelled or long press, and the visible colours.
@@ -180,16 +181,37 @@ const fire = (element: Element, event: Event): void => {
 const mouse = (type: string, init: MouseEventInit = {}): MouseEvent =>
     new MouseEvent(type, { bubbles: true, cancelable: true, ...init });
 
-/** Touch events carry no data the body reads; the plain event is enough for React's handlers. */
-const touch = (type: string): Event => new Event(type, { bubbles: true, cancelable: true });
+const MOUSE_POINTER = 1;
+const FINGER = 2;
+const SECOND_FINGER = 3;
 
-// The push-button gestures, named by what the user does: ticket 05 moves them to Pointer Events
-// here, and the cases on top of them stay as they are.
-const press = (state: MountedState, init?: MouseEventInit): void => fire(buttonOf(state), mouse('mousedown', init));
-const release = (state: MountedState, init?: MouseEventInit): void => fire(buttonOf(state), mouse('mouseup', init));
-const leave = (state: MountedState): void => fire(buttonOf(state), mouse('mouseout'));
-const touchPress = (state: MountedState): void => fire(buttonOf(state), touch('touchstart'));
-const touchRelease = (state: MountedState): void => fire(buttonOf(state), touch('touchend'));
+/** One pointer event, the mouse with its main button unless `init` says otherwise. */
+const pointer = (type: string, init: PointerEventInit = {}): PointerEvent =>
+    new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        pointerId: MOUSE_POINTER,
+        pointerType: 'mouse',
+        button: 0,
+        ...init,
+    });
+
+const finger = (pointerId = FINGER): PointerEventInit => ({ pointerId, pointerType: 'touch' });
+
+/**
+ * The pointer going from `from` to `to`. React derives `onPointerLeave` from this `pointerout` and its
+ * `relatedTarget`, it has no listener for a dispatched `pointerleave`.
+ */
+const pointerOut = (from: Element, to: Element): void => fire(from, pointer('pointerout', { relatedTarget: to }));
+
+// The push-button gestures, named by what the user does.
+const press = (state: MountedState, init?: PointerEventInit): void =>
+    fire(buttonOf(state), pointer('pointerdown', init));
+const release = (state: MountedState, init?: PointerEventInit): void =>
+    fire(buttonOf(state), pointer('pointerup', init));
+const leave = (state: MountedState): void => pointerOut(buttonOf(state), document.body);
+const touchPress = (state: MountedState, pointerId = FINGER): void => press(state, finger(pointerId));
+const touchRelease = (state: MountedState, pointerId = FINGER): void => release(state, finger(pointerId));
 
 const click = (state: MountedState): void => fire(buttonOf(state), mouse('click'));
 
@@ -468,7 +490,7 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('V2 (ticket 05): a mouseout from a child while holding counts as a release, the real one writes nothing more', () => {
+        it('V2 (ticket 05): moving between the children while holding ends nothing, the real release writes Wert[2] once', () => {
             const state = mountState(PUSH_BUTTON);
             const child = buttonOf(state).firstElementChild;
             if (!child) {
@@ -477,10 +499,10 @@ describe('StateCollection push button up to the socket', () => {
 
             press(state);
             advance(400);
-            // mouseout bubbles: moving between the button's children reaches its handler.
-            fire(child, mouse('mouseout', { relatedTarget: buttonOf(state) }));
+            pointerOut(child, buttonOf(state));
+            pointerOut(buttonOf(state), child);
             settle();
-            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
 
             release(state);
             click(state);
@@ -517,7 +539,7 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('the mouse buttons', () => {
-        it('ticket 05: the right mouse button presses like the main one', () => {
+        it('ticket 05: the right mouse button sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state, { button: 2 });
@@ -525,10 +547,10 @@ describe('StateCollection push button up to the socket', () => {
             release(state, { button: 2 });
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('ticket 05: the middle mouse button presses like the main one', () => {
+        it('ticket 05: the middle mouse button sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state, { button: 1 });
@@ -536,7 +558,7 @@ describe('StateCollection push button up to the socket', () => {
             release(state, { button: 1 });
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
     });
 
@@ -563,38 +585,47 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
         });
 
-        it('V4 (ticket 05): a cancelled touch stays on Wert[1]', () => {
+        it('V4 (ticket 05): a cancelled touch writes Wert[2]', () => {
             const state = mountState(PUSH_BUTTON);
 
             touchPress(state);
             advance(400);
-            fire(buttonOf(state), touch('touchcancel'));
+            fire(buttonOf(state), pointer('pointercancel', finger()));
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 05: mouse events following a touch press again', () => {
+        it('ticket 05: mouse events following a touch write nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             touchPress(state);
             advance(400);
             touchRelease(state);
-            tap(state, 0);
+            settle();
+            fire(buttonOf(state), mouse('mousedown'));
+            fire(buttonOf(state), mouse('mouseup'));
+            fire(buttonOf(state), mouse('mouseout'));
+            click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0, 1, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 05: a second finger presses again', () => {
+        it('ticket 05: a second finger starts nothing and lifting it ends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             touchPress(state);
             advance(400);
-            touchPress(state);
+            touchPress(state, SECOND_FINGER);
+            touchRelease(state, SECOND_FINGER);
+            settle();
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+            touchRelease(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 1], optimistic: [1, 1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
     });
 
@@ -621,18 +652,20 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
         });
 
-        it('ticket 07: the Sperre taking hold while holding writes nothing, not even on the release', () => {
+        it('ticket 07: the Sperre taking hold while holding writes nothing until the release', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
             advance(400);
             state.configure({ onlyDisplay: true });
             settle();
-            // React drops mouseup on a disabled button.
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+            // Unlike mouseup, React passes pointerup to a disabled button.
             release(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
     });
 
@@ -827,6 +860,108 @@ describe('StateCollection open press (ticket 04)', () => {
         settle();
 
         expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+});
+
+describe('StateCollection Pointer Events (ticket 05)', () => {
+    const childOf = (state: MountedState): Element => {
+        const child = buttonOf(state).firstElementChild;
+        if (!child) {
+            throw new Error('the button rendered no child');
+        }
+        return child;
+    };
+
+    it('leaving the whole button out of a child ends the press, once', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        pointerOut(childOf(state), document.body);
+        settle();
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+        release(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('coming back still pressed starts nothing until a new press', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        leave(state);
+        settle();
+        fire(buttonOf(state), pointer('pointerover', { relatedTarget: document.body }));
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('a pen presses and releases like the main button', () => {
+        const state = mountState(PUSH_BUTTON);
+        const pen: PointerEventInit = { pointerId: FINGER, pointerType: 'pen' };
+
+        press(state, pen);
+        advance(400);
+        release(state, pen);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('another pointer leaving ends nothing: the mouse passes while the finger holds', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        touchPress(state);
+        advance(400);
+        leave(state);
+        fire(buttonOf(state), pointer('pointercancel'));
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('a press hands back the implicit capture of its target, so that a finger can leave the button', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = childOf(state);
+
+        // What the browser does before it fires pointerdown on a touch screen.
+        child.setPointerCapture(FINGER);
+        fire(child, pointer('pointerdown', finger()));
+
+        expect(child.hasPointerCapture(FINGER)).toBe(false);
+    });
+
+    it('a second finger keeps its capture: it starts no press', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = childOf(state);
+
+        touchPress(state);
+        child.setPointerCapture(SECOND_FINGER);
+        fire(child, pointer('pointerdown', finger(SECOND_FINGER)));
+
+        expect(child.hasPointerCapture(SECOND_FINGER)).toBe(true);
+    });
+
+    it('outside push-button mode a touch keeps its capture and only the click sends', () => {
+        const state = mountState();
+        const child = childOf(state);
+
+        child.setPointerCapture(FINGER);
+        fire(child, pointer('pointerdown', finger()));
+        expect(child.hasPointerCapture(FINGER)).toBe(true);
+
+        fire(child, pointer('pointerup', finger()));
+        settle();
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
     });
 });
 
@@ -1386,7 +1521,7 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('write === false: the guard of the Schreibkette holds back what disabled lets through', () => {
+    it('write === false: what disabled lets through starts nothing', () => {
         const state = mountState({ ...PUSH_BUTTON, oidObject: object('number', { write: false }) });
 
         leave(state);
@@ -1397,7 +1532,7 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('onlyDisplay: the mouseout React passes to a disabled button finds no open press', () => {
+    it('onlyDisplay: the leaving React passes to a disabled button finds no open press', () => {
         const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
 
         leave(state);
@@ -1406,7 +1541,7 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('ticket 05: onlyDisplay does not hold back a touch, React passes it to a disabled button', () => {
+    it('ticket 05: onlyDisplay holds back a touch, whatever React passes to a disabled button', () => {
         const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
 
         touchPress(state);
@@ -1414,7 +1549,7 @@ describe('StateCollection Sperre up to the socket', () => {
         touchRelease(state);
         settle();
 
-        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
     it('onlyDisplay taking hold while the dialog is open: the row still sends', () => {

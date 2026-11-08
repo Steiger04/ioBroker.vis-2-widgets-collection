@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { renderHook } from '../lib/testing/testHarness';
 import { useStateTrigger } from './useStateTrigger';
-import type { StateTrigger, StateTriggerOptions } from './useStateTrigger';
+import type { StateTrigger, StateTriggerOptions, StateTriggerPointerEvent } from './useStateTrigger';
 
 const TWO_STATES = [
     { value: 1, active: false },
@@ -38,30 +38,91 @@ const mountTrigger = (
 
 const written = (write: ReturnType<typeof vi.fn>): unknown[] => write.mock.calls.map(([value]: unknown[]) => value);
 
+/** The pointer event the handlers read: the first pointer, its main button, on a fresh element. */
+const pointer = (init: { pointerId?: number; button?: number; target?: Element } = {}): StateTriggerPointerEvent => ({
+    pointerId: 1,
+    button: 0,
+    target: document.createElement('span'),
+    ...init,
+});
+
 describe('useStateTrigger', () => {
-    it.each([
-        ['onMouseDown', [1]],
-        ['onTouchStart', [1]],
-        ['onClick', []],
-    ] as const)('push button: %s writes %j', (handler, expected) => {
+    it('push button: onPointerDown writes Wert[1]', () => {
         const { result, write } = mountTrigger();
 
-        act(() => result.current.buttonProps[handler]());
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
 
-        expect(written(write)).toEqual(expected);
+        expect(written(write)).toEqual([1]);
     });
 
-    it.each(['onMouseUp', 'onMouseOut', 'onTouchEnd'] as const)(
+    it('push button: onClick writes nothing', () => {
+        const { result, write } = mountTrigger();
+
+        act(() => result.current.buttonProps.onClick());
+
+        expect(written(write)).toEqual([]);
+    });
+
+    it.each(['onPointerUp', 'onPointerLeave', 'onPointerCancel'] as const)(
         'push button: %s writes Wert[2] out of an open press, and nothing without one',
         handler => {
             const { result, write } = mountTrigger();
 
-            act(() => result.current.buttonProps[handler]());
+            act(() => result.current.buttonProps[handler](pointer()));
             expect(written(write)).toEqual([]);
 
-            act(() => result.current.buttonProps.onMouseDown());
-            act(() => result.current.buttonProps[handler]());
+            act(() => result.current.buttonProps.onPointerDown(pointer()));
+            act(() => result.current.buttonProps[handler](pointer()));
             expect(written(write)).toEqual([1, 0]);
+        },
+    );
+
+    it.each(['onPointerUp', 'onPointerLeave', 'onPointerCancel'] as const)(
+        'push button: %s of another pointer ends nothing',
+        handler => {
+            const { result, write } = mountTrigger();
+
+            act(() => result.current.buttonProps.onPointerDown(pointer()));
+            act(() => result.current.buttonProps[handler](pointer({ pointerId: 2 })));
+            expect(written(write)).toEqual([1]);
+
+            act(() => result.current.buttonProps[handler](pointer()));
+            expect(written(write)).toEqual([1, 0]);
+        },
+    );
+
+    it('push button: a press with another button writes nothing', () => {
+        const { result, write } = mountTrigger();
+
+        act(() => result.current.buttonProps.onPointerDown(pointer({ button: 2 })));
+
+        expect(written(write)).toEqual([]);
+    });
+
+    it('the Sperre starts no press', () => {
+        const { result, write } = mountTrigger({ locked: true });
+
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
+        act(() => result.current.buttonProps.onPointerUp(pointer()));
+
+        expect(written(write)).toEqual([]);
+    });
+
+    it.each([
+        ['a press hands back the capture', {}, false],
+        ['another button keeps it', { button: 2 }, true],
+        ['the Sperre keeps it', { locked: true }, true],
+        ['outside push-button mode it stays', { statePushButton: false }, true],
+    ] as [string, { button?: number; locked?: boolean; statePushButton?: boolean }, boolean][])(
+        'the implicit capture of the target: %s',
+        (_case, { button = 0, ...options }, kept) => {
+            const { result } = mountTrigger(options);
+            const target = document.createElement('span');
+            target.setPointerCapture(1);
+
+            act(() => result.current.buttonProps.onPointerDown(pointer({ target, button })));
+
+            expect(target.hasPointerCapture(1)).toBe(kept);
         },
     );
 
@@ -69,11 +130,11 @@ describe('useStateTrigger', () => {
         const { result, write } = mountTrigger();
 
         act(() => {
-            const { onMouseDown, onMouseUp } = result.current.buttonProps;
-            onMouseDown();
-            onMouseUp();
+            const { onPointerDown, onPointerUp } = result.current.buttonProps;
+            onPointerDown(pointer());
+            onPointerUp(pointer());
             // The first release ended the press: this one must find none, without a render in between.
-            onMouseUp();
+            onPointerUp(pointer());
         });
 
         expect(written(write)).toEqual([1, 0]);
@@ -89,9 +150,9 @@ describe('useStateTrigger', () => {
         });
         const { result, rerender } = renderHook(() => useStateTrigger(options()));
 
-        act(() => result.current.buttonProps.onMouseDown());
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
         rerender(() => useStateTrigger(options()));
-        act(() => result.current.buttonProps.onMouseUp());
+        act(() => result.current.buttonProps.onPointerUp(pointer()));
 
         expect(written(write)).toEqual([1, 0]);
     });
