@@ -627,7 +627,7 @@ The optimistic write path every interactive Collection widget shares: keystroke/
 _Avoid_: Write-Pipeline (that suggests fetch/transform machinery), Setter (that is one function in it)
 
 **Sperre**:
-The state in which a Collection widget offers its bound OID for display only — the control is disabled. Locked iff the user marked the widget display-only (`onlyDisplay`) or the bound OID's object is not writable (`write === false`); one rule (`isOidReadOnly`), decided by the OID binding (`useValueState` → `locked`) against the object actually bound, never re-derived per widget. Deliberately WIDER than the **Schreibkette**'s guard, which refuses only non-writable objects: a leaked `onlyDisplay` on Light2's Hilfs-OIDs (ADR-0096, no heal) must not stop their writes. The Select applies the same rule to its **Schreibziel**.
+The state in which a Collection widget offers its bound OID for display only — the control is disabled. Locked iff the user marked the widget display-only (`onlyDisplay`; a binding on it arrives as text, `'false'` and `'0'` read as off) or the bound OID's object is not writable (`write === false`); one rule (`isOidReadOnly`), decided by the OID binding (`useValueState` → `locked`) against the object actually bound, never re-derived per widget. Deliberately WIDER than the **Schreibkette**'s guard, which refuses only non-writable objects: a leaked `onlyDisplay` on Light2's Hilfs-OIDs (ADR-0096, no heal) must not stop their writes. The Select applies the same rule to its **Schreibziel**.
 _Avoid_: Read-only (unsaid whether lock or guard), Schreibschutz (that is the object's `write === false` alone), disabled (that is the control's attribute, not the rule)
 
 **Eck-Icon**:
