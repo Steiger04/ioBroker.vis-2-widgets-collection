@@ -6,7 +6,8 @@
  * This hook is used by multiple widgets to keep a local “optimistic” value in sync with ioBroker state.
  * It supports:
  * - type-aware conversion via the configured `OidObject.type`
- * - throttled/debounced writes via {@link module:hooks/useDebounce}
+ * - throttled/debounced writes via {@link module:hooks/useDebounce}, or an immediate write on the same
+ *   binding (ADR-0110 Nr. 5)
  * - a short “ignore window” to avoid immediately re-applying backend echoes while the user is interacting
  * - two outputs of one backend decision: `hasForeignChange` (Fremdänderung, CONTEXT — any change
  *   another party made) and `hasBackendChange` (Signifikante Backend-Änderung, CONTEXT — a
@@ -16,7 +17,7 @@
  * {@link isSignificantBackendChange}, {@link decideBackendChange} — the useOptimisticNumber /
  * useEditorHistory pattern) so the echo/significance contract is testable without React.
  * The hook itself is a thin shell: context reads, the ref carrying the last decision's
- * `next` state, and the debounced write wiring.
+ * `next` state, and the write wiring.
  */
 
 import { useCallback, useContext, useMemo, useRef } from 'react';
@@ -181,6 +182,16 @@ export function decideBackendChange(
     return { foreign, significant: foreign && isSignificantBackendChange(prev.value, current.value), next };
 }
 
+/** Options of {@link UseValueStateReturn.updateValue}. */
+export interface UpdateValueOptions {
+    /**
+     * Send past the debounce: the value goes to `context.setValue` at once and a waiting value is
+     * dropped. The optimistic patch and the ignore window stay, so the echo is no Fremdänderung
+     * (ADR-0087). A debounce would swallow the press value of a short Taster-Betätigung.
+     */
+    immediate?: boolean;
+}
+
 /**
  * Return type for {@link module:hooks/useValueState.default}.
  */
@@ -210,12 +221,12 @@ export interface UseValueStateReturn {
     locked: boolean;
 
     /**
-     * Updates the local widget value and (optionally) schedules a backend write.
+     * Updates the local widget value and writes it to the backend, behind the debounce by default.
      *
      * @param value - New value (string/number/boolean). `null` is intentionally not supported.
-     * @param skipBackendWrite - When `true`, only the local state is updated.
+     * @param options - See {@link UpdateValueOptions}.
      */
-    updateValue: (value: string | number | boolean, skipBackendWrite?: boolean) => void;
+    updateValue: (value: string | number | boolean, options?: UpdateValueOptions) => void;
 }
 
 /**
@@ -243,7 +254,7 @@ export interface UseValueStateReturn {
  * spans `Number(delay) || 300` (a configured `0` still yields 300) plus 1500 ms.
  */
 const useValueState = (idName: string): UseValueStateReturn => {
-    const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
+    const { setState, setValue, widget, getPropertyValue, values } = useContext(CollectionContext);
 
     const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
 
@@ -292,7 +303,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
         },
     });
     const updateValue = useCallback(
-        (value: string | number | boolean, skipBackendWrite = false): void => {
+        (value: string | number | boolean, options?: UpdateValueOptions): void => {
             if (!oidObject?._id) {
                 return;
             }
@@ -326,7 +337,9 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 value: processedValue,
             };
 
-            if (skipBackendWrite) {
+            if (options?.immediate) {
+                debounce?.cancel();
+                setValue(oidObject._id, processedValue);
                 return;
             }
 
@@ -334,7 +347,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 debounce.next(processedValue);
             }
         },
-        [delay, debounce, oidObject, setState],
+        [delay, debounce, oidObject, setState, setValue],
     );
 
     return {

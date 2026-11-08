@@ -3,14 +3,16 @@
  *
  * @module lib/stateFields
  * @remarks
- * Provides additional fields used across widgets that display or write state values (e.g. "only display",
- * "only states", push-button mode, and basic visibility toggles).
+ * Provides additional fields of the State and Input widgets (e.g. "only display", "only states", push-button
+ * mode, and basic visibility toggles). The Slider does not use it: it declares `onlyStates` in `sliderFields`
+ * (ADR-0106).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/state-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import effectiveStateCount from './effectiveStateCount';
 import { createOnlyDisplayField } from './fieldFactories';
+import { pushButtonModeOffered } from './filledStateRows';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -21,7 +23,7 @@ type StateFieldsSettings = {
     /**
      * Include the discrete-state selection block (`onlyStates` + `statePushButton`).
      *
-     * Widgets that own state-selection semantics (State, Slider) use the default `true`.
+     * The widget that owns state-selection semantics here (State) uses the default `true`.
      * Widgets whose job is free-form entry (Input) pass `false` — picking from discrete states
      * is the Select widget's responsibility. See ADR-0002.
      *
@@ -38,8 +40,7 @@ type StateFieldsSettings = {
 const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesField[] => {
     const { onlyStates = true } = settings || {};
 
-    // Both hidden closures below ask the same question — the effective state count
-    // of the widget's editor data — so they share this one reading of the formula.
+    // The option itself follows the Zustandsmenge, which counts blank rows too.
     const countOf = (data: WidgetData): number =>
         effectiveStateCount({
             valuesCount: data.values_count,
@@ -67,7 +68,7 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
                       type: 'checkbox',
                       label: 'state_push_button',
                       default: false,
-                      hidden: (data, _i) => !data.onlyStates || countOf(data) !== 2,
+                      hidden: (data, _i) => !pushButtonModeOffered(data),
                       tooltip: 'state_push_button_tooltip',
                   },
               ] as RxWidgetInfoAttributesField[])

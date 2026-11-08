@@ -71,6 +71,17 @@ describe('RadioGroupCollection wiring', () => {
         vi.useRealTimers();
     });
 
+    it('labels a radio by the value with its unit when the alias holds only spaces', () => {
+        const { container } = mountRadioGroup(
+            scene({ oidObject: { _id: OID, type: 'number', unit: '%' }, alias2: '  ' }),
+        );
+
+        const labels = Array.from(container.querySelectorAll('.MuiFormControlLabel-root')).map(
+            label => label.textContent,
+        );
+        expect(labels).toEqual(['OFF', '1%']);
+    });
+
     it("sizes every checked icon by its own state's icon size, not by the first matching state", () => {
         const { container } = mountRadioGroup(
             scene({ value1: '1', alias1: 'A', value2: '1', alias2: 'B', icon: ICON, iconSize1: 40, iconSize2: 80 }),

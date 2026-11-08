@@ -15,7 +15,8 @@
  *   `!write` treated `undefined` as non-writable).
  * - **Explicit `write === false`** → read-only (sensors/indicators).
  * - **`onlyDisplay === true`** → read-only, regardless of `write` (user forced display-only, or the
- *   OID-change handler set it because `write === false`).
+ *   OID-change handler set it because `write === false`). A binding on the attribute resolves to
+ *   text, so `'false'` and `'0'` read as off.
  *
  * The handler {@link module:lib/commonObjectFields} sets `onlyDisplay = (common.write === false)`
  * on OID change, so `onlyDisplay` already encodes the non-writable case for freshly selected OIDs.
@@ -25,8 +26,8 @@
 
 /** Minimal slice of widget data the guard consumes. */
 interface ReadOnlyData {
-    /** User-forced display-only flag (set on OID change to `common.write === false`). */
-    onlyDisplay?: boolean;
+    /** User-forced display-only flag (set on OID change to `common.write === false`); text when bound. */
+    onlyDisplay?: boolean | string;
     /** Raw `common.write` of the selected OID (`undefined` when the field is absent). */
     write?: boolean;
 }
@@ -40,7 +41,8 @@ interface ReadOnlyData {
  * ```
  */
 export function isOidReadOnly(data: ReadOnlyData | undefined | null): boolean {
-    return Boolean(data?.onlyDisplay) || data?.write === false;
+    const onlyDisplay = data?.onlyDisplay;
+    return (Boolean(onlyDisplay) && onlyDisplay !== 'false' && onlyDisplay !== '0') || data?.write === false;
 }
 
 export default isOidReadOnly;

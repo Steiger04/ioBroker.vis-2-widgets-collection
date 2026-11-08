@@ -25,6 +25,7 @@ const DOM_TS_TESTS = [
     'src/EchartsCollectionWidget/useChartPipeline.hook.test.ts',
     'src/EchartsCollectionWidget/useHistory.test.ts',
     'src/hooks/useData/useData.hook.test.ts',
+    'src/hooks/useDebounce.hook.test.ts',
     'src/hooks/useFloatingPanel.test.ts',
     'src/hooks/useValueState.hook.test.ts',
     'src/InputCollectionWidget/useInlineEdit.hook.test.ts',
@@ -33,12 +34,15 @@ const DOM_TS_TESTS = [
     'src/lib/allowedOidTypes.parity.test.ts',
     'src/lib/commonObjectFields.parity.test.ts',
     'src/lib/useEditorHistory.hook.test.ts',
+    'src/StateCollectionWidget/useStateTrigger.hook.test.ts',
     'src/ThemeConfigWizard/useStudioSession.hook.test.ts',
     // Mocks Generic and every widget body (vi.mock / vi.doMock) to introspect getWidgetInfo():
     // it needs its own module registry, which the shared node cache (isolate: false) lacks.
     'src/lib/colorFieldTerminals.parity.test.ts',
     // Same introspection for the Zustandseditor's „Werte" group of the 11 state widgets.
     'src/lib/stateEditorFields.parity.test.ts',
+    // Same introspection for the delay block of the widgets using delayFields.
+    'src/lib/delayFields.parity.test.ts',
     // Since ADR-0083 these load the editorial record (rail slots/summaries/heal read the
     // family profiles, which import the section modules) — DOM territory now. The chain
     // reaches them via editorState's heal dispatch and summaries' slot dispatch.

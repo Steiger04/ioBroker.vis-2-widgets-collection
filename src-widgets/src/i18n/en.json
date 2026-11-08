@@ -1194,7 +1194,7 @@
     "state_change_dialog_title": "Change value",
     "state_collection_widget": "State (boolean, number, string, mixed)",
     "state_push_button": "Push button",
-    "state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2].",
+    "state_push_button_tooltip": "Pressing the button sends value[1], releasing it or leaving the button sends value[2], both immediately. Moving over the button without pressing it sends nothing.",
     "state_editor_add_row": "Add row",
     "state_editor_binding_differs": "The selected widgets bind different fields: select them one by one to change a binding.",
     "state_editor_binding_off": "Deactivate binding and use field as standard input",

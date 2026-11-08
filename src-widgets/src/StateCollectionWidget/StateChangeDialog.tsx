@@ -7,8 +7,19 @@
  * Purely props-driven: no CollectionContext access and no own `useValueState`
  * binding — every commit travels through `onCommit`, the body's single write
  * chain, so dialog and widget share one debounce/ignore window. The slider gate
- * and the title fallback are decided by the body (StateCollection) and arrive
- * here as `slider` / `title`; the dialog only renders what it is given.
+ * is decided by the Zustands-Auslöser, the title fallback and the translated close
+ * label by the body (StateCollection); they arrive here as `slider` / `title` /
+ * `closeLabel` and the dialog only renders what it is given. The title carries no id
+ * of its own: MUI links it to the dialog's `aria-labelledby` through the id it generates.
+ * The body mounts it only while it is open, so every opening seeds the slider anew.
+ *
+ * The list follows the rows, duplicates included, marks every Aktiver Zustand and stays open
+ * after a choice (ADR-0110 Nr. 10). The slider's range is the object copy's, which a pick seeds
+ * with 0..100 where the object declares no bound (ADR-0109 Nr. 8); its local position keeps a
+ * drag off the echo and follows a Fremdänderung (ADR-0110 Nr. 11).
+ *
+ * The Sperre can take hold while the dialog is open: rows and slider then commit nothing and keep
+ * showing the value, and the dialog neither closes on its own nor stops being closable.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,175 +38,151 @@ import {
     Slider,
     Stack,
 } from '@mui/material';
-import { useCallback, useMemo, useState, type FC, type MouseEvent } from 'react';
+import { useEffect, useState, type FC, type MouseEvent } from 'react';
+import type { StateStyleData } from '../hooks/useData/types';
+import { solidOf } from '../lib/helper/colorDerivation';
+import { isGradientColor } from '../lib/helper/colorValidation';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
+import isNumber from '../lib/helper/isNumber';
+import type { SliderRange } from './stateTrigger';
 
 /**
  * Props for {@link module:widgets/StateCollectionWidget/StateChangeDialog.default}.
  */
 export interface StateChangeDialogProps {
-    /** Available states to render as a selectable list (state key → display label). */
-    widgetStates: Record<string, string>;
-    /** Whether the dialog is open. */
-    open: boolean;
+    /** The resolved states from useData, one list entry per state in the order of the rows. */
+    states: StateStyleData[];
     /** Callback to close the dialog. */
     closeHandler: () => void;
+    /** Accessible name of the close button, translated by the body. */
+    closeLabel: string;
     /** Dialog title; the body resolves the header/OID-name/i18n fallback chain. */
     title: string;
-    /** Dialog paper background color. */
+    /** Background of the whole dialog, a gradient included; empty keeps the theme surface. */
     backgroundColor?: string;
-    /** Dialog paper text color. */
+    /** Text color of the whole dialog; a gradient clips through the title, the rest paints its Vollfarbe. */
     textColor?: string;
-    /** Current OID value; seeds the slider position. */
+    /** Current OID value; seeds the slider position and moves it on a Fremdänderung. */
     currentValue?: string | number | boolean | null;
+    /** The body's Fremdänderung flag (`useValueState`): the slider position follows `currentValue`. */
+    hasForeignChange?: boolean;
     /** The body's single write chain — every list/slider commit goes through it. */
     onCommit: (value: string | number | boolean) => void;
-    /** Range bounds; omit to render the state list without a slider. */
-    slider?: { min: number; max: number };
+    /** The Sperre (CONTEXT): rows and slider commit nothing; the list and the position keep following the value. */
+    locked?: boolean;
+    /** Range bounds and step (default 1); omit to render the state list without a slider. */
+    slider?: SliderRange;
 }
+
+/**
+ * The slider position an OID value stands for.
+ *
+ * @param value - Current OID value.
+ * @returns The number, a numeric string counting as one; `undefined` for anything else.
+ */
+const sliderPosition = (value: StateChangeDialogProps['currentValue']): number | undefined =>
+    typeof value !== 'boolean' && isNumber(value) ? Number(value) : undefined;
 
 /**
  * Dialog for changing a widget's current value.
  *
  * @param props - Component props.
- * @param props.widgetStates - Available states to render as a selectable list.
- * @param props.open - Whether the dialog is open.
+ * @param props.states - The resolved states to render as a selectable list.
  * @param props.closeHandler - Callback to close the dialog.
+ * @param props.closeLabel - Accessible name of the close button, translated by the body.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
- * @param props.backgroundColor - Dialog paper background color.
- * @param props.textColor - Dialog paper text color.
- * @param props.currentValue - Current OID value; seeds the slider position.
+ * @param props.backgroundColor - Background of the whole dialog.
+ * @param props.textColor - Text color of the whole dialog.
+ * @param props.currentValue - Current OID value; seeds the slider position and moves it on a Fremdänderung.
+ * @param props.hasForeignChange - The body's Fremdänderung flag; the slider position follows `currentValue`.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
- * @param props.slider - Range bounds; omit to render the list without a slider.
+ * @param props.locked - The Sperre: rows and slider commit nothing, the dialog can still be closed.
+ * @param props.slider - Range bounds and step (default 1); omit to render the list without a slider.
  * @returns Dialog UI.
  * @example
  * ```tsx
- * <StateChangeDialog
- *   open={open}
- *   closeHandler={() => setOpen(false)}
- *   widgetStates={widgetStates}
- *   title={dialogTitle}
- *   currentValue={oidValue}
- *   onCommit={setOidValueState}
- *   slider={{ min: 0, max: 100 }}
- * />
+ * {open && (
+ *   <StateChangeDialog
+ *     closeHandler={() => setOpen(false)}
+ *     closeLabel={closeLabel}
+ *     states={states}
+ *     title={dialogTitle}
+ *     currentValue={oidValue}
+ *     hasForeignChange={hasForeignChange}
+ *     onCommit={setOidValueState}
+ *     slider={{ min: 0, max: 100 }}
+ *   />
+ * )}
  * ```
  */
 const StateChangeDialog: FC<StateChangeDialogProps> = ({
-    widgetStates,
-    open,
+    states,
     closeHandler,
+    closeLabel,
     title,
     backgroundColor,
     textColor,
     currentValue,
+    hasForeignChange,
     onCommit,
+    locked,
     slider,
 }) => {
-    const [sliderValue, setSliderValue] = useState<number>(() => (typeof currentValue === 'number' ? currentValue : 0));
+    const [sliderValue, setSliderValue] = useState<number>(() => sliderPosition(currentValue) ?? 0);
 
-    const hasWidgetStates = Boolean(widgetStates && Object.keys(widgetStates).length);
+    // A Fremdänderung (any size) wins over the local position; the own write and its
+    // echo never raise the flag, so a drag does not hang on the echo.
+    useEffect(() => {
+        const position = sliderPosition(currentValue);
+        if (hasForeignChange && position !== undefined) {
+            setSliderValue(position);
+        }
+    }, [hasForeignChange, currentValue]);
 
-    const handleSliderChange = useCallback(
-        (_event: Event, value: number | number[]) => {
-            const numericValue = Array.isArray(value) ? value[0] : value;
-            setSliderValue(numericValue);
-            onCommit(numericValue);
-        },
-        [onCommit],
-    );
+    const hasStates = states.length > 0;
 
-    const createListItemClickHandler = useCallback(
-        (key: string) => (event: MouseEvent<HTMLDivElement>) => {
+    const handleSliderChange = (_event: Event, value: number | number[]): void => {
+        const numericValue = Array.isArray(value) ? value[0] : value;
+        setSliderValue(numericValue);
+        onCommit(numericValue);
+    };
+
+    const createListItemClickHandler =
+        (value: StateStyleData['value']) =>
+        (event: MouseEvent<HTMLDivElement>): void => {
             event.preventDefault();
-            const numericValue = Number(key);
-            // Number('') and Number('  ') are 0, not NaN — a blank key must not
-            // drag the slider to 0; real numeric keys still seed the position.
-            if (key.trim() !== '' && !isNaN(numericValue)) {
-                setSliderValue(numericValue);
+            // A state without a value is statically possible; useData skips it at runtime.
+            if (value === undefined) {
+                return;
             }
-            onCommit(key);
-        },
-        [onCommit],
-    );
+            // A row on a number OID that is no number resolves to NaN: no position.
+            if (typeof value === 'number' && !isNaN(value)) {
+                setSliderValue(value);
+            }
+            onCommit(value);
+        };
 
-    const ChangeSlider = useMemo(() => {
-        if (!slider) {
-            return null;
-        }
-
-        return (
-            <Box sx={{ px: 3 }}>
-                <Slider
-                    // Room for the list below — the old commonStates condition
-                    // reads as "the dialog shows a list" now that the list is
-                    // the only thing besides the slider.
-                    sx={{ pb: hasWidgetStates ? 4 : 3 }}
-                    size="small"
-                    min={slider.min}
-                    max={slider.max}
-                    marks={[
-                        {
-                            value: slider.min,
-                            label: String(slider.min),
-                        },
-                        {
-                            value: slider.max,
-                            label: String(slider.max),
-                        },
-                    ]}
-                    valueLabelDisplay="auto"
-                    value={sliderValue}
-                    onChange={handleSliderChange}
-                />
-            </Box>
-        );
-    }, [slider, hasWidgetStates, sliderValue, handleSliderChange]);
-
-    const ChangeList = useMemo(() => {
-        if (!hasWidgetStates) {
-            return null;
-        }
-
-        return (
-            <List>
-                {Object.entries(widgetStates).map(([key, value]) => (
-                    <ListItem
-                        disablePadding
-                        key={key}
-                    >
-                        <ListItemButton onClick={createListItemClickHandler(key)}>
-                            <ListItemText
-                                primaryTypographyProps={{ variant: 'body2' }}
-                                primary={String(value)}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
-        );
-    }, [hasWidgetStates, widgetStates, createListItemClickHandler]);
+    // `color` cannot draw a gradient: only the title clips it, everything below reads the
+    // Repräsentative Vollfarbe. Any other value is drawn as given, a color name included.
+    const bodyTextColor = isGradientColor(textColor) ? solidOf(textColor) : textColor;
 
     return (
         <Dialog
-            open={open}
+            open
             onClose={closeHandler}
             maxWidth="xs"
             fullWidth
             PaperProps={{
                 sx: {
-                    bgcolor: backgroundColor,
-                    color: textColor,
+                    // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
+                    background: backgroundColor || undefined,
+                    color: bodyTextColor,
                 },
             }}
         >
-            <DialogTitle
-                sx={{ m: 0, p: 2 }}
-                id="customized-dialog-title"
-            >
-                {title}
-            </DialogTitle>
+            <DialogTitle sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}>{title}</DialogTitle>
             <IconButton
-                aria-label="close"
+                aria-label={closeLabel}
                 onClick={closeHandler}
                 sx={theme => ({
                     position: 'absolute',
@@ -212,12 +199,67 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 }}
             >
                 <Stack
-                    divider={hasWidgetStates && <Divider />}
+                    divider={hasStates && <Divider />}
                     spacing={0}
                     component={Paper}
+                    sx={{
+                        color: 'inherit',
+                        // Shows the dialog's surface through: `inherit` would restart a gradient
+                        // on the card's own box and stack a translucent color on itself.
+                        background: backgroundColor ? 'transparent' : undefined,
+                    }}
                 >
-                    {ChangeSlider}
-                    {ChangeList}
+                    {slider && (
+                        <Box sx={{ px: 3 }}>
+                            <Slider
+                                // Room for the list below — the old commonStates condition
+                                // reads as "the dialog shows a list" now that the list is
+                                // the only thing besides the slider.
+                                sx={{ pb: hasStates ? 4 : 3 }}
+                                size="small"
+                                min={slider.min}
+                                max={slider.max}
+                                step={slider.step ?? 1}
+                                marks={[
+                                    {
+                                        value: slider.min,
+                                        label: String(slider.min),
+                                    },
+                                    {
+                                        value: slider.max,
+                                        label: String(slider.max),
+                                    },
+                                ]}
+                                valueLabelDisplay="auto"
+                                disabled={locked}
+                                value={sliderValue}
+                                onChange={handleSliderChange}
+                            />
+                        </Box>
+                    )}
+                    {hasStates && (
+                        <List>
+                            {states.map(state => (
+                                <ListItem
+                                    disablePadding
+                                    key={state.fieldNumber}
+                                >
+                                    <ListItemButton
+                                        disabled={locked}
+                                        selected={state.active}
+                                        // `disabled` alone is no guard here: ButtonBase still fires its
+                                        // onClick on the space key of a row that kept the focus.
+                                        onClick={locked ? undefined : createListItemClickHandler(state.value)}
+                                    >
+                                        <ListItemText
+                                            primaryTypographyProps={{ variant: 'body2' }}
+                                            primary={state.label}
+                                        />
+                                    </ListItemButton>
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
                 </Stack>
             </DialogContent>
         </Dialog>

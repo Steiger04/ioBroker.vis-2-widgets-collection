@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "Modifier la valeur",
     "state_collection_widget": "État (booléen, nombre, chaîne)",
     "state_push_button": "Bouton poussoir",
-    "state_push_button_tooltip": "Lorsque le bouton est enfoncé, la valeur[1] est définie, et lorsqu'il est relâché, la valeur[2] est définie.",
+    "state_push_button_tooltip": "Appuyer sur le bouton envoie la valeur[1], le relâcher ou quitter le bouton envoie la valeur[2], dans les deux cas immédiatement. Survoler le bouton sans appuyer n'envoie rien.",
     "step": "Étape",
     "switch_collection_widget": "Commutateur (booléen)",
     "table_border_color": "Couleur de bordure",

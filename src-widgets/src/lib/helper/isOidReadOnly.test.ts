@@ -37,6 +37,17 @@ describe('isOidReadOnly', () => {
         expect(isOidReadOnly({ onlyDisplay: false, write: false })).toBe(true);
     });
 
+    // A binding on the attribute resolves to text (`{0_userdata.0.lock}` → 'false').
+    it.each([
+        ['false', false],
+        ['0', false],
+        ['', false],
+        ['true', true],
+        ['1', true],
+    ])('reads the bound onlyDisplay %j as %s', (onlyDisplay, locked) => {
+        expect(isOidReadOnly({ onlyDisplay, write: true })).toBe(locked);
+    });
+
     it('handles null / undefined data as writable', () => {
         expect(isOidReadOnly(null)).toBe(false);
         expect(isOidReadOnly(undefined)).toBe(false);

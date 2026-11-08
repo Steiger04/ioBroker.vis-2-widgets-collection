@@ -1,16 +1,27 @@
 /**
- * StateCollection — the wiring, rendered.
+ * StateCollection — the body up to the socket (ADR-0110 Nr. 15).
  *
  * @module widgets/StateCollectionWidget/StateCollection.test
  * @remarks
- * DOM contract of the body on the preview context (the Checkbox/ButtonGroup pattern):
- * a click toggling/writing through the optimistic setState patch, the dialog mounting
- * for more than two states, the read-only guard disabling the button, and the
- * push-button contract of ADR-0089 — press/release write SYNCHRONOUSLY while the
- * trailing click writes nothing ("release wins" by construction, not by timer race).
- * The decision matrix itself is pinned in stateTrigger.test.ts as pure data.
+ * The real body on the scene seam, the real `useValueState` and `useDebounce` behind it and fake
+ * timers around it. Every write has two readings, both from {@link writes}: `sent` is what reaches
+ * the backend (`setValue`, behind the debounce, the push button at once), `optimistic` is the patch
+ * the widget shows at once (`setState`). The patch lands the way the host's `setState` does; a
+ * Fremdänderung is a re-render over new scene values. The decision matrix itself is pinned in
+ * stateTrigger.test.ts as pure data.
+ *
+ * This suite pins what the widget does today, including its known findings. A case named
+ * `Vn (ticket NN)` or `ticket NN` is an Ist that the fix of that ticket turns over, and that ticket
+ * changes the case. The other cases are meant to hold through the whole series. The gesture helpers
+ * below speak Pointer Events (ticket 05), the input of the push button; raw mouse events only stand
+ * for what a browser fires after them.
+ *
+ * What happy-dom does not show stays a live check (ticket 22): whether a browser fires the
+ * mouse events after a touch, what it sends on a cancelled or long press, and the visible colours.
+ * The events here are dispatched one by one, so `disabled` holds back only what React itself
+ * holds back; the `pointer-events: none` of a disabled MUI button has no effect on them.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
     // The body imports Generic for the dialog title fallback (Generic.t extends
@@ -27,130 +38,1998 @@ import { act } from 'react';
 import {
     collectionScene,
     installInertResizeObserver,
-    mountCollectionBody,
+    testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
+import Generic from '../Generic';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
-import type { PreviewScene } from '../preview/types';
 
 installInertResizeObserver();
 
+const mount = testScopedMount();
+
 const OID = 'demo.0.state';
 
-const scene = (data: Record<string, unknown> = {}, value: unknown = 0): PreviewScene =>
-    collectionScene(
-        'state-collection-test',
-        {
-            oid: OID,
-            oidObject: { _id: OID, type: 'number' },
-            onlyStates: true,
-            values_count: 2,
-            value1: '0',
-            alias1: 'OFF',
-            value2: '1',
-            alias2: 'ON',
-            noHeader: true,
-            noFooter: true,
-            noHeaderIcon: true,
-            ...data,
+type Values = Record<string, unknown>;
+type Updater = (prev: { values: Values }) => { values: Values };
+
+/** Longer than every debounce and throttle interval in this suite. */
+const SETTLE_MS = 2000;
+
+/** The bound object of the given type — `oidObject._id` has to be in the widget data. */
+const object = (type: string, extra: Record<string, unknown> = {}): Record<string, unknown> => ({
+    _id: OID,
+    type,
+    ...extra,
+});
+
+/** Two rows on a number OID, only states, without header and footer, whose text would shadow the display. */
+const BASE_DATA = {
+    oid: OID,
+    oidObject: object('number'),
+    onlyStates: true,
+    values_count: 2,
+    value1: '0',
+    alias1: 'OFF',
+    value2: '1',
+    alias2: 'ON',
+    noHeader: true,
+    noFooter: true,
+    noHeaderIcon: true,
+};
+
+/** Push-button rows: press writes Wert[1] = 1, release writes Wert[2] = 0. */
+const PUSH_BUTTON = {
+    statePushButton: true,
+    value1: '1',
+    alias1: 'DOWN',
+    value2: '0',
+    alias2: 'UP',
+};
+
+/** Three rows, which is what a click opens the dialog for. */
+const THREE_ROWS = {
+    onlyStates: false,
+    values_count: 3,
+    value1: '0',
+    alias1: 'OFF',
+    value2: '1',
+    alias2: 'ON',
+    value3: '2',
+    alias3: 'AUTO',
+};
+
+/** The object copy's range: what earns the dialog a slider. */
+const RANGE = { minValue: 0, maxValue: 100 };
+
+interface MountedState extends MountedCollectionBody {
+    /** A state update from outside: the host re-renders over the new value and `lc`. */
+    backend: (value: unknown, lc: number) => void;
+    /** New widget data, the way the host re-renders the widget. */
+    configure: (data: Record<string, unknown>) => void;
+}
+
+/** Mounts the body at `value` (`lc` 1000) with the optimistic patch landing like the host's `setState`. */
+const mountState = (
+    data: Record<string, unknown> = {},
+    value: unknown = 0,
+    style: Record<string, unknown> = {},
+): MountedState => {
+    let currentData = data;
+    let values: Values = { [`${OID}.val`]: value, [`${OID}.lc`]: 1000 };
+    const sceneOf = (): ReturnType<typeof collectionScene> => {
+        const scene = collectionScene('state-collection-test', { ...BASE_DATA, ...currentData }, undefined);
+        // The scene alone carries only `<oid>.val`; the `.lc` decides what counts as a change.
+        scene.context.values = values;
+        scene.context.widget.style = style;
+        return scene;
+    };
+    const handle = mount(StateCollection, sceneOf());
+    const land = (next: Values): void => {
+        values = next;
+        handle.rerender(sceneOf());
+    };
+
+    handle.setState.mockImplementation((updater: Updater) => land(updater({ values }).values));
+
+    return {
+        ...handle,
+        backend: (nextValue, lc): void => land({ ...values, [`${OID}.val`]: nextValue, [`${OID}.lc`]: lc }),
+        configure: (next): void => {
+            currentData = { ...currentData, ...next };
+            land(values);
         },
-        value,
-    );
+    };
+};
 
-const mountState = (currentScene: PreviewScene): MountedCollectionBody =>
-    mountCollectionBody(StateCollection, currentScene);
+/**
+ * The two readings of every write so far: `sent` went to the socket, `optimistic` was patched
+ * into the widget. Only `sent` is what the device gets.
+ */
+const writes = ({ setState, setValue }: MountedCollectionBody): { sent: unknown[]; optimistic: unknown[] } => ({
+    sent: setValue.mock.calls.map(([oid, value]: unknown[]) => {
+        expect(oid).toBe(OID);
+        return value;
+    }),
+    optimistic: setState.mock.calls.map(
+        ([updater]: unknown[]) => (updater as Updater)({ values: {} }).values[`${OID}.val`],
+    ),
+});
 
-/** Applies the nth optimistic updater to an empty state and returns the written OID value. */
-const writtenValue = (setState: ReturnType<typeof vi.fn>, call: number): unknown =>
-    (
-        setState.mock.calls[call][0] as (prev: { values: Record<string, unknown> }) => {
-            values: Record<string, unknown>;
-        }
-    )({ values: {} }).values[`${OID}.val`];
+/** Lets the timers run: the debounced backend write fires once the interval has passed. */
+const advance = (ms: number): void => {
+    act(() => {
+        vi.advanceTimersByTime(ms);
+    });
+};
+
+const settle = (): void => advance(SETTLE_MS);
+
+const buttonOf = ({ container }: MountedCollectionBody): HTMLButtonElement => {
+    const button = container.querySelector('button');
+    if (!button) {
+        throw new Error('the body rendered no button');
+    }
+    return button;
+};
+
+const fire = (element: Element, event: Event): void => {
+    act(() => {
+        element.dispatchEvent(event);
+    });
+};
+
+const mouse = (type: string, init: MouseEventInit = {}): MouseEvent =>
+    new MouseEvent(type, { bubbles: true, cancelable: true, ...init });
+
+const MOUSE_POINTER = 1;
+const FINGER = 2;
+const SECOND_FINGER = 3;
+
+/** One pointer event, the mouse with its main button unless `init` says otherwise. */
+const pointer = (type: string, init: PointerEventInit = {}): PointerEvent =>
+    new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        pointerId: MOUSE_POINTER,
+        pointerType: 'mouse',
+        button: 0,
+        ...init,
+    });
+
+const finger = (pointerId = FINGER): PointerEventInit => ({ pointerId, pointerType: 'touch' });
+
+/**
+ * The pointer going from `from` to `to`. React derives `onPointerLeave` from this `pointerout` and its
+ * `relatedTarget`, it has no listener for a dispatched `pointerleave`.
+ */
+const pointerOut = (from: Element, to: Element): void => fire(from, pointer('pointerout', { relatedTarget: to }));
+
+// The push-button gestures, named by what the user does.
+const press = (state: MountedState, init?: PointerEventInit): void =>
+    fire(buttonOf(state), pointer('pointerdown', init));
+const release = (state: MountedState, init?: PointerEventInit): void =>
+    fire(buttonOf(state), pointer('pointerup', init));
+const leave = (state: MountedState): void => pointerOut(buttonOf(state), document.body);
+const touchPress = (state: MountedState, pointerId = FINGER): void => press(state, finger(pointerId));
+const touchRelease = (state: MountedState, pointerId = FINGER): void => release(state, finger(pointerId));
+
+const click = (state: MountedState): void => fire(buttonOf(state), mouse('click'));
+
+/** A whole mouse press as the browser delivers it: down, the hold, up and the trailing click. */
+const tap = (state: MountedState, holdMs: number): void => {
+    press(state);
+    advance(holdMs);
+    release(state);
+    click(state);
+};
+
+const dialogOf = (): HTMLElement | null => document.querySelector<HTMLElement>('.MuiDialog-root');
+
+const rowsOf = (): HTMLElement[] => Array.from(document.querySelectorAll<HTMLElement>('.MuiListItemButton-root'));
+
+const rowTexts = (): (string | null)[] => rowsOf().map(row => row.textContent);
+
+const rowNamed = (text: string): HTMLElement => {
+    const row = rowsOf().find(candidate => candidate.textContent === text);
+    if (!row) {
+        throw new Error(`the dialog rendered no row "${text}", only ${JSON.stringify(rowTexts())}`);
+    }
+    return row;
+};
+
+const markedRows = (): (string | null)[] =>
+    rowsOf()
+        .filter(row => row.classList.contains('Mui-selected'))
+        .map(row => row.textContent);
+
+const sliderOf = (): HTMLElement | null => document.querySelector<HTMLElement>('.MuiDialog-root .MuiSlider-root');
+
+const rangeOf = (): HTMLInputElement => {
+    const input = document.querySelector<HTMLInputElement>('.MuiDialog-root input[type="range"]');
+    if (!input) {
+        throw new Error('the dialog rendered no slider');
+    }
+    return input;
+};
+
+const thumb = (): number => Number(rangeOf().getAttribute('aria-valuenow'));
+
+/** Moves the thumb like a user would: the native range input fires `change`. */
+const drag = (value: number): void => {
+    const input = rangeOf();
+    act(() => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, String(value));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+};
+
+const titleOf = (): string | null | undefined => document.querySelector('.MuiDialogTitle-root')?.textContent;
+
+const closeDialog = (): void => {
+    const close = document.querySelector('.MuiDialog-root .MuiIconButton-root');
+    if (!close) {
+        throw new Error('the dialog rendered no close button');
+    }
+    fire(close, mouse('click'));
+};
+
+beforeEach(() => {
+    vi.useFakeTimers();
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
 
 describe('StateCollection wiring', () => {
     it('toggles on click: current Wert[1] writes Wert[2] as the optimistic patch', () => {
-        const { container, setState } = mountState(scene());
+        const state = mountState();
 
-        act(() => {
-            container.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
+        click(state);
 
-        expect(setState).toHaveBeenCalledTimes(1);
-        expect(writtenValue(setState, 0)).toBe(1);
-        const next = setState.mock.calls[0][0] as (prev: { values: Record<string, unknown> }) => {
-            values: Record<string, unknown>;
-        };
+        expect(state.setState).toHaveBeenCalledTimes(1);
+        expect(writes(state).optimistic).toEqual([1]);
+        const next = state.setState.mock.calls[0][0] as Updater;
         expect(next({ values: {} }).values[`${OID}.lc`]).toBe(VALUE_NOT_CHANGED_TIMESTAMP);
     });
 
     it('opens the change dialog for more than two states instead of writing', () => {
-        const { container, setState } = mountState(scene({ values_count: 3, value3: '2', alias3: 'AUTO' }));
+        const state = mountState({ values_count: 3, value3: '2', alias3: 'AUTO' });
 
-        act(() => {
-            container.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
+        click(state);
 
-        expect(setState).not.toHaveBeenCalled();
+        expect(state.setState).not.toHaveBeenCalled();
         // The dialog portals into document.body.
-        expect(document.querySelector('.MuiDialog-root')).not.toBeNull();
+        expect(dialogOf()).not.toBeNull();
     });
 
     it.each([
         ['onlyDisplay', { onlyDisplay: true }],
         // The lock follows the bound object — no root `write` copy here.
-        ['a non-writable bound object (write === false)', { oidObject: { _id: OID, type: 'number', write: false } }],
+        ['a non-writable bound object (write === false)', { oidObject: object('number', { write: false }) }],
     ])('disables the button for %s (Sperre)', (_case, data) => {
-        const { container } = mountState(scene(data));
+        const { container } = mountState(data);
 
         expect(container.querySelector('button.MuiButton-root.Mui-disabled')).not.toBeNull();
     });
 
     it('push-button: press/release write synchronously and the trailing click writes nothing', () => {
-        const { container, setState } = mountState(scene({ statePushButton: true }));
+        const state = mountState({ statePushButton: true });
 
-        const button = container.querySelector('button');
-        act(() => {
-            button?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-        });
-        expect(setState).toHaveBeenCalledTimes(1);
-        expect(writtenValue(setState, 0)).toBe(0); // press → Wert[1]
+        press(state);
+        expect(state.setState).toHaveBeenCalledTimes(1);
+        expect(writes(state).optimistic).toEqual([0]); // press → Wert[1]
 
-        act(() => {
-            button?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-        });
-        expect(setState).toHaveBeenCalledTimes(2);
-        expect(writtenValue(setState, 1)).toBe(1); // release → Wert[2]
+        release(state);
+        expect(state.setState).toHaveBeenCalledTimes(2);
+        expect(writes(state).optimistic).toEqual([0, 1]); // release → Wert[2]
 
         // The browser fires click after mouseup — it must not write (release wins).
-        act(() => {
-            button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
-        expect(setState).toHaveBeenCalledTimes(2);
+        click(state);
+        expect(state.setState).toHaveBeenCalledTimes(2);
     });
 
     it('push-button: a keyboard click (no press/release) is an honest no-op', () => {
-        const { container, setState } = mountState(scene({ statePushButton: true }));
+        const state = mountState({ statePushButton: true });
 
-        act(() => {
-            container.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
+        click(state);
 
-        expect(setState).not.toHaveBeenCalled();
+        expect(state.setState).not.toHaveBeenCalled();
     });
 });
 
 describe('StateCollection value text (Ticket 12)', () => {
     it('appends the object unit when the value matches no state row', () => {
-        const { container } = mountState(scene({ oidObject: { _id: OID, type: 'number', unit: '°C' } }, 5));
+        const state = mountState({ oidObject: object('number', { unit: '°C' }) }, 5);
 
-        expect(container.querySelector('button')?.textContent).toBe('5°C');
+        expect(buttonOf(state).textContent).toBe('5°C');
     });
 
     it('lets the alias of a matching row win over the object unit', () => {
-        const { container } = mountState(scene({ oidObject: { _id: OID, type: 'number', unit: '°C' } }, 1));
+        const state = mountState({ oidObject: object('number', { unit: '°C' }) }, 1);
 
-        expect(container.querySelector('button')?.textContent).toBe('ON');
+        expect(buttonOf(state).textContent).toBe('ON');
+    });
+});
+
+describe('StateCollection push button up to the socket', () => {
+    describe('press and release', () => {
+        it('V3 (ticket 06): a long hold sends both values, each at its event', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+            advance(400);
+            expect(writes(state).sent).toEqual([1]);
+
+            release(state);
+            click(state);
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+            settle();
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it.each([
+            [100, [1, 0]],
+            [299, [1, 0]],
+        ])('V3 (ticket 06): a tap of %i ms under the debounce sends both values: %j', (holdMs, sent) => {
+            const state = mountState(PUSH_BUTTON);
+
+            tap(state, holdMs);
+            settle();
+
+            expect(writes(state)).toEqual({ sent, optimistic: [1, 0] });
+        });
+
+        it.each([
+            [300, [1, 0]],
+            [400, [1, 0]],
+        ])('a hold of %i ms at the debounce or longer sends both values: %j', (holdMs, sent) => {
+            const state = mountState(PUSH_BUTTON);
+
+            tap(state, holdMs);
+            settle();
+
+            expect(writes(state)).toEqual({ sent, optimistic: [1, 0] });
+        });
+
+        it.each([
+            ['a hold as long as a configured delay', 1000],
+            ['V3 (ticket 06): a tap under a configured delay', 999],
+        ])('%s sends both values', (_case, holdMs) => {
+            const state = mountState({ ...PUSH_BUTTON, delay: 1000 });
+
+            tap(state, holdMs);
+            settle();
+
+            expect(writes(state).sent).toEqual([1, 0]);
+        });
+
+        it('delay 0: a tap with time between press and release sends both values', () => {
+            const state = mountState({ ...PUSH_BUTTON, delay: 0 });
+
+            tap(state, 100);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V3 (ticket 06): delay 0 with press and release in one tick sends both values, in order', () => {
+            const state = mountState({ ...PUSH_BUTTON, delay: 0 });
+
+            press(state);
+            release(state);
+            click(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V3 (ticket 06): sample interval, a hold sends both values, each at its event', () => {
+            const state = mountState({ ...PUSH_BUTTON, sampleInterval: true, sampleIntervalValue: 200 });
+
+            press(state);
+            expect(writes(state).sent).toEqual([1]);
+
+            advance(400);
+            release(state);
+            click(state);
+            expect(writes(state).sent).toEqual([1, 0]);
+
+            settle();
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V3 (ticket 06): sample interval, a tap inside the window sends both values', () => {
+            const state = mountState({ ...PUSH_BUTTON, sampleInterval: true, sampleIntervalValue: 200 });
+
+            tap(state, 100);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+    });
+
+    describe('passing over and leaving', () => {
+        it('passing the mouse over without a press sends nothing', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            fire(buttonOf(state), mouse('mouseover'));
+            leave(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it('passing over twice sends nothing', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            leave(state);
+            settle();
+            leave(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it('V2 (ticket 05): moving between the children while holding ends nothing, the real release writes Wert[2] once', () => {
+            const state = mountState(PUSH_BUTTON);
+            const child = buttonOf(state).firstElementChild;
+            if (!child) {
+                throw new Error('the button rendered no child');
+            }
+
+            press(state);
+            advance(400);
+            pointerOut(child, buttonOf(state));
+            pointerOut(buttonOf(state), child);
+            settle();
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+            release(state);
+            click(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('leaving the button while holding counts as a release', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            advance(400);
+            leave(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('coming back still pressed and letting go writes no second Wert[2]', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            advance(400);
+            leave(state);
+            settle();
+            fire(buttonOf(state), mouse('mouseover'));
+            release(state);
+            click(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+    });
+
+    describe('the mouse buttons', () => {
+        it.each([
+            ['right', 2],
+            ['middle', 1],
+        ])('ticket 05: the %s mouse button sends nothing', (_name, button) => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state, { button });
+            advance(400);
+            release(state, { button });
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+    });
+
+    describe('touch', () => {
+        it('a touch with a long hold sends both values', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            touchPress(state);
+            advance(400);
+            touchRelease(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V3 (ticket 06): a short touch sends both values', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            touchPress(state);
+            advance(100);
+            touchRelease(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V4 (ticket 05): a cancelled touch writes Wert[2]', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            touchPress(state);
+            advance(400);
+            fire(buttonOf(state), pointer('pointercancel', finger()));
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('ticket 05: mouse events following a touch write nothing', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            touchPress(state);
+            advance(400);
+            touchRelease(state);
+            settle();
+            fire(buttonOf(state), mouse('mousedown'));
+            fire(buttonOf(state), mouse('mouseup'));
+            fire(buttonOf(state), mouse('mouseout'));
+            click(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('ticket 05: a second finger starts nothing and lifting it ends nothing', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            touchPress(state);
+            advance(400);
+            touchPress(state, SECOND_FINGER);
+            touchRelease(state, SECOND_FINGER);
+            settle();
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+            touchRelease(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+    });
+
+    describe('ending from outside', () => {
+        it('V3, V20 (tickets 06 and 07): unmounting right after the press sends both values', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            advance(100);
+            state.unmount();
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('ticket 07: unmounting while holding sends Wert[2]', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            advance(400);
+            state.unmount();
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('ticket 07: the Sperre taking hold while holding sends Wert[2] at once, the release nothing more', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            press(state);
+            advance(400);
+            state.configure({ onlyDisplay: true });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+            // Unlike mouseup, React passes pointerup to a disabled button.
+            release(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+    });
+
+    describe('the keyboard', () => {
+        it('a keyboard click (no press and no release) sends nothing', () => {
+            const state = mountState(PUSH_BUTTON);
+
+            click(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+    });
+
+    describe('when the widget is no push button', () => {
+        it.each([
+            ['without the flag', { statePushButton: false }],
+            ['without onlyStates', { onlyStates: false }],
+            ['with one state', { values_count: 1 }],
+            ['with three states', { values_count: 3, value3: '2' }],
+            ['with one of two rows blank', { value2: '  ' }],
+        ])('%s press, release and leaving send nothing', (_case, data) => {
+            const state = mountState({ ...PUSH_BUTTON, ...data });
+
+            press(state);
+            advance(400);
+            release(state);
+            leave(state);
+            touchPress(state);
+            touchRelease(state);
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+    });
+});
+
+describe('StateCollection click up to the socket', () => {
+    it('one state: a click sends that state, whatever the current value', () => {
+        const state = mountState({ values_count: 1, value1: '5' }, 5);
+
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [5], optimistic: [5] });
+    });
+
+    it('two states: each click sends the other state', () => {
+        const state = mountState();
+
+        click(state);
+        expect(writes(state)).toEqual({ sent: [], optimistic: [1] });
+        settle();
+        expect(writes(state).sent).toEqual([1]);
+
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('two states: clicks inside the debounce send only the last one', () => {
+        const state = mountState();
+
+        click(state);
+        advance(100);
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
+    });
+
+    it('two states: a value matching no row sends Wert[1]', () => {
+        const state = mountState({}, 7);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([0]);
+    });
+
+    it('two states on a boolean OID: sends the typed value, not the row text', () => {
+        const state = mountState({ oidObject: object('boolean'), value1: 'false', value2: 'true' }, false);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([true]);
+    });
+
+    it('two states on a numeric string value: the String "0" meets the configured 0', () => {
+        const state = mountState({}, '0');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it.each([
+        ['debounce', {}],
+        ['sample interval', { sampleInterval: true, sampleIntervalValue: 200 }],
+    ])('V20 (ticket 11): unmounting inside the %s window sends the toggled value, once', (_case, data) => {
+        const state = mountState(data);
+
+        click(state);
+        advance(100);
+        state.unmount();
+        expect(writes(state).sent).toEqual([1]);
+
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('sample interval: the value goes out at the end of the window, not of a debounce', () => {
+        const state = mountState({ sampleInterval: true, sampleIntervalValue: 200 });
+
+        click(state);
+        advance(100);
+        click(state);
+        advance(99);
+        expect(writes(state).sent).toEqual([]);
+        advance(1);
+
+        expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
+    });
+
+    it('sample interval: without an interval the field default of 200 ms applies', () => {
+        const state = mountState({ sampleInterval: true });
+
+        click(state);
+        advance(199);
+        expect(writes(state).sent).toEqual([]);
+        advance(1);
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it('sample interval wins over a configured delay', () => {
+        const state = mountState({ sampleInterval: true, sampleIntervalValue: 200, delay: 1000 });
+
+        click(state);
+        advance(200);
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it('a configured delay replaces the default debounce', () => {
+        const state = mountState({ delay: 1000 });
+
+        click(state);
+        advance(999);
+        expect(writes(state).sent).toEqual([]);
+        advance(1);
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it('more than two states: a click opens the dialog and sends nothing', () => {
+        const state = mountState({ ...THREE_ROWS, onlyStates: true });
+
+        click(state);
+        settle();
+
+        expect(dialogOf()).not.toBeNull();
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('without onlyStates: a click opens the dialog even for two states', () => {
+        const state = mountState({ onlyStates: false });
+
+        click(state);
+        settle();
+
+        expect(dialogOf()).not.toBeNull();
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection open press (ticket 04)', () => {
+    it('a new press after coming back starts again', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        leave(state);
+        settle();
+        fire(buttonOf(state), mouse('mouseover'));
+        release(state);
+        click(state);
+        settle();
+        tap(state, 400);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+});
+
+describe('StateCollection Pointer Events (ticket 05)', () => {
+    const childOf = (state: MountedState): Element => {
+        const child = buttonOf(state).firstElementChild;
+        if (!child) {
+            throw new Error('the button rendered no child');
+        }
+        return child;
+    };
+
+    it('leaving the whole button out of a child ends the press, once', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        pointerOut(childOf(state), document.body);
+        settle();
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+        release(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('coming back still pressed starts nothing until a new press', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        leave(state);
+        settle();
+        fire(buttonOf(state), pointer('pointerover', { relatedTarget: document.body }));
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('a pen presses and releases like the main button', () => {
+        const state = mountState(PUSH_BUTTON);
+        const pen: PointerEventInit = { pointerId: FINGER, pointerType: 'pen' };
+
+        press(state, pen);
+        advance(400);
+        release(state, pen);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('another pointer leaving ends nothing: the mouse passes while the finger holds', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        touchPress(state);
+        advance(400);
+        leave(state);
+        fire(buttonOf(state), pointer('pointercancel'));
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('a press hands back the implicit capture of its target, so that a finger can leave the button', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = childOf(state);
+
+        // What the browser does before it fires pointerdown on a touch screen.
+        child.setPointerCapture(FINGER);
+        fire(child, pointer('pointerdown', finger()));
+
+        expect(child.hasPointerCapture(FINGER)).toBe(false);
+    });
+
+    it('a second finger keeps its capture: it starts no press', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = childOf(state);
+
+        touchPress(state);
+        child.setPointerCapture(SECOND_FINGER);
+        fire(child, pointer('pointerdown', finger(SECOND_FINGER)));
+
+        expect(child.hasPointerCapture(SECOND_FINGER)).toBe(true);
+    });
+
+    it('outside push-button mode a touch keeps its capture and only the click sends', () => {
+        const state = mountState();
+        const child = childOf(state);
+
+        child.setPointerCapture(FINGER);
+        fire(child, pointer('pointerdown', finger()));
+        expect(child.hasPointerCapture(FINGER)).toBe(true);
+
+        fire(child, pointer('pointerup', finger()));
+        settle();
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+});
+
+describe('StateCollection push button writes at once (ticket 06)', () => {
+    it('a value waiting behind the debounce is dropped by the press, not sent afterwards', () => {
+        const state = mountState();
+
+        click(state);
+        advance(100);
+        state.configure(PUSH_BUTTON);
+        press(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it('after the push button is switched off, the click waits for the debounce again', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        tap(state, 100);
+        state.configure({ statePushButton: false });
+        click(state);
+        expect(writes(state).sent).toEqual([1, 0]);
+
+        settle();
+
+        expect(writes(state).sent).toEqual([1, 0, 1]);
+    });
+});
+
+describe('StateCollection press ending from outside (ticket 07)', () => {
+    it('unmounting without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('unmounting after the release sends nothing more', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        tap(state, 400);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('the Sperre taking hold without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ onlyDisplay: true });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('write === false taking hold while holding: the guard of the Schreibkette holds Wert[2] back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        settle();
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+        release(state);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('unmounting right after write === false took hold: the press has ended, nothing is sent', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('the Sperre lifting while still holding starts nothing until a new press', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ onlyDisplay: true });
+        state.configure({ onlyDisplay: false });
+        release(state);
+        settle();
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+        tap(state, 400);
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+
+    it('unmounting sends the Wert[2] of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ value2: '7' });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, 7]);
+    });
+
+    it('unmounting converts by the bound object of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('string') });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, '0']);
+    });
+
+    it('Wert[2] is the last thing the socket hears, also behind a value waiting in the debounce', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        // A waiting 1 next to an open press: the toggle click of a former mode, behind the debounce.
+        press(state);
+        state.backend(0, 2000);
+        state.configure({ statePushButton: false });
+        click(state);
+        expect(writes(state).optimistic).toEqual([1, 1]);
+        state.configure({ statePushButton: true });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent.at(-1)).toBe(0);
+    });
+});
+
+describe('StateCollection push-button surface (ticket 08)', () => {
+    /** Fires a context menu request on `element`; true if the widget held the browser's menu back. */
+    const menuHeldBack = (element: Element): boolean => {
+        const event = mouse('contextmenu');
+        fire(element, event);
+        return event.defaultPrevented;
+    };
+
+    const touchActionOf = (state: MountedState): string => getComputedStyle(buttonOf(state)).touchAction;
+
+    it('push button: the browser neither pans under a finger nor opens its menu', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it('push button: the menu is held back over the children of the button too', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = buttonOf(state).firstElementChild;
+
+        expect(child && menuHeldBack(child)).toBe(true);
+    });
+
+    it('push button: the right mouse button still sends nothing, its menu stays held back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state, { button: 2 });
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+        release(state, { button: 2 });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { write: false }) }],
+    ])('push button under the Sperre (%s) keeps its surface', (_case, data) => {
+        const state = mountState({ ...PUSH_BUTTON, ...data });
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it.each([
+        ['the default toggle', {}],
+        ['without the flag', { ...PUSH_BUTTON, statePushButton: false }],
+        ['without onlyStates', { ...PUSH_BUTTON, onlyStates: false }],
+        ['with one state', { ...PUSH_BUTTON, values_count: 1 }],
+        ['with three states', { ...PUSH_BUTTON, values_count: 3, value3: '2' }],
+        ['with one of two rows blank', { ...PUSH_BUTTON, value2: '  ' }],
+    ])("%s: the button stays as it was, scrolling and the menu are the browser's", (_case, data) => {
+        const state = mountState(data);
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
+    });
+
+    it('the surface follows the mode when the configuration changes', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ statePushButton: false });
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
+    });
+});
+
+describe('StateCollection toggle on the Aktiver Zustand (ticket 03)', () => {
+    it.each<[string, Record<string, unknown>, string, unknown]>([
+        ['number', { value1: '1', value2: '0' }, '1', 0],
+        ['boolean', { oidObject: object('boolean'), value1: 'true', value2: 'false' }, 'true', false],
+    ])('a String value meets the configured %s: first row active, sends the second', (_type, data, value, second) => {
+        const state = mountState(data, value);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([second]);
+    });
+
+    it('two rows with the same value: both active, sends that value', () => {
+        const state = mountState({ value1: '1', value2: '1' }, 1);
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+});
+
+describe('StateCollection change dialog up to the socket', () => {
+    describe('the list', () => {
+        it('a row sends its typed value behind the debounce and the dialog stays open', () => {
+            const state = mountState(THREE_ROWS);
+
+            click(state);
+            fire(rowNamed('AUTO'), mouse('click'));
+            expect(writes(state)).toEqual({ sent: [], optimistic: [2] });
+
+            advance(300);
+
+            expect(writes(state)).toEqual({ sent: [2], optimistic: [2] });
+            expect(dialogOf()).not.toBeNull();
+        });
+
+        it('two rows inside the debounce send only the last one', () => {
+            const state = mountState(THREE_ROWS);
+
+            click(state);
+            fire(rowNamed('AUTO'), mouse('click'));
+            advance(100);
+            fire(rowNamed('ON'), mouse('click'));
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [2, 1] });
+        });
+
+        it('closing the dialog inside the debounce still sends: the write belongs to the body', () => {
+            const state = mountState(THREE_ROWS);
+
+            click(state);
+            fire(rowNamed('AUTO'), mouse('click'));
+            closeDialog();
+            settle();
+
+            expect(dialogOf()).toBeNull();
+            expect(writes(state).sent).toEqual([2]);
+        });
+
+        it.each([
+            ['number', '0', 0],
+            ['number', '50', 50],
+            ['number', '2.5', 2.5],
+            ['string', 'aus', 'aus'],
+            ['string', '2', '2'],
+            ['boolean', 'true', true],
+            ['boolean', 'false', false],
+            ['boolean', '1', false],
+            ['mixed', 'true', true],
+            ['mixed', '50', 50],
+            ['mixed', 'text', 'text'],
+        ])('a %s OID with the row value %j sends %j', (type, value1, sent) => {
+            const state = mountState(
+                { onlyStates: false, oidObject: object(type), values_count: 1, value1, alias1: 'A' },
+                null,
+            );
+
+            click(state);
+            fire(rowNamed('A'), mouse('click'));
+            settle();
+
+            expect(writes(state).sent).toEqual([sent]);
+        });
+
+        it('a row on a number OID that is no number sends nothing', () => {
+            const state = mountState({ onlyStates: false, value1: 'abc', alias1: 'A' }, 1);
+
+            click(state);
+            fire(rowNamed('A'), mouse('click'));
+            settle();
+
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it('non-integer values keep the order of the rows', () => {
+            const state = mountState({
+                onlyStates: false,
+                oidObject: object('string'),
+                value1: 'b',
+                alias1: 'first',
+                value2: 'a',
+                alias2: 'second',
+            });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['first', 'second']);
+        });
+
+        it('ticket 13: integer values keep the order of the rows', () => {
+            const state = mountState({
+                ...THREE_ROWS,
+                value1: '100',
+                alias1: 'hundert',
+                value2: '50',
+                alias2: 'fünfzig',
+                value3: '0',
+                alias3: 'null',
+            });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['hundert', 'fünfzig', 'null']);
+        });
+
+        it('ticket 13: duplicate values stay rows of their own, each with its alias', () => {
+            const state = mountState({
+                ...THREE_ROWS,
+                value1: '1',
+                alias1: 'A',
+                value2: '1',
+                alias2: 'B',
+                value3: '2',
+                alias3: 'C',
+            });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['A', 'B', 'C']);
+        });
+
+        it('ticket 13: a row without an alias on an object copy without a unit key reads the bare value', () => {
+            const state = mountState({ ...THREE_ROWS, alias1: '', alias2: undefined });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['0', '1', 'AUTO']);
+        });
+
+        it.each([
+            ['an empty alias', ''],
+            ['a blank alias', '   '],
+            ['no alias', undefined],
+        ])('%s shows the value with the unit of the object', (_case, alias1) => {
+            const state = mountState({
+                ...THREE_ROWS,
+                oidObject: object('number', { unit: '°C' }),
+                alias1,
+            });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['0°C', 'ON', 'AUTO']);
+        });
+
+        it('an empty unit on the object shows the bare value', () => {
+            const state = mountState({ ...THREE_ROWS, oidObject: object('number', { unit: '' }), alias1: '' });
+
+            click(state);
+
+            expect(rowTexts()).toEqual(['0', 'ON', 'AUTO']);
+        });
+
+        it('ticket 14: the row with the current value is marked, the others are not', () => {
+            const state = mountState(THREE_ROWS, 1);
+
+            click(state);
+
+            expect(markedRows()).toEqual(['ON']);
+        });
+    });
+
+    describe('the slider', () => {
+        const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+        it('sits on the current value inside the bounds of the object copy', () => {
+            const state = mountState(SLIDER, 40);
+
+            click(state);
+
+            expect(thumb()).toBe(40);
+            expect(rangeOf().getAttribute('aria-valuemin')).toBe('0');
+            expect(rangeOf().getAttribute('aria-valuemax')).toBe('100');
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it('a drag commits every step optimistically and sends the last one behind the debounce', () => {
+            const state = mountState(SLIDER, 40);
+
+            click(state);
+            drag(50);
+            advance(100);
+            drag(60);
+            advance(100);
+            drag(70);
+            expect(writes(state)).toEqual({ sent: [], optimistic: [50, 60, 70] });
+            expect(thumb()).toBe(70);
+
+            advance(299);
+            expect(writes(state).sent).toEqual([]);
+            advance(1);
+
+            expect(writes(state)).toEqual({ sent: [70], optimistic: [50, 60, 70] });
+        });
+
+        it('steps apart by more than the debounce send each one', () => {
+            const state = mountState(SLIDER, 40);
+
+            click(state);
+            drag(50);
+            advance(300);
+            drag(60);
+            settle();
+
+            expect(writes(state).sent).toEqual([50, 60]);
+        });
+
+        it('a list row moves the thumb and sends its value', () => {
+            const state = mountState(SLIDER, 40);
+
+            click(state);
+            fire(rowNamed('AUTO'), mouse('click'));
+            settle();
+
+            expect(thumb()).toBe(2);
+            expect(writes(state).sent).toEqual([2]);
+        });
+
+        it('the own echo does not move the thumb while the drag is the last word', () => {
+            const state = mountState(SLIDER, 40);
+
+            click(state);
+            drag(70);
+            state.backend(55, 2000);
+
+            expect(thumb()).toBe(70);
+        });
+
+        it('ticket 16: the step comes from the object copy', () => {
+            const state = mountState(
+                { ...THREE_ROWS, oidObject: object('number', { minValue: 0, maxValue: 1, step: 0.1 }) },
+                0,
+            );
+
+            click(state);
+
+            expect(rangeOf().getAttribute('step')).toBe('0.1');
+        });
+
+        it('ticket 15: a numeric string seeds the thumb at its number', () => {
+            const state = mountState(SLIDER, '50');
+
+            click(state);
+
+            expect(thumb()).toBe(50);
+        });
+    });
+
+    describe('Fremdänderung while the dialog is open', () => {
+        const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+        it('ticket 15: the button and the thumb follow without reopening', () => {
+            const state = mountState(SLIDER, 10);
+
+            click(state);
+            expect(thumb()).toBe(10);
+
+            state.backend(70, 2000);
+
+            expect(buttonOf(state).textContent).toBe('70');
+            expect(thumb()).toBe(70);
+        });
+
+        it('the dialog stays open and nothing is written', () => {
+            const state = mountState(SLIDER, 10);
+
+            click(state);
+            state.backend(70, 2000);
+            settle();
+
+            expect(dialogOf()).not.toBeNull();
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it('reopening seeds the thumb from the changed value', () => {
+            const state = mountState(SLIDER, 10);
+
+            click(state);
+            state.backend(70, 2000);
+            closeDialog();
+            click(state);
+
+            expect(thumb()).toBe(70);
+        });
+
+        it('ticket 14: the mark follows the change and the dialog stays open', () => {
+            const state = mountState(SLIDER, 0);
+
+            click(state);
+            expect(markedRows()).toEqual(['OFF']);
+
+            state.backend(1, 2000);
+
+            expect(markedRows()).toEqual(['ON']);
+            expect(dialogOf()).not.toBeNull();
+        });
+    });
+
+    describe('the slider gate', () => {
+        it('a number OID with both bounds on the object copy and no onlyStates earns the slider', () => {
+            const state = mountState(
+                { ...THREE_ROWS, oidObject: object('number', { minValue: -20, maxValue: 40 }) },
+                5,
+            );
+
+            click(state);
+
+            expect(rangeOf().getAttribute('aria-valuemin')).toBe('-20');
+            expect(rangeOf().getAttribute('aria-valuemax')).toBe('40');
+        });
+
+        it.each([
+            ['an old widget without a range', { oidObject: object('number') }],
+            ['only a lower bound', { oidObject: object('number', { minValue: 0 }) }],
+            ['only an upper bound', { oidObject: object('number', { maxValue: 100 }) }],
+            ['a range on the widget root only', { oidObject: object('number'), minValue: 0, maxValue: 100 }],
+            ['a range with onlyStates', { oidObject: object('number', RANGE), onlyStates: true }],
+            ['a string OID with a range', { oidObject: object('string', RANGE) }],
+            ['a mixed OID with a range', { oidObject: object('mixed', RANGE) }],
+            ['a boolean OID with a range', { oidObject: object('boolean', RANGE) }],
+        ])('%s gets the list without a slider', (_case, data) => {
+            const state = mountState({ ...THREE_ROWS, ...data });
+
+            click(state);
+
+            expect(dialogOf()).not.toBeNull();
+            expect(sliderOf()).toBeNull();
+            expect(rowsOf().length).toBeGreaterThan(0);
+        });
+
+        it('a number OID with a range and no rows gets the slider alone', () => {
+            const state = mountState({ ...THREE_ROWS, values_count: 0, oidObject: object('number', RANGE) });
+
+            click(state);
+
+            expect(sliderOf()).not.toBeNull();
+            expect(rowsOf()).toEqual([]);
+        });
+
+        it.each([
+            ['V7 (ticket 17): a string OID without rows', { oidObject: object('string'), onlyStates: false }],
+            ['V7 (ticket 17): a stale onlyStates on a number OID without rows', { oidObject: object('number', RANGE) }],
+            [
+                'V7 (ticket 17): a number OID without rows and without a range',
+                { oidObject: object('number'), onlyStates: false },
+            ],
+            [
+                'V7 (ticket 17): a number OID without rows and with min > max',
+                { oidObject: object('number', { minValue: 200, maxValue: 100 }), onlyStates: false },
+            ],
+        ])('%s opens no dialog and writes nothing', (_case, data) => {
+            const state = mountState({ ...data, values_count: 0 });
+
+            click(state);
+            settle();
+
+            expect(dialogOf()).toBeNull();
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        });
+
+        it.each([
+            ['min = max', { minValue: 5, maxValue: 5 }],
+            ['min > max', { minValue: 200, maxValue: 100 }],
+        ])('V12 (ticket 17): %s gets the list without a slider', (_case, range) => {
+            const state = mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 5);
+
+            click(state);
+
+            expect(sliderOf()).toBeNull();
+            expect(rowTexts()).toEqual(['OFF', 'ON', 'AUTO']);
+        });
+    });
+
+    describe('a gate that falls away on an open dialog (ticket 17)', () => {
+        it('the dialog stays open without the slider, and it can be closed', () => {
+            const state = mountState({ ...THREE_ROWS, values_count: 0, oidObject: object('number', RANGE) });
+
+            click(state);
+            expect(sliderOf()).not.toBeNull();
+
+            state.configure({ oidObject: object('number', { minValue: 5, maxValue: 5 }) });
+
+            expect(dialogOf()).not.toBeNull();
+            expect(sliderOf()).toBeNull();
+
+            const closeButton = document.querySelector('.MuiDialog-root button[aria-label="close"]');
+            if (!closeButton) {
+                throw new Error('the dialog rendered no close button');
+            }
+            fire(closeButton, mouse('click'));
+            settle();
+
+            expect(dialogOf()).toBeNull();
+        });
+    });
+
+    describe('the title chain', () => {
+        it.each([
+            ['the configured header', { header: 'Kopf', oidObject: object('number', { name: 'Objekt' }) }, 'Kopf'],
+            ['the name of the object', { oidObject: object('number', { name: 'Objekt' }) }, 'Objekt'],
+            ['the translated fallback', {}, 'state_change_dialog_title'],
+        ])('the dialog title falls back to %s', (_case, data, title) => {
+            const state = mountState({ ...THREE_ROWS, ...data });
+
+            click(state);
+
+            expect(titleOf()).toBe(title);
+        });
+
+        it('the configured header of the active row wins over the base header', () => {
+            const state = mountState({ ...THREE_ROWS, header: 'Kopf', header2: 'Zeile' }, 1);
+
+            click(state);
+
+            expect(titleOf()).toBe('Zeile');
+        });
+    });
+
+    describe('the colours', () => {
+        const paperOf = (): HTMLElement => {
+            const paper = document.querySelector<HTMLElement>('.MuiDialog-paper');
+            if (!paper) {
+                throw new Error('the dialog rendered no paper');
+            }
+            return paper;
+        };
+
+        /** The colour a browser draws: happy-dom hands the `inherit` keyword down instead of resolving it. */
+        const paintedColor = (element: Element): string => {
+            const { color } = getComputedStyle(element);
+            return color === 'inherit' && element.parentElement ? paintedColor(element.parentElement) : color;
+        };
+
+        const titleElementOf = (): HTMLElement => {
+            const title = document.querySelector<HTMLElement>('.MuiDialogTitle-root');
+            if (!title) {
+                throw new Error('the dialog rendered no title');
+            }
+            return title;
+        };
+
+        const listOf = (): HTMLElement => {
+            const list = document.querySelector<HTMLElement>('.MuiDialog-root .MuiList-root');
+            if (!list) {
+                throw new Error('the dialog rendered no list');
+            }
+            return list;
+        };
+
+        const cardOf = (): HTMLElement => {
+            const card = document.querySelector<HTMLElement>('.MuiDialogContent-root > .MuiPaper-root');
+            if (!card) {
+                throw new Error('the dialog rendered no inner card');
+            }
+            return card;
+        };
+
+        const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+
+        it('V15 (ticket 18): the widget background reaches the dialog paper and shows through the inner card', () => {
+            const state = mountState(THREE_ROWS, 0, { 'background-color': '#123456' });
+
+            click(state);
+
+            expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
+            expect(getComputedStyle(cardOf()).backgroundColor).toBe('transparent');
+        });
+
+        it('V15 (ticket 18): the text colour reaches the dialog paper and the inner card inherits it', () => {
+            const state = mountState({ ...THREE_ROWS, textColor: '#0000aa' });
+
+            click(state);
+
+            expect(getComputedStyle(paperOf()).color).toBe('#0000aa');
+            expect(paintedColor(cardOf())).toBe('#0000aa');
+        });
+
+        it('V15 (ticket 18): a gradient as text colour clips through the title, the list paints its Vollfarbe', () => {
+            const state = mountState({ ...THREE_ROWS, textColor: GRADIENT });
+
+            click(state);
+
+            expect(getComputedStyle(titleElementOf()).color).toBe('transparent');
+            expect(paintedColor(listOf())).toBe('rgb(128, 0, 128)');
+        });
+
+        describe('ticket 18', () => {
+            it('the background field reaches the dialog when the widget has no CSS background colour', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#654321');
+            });
+
+            it('the CSS background colour wins over the background field', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' }, 0, {
+                    'background-color': '#123456',
+                });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
+            });
+
+            it('without colours the inner card keeps the theme surface and the theme text', () => {
+                const state = mountState(THREE_ROWS);
+
+                click(state);
+
+                expect(getComputedStyle(cardOf()).backgroundColor).toBe('#fff');
+                expect(paintedColor(cardOf())).toBe('#3399CC');
+                expect(paintedColor(listOf())).toBe('#3399CC');
+            });
+        });
+
+        it('without colours the paper keeps the theme surface', () => {
+            const state = mountState(THREE_ROWS);
+
+            click(state);
+
+            expect(getComputedStyle(paperOf()).backgroundColor).toBe('#fff');
+        });
+    });
+});
+
+describe('StateCollection change dialog marks the active row (ticket 14)', () => {
+    it('marks the row of value 50 among 100, 50 and 0', () => {
+        const state = mountState(
+            {
+                ...THREE_ROWS,
+                value1: '100',
+                alias1: 'hundert',
+                value2: '50',
+                alias2: 'fünfzig',
+                value3: '0',
+                alias3: 'null',
+            },
+            50,
+        );
+
+        click(state);
+
+        expect(markedRows()).toEqual(['fünfzig']);
+    });
+
+    it('marks every duplicate of the current value', () => {
+        const state = mountState(
+            { ...THREE_ROWS, value1: '1', alias1: 'A', value2: '1', alias2: 'B', value3: '2', alias3: 'C' },
+            1,
+        );
+
+        click(state);
+
+        expect(markedRows()).toEqual(['A', 'B']);
+    });
+
+    it('marks no row for a value that matches none', () => {
+        const state = mountState(THREE_ROWS, 7);
+
+        click(state);
+
+        expect(markedRows()).toEqual([]);
+    });
+
+    it('a chosen row takes the mark at once and the dialog stays open', () => {
+        const state = mountState(THREE_ROWS, 0);
+
+        click(state);
+        fire(rowNamed('AUTO'), mouse('click'));
+
+        expect(markedRows()).toEqual(['AUTO']);
+        expect(dialogOf()).not.toBeNull();
+    });
+});
+
+describe('StateCollection dialog slider follows a Fremdänderung (ticket 15)', () => {
+    const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+    it.each([
+        ['text', 'abc'],
+        ['a blank string', '  '],
+        ['a boolean', true],
+        ['null', null],
+    ])('%s seeds the thumb at 0 as before', (_case, value) => {
+        const state = mountState(SLIDER, value);
+
+        click(state);
+
+        expect(thumb()).toBe(0);
+    });
+
+    it('follows a change below the jitter filter: exactly, not only when significant', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(10.5, 2000);
+
+        expect(thumb()).toBe(10.5);
+    });
+
+    it('follows a numeric string', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend('70', 2000);
+
+        expect(thumb()).toBe(70);
+    });
+
+    it.each([
+        ['text', 'abc'],
+        ['a boolean', true],
+    ])('%s leaves the thumb where it was', (_case, value) => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(value, 2000);
+
+        expect(thumb()).toBe(10);
+    });
+
+    it('follows every further change', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        state.backend(40, 3000);
+
+        expect(thumb()).toBe(40);
+    });
+
+    it('the thumb stays on an own drag after a change, and the echo does not move it', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        drag(30);
+        expect(thumb()).toBe(30);
+
+        advance(300);
+        state.backend(30, 3000);
+        expect(thumb()).toBe(30);
+        expect(writes(state)).toEqual({ sent: [30], optimistic: [30] });
+    });
+
+    it('a stale echo inside the ignore window does not move the thumb, the next change after it does', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        drag(70);
+        state.backend(55, 2000);
+        expect(thumb()).toBe(70);
+
+        settle();
+        state.backend(20, 3000);
+
+        expect(thumb()).toBe(20);
+    });
+
+    it('following writes nothing', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection dialog slider step (ticket 16)', () => {
+    const sliderWith = (range: Record<string, unknown>): void => {
+        click(mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 0));
+    };
+
+    it('uses the step of the object copy', () => {
+        sliderWith({ ...RANGE, step: 0.5 });
+
+        expect(rangeOf().getAttribute('step')).toBe('0.5');
+    });
+
+    it('stays on 1 for an object copy without a step', () => {
+        sliderWith(RANGE);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it('a root field step does not reach the slider: the copy is its only source', () => {
+        const state = mountState({ ...THREE_ROWS, oidObject: object('number', RANGE), step: 0.5 }, 0);
+
+        click(state);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it.each([
+        ['0', 0],
+        ['a negative step', -2],
+    ])('%s falls back to 1: MUI rounds a drag over it to NaN', (_case, step) => {
+        sliderWith({ ...RANGE, step });
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+});
+
+describe('StateCollection Sperre up to the socket', () => {
+    const SPERREN: [string, Record<string, unknown>][] = [
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { write: false }) }],
+    ];
+
+    it.each(SPERREN)('%s: a toggle click sends nothing', (_case, data) => {
+        const state = mountState(data);
+
+        click(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it.each(SPERREN)('%s: a click on more than two states opens no dialog', (_case, data) => {
+        const state = mountState({ ...THREE_ROWS, ...data });
+
+        click(state);
+
+        expect(dialogOf()).toBeNull();
+    });
+
+    it.each(SPERREN)('%s: a push-button press and release send nothing', (_case, data) => {
+        const state = mountState({ ...PUSH_BUTTON, ...data });
+
+        tap(state, 400);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('write === false: what disabled lets through starts nothing', () => {
+        const state = mountState({ ...PUSH_BUTTON, oidObject: object('number', { write: false }) });
+
+        leave(state);
+        touchPress(state);
+        touchRelease(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('onlyDisplay: the leaving React passes to a disabled button finds no open press', () => {
+        const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
+
+        leave(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('ticket 05: onlyDisplay holds back a touch, whatever React passes to a disabled button', () => {
+        const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
+
+        touchPress(state);
+        advance(400);
+        touchRelease(state);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('onlyDisplay taking hold while the dialog is open: the row sends nothing, the dialog stays open', () => {
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        fire(rowNamed('AUTO'), mouse('click'));
+        settle();
+
+        expect(buttonOf(state).disabled).toBe(true);
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+        expect(dialogOf()).not.toBeNull();
+    });
+
+    it('write === false taking hold while the dialog is open: the guard holds the row back', () => {
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        fire(rowNamed('AUTO'), mouse('click'));
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection change dialog under the Sperre (review)', () => {
+    const WITH_SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+    it.each<[string, Record<string, unknown>]>([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { ...RANGE, write: false }) }],
+    ])('%s taking hold locks the rows and the slider', (_case, lock) => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure(lock);
+
+        expect(rowsOf().every(row => row.classList.contains('Mui-disabled'))).toBe(true);
+        expect(rangeOf().disabled).toBe(true);
+    });
+
+    it('the display still follows a Fremdänderung', () => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        state.backend(2, 2000);
+
+        expect(markedRows()).toEqual(['AUTO']);
+        expect(thumb()).toBe(2);
+    });
+
+    it('the dialog can still be closed', () => {
+        const state = mountState(WITH_SLIDER);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        closeDialog();
+
+        expect(dialogOf()).toBeNull();
+    });
+
+    it('the Sperre lifting hands the row back', () => {
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+        state.configure({ onlyDisplay: true });
+        state.configure({ onlyDisplay: false });
+        fire(rowNamed('AUTO'), mouse('click'));
+        settle();
+
+        expect(writes(state).sent).toEqual([2]);
+    });
+});
+
+describe('StateCollection change dialog close label (ticket 19)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('translates the label of the close button', () => {
+        vi.spyOn(Generic, 't').mockImplementation((key: string) => `translated ${key}`);
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+
+        expect(document.querySelector('.MuiDialog-root .MuiIconButton-root')?.getAttribute('aria-label')).toBe(
+            'translated close',
+        );
     });
 });

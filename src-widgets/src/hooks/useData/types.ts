@@ -355,9 +355,6 @@ export interface UseDataResult {
      */
     markBaseStyle: MarkBaseStyle;
 
-    /** Mapping of state values to string labels for widget-specific use */
-    widgetStates: Record<string, string>;
-
     /** Minimum numeric value (for slider/number types) or null */
     minValue: number | null;
 
