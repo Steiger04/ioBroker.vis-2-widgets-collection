@@ -90,8 +90,9 @@ function StateCollection(): React.ReactElement {
                     states={states}
                     open={dialog.open}
                     closeHandler={dialog.close}
+                    closeLabel={Generic.t('close')}
                     title={dialogTitle}
-                    backgroundColor={data.backgroundColor}
+                    backgroundColor={data.backgroundColor || data.background}
                     textColor={data.textColor}
                     currentValue={oidValue}
                     hasForeignChange={hasForeignChange}

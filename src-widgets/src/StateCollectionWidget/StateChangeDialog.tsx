@@ -7,8 +7,10 @@
  * Purely props-driven: no CollectionContext access and no own `useValueState`
  * binding — every commit travels through `onCommit`, the body's single write
  * chain, so dialog and widget share one debounce/ignore window. The slider gate
- * is decided by the Zustands-Auslöser, the title fallback by the body (StateCollection);
- * they arrive here as `slider` / `title` and the dialog only renders what it is given.
+ * is decided by the Zustands-Auslöser, the title fallback and the translated close
+ * label by the body (StateCollection); they arrive here as `slider` / `title` /
+ * `closeLabel` and the dialog only renders what it is given. The title carries no id
+ * of its own: MUI links it to the dialog's `aria-labelledby` through the id it generates.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,6 +31,9 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState, type FC, type MouseEvent } from 'react';
 import type { StateStyleData } from '../hooks/useData/types';
+import { solidOf } from '../lib/helper/colorDerivation';
+import { isGradientColor } from '../lib/helper/colorValidation';
+import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import isNumber from '../lib/helper/isNumber';
 
 /**
@@ -41,11 +46,13 @@ export interface StateChangeDialogProps {
     open: boolean;
     /** Callback to close the dialog. */
     closeHandler: () => void;
+    /** Accessible name of the close button, translated by the body. */
+    closeLabel: string;
     /** Dialog title; the body resolves the header/OID-name/i18n fallback chain. */
     title: string;
-    /** Dialog paper background color. */
+    /** Background of the whole dialog, a gradient included; empty keeps the theme surface. */
     backgroundColor?: string;
-    /** Dialog paper text color. */
+    /** Text color of the whole dialog; a gradient clips through the title, the rest paints its Vollfarbe. */
     textColor?: string;
     /** Current OID value; seeds the slider position and moves it on a Fremdänderung. */
     currentValue?: string | number | boolean | null;
@@ -73,9 +80,10 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  * @param props.states - The resolved states to render as a selectable list.
  * @param props.open - Whether the dialog is open.
  * @param props.closeHandler - Callback to close the dialog.
+ * @param props.closeLabel - Accessible name of the close button, translated by the body.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
- * @param props.backgroundColor - Dialog paper background color.
- * @param props.textColor - Dialog paper text color.
+ * @param props.backgroundColor - Background of the whole dialog.
+ * @param props.textColor - Text color of the whole dialog.
  * @param props.currentValue - Current OID value; seeds the slider position and moves it on a Fremdänderung.
  * @param props.hasForeignChange - The body's Fremdänderung flag; the slider position follows `currentValue`.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
@@ -86,6 +94,7 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  * <StateChangeDialog
  *   open={open}
  *   closeHandler={() => setOpen(false)}
+ *   closeLabel={closeLabel}
  *   states={states}
  *   title={dialogTitle}
  *   currentValue={oidValue}
@@ -99,6 +108,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     states,
     open,
     closeHandler,
+    closeLabel,
     title,
     backgroundColor,
     textColor,
@@ -206,6 +216,10 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
         );
     }, [hasStates, states, createListItemClickHandler]);
 
+    // `color` cannot draw a gradient: only the title clips it, everything below reads the
+    // Repräsentative Vollfarbe. Any other value is drawn as given, a color name included.
+    const bodyTextColor = isGradientColor(textColor) ? solidOf(textColor) : textColor;
+
     return (
         <Dialog
             open={open}
@@ -214,19 +228,15 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
             fullWidth
             PaperProps={{
                 sx: {
-                    bgcolor: backgroundColor,
-                    color: textColor,
+                    // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
+                    background: backgroundColor || undefined,
+                    color: bodyTextColor,
                 },
             }}
         >
-            <DialogTitle
-                sx={{ m: 0, p: 2 }}
-                id="customized-dialog-title"
-            >
-                {title}
-            </DialogTitle>
+            <DialogTitle sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}>{title}</DialogTitle>
             <IconButton
-                aria-label="close"
+                aria-label={closeLabel}
                 onClick={closeHandler}
                 sx={theme => ({
                     position: 'absolute',
@@ -246,6 +256,12 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                     divider={hasStates && <Divider />}
                     spacing={0}
                     component={Paper}
+                    sx={{
+                        color: 'inherit',
+                        // Shows the dialog's surface through: `inherit` would restart a gradient
+                        // on the card's own box and stack a translucent color on itself.
+                        background: backgroundColor ? 'transparent' : undefined,
+                    }}
                 >
                     {ChangeSlider}
                     {ChangeList}

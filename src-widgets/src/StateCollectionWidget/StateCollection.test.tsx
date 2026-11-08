@@ -39,6 +39,7 @@ import {
     testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
+import Generic from '../Generic';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
 
@@ -1286,6 +1287,28 @@ describe('StateCollection change dialog up to the socket', () => {
             return paper;
         };
 
+        /** The colour a browser draws: happy-dom hands the `inherit` keyword down instead of resolving it. */
+        const paintedColor = (element: Element): string => {
+            const { color } = getComputedStyle(element);
+            return color === 'inherit' && element.parentElement ? paintedColor(element.parentElement) : color;
+        };
+
+        const titleElementOf = (): HTMLElement => {
+            const title = document.querySelector<HTMLElement>('.MuiDialogTitle-root');
+            if (!title) {
+                throw new Error('the dialog rendered no title');
+            }
+            return title;
+        };
+
+        const listOf = (): HTMLElement => {
+            const list = document.querySelector<HTMLElement>('.MuiDialog-root .MuiList-root');
+            if (!list) {
+                throw new Error('the dialog rendered no list');
+            }
+            return list;
+        };
+
         const cardOf = (): HTMLElement => {
             const card = document.querySelector<HTMLElement>('.MuiDialogContent-root > .MuiPaper-root');
             if (!card) {
@@ -1294,30 +1317,63 @@ describe('StateCollection change dialog up to the socket', () => {
             return card;
         };
 
-        it('V15 (ticket 18): the widget background reaches the dialog paper, the inner card covers it', () => {
+        const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+
+        it('V15 (ticket 18): the widget background reaches the dialog paper and shows through the inner card', () => {
             const state = mountState(THREE_ROWS, 0, { 'background-color': '#123456' });
 
             click(state);
 
             expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
-            expect(getComputedStyle(cardOf()).backgroundColor).toBe('#fff');
+            expect(getComputedStyle(cardOf()).backgroundColor).toBe('transparent');
         });
 
-        it('V15 (ticket 18): the text colour reaches the dialog paper, the inner card sets its own', () => {
+        it('V15 (ticket 18): the text colour reaches the dialog paper and the inner card inherits it', () => {
             const state = mountState({ ...THREE_ROWS, textColor: '#0000aa' });
 
             click(state);
 
             expect(getComputedStyle(paperOf()).color).toBe('#0000aa');
-            expect(getComputedStyle(cardOf()).color).toBe('#3399CC');
+            expect(paintedColor(cardOf())).toBe('#0000aa');
         });
 
-        it('V15 (ticket 18): a gradient as text colour is invalid on the dialog paper, the theme text stays', () => {
-            const state = mountState({ ...THREE_ROWS, textColor: 'linear-gradient(90deg, #ff0000, #0000ff)' });
+        it('V15 (ticket 18): a gradient as text colour clips through the title, the list paints its Vollfarbe', () => {
+            const state = mountState({ ...THREE_ROWS, textColor: GRADIENT });
 
             click(state);
 
-            expect(getComputedStyle(paperOf()).color).toBe('#3399CC');
+            expect(getComputedStyle(titleElementOf()).color).toBe('transparent');
+            expect(paintedColor(listOf())).toBe('rgb(128, 0, 128)');
+        });
+
+        describe('ticket 18', () => {
+            it('the background field reaches the dialog when the widget has no CSS background colour', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#654321');
+            });
+
+            it('the CSS background colour wins over the background field', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' }, 0, {
+                    'background-color': '#123456',
+                });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
+            });
+
+            it('without colours the inner card keeps the theme surface and the theme text', () => {
+                const state = mountState(THREE_ROWS);
+
+                click(state);
+
+                expect(getComputedStyle(cardOf()).backgroundColor).toBe('#fff');
+                expect(paintedColor(cardOf())).toBe('#3399CC');
+                expect(paintedColor(listOf())).toBe('#3399CC');
+            });
         });
 
         it('without colours the paper keeps the theme surface', () => {
@@ -1594,5 +1650,22 @@ describe('StateCollection Sperre up to the socket', () => {
         settle();
 
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection change dialog close label (ticket 19)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('translates the label of the close button', () => {
+        vi.spyOn(Generic, 't').mockImplementation((key: string) => `translated ${key}`);
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+
+        expect(document.querySelector('.MuiDialog-root .MuiIconButton-root')?.getAttribute('aria-label')).toBe(
+            'translated close',
+        );
     });
 });
