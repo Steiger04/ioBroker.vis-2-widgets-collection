@@ -797,7 +797,7 @@ The 0–254 scale of Philips-Hue-compatible brightness and saturation Kanäle, r
 _Avoid_: Hue (that is the colour angle Kanal), 8-Bit-Skala
 
 **CCT-Ansicht**:
-The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Entering it writes the temperature only when the temperature Kanal holds no usable value. A foreign change of temperature or brightness reaches its pickers in both cases.
+The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Switching the view switches the lamp: entering writes the stored temperature (2000 K without a usable value), leaving writes the stored colour Kanäle back. A foreign change of temperature or brightness reaches its pickers in both cases.
 _Avoid_: CCT-Modus (sounds like a Lichttyp), Weiß-Modus, cctLight as a prose term
 
 **Kelvin-Picker** / **Helligkeits-Picker**:
