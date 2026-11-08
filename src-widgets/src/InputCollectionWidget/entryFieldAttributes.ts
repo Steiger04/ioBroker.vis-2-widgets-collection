@@ -22,7 +22,7 @@ export interface BuildEntryFieldAttributesParams {
     fields: Pick<InputData, 'minValue' | 'maxValue' | 'step'>;
     /** The bound object, absent while no OID is resolved. */
     object: Pick<NonNullable<InputData['oidObject']>, 'type' | 'unit'> | undefined;
-    /** The text in the field. Part of the input for the limit rule of ADR-0109 Nr. 6; no rule reads it yet. */
+    /** The text in the field. It alone decides whether a limit has been crossed (ADR-0109 Nr. 6). */
     draft: string;
 }
 
@@ -32,7 +32,7 @@ export interface EntryFieldAttributes {
     type: 'number' | 'text';
     /** The object's unit for the adornment, `undefined` when there is none to show. */
     unit: string | undefined;
-    /** The spinner attributes of a number field, `undefined` on a text field. */
+    /** The spinner attributes of a number field, `undefined` on a text field. A hint, not a write limit. */
     htmlInput: { step: number | undefined; min: number | undefined; max: number | undefined } | undefined;
 }
 
@@ -42,8 +42,16 @@ export interface EntryFieldAttributes {
  * @param params - See {@link BuildEntryFieldAttributesParams}.
  */
 export function buildEntryFieldAttributes(params: BuildEntryFieldAttributesParams): EntryFieldAttributes {
-    const { fields, object } = params;
+    const { fields, object, draft } = params;
     const isNumber = object?.type === 'number';
+    const min = optionalNumber(fields.minValue);
+    const max = optionalNumber(fields.maxValue);
+
+    // Limit rule: the browser's spinner jumps onto a limit the value has crossed, and live mode would
+    // write that jump. So only the crossed limit drops; the other keeps the step base stable.
+    const value = optionalNumber(draft);
+    const belowMin = value !== undefined && min !== undefined && value < min;
+    const aboveMax = value !== undefined && max !== undefined && value > max;
 
     return {
         type: isNumber ? 'number' : 'text',
@@ -51,8 +59,8 @@ export function buildEntryFieldAttributes(params: BuildEntryFieldAttributesParam
         htmlInput: isNumber
             ? {
                   step: optionalNumber(fields.step),
-                  min: optionalNumber(fields.minValue),
-                  max: optionalNumber(fields.maxValue),
+                  min: belowMin ? undefined : min,
+                  max: aboveMax ? undefined : max,
               }
             : undefined,
     };

@@ -100,16 +100,69 @@ describe('buildEntryFieldAttributes — number attributes', () => {
             max: undefined,
         });
     });
+});
 
-    it.each([
-        ['above the maximum', '500'],
-        ['below the minimum', '-5'],
-        ['in range', '50'],
-        ['empty', ''],
-        ['non-numeric', 'abc'],
-    ])('keeps both limits with a draft %s (Ist-Verhalten, kippt in 07)', (_case, draft) => {
-        const { htmlInput } = buildEntryFieldAttributes(params({ fields: { minValue: 0, maxValue: 100 }, draft }));
+describe('buildEntryFieldAttributes — limit rule (ADR-0109 Nr. 5, 6)', () => {
+    type Limits = { min: number | undefined; max: number | undefined };
 
-        expect(htmlInput).toMatchObject({ min: 0, max: 100 });
+    const limitsOf = (fields: unknown, draft: string): Limits => {
+        const { htmlInput } = buildEntryFieldAttributes(params({ fields: fields as never, draft }));
+
+        return { min: htmlInput?.min, max: htmlInput?.max };
+    };
+
+    const RANGE = { minValue: 0, maxValue: 100 };
+
+    it.each<[string, string, Limits]>([
+        ['above the maximum drops the maximum', '500', { min: 0, max: undefined }],
+        ['below the minimum drops the minimum', '-5', { min: undefined, max: 100 }],
+        ['on the maximum keeps both', '100', { min: 0, max: 100 }],
+        ['on the minimum keeps both', '0', { min: 0, max: 100 }],
+        ['in range keeps both', '50', { min: 0, max: 100 }],
+        ['empty keeps both', '', { min: 0, max: 100 }],
+        ['blank keeps both', ' ', { min: 0, max: 100 }],
+        ['non-numeric keeps both', 'abc', { min: 0, max: 100 }],
+    ])('a draft %s', (_case, draft, limits) => {
+        expect(limitsOf(RANGE, draft)).toEqual(limits);
+    });
+
+    it.each<[string, unknown, string, Limits]>([
+        [
+            'an unset minimum stays unset above the maximum',
+            { maxValue: 100 },
+            '500',
+            { min: undefined, max: undefined },
+        ],
+        ['an unset minimum stays unset below the maximum', { maxValue: 100 }, '-5', { min: undefined, max: 100 }],
+        ['an unset maximum stays unset below the minimum', { minValue: 0 }, '-5', { min: undefined, max: undefined }],
+        ['an unset maximum stays unset above the minimum', { minValue: 0 }, '500', { min: 0, max: undefined }],
+        ['no limits stay unset', {}, '500', { min: undefined, max: undefined }],
+        ['emptied limits stay unset', { minValue: '', maxValue: '' }, '500', { min: undefined, max: undefined }],
+    ])('%s', (_case, fields, draft, limits) => {
+        expect(limitsOf(fields, draft)).toEqual(limits);
+    });
+
+    it('reads a limit stored as a string, including 0', () => {
+        expect(limitsOf({ minValue: '0', maxValue: '0' }, '5')).toEqual({ min: 0, max: undefined });
+        expect(limitsOf({ minValue: '0', maxValue: '0' }, '-5')).toEqual({ min: undefined, max: 0 });
+        expect(limitsOf({ minValue: '0', maxValue: '0' }, '0')).toEqual({ min: 0, max: 0 });
+    });
+
+    it('drops both limits of an inverted range a draft crosses on both sides', () => {
+        expect(limitsOf({ minValue: 100, maxValue: 0 }, '50')).toEqual({ min: undefined, max: undefined });
+    });
+
+    it('keeps the step when a limit drops', () => {
+        const { htmlInput } = buildEntryFieldAttributes(params({ fields: { ...RANGE, step: 5 }, draft: '500' }));
+
+        expect(htmlInput?.step).toBe(5);
+    });
+
+    it('puts no limits on a text field, whatever the draft', () => {
+        const { htmlInput } = buildEntryFieldAttributes(
+            params({ fields: RANGE, object: { type: 'string' }, draft: '500' }),
+        );
+
+        expect(htmlInput).toBeUndefined();
     });
 });

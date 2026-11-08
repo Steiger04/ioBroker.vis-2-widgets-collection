@@ -341,18 +341,20 @@ describe('InputCollection field attributes', () => {
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
     });
 
-    it.each([
-        ['a start value above the maximum', 500, undefined],
-        ['a start value below the minimum', -5, undefined],
-        ['a typed draft above the maximum', 40, '500'],
-    ])('keeps both limits on %s (Ist-Verhalten, kippt in 07)', (_case, value, typed) => {
+    it.each<[string, number, string | undefined, (string | null)[]]>([
+        ['a start value above the maximum', 500, undefined, ['0', null]],
+        ['a start value below the minimum', -5, undefined, [null, '100']],
+        ['a start value on the maximum', 100, undefined, ['0', '100']],
+        ['a typed draft above the maximum', 40, '500', ['0', null]],
+        ['a typed draft back in range', 500, '50', ['0', '100']],
+    ])('drops only the crossed limit on %s (07)', (_case, value, typed, limits) => {
         const { container } = mountInput({ minValue: 0, maxValue: 100 }, value);
         const field = start(container);
         if (typed !== undefined) {
             type(container, typed);
         }
 
-        expect([field.getAttribute('min'), field.getAttribute('max')]).toEqual(['0', '100']);
+        expect([field.getAttribute('min'), field.getAttribute('max')]).toEqual(limits);
     });
 
     it('shows the object unit as the field adornment', () => {
