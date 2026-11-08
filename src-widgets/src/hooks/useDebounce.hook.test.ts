@@ -13,7 +13,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CollectionContext } from '../components/CollectionProvider';
-import type { AllCollectionContextProps, DelayFieldsRxData } from '../types';
+import type { AllCollectionContextProps, DelayFieldsRxData, OidObject } from '../types';
 import useDebounce, { type UseDebounceReturn } from './useDebounce';
 
 // React 18 requires the act-environment flag when driving updates outside react-dom/test-utils.
@@ -51,7 +51,7 @@ const mount = async (initial: HookProps, { strict = false } = {}): Promise<Mount
     const captured: { current: UseDebounceReturn | null } = { current: null };
 
     const Inner: FC<HookProps> = ({ oid, data }) => {
-        captured.current = useDebounce({ oidObject: oid ? { _id: oid, type: 'number' } : undefined, data });
+        captured.current = useDebounce({ oidObject: oid ? ({ _id: oid } as OidObject) : undefined, data });
         return null;
     };
 
