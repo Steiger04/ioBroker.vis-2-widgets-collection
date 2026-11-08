@@ -11,7 +11,8 @@ export interface StateFieldsRxData {
     onlyStates?: boolean;
 
     /**
-     * Push button mode (returns to original value).
+     * Push button mode: a press sends the first state's value, its end the second state's value. It does
+     * not return to the value the OID had before the press. Applies with `onlyStates` and exactly two states.
      *
      * @default false
      */

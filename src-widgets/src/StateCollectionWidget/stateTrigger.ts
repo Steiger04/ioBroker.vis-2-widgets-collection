@@ -16,10 +16,10 @@
  * match decision of useData (ADR-0110 Nr. 8, ADR-0105), and compares no values itself.
  *
  * Push-button correctness is suppression, not a timer race: press/release write
- * at once in the wiring (ADR-0110 Nr. 5), and the trailing browser click after release returns
- * `none` — "release wins" holds by construction. A keyboard click (Enter/Space fires
- * click only, no mouse events) is an honest no-op instead of latching the press
- * value on a momentary control.
+ * at once in the wiring, past the debounce (ADR-0110 Nr. 5), so a short tap sends both values
+ * shortly after each other. The trailing browser click after release returns `none` — "release
+ * wins" holds by construction. A keyboard click (Enter/Space fires click only, no pointer events)
+ * is an honest no-op instead of latching the press value on a momentary control.
  *
  * Wert[2] is written only out of an open press, and only once (ADR-0110 Nr. 2, CONTEXT
  * "Taster-Betätigung"): a release ends the press, so passing the mouse over the button writes

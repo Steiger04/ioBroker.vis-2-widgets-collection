@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "Cambiar valor",
     "state_collection_widget": "Estado (booleano, número, cadena)",
     "state_push_button": "Botón pulsador",
-    "state_push_button_tooltip": "Al presionar el botón se establece el valor[1] y al soltarlo se establece el valor[2].",
+    "state_push_button_tooltip": "Al pulsar el botón se envía valor[1], y al soltarlo o salir del botón se envía valor[2], ambos de inmediato. Pasar sobre el botón sin pulsarlo no envía nada.",
     "step": "Paso",
     "switch_collection_widget": "Switch (booleano)",
     "table_border_color": "Color del borde",

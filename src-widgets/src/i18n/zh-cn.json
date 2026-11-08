@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "更改值",
     "state_collection_widget": "状态（布尔值、数字、字符串）",
     "state_push_button": "按钮",
-    "state_push_button_tooltip": "按下按钮时设置值[1]，释放时设置值[2]。",
+    "state_push_button_tooltip": "按下按钮会立即发送值[1]，释放或离开按钮会立即发送值[2]。未按下按钮而仅在按钮上移动时，不会发送任何内容。",
     "step": "步",
     "switch_collection_widget": "开关（布尔值）",
     "table_border_color": "边框颜色",

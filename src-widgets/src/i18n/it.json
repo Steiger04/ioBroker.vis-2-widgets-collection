@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "Cambia valore",
     "state_collection_widget": "Stato (booleano, numero, stringa)",
     "state_push_button": "Pulsante",
-    "state_push_button_tooltip": "Quando il pulsante viene premuto, viene impostato il valore[1] e quando viene rilasciato viene impostato il valore[2].",
+    "state_push_button_tooltip": "La pressione del pulsante invia il valore[1], il rilascio o l'uscita dal pulsante invia il valore[2], in entrambi i casi immediatamente. Passando sopra il pulsante senza premerlo non viene inviato nulla.",
     "step": "Fare un passo",
     "switch_collection_widget": "Cambia (booleano)",
     "table_border_color": "Colore bordo",

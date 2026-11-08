@@ -760,15 +760,17 @@ describe('StateCollection click up to the socket', () => {
     it.each([
         ['debounce', {}],
         ['sample interval', { sampleInterval: true, sampleIntervalValue: 200 }],
-    ])('V20 (ticket 11): unmounting inside the %s window loses the toggled value', (_case, data) => {
+    ])('V20 (ticket 11): unmounting inside the %s window sends the toggled value, once', (_case, data) => {
         const state = mountState(data);
 
         click(state);
         advance(100);
         state.unmount();
+        expect(writes(state).sent).toEqual([1]);
+
         settle();
 
-        expect(writes(state)).toEqual({ sent: [], optimistic: [1] });
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
     });
 
     it('sample interval: the value goes out at the end of the window, not of a debounce', () => {

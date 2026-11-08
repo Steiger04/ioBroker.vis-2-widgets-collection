@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "Waarde wijzigen",
     "state_collection_widget": "Staat (Boolean, getal, tekenreeks)",
     "state_push_button": "Drukknop",
-    "state_push_button_tooltip": "Wanneer de knop wordt ingedrukt, wordt waarde[1] ingesteld, en wanneer deze wordt losgelaten, wordt waarde[2] ingesteld.",
+    "state_push_button_tooltip": "Het indrukken van de knop verzendt waarde[1], het loslaten of van de knop af bewegen verzendt waarde[2], beide onmiddellijk. Bewegen over de knop zonder deze in te drukken verzendt niets.",
     "step": "Stap",
     "switch_collection_widget": "Schakelaar (Boolean)",
     "table_border_color": "Randkleur",
