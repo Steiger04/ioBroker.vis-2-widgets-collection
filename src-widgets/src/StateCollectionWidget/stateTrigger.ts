@@ -6,8 +6,9 @@
  * ADR-0110 Nr. 1: event + open press → action + next open press, the pure core behind
  * {@link module:widgets/StateCollectionWidget/useStateTrigger}, as `lampSync` is behind
  * `useLampSync`. All guards live here (ADR-0089): the `onlyStates` exception, the state-count
- * dispatch (1 write, 2 toggle, >2 dialog) and the push-button condition (`onlyStates` AND exactly
- * two states AND `statePushButton`).
+ * dispatch (1 write, 2 toggle, >2 dialog), the push-button condition (`onlyStates` AND exactly
+ * two states AND `statePushButton`) and the slider gate, so one module sees whether the dialog
+ * has anything to show (ADR-0110 Nr. 9).
  *
  * The config carries the RESOLVED `states[]` from useData — never the raw `value1`/
  * `value2` fields. Blank rows are already absent there, so a blank configured row
@@ -69,6 +70,16 @@ export interface TriggerState {
     active: boolean;
 }
 
+/** Minimal slice of the object copy the slider gate reads — `widget.data.oidObject` satisfies it. */
+export interface TriggerOidObject {
+    /** The OID's type. */
+    type?: string;
+    /** Lower bound; the copy is pre-filled with 0 on the OID pick (ADR-0109 Nr. 8). */
+    minValue?: number;
+    /** Upper bound; the copy is pre-filled with 100 on the OID pick (ADR-0109 Nr. 8). */
+    maxValue?: number;
+}
+
 /** Decision inputs the wiring extracts from the widget context. */
 export interface StateTriggerConfig {
     /** Resolved states from useData (blank rows absent). */
@@ -77,7 +88,42 @@ export interface StateTriggerConfig {
     onlyStates?: boolean;
     /** Push-button (momentary) mode. */
     statePushButton?: boolean;
+    /** The object copy, the dialog's range source (ADR-0109 Nr. 8). */
+    oidObject?: TriggerOidObject;
 }
+
+/** The range of the dialog's slider. */
+export interface SliderRange {
+    /** Lower bound. */
+    min: number;
+    /** Upper bound, above `min`. */
+    max: number;
+}
+
+/**
+ * The slider gate: what range, if any, earns the change dialog a slider (ADR-0110 Nr. 9).
+ *
+ * @param config - The inputs of the gate: the object copy and `onlyStates`.
+ * @param config.oidObject - The object copy; a number OID without a real range has 0..100 there.
+ * @param config.onlyStates - "Nur Zuständen"; restricts the dialog to the list.
+ * @returns The range for a number OID without `onlyStates` and with `min` below `max`, else nothing.
+ */
+export const sliderRange = ({
+    oidObject,
+    onlyStates,
+}: Pick<StateTriggerConfig, 'oidObject' | 'onlyStates'>): SliderRange | undefined => {
+    if (oidObject?.type !== 'number' || onlyStates) {
+        return undefined;
+    }
+
+    const { minValue: min, maxValue: max } = oidObject;
+
+    return min !== undefined && max !== undefined && min < max ? { min, max } : undefined;
+};
+
+/** The dialog opens only with something to show: without a list and without a slider it would be empty. */
+const dialogAction = (config: StateTriggerConfig): TriggerAction =>
+    config.states.length > 0 || sliderRange(config) ? { type: 'open-dialog' } : { type: 'none' };
 
 /** Push-button condition: `onlyStates` AND exactly two states AND the flag set. */
 const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateTriggerConfig): boolean =>
@@ -92,7 +138,7 @@ const clickAction = (config: StateTriggerConfig): TriggerAction => {
     const { states, onlyStates } = config;
 
     if (!onlyStates) {
-        return { type: 'open-dialog' };
+        return dialogAction(config);
     }
 
     switch (states.length) {
@@ -106,7 +152,7 @@ const clickAction = (config: StateTriggerConfig): TriggerAction => {
             }
             return states[0].active ? writeState(states[1]) : writeState(states[0]);
         default:
-            return { type: 'open-dialog' };
+            return dialogAction(config);
     }
 };
 

@@ -1205,27 +1205,53 @@ describe('StateCollection change dialog up to the socket', () => {
                 'V7 (ticket 17): a number OID without rows and without a range',
                 { oidObject: object('number'), onlyStates: false },
             ],
-        ])('%s opens an empty dialog', (_case, data) => {
+            [
+                'V7 (ticket 17): a number OID without rows and with min > max',
+                { oidObject: object('number', { minValue: 200, maxValue: 100 }), onlyStates: false },
+            ],
+        ])('%s opens no dialog and writes nothing', (_case, data) => {
             const state = mountState({ ...data, values_count: 0 });
 
             click(state);
             settle();
 
-            expect(dialogOf()).not.toBeNull();
-            expect(rowsOf()).toEqual([]);
-            expect(sliderOf()).toBeNull();
+            expect(dialogOf()).toBeNull();
             expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
         it.each([
             ['min = max', { minValue: 5, maxValue: 5 }],
-            ['min > max', { minValue: 10, maxValue: 0 }],
-        ])('V12 (ticket 17): %s still gets a slider', (_case, range) => {
+            ['min > max', { minValue: 200, maxValue: 100 }],
+        ])('V12 (ticket 17): %s gets the list without a slider', (_case, range) => {
             const state = mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 5);
 
             click(state);
 
+            expect(sliderOf()).toBeNull();
+            expect(rowTexts()).toEqual(['OFF', 'ON', 'AUTO']);
+        });
+    });
+
+    describe('a gate that falls away on an open dialog (ticket 17)', () => {
+        it('the dialog stays open without the slider, and it can be closed', () => {
+            const state = mountState({ ...THREE_ROWS, values_count: 0, oidObject: object('number', RANGE) });
+
+            click(state);
             expect(sliderOf()).not.toBeNull();
+
+            state.configure({ oidObject: object('number', { minValue: 5, maxValue: 5 }) });
+
+            expect(dialogOf()).not.toBeNull();
+            expect(sliderOf()).toBeNull();
+
+            const closeButton = document.querySelector('.MuiDialog-root button[aria-label="close"]');
+            if (!closeButton) {
+                throw new Error('the dialog rendered no close button');
+            }
+            fire(closeButton, mouse('click'));
+            settle();
+
+            expect(dialogOf()).toBeNull();
         });
     });
 

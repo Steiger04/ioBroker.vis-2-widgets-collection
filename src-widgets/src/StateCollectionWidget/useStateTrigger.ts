@@ -11,8 +11,8 @@
  */
 import { useRef, useState } from 'react';
 
-import { NO_PRESS, triggerStep } from './stateTrigger';
-import type { StateTriggerConfig, TriggerEvent } from './stateTrigger';
+import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import type { SliderRange, StateTriggerConfig, TriggerEvent } from './stateTrigger';
 
 /** What the body hands the trigger each render. */
 export interface StateTriggerOptions extends StateTriggerConfig {
@@ -34,8 +34,8 @@ export interface StateTriggerButtonProps {
 export interface StateTrigger {
     /** Goes on the button. */
     buttonProps: StateTriggerButtonProps;
-    /** The change dialog: whether a click opened it, and its close handler. */
-    dialog: { open: boolean; close: () => void };
+    /** The change dialog: whether a click opened it, its close handler and the range of the slider gate. */
+    dialog: { open: boolean; close: () => void; slider?: SliderRange };
 }
 
 /**
@@ -70,6 +70,6 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
             onTouchStart: () => fire({ kind: 'press' }),
             onTouchEnd: () => fire({ kind: 'release' }),
         },
-        dialog: { open, close: () => setOpen(false) },
+        dialog: { open, close: () => setOpen(false), slider: sliderRange(options) },
     };
 }

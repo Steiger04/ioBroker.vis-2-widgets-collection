@@ -123,3 +123,32 @@ describe('useStateTrigger', () => {
         expect(written(write)).toEqual([]);
     });
 });
+
+describe('useStateTrigger — the slider gate (ticket 17)', () => {
+    it('hands the dialog the range of the gate', () => {
+        const { result } = mountTrigger({
+            onlyStates: false,
+            oidObject: { type: 'number', minValue: -20, maxValue: 40 },
+        });
+
+        expect(result.current.dialog.slider).toEqual({ min: -20, max: 40 });
+    });
+
+    it('no gate, no range', () => {
+        const { result } = mountTrigger({
+            onlyStates: false,
+            oidObject: { type: 'number', minValue: 200, maxValue: 100 },
+        });
+
+        expect(result.current.dialog.slider).toBeUndefined();
+    });
+
+    it('a click with neither a list nor a slider leaves the dialog closed', () => {
+        const { result, write } = mountTrigger({ states: [], onlyStates: false, oidObject: { type: 'string' } });
+
+        act(() => result.current.buttonProps.onClick());
+
+        expect(result.current.dialog.open).toBe(false);
+        expect(written(write)).toEqual([]);
+    });
+});

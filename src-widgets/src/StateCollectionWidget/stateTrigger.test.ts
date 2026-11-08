@@ -4,10 +4,11 @@
  * @module widgets/StateCollectionWidget/stateTrigger.test
  * @remarks
  * Pins the pure transition (ADR-0110 Nr. 1, ADR-0089): the click count dispatch (1 write, 2 toggle,
- * >2 dialog), the onlyStates exception, the push-button click SUPPRESSION (press and release write,
- * the trailing browser click must not) and the toggle reading the Aktiver Zustand (ADR-0110 Nr. 8,
- * ADR-0105). What the hook adds around it is pinned in useStateTrigger.hook.test.ts, what reaches
- * the socket in StateCollection.test.tsx.
+ * >2 dialog), the onlyStates exception, the slider gate and the dialog with nothing to show (ADR-0110
+ * Nr. 9), the push-button click SUPPRESSION (press and release write, the trailing browser click must
+ * not) and the toggle reading the Aktiver Zustand (ADR-0110 Nr. 8, ADR-0105). What the hook adds
+ * around it is pinned in useStateTrigger.hook.test.ts, what reaches the socket in
+ * StateCollection.test.tsx.
  *
  * The config carries the RESOLVED states from useData — blank rows are already absent there, so a
  * widget with two configured rows but one blank resolves to ONE state and clicks write (never
@@ -15,8 +16,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { NO_PRESS, triggerStep } from './stateTrigger';
-import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerState } from './stateTrigger';
+import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerOidObject, TriggerState } from './stateTrigger';
 
 const PRESS: TriggerEvent = { kind: 'press' };
 const RELEASE: TriggerEvent = { kind: 'release' };
@@ -42,8 +43,8 @@ const OPEN = triggerStep(NO_PRESS, PRESS, PUSH_BUTTON).press;
 const NO_PUSH_BUTTON: [string, StateTriggerConfig, TriggerAction][] = [
     ['no onlyStates, two states', { ...TOGGLE, onlyStates: false }, DIALOG],
     ['no onlyStates, the push-button flag set', { ...PUSH_BUTTON, onlyStates: false }, DIALOG],
-    ['no onlyStates, no state resolved', { states: [], onlyStates: false }, DIALOG],
-    ['onlyStates, no state resolved', { states: [], onlyStates: true }, DIALOG],
+    ['no onlyStates, no state resolved', { states: [], onlyStates: false }, NONE],
+    ['onlyStates, no state resolved', { states: [], onlyStates: true }, NONE],
     ['one state (a blank second row is absent)', { states: [row(7, true)], onlyStates: true }, write(7)],
     ['one state, not active', { states: [row(7)], onlyStates: true }, write(7)],
     ['one state, the push-button flag set', { ...PUSH_BUTTON, states: [row(7, true)] }, write(7)],
@@ -144,6 +145,67 @@ describe('triggerStep — the open press', () => {
     it('a click leaves it as it is: the trailing click comes after the release, a keyboard click starts none', () => {
         expect(triggerStep(OPEN, CLICK, PUSH_BUTTON).press).toEqual(OPEN);
         expect(triggerStep(NO_PRESS, CLICK, PUSH_BUTTON).press).toEqual(NO_PRESS);
+    });
+});
+
+describe('the slider gate (ticket 17)', () => {
+    const number = (range: { minValue?: number; maxValue?: number } = {}): TriggerOidObject => ({
+        type: 'number',
+        ...range,
+    });
+    const RANGE = { minValue: 0, maxValue: 100 };
+
+    describe('sliderRange', () => {
+        it.each<[string, TriggerOidObject, { min: number; max: number }]>([
+            ['the object copy pre-filled with 0..100 (ADR-0109 Nr. 8)', number(RANGE), { min: 0, max: 100 }],
+            ['a negative lower bound', number({ minValue: -20, maxValue: 40 }), { min: -20, max: 40 }],
+            ['an upper bound of 0', number({ minValue: -10, maxValue: 0 }), { min: -10, max: 0 }],
+            ['a span below 1', number({ minValue: 0, maxValue: 0.5 }), { min: 0, max: 0.5 }],
+        ])('a number OID with %s earns the slider', (_case, oidObject, range) => {
+            expect(sliderRange({ oidObject })).toEqual(range);
+        });
+
+        it.each<[string, TriggerOidObject | undefined, boolean?]>([
+            ['no object copy', undefined],
+            ['a copy without a range', number()],
+            ['only a lower bound', number({ minValue: 0 })],
+            ['only an upper bound', number({ maxValue: 100 })],
+            ['min = max', number({ minValue: 5, maxValue: 5 })],
+            ['min > max', number({ minValue: 200, maxValue: 100 })],
+            ['a string OID with a range', { ...RANGE, type: 'string' }],
+            ['a mixed OID with a range', { ...RANGE, type: 'mixed' }],
+            ['a boolean OID with a range', { ...RANGE, type: 'boolean' }],
+            ['onlyStates on a number OID with a range', number(RANGE), true],
+        ])('%s gets no slider', (_case, oidObject, onlyStates) => {
+            expect(sliderRange({ oidObject, onlyStates })).toBeUndefined();
+        });
+    });
+
+    describe('the click sees the whole result', () => {
+        const ONE_STATE = [row(7)];
+
+        it.each<[string, StateTriggerConfig]>([
+            ['a string OID without rows', { states: [], oidObject: { type: 'string' } }],
+            ['a number OID without rows and without a range', { states: [], oidObject: number() }],
+            ['a number OID without rows, min > max', { states: [], oidObject: number({ minValue: 2, maxValue: 1 }) }],
+            [
+                'a stale onlyStates on a number OID without rows',
+                { states: [], onlyStates: true, oidObject: number(RANGE) },
+            ],
+            ['no object copy and no rows', { states: [] }],
+        ])('neither a list nor a slider: %s does nothing', (_case, config) => {
+            expect(triggerStep(NO_PRESS, CLICK, config).action).toEqual(NONE);
+        });
+
+        it.each<[string, StateTriggerConfig]>([
+            ['the slider alone', { states: [], oidObject: number(RANGE) }],
+            ['the list alone, on a string OID', { states: ONE_STATE, oidObject: { type: 'string' } }],
+            ['the list alone, min > max', { states: ONE_STATE, oidObject: number({ minValue: 2, maxValue: 1 }) }],
+            ['the list and the slider', { states: ONE_STATE, oidObject: number(RANGE) }],
+            ['the list of three, onlyStates', { states: THREE_STATES, onlyStates: true, oidObject: number(RANGE) }],
+        ])('%s opens the dialog', (_case, config) => {
+            expect(triggerStep(NO_PRESS, CLICK, config).action).toEqual(DIALOG);
+        });
     });
 });
 

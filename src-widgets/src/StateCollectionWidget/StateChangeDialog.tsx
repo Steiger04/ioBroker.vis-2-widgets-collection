@@ -7,8 +7,8 @@
  * Purely props-driven: no CollectionContext access and no own `useValueState`
  * binding — every commit travels through `onCommit`, the body's single write
  * chain, so dialog and widget share one debounce/ignore window. The slider gate
- * and the title fallback are decided by the body (StateCollection) and arrive
- * here as `slider` / `title`; the dialog only renders what it is given.
+ * is decided by the Zustands-Auslöser, the title fallback by the body (StateCollection);
+ * they arrive here as `slider` / `title` and the dialog only renders what it is given.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
