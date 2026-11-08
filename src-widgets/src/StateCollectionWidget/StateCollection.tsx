@@ -36,7 +36,7 @@ function StateCollection(): React.ReactElement {
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
 
-    const { buttonProps, dialog } = useStateTrigger({
+    const { buttonProps, buttonSx, dialog } = useStateTrigger({
         states,
         onlyStates: widget.data.onlyStates,
         statePushButton: widget.data.statePushButton,
@@ -60,6 +60,7 @@ function StateCollection(): React.ReactElement {
                 '&:hover': {
                     bgcolor: 'transparent',
                 },
+                ...buttonSx,
             }}
         >
             <Box

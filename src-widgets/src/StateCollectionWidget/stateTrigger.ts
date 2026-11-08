@@ -154,7 +154,7 @@ const dialogAction = (config: StateTriggerConfig): TriggerAction =>
     config.states.length > 0 || sliderRange(config) ? { type: 'open-dialog' } : { type: 'none' };
 
 /** Push-button condition: `onlyStates` AND exactly two states AND the flag set. */
-const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateTriggerConfig): boolean =>
+export const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateTriggerConfig): boolean =>
     Boolean(onlyStates && states.length === 2 && statePushButton);
 
 /** A state without a value (statically possible, skipped by useData at runtime) never triggers. */

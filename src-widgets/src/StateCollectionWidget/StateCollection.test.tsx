@@ -1093,6 +1093,75 @@ describe('StateCollection press ending from outside (ticket 07)', () => {
     });
 });
 
+describe('StateCollection push-button surface (ticket 08)', () => {
+    /** Fires a context menu request on `element`; true if the widget held the browser's menu back. */
+    const menuHeldBack = (element: Element): boolean => {
+        const event = mouse('contextmenu');
+        fire(element, event);
+        return event.defaultPrevented;
+    };
+
+    const touchActionOf = (state: MountedState): string => getComputedStyle(buttonOf(state)).touchAction;
+
+    it('push button: the browser neither pans under a finger nor opens its menu', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it('push button: the menu is held back over the children of the button too', () => {
+        const state = mountState(PUSH_BUTTON);
+        const child = buttonOf(state).firstElementChild;
+
+        expect(child && menuHeldBack(child)).toBe(true);
+    });
+
+    it('push button: the right mouse button still sends nothing, its menu stays held back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state, { button: 2 });
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+        release(state, { button: 2 });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it.each([
+        ['onlyDisplay', { onlyDisplay: true }],
+        ['write === false', { oidObject: object('number', { write: false }) }],
+    ])('push button under the Sperre (%s) keeps its surface', (_case, data) => {
+        const state = mountState({ ...PUSH_BUTTON, ...data });
+
+        expect(touchActionOf(state)).toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(true);
+    });
+
+    it.each([
+        ['the default toggle', {}],
+        ['without the flag', { ...PUSH_BUTTON, statePushButton: false }],
+        ['without onlyStates', { ...PUSH_BUTTON, onlyStates: false }],
+        ['with one state', { ...PUSH_BUTTON, values_count: 1 }],
+        ['with three states', { ...PUSH_BUTTON, values_count: 3, value3: '2' }],
+        ['with one of two rows blank', { ...PUSH_BUTTON, value2: '  ' }],
+    ])("%s: the button stays as it was, scrolling and the menu are the browser's", (_case, data) => {
+        const state = mountState(data);
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
+    });
+
+    it('the surface follows the mode when the configuration changes', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ statePushButton: false });
+
+        expect(touchActionOf(state)).not.toBe('none');
+        expect(menuHeldBack(buttonOf(state))).toBe(false);
+    });
+});
+
 describe('StateCollection toggle on the Aktiver Zustand (ticket 03)', () => {
     it('a String value meets the configured number: first row active, sends the second', () => {
         const state = mountState({ value1: '1', value2: '0' }, '1');

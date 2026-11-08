@@ -16,7 +16,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import { isPushButtonMode, NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerOidObject, TriggerState } from './stateTrigger';
 
 const PRESS: TriggerEvent = { kind: 'press', pointerId: 1, button: 0 };
@@ -230,6 +230,20 @@ describe('triggerStep — a press ending from outside (ticket 07)', () => {
 
     it.each(NO_PUSH_BUTTON)('%s: a leftover press ends without a write', (_case, config) => {
         expect(triggerStep(OPEN, END, config)).toEqual({ press: NO_PRESS, action: NONE });
+    });
+});
+
+describe('isPushButtonMode (ticket 08)', () => {
+    it('all three conditions together make the push button', () => {
+        expect(isPushButtonMode(PUSH_BUTTON)).toBe(true);
+    });
+
+    it('the Sperre does not change the mode', () => {
+        expect(isPushButtonMode({ ...PUSH_BUTTON, locked: true })).toBe(true);
+    });
+
+    it.each(NO_PUSH_BUTTON)('%s: no push button', (_case, config) => {
+        expect(isPushButtonMode(config)).toBe(false);
     });
 });
 

@@ -20,10 +20,20 @@
  *
  * Unmount and the Sperre taking hold end an open press from outside (ADR-0110 Nr. 4), which is what
  * the two effects are for. `write === false` is held back by the guard of the Schreibkette.
+ *
+ * Push-button mode owns the touch surface of the button (ADR-0110 Nr. 7): a long press neither pans
+ * nor opens the browser's menu. Outside that mode the button stays as it is, scrolling included.
  */
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type MouseEvent as ReactMouseEvent,
+    type PointerEvent as ReactPointerEvent,
+} from 'react';
 
-import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import { isPushButtonMode, NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { UpdateValueOptions } from '../hooks/useValueState';
 import type { SliderRange, StateTriggerConfig, TriggerEvent } from './stateTrigger';
 
@@ -43,12 +53,15 @@ export interface StateTriggerButtonProps {
     onPointerUp: (event: StateTriggerPointerEvent) => void;
     onPointerLeave: (event: StateTriggerPointerEvent) => void;
     onPointerCancel: (event: StateTriggerPointerEvent) => void;
+    onContextMenu: (event: Pick<ReactMouseEvent, 'preventDefault'>) => void;
 }
 
 /** What the body wires up. */
 export interface StateTrigger {
     /** Goes on the button. */
     buttonProps: StateTriggerButtonProps;
+    /** Goes into the `sx` of the button. */
+    buttonSx: { touchAction?: 'none' };
     /** The change dialog: whether a click opened it, its close handler and the range of the slider gate. */
     dialog: { open: boolean; close: () => void; slider?: SliderRange };
 }
@@ -115,7 +128,13 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
             onPointerUp: release,
             onPointerLeave: release,
             onPointerCancel: release,
+            onContextMenu: event => {
+                if (isPushButtonMode(optionsRef.current)) {
+                    event.preventDefault();
+                }
+            },
         },
+        buttonSx: isPushButtonMode(options) ? { touchAction: 'none' } : {},
         dialog: { open, close: () => setOpen(false), slider: sliderRange(options) },
     };
 }
