@@ -4,6 +4,7 @@ import useStyles from '../useStyles';
 import { getDynamicProperty } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import effectiveStateCount from '../../lib/effectiveStateCount';
+import { isBlankStateValue } from '../../lib/filledStateRows';
 import { createPropertyResolvers } from './propertyResolvers';
 import { getStyleData } from './styleDataResolver';
 import { sameStateValue } from './stateValueEquality';
@@ -148,7 +149,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 const _alias = rxData[`alias${i}`];
                 const _unit = oidObject?.unit;
 
-                if (_value === undefined || !/\S/.test(String(_value))) {
+                if (isBlankStateValue(_value)) {
                     continue;
                 }
 

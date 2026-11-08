@@ -11,6 +11,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import effectiveStateCount from './effectiveStateCount';
 import { createOnlyDisplayField } from './fieldFactories';
+import { pushButtonModeOffered } from './filledStateRows';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -38,8 +39,7 @@ type StateFieldsSettings = {
 const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesField[] => {
     const { onlyStates = true } = settings || {};
 
-    // Both hidden closures below ask the same question — the effective state count
-    // of the widget's editor data — so they share this one reading of the formula.
+    // The option itself follows the Zustandsmenge, which counts blank rows too.
     const countOf = (data: WidgetData): number =>
         effectiveStateCount({
             valuesCount: data.values_count,
@@ -67,7 +67,7 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
                       type: 'checkbox',
                       label: 'state_push_button',
                       default: false,
-                      hidden: (data, _i) => !data.onlyStates || countOf(data) !== 2,
+                      hidden: (data, _i) => !pushButtonModeOffered(data),
                       tooltip: 'state_push_button_tooltip',
                   },
               ] as RxWidgetInfoAttributesField[])
