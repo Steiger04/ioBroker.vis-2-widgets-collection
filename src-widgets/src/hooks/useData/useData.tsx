@@ -177,7 +177,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     // Aktiver Zustand: published so renderers never re-derive it (ADR-0105).
                     active: isActive,
                     value: convertedValue,
-                    label: styleData.alias || String(styleData.value),
+                    // A blank alias names nothing; the value resolver brings the unit along.
+                    label: isBlankStateValue(styleData.alias) ? String(styleData.value) : styleData.alias,
                     alias: styleData.alias,
                     fontSize: styleData.valueSize,
                     textColor: styleData.textColor,

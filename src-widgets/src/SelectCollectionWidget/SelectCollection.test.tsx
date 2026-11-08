@@ -215,6 +215,18 @@ describe('SelectCollection wiring', () => {
     });
 
     describe('entries', () => {
+        it('lists an entry by the value with its unit when the alias holds only spaces', () => {
+            const { container } = mountSelect(
+                scene({ oidObject: { _id: OID, type: 'number', write: true, unit: '%' }, alias2: '  ' }),
+            );
+
+            expect(combobox(container).textContent).toBe('1%');
+
+            openMenu(container);
+
+            expect(options().map(option => option.textContent)).toEqual(['Eco', '1%', 'Boost']);
+        });
+
         it('lists states sharing a value as separate entries without a React key clash', () => {
             const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
             const { container } = mountSelect(scene({ value3: '1', alias3: 'Comfort+' }));

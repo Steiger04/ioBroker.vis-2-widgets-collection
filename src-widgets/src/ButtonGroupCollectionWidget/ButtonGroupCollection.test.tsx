@@ -59,6 +59,15 @@ describe('ButtonGroupCollection wiring', () => {
         expect(container.textContent).toContain('ON');
     });
 
+    it('labels a button by the value with its unit when the alias holds only spaces', () => {
+        const { container } = mountGroup(scene({ oidObject: { _id: OID, type: 'number', unit: '%' }, alias2: '  ' }));
+
+        const labels = Array.from(container.querySelectorAll('.MuiToggleButton-root')).map(
+            button => button.textContent,
+        );
+        expect(labels).toEqual(['OFF', '1%']);
+    });
+
     it('selects the state matching the OID value', () => {
         const { container } = mountGroup(scene());
 
