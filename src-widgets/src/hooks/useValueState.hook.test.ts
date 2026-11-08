@@ -133,6 +133,21 @@ describe('useValueState hook', () => {
         unmount();
     });
 
+    it('writes nothing for a stored id whose object is gone (a pick without a usable object)', async () => {
+        const box = makeBox({ oid: OID, delay: 0 });
+        const { captured, unmount } = mount(box);
+
+        act(() => {
+            captured.current?.updateValue('x');
+            captured.current?.updateValue('y', { immediate: true });
+        });
+        await flushWrites(1000);
+
+        expect(box.setValue).not.toHaveBeenCalled();
+        expect(box.setState).not.toHaveBeenCalled();
+        unmount();
+    });
+
     it('updateValue never writes to a read-only state (write === false)', () => {
         const box = makeBox({ oid: OID, oidObject: { _id: OID, type: 'string', write: false }, delay: 0 });
         const { captured, unmount } = mount(box);

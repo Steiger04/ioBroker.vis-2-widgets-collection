@@ -7,11 +7,13 @@
  * widgets. It resolves the selected object and stores its metadata; the field's OID role decides which
  * widget data the pick owns beyond that (ADR-0096): only the main OID populates the root fields (icon,
  * unit, min/max, value rows, etc.); the Select's control ID owns only `cidObject` and the `onlyDisplay`
- * suggestion (Schreibziel, ADR-0090); an auxiliary ID owns only its own `<name>Object`.
+ * suggestion (Schreibziel, ADR-0090); an auxiliary ID owns only its own `<name>Object`. A pick without a
+ * usable object drops only that object; only an emptied main-OID field removes the rows (ADR-0111).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { oidTypeFilter } from './allowedOidTypes';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, isStateRowKey, stateRowCount } from './stateRows';
@@ -42,18 +44,8 @@ const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): 
 /** The Zustandszeilen of the main OID (`oid`): the row keys every state widget carries. */
 const MAIN_STATE_ROWS = stateEditorSpec().config;
 
-const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
-    const role = oidRole(oid);
-    // Every row the widget may still carry — counted before the OID object (and with it its
-    // common.states) is removed: the authored rows or the states, whichever reach further.
-    const rowCount =
-        role === 'main'
-            ? Math.max(
-                  typeof data.values_count === 'number' ? data.values_count : 0,
-                  Object.keys(data.oidObject?.commonStates || {}).length,
-              )
-            : 0;
-
+/** Drops this field's object; the control ID's suggestion follows the fallback to the main OID (ADR-0090). */
+const dropFieldObject = (data: WidgetData, oid: string): void => {
     // Clear only fields that start with the given OID and end with 'Object'
     Object.keys(data).forEach(key => {
         if (key.startsWith(oid) && key.endsWith('Object')) {
@@ -61,30 +53,62 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         }
     });
 
-    if (role === 'control') {
-        // The control ID is gone: the write target falls back to the main OID (ADR-0090).
+    if (oidRole(oid) === 'control') {
         data.onlyDisplay = writeTargetDeniesWrite(data);
     }
+};
 
-    if (role === 'main') {
-        delete data.icon;
-        delete data.write;
-        delete data.unit;
+/**
+ * Removes the rows and the root fields of the main OID — only for an emptied field (ADR-0111
+ * Nr. 2). Runs before the OID object goes: its common.states count.
+ */
+const removeMainOidRows = (data: WidgetData): void => {
+    // Every row the widget may still carry: the authored rows or the states, whichever reach further.
+    const rowCount = Math.max(
+        typeof data.values_count === 'number' ? data.values_count : 0,
+        Object.keys(data.oidObject?.commonStates || {}).length,
+    );
 
-        for (let i = 1; i <= rowCount; i++) {
-            MAIN_STATE_ROWS.schema.keys.forEach(key => {
-                delete data[`${key}${i}`];
-            });
-        }
+    delete data.icon;
+    delete data.write;
+    delete data.unit;
 
-        // The rows are gone, so are their bindings — a binding left behind would make the
-        // selected widgets' bindings disagree and lock the structural row actions unmarked.
-        if (data.bindings?.some(name => isStateRowKey(name, MAIN_STATE_ROWS))) {
-            data.bindings = data.bindings.filter(name => !isStateRowKey(name, MAIN_STATE_ROWS));
-        }
-
-        data.values_count = 0;
+    for (let i = 1; i <= rowCount; i++) {
+        MAIN_STATE_ROWS.schema.keys.forEach(key => {
+            delete data[`${key}${i}`];
+        });
     }
+
+    // The rows are gone, so are their bindings — a binding left behind would make the
+    // selected widgets' bindings disagree and lock the structural row actions unmarked.
+    if (data.bindings?.some(name => isStateRowKey(name, MAIN_STATE_ROWS))) {
+        data.bindings = data.bindings.filter(name => !isStateRowKey(name, MAIN_STATE_ROWS));
+    }
+
+    data.values_count = 0;
+};
+
+/**
+ * Writes the rows the widget carries now, counted against the previous OID object: a widget saved
+ * with ignoreCommonStates on (values_count 0) shows its states' rows. From here on its authored
+ * rows govern (ADR-0104 §5, Nachtrag Ticket 01).
+ */
+const convertToAuthoredRows = (data: WidgetData): void => {
+    data.values_count = stateRowCount(data, MAIN_STATE_ROWS);
+    data.ignoreCommonStates = false;
+};
+
+/**
+ * A pick without a usable object — a type outside `allowedTypes`, an id that does not resolve, a
+ * socket error — drops that field's object, nothing else (ADR-0111 Nr. 1): without it nothing is
+ * written, the rows return with the next usable pick.
+ */
+const dropUnusableObject = (data: WidgetData, oid: string): void => {
+    if (oidRole(oid) === 'main') {
+        // Counted first, or the rows of a widget saved with ignoreCommonStates on go with the object.
+        convertToAuthoredRows(data);
+    }
+    dropFieldObject(data, oid);
 };
 
 /** Options of a main-OID pick; the other OID roles write no range. */
@@ -134,6 +158,10 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
  *   suggestion; clearing it (or losing its object) re-derives the suggestion from the main OID.
  * - `auxiliary` (Hilfs-OID — Dialog's `dialogId`, Light2's channel IDs, ADR-0096): only its own
  *   `${oid}Object`, `commonStates` included — no root field, no `onlyDisplay` suggestion.
+ *
+ * A pick without a usable object drops only that object, for every role (ADR-0111 Nr. 1). Only an
+ * emptied main-OID field also removes the rows and the root fields (Nr. 2). `changeData` runs on
+ * every path.
  */
 export const oidChangeHandlerAsync =
     (allowedTypes: readonly AllowedType[], oid = 'oid', { inventRange = true }: OidPickOptions = {}) =>
@@ -146,30 +174,25 @@ export const oidChangeHandlerAsync =
         const role = oidRole(oid);
 
         if (!data[oid]) {
-            clearValueFields(data, oid);
+            if (role === 'main') {
+                removeMainOidRows(data);
+            }
+            dropFieldObject(data, oid);
             setTimeout(() => changeData(data), 100);
             return;
         }
 
         try {
             const object = (await socket.getObject(data[oid])) as ioBroker.StateObject | undefined;
-            if (!object) {
-                clearValueFields(data, oid);
+            const oidType = object?.common.type as AllowedType;
+            if (!object || !allowedTypes.includes(oidType)) {
+                dropUnusableObject(data, oid);
                 setTimeout(() => changeData(data), 100);
                 return;
             }
 
-            const oidType = object.common.type as AllowedType;
-            if (!allowedTypes.includes(oidType)) {
-                return;
-            }
-
             if (role === 'main') {
-                // The rows the widget carries now, counted against the previous OID object — a
-                // widget saved with ignoreCommonStates on (values_count 0) shows its states'
-                // rows. From here on its authored rows govern (ADR-0104 §5, Nachtrag Ticket 01).
-                data.values_count = stateRowCount(data, MAIN_STATE_ROWS);
-                data.ignoreCommonStates = false;
+                convertToAuthoredRows(data);
             }
 
             // Set object metadata
@@ -239,7 +262,7 @@ export const oidChangeHandlerAsync =
             setTimeout(() => changeData(data), 100);
         } catch (error) {
             console.error(`Error handling OID change for ${data[oid]}:`, error);
-            clearValueFields(data, oid);
+            dropUnusableObject(data, oid);
             setTimeout(() => changeData(data), 100);
         }
     };
@@ -255,7 +278,8 @@ export const oidChangeHandlerAsync =
  * @returns The field definition.
  * @remarks
  * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
- * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
+ * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys) — and as
+ * `filter` for the object dialog, which then offers only those types (ADR-0111 Nr. 4).
  * @example createIdField('oid', ANY_VALUE_TYPES)
  */
 export const createIdField = (
@@ -269,6 +293,7 @@ export const createIdField = (
         label: name,
         onChange: oidChangeHandlerAsync(allowedTypes, name, options),
         allowedTypes,
+        filter: oidTypeFilter(allowedTypes),
     }) as RxWidgetInfoAttributesField;
 
 /** Options to toggle optional sections emitted by {@link commonObjectFields}. */
