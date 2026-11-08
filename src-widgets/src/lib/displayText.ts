@@ -11,6 +11,7 @@
  * The object copy's `unit` is the Einheit's one source; the root `unit` field only feeds that copy
  * (ADR-0109 Nr. 12).
  */
+import { isBlankStateValue } from './filledStateRows';
 
 /** A value that gives a text. */
 type TextValue = string | number | boolean;
@@ -51,4 +52,7 @@ export const valueWithUnit = (value: unknown, unit: string | undefined): TextVal
  * @returns The raw text, `undefined` when there is nothing to show.
  */
 export const displayText = (input: DisplayTextInput): TextValue | undefined =>
-    input.alias || input.rowValue || valueWithUnit(input.value, input.unit);
+    // A blank alias names nothing (ADR-0110 Nr. 10).
+    (isBlankStateValue(input.alias) ? undefined : input.alias) ||
+    input.rowValue ||
+    valueWithUnit(input.value, input.unit);

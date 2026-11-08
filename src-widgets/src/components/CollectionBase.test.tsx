@@ -179,6 +179,14 @@ describe('CollectionBase Rahmen-Fußzeile', () => {
         expect(footerOf({ ...MATCHING_ROW, alias1: 'warm' }, 21)).toBe('warm');
     });
 
+    it('shows the value for an alias of only spaces', () => {
+        expect(footerOf({ ...MATCHING_ROW, alias1: '   ' }, 21)).toBe('0');
+    });
+
+    it('falls through a footer text of only spaces: its chain skips it before the frame reads it', () => {
+        expect(footerOf({ ...MATCHING_ROW, footer1: '   ' }, 21)).toBe('0');
+    });
+
     it('lets the value of the matching row win over the current value', () => {
         expect(footerOf({ ...WITH_UNIT, ...MATCHING_ROW }, 21)).toBe('0°C');
     });

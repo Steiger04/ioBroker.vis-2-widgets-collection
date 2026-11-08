@@ -235,6 +235,10 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
         expect(labelOf({ oidObject: { _id: OID, type: 'boolean', unit: 'x' } })).toBe('AN');
     });
 
+    it('shows the value for an alias of only spaces', () => {
+        expect(labelOf({ alias1: '   ' })).toBe('true');
+    });
+
     it('leaves the label empty for a false', () => {
         const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0 });
 

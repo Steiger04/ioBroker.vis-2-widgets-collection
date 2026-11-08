@@ -57,8 +57,15 @@ describe('displayText', () => {
         expect(displayText(input)).toBe(expected);
     });
 
-    // As it reads today; corrected in its own commit.
-    it('a blank alias still names the text', () => {
-        expect(displayText({ value: 21, unit: UNIT, alias: '  ' })).toBe('  ');
+    it.each([
+        ['spaces', '   '],
+        ['tabs and line breaks', '\t\n'],
+    ])('an alias of only %s names nothing', (_what, alias) => {
+        expect(displayText({ value: 21, unit: UNIT, alias })).toBe('21°C');
+        expect(displayText({ value: 21, unit: UNIT, alias, rowValue: '21 kWh' })).toBe('21 kWh');
+    });
+
+    it('an alias keeps its edge spaces', () => {
+        expect(displayText({ value: 21, alias: ' warm ' })).toBe(' warm ');
     });
 });
