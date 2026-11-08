@@ -30,8 +30,8 @@ function StateCollection(): React.ReactElement {
 
     const oidType = oidObject?.type;
 
-    // Title fallback chain: configured header, then the OID's name, then i18n.
-    const dialogTitle = data.header || oidObject?.name || Generic.t('state_change_dialog_title');
+    // Title fallback chain: `data.header` resolves the configured header, then the OID's name; then i18n.
+    const dialogTitle = data.header || Generic.t('state_change_dialog_title');
 
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
