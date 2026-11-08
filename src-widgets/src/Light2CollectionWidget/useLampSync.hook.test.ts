@@ -100,7 +100,7 @@ const coupled = (kelvinColor: iro.Color, value: number): string => {
     return color.hexString;
 };
 
-/** Lets the microtask queue drain, as between two browser input events (processingRef releases there). */
+/** Lets the microtask queue drain, as between two browser input events. */
 const nextTask = async (): Promise<void> => {
     await act(async () => {
         await Promise.resolve();

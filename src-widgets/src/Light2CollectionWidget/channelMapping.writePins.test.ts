@@ -10,8 +10,8 @@
  *
  * Real `iro.Color` (it runs under node): Kanal, value, `Math.round`, Hue-Skala at `maxValue`
  * 254, HSV change flags, picker filter of the CCT-Ansicht, a Kanal without object is skipped,
- * fallback for a missing picker property. The guards of the input path (`isSyncingRef`,
- * `processingRef`) sit in `useLampSync` and are not part of the pin.
+ * fallback for a missing picker property. The guard of the input path (`isSyncingRef`) sits in
+ * `useLampSync` and is not part of the pin.
  */
 import iro from '@jaames/iro';
 import { describe, expect, it } from 'vitest';

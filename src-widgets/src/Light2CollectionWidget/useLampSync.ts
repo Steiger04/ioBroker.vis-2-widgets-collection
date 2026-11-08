@@ -10,14 +10,16 @@
  * actions; write requests go through the `useValueState` setters the body passes in. The
  * Kelvin-Kopplung runs in the drag handler itself — no state toggle, no body re-render.
  *
- * Two refs sit in the input path:
- * - `isSyncingRef` keeps programmatic picker updates from writing: it wraps every picker action
- *   of the sync. iro 5.5.2 emits `input:change` whenever its `inputActive` flag is set
- *   (`dist/iro.es.js:1697-1701`); the slider sets the flag on every input including the release
- *   (`:1318-1322`) and only a colour change clears it, so a release that does not move the value
- *   leaves it set — the next programmatic update then arrives as an input. The guard drops it.
- * - `processingRef` is set while a drag step is handled and cleared on the next microtask.
- *   Whether it ever drops an input is open (ADR-0108 Nr. 3); it is taken over unchanged.
+ * One guard sits in the input path: `isSyncingRef` keeps programmatic picker updates from
+ * writing — it wraps every picker action, of the sync and of the drag handler's Kelvin-Kopplung.
+ * iro 5.5.2 emits `input:change` whenever its `inputActive` flag is set
+ * (`dist/iro.es.js:1697-1701`); the slider sets the flag on every input including the release
+ * (`:1318-1322`) and only a colour change clears it, so a release that does not move the value
+ * leaves it set — the next programmatic update then arrives as an input. The guard drops it.
+ * A re-entrant input can only come from such a picker update (the writes go through React state,
+ * which renders later), so no second guard is needed: the former `processingRef` (set during a
+ * drag step until the next microtask) never dropped an input — measured on real iro pickers over
+ * every Lichttyp, UI component, drag, view switch and foreign change.
  */
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
@@ -71,8 +73,6 @@ export function useLampSync(options: LampSyncOptions): LampSync {
     const prevStateRef = useRef<LampSyncState | undefined>(undefined);
     // Wraps the sync's own picker updates (iro's lingering `inputActive`, see the module remarks).
     const isSyncingRef = useRef(false);
-    // Set during a drag step until the next microtask; its effect is open (ADR-0108 Nr. 3).
-    const processingRef = useRef(false);
 
     const readContext = (): LampReadContext => ({
         widgetData: optionsRef.current.widgetData,
@@ -122,24 +122,15 @@ export function useLampSync(options: LampSyncOptions): LampSync {
     };
 
     const onInputChange = (color: iro.Color, picker: LampPicker, changes?: ColorChanges): void => {
-        if (processingRef.current || isSyncingRef.current) {
+        if (isSyncingRef.current) {
             return;
         }
         const step = inputStep(optionsRef.current, picker, color, changes, optionsRef.current.widgetData);
         if (!step) {
             return;
         }
-
-        processingRef.current = true;
-
-        try {
-            runWrites(step.writes);
-            applyActions(step.actions);
-        } finally {
-            void Promise.resolve().then(() => {
-                processingRef.current = false;
-            });
-        }
+        runWrites(step.writes);
+        applyActions(step.actions);
     };
 
     return { mainPickerRef, brightnessPickerRef, onColorInit, onInputChange };
