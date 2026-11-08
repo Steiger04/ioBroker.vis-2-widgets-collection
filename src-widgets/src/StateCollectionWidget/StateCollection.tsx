@@ -17,8 +17,8 @@ import type { StateCollectionContextProps } from '../types';
  *
  * @remarks
  * The button takes the handlers of {@link module:widgets/StateCollectionWidget/useStateTrigger};
- * the decision (including the push-button click suppression, ADR-0089) lives in its pure core
- * over the RESOLVED `states[]` from useData.
+ * the decision (including the push-button click suppression, ADR-0089, and the slider gate) lives
+ * in its pure core over the RESOLVED `states[]` from useData.
  * @returns Widget body element.
  */
 function StateCollection(): React.ReactElement {
@@ -26,18 +26,9 @@ function StateCollection(): React.ReactElement {
     const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { data, states } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, locked, hasForeignChange } = useValueState('oid');
 
     const oidType = oidObject?.type;
-
-    const onlyStates = widget.data.onlyStates;
-
-    // Slider gate (ticket 03): a number OID outside "only states" with defined
-    // bounds earns the dialog a range slider — the dialog renders, the body decides.
-    const sliderBounds =
-        oidType === 'number' && !onlyStates && oidObject?.minValue !== undefined && oidObject?.maxValue !== undefined
-            ? { min: oidObject.minValue, max: oidObject.maxValue }
-            : undefined;
 
     // Title fallback chain: configured header, then the OID's name, then i18n.
     const dialogTitle = data.header || oidObject?.name || Generic.t('state_change_dialog_title');
@@ -47,9 +38,10 @@ function StateCollection(): React.ReactElement {
 
     const { buttonProps, dialog } = useStateTrigger({
         states,
-        onlyStates,
+        onlyStates: widget.data.onlyStates,
         statePushButton: widget.data.statePushButton,
         locked,
+        oidObject,
         write: setOidValueState,
     });
 
@@ -99,12 +91,14 @@ function StateCollection(): React.ReactElement {
                     states={states}
                     open={dialog.open}
                     closeHandler={dialog.close}
+                    closeLabel={Generic.t('close')}
                     title={dialogTitle}
-                    backgroundColor={data.backgroundColor}
+                    backgroundColor={data.backgroundColor || data.background}
                     textColor={data.textColor}
                     currentValue={oidValue}
+                    hasForeignChange={hasForeignChange}
                     onCommit={setOidValueState}
-                    slider={sliderBounds}
+                    slider={dialog.slider}
                 />
             )}
             <CollectionBase

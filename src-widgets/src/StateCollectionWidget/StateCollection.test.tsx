@@ -41,6 +41,7 @@ import {
     testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
+import Generic from '../Generic';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
 
@@ -1241,7 +1242,7 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(thumb()).toBe(70);
         });
 
-        it('V11 (ticket 16): the step is 1, whatever the object copy says', () => {
+        it('ticket 16: the step comes from the object copy', () => {
             const state = mountState(
                 { ...THREE_ROWS, oidObject: object('number', { minValue: 0, maxValue: 1, step: 0.1 }) },
                 0,
@@ -1249,22 +1250,22 @@ describe('StateCollection change dialog up to the socket', () => {
 
             click(state);
 
-            expect(rangeOf().getAttribute('step')).toBe('1');
+            expect(rangeOf().getAttribute('step')).toBe('0.1');
         });
 
-        it('V6 (ticket 15): a numeric string seeds the thumb at 0', () => {
+        it('ticket 15: a numeric string seeds the thumb at its number', () => {
             const state = mountState(SLIDER, '50');
 
             click(state);
 
-            expect(thumb()).toBe(0);
+            expect(thumb()).toBe(50);
         });
     });
 
     describe('Fremdänderung while the dialog is open', () => {
         const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
 
-        it('V5 (ticket 15): the button follows, the thumb stays where it was', () => {
+        it('ticket 15: the button and the thumb follow without reopening', () => {
             const state = mountState(SLIDER, 10);
 
             click(state);
@@ -1273,7 +1274,7 @@ describe('StateCollection change dialog up to the socket', () => {
             state.backend(70, 2000);
 
             expect(buttonOf(state).textContent).toBe('70');
-            expect(thumb()).toBe(10);
+            expect(thumb()).toBe(70);
         });
 
         it('the dialog stays open and nothing is written', () => {
@@ -1359,27 +1360,53 @@ describe('StateCollection change dialog up to the socket', () => {
                 'V7 (ticket 17): a number OID without rows and without a range',
                 { oidObject: object('number'), onlyStates: false },
             ],
-        ])('%s opens an empty dialog', (_case, data) => {
+            [
+                'V7 (ticket 17): a number OID without rows and with min > max',
+                { oidObject: object('number', { minValue: 200, maxValue: 100 }), onlyStates: false },
+            ],
+        ])('%s opens no dialog and writes nothing', (_case, data) => {
             const state = mountState({ ...data, values_count: 0 });
 
             click(state);
             settle();
 
-            expect(dialogOf()).not.toBeNull();
-            expect(rowsOf()).toEqual([]);
-            expect(sliderOf()).toBeNull();
+            expect(dialogOf()).toBeNull();
             expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
         it.each([
             ['min = max', { minValue: 5, maxValue: 5 }],
-            ['min > max', { minValue: 10, maxValue: 0 }],
-        ])('V12 (ticket 17): %s still gets a slider', (_case, range) => {
+            ['min > max', { minValue: 200, maxValue: 100 }],
+        ])('V12 (ticket 17): %s gets the list without a slider', (_case, range) => {
             const state = mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 5);
 
             click(state);
 
+            expect(sliderOf()).toBeNull();
+            expect(rowTexts()).toEqual(['OFF', 'ON', 'AUTO']);
+        });
+    });
+
+    describe('a gate that falls away on an open dialog (ticket 17)', () => {
+        it('the dialog stays open without the slider, and it can be closed', () => {
+            const state = mountState({ ...THREE_ROWS, values_count: 0, oidObject: object('number', RANGE) });
+
+            click(state);
             expect(sliderOf()).not.toBeNull();
+
+            state.configure({ oidObject: object('number', { minValue: 5, maxValue: 5 }) });
+
+            expect(dialogOf()).not.toBeNull();
+            expect(sliderOf()).toBeNull();
+
+            const closeButton = document.querySelector('.MuiDialog-root button[aria-label="close"]');
+            if (!closeButton) {
+                throw new Error('the dialog rendered no close button');
+            }
+            fire(closeButton, mouse('click'));
+            settle();
+
+            expect(dialogOf()).toBeNull();
         });
     });
 
@@ -1414,6 +1441,28 @@ describe('StateCollection change dialog up to the socket', () => {
             return paper;
         };
 
+        /** The colour a browser draws: happy-dom hands the `inherit` keyword down instead of resolving it. */
+        const paintedColor = (element: Element): string => {
+            const { color } = getComputedStyle(element);
+            return color === 'inherit' && element.parentElement ? paintedColor(element.parentElement) : color;
+        };
+
+        const titleElementOf = (): HTMLElement => {
+            const title = document.querySelector<HTMLElement>('.MuiDialogTitle-root');
+            if (!title) {
+                throw new Error('the dialog rendered no title');
+            }
+            return title;
+        };
+
+        const listOf = (): HTMLElement => {
+            const list = document.querySelector<HTMLElement>('.MuiDialog-root .MuiList-root');
+            if (!list) {
+                throw new Error('the dialog rendered no list');
+            }
+            return list;
+        };
+
         const cardOf = (): HTMLElement => {
             const card = document.querySelector<HTMLElement>('.MuiDialogContent-root > .MuiPaper-root');
             if (!card) {
@@ -1422,30 +1471,63 @@ describe('StateCollection change dialog up to the socket', () => {
             return card;
         };
 
-        it('V15 (ticket 18): the widget background reaches the dialog paper, the inner card covers it', () => {
+        const GRADIENT = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+
+        it('V15 (ticket 18): the widget background reaches the dialog paper and shows through the inner card', () => {
             const state = mountState(THREE_ROWS, 0, { 'background-color': '#123456' });
 
             click(state);
 
             expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
-            expect(getComputedStyle(cardOf()).backgroundColor).toBe('#fff');
+            expect(getComputedStyle(cardOf()).backgroundColor).toBe('transparent');
         });
 
-        it('V15 (ticket 18): the text colour reaches the dialog paper, the inner card sets its own', () => {
+        it('V15 (ticket 18): the text colour reaches the dialog paper and the inner card inherits it', () => {
             const state = mountState({ ...THREE_ROWS, textColor: '#0000aa' });
 
             click(state);
 
             expect(getComputedStyle(paperOf()).color).toBe('#0000aa');
-            expect(getComputedStyle(cardOf()).color).toBe('#3399CC');
+            expect(paintedColor(cardOf())).toBe('#0000aa');
         });
 
-        it('V15 (ticket 18): a gradient as text colour is invalid on the dialog paper, the theme text stays', () => {
-            const state = mountState({ ...THREE_ROWS, textColor: 'linear-gradient(90deg, #ff0000, #0000ff)' });
+        it('V15 (ticket 18): a gradient as text colour clips through the title, the list paints its Vollfarbe', () => {
+            const state = mountState({ ...THREE_ROWS, textColor: GRADIENT });
 
             click(state);
 
-            expect(getComputedStyle(paperOf()).color).toBe('#3399CC');
+            expect(getComputedStyle(titleElementOf()).color).toBe('transparent');
+            expect(paintedColor(listOf())).toBe('rgb(128, 0, 128)');
+        });
+
+        describe('ticket 18', () => {
+            it('the background field reaches the dialog when the widget has no CSS background colour', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#654321');
+            });
+
+            it('the CSS background colour wins over the background field', () => {
+                const state = mountState({ ...THREE_ROWS, background: '#654321' }, 0, {
+                    'background-color': '#123456',
+                });
+
+                click(state);
+
+                expect(getComputedStyle(paperOf()).backgroundColor).toBe('#123456');
+            });
+
+            it('without colours the inner card keeps the theme surface and the theme text', () => {
+                const state = mountState(THREE_ROWS);
+
+                click(state);
+
+                expect(getComputedStyle(cardOf()).backgroundColor).toBe('#fff');
+                expect(paintedColor(cardOf())).toBe('#3399CC');
+                expect(paintedColor(listOf())).toBe('#3399CC');
+            });
         });
 
         it('without colours the paper keeps the theme surface', () => {
@@ -1505,6 +1587,136 @@ describe('StateCollection change dialog marks the active row (ticket 14)', () =>
 
         expect(markedRows()).toEqual(['AUTO']);
         expect(dialogOf()).not.toBeNull();
+    });
+});
+
+describe('StateCollection dialog slider follows a Fremdänderung (ticket 15)', () => {
+    const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+    it.each([
+        ['text', 'abc'],
+        ['a blank string', '  '],
+        ['a boolean', true],
+        ['null', null],
+    ])('%s seeds the thumb at 0 as before', (_case, value) => {
+        const state = mountState(SLIDER, value);
+
+        click(state);
+
+        expect(thumb()).toBe(0);
+    });
+
+    it('follows a change below the jitter filter: exactly, not only when significant', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(10.5, 2000);
+
+        expect(thumb()).toBe(10.5);
+    });
+
+    it('follows a numeric string', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend('70', 2000);
+
+        expect(thumb()).toBe(70);
+    });
+
+    it.each([
+        ['text', 'abc'],
+        ['a boolean', true],
+    ])('%s leaves the thumb where it was', (_case, value) => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(value, 2000);
+
+        expect(thumb()).toBe(10);
+    });
+
+    it('follows every further change', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        state.backend(40, 3000);
+
+        expect(thumb()).toBe(40);
+    });
+
+    it('the thumb stays on an own drag after a change, and the echo does not move it', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        drag(30);
+        expect(thumb()).toBe(30);
+
+        advance(300);
+        state.backend(30, 3000);
+        expect(thumb()).toBe(30);
+        expect(writes(state)).toEqual({ sent: [30], optimistic: [30] });
+    });
+
+    it('a stale echo inside the ignore window does not move the thumb, the next change after it does', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        drag(70);
+        state.backend(55, 2000);
+        expect(thumb()).toBe(70);
+
+        settle();
+        state.backend(20, 3000);
+
+        expect(thumb()).toBe(20);
+    });
+
+    it('following writes nothing', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection dialog slider step (ticket 16)', () => {
+    const sliderWith = (range: Record<string, unknown>): void => {
+        click(mountState({ ...THREE_ROWS, oidObject: object('number', range) }, 0));
+    };
+
+    it('uses the step of the object copy', () => {
+        sliderWith({ ...RANGE, step: 0.5 });
+
+        expect(rangeOf().getAttribute('step')).toBe('0.5');
+    });
+
+    it('stays on 1 for an object copy without a step', () => {
+        sliderWith(RANGE);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it('a root field step does not reach the slider: the copy is its only source', () => {
+        const state = mountState({ ...THREE_ROWS, oidObject: object('number', RANGE), step: 0.5 }, 0);
+
+        click(state);
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
+    });
+
+    it.each([
+        ['0', 0],
+        ['a negative step', -2],
+    ])('%s falls back to 1: MUI rounds a drag over it to NaN', (_case, step) => {
+        sliderWith({ ...RANGE, step });
+
+        expect(rangeOf().getAttribute('step')).toBe('1');
     });
 });
 
@@ -1592,5 +1804,22 @@ describe('StateCollection Sperre up to the socket', () => {
         settle();
 
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection change dialog close label (ticket 19)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('translates the label of the close button', () => {
+        vi.spyOn(Generic, 't').mockImplementation((key: string) => `translated ${key}`);
+        const state = mountState(THREE_ROWS);
+
+        click(state);
+
+        expect(document.querySelector('.MuiDialog-root .MuiIconButton-root')?.getAttribute('aria-label')).toBe(
+            'translated close',
+        );
     });
 });

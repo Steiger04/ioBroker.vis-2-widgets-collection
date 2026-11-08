@@ -184,6 +184,8 @@ export const oidChangeHandlerAsync =
                 // `??`: a real bound of 0 is a range, only a missing one gets seeded.
                 minValue: object.common.min ?? 0,
                 maxValue: object.common.max ?? 100,
+                // Copy only: no root field, and no key for an object without a step (ADR-0110 Nr. 12).
+                ...(typeof object.common.step === 'number' ? { step: object.common.step } : {}),
             };
 
             data[`${oid}Object`] = objectData;
