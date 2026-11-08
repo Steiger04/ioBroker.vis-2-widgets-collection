@@ -32,7 +32,6 @@ const inputScene: PreviewScene = {
                 oid: OID,
                 oidObject: { _id: OID, type: 'number', unit: ' °C' }, // leading space → useHtmlValue renders "21.5 °C"
                 onlyDisplay: true, // read-only display (no edit TextField)
-                write: false,
                 noHeader: true,
                 noFooter: true,
                 noHeaderIcon: true,
