@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import useData from '../hooks/useData/useData';
-import { decideTriggerAction } from '../StateCollectionWidget/stateTrigger';
+import { NO_PRESS, triggerStep } from '../StateCollectionWidget/stateTrigger';
 import { filledStateRowCount, isBlankStateValue, pushButtonModeActive, pushButtonModeOffered } from './filledStateRows';
 import { collectionScene, testScopedMount } from './testing/collectionScene';
 
@@ -42,15 +42,15 @@ const resolvedStates = (data: Record<string, unknown>): StateStyleData[] => {
 
 /** Whether the runtime treats a press as a push-button press over these resolved states. */
 const runtimeIsPushButton = (data: Record<string, unknown>): boolean =>
-    decideTriggerAction(
-        'press',
+    triggerStep(
+        NO_PRESS,
+        { kind: 'press' },
         {
             states: resolvedStates(data),
             onlyStates: data.onlyStates as boolean | undefined,
             statePushButton: data.statePushButton as boolean | undefined,
         },
-        undefined,
-    ).type === 'write';
+    ).action.type === 'write';
 
 describe('isBlankStateValue', () => {
     it.each<[string, string | number | boolean | undefined, boolean]>([
