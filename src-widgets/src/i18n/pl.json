@@ -1172,7 +1172,7 @@
     "state_change_dialog_title": "Zmień wartość",
     "state_collection_widget": "Stan (wartość logiczna, liczba, ciąg znaków)",
     "state_push_button": "Przycisk",
-    "state_push_button_tooltip": "Po naciśnięciu przycisku ustawiana jest wartość[1], a po zwolnieniu wartość[2].",
+    "state_push_button_tooltip": "Naciśnięcie przycisku wysyła wartość[1], jego zwolnienie lub opuszczenie przycisku wysyła wartość[2], oba działania są natychmiastowe. Przesuwanie kursora nad przyciskiem bez jego naciskania niczego nie wysyła.",
     "step": "Krok",
     "switch_collection_widget": "Przełącznik (wartość logiczna)",
     "table_border_color": "Kolor obramowania",

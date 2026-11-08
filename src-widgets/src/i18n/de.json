@@ -1185,7 +1185,7 @@
     "state_change_dialog_title": "Wert ändern",
     "state_collection_widget": "Zustand (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
     "state_push_button": "Taster",
-    "state_push_button_tooltip": "Mit Drücken des Tasters wird Wert[1] und nach dem Loslassen Wert[2] gesetzt.",
+    "state_push_button_tooltip": "Das Drücken des Tasters sendet Wert[1], das Loslassen oder Verlassen des Tasters sendet Wert[2], beides sofort. Das Überfahren ohne Drücken sendet nichts.",
     "step": "Schrittweite",
     "switch_collection_widget": "Schalter (boolescher Wert)",
     "table_border_color": "Rahmenfarbe",
