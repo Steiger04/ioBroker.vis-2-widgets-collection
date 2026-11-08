@@ -107,6 +107,7 @@ async function pick(
     idName: string,
     data: WidgetData,
     handler: RxWidgetInfoFieldChangeHandler = oidChangeHandlerAsync(ANY_VALUE_TYPES, idName),
+    socket: Connection = fakeSocket,
 ): Promise<WidgetData> {
     let emitted: WidgetData | undefined;
     await handler(
@@ -115,7 +116,7 @@ async function pick(
         newData => {
             emitted = newData;
         },
-        fakeSocket,
+        socket,
     );
     vi.runAllTimers();
     if (!emitted) {
@@ -385,13 +386,10 @@ describe('oidChangeHandlerAsync — the unit field of a main-OID pick (ADR-0109 
         expect(picked.oidObject?.unit).toBe('');
     });
 
-    it.each([
-        { how: 'field cleared', oid: '' },
-        { how: 'object no longer exists', oid: 'zigbee.0.lamp.removed' },
-    ])('removes the field with the OID ($how)', async ({ oid }) => {
+    it('removes the field with the OID when the field is cleared', async () => {
         const picked = await pick('oid', { oid: TEMPERATURE });
 
-        const cleared = await pick('oid', { ...picked, unit: 'K', oid });
+        const cleared = await pick('oid', { ...picked, unit: 'K', oid: '' });
 
         expect(cleared.unit).toBeUndefined();
         expect(cleared.oidObject).toBeUndefined();
@@ -466,6 +464,128 @@ describe('oidChangeHandlerAsync — main OID cleared', () => {
         const cleared = await pick('oid', { ...bound, oid: '', bindings: ['header1', 'title', 'iconColor3'] });
 
         expect(cleared.bindings).toEqual(['title']);
+    });
+
+    it('removes the rows of a widget saved with ignoreCommonStates on, counted from its states', async () => {
+        const legacy = { ...STATUS_PICKED, values_count: 0, ignoreCommonStates: true };
+
+        const cleared = await pick('oid', { ...legacy, oid: '' });
+
+        expect(Object.keys(cleared).filter(key => /\d$/.test(key))).toEqual([]);
+        expect(cleared.values_count).toBe(0);
+        expect(cleared).not.toHaveProperty('icon');
+        expect(cleared).not.toHaveProperty('oidObject');
+    });
+});
+
+describe('oidChangeHandlerAsync — a pick without a usable object (ADR-0111 Nr. 1)', () => {
+    const PARTIAL_ID = 'zigbee.0.la';
+    /** A device: it resolves, but carries no value type. */
+    const DEVICE = 'zigbee.0.lamp';
+
+    const failingSocket = {
+        getObject: (): Promise<unknown> => Promise.reject(new Error('socket down')),
+    } as unknown as Connection;
+
+    /** The ways to reach the case: the picked id, the field's allowed types, the socket. */
+    const UNUSABLE = [
+        { how: 'a type the field does not allow', id: COMMAND, types: ['boolean'] as const, socket: fakeSocket },
+        { how: 'an object without a value type', id: DEVICE, types: ANY_VALUE_TYPES, socket: fakeSocket },
+        { how: 'an id that does not resolve', id: PARTIAL_ID, types: ANY_VALUE_TYPES, socket: fakeSocket },
+        { how: 'a socket error', id: COMMAND, types: ANY_VALUE_TYPES, socket: failingSocket },
+    ];
+
+    /** STATUS_PICKED without its OID object: what stays once the object is gone. */
+    const { oidObject: _oidObject, ...STATUS_KEPT } = STATUS_PICKED;
+
+    beforeEach(() => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    describe.each(UNUSABLE)('$how', ({ id, types, socket }) => {
+        const pickUnusable = (name: string, data: WidgetData): Promise<WidgetData> =>
+            pick(name, { ...data, [name]: id }, oidChangeHandlerAsync(types, name), socket);
+
+        it('Haupt-OID: only its object goes, rows, bindings and root fields stay', async () => {
+            const styled = { iconColor2: 'red', header1: '{a}', bindings: ['header1'] };
+
+            expect(await pickUnusable('oid', { ...STATUS_PICKED, ...styled })).toEqual({
+                ...STATUS_KEPT,
+                ...styled,
+                oid: id,
+            });
+        });
+
+        it('Haupt-OID of a widget saved with ignoreCommonStates on: its rows stay, counted first', async () => {
+            const legacy = { ...STATUS_PICKED, values_count: 0, ignoreCommonStates: true };
+
+            // The same two keys a successful pick writes, or the rows would go with the states.
+            expect(await pickUnusable('oid', legacy)).toEqual({ ...STATUS_KEPT, oid: id });
+        });
+
+        it('Steuer ID: its object goes, the write target falls back and the suggestion follows it', async () => {
+            const commandPicked = await pick('cid', { ...STATUS_PICKED, cid: COMMAND });
+            expect(commandPicked.onlyDisplay).toBe(false);
+
+            expect(await pickUnusable('cid', commandPicked)).toEqual({ ...STATUS_PICKED, cid: id });
+        });
+
+        it.each(['dialogId', 'colorLightSwitchOid'])('Hilfs-OID %s: only its own object goes', async name => {
+            const root = { icon: 'button.png', write: false, values_count: 2, value1: true, value2: false };
+            const data = { ...root, [name]: STATUS, [`${name}Object`]: { _id: STATUS, type: 'number' } };
+
+            expect(await pickUnusable(name, data)).toEqual({ ...root, [name]: id });
+        });
+
+        it('a later usable pick shows the rows again and supplements the missing states', async () => {
+            const edited = { ...STATUS_PICKED, values_count: 2, alias2: 'Spar', iconColor2: 'green' };
+            const dropped = await pickUnusable('oid', edited);
+
+            const corrected = await pick('oid', { ...dropped, oid: SCENE });
+
+            expect(rowsOf(corrected)).toEqual([
+                [0, 'Off', undefined],
+                [1, 'Spar', 'green'],
+                [3, 'Party', undefined],
+            ]);
+            expect(corrected.oidObject).toMatchObject({ _id: SCENE });
+        });
+
+        it('a later usable pick brings back the rows of a widget saved with ignoreCommonStates on', async () => {
+            const dropped = await pickUnusable('oid', {
+                ...STATUS_PICKED,
+                values_count: 0,
+                ignoreCommonStates: true,
+            });
+
+            const corrected = await pick('oid', { ...dropped, oid: SCENE });
+
+            expect(rowsOf(corrected)).toEqual([
+                [0, 'Off', undefined],
+                [1, 'Eco', undefined],
+                [2, 'Comfort', undefined],
+                [3, 'Party', undefined],
+            ]);
+        });
+
+        it('emptying the field afterwards still removes the rows', async () => {
+            const dropped = await pickUnusable('oid', STATUS_PICKED);
+
+            const cleared = await pick('oid', { ...dropped, oid: '' });
+
+            expect(Object.keys(cleared).filter(key => /\d$/.test(key))).toEqual([]);
+            expect(cleared.values_count).toBe(0);
+        });
+    });
+
+    it('sets no root field on a widget that has none yet', async () => {
+        const picked = await pick('oid', { oid: PARTIAL_ID });
+
+        expect(picked).toEqual({ oid: PARTIAL_ID, values_count: 0, ignoreCommonStates: false });
     });
 });
 
