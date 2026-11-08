@@ -77,7 +77,7 @@ This enables e.g. shutter control (press = Up, release = Stop) or remote control
 
 - **Pressing** with the main button, by touch or with a pen: Value[1] is sent to the OID.
 - **Releasing**: Value[2] is sent to the OID.
-- **Leaving the whole button while holding**: Acts as a release. Moving between the icon and the text inside the button does not count. For touch, it has not yet been checked on real devices when a finger sliding off the button counts as leaving.
+- **Leaving the whole button while holding**: Acts as a release. Moving between the icon and the text inside the button does not count. A finger sliding off the button counts as leaving too; this is checked in the touch emulation of Chromium, not yet on real devices.
 - **A touch cancelled by the browser**: Acts as a release.
 - **A short tap**: Sends both values shortly after each other, Value[1] first, then Value[2]. There is no minimum duration.
 

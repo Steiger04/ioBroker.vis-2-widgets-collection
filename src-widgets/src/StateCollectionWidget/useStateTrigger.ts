@@ -15,8 +15,8 @@
  *
  * A touch pointer is implicitly captured by the element it went down on, so without more a finger
  * leaving the button would fire `pointerleave` only after it is lifted. The press hands that capture
- * back, then touch follows the leaving rule of the mouse. Pointer Events spec, not measured here:
- * the live check is ticket 22.
+ * back, then touch follows the leaving rule of the mouse. Seen in Chromium's touch emulation, where
+ * `pointerleave` fires as the finger leaves; not yet seen on a real device.
  *
  * Unmount and the Sperre taking hold end an open press from outside (ADR-0110 Nr. 4), which is what
  * the two effects are for. `write === false` is held back by the guard of the Schreibkette.

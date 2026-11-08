@@ -77,7 +77,7 @@ Dies ermöglicht z.B. Rollladensteuerung (Drücken = Auf, Loslassen = Stop) oder
 
 - **Drücken** mit der Haupttaste, per Touch oder mit dem Stift: Wert[1] wird an die OID gesendet.
 - **Loslassen**: Wert[2] wird an die OID gesendet.
-- **Verlassen des ganzen Buttons beim Halten**: Wirkt wie Loslassen. Ein Wechsel zwischen Icon und Text innerhalb des Buttons zählt nicht. Bei Touch ist auf echten Geräten noch nicht geprüft, wann ein vom Button gleitender Finger als Verlassen zählt.
+- **Verlassen des ganzen Buttons beim Halten**: Wirkt wie Loslassen. Ein Wechsel zwischen Icon und Text innerhalb des Buttons zählt nicht. Ein vom Button gleitender Finger zählt ebenso als Verlassen; das ist in der Touch-Emulation von Chromium geprüft, auf echten Geräten noch nicht.
 - **Abbruch** eines Touches durch den Browser: Wirkt wie Loslassen.
 - **Kurzer Tipp**: Sendet beide Werte kurz hintereinander, zuerst Wert[1], dann Wert[2]. Es gibt keine Mindestdauer.
 
