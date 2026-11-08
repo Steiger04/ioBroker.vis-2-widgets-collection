@@ -1,12 +1,11 @@
 /**
- * useInlineEdit — the hook fabric over the pure transitions.
+ * useInlineEdit — the hook fabric over the pure transition.
  *
  * @module widgets/InputCollectionWidget/useInlineEdit.hook.test
  * @remarks
- * Pins the composition of the edit session over useValueState: draft adoption,
- * the enter guard, live-vs-OK write behaviour and the Enter/Escape key paths.
- * The session rules themselves are pinned in the node-project suite
- * (useInlineEdit.test.ts); the Escape case here pins the composed discard path.
+ * Pins the composition of the edit session over useValueState: the Sperre and the backend value
+ * reaching the transition, events chaining within one tick and the writes reaching the Schreibkette.
+ * The session rules themselves are pinned in the node-project suite (inlineEditSession.test.ts).
  */
 import { act } from 'react';
 import { createElement, type FC } from 'react';
@@ -56,13 +55,13 @@ const makeContext = (box: ContextBox): AllCollectionContextProps =>
     }) as unknown as AllCollectionContextProps;
 
 interface Mounted {
-    captured: { current?: UseInlineEditReturn };
+    captured: { current: UseInlineEditReturn };
     rerender: () => void;
     unmount: () => void;
 }
 
 const mount = (box: ContextBox, options: UseInlineEditOptions): Mounted => {
-    const captured: { current?: UseInlineEditReturn } = {};
+    const captured = {} as { current: UseInlineEditReturn };
 
     const Inner: FC = () => {
         captured.current = useInlineEdit('oid', options);
@@ -89,6 +88,10 @@ const stringOid = (): Record<string, unknown> => ({
     delay: 0,
 });
 
+const stringBox = (): ContextBox => makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+
+const typed = (value: string): { target: { value: string } } => ({ target: { value } });
+
 describe('useInlineEdit hook', () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -98,13 +101,19 @@ describe('useInlineEdit hook', () => {
         vi.useRealTimers();
     });
 
-    it('adopts the backend value as draft and passes the binding through', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+    it('seeds the draft from the backend value when the session starts', () => {
+        const box = stringBox();
         const { captured, unmount } = mount(box, { showOkButton: false });
 
-        expect(captured.current?.value).toBe('alt');
-        expect(captured.current?.draft).toBe('alt');
-        expect(captured.current?.editing).toBe(false);
+        expect(captured.current.editing).toBe(false);
+
+        act(() => {
+            captured.current.start();
+        });
+
+        expect(captured.current.editing).toBe(true);
+        expect(captured.current.field.value).toBe('alt');
+        expect(box.setState).not.toHaveBeenCalled();
         unmount();
     });
 
@@ -113,169 +122,213 @@ describe('useInlineEdit hook', () => {
         ['onlyDisplay', true, { onlyDisplay: true }],
         // The lock follows the bound object — no root `write` copy here.
         ['a non-writable bound object', true, { oidObject: { _id: OID, type: 'string', write: false } }],
-    ])('passes the Sperre of the binding through: locked for %s is %s', (_case, locked, data) => {
+    ])('takes the Sperre from the binding: with %s, locked is %s and start follows it', (_case, locked, data) => {
         const box = makeBox({ ...stringOid(), ...data }, { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
         const { captured, unmount } = mount(box, { showOkButton: false });
 
-        expect(captured.current?.locked).toBe(locked);
+        expect(captured.current.locked).toBe(locked);
+
+        act(() => {
+            captured.current.start();
+        });
+
+        expect(captured.current.editing).toBe(!locked);
         unmount();
     });
 
-    it('enterEdit only starts the session when editable', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+    it('chains two keystrokes in one tick and writes each of them in live mode', () => {
+        const box = stringBox();
         const { captured, unmount } = mount(box, { showOkButton: false });
 
         act(() => {
-            captured.current?.enterEdit(false);
-        });
-        expect(captured.current?.editing).toBe(false);
-
-        act(() => {
-            captured.current?.enterEdit(true);
-        });
-        expect(captured.current?.editing).toBe(true);
-        unmount();
-    });
-
-    it('live mode writes per keystroke', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
-        const { captured, unmount } = mount(box, { showOkButton: false });
-
-        act(() => {
-            captured.current?.enterEdit(true);
+            captured.current.start();
         });
         act(() => {
-            captured.current?.handleChange('a');
-            captured.current?.handleChange('ab');
+            captured.current.field.onChange(typed('a'));
+            captured.current.field.onChange(typed('ab'));
         });
 
-        expect(captured.current?.draft).toBe('ab');
+        expect(captured.current.field.value).toBe('ab');
         expect(box.setState).toHaveBeenCalledTimes(2);
         expect(box.values[`${OID}.val`]).toBe('ab');
         unmount();
     });
 
-    it('OK mode buffers the draft and commits exactly once', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+    it('OK mode buffers the draft and commits exactly once through the Schreibkette', () => {
+        const box = stringBox();
         const { captured, unmount } = mount(box, { showOkButton: true });
 
         act(() => {
-            captured.current?.enterEdit(true);
+            captured.current.start();
         });
         act(() => {
-            captured.current?.handleChange('ent');
-            captured.current?.handleChange('wurf');
+            captured.current.field.onChange(typed('ent'));
+            captured.current.field.onChange(typed('wurf'));
         });
         expect(box.setState).not.toHaveBeenCalled();
 
         act(() => {
-            captured.current?.commit();
+            captured.current.confirm();
         });
 
-        expect(captured.current?.editing).toBe(false);
+        expect(captured.current.editing).toBe(false);
         expect(box.setState).toHaveBeenCalledTimes(1);
         expect(box.values[`${OID}.val`]).toBe('wurf');
         expect(box.values[`${OID}.lc`]).toBe(VALUE_NOT_CHANGED_TIMESTAMP);
         unmount();
     });
 
+    it('chains a keystroke and a commit in one tick: the commit writes the new draft', () => {
+        const box = stringBox();
+        const { captured, unmount } = mount(box, { showOkButton: true });
+
+        act(() => {
+            captured.current.start();
+        });
+        act(() => {
+            captured.current.field.onChange(typed('neu'));
+            captured.current.confirm();
+        });
+
+        expect(box.setState).toHaveBeenCalledTimes(1);
+        expect(box.values[`${OID}.val`]).toBe('neu');
+        unmount();
+    });
+
+    it('chains a commit and a blur in one tick: the session is over, so only one write', () => {
+        const box = stringBox();
+        const { captured, unmount } = mount(box, { showOkButton: true });
+
+        act(() => {
+            captured.current.start();
+        });
+        act(() => {
+            captured.current.field.onKeyDown({ key: 'Enter' });
+            captured.current.field.onBlur();
+        });
+
+        expect(captured.current.editing).toBe(false);
+        expect(box.setState).toHaveBeenCalledTimes(1);
+        unmount();
+    });
+
     it('blur commits in OK mode and only leaves in live mode', () => {
-        const okBox = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+        const okBox = stringBox();
         const ok = mount(okBox, { showOkButton: true });
         act(() => {
-            ok.captured.current?.enterEdit(true);
+            ok.captured.current.start();
         });
         act(() => {
-            ok.captured.current?.handleChange('neu');
+            ok.captured.current.field.onChange(typed('neu'));
         });
         act(() => {
-            ok.captured.current?.handleBlur();
+            ok.captured.current.field.onBlur();
         });
-        expect(ok.captured.current?.editing).toBe(false);
+        expect(ok.captured.current.editing).toBe(false);
         expect(okBox.values[`${OID}.val`]).toBe('neu');
         ok.unmount();
 
-        const liveBox = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+        const liveBox = stringBox();
         const live = mount(liveBox, { showOkButton: false });
         act(() => {
-            live.captured.current?.enterEdit(true);
+            live.captured.current.start();
         });
         act(() => {
-            live.captured.current?.handleChange('x');
+            live.captured.current.field.onChange(typed('x'));
         });
         const writesAfterKeystroke = liveBox.setState.mock.calls.length;
         act(() => {
-            live.captured.current?.handleBlur();
+            live.captured.current.field.onBlur();
         });
-        expect(live.captured.current?.editing).toBe(false);
+        expect(live.captured.current.editing).toBe(false);
         expect(liveBox.setState.mock.calls.length).toBe(writesAfterKeystroke); // no extra write on leave
         live.unmount();
     });
 
     it('Enter runs the blur path', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+        const box = stringBox();
         const { captured, unmount } = mount(box, { showOkButton: true });
 
         act(() => {
-            captured.current?.enterEdit(true);
+            captured.current.start();
         });
         act(() => {
-            captured.current?.handleChange('neu');
+            captured.current.field.onChange(typed('neu'));
         });
         act(() => {
-            captured.current?.handleKeyDown('Enter');
+            captured.current.field.onKeyDown({ key: 'Enter' });
         });
 
-        expect(captured.current?.editing).toBe(false);
+        expect(captured.current.editing).toBe(false);
         expect(box.values[`${OID}.val`]).toBe('neu');
         unmount();
     });
 
-    it('Escape leaves without committing: OK-mode draft is discarded, the backend value returns', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
-        const { captured, rerender, unmount } = mount(box, { showOkButton: true });
+    it('Escape leaves without committing: the next session starts from the backend value', () => {
+        const box = stringBox();
+        const { captured, unmount } = mount(box, { showOkButton: true });
 
         act(() => {
-            captured.current?.enterEdit(true);
+            captured.current.start();
         });
         act(() => {
-            captured.current?.handleChange('vergessen');
+            captured.current.field.onChange(typed('vergessen'));
         });
         act(() => {
-            captured.current?.handleKeyDown('Escape');
+            captured.current.field.onKeyDown({ key: 'Escape' });
         });
 
-        expect(captured.current?.editing).toBe(false);
+        expect(captured.current.editing).toBe(false);
         expect(box.setState).not.toHaveBeenCalled(); // nothing committed
 
-        rerender();
-        expect(captured.current?.draft).toBe('alt'); // discarded draft, backend value back
+        act(() => {
+            captured.current.start();
+        });
+        expect(captured.current.field.value).toBe('alt'); // discarded draft, backend value back
         unmount();
     });
 
-    it('keeps the draft while editing against backend changes and adopts after leaving', () => {
-        const box = makeBox(stringOid(), { [`${OID}.val`]: 'alt', [`${OID}.lc`]: 1000 });
+    it('keeps the draft while editing against backend changes and starts the next session from them', () => {
+        const box = stringBox();
         const { captured, rerender, unmount } = mount(box, { showOkButton: false });
 
         act(() => {
-            captured.current?.enterEdit(true);
+            captured.current.start();
         });
         act(() => {
-            captured.current?.handleChange('getippt');
+            captured.current.field.onChange(typed('getippt'));
         });
 
-        // Foreign backend change while editing: the draft holds (syncDraft gate).
+        // Foreign backend change while editing: the draft holds.
         box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 'fremd' };
         rerender();
-        expect(captured.current?.draft).toBe('getippt');
+        expect(captured.current.field.value).toBe('getippt');
 
-        // After leaving (live blur writes nothing extra), the draft adopts the backend value.
+        // After leaving (live blur writes nothing extra), a new session seeds from the backend value.
         box.values = { ...box.values, [`${OID}.lc`]: 3000, [`${OID}.val`]: 'neu-fremd' };
-        act(() => {
-            captured.current?.handleBlur();
-        });
         rerender();
-        expect(captured.current?.draft).toBe('neu-fremd');
+        act(() => {
+            captured.current.field.onBlur();
+        });
+        act(() => {
+            captured.current.start();
+        });
+        expect(captured.current.field.value).toBe('neu-fremd');
+        unmount();
+    });
+
+    it('passes hasBackendChange through as the error of the field', () => {
+        const box = stringBox();
+        const { captured, rerender, unmount } = mount(box, { showOkButton: false });
+
+        act(() => {
+            captured.current.start();
+        });
+        expect(captured.current.field.error).toBe(false);
+
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 'fremd' };
+        rerender();
+        expect(captured.current.field.error).toBe(true);
         unmount();
     });
 });

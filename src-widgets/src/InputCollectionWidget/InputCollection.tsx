@@ -22,7 +22,8 @@ import type { InputCollectionContextProps } from '../types';
  * @remarks
  * Whatever is present (icon, value, or both) is shown centered as one group. A click
  * switches inline to a TextField (the icon is hidden while editing); the session
- * rules (draft sync, live vs. OK-button commit) live in
+ * rules (draft, live vs. OK-button commit, the Sperre at the start) live in
+ * {@link module:InputCollectionWidget/inlineEditSession}, behind
  * {@link module:widgets/InputCollectionWidget/useInlineEdit}:
  * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
@@ -39,20 +40,9 @@ const InputCollection: FC = () => {
         },
     } = context;
 
-    const { data } = useData('oid');
+    const { data, oidValue } = useData('oid');
     const showOkButton = Boolean(widget.data.showOkButton);
-    const {
-        value: oidValue,
-        hasBackendChange,
-        locked,
-        editing,
-        draft,
-        enterEdit,
-        handleChange,
-        handleBlur,
-        handleKeyDown,
-        commit,
-    } = useInlineEdit('oid', { showOkButton });
+    const { editing, locked, start, confirm, field } = useInlineEdit('oid', { showOkButton });
 
     // Formatted display value (alias → value → oidValue+unit, may contain HTML).
     const htmlValue = useHtmlValue(oidValue, widget, data);
@@ -61,7 +51,6 @@ const InputCollection: FC = () => {
     const oidType = oidObject?.type;
     const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidType);
     const isNumber = oidType === 'number';
-    const editable = !locked;
 
     const textColor = data.textColor;
     const inputVariant = widget.data.inputVariant ?? 'standard';
@@ -78,8 +67,6 @@ const InputCollection: FC = () => {
             inputRef.current?.focus();
         }
     }, [editing]);
-
-    const enter = (): void => enterEdit(editable);
 
     return (
         <CollectionBase
@@ -103,11 +90,7 @@ const InputCollection: FC = () => {
                         size="small"
                         variant={inputVariant}
                         type={isNumber ? 'number' : 'text'}
-                        value={draft}
-                        error={hasBackendChange}
-                        onChange={e => handleChange(e.target.value)}
-                        onBlur={handleBlur}
-                        onKeyDown={e => handleKeyDown(e.key)}
+                        {...field}
                         slotProps={{
                             input: {
                                 endAdornment: oidObject?.unit ? (
@@ -127,7 +110,7 @@ const InputCollection: FC = () => {
                             size="small"
                             // Prevent the field from blurring before the click registers.
                             onMouseDown={e => e.preventDefault()}
-                            onClick={commit}
+                            onClick={confirm}
                         >
                             OK
                         </Button>
@@ -135,14 +118,14 @@ const InputCollection: FC = () => {
                 </Box>
             ) : (
                 <Box
-                    onClick={enter}
+                    onClick={start}
                     sx={{
                         width: '100%',
                         height: '100%',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        cursor: editable ? 'text' : 'default',
+                        cursor: locked ? 'default' : 'text',
                     }}
                 >
                     <CollectionValueDisplay
