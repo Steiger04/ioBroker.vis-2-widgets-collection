@@ -71,16 +71,55 @@ describe('triggerStep — every event per configuration', () => {
             ['the first', [row(0, true), row(1)]],
             ['the second', [row(0), row(1, true)]],
             ['none', TWO_STATES],
-        ])('push button: press writes Wert[1], release writes Wert[2], with %s active', (_active, states) => {
-            const config = { ...PUSH_BUTTON, states };
-
-            expect(triggerStep(press, PRESS, config).action).toEqual(write(0));
-            expect(triggerStep(press, RELEASE, config).action).toEqual(write(1));
+        ])('push button: press writes Wert[1], with %s active', (_active, states) => {
+            expect(triggerStep(press, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(write(0));
         });
 
         it('push button: the click is suppressed, not outrun (ADR-0089)', () => {
             expect(triggerStep(press, CLICK, PUSH_BUTTON).action).toEqual(NONE);
         });
+    });
+});
+
+describe('triggerStep — Wert[2] only out of an open press (ticket 04)', () => {
+    /** The values a run of events writes, folded through the transition. */
+    const writesOf = (events: TriggerEvent[]): TriggerAction[] => {
+        let press = NO_PRESS;
+        const actions: TriggerAction[] = [];
+
+        for (const event of events) {
+            const step = triggerStep(press, event, PUSH_BUTTON);
+            press = step.press;
+            if (step.action.type === 'write') {
+                actions.push(step.action);
+            }
+        }
+
+        return actions;
+    };
+
+    it.each([
+        ['press, release', [PRESS, RELEASE], [write(0), write(1)]],
+        ['press, release, the trailing click', [PRESS, RELEASE, CLICK], [write(0), write(1)]],
+        ['passing over: a release without a press', [RELEASE], []],
+        ['passing over twice', [RELEASE, RELEASE], []],
+        ['a keyboard click, then a release', [CLICK, RELEASE], []],
+        ['press, leaving, coming back, letting go', [PRESS, RELEASE, RELEASE], [write(0), write(1)]],
+        [
+            'press, leaving, coming back, letting go, a new press and its release',
+            [PRESS, RELEASE, RELEASE, PRESS, RELEASE],
+            [write(0), write(1), write(0), write(1)],
+        ],
+    ])('%s', (_case, events, expected) => {
+        expect(writesOf(events)).toEqual(expected);
+    });
+
+    it('a release out of an open press writes Wert[2]', () => {
+        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).action).toEqual(write(1));
+    });
+
+    it('a release without an open press writes nothing', () => {
+        expect(triggerStep(NO_PRESS, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
     });
 });
 

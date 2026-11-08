@@ -46,7 +46,8 @@ export interface StateTrigger {
  */
 export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     const [open, setOpen] = useState(false);
-    // The latest step, not the last render: two events in one tick build on each other.
+    // The latest step, not the last render: two events in one tick build on each other, so a
+    // second release right after the first finds no open press.
     const pressRef = useRef(NO_PRESS);
 
     const fire = (event: TriggerEvent): void => {

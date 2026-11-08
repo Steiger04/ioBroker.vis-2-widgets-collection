@@ -42,9 +42,6 @@ describe('useStateTrigger', () => {
     it.each([
         ['onMouseDown', [1]],
         ['onTouchStart', [1]],
-        ['onMouseUp', [0]],
-        ['onMouseOut', [0]],
-        ['onTouchEnd', [0]],
         ['onClick', []],
     ] as const)('push button: %s writes %j', (handler, expected) => {
         const { result, write } = mountTrigger();
@@ -54,6 +51,20 @@ describe('useStateTrigger', () => {
         expect(written(write)).toEqual(expected);
     });
 
+    it.each(['onMouseUp', 'onMouseOut', 'onTouchEnd'] as const)(
+        'push button: %s writes Wert[2] out of an open press, and nothing without one',
+        handler => {
+            const { result, write } = mountTrigger();
+
+            act(() => result.current.buttonProps[handler]());
+            expect(written(write)).toEqual([]);
+
+            act(() => result.current.buttonProps.onMouseDown());
+            act(() => result.current.buttonProps[handler]());
+            expect(written(write)).toEqual([1, 0]);
+        },
+    );
+
     it('two events in one tick build on each other, without a render in between', () => {
         const { result, write } = mountTrigger();
 
@@ -61,7 +72,26 @@ describe('useStateTrigger', () => {
             const { onMouseDown, onMouseUp } = result.current.buttonProps;
             onMouseDown();
             onMouseUp();
+            // The first release ended the press: this one must find none, without a render in between.
+            onMouseUp();
         });
+
+        expect(written(write)).toEqual([1, 0]);
+    });
+
+    it('the press survives a re-render in between', () => {
+        const write = vi.fn();
+        const options = (): StateTriggerOptions => ({
+            states: TWO_STATES,
+            onlyStates: true,
+            statePushButton: true,
+            write,
+        });
+        const { result, rerender } = renderHook(() => useStateTrigger(options()));
+
+        act(() => result.current.buttonProps.onMouseDown());
+        rerender(() => useStateTrigger(options()));
+        act(() => result.current.buttonProps.onMouseUp());
 
         expect(written(write)).toEqual([1, 0]);
     });

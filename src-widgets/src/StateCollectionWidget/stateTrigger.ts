@@ -19,6 +19,10 @@
  * `none` — "release wins" holds by construction. A keyboard click (Enter/Space fires
  * click only, no mouse events) is an honest no-op instead of latching the press
  * value on a momentary control.
+ *
+ * Wert[2] is written only out of an open press, and only once (ADR-0110 Nr. 2, CONTEXT
+ * "Taster-Betätigung"): a release ends the press, so passing the mouse over the button writes
+ * nothing, and coming back still pressed starts nothing until a new press.
  */
 
 /** What the transition carries from step to step: the Taster-Betätigung (CONTEXT), once one is open. */
@@ -129,7 +133,7 @@ export function triggerStep(press: TriggerPress, event: TriggerEvent, config: St
         case 'release':
             return {
                 press: NO_PRESS,
-                action: isPushButtonMode(config) ? writeState(config.states[1]) : { type: 'none' },
+                action: press.pressOpen && isPushButtonMode(config) ? writeState(config.states[1]) : { type: 'none' },
             };
         case 'click':
             return { press, action: clickAction(config) };

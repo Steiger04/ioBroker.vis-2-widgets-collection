@@ -442,17 +442,17 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('passing over and leaving', () => {
-        it('V1 (ticket 04): passing the mouse over without a press sends Wert[2]', () => {
+        it('passing the mouse over without a press sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             fire(buttonOf(state), mouse('mouseover'));
             leave(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0], optimistic: [0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('V1 (ticket 04): passing over twice sends Wert[2] twice', () => {
+        it('passing over twice sends nothing', () => {
             const state = mountState(PUSH_BUTTON);
 
             leave(state);
@@ -460,10 +460,10 @@ describe('StateCollection push button up to the socket', () => {
             leave(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0, 0], optimistic: [0, 0] });
+            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
         });
 
-        it('V2 (tickets 04 and 05): a mouseout from a child while holding counts as a release, the real one writes again', () => {
+        it('V2 (ticket 05): a mouseout from a child while holding counts as a release, the real one writes nothing more', () => {
             const state = mountState(PUSH_BUTTON);
             const child = buttonOf(state).firstElementChild;
             if (!child) {
@@ -481,7 +481,7 @@ describe('StateCollection push button up to the socket', () => {
             click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0, 0], optimistic: [1, 0, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
         it('leaving the button while holding counts as a release', () => {
@@ -495,7 +495,7 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('V1 (ticket 04): coming back still pressed and letting go writes a second Wert[2]', () => {
+        it('coming back still pressed and letting go writes no second Wert[2]', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -507,7 +507,7 @@ describe('StateCollection push button up to the socket', () => {
             click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1, 0, 0], optimistic: [1, 0, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
     });
 
@@ -803,6 +803,25 @@ describe('StateCollection click up to the socket', () => {
 
         expect(dialogOf()).not.toBeNull();
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+});
+
+describe('StateCollection open press (ticket 04)', () => {
+    it('a new press after coming back starts again', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        advance(400);
+        leave(state);
+        settle();
+        fire(buttonOf(state), mouse('mouseover'));
+        release(state);
+        click(state);
+        settle();
+        tap(state, 400);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
     });
 });
 
@@ -1321,13 +1340,13 @@ describe('StateCollection Sperre up to the socket', () => {
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
-    it('V1 (ticket 04): onlyDisplay does not hold back the mouseout, React passes it to a disabled button', () => {
+    it('onlyDisplay: the mouseout React passes to a disabled button finds no open press', () => {
         const state = mountState({ ...PUSH_BUTTON, onlyDisplay: true });
 
         leave(state);
         settle();
 
-        expect(writes(state)).toEqual({ sent: [0], optimistic: [0] });
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 
     it('ticket 05: onlyDisplay does not hold back a touch, React passes it to a disabled button', () => {
