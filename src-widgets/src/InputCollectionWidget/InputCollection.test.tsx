@@ -689,22 +689,103 @@ describe('InputCollection red field', () => {
         expect(isRed(container)).toBe(false);
     });
 
-    it('is red on entering after a change before the session (Ist-Verhalten, kippt in 04)', () => {
+    it('stays calm on entering after a change before the session', () => {
         const { container, backend } = mountInput();
         backend(50, 2000);
 
         start(container);
 
-        expect(isRed(container)).toBe(true);
+        expect(isRed(container)).toBe(false);
     });
 
-    it('lets jitter take the red away during a conflict (Ist-Verhalten, kippt in 04)', () => {
+    it('stays red through jitter during a conflict', () => {
         const { container, backend } = mountInput();
         start(container);
         backend(50, 2000);
 
         backend(50.5, 3000);
 
+        expect(isRed(container)).toBe(true);
+    });
+});
+
+describe('InputCollection Sitzungskonflikt (04)', () => {
+    it('turns red on a follow-up change after a change before the session', () => {
+        const { container, backend } = mountInput();
+        backend(50, 2000);
+        start(container);
+
+        backend(60, 3000);
+
+        expect(isRed(container)).toBe(true);
+    });
+
+    it('holds in OK mode past a keystroke', () => {
+        const { container, backend } = mountInput(OK_MODE);
+        start(container);
+        backend(50, 2000);
+
+        type(container, '41');
+
+        expect(isRed(container)).toBe(true);
+    });
+
+    it('starts the next session without the mark', () => {
+        const { container, backend } = mountInput();
+        start(container);
+        backend(50, 2000);
+
+        press(container, 'Escape');
+        start(container);
+
         expect(isRed(container)).toBe(false);
+    });
+
+    it('stays calm on a stale flag while a cleared number field writes nothing', () => {
+        const { container, backend, setState } = mountInput();
+        backend(50, 2000);
+        start(container);
+
+        type(container, '');
+
+        expect(setState).not.toHaveBeenCalled();
+        expect(isRed(container)).toBe(false);
+    });
+
+    it('stays calm on the converted echo of the last of several keystrokes', () => {
+        const { container, backend, setValue } = mountInput();
+        start(container);
+        type(container, '5');
+        type(container, '5.0');
+        flushWrites();
+        expect(setValue.mock.calls).toEqual([[OID, 5]]);
+
+        backend(5, 2000);
+
+        expect(isRed(container)).toBe(false);
+    });
+
+    it('changes no written value: a conflict in live mode, the keystroke still writes itself', () => {
+        const { container, backend, setValue } = mountInput();
+        start(container);
+        backend(50, 2000);
+
+        type(container, '41');
+        flushWrites();
+
+        expect(setValue.mock.calls).toEqual([[OID, 41]]);
+    });
+
+    it('changes no written value: a conflict in OK mode, a changed draft still commits', () => {
+        const { container, backend, setValue } = mountInput(OK_MODE);
+        start(container);
+        backend(50, 2000);
+        type(container, '41');
+        expect(isRed(container)).toBe(true);
+
+        clickOk(container);
+        flushWrites();
+
+        expect(setValue.mock.calls).toEqual([[OID, 41]]);
     });
 });

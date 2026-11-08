@@ -56,15 +56,19 @@ const makeContext = (box: ContextBox): AllCollectionContextProps =>
 
 interface Mounted {
     captured: { current: UseInlineEditReturn };
+    /** `field.error` of every render, in order: what the field could have painted. */
+    errors: boolean[];
     rerender: () => void;
     unmount: () => void;
 }
 
 const mount = (box: ContextBox, options: UseInlineEditOptions): Mounted => {
     const captured = {} as { current: UseInlineEditReturn };
+    const errors: boolean[] = [];
 
     const Inner: FC = () => {
         captured.current = useInlineEdit('oid', options);
+        errors.push(captured.current.field.error);
         return null;
     };
 
@@ -77,6 +81,7 @@ const mount = (box: ContextBox, options: UseInlineEditOptions): Mounted => {
 
     return {
         captured,
+        errors,
         rerender: (): void => handle.rerender({ context: makeContext(box) }),
         unmount: (): void => handle.unmount(),
     };
@@ -317,18 +322,219 @@ describe('useInlineEdit hook', () => {
         unmount();
     });
 
-    it('passes hasBackendChange through as the error of the field', () => {
-        const box = stringBox();
-        const { captured, rerender, unmount } = mount(box, { showOkButton: false });
-
-        act(() => {
-            captured.current.start();
-        });
-        expect(captured.current.field.error).toBe(false);
-
-        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 'fremd' };
+    /** A state update from outside: the host re-renders over the new value and `lc`. */
+    const land = (box: ContextBox, rerender: () => void, value: unknown, lc: number): void => {
+        box.values = { ...box.values, [`${OID}.val`]: value, [`${OID}.lc`]: lc };
         rerender();
-        expect(captured.current.field.error).toBe(true);
-        unmount();
+    };
+
+    /** A keystroke, with the optimistic patch landing the way the host re-renders it. */
+    const typeInto = (mounted: Mounted, value: string): void => {
+        act(() => {
+            mounted.captured.current.field.onChange(typed(value));
+        });
+        mounted.rerender();
+    };
+
+    /** Far past any ignore window of these cases. */
+    const PAST_THE_WINDOW_MS = 10_000;
+
+    const pastTheWindow = (): void => {
+        act(() => {
+            vi.advanceTimersByTime(PAST_THE_WINDOW_MS);
+        });
+    };
+
+    describe('Sitzungskonflikt over the real useValueState', () => {
+        it('shows a change during the session as the error of the field', () => {
+            const box = stringBox();
+            const { captured, rerender, unmount } = mount(box, { showOkButton: false });
+
+            act(() => {
+                captured.current.start();
+            });
+            expect(captured.current.field.error).toBe(false);
+
+            land(box, rerender, 'fremd', 2000);
+
+            expect(captured.current.field.error).toBe(true);
+            unmount();
+        });
+
+        it('never paints red for a change before the session, although the flag is still true', () => {
+            const box = stringBox();
+            const { captured, errors, rerender, unmount } = mount(box, { showOkButton: false });
+            land(box, rerender, 'fremd', 2000);
+
+            act(() => {
+                captured.current.start();
+            });
+
+            expect(errors).not.toContain(true);
+            unmount();
+        });
+
+        it('turns red on a follow-up change while the flag stays true without switching', () => {
+            const box = stringBox();
+            const { captured, rerender, unmount } = mount(box, { showOkButton: false });
+            land(box, rerender, 'fremd', 2000);
+            act(() => {
+                captured.current.start();
+            });
+
+            land(box, rerender, 'fremder', 3000);
+
+            expect(captured.current.field.error).toBe(true);
+            unmount();
+        });
+
+        it('settles after one extra render per new conflict and none for later observations', () => {
+            const box = stringBox();
+            const { captured, errors, rerender, unmount } = mount(box, { showOkButton: false });
+            act(() => {
+                captured.current.start();
+            });
+            const before = errors.length;
+
+            land(box, rerender, 'fremd', 2000);
+            expect(errors.length - before).toBe(2);
+            expect(errors.slice(before)).toEqual([false, true]);
+
+            land(box, rerender, 'fremder', 3000);
+            expect(errors.length - before).toBe(3);
+            unmount();
+        });
+
+        it('holds the conflict through jitter in OK mode and through a keystroke', () => {
+            const box = makeBox(
+                { oid: OID, oidObject: { _id: OID, type: 'number', write: true }, delay: 0 },
+                { [`${OID}.val`]: 40, [`${OID}.lc`]: 1000 },
+            );
+            const mounted = mount(box, { showOkButton: true });
+            act(() => {
+                mounted.captured.current.start();
+            });
+            land(box, mounted.rerender, 50, 2000);
+
+            land(box, mounted.rerender, 50.5, 3000);
+            expect(mounted.captured.current.field.error).toBe(true);
+
+            typeInto(mounted, '41');
+            expect(mounted.captured.current.field.error).toBe(true);
+            mounted.unmount();
+        });
+
+        describe('the own write in live mode', () => {
+            const numberBox = (value: unknown, data: Record<string, unknown> = {}): ContextBox =>
+                makeBox(
+                    { oid: OID, oidObject: { _id: OID, type: 'number', write: true }, delay: 0, ...data },
+                    { [`${OID}.val`]: value, [`${OID}.lc`]: 1000 },
+                );
+
+            it('ends a conflict', () => {
+                const box = numberBox(40);
+                const mounted = mount(box, { showOkButton: false });
+                act(() => {
+                    mounted.captured.current.start();
+                });
+                land(box, mounted.rerender, 50, 2000);
+                expect(mounted.captured.current.field.error).toBe(true);
+
+                typeInto(mounted, '5');
+
+                expect(mounted.captured.current.field.error).toBe(false);
+                mounted.unmount();
+            });
+
+            it('does not turn red on the string it wrote coming back as a number, inside or past the window', () => {
+                const box = numberBox(40);
+                const mounted = mount(box, { showOkButton: false });
+                act(() => {
+                    mounted.captured.current.start();
+                });
+
+                typeInto(mounted, '5');
+                expect(box.values[`${OID}.val`]).toBe(5);
+                land(box, mounted.rerender, 5, 2000);
+                pastTheWindow();
+                land(box, mounted.rerender, 5, 3000);
+
+                expect(mounted.errors).not.toContain(true);
+                mounted.unmount();
+            });
+
+            it('does not turn red on a stale flag and a cleared field that writes nothing', () => {
+                const box = numberBox(40);
+                const mounted = mount(box, { showOkButton: false });
+                land(box, mounted.rerender, 50, 2000);
+                act(() => {
+                    mounted.captured.current.start();
+                });
+
+                typeInto(mounted, '');
+                mounted.rerender();
+
+                expect(box.setState).not.toHaveBeenCalled();
+                expect(mounted.errors).not.toContain(true);
+                mounted.unmount();
+            });
+
+            it('turns red on a foreign change past the window after the own write', () => {
+                const box = numberBox(40);
+                const mounted = mount(box, { showOkButton: false });
+                act(() => {
+                    mounted.captured.current.start();
+                });
+                typeInto(mounted, '5');
+                land(box, mounted.rerender, 5, 2000);
+                pastTheWindow();
+
+                land(box, mounted.rerender, 60, 3000);
+
+                expect(mounted.captured.current.field.error).toBe(true);
+                mounted.unmount();
+            });
+
+            // The throttle fires after the last keystroke's window: the flag is really true on this
+            // echo (the earlier echo moved the hook's last value), only the reference absorbs it.
+            it('does not turn red on the throttled echo of several keystrokes past the window', () => {
+                const SAMPLE_MS = 5000;
+                const box = makeBox(
+                    {
+                        oid: OID,
+                        oidObject: { _id: OID, type: 'mixed', write: true },
+                        delay: 0,
+                        sampleInterval: true,
+                        sampleIntervalValue: SAMPLE_MS,
+                    },
+                    { [`${OID}.val`]: 'a', [`${OID}.lc`]: 1000 },
+                );
+                const mounted = mount(box, { showOkButton: false });
+                act(() => {
+                    mounted.captured.current.start();
+                });
+
+                typeInto(mounted, '0');
+                act(() => {
+                    vi.advanceTimersByTime(SAMPLE_MS);
+                });
+                expect(box.setValue.mock.calls).toEqual([[OID, 0]]);
+
+                typeInto(mounted, '007');
+                land(box, mounted.rerender, 0, 2000);
+                act(() => {
+                    vi.advanceTimersByTime(SAMPLE_MS);
+                });
+                expect(box.setValue.mock.calls).toEqual([
+                    [OID, 0],
+                    [OID, 7],
+                ]);
+
+                land(box, mounted.rerender, 7, 3000);
+
+                expect(mounted.errors).not.toContain(true);
+                mounted.unmount();
+            });
+        });
     });
 });

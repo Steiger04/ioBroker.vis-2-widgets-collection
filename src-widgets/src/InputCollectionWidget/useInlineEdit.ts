@@ -5,15 +5,22 @@
  * @remarks
  * ADR-0109 Nr. 1, 2: the thin shell around the pure transition
  * ({@link module:InputCollectionWidget/inlineEditSession}) over the optimistic binding from
- * {@link module:hooks/useValueState}. It feeds the transition the events of the field, the mode and
- * the Sperre, and carries a value to write out through `updateValue`. The backend value to display
- * comes from `useData`. The autofocus effect stays in the component — presentational, it needs the
- * input ref.
+ * {@link module:hooks/useValueState}. It feeds the transition the events of the field, the backend
+ * observations, the mode, the Sperre and the conversion, and carries a value to write out through
+ * `updateValue`. The backend value to display comes from `useData`. The autofocus effect stays in the
+ * component — presentational, it needs the input ref.
+ *
+ * The backend observations run in an effect, because the transition moves the session ref and a
+ * render must not. The field is only ever red after the observation that raised the conflict, one
+ * render after the value, so nothing paints red and takes it back. An observation without a new
+ * conflict keeps the session object and renders nothing.
  */
 
-import { useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
-import useValueState from '../hooks/useValueState';
+import { CollectionContext } from '../components/CollectionProvider';
+import useValueState, { convertToOidType } from '../hooks/useValueState';
+import type { CommonObjectFieldsRxData, OidObject } from '../types';
 import { NO_SESSION, sessionStep } from './inlineEditSession';
 import type { InlineEditEvent } from './inlineEditSession';
 
@@ -27,7 +34,7 @@ export interface UseInlineEditOptions {
 export interface InlineEditField {
     /** The draft. */
     value: string;
-    /** Significant foreign backend change (see ADR-0087). */
+    /** The Sitzungskonflikt (ADR-0109 Nr. 3). */
     error: boolean;
     /** Draft change: live mode writes through per keystroke, OK mode buffers. */
     onChange: (event: { target: { value: string } }) => void;
@@ -60,21 +67,36 @@ export interface UseInlineEditReturn {
  */
 const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInlineEditReturn => {
     const { value, updateValue, hasBackendChange, locked } = useValueState(idName);
+    const { widget } = useContext(CollectionContext);
+    const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
+    const oidType = oidObject?.type;
 
     const [session, setSession] = useState(NO_SESSION);
     // The latest step, not the last render: two events in one tick build on each other.
     const sessionRef = useRef(NO_SESSION);
 
     const dispatch = (event: InlineEditEvent): void => {
-        const step = sessionStep(sessionRef.current, event, { showOkButton: options.showOkButton, locked });
+        const step = sessionStep(sessionRef.current, event, {
+            showOkButton: options.showOkButton,
+            locked,
+            convert: raw => convertToOidType(raw, oidType),
+        });
 
-        sessionRef.current = step.session;
-        setSession(step.session);
+        if (step.session !== sessionRef.current) {
+            sessionRef.current = step.session;
+            setSession(step.session);
+        }
 
         if (step.write !== undefined) {
             updateValue(step.write);
         }
     };
+
+    // Only when something changed: a stale flag over an unchanged value is no observation.
+    useEffect(() => {
+        dispatch({ kind: 'backend', value, significant: hasBackendChange });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- `dispatch` reads only the latest refs and inputs
+    }, [value, hasBackendChange]);
 
     return {
         editing: session.editing,
@@ -83,7 +105,7 @@ const useInlineEdit = (idName: string, options: UseInlineEditOptions): UseInline
         confirm: () => dispatch({ kind: 'ok' }),
         field: {
             value: session.draft,
-            error: hasBackendChange,
+            error: session.conflict,
             onChange: event => dispatch({ kind: 'input', value: event.target.value }),
             onBlur: () => dispatch({ kind: 'blur' }),
             onKeyDown: event => dispatch({ kind: 'key', key: event.key }),
