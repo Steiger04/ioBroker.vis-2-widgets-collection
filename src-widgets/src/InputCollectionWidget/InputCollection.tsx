@@ -5,7 +5,7 @@
  */
 
 import { Box, Button, InputAdornment, TextField } from '@mui/material';
-import { useContext, useEffect, useRef, type FC } from 'react';
+import { useContext, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -51,7 +51,7 @@ const InputCollection: FC = () => {
 
     // Formatted display value (alias → value → oidValue+unit, may contain HTML).
     const htmlValue = useHtmlValue(oidValue, widget, data);
-    const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
+    const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
 
     const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidObject?.type);
     const attributes = buildEntryFieldAttributes({ fields: widget.data, object: oidObject, draft: field.value });
@@ -60,15 +60,6 @@ const InputCollection: FC = () => {
     // Repräsentative Vollfarbe. Without one the rule stays out and the theme text colour remains.
     const fieldColor = solidOf(data.textColor);
     const inputVariant = widget.data.inputVariant ?? 'standard';
-
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    // Auto-focus the field when entering edit mode.
-    useEffect(() => {
-        if (editing) {
-            inputRef.current?.focus();
-        }
-    }, [editing]);
 
     return (
         <CollectionBase
@@ -87,7 +78,8 @@ const InputCollection: FC = () => {
                     }}
                 >
                     <TextField
-                        inputRef={inputRef}
+                        // The field mounts only when a session starts.
+                        autoFocus
                         fullWidth
                         size="small"
                         variant={inputVariant}

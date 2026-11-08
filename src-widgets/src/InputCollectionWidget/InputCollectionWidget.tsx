@@ -62,16 +62,9 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
         return InputCollectionWidget.getWidgetInfo();
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate(): void {
-        // Intentionally empty: the Input widget has no derived runtime state.
-    }
-
     // This function is called every time when rxData is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxDataChanged(): void {
-        // this.propertiesUpdate();
-    }
+    onRxDataChanged(): void {}
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
@@ -83,7 +76,6 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
 
     componentDidMount(): void {
         super.componentDidMount();
-        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
