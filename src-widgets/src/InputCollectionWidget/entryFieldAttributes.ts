@@ -10,6 +10,8 @@
  * text style is not an attribute, it stays in the body's `sx`.
  */
 
+import optionalNumber from '../lib/helper/optionalNumber';
+
 import type { InputCollectionContextProps } from '../types';
 
 type InputData = InputCollectionContextProps['widget']['data'];
@@ -34,9 +36,6 @@ export interface EntryFieldAttributes {
     htmlInput: { step: number | undefined; min: number | undefined; max: number | undefined } | undefined;
 }
 
-/** Reads a stored number field; vis-2 may store number inputs as strings. */
-const readNumber = (value: unknown): number | undefined => (value !== undefined ? Number(value) : undefined);
-
 /**
  * Builds the Eingabefeld-Attribute.
  *
@@ -51,9 +50,9 @@ export function buildEntryFieldAttributes(params: BuildEntryFieldAttributesParam
         unit: object?.unit || undefined,
         htmlInput: isNumber
             ? {
-                  step: readNumber(fields.step),
-                  min: readNumber(fields.minValue),
-                  max: readNumber(fields.maxValue),
+                  step: optionalNumber(fields.step),
+                  min: optionalNumber(fields.minValue),
+                  max: optionalNumber(fields.maxValue),
               }
             : undefined,
     };

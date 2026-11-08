@@ -76,17 +76,28 @@ describe('buildEntryFieldAttributes — number attributes', () => {
         });
     });
 
-    it.each<[string, unknown, number]>([
-        ['an emptied field', '', 0],
-        ['a null field', null, 0],
-        ['a non-numeric field', 'abc', Number.NaN],
-    ])('reads %s through Number() (Ist-Verhalten, kippt in 06)', (_case, value, number) => {
+    it.each<[string, unknown]>([
+        ['an emptied field', ''],
+        ['a blank field', ' '],
+        ['a null field', null],
+        ['a non-numeric field', 'abc'],
+    ])('leaves %s unset', (_case, value) => {
         const stored = { step: value, minValue: value, maxValue: value } as never;
 
         expect(buildEntryFieldAttributes(params({ fields: stored })).htmlInput).toEqual({
-            step: number,
-            min: number,
-            max: number,
+            step: undefined,
+            min: undefined,
+            max: undefined,
+        });
+    });
+
+    it('reads each field on its own', () => {
+        const stored = { step: '', minValue: 0, maxValue: '' } as never;
+
+        expect(buildEntryFieldAttributes(params({ fields: stored })).htmlInput).toEqual({
+            step: undefined,
+            min: 0,
+            max: undefined,
         });
     });
 

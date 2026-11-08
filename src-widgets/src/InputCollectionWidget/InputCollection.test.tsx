@@ -334,11 +334,11 @@ describe('InputCollection field attributes', () => {
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
     });
 
-    it('turns emptied number fields into 0 (Ist-Verhalten, kippt in 06)', () => {
+    it('sets no attribute for emptied number fields (06)', () => {
         const { container } = mountInput({ step: '', minValue: '', maxValue: '' });
         const field = start(container);
 
-        expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual(['0', '0', '0']);
+        expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
     });
 
     it.each([
