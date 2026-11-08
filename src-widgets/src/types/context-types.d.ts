@@ -51,10 +51,9 @@ import type { WidgetRegistry } from './widget-registry';
  * Minimal widget data interface for {@link module:hooks/useHtmlValue}.
  *
  * @remarks
- * This interface defines only the `unit` property used by useHtmlValue
+ * This interface defines only the object copy's `unit` used by useHtmlValue
  * to avoid requiring the full widget data type.
  *
- * All collection widgets that use this hook must provide a unit property.
  * Used to replace `any` with a precise, type-safe contract.
  * @example
  * ```typescript
@@ -63,13 +62,13 @@ import type { WidgetRegistry } from './widget-registry';
  * const myHook = (
  *     widget: CollectionContextProps<UseHtmlValueWidgetData>['widget']
  * ) => {
- *     const unit = widget.data.unit; // Type-safe access
+ *     const unit = widget.data.oidObject?.unit; // Type-safe access
  * };
  * ```
  */
 export interface UseHtmlValueWidgetData {
-    /** Unit of measurement displayed alongside the value (e.g., '°C', '%', 'kWh'). */
-    unit?: string;
+    /** The bound object's copy; its unit is displayed alongside the value (e.g., '°C', '%', 'kWh'). */
+    oidObject?: { unit?: string };
 }
 
 /**

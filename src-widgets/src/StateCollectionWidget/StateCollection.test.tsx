@@ -140,3 +140,17 @@ describe('StateCollection wiring', () => {
         expect(setState).not.toHaveBeenCalled();
     });
 });
+
+describe('StateCollection value text (Ticket 12)', () => {
+    it('appends the object unit when the value matches no state row', () => {
+        const { container } = mountState(scene({ oidObject: { _id: OID, type: 'number', unit: '°C' } }, 5));
+
+        expect(container.querySelector('button')?.textContent).toBe('5°C');
+    });
+
+    it('lets the alias of a matching row win over the object unit', () => {
+        const { container } = mountState(scene({ oidObject: { _id: OID, type: 'number', unit: '°C' } }, 1));
+
+        expect(container.querySelector('button')?.textContent).toBe('ON');
+    });
+});

@@ -30,8 +30,7 @@ const inputScene: PreviewScene = {
         widget: {
             data: {
                 oid: OID,
-                oidObject: { _id: OID, type: 'number', unit: '°C' },
-                unit: ' °C', // leading space → useHtmlValue renders "21.5 °C"
+                oidObject: { _id: OID, type: 'number', unit: ' °C' }, // leading space → useHtmlValue renders "21.5 °C"
                 onlyDisplay: true, // read-only display (no edit TextField)
                 write: false,
                 noHeader: true,

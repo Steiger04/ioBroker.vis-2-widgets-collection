@@ -233,16 +233,16 @@ describe('InputCollection display', () => {
         expect(clickable && getComputedStyle(clickable).cursor).toBe('text');
     });
 
-    it('leaves the object unit out of the display (Ist-Verhalten, kippt in 12)', () => {
+    it('appends the object unit to the display, with no matching row (12)', () => {
         const { container } = mountInput({ oidObject: object('number', { unit: '°C' }) });
 
-        expect(displayOf(container).textContent).toBe('40');
+        expect(displayOf(container).textContent).toBe('40°C');
     });
 
-    it('appends the root unit field to the display (Ist-Verhalten, kippt in 12)', () => {
+    it('leaves the root unit field out of the display: it only feeds the object copy (12)', () => {
         const { container } = mountInput({ unit: 'kWh' });
 
-        expect(displayOf(container).textContent).toBe('40kWh');
+        expect(displayOf(container).textContent).toBe('40');
     });
 });
 
