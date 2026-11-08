@@ -1157,7 +1157,7 @@
     "select_collection_widget": "Seleccionar (boolean, número, cadena)",
     "selection": "Selección",
     "show_ok_button": "Mostrar botón Aceptar",
-    "show_ok_button_tooltip": "Si está habilitado, el valor se envía solo después de hacer clic en Aceptar, presionar Enter o salir del campo. De lo contrario, cada pulsación de tecla se envía (con antirrebote).",
+    "show_ok_button_tooltip": "Si está habilitado, el valor se envía solo después de hacer clic en Aceptar o presionar Enter, o al salir del campo si se ha cambiado. De lo contrario, cada pulsación de tecla se envía (con antirrebote).",
     "slider_collection_widget": "Control deslizante (número)",
     "slider_color": "Color del control deslizante",
     "slider_gap": "Espacio entre deslizador e iconos (mín/máx)",

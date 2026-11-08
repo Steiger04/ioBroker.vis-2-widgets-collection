@@ -1157,7 +1157,7 @@
     "select_collection_widget": "选择（布尔值，数字，字符串）",
     "selection": "选择",
     "show_ok_button": "显示“确定”按钮",
-    "show_ok_button_tooltip": "如果启用，只有在点击“确定”、按下回车键或离开输入框后才会发送该值。否则，每次按键都会被发送（包含防抖处理）。",
+    "show_ok_button_tooltip": "如果启用，只有在点击“确定”或按下回车键后才会发送该值；离开输入框时，仅在值已更改的情况下发送。否则，每次按键都会被发送（包含防抖处理）。",
     "slider_collection_widget": "滑块（数量）",
     "slider_color": "滑块颜色",
     "slider_gap": "滑块与图标之间的间距（最小/最大）",

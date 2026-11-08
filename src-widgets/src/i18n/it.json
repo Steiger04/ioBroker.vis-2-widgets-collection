@@ -1157,7 +1157,7 @@
     "select_collection_widget": "Seleziona (booleano, numero, stringa)",
     "selection": "Selezione",
     "show_ok_button": "Mostra pulsante OK",
-    "show_ok_button_tooltip": "Se abilitato, il valore viene inviato solo dopo aver cliccato su OK, premuto Invio o usciti dal campo. In caso contrario, viene inviata ogni pressione di tasto (con debounce).",
+    "show_ok_button_tooltip": "Se abilitato, il valore viene inviato solo dopo aver cliccato su OK o premuto Invio, oppure uscendo dal campo se è stato modificato. In caso contrario, viene inviata ogni pressione di tasto (con debounce).",
     "slider_collection_widget": "Cursore (numero)",
     "slider_color": "Colore del cursore",
     "slider_gap": "Spazio tra cursore e icone (min/max)",

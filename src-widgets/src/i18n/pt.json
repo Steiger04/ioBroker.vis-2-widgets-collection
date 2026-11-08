@@ -1157,7 +1157,7 @@
     "select_collection_widget": "Selecione (booleano, número, string)",
     "selection": "Seleção",
     "show_ok_button": "Mostrar botão OK",
-    "show_ok_button_tooltip": "Se ativado, o valor é enviado apenas após clicar em OK, pressionar Enter ou sair do campo. Caso contrário, cada tecla digitada é enviada (com debounce).",
+    "show_ok_button_tooltip": "Se ativado, o valor é enviado apenas após clicar em OK ou pressionar Enter, ou ao sair do campo se tiver sido alterado. Caso contrário, cada tecla digitada é enviada (com debounce).",
     "slider_collection_widget": "Controle deslizante (número)",
     "slider_color": "Cor do controle deslizante",
     "slider_gap": "Espaço entre controle deslizante e ícones (mín/máx)",
