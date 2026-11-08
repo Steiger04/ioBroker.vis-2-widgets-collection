@@ -5,9 +5,10 @@
  * @remarks
  * The real body on the scene seam, the real `useValueState` and `useDebounce` behind it and fake
  * timers around it. Every write has two readings, both from {@link writes}: `sent` is what reaches
- * the backend (`setValue`, behind the debounce), `optimistic` is the patch the widget shows at once
- * (`setState`). The patch lands the way the host's `setState` does; a Fremdänderung is a re-render
- * over new scene values. The decision matrix itself is pinned in stateTrigger.test.ts as pure data.
+ * the backend (`setValue`, behind the debounce, the push button at once), `optimistic` is the patch
+ * the widget shows at once (`setState`). The patch lands the way the host's `setState` does; a
+ * Fremdänderung is a re-render over new scene values. The decision matrix itself is pinned in
+ * stateTrigger.test.ts as pure data.
  *
  * This suite pins what the widget does today, including its known findings. A case named
  * `Vn (ticket NN)` or `ticket NN` is an Ist that the fix of that ticket turns over, and that ticket
@@ -355,32 +356,27 @@ describe('StateCollection value text (Ticket 12)', () => {
 
 describe('StateCollection push button up to the socket', () => {
     describe('press and release', () => {
-        it('V3 (ticket 06): a long hold sends both values, each an interval after its event', () => {
+        it('V3 (ticket 06): a long hold sends both values, each at its event', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
-            expect(writes(state)).toEqual({ sent: [], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
 
-            advance(299);
-            expect(writes(state).sent).toEqual([]);
-            advance(1);
+            advance(400);
             expect(writes(state).sent).toEqual([1]);
 
-            advance(100);
             release(state);
             click(state);
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
 
-            advance(299);
-            expect(writes(state).sent).toEqual([1]);
-            advance(1);
+            settle();
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
         it.each([
-            [100, [0]],
-            [299, [0]],
-        ])('V3 (ticket 06): a tap of %i ms under the debounce sends only Wert[2]: %j', (holdMs, sent) => {
+            [100, [1, 0]],
+            [299, [1, 0]],
+        ])('V3 (ticket 06): a tap of %i ms under the debounce sends both values: %j', (holdMs, sent) => {
             const state = mountState(PUSH_BUTTON);
 
             tap(state, holdMs);
@@ -410,13 +406,13 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state).sent).toEqual([1, 0]);
         });
 
-        it('V3 (ticket 06): a tap under a configured delay sends only Wert[2]', () => {
+        it('V3 (ticket 06): a tap under a configured delay sends both values', () => {
             const state = mountState({ ...PUSH_BUTTON, delay: 1000 });
 
             tap(state, 999);
             settle();
 
-            expect(writes(state).sent).toEqual([0]);
+            expect(writes(state).sent).toEqual([1, 0]);
         });
 
         it('delay 0: a tap with time between press and release sends both values', () => {
@@ -428,7 +424,7 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('V3 (ticket 06): delay 0 with press and release in one tick sends only Wert[2]', () => {
+        it('V3 (ticket 06): delay 0 with press and release in one tick sends both values, in order', () => {
             const state = mountState({ ...PUSH_BUTTON, delay: 0 });
 
             press(state);
@@ -436,35 +432,31 @@ describe('StateCollection push button up to the socket', () => {
             click(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
-        });
-
-        it('V3 (ticket 06): sample interval, a hold across the interval sends both values, each at the end of its window', () => {
-            const state = mountState({ ...PUSH_BUTTON, sampleInterval: true, sampleIntervalValue: 200 });
-
-            press(state);
-            advance(199);
-            expect(writes(state).sent).toEqual([]);
-            advance(1);
-            expect(writes(state).sent).toEqual([1]);
-
-            advance(200);
-            release(state);
-            click(state);
-            advance(199);
-            expect(writes(state).sent).toEqual([1]);
-            advance(1);
-
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('V3 (ticket 06): sample interval, a tap inside the window sends only Wert[2]', () => {
+        it('V3 (ticket 06): sample interval, a hold sends both values, each at its event', () => {
+            const state = mountState({ ...PUSH_BUTTON, sampleInterval: true, sampleIntervalValue: 200 });
+
+            press(state);
+            expect(writes(state).sent).toEqual([1]);
+
+            advance(400);
+            release(state);
+            click(state);
+            expect(writes(state).sent).toEqual([1, 0]);
+
+            settle();
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+        });
+
+        it('V3 (ticket 06): sample interval, a tap inside the window sends both values', () => {
             const state = mountState({ ...PUSH_BUTTON, sampleInterval: true, sampleIntervalValue: 200 });
 
             tap(state, 100);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
     });
 
@@ -574,7 +566,7 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('V3 (ticket 06): a short touch sends only Wert[2]', () => {
+        it('V3 (ticket 06): a short touch sends both values', () => {
             const state = mountState(PUSH_BUTTON);
 
             touchPress(state);
@@ -582,7 +574,7 @@ describe('StateCollection push button up to the socket', () => {
             touchRelease(state);
             settle();
 
-            expect(writes(state)).toEqual({ sent: [0], optimistic: [1, 0] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
         it('V4 (ticket 05): a cancelled touch writes Wert[2]', () => {
@@ -630,7 +622,7 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('ending from outside', () => {
-        it('V3, V20 (tickets 06 and 07): unmounting inside the debounce window loses the press value', () => {
+        it('V3, V20 (tickets 06 and 07): unmounting right after the press keeps the press value, nothing more', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -638,7 +630,7 @@ describe('StateCollection push button up to the socket', () => {
             state.unmount();
             settle();
 
-            expect(writes(state)).toEqual({ sent: [], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
         });
 
         it('ticket 07: unmounting while holding writes nothing more', () => {
@@ -962,6 +954,33 @@ describe('StateCollection Pointer Events (ticket 05)', () => {
         settle();
 
         expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+});
+
+describe('StateCollection push button writes at once (ticket 06)', () => {
+    it('a value waiting behind the debounce is dropped by the press, not sent afterwards', () => {
+        const state = mountState();
+
+        click(state);
+        advance(100);
+        state.configure(PUSH_BUTTON);
+        press(state);
+        settle();
+
+        expect(writes(state).sent).toEqual([1]);
+    });
+
+    it('after the push button is switched off, the click waits for the debounce again', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        tap(state, 100);
+        state.configure({ statePushButton: false });
+        click(state);
+        expect(writes(state).sent).toEqual([1, 0]);
+
+        settle();
+
+        expect(writes(state).sent).toEqual([1, 0, 1]);
     });
 });
 

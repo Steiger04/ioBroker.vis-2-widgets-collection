@@ -15,7 +15,7 @@
  * match decision of useData (ADR-0110 Nr. 8, ADR-0105), and compares no values itself.
  *
  * Push-button correctness is suppression, not a timer race: press/release write
- * synchronously in the wiring, and the trailing browser click after release returns
+ * at once in the wiring (ADR-0110 Nr. 5), and the trailing browser click after release returns
  * `none` — "release wins" holds by construction. A keyboard click (Enter/Space fires
  * click only, no mouse events) is an honest no-op instead of latching the press
  * value on a momentary control.
@@ -51,7 +51,12 @@ export type TriggerEvent =
 
 /** What the wiring must do for an event. */
 export type TriggerAction =
-    | { type: 'write'; value: string | number | boolean }
+    | {
+          type: 'write';
+          value: string | number | boolean;
+          /** Past the debounce: the values of the push button (ADR-0110 Nr. 5). */
+          immediate?: true;
+      }
     | { type: 'open-dialog' }
     | { type: 'none' };
 
@@ -97,6 +102,10 @@ const isPushButtonMode = ({ states, onlyStates, statePushButton }: StateTriggerC
 /** A state without a value (statically possible, skipped by useData at runtime) never triggers. */
 const writeState = (state: TriggerState | undefined): TriggerAction =>
     state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value };
+
+/** The push button writes past the debounce: a short tap would otherwise lose its Wert[1]. */
+const writeAtOnce = (state: TriggerState | undefined): TriggerAction =>
+    state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value, immediate: true };
 
 /** What a click does. It leaves the open press alone: a click neither starts nor ends one. */
 const clickAction = (config: StateTriggerConfig): TriggerAction => {
@@ -146,7 +155,7 @@ export function triggerStep(press: TriggerPress, event: TriggerEvent, config: St
             }
             return {
                 press: { pressOpen: true, pointerId: event.pointerId },
-                action: writeState(config.states[0]),
+                action: writeAtOnce(config.states[0]),
             };
         case 'release':
             if (press.pressOpen && press.pointerId !== event.pointerId) {
@@ -154,7 +163,7 @@ export function triggerStep(press: TriggerPress, event: TriggerEvent, config: St
             }
             return {
                 press: NO_PRESS,
-                action: press.pressOpen && isPushButtonMode(config) ? writeState(config.states[1]) : { type: 'none' },
+                action: press.pressOpen && isPushButtonMode(config) ? writeAtOnce(config.states[1]) : { type: 'none' },
             };
         case 'click':
             return { press, action: clickAction(config) };

@@ -13,6 +13,9 @@
  * value is missing, blank or not a number — 300 ms debounce, 200 ms throttle; an explicit `0`
  * stays `0` (the fields allow `min: 0`). Without the fallback, `Number(undefined)` would hand
  * `NaN` to RxJS and the write would fire after about 1 ms.
+ *
+ * `cancel()` drops the waiting value by replacing the subscription: the value goes down with the old
+ * pipeline, there is no flag that could let it back. A Taster-Betätigung uses it (ADR-0110 Nr. 5).
  */
 
 import { useContext, useEffect, useMemo, useRef } from 'react';
@@ -48,6 +51,8 @@ interface UseDebounceParams {
 export interface UseDebounceReturn {
     /** Pushes a new value into the debounce/throttle stream. */
     next: (value: string | number | boolean) => void;
+    /** Drops the value waiting in the stream, if any: it is never written. */
+    cancel: () => void;
 }
 
 /**
@@ -59,7 +64,7 @@ export interface UseDebounceReturn {
  * @param params.data.sampleInterval - Debounce/throttle mode.
  * @param params.data.sampleIntervalValue - Throttle interval in milliseconds (default 200).
  * @param params.data.delay - Debounce delay before writing in milliseconds (default 300).
- * @returns A writer with `next()`, or `null` if no OID is selected.
+ * @returns A writer with `next()` and `cancel()`, or `null` if no OID is selected.
  * @example
  * ```ts
  * const writer = useDebounce({ oidObject, data: widget.data });
@@ -74,6 +79,7 @@ function useDebounce({
 
     const subjectRef = useRef<Subject<string | number | boolean> | undefined>(undefined);
     const subscriptionRef = useRef<Subscription | null>(null);
+    const connectRef = useRef<(() => void) | null>(null);
     const setValueRef = useRef(setValue);
     setValueRef.current = setValue;
     const oid = oidObject?._id;
@@ -97,19 +103,24 @@ function useDebounce({
 
         const subject = subjectRef.current;
 
-        if (subscriptionRef.current) {
-            subscriptionRef.current.unsubscribe();
-        }
+        const connect = (): void => {
+            if (subscriptionRef.current) {
+                subscriptionRef.current.unsubscribe();
+            }
 
-        subscriptionRef.current = subject
-            .pipe(
-                sampleInterval
-                    ? throttleTime(_delay, undefined, { leading: false, trailing: true })
-                    : debounceTime(_delay),
-            )
-            .subscribe((value: string | number | boolean) => {
-                setValueRef.current(oid, value);
-            });
+            subscriptionRef.current = subject
+                .pipe(
+                    sampleInterval
+                        ? throttleTime(_delay, undefined, { leading: false, trailing: true })
+                        : debounceTime(_delay),
+                )
+                .subscribe((value: string | number | boolean) => {
+                    setValueRef.current(oid, value);
+                });
+        };
+
+        connect();
+        connectRef.current = connect;
 
         return () => {
             if (subscriptionRef.current) {
@@ -138,6 +149,12 @@ function useDebounce({
     return {
         next: (value: string | number | boolean): void => {
             subjectRef.current?.next(value);
+        },
+        cancel: (): void => {
+            // Without a live subscription nothing waits, and none may start after the cleanup.
+            if (subscriptionRef.current) {
+                connectRef.current?.();
+            }
         },
     };
 }

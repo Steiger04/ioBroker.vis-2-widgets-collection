@@ -25,6 +25,8 @@ const CLICK: TriggerEvent = { kind: 'click' };
 const NONE: TriggerAction = { type: 'none' };
 const DIALOG: TriggerAction = { type: 'open-dialog' };
 const write = (value: string | number | boolean): TriggerAction => ({ type: 'write', value });
+/** A value of the push button: past the debounce (ADR-0110 Nr. 5). */
+const writeAtOnce = (value: string | number | boolean): TriggerAction => ({ type: 'write', value, immediate: true });
 
 /** A resolved state; `active` is what useData decided for it. */
 const row = (value: string | number | boolean | undefined, active = false): TriggerState => ({ value, active });
@@ -77,7 +79,7 @@ describe('triggerStep — every event per configuration', () => {
         ['the second', [row(0), row(1, true)]],
         ['none', TWO_STATES],
     ])('push button: a press from no open press writes Wert[1], with %s active', (_active, states) => {
-        expect(triggerStep(NO_PRESS, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(write(0));
+        expect(triggerStep(NO_PRESS, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(writeAtOnce(0));
     });
 });
 
@@ -99,23 +101,23 @@ describe('triggerStep — Wert[2] only out of an open press (ticket 04)', () => 
     };
 
     it.each([
-        ['press, release', [PRESS, RELEASE], [write(0), write(1)]],
-        ['press, release, the trailing click', [PRESS, RELEASE, CLICK], [write(0), write(1)]],
+        ['press, release', [PRESS, RELEASE], [writeAtOnce(0), writeAtOnce(1)]],
+        ['press, release, the trailing click', [PRESS, RELEASE, CLICK], [writeAtOnce(0), writeAtOnce(1)]],
         ['passing over: a release without a press', [RELEASE], []],
         ['passing over twice', [RELEASE, RELEASE], []],
         ['a keyboard click, then a release', [CLICK, RELEASE], []],
-        ['press, leaving, coming back, letting go', [PRESS, RELEASE, RELEASE], [write(0), write(1)]],
+        ['press, leaving, coming back, letting go', [PRESS, RELEASE, RELEASE], [writeAtOnce(0), writeAtOnce(1)]],
         [
             'press, leaving, coming back, letting go, a new press and its release',
             [PRESS, RELEASE, RELEASE, PRESS, RELEASE],
-            [write(0), write(1), write(0), write(1)],
+            [writeAtOnce(0), writeAtOnce(1), writeAtOnce(0), writeAtOnce(1)],
         ],
     ])('%s', (_case, events, expected) => {
         expect(writesOf(events)).toEqual(expected);
     });
 
     it('a release out of an open press writes Wert[2]', () => {
-        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).action).toEqual(write(1));
+        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).action).toEqual(writeAtOnce(1));
     });
 
     it('a release without an open press writes nothing', () => {
@@ -149,26 +151,26 @@ describe('triggerStep — Pointer Events (ticket 05)', () => {
     });
 
     it('a second pointer starts nothing, and the press stays with the first', () => {
-        expect(run([PRESS, SECOND_PRESS])).toEqual({ actions: [write(0), NONE], open: true });
+        expect(run([PRESS, SECOND_PRESS])).toEqual({ actions: [writeAtOnce(0), NONE], open: true });
     });
 
     it('the release of a second pointer ends nothing', () => {
         expect(run([PRESS, SECOND_PRESS, SECOND_RELEASE])).toEqual({
-            actions: [write(0), NONE, NONE],
+            actions: [writeAtOnce(0), NONE, NONE],
             open: true,
         });
     });
 
     it('only the release of the first pointer writes Wert[2]', () => {
         expect(run([PRESS, SECOND_PRESS, SECOND_RELEASE, RELEASE])).toEqual({
-            actions: [write(0), NONE, NONE, write(1)],
+            actions: [writeAtOnce(0), NONE, NONE, writeAtOnce(1)],
             open: false,
         });
     });
 
     it('a new pointer can start once the first press has ended', () => {
         expect(run([PRESS, RELEASE, SECOND_PRESS, SECOND_RELEASE])).toEqual({
-            actions: [write(0), write(1), write(0), write(1)],
+            actions: [writeAtOnce(0), writeAtOnce(1), writeAtOnce(0), writeAtOnce(1)],
             open: false,
         });
     });
@@ -183,8 +185,22 @@ describe('triggerStep — Pointer Events (ticket 05)', () => {
     it('the Sperre does not hold back the end of an open press', () => {
         const step = triggerStep(OPEN, RELEASE, { ...PUSH_BUTTON, locked: true });
 
-        expect(step).toEqual({ press: NO_PRESS, action: write(1) });
+        expect(step).toEqual({ press: NO_PRESS, action: writeAtOnce(1) });
     });
+});
+
+describe('triggerStep — only the push button writes at once (ticket 06)', () => {
+    it('press and release of the push button pass the debounce', () => {
+        expect(triggerStep(NO_PRESS, PRESS, PUSH_BUTTON).action).toEqual(writeAtOnce(0));
+        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).action).toEqual(writeAtOnce(1));
+    });
+
+    it.each(NO_PUSH_BUTTON.filter(([, , click]) => click.type === 'write'))(
+        '%s: the click stays behind the debounce',
+        (_case, config) => {
+            expect(triggerStep(NO_PRESS, CLICK, config).action).not.toHaveProperty('immediate');
+        },
+    );
 });
 
 describe('triggerStep — the open press', () => {

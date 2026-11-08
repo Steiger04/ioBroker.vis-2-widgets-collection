@@ -21,12 +21,13 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 import { NO_PRESS, triggerStep } from './stateTrigger';
+import type { UpdateValueOptions } from '../hooks/useValueState';
 import type { StateTriggerConfig, TriggerEvent } from './stateTrigger';
 
 /** What the body hands the trigger each render. */
 export interface StateTriggerOptions extends StateTriggerConfig {
     /** The `useValueState` setter of the OID. */
-    write: (value: string | number | boolean) => void;
+    write: (value: string | number | boolean, options?: UpdateValueOptions) => void;
 }
 
 /** What the handlers read off a pointer event. */
@@ -66,7 +67,11 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
         pressRef.current = step.press;
 
         if (step.action.type === 'write') {
-            options.write(step.action.value);
+            if (step.action.immediate) {
+                options.write(step.action.value, { immediate: true });
+            } else {
+                options.write(step.action.value);
+            }
         } else if (step.action.type === 'open-dialog') {
             setOpen(true);
         }

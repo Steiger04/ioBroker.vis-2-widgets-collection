@@ -171,6 +171,26 @@ describe('useStateTrigger', () => {
         expect(written(write)).toEqual([0]);
     });
 
+    it('press and release hand the write the immediate option (ticket 06)', () => {
+        const { result, write } = mountTrigger();
+
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
+        act(() => result.current.buttonProps.onPointerUp(pointer()));
+
+        expect(write.mock.calls).toEqual([
+            [1, { immediate: true }],
+            [0, { immediate: true }],
+        ]);
+    });
+
+    it('a click hands the write no option: it stays behind the debounce (ticket 06)', () => {
+        const { result, write } = mountTrigger({ statePushButton: false });
+
+        act(() => result.current.buttonProps.onClick());
+
+        expect(write.mock.calls).toEqual([[1]]);
+    });
+
     it('a click without onlyStates opens the dialog, close closes it, and neither writes', () => {
         const { result, write } = mountTrigger({ onlyStates: false, statePushButton: false });
         expect(result.current.dialog.open).toBe(false);
