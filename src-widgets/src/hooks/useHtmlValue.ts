@@ -6,7 +6,10 @@
  * Precedence order:
  * 1) `data.alias` (non-empty)
  * 2) `data.value` (non-empty and truthy; 0/false are skipped)
- * 3) `oidValue` (with `widget.data.unit` appended when available)
+ * 3) `oidValue` (with the bound object's unit, `widget.data.oidObject.unit`, appended when available)
+ *
+ * The object copy is the unit's one source, as for the footer and the row value; the root `unit`
+ * field only feeds it (ADR-0109 Nr. 12).
  */
 
 import { useMemo } from 'react';
@@ -26,7 +29,7 @@ interface UseHtmlValueData {
  * Formats a value for HTML/text rendering.
  *
  * @param oidValue - Current raw value for the selected OID.
- * @param widget - Widget reference (used for reading the configured unit).
+ * @param widget - Widget reference (used for reading the bound object's unit).
  * @param data - Optional alias/value data from {@link module:hooks/useData}.
  * @returns The preferred display value, or `undefined` when nothing is available.
  * @example
@@ -54,8 +57,9 @@ const useHtmlValue = (
             oidValue !== null &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
-            const unit = widget?.data.unit;
-            const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
+            const unit = widget?.data.oidObject?.unit;
+            // An empty value has nothing to carry a unit: no lone "°C" (the footer's rule, too).
+            const result = unit && unit !== '' && oidValue !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;
         }

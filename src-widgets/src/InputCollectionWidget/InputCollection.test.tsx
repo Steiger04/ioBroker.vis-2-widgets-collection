@@ -33,6 +33,10 @@ vi.hoisted(() => {
 
 import { act } from 'react';
 
+import type { Connection } from '@iobroker/adapter-react-v5';
+import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
+
+import commonObjectFields from '../lib/commonObjectFields';
 import { DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
 import {
     collectionScene,
@@ -233,16 +237,16 @@ describe('InputCollection display', () => {
         expect(clickable && getComputedStyle(clickable).cursor).toBe('text');
     });
 
-    it('leaves the object unit out of the display (Ist-Verhalten, kippt in 12)', () => {
+    it('appends the object unit to the display, with no matching row (12)', () => {
         const { container } = mountInput({ oidObject: object('number', { unit: '°C' }) });
 
-        expect(displayOf(container).textContent).toBe('40');
+        expect(displayOf(container).textContent).toBe('40°C');
     });
 
-    it('appends the root unit field to the display (Ist-Verhalten, kippt in 12)', () => {
+    it('leaves the root unit field out of the display: it only feeds the object copy (12)', () => {
         const { container } = mountInput({ unit: 'kWh' });
 
-        expect(displayOf(container).textContent).toBe('40kWh');
+        expect(displayOf(container).textContent).toBe('40');
     });
 });
 
@@ -853,5 +857,45 @@ describe('InputCollection a blur is no command (05)', () => {
         flushWrites();
 
         expect(setValue).not.toHaveBeenCalled();
+    });
+});
+
+describe('InputCollection unit through the panel field (Ticket 12)', () => {
+    const socket = {
+        getObject: (): Promise<unknown> =>
+            Promise.resolve({ _id: OID, type: 'state', common: { name: 'Setpoint', type: 'number', unit: '°C' } }),
+    } as unknown as Connection;
+
+    /** Runs a field's real `onChange` over the data vis-2 stored and returns what it hands back. */
+    const change = async (name: string, data: WidgetData): Promise<WidgetData> => {
+        const field = commonObjectFields(['number']).find(candidate => candidate.name === name);
+        let emitted: WidgetData | undefined;
+
+        await (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange(
+            field as RxWidgetInfoAttributesField,
+            data,
+            next => {
+                emitted = next;
+            },
+            socket,
+        );
+        vi.runAllTimers();
+
+        return emitted as WidgetData;
+    };
+
+    it('shows the picked unit, then the override, and nothing once the field is emptied', async () => {
+        const picked = await change('oid', { oid: OID } as WidgetData);
+        const { container, configure } = mountInput(picked);
+        expect(displayOf(container).textContent).toBe('40°C');
+        expect(picked.unit).toBe('°C');
+
+        const overridden = await change('unit', { ...picked, unit: 'K' });
+        configure(overridden);
+        expect(displayOf(container).textContent).toBe('40K');
+
+        const emptied = await change('unit', { ...overridden, unit: '' });
+        configure(emptied);
+        expect(displayOf(container).textContent).toBe('40');
     });
 });

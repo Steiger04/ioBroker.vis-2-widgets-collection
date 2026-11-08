@@ -12,6 +12,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
 
 import type { InputCollectionContextProps } from '../types';
@@ -27,6 +28,9 @@ import type { InputCollectionContextProps } from '../types';
  * {@link module:widgets/InputCollectionWidget/useInlineEdit}:
  * - OK-button mode (`showOkButton`): keeps a local draft and commits on blur/Enter/click.
  * - Otherwise: forwards every keystroke to {@link module:hooks/useValueState} (debounced write).
+ *
+ * The field's type, unit and spinner attributes come from
+ * {@link module:InputCollectionWidget/entryFieldAttributes}.
  *
  * Locked widgets (the binding's Sperre: `onlyDisplay` or non-writable OID) never enter edit mode.
  * Type conversion and debouncing are handled by `useValueState`.
@@ -48,16 +52,11 @@ const InputCollection: FC = () => {
     const htmlValue = useHtmlValue(oidValue, widget, data);
     const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
 
-    const oidType = oidObject?.type;
-    const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidType);
-    const isNumber = oidType === 'number';
+    const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidObject?.type);
+    const attributes = buildEntryFieldAttributes({ fields: widget.data, object: oidObject, draft: field.value });
 
     const textColor = data.textColor;
     const inputVariant = widget.data.inputVariant ?? 'standard';
-
-    const minValue = widget.data.minValue !== undefined ? Number(widget.data.minValue) : undefined;
-    const maxValue = widget.data.maxValue !== undefined ? Number(widget.data.maxValue) : undefined;
-    const step = widget.data.step !== undefined ? Number(widget.data.step) : undefined;
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -89,15 +88,15 @@ const InputCollection: FC = () => {
                         fullWidth
                         size="small"
                         variant={inputVariant}
-                        type={isNumber ? 'number' : 'text'}
+                        type={attributes.type}
                         {...field}
                         slotProps={{
                             input: {
-                                endAdornment: oidObject?.unit ? (
-                                    <InputAdornment position="end">{oidObject.unit}</InputAdornment>
+                                endAdornment: attributes.unit ? (
+                                    <InputAdornment position="end">{attributes.unit}</InputAdornment>
                                 ) : undefined,
                             },
-                            htmlInput: isNumber ? { step, min: minValue, max: maxValue } : undefined,
+                            htmlInput: attributes.htmlInput,
                         }}
                         sx={{
                             fontSize: data.valueSize,

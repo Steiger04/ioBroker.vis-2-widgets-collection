@@ -46,7 +46,7 @@ function StateCollection(): React.ReactElement {
     const dialogTitle = data.header || oidObject?.name || Generic.t('state_change_dialog_title');
 
     const htmlValue = useHtmlValue(oidValue, widget, data);
-    const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
+    const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
 
     const fire = useCallback(
         (event: TriggerEvent): void => {
