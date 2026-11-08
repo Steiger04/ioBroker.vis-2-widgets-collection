@@ -16,7 +16,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { isPushButtonMode, NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import { isPushButtonMode, NO_OPEN_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { StateTriggerConfig, TriggerAction, TriggerEvent, TriggerOidObject, TriggerState } from './stateTrigger';
 
 const PRESS: TriggerEvent = { kind: 'press', pointerId: 1, button: 0 };
@@ -39,7 +39,7 @@ const TOGGLE: StateTriggerConfig = { states: TWO_STATES, onlyStates: true, state
 const PUSH_BUTTON: StateTriggerConfig = { ...TOGGLE, statePushButton: true };
 
 /** An open press, as the transition itself reaches it. */
-const OPEN = triggerStep(NO_PRESS, PRESS, PUSH_BUTTON).press;
+const OPEN = triggerStep(NO_OPEN_PRESS, PRESS, PUSH_BUTTON).pressState;
 
 /** Every configuration that is no push button, with what its click does. */
 const NO_PUSH_BUTTON: [string, StateTriggerConfig, TriggerAction][] = [
@@ -61,17 +61,17 @@ const NO_PUSH_BUTTON: [string, StateTriggerConfig, TriggerAction][] = [
 
 describe('triggerStep — every event per configuration', () => {
     describe.each([
-        ['no open press', NO_PRESS],
+        ['no open press', NO_OPEN_PRESS],
         ['an open press', OPEN],
-    ])('from %s', (_from, press) => {
+    ])('from %s', (_from, pressState) => {
         it.each(NO_PUSH_BUTTON)('%s: press and release do nothing, the click decides', (_case, config, click) => {
-            expect(triggerStep(press, PRESS, config).action).toEqual(NONE);
-            expect(triggerStep(press, RELEASE, config).action).toEqual(NONE);
-            expect(triggerStep(press, CLICK, config).action).toEqual(click);
+            expect(triggerStep(pressState, PRESS, config).action).toEqual(NONE);
+            expect(triggerStep(pressState, RELEASE, config).action).toEqual(NONE);
+            expect(triggerStep(pressState, CLICK, config).action).toEqual(click);
         });
 
         it('push button: the click is suppressed, not outrun (ADR-0089)', () => {
-            expect(triggerStep(press, CLICK, PUSH_BUTTON).action).toEqual(NONE);
+            expect(triggerStep(pressState, CLICK, PUSH_BUTTON).action).toEqual(NONE);
         });
     });
 
@@ -80,19 +80,19 @@ describe('triggerStep — every event per configuration', () => {
         ['the second', [row(0), row(1, true)]],
         ['none', TWO_STATES],
     ])('push button: a press from no open press writes Wert[1], with %s active', (_active, states) => {
-        expect(triggerStep(NO_PRESS, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(writeAtOnce(0));
+        expect(triggerStep(NO_OPEN_PRESS, PRESS, { ...PUSH_BUTTON, states }).action).toEqual(writeAtOnce(0));
     });
 });
 
 describe('triggerStep — Wert[2] only out of an open press (ticket 04)', () => {
     /** The values a run of events writes, folded through the transition. */
     const writesOf = (events: TriggerEvent[]): TriggerAction[] => {
-        let press = NO_PRESS;
+        let pressState = NO_OPEN_PRESS;
         const actions: TriggerAction[] = [];
 
         for (const event of events) {
-            const step = triggerStep(press, event, PUSH_BUTTON);
-            press = step.press;
+            const step = triggerStep(pressState, event, PUSH_BUTTON);
+            pressState = step.pressState;
             if (step.action.type === 'write') {
                 actions.push(step.action);
             }
@@ -122,7 +122,7 @@ describe('triggerStep — Wert[2] only out of an open press (ticket 04)', () => 
     });
 
     it('a release without an open press writes nothing', () => {
-        expect(triggerStep(NO_PRESS, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
+        expect(triggerStep(NO_OPEN_PRESS, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
     });
 });
 
@@ -132,16 +132,16 @@ describe('triggerStep — Pointer Events (ticket 05)', () => {
 
     /** What a run of events leaves behind, folded through the transition. */
     const run = (events: TriggerEvent[], config = PUSH_BUTTON): { actions: TriggerAction[]; open: boolean } => {
-        let press = NO_PRESS;
+        let pressState = NO_OPEN_PRESS;
         const actions: TriggerAction[] = [];
 
         for (const event of events) {
-            const step = triggerStep(press, event, config);
-            press = step.press;
+            const step = triggerStep(pressState, event, config);
+            pressState = step.pressState;
             actions.push(step.action);
         }
 
-        return { actions, open: press.pressOpen };
+        return { actions, open: pressState.pressOpen };
     };
 
     it.each([
@@ -186,20 +186,20 @@ describe('triggerStep — Pointer Events (ticket 05)', () => {
     it('the Sperre does not hold back the end of an open press', () => {
         const step = triggerStep(OPEN, RELEASE, { ...PUSH_BUTTON, locked: true });
 
-        expect(step).toEqual({ press: NO_PRESS, action: writeAtOnce(1) });
+        expect(step).toEqual({ pressState: NO_OPEN_PRESS, action: writeAtOnce(1) });
     });
 });
 
 describe('triggerStep — only the push button writes at once (ticket 06)', () => {
     it('press and release of the push button pass the debounce', () => {
-        expect(triggerStep(NO_PRESS, PRESS, PUSH_BUTTON).action).toEqual(writeAtOnce(0));
+        expect(triggerStep(NO_OPEN_PRESS, PRESS, PUSH_BUTTON).action).toEqual(writeAtOnce(0));
         expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).action).toEqual(writeAtOnce(1));
     });
 
     it.each(NO_PUSH_BUTTON.filter(([, , click]) => click.type === 'write'))(
         '%s: the click stays behind the debounce',
         (_case, config) => {
-            expect(triggerStep(NO_PRESS, CLICK, config).action).not.toHaveProperty('immediate');
+            expect(triggerStep(NO_OPEN_PRESS, CLICK, config).action).not.toHaveProperty('immediate');
         },
     );
 });
@@ -208,28 +208,28 @@ describe('triggerStep — a press ending from outside (ticket 07)', () => {
     const END: TriggerEvent = { kind: 'end' };
 
     it('ends an open press and writes Wert[2] at once', () => {
-        expect(triggerStep(OPEN, END, PUSH_BUTTON)).toEqual({ press: NO_PRESS, action: writeAtOnce(1) });
+        expect(triggerStep(OPEN, END, PUSH_BUTTON)).toEqual({ pressState: NO_OPEN_PRESS, action: writeAtOnce(1) });
     });
 
     it('the Sperre does not hold it back: the guard against a read-only OID sits in the Schreibkette', () => {
         expect(triggerStep(OPEN, END, { ...PUSH_BUTTON, locked: true })).toEqual({
-            press: NO_PRESS,
+            pressState: NO_OPEN_PRESS,
             action: writeAtOnce(1),
         });
     });
 
     it('without an open press nothing happens', () => {
-        expect(triggerStep(NO_PRESS, END, PUSH_BUTTON)).toEqual({ press: NO_PRESS, action: NONE });
+        expect(triggerStep(NO_OPEN_PRESS, END, PUSH_BUTTON)).toEqual({ pressState: NO_OPEN_PRESS, action: NONE });
     });
 
     it('ends the press only once: a later release finds none', () => {
-        const { press } = triggerStep(OPEN, END, PUSH_BUTTON);
+        const { pressState } = triggerStep(OPEN, END, PUSH_BUTTON);
 
-        expect(triggerStep(press, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
+        expect(triggerStep(pressState, RELEASE, PUSH_BUTTON).action).toEqual(NONE);
     });
 
     it.each(NO_PUSH_BUTTON)('%s: a leftover press ends without a write', (_case, config) => {
-        expect(triggerStep(OPEN, END, config)).toEqual({ press: NO_PRESS, action: NONE });
+        expect(triggerStep(OPEN, END, config)).toEqual({ pressState: NO_OPEN_PRESS, action: NONE });
     });
 });
 
@@ -249,25 +249,25 @@ describe('isPushButtonMode (ticket 08)', () => {
 
 describe('triggerStep — the open press', () => {
     it('a press in push-button mode opens it', () => {
-        expect(triggerStep(NO_PRESS, PRESS, PUSH_BUTTON).press.pressOpen).toBe(true);
+        expect(triggerStep(NO_OPEN_PRESS, PRESS, PUSH_BUTTON).pressState.pressOpen).toBe(true);
     });
 
     it('a release ends it', () => {
-        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).press).toEqual(NO_PRESS);
+        expect(triggerStep(OPEN, RELEASE, PUSH_BUTTON).pressState).toEqual(NO_OPEN_PRESS);
     });
 
     it('a release without one leaves none', () => {
-        expect(triggerStep(NO_PRESS, RELEASE, PUSH_BUTTON).press).toEqual(NO_PRESS);
+        expect(triggerStep(NO_OPEN_PRESS, RELEASE, PUSH_BUTTON).pressState).toEqual(NO_OPEN_PRESS);
     });
 
     it.each(NO_PUSH_BUTTON)('%s: a press opens none, and a release ends a leftover one', (_case, config) => {
-        expect(triggerStep(NO_PRESS, PRESS, config).press).toEqual(NO_PRESS);
-        expect(triggerStep(OPEN, RELEASE, config).press).toEqual(NO_PRESS);
+        expect(triggerStep(NO_OPEN_PRESS, PRESS, config).pressState).toEqual(NO_OPEN_PRESS);
+        expect(triggerStep(OPEN, RELEASE, config).pressState).toEqual(NO_OPEN_PRESS);
     });
 
     it('a click leaves it as it is: the trailing click comes after the release, a keyboard click starts none', () => {
-        expect(triggerStep(OPEN, CLICK, PUSH_BUTTON).press).toEqual(OPEN);
-        expect(triggerStep(NO_PRESS, CLICK, PUSH_BUTTON).press).toEqual(NO_PRESS);
+        expect(triggerStep(OPEN, CLICK, PUSH_BUTTON).pressState).toEqual(OPEN);
+        expect(triggerStep(NO_OPEN_PRESS, CLICK, PUSH_BUTTON).pressState).toEqual(NO_OPEN_PRESS);
     });
 });
 
@@ -317,7 +317,7 @@ describe('the slider gate (ticket 17)', () => {
             ],
             ['no object copy and no rows', { states: [] }],
         ])('neither a list nor a slider: %s does nothing', (_case, config) => {
-            expect(triggerStep(NO_PRESS, CLICK, config).action).toEqual(NONE);
+            expect(triggerStep(NO_OPEN_PRESS, CLICK, config).action).toEqual(NONE);
         });
 
         it.each<[string, StateTriggerConfig]>([
@@ -327,7 +327,7 @@ describe('the slider gate (ticket 17)', () => {
             ['the list and the slider', { states: ONE_STATE, oidObject: number(RANGE) }],
             ['the list of three, onlyStates', { states: THREE_STATES, onlyStates: true, oidObject: number(RANGE) }],
         ])('%s opens the dialog', (_case, config) => {
-            expect(triggerStep(NO_PRESS, CLICK, config).action).toEqual(DIALOG);
+            expect(triggerStep(NO_OPEN_PRESS, CLICK, config).action).toEqual(DIALOG);
         });
     });
 });
@@ -356,7 +356,7 @@ describe('triggerStep — a state without a value', () => {
     it('never writes it (worthless rows do not trigger)', () => {
         const config: StateTriggerConfig = { states: [row(undefined), row(1)], onlyStates: true };
 
-        expect(triggerStep(NO_PRESS, CLICK, config).action).toEqual(NONE);
-        expect(triggerStep(NO_PRESS, PRESS, { ...config, statePushButton: true }).action).toEqual(NONE);
+        expect(triggerStep(NO_OPEN_PRESS, CLICK, config).action).toEqual(NONE);
+        expect(triggerStep(NO_OPEN_PRESS, PRESS, { ...config, statePushButton: true }).action).toEqual(NONE);
     });
 });

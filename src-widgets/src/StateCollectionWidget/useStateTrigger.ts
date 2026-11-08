@@ -33,7 +33,7 @@ import {
     type PointerEvent as ReactPointerEvent,
 } from 'react';
 
-import { isPushButtonMode, NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
+import { isPushButtonMode, NO_OPEN_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { UpdateValueOptions } from '../hooks/useValueState';
 import type { SliderRange, StateTriggerConfig, TriggerEvent } from './stateTrigger';
 
@@ -76,15 +76,15 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     const [open, setOpen] = useState(false);
     // The latest step, not the last render: two events in one tick build on each other, so a
     // second release right after the first finds no open press.
-    const pressRef = useRef(NO_PRESS);
+    const pressStateRef = useRef(NO_OPEN_PRESS);
     // The latest render: the cleanup on unmount must not write with the setter and the Wert[2] of the mount.
     const optionsRef = useRef(options);
     optionsRef.current = options;
 
     const fire = useCallback((event: TriggerEvent): void => {
         const current = optionsRef.current;
-        const step = triggerStep(pressRef.current, event, current);
-        pressRef.current = step.press;
+        const step = triggerStep(pressStateRef.current, event, current);
+        pressStateRef.current = step.pressState;
 
         if (step.action.type === 'write') {
             if (step.action.immediate) {
@@ -112,9 +112,9 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     const onPointerDown = ({ pointerId, button, target }: StateTriggerPointerEvent): void => {
         fire({ kind: 'press', pointerId, button });
 
-        const press = pressRef.current;
+        const pressState = pressStateRef.current;
         const element = target as Element;
-        if (press.pressOpen && press.pointerId === pointerId && element.hasPointerCapture(pointerId)) {
+        if (pressState.pressOpen && pressState.pointerId === pointerId && element.hasPointerCapture(pointerId)) {
             element.releasePointerCapture(pointerId);
         }
     };

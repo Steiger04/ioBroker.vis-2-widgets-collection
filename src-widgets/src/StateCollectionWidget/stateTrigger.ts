@@ -35,14 +35,14 @@
  */
 
 /** What the transition carries from step to step: the Taster-Betätigung (CONTEXT), once one is open. */
-export type TriggerPress =
+export type PressState =
     /** No press is open. */
     | { pressOpen: false }
     /** A press is open, and it belongs to the first pointer. */
     | { pressOpen: true; pointerId: number };
 
 /** What the widget starts from and each press returns to when it ends. */
-export const NO_PRESS: TriggerPress = { pressOpen: false };
+export const NO_OPEN_PRESS: PressState = { pressOpen: false };
 
 /** One event the wiring delivers to the trigger. */
 export type TriggerEvent =
@@ -68,8 +68,8 @@ export type TriggerAction =
 
 /** The outcome of one transition. */
 export interface TriggerStep {
-    /** The press after this event. */
-    press: TriggerPress;
+    /** The state of the press after this event. */
+    pressState: PressState;
     /** What the wiring must do. */
     action: TriggerAction;
 }
@@ -166,9 +166,9 @@ const writeAtOnce = (state: TriggerState | undefined): TriggerAction =>
     state?.value === undefined ? { type: 'none' } : { type: 'write', value: state.value, immediate: true };
 
 /** Whatever ends a press: Wert[2] comes only out of an open one; a leftover of a former mode ends silently. */
-const endPress = (press: TriggerPress, config: StateTriggerConfig): TriggerStep => ({
-    press: NO_PRESS,
-    action: press.pressOpen && isPushButtonMode(config) ? writeAtOnce(config.states[1]) : { type: 'none' },
+const endPress = (pressState: PressState, config: StateTriggerConfig): TriggerStep => ({
+    pressState: NO_OPEN_PRESS,
+    action: pressState.pressOpen && isPushButtonMode(config) ? writeAtOnce(config.states[1]) : { type: 'none' },
 });
 
 /** What a click does. It leaves the open press alone: a click neither starts nor ends one. */
@@ -197,38 +197,38 @@ const clickAction = (config: StateTriggerConfig): TriggerAction => {
 /**
  * One transition of the trigger.
  *
- * @param press - The press after the last step.
+ * @param pressState - The state of the press after the last step.
  * @param event - The fired event.
  * @param config - Widget trigger configuration with the RESOLVED states from useData.
  * @returns The press after this event and the action for the wiring to execute.
  * @example
  * ```ts
  * const states = [{ value: 0, active: true }, { value: 1, active: false }];
- * triggerStep(NO_PRESS, { kind: 'click' }, { states, onlyStates: true });
- * // → { press: NO_PRESS, action: { type: 'write', value: 1 } } — toggle to Wert[2]
+ * triggerStep(NO_OPEN_PRESS, { kind: 'click' }, { states, onlyStates: true });
+ * // → { pressState: NO_OPEN_PRESS, action: { type: 'write', value: 1 } } — toggle to Wert[2]
  * ```
  */
-export function triggerStep(press: TriggerPress, event: TriggerEvent, config: StateTriggerConfig): TriggerStep {
+export function triggerStep(pressState: PressState, event: TriggerEvent, config: StateTriggerConfig): TriggerStep {
     switch (event.kind) {
         case 'press':
             if (!isPushButtonMode(config)) {
-                return { press: NO_PRESS, action: { type: 'none' } };
+                return { pressState: NO_OPEN_PRESS, action: { type: 'none' } };
             }
-            if (press.pressOpen || event.button !== MAIN_BUTTON || config.locked) {
-                return { press, action: { type: 'none' } };
+            if (pressState.pressOpen || event.button !== MAIN_BUTTON || config.locked) {
+                return { pressState, action: { type: 'none' } };
             }
             return {
-                press: { pressOpen: true, pointerId: event.pointerId },
+                pressState: { pressOpen: true, pointerId: event.pointerId },
                 action: writeAtOnce(config.states[0]),
             };
         case 'release':
-            if (press.pressOpen && press.pointerId !== event.pointerId) {
-                return { press, action: { type: 'none' } };
+            if (pressState.pressOpen && pressState.pointerId !== event.pointerId) {
+                return { pressState, action: { type: 'none' } };
             }
-            return endPress(press, config);
+            return endPress(pressState, config);
         case 'end':
-            return endPress(press, config);
+            return endPress(pressState, config);
         case 'click':
-            return { press, action: clickAction(config) };
+            return { pressState, action: clickAction(config) };
     }
 }
