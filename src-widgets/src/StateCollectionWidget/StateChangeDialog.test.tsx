@@ -165,6 +165,28 @@ describe('StateChangeDialog', () => {
     });
 });
 
+describe('StateChangeDialog active rows (ticket 14)', () => {
+    const marked = (): (string | null)[] =>
+        listItems()
+            .filter(item => item.classList.contains('Mui-selected'))
+            .map(item => item.textContent);
+
+    it('marks the entries whose state is active, duplicates included', () => {
+        const [a, b, c] = rows([1, 'A'], [1, 'B'], [2, 'C']);
+        const handle = mount({ states: [{ ...a, active: true }, { ...b, active: true }, c] });
+
+        expect(marked()).toEqual(['A', 'B']);
+        handle.unmount();
+    });
+
+    it('reads the flag and does not compare the current value itself', () => {
+        const handle = mount({ states: rows([0, 'OFF'], [1, 'ON']), currentValue: 1 });
+
+        expect(marked()).toEqual([]);
+        handle.unmount();
+    });
+});
+
 describe('StateChangeDialog list over the resolved states (ticket 13)', () => {
     it('draws the states in the order they arrive', () => {
         const handle = mount({ states: rows([100, 'hundert'], [50, 'fünfzig'], [0, 'null']) });

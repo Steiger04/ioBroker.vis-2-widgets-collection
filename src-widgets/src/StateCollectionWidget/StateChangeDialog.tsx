@@ -166,7 +166,10 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                         disablePadding
                         key={state.fieldNumber}
                     >
-                        <ListItemButton onClick={createListItemClickHandler(state.value)}>
+                        <ListItemButton
+                            selected={state.active}
+                            onClick={createListItemClickHandler(state.value)}
+                        >
                             <ListItemText
                                 primaryTypographyProps={{ variant: 'body2' }}
                                 primary={state.label}

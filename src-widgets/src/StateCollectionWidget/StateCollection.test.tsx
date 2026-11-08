@@ -215,6 +215,11 @@ const rowNamed = (text: string): HTMLElement => {
     return row;
 };
 
+const markedRows = (): (string | null)[] =>
+    rowsOf()
+        .filter(row => row.classList.contains('Mui-selected'))
+        .map(row => row.textContent);
+
 const sliderOf = (): HTMLElement | null => document.querySelector<HTMLElement>('.MuiDialog-root .MuiSlider-root');
 
 const rangeOf = (): HTMLInputElement => {
@@ -959,13 +964,12 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(rowTexts()).toEqual(['0', 'ON', 'AUTO']);
         });
 
-        it('ticket 14: no row is marked, even the one with the current value', () => {
+        it('ticket 14: the row with the current value is marked, the others are not', () => {
             const state = mountState(THREE_ROWS, 1);
 
             click(state);
 
-            expect(rowNamed('ON').classList.contains('Mui-selected')).toBe(false);
-            expect(document.querySelector('.MuiDialog-root .Mui-selected')).toBeNull();
+            expect(markedRows()).toEqual(['ON']);
         });
     });
 
@@ -1092,13 +1096,16 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(thumb()).toBe(70);
         });
 
-        it('ticket 14: no row is marked after the change either', () => {
+        it('ticket 14: the mark follows the change and the dialog stays open', () => {
             const state = mountState(SLIDER, 0);
 
             click(state);
+            expect(markedRows()).toEqual(['OFF']);
+
             state.backend(1, 2000);
 
-            expect(document.querySelector('.MuiDialog-root .Mui-selected')).toBeNull();
+            expect(markedRows()).toEqual(['ON']);
+            expect(dialogOf()).not.toBeNull();
         });
     });
 
@@ -1246,6 +1253,56 @@ describe('StateCollection change dialog up to the socket', () => {
 
             expect(getComputedStyle(paperOf()).backgroundColor).toBe('#fff');
         });
+    });
+});
+
+describe('StateCollection change dialog marks the active row (ticket 14)', () => {
+    it('marks the row of value 50 among 100, 50 and 0', () => {
+        const state = mountState(
+            {
+                ...THREE_ROWS,
+                value1: '100',
+                alias1: 'hundert',
+                value2: '50',
+                alias2: 'fünfzig',
+                value3: '0',
+                alias3: 'null',
+            },
+            50,
+        );
+
+        click(state);
+
+        expect(markedRows()).toEqual(['fünfzig']);
+    });
+
+    it('marks every duplicate of the current value', () => {
+        const state = mountState(
+            { ...THREE_ROWS, value1: '1', alias1: 'A', value2: '1', alias2: 'B', value3: '2', alias3: 'C' },
+            1,
+        );
+
+        click(state);
+
+        expect(markedRows()).toEqual(['A', 'B']);
+    });
+
+    it('marks no row for a value that matches none', () => {
+        const state = mountState(THREE_ROWS, 7);
+
+        click(state);
+
+        expect(markedRows()).toEqual([]);
+    });
+
+    it('a chosen row takes the mark at once and the dialog stays open', () => {
+        const state = mountState(THREE_ROWS, 0);
+
+        click(state);
+        fire(rowNamed('AUTO'), mouse('click'));
+
+        expect(markedRows()).toEqual(['AUTO']);
+        expect(dialogOf()).not.toBeNull();
     });
 });
 
