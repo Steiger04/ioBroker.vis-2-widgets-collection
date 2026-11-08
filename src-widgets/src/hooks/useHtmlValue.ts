@@ -55,6 +55,7 @@ const useHtmlValue = (
         if (
             oidValue !== undefined &&
             oidValue !== null &&
+            !Number.isNaN(oidValue) &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
             const unit = widget?.data.oidObject?.unit;

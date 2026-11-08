@@ -131,6 +131,59 @@ describe('CollectionBase frame lines appearing with a valid type', () => {
     });
 });
 
+describe('CollectionBase Rahmen-Fußzeile', () => {
+    /** The footer's text over the given widget data and OID value. */
+    const footerOf = (data: Record<string, unknown>, oidValue: unknown): string | null | undefined => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            return createElement(CollectionBase, { data: styleData, oidValue: oidValue as ioBroker.StateValue });
+        };
+        return mountBody(Frame, frameScene({ noFooter: false, ...data })).container.querySelector('.BASE-PAPER-0')
+            ?.lastElementChild?.textContent;
+    };
+
+    const WITH_UNIT = { oidObject: { _id: OID, type: 'number', unit: '°C' } };
+
+    it.each([
+        ['an object', { a: 1 }],
+        ['an array', [1, 2]],
+        ['NaN', NaN],
+    ])('shows no text for %s', (_what, value) => {
+        expect(footerOf(WITH_UNIT, value)).toBe('');
+    });
+
+    it.each([
+        ['a number', 21, '21°C'],
+        ['a zero', 0, '0°C'],
+        ['a string', 'warm', 'warm°C'],
+        ['a true', true, 'true°C'],
+        ['a false', false, 'false°C'],
+        ['an empty string', '', ''],
+        ['null', null, ''],
+    ])('shows %s with its unit', (_what, value, text) => {
+        expect(footerOf(WITH_UNIT, value)).toBe(text);
+    });
+
+    it('shows a false as text without a unit, too', () => {
+        expect(footerOf({}, false)).toBe('false');
+    });
+
+    // The scene's state is 0, so `value1: 0` is the matching row; the frame's own `oidValue` differs.
+    const MATCHING_ROW = { values_count: 1, value1: 0 };
+
+    it('lets the footer text win over the alias and the row value', () => {
+        expect(footerOf({ ...MATCHING_ROW, alias1: 'warm', footer1: 'Fuß' }, 21)).toBe('Fuß');
+    });
+
+    it('lets the alias of the matching row win over its value', () => {
+        expect(footerOf({ ...MATCHING_ROW, alias1: 'warm' }, 21)).toBe('warm');
+    });
+
+    it('lets the value of the matching row win over the current value', () => {
+        expect(footerOf({ ...WITH_UNIT, ...MATCHING_ROW }, 21)).toBe('0°C');
+    });
+});
+
 describe('CollectionBase invalid object hint', () => {
     const PREFIX = 'vis_2_widgets_collection_';
 

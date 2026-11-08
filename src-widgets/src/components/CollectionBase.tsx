@@ -117,8 +117,11 @@ function CollectionBase({
             return '';
         }
 
+        // An object gives no text (ADR-0111 Nr. 6); NaN is falsy and drops out with the empty values.
         const valueWithUnit =
-            oidValue || oidValue === 0 || String(oidValue) === 'false' ? `${oidValue}${oidObject?.unit ?? ''}` : '';
+            typeof oidValue !== 'object' && (oidValue || oidValue === 0 || String(oidValue) === 'false')
+                ? `${oidValue}${oidObject?.unit ?? ''}`
+                : '';
 
         return data.footer || data.alias || data.value || valueWithUnit || '';
     }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);

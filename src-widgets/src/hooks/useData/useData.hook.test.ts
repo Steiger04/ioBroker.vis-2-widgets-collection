@@ -236,6 +236,15 @@ describe('useData — the label of a state — ticket 12', () => {
     it('leaves the alias of the state raw', () => {
         expect(labelledRow('  ').alias).toBe('  ');
     });
+
+    it.each<[string, unknown]>([
+        ['an object', { a: 1 }],
+        ['NaN', NaN],
+    ])('has no text for a row value that gives none: %s', (_label, value1) => {
+        const { states } = resolve({ values_count: 1, value1 }, 'x');
+
+        expect(states[0].label).toBe('');
+    });
 });
 
 describe('useData — the active flag of each state (Aktiver Zustand)', () => {

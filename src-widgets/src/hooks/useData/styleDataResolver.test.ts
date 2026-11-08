@@ -347,6 +347,38 @@ describe('marker layer applies to marks only, between per-state and base', () =>
     });
 });
 
+describe('value — the row value with its unit', () => {
+    const rowValue = (value1: unknown, unit: string | undefined = '°C'): string | undefined =>
+        buildResolvers({ rxData: { value1 }, oidObject: { unit } }).value(1, false);
+
+    it.each([
+        ['a string', '21', '21°C'],
+        ['a number', 21, '21°C'],
+        ['a zero', 0, '0°C'],
+        ['a false', false, 'false°C'],
+    ])('appends the unit to %s, as a string', (_what, value, text) => {
+        expect(rowValue(value)).toBe(text);
+    });
+
+    it.each([
+        ['a number', 21, '21'],
+        ['a zero', 0, '0'],
+        ['a false', false, 'false'],
+    ])('stringifies %s without a unit', (_what, value, text) => {
+        expect(buildResolvers({ rxData: { value1: value } }).value(1, false)).toBe(text);
+    });
+
+    it.each([
+        ['no value', undefined],
+        ['null', null],
+        ['an object', { a: 1 }],
+        ['an array', [1, 2]],
+        ['NaN', NaN],
+    ])('has no text for %s', (_what, value) => {
+        expect(rowValue(value)).toBeUndefined();
+    });
+});
+
 describe('noIcon short-circuit', () => {
     it('suppresses icon and iconActive regardless of other config', () => {
         const r = buildResolvers({ rxData: { noIcon: true, icon: 'base', iconActive: 'act' } });

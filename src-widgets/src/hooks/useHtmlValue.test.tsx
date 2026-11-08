@@ -95,4 +95,12 @@ describe('useHtmlValue — precedence', () => {
     it.each([{ value: undefined }, { value: null }])('has nothing to show for $value', ({ value }) => {
         expect(htmlValue(value, WITH_UNIT)).toBeUndefined();
     });
+
+    it.each([
+        { what: 'an object', value: { a: 1 } },
+        { what: 'an array', value: [1, 2] },
+        { what: 'NaN', value: NaN },
+    ])('has nothing to show for $what', ({ value }) => {
+        expect(htmlValue(value as unknown as HookArgs[0], WITH_UNIT)).toBeUndefined();
+    });
 });

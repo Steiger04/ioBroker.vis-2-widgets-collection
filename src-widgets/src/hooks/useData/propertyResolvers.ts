@@ -440,7 +440,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
 
         value: (ext: string | number, _includeActive: boolean) => {
             const val = getDataValue<ioBroker.StateValue>('value', String(ext));
-            return val !== undefined && val !== null
+            // An object or NaN gives no text (ADR-0111 Nr. 6).
+            return val !== undefined && typeof val !== 'object' && !Number.isNaN(val)
                 ? `${val}${oidObject?.unit !== undefined ? oidObject.unit : ''}`
                 : undefined;
         },
