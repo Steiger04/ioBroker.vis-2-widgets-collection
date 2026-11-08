@@ -38,7 +38,8 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
                     name: 'input', // group name
                     label: 'group_input',
                     fields: [
-                        ...commonObjectFields(INPUT_ENTRY_TYPES),
+                        // The range guides the spinner only: without a real one there is no limit.
+                        ...commonObjectFields(INPUT_ENTRY_TYPES, { inventRange: false }),
                         ...delayFields(),
                         ...inputFields(),
                         ...stateFields({ onlyStates: false }),

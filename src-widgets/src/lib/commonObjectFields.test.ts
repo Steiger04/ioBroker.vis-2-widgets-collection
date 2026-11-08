@@ -9,7 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Connection } from '@iobroker/adapter-react-v5';
-import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 // The module's field lists (its own, and the per-state list its row keys come from) render
 // CollectionDivider and colour fields, which pull Generic (extends window.visRxWidget, absent
@@ -82,8 +82,12 @@ const numberState = (id: string, range: { min?: number; max?: number }): unknown
 // Numbers without common.states, one per shape a real range can take.
 const COOLING = 'zigbee.0.lamp.cooling';
 const NO_RANGE = 'zigbee.0.lamp.no_range';
+const MIN_ONLY = 'zigbee.0.lamp.min_only';
+const MAX_ONLY = 'zigbee.0.lamp.max_only';
 OBJECTS[COOLING] = numberState(COOLING, { min: -10, max: 0 });
 OBJECTS[NO_RANGE] = numberState(NO_RANGE, {});
+OBJECTS[MIN_ONLY] = numberState(MIN_ONLY, { min: 5 });
+OBJECTS[MAX_ONLY] = numberState(MAX_ONLY, { max: 50 });
 
 const fakeSocket = {
     getObject: (id: string): Promise<unknown> => Promise.resolve(OBJECTS[id]),
@@ -92,9 +96,13 @@ const fakeSocket = {
 const FIELD = {} as RxWidgetInfoAttributesField;
 
 /** Runs one editor pick of `idName` and returns the data the handler hands to vis-2. */
-async function pick(idName: string, data: WidgetData): Promise<WidgetData> {
+async function pick(
+    idName: string,
+    data: WidgetData,
+    handler: RxWidgetInfoFieldChangeHandler = oidChangeHandlerAsync(ANY_VALUE_TYPES, idName),
+): Promise<WidgetData> {
     let emitted: WidgetData | undefined;
-    await oidChangeHandlerAsync(ANY_VALUE_TYPES, idName)(
+    await handler(
         FIELD,
         data,
         newData => {
@@ -170,6 +178,50 @@ describe('oidChangeHandlerAsync — the seeded range of a main-OID pick', () => 
 
         expect(picked).toMatchObject({ minValue: 0, maxValue: 100 });
         expect(picked.oidObject).toMatchObject({ minValue: 0, maxValue: 100 });
+    });
+});
+
+describe('commonObjectFields — { inventRange: false }: a pick takes only the real range (ADR-0109 Nr. 8)', () => {
+    /** A main-OID pick through the field the option builds. */
+    const pickReal = (data: WidgetData): Promise<WidgetData> => {
+        const field = commonObjectFields(ANY_VALUE_TYPES, { inventRange: false }).find(f => f.name === 'oid');
+
+        return pick('oid', data, (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange);
+    };
+
+    it('leaves the root fields empty for an object without a range, the object copy stays seeded', async () => {
+        const picked = await pickReal({ oid: NO_RANGE });
+
+        expect(picked).not.toHaveProperty('minValue');
+        expect(picked).not.toHaveProperty('maxValue');
+        expect(picked.oidObject).toMatchObject({ minValue: 0, maxValue: 100 });
+    });
+
+    it('takes a real range, a bound of 0 included', async () => {
+        expect(await pickReal({ oid: COOLING })).toMatchObject({ minValue: -10, maxValue: 0 });
+    });
+
+    it('removes the old range when the next object has none', async () => {
+        const ranged = await pickReal({ oid: COOLING });
+
+        const repicked = await pickReal({ ...ranged, oid: NO_RANGE });
+
+        expect(repicked).not.toHaveProperty('minValue');
+        expect(repicked).not.toHaveProperty('maxValue');
+    });
+
+    it.each([
+        { oid: MIN_ONLY, kept: { minValue: 5 }, removed: 'maxValue' },
+        { oid: MAX_ONLY, kept: { maxValue: 50 }, removed: 'minValue' },
+    ])('checks each bound on its own: $oid takes $kept and loses $removed', async ({ oid, kept, removed }) => {
+        const picked = await pickReal({ oid, minValue: 1, maxValue: 9 });
+
+        expect(picked).toMatchObject(kept);
+        expect(picked).not.toHaveProperty(removed);
+    });
+
+    it('changes nothing else of the pick', async () => {
+        expect(await pickReal({ oid: STATUS })).toEqual(STATUS_PICKED);
     });
 });
 

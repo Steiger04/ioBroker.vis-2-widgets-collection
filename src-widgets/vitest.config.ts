@@ -31,6 +31,7 @@ const DOM_TS_TESTS = [
     'src/JsonTableCollectionWidget/useViewState.hook.test.ts',
     'src/Light2CollectionWidget/useLampSync.hook.test.ts',
     'src/lib/allowedOidTypes.parity.test.ts',
+    'src/lib/commonObjectFields.parity.test.ts',
     'src/lib/useEditorHistory.hook.test.ts',
     'src/ThemeConfigWizard/useStudioSession.hook.test.ts',
     // Mocks Generic and every widget body (vi.mock / vi.doMock) to introspect getWidgetInfo():
