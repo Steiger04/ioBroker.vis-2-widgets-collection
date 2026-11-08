@@ -398,19 +398,13 @@ describe('StateCollection push button up to the socket', () => {
             expect(writes(state)).toEqual({ sent, optimistic: [1, 0] });
         });
 
-        it('a hold as long as a configured delay sends both values', () => {
+        it.each([
+            ['a hold as long as a configured delay', 1000],
+            ['V3 (ticket 06): a tap under a configured delay', 999],
+        ])('%s sends both values', (_case, holdMs) => {
             const state = mountState({ ...PUSH_BUTTON, delay: 1000 });
 
-            tap(state, 1000);
-            settle();
-
-            expect(writes(state).sent).toEqual([1, 0]);
-        });
-
-        it('V3 (ticket 06): a tap under a configured delay sends both values', () => {
-            const state = mountState({ ...PUSH_BUTTON, delay: 1000 });
-
-            tap(state, 999);
+            tap(state, holdMs);
             settle();
 
             expect(writes(state).sent).toEqual([1, 0]);
@@ -532,23 +526,15 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('the mouse buttons', () => {
-        it('ticket 05: the right mouse button sends nothing', () => {
+        it.each([
+            ['right', 2],
+            ['middle', 1],
+        ])('ticket 05: the %s mouse button sends nothing', (_name, button) => {
             const state = mountState(PUSH_BUTTON);
 
-            press(state, { button: 2 });
+            press(state, { button });
             advance(400);
-            release(state, { button: 2 });
-            settle();
-
-            expect(writes(state)).toEqual({ sent: [], optimistic: [] });
-        });
-
-        it('ticket 05: the middle mouse button sends nothing', () => {
-            const state = mountState(PUSH_BUTTON);
-
-            press(state, { button: 1 });
-            advance(400);
-            release(state, { button: 1 });
+            release(state, { button });
             settle();
 
             expect(writes(state)).toEqual({ sent: [], optimistic: [] });
@@ -1165,22 +1151,16 @@ describe('StateCollection push-button surface (ticket 08)', () => {
 });
 
 describe('StateCollection toggle on the Aktiver Zustand (ticket 03)', () => {
-    it('a String value meets the configured number: first row active, sends the second', () => {
-        const state = mountState({ value1: '1', value2: '0' }, '1');
+    it.each<[string, Record<string, unknown>, string, unknown]>([
+        ['number', { value1: '1', value2: '0' }, '1', 0],
+        ['boolean', { oidObject: object('boolean'), value1: 'true', value2: 'false' }, 'true', false],
+    ])('a String value meets the configured %s: first row active, sends the second', (_type, data, value, second) => {
+        const state = mountState(data, value);
 
         click(state);
         settle();
 
-        expect(writes(state).sent).toEqual([0]);
-    });
-
-    it('a String value meets the configured boolean: first row active, sends the second', () => {
-        const state = mountState({ oidObject: object('boolean'), value1: 'true', value2: 'false' }, 'true');
-
-        click(state);
-        settle();
-
-        expect(writes(state).sent).toEqual([false]);
+        expect(writes(state).sent).toEqual([second]);
     });
 
     it('two rows with the same value: both active, sends that value', () => {
