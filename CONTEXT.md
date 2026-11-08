@@ -553,7 +553,7 @@ The complete presentation of the MUI Slider, resolved in exactly one widget-loca
 _Avoid_: Slider-Styles (unsaid WHICH shell), styled wrapper, measuring the end-symbol offset from the DOM
 
 **Skala**:
-What the slider spans and where it stops: minimum, maximum, grid, the **Marken** and the index of the **ausgewählte Marke** — one pure module, `buildScale` in `SliderCollectionWidget/scale.ts` (ADR-0106). It reads the slider fields of the widget data, useData's states and State-Spanne (`minValue`/`maxValue` of the numeric states), the mark base style `markBaseStyle`, the unit and the backend value; the body wires its result into the MUI Slider and decides nothing itself. Range rule: with Nur Zustände (`onlyStates`) the State-Spanne, otherwise the field (`minValue`/`maxValue`), unset → the State-Spanne. Grid rule (ADR-0002): with Nur Zustände `null` — the thumb snaps to the marks only — otherwise the field `step`, unset → MUI's default. The marks come from the pure mark function `buildSliderMarks`, a seam of its own behind the Skala; the selected index is decided there too — the first mark carrying the Aktiver-Zustand flag, `null` without a match or without a backend value — and the Skala passes it through.
+What the slider spans and where it stops: minimum, maximum, grid, the **Marken** and the index of the **ausgewählte Marke** — one pure module, `buildScale` in `SliderCollectionWidget/scale.ts` (ADR-0106). It reads the slider fields of the widget data, useData's states and State-Spanne (`minValue`/`maxValue` of the numeric states), the mark base style `markBaseStyle`, the unit and the backend value; the body wires its result into the MUI Slider and decides nothing itself. Range rule: with Nur Zustände (`onlyStates`) the State-Spanne, otherwise the field (`minValue`/`maxValue`), unset or emptied → the State-Spanne. Grid rule (ADR-0002): with Nur Zustände `null` — the thumb snaps to the marks only — otherwise the field `step`, unset → MUI's default. The marks come from the pure mark function `buildSliderMarks`, a seam of its own behind the Skala; the selected index is decided there too — the first mark carrying the Aktiver-Zustand flag, `null` without a match or without a backend value — and the Skala passes it through.
 _Avoid_: Bereich/Raster as separate body rules, Wertebereich for the State-Spanne (that is only the fallback), re-deriving the selected index beside the flag
 
 **Marke**:
@@ -619,7 +619,7 @@ An observed backend change of the bound state that did not originate from this w
 _Avoid_: Backend-Änderung (includes the own write's echo), externe Änderung (unsaid: other adapter, client or widget), Echo (that is the absorbed own write)
 
 **Signifikante Backend-Änderung**:
-A **Fremdänderung** that also passes the significance filter — the rule for controls that only FLAG a foreign change: Input (red field while editing) and Light2 (picker re-init gates); `hasBackendChange` from `useValueState` (ADR-0087). Significance is TYPE-AWARE: while both sides coerce to finite numbers the jitter filter applies (delta ≥ 1), so sensor noise neither flashes a field nor re-initialises a picker; once one side does not coerce (pure strings like `#ff0000`), ANY change counts. A control that synchronises its position (the Slider) does not use it — the jitter filter would swallow sub-unit steps such as a 0.5 setpoint step or a 0–1 range.
+A **Fremdänderung** that also passes the significance filter — the rule for controls that only FLAG a foreign change: Input (its **Sitzungskonflikt**) and Light2 (picker re-init gates); `hasBackendChange` from `useValueState` (ADR-0087). Significance is TYPE-AWARE: while both sides coerce to finite numbers the jitter filter applies (delta ≥ 1), so sensor noise neither flashes a field nor re-initialises a picker; once one side does not coerce (pure strings like `#ff0000`), ANY change counts. A control that synchronises its position (the Slider) does not use it — the jitter filter would swallow sub-unit steps such as a 0.5 setpoint step or a 0–1 range.
 _Avoid_: Echo (that is the absorbed own write, not the foreign change), Wert-Änderung (that is any change, significant or not), Signifikanz-Heuristik (that is the numeric branch of the rule)
 
 **Schreibkette**:
@@ -675,8 +675,12 @@ The custom field of the „Werte" group that stands for one per-state field defi
 _Avoid_: hull, Proxy-Feld
 
 **OID-Rolle**:
-What an id field of a widget is to that widget — exactly one of **Haupt-OID**, Steuer ID (the Select's **Schreibziel**) or **Hilfs-OID** — decided once from the field, never guessed per call site. The role decides which widget data an OID pick may set: only the Haupt-OID owns the root fields (icon, writability, range, state rows).
+What an id field of a widget is to that widget — exactly one of **Haupt-OID**, Steuer ID (the Select's **Schreibziel**) or **Hilfs-OID** — decided once from the field, never guessed per call site. The role decides which widget data an OID pick may set: only the Haupt-OID owns the root fields (icon, writability, range, unit, state rows).
 _Avoid_: OID-Typ (that is the state's value type), Feldname-Vergleich (that is the retired mechanism)
+
+**Einheit**:
+The unit a widget shows next to a value. It has one source, the bound object's copy (`oidObject.unit`), which every reader uses: Wert-Anzeige, footer, the Input's adornment, state rows, Slider and Gauge. A pick takes it from the object and also shows it in the `unit` field, where it can be overwritten or removed by emptying; a later pick replaces both.
+_Avoid_: Root-`unit` as a source (the field only feeds the copy)
 
 **Haupt-OID**:
 The widget's primary state (`oid`) — the one whose pick seeds the root fields and the state rows.
@@ -703,8 +707,16 @@ _Avoid_: Farbfeld (that is the field, not its row), Picker-Feld
 ## Language
 
 **Inline-Edit-Sitzung**:
-The display-first edit session of the Input widget (`useInlineEdit`, widget-local over the **Schreibkette**'s `useValueState` binding): a click switches to a TextField, the icon hides while editing, the autofocus effect stays in the component. Two modes — live (default): every keystroke writes through the optimistic binding; OK-button mode: the draft buffers and commits exactly once on blur/Enter/OK click. Draft sync adopts the backend value only while NOT editing — a foreign change DURING the session surfaces as `hasBackendChange` (red field, the **Signifikante Backend-Änderung**) instead of clobbering the draft. Keys: Enter runs the blur path; **Escape beendet die Bearbeitung ohne Commit** — in OK mode the buffered draft is DISCARDED (nothing was written), in live mode it equals blur because already-written keystrokes are on their way through the debounce (a "discard" there would be a lie).
+The display-first edit session of the Input widget (widget-local over the **Schreibkette**'s `useValueState` binding, one pure transition behind `useInlineEdit`, ADR-0109): a click switches to a TextField that takes the focus, the icon hides while editing. The **Sperre** is checked when the session starts. The draft starts from the backend value and ignores backend changes from then on — a foreign change surfaces as the **Sitzungskonflikt** instead of clobbering it. Two modes — live (default): every keystroke writes through the optimistic binding, and Enter or a blur only leave; OK-button mode: the draft buffers; Enter and the OK button commit a changed draft and otherwise re-send only what the state already holds (when conversion would alter the value, they just leave); a blur commits only when the draft differs from where the session started (a blur is no command). **Escape beendet die Bearbeitung ohne Commit** — in OK mode the buffered draft is DISCARDED (nothing was written), in live mode it equals blur because already-written keystrokes are on their way through the debounce (a "discard" there would be a lie).
 _Avoid_: Draft-Modus (that is only the buffering half of OK mode), Cancel (that is the Escape action, not the session), Editier-Modus (that is just the editing flag)
+
+**Sitzungskonflikt**:
+A **Signifikante Backend-Änderung** observed since the current **Inline-Edit-Sitzung** started — the field shows it red until the session ends, later jitter does not clear it. A change before the session is none, however recent. In live mode the user's own keystroke ends it, because their value is then in the backend. It warns, it never blocks: a changed draft still commits and overwrites the foreign value.
+_Avoid_: `hasBackendChange` (that flag is a state of the last observation and outlives the session), Konflikt without saying whose, Fremdänderung (that is any foreign change, also outside a session and below the jitter filter)
+
+**Eingabefeld-Attribute**:
+What the Input's TextField derives from the widget data and the draft — one pure module, ADR-0109: the input type from the OID type, the unit, the step and the limits. The range is a spinner hint, not a write limit: typed values outside it are written. A limit the draft has crossed is dropped, only that one, because the browser's spinner would otherwise jump to it and live mode would write the jump. An emptied number field counts as unset. A pick takes only the object's real range; a widget stored with an invented 0..100 keeps it until the fields are emptied.
+_Avoid_: Eingabe-Bereich as a limit (nothing clamps), Feld-Profil (sounds like stored configuration)
 
 # Switch Collection Widget
 
