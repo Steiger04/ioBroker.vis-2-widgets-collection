@@ -188,6 +188,20 @@ describe('useLampSync', () => {
         expect(kelvin.picker.color.hexString).toBe('#ff0000');
     });
 
+    it('entering the CCT-Ansicht writes the stored temperature, whole, on every switch (the lamp turns white)', () => {
+        backend = { colorLightTemperatureOid: 4000, colorLightBrightnessOid: 40, colorLightRgbHexOid: '#ff0000' };
+        const { setters, hook } = mountCct('rgbcct');
+        hook.rerender(() => useLampSync(options('rgbcct', false, setters)));
+        vi.mocked(setters.colorLightTemperatureOid).mockClear();
+
+        hook.rerender(() => useLampSync(options('rgbcct', true, setters)));
+        hook.rerender(() => useLampSync(options('rgbcct', false, setters)));
+        hook.rerender(() => useLampSync(options('rgbcct', true, setters)));
+
+        expect(vi.mocked(setters.colorLightTemperatureOid).mock.calls).toEqual([[4000], [4000]]);
+        expect(setters.colorLightBrightnessOid).not.toHaveBeenCalled();
+    });
+
     it('a foreign brightness change moves the Helligkeits-Picker of an „& cct" Lichttyp', () => {
         backend = { colorLightTemperatureOid: 2700, colorLightBrightnessOid: 40 };
         const { setters, hook, brightness } = mountCct('rgbcct');

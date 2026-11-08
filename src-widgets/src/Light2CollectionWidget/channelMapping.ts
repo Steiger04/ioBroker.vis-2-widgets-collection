@@ -193,3 +193,42 @@ export function channelWrites(
 
     return writes;
 }
+
+/** Whether a stored numeric Kanal value is usable: a number or a non-blank numeric string. */
+const isUsableNumber = (value: unknown): boolean =>
+    (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value));
+
+/**
+ * The write requests that send the stored Kanal values of a target back to the lamp — taken from
+ * the states, never from iro's lossy read-back. A view switch writes them, so the lamp switches
+ * its mode (white or colour) with the view.
+ *
+ * @param target The Lichttyp, view and — in the CCT-Ansicht — the picker.
+ * @param widgetData The widget data (Kanal fields and their objects).
+ * @param getPropertyValue Value of a widget property, by field name.
+ * @returns Per Kanal of the target with OID, object and a usable stored value: that value — numbers
+ *   whole, a hex colour as stored —, in table order.
+ */
+export function storedChannelWrites(
+    target: PickerTarget,
+    widgetData: Light2WidgetData,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+): ChannelWrite[] {
+    const writes: ChannelWrite[] = [];
+
+    for (const channel of channelsFor(target)) {
+        if (!hasChannelOid(channel.field, widgetData) || !objectOf(channel.field, widgetData)) {
+            continue;
+        }
+        const stored = getPropertyValue(channel.field);
+        if (channel.property === 'hexString') {
+            if (typeof stored === 'string' && stored.trim() !== '') {
+                writes.push({ field: channel.field, value: stored });
+            }
+        } else if (isUsableNumber(stored)) {
+            writes.push({ field: channel.field, value: Math.round(Number(stored)) });
+        }
+    }
+
+    return writes;
+}

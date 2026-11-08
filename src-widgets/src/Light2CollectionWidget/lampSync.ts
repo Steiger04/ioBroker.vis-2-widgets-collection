@@ -22,7 +22,8 @@
  * `Light2Collection.tsx:432-611`): a transition runs when the inputs of its former effect
  * changed, so the write behaviour stays the same (ADR-0108) — except for three released fixes:
  * the Lichttyp cct follows foreign brightness changes (6e15103a); entering the CCT-Ansicht
- * writes the temperature only when it has no usable value (6f0e0e6c); and the read on leaving
+ * writes the stored temperature, whole, instead of iro's lossy read-back, so the lamp still
+ * switches to white without drifting; and the read on leaving
  * the CCT-Ansicht runs under the sync guard of `useLampSync` like every other picker action, so
  * it no longer arrives as an input that writes the main colour (2d96a48c).
  */
@@ -31,7 +32,13 @@ import { channelsOf, hasView, mainColorSyncFields, offersViewSwitch } from '../l
 import type { Light2ChannelField } from '../lib/light2Channels';
 import { backendSyncKey } from './backendSyncKey';
 import type { SyncChannel } from './backendSyncKey';
-import { channelWrites, FALLBACK_KELVIN, hasChannelOid, readChannelsIntoColor } from './channelMapping';
+import {
+    channelWrites,
+    FALLBACK_KELVIN,
+    hasChannelOid,
+    readChannelsIntoColor,
+    storedChannelWrites,
+} from './channelMapping';
 import type { ChannelWrite, ColorChanges, Light2WidgetData, PickerTarget } from './channelMapping';
 
 /**
@@ -113,26 +120,22 @@ const keysOf = (
     ),
 });
 
-/** Whether a temperature state value is usable: present, not blank, numeric. */
-const isUsableTemperature = (value: unknown): boolean =>
-    (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value));
-
 /**
- * The write of entering the CCT-Ansicht: only a configured temperature Kanal without a usable
- * value gets 2000 K — compared against the state, never against iro's lossy read-back — written
- * like every Kelvin-Picker write (rounded, a Kanal without object is skipped).
+ * The write of entering the CCT-Ansicht: the stored temperature goes back to the lamp, so the lamp
+ * switches to white at its brightness — the state value, whole, never iro's lossy read-back
+ * (4000 → 3989.12, which drifted on every switch). A configured temperature Kanal without a usable
+ * value gets 2000 K, written like every Kelvin-Picker write (rounded, a Kanal without object is
+ * skipped).
  */
-const enterViewWrites = (
-    type: string | undefined,
-    temperature: unknown,
-    widgetData: Light2WidgetData,
-): ChannelWrite[] => {
-    if (!hasChannelOid('colorLightTemperatureOid', widgetData) || isUsableTemperature(temperature)) {
-        return [];
+const enterViewWrites = (type: string | undefined, read: LampReadContext): ChannelWrite[] => {
+    const target = pickerTargetOf({ type, cctView: true }, 'main');
+    const stored = storedChannelWrites(target, read.widgetData, read.getPropertyValue);
+    if (stored.length > 0 || !hasChannelOid('colorLightTemperatureOid', read.widgetData)) {
+        return stored;
     }
     const color = new iro.Color('#ffffff');
     color.kelvin = FALLBACK_KELVIN;
-    return channelWrites(color, pickerTargetOf({ type, cctView: true }, 'main'), undefined, widgetData);
+    return channelWrites(color, target, undefined, read.widgetData);
 };
 
 /**
@@ -204,9 +207,9 @@ export function syncStep(
         pickers.brightness
     ) {
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next, 'main') });
-        // The view switch itself: a lamp without a usable temperature starts at 2000 K.
+        // The view switch itself switches the lamp to white: the stored temperature (or 2000 K).
         if (prevViewSwitch && !prev.cctView) {
-            writes.push(...enterViewWrites(next.type, temperature, read.widgetData));
+            writes.push(...enterViewWrites(next.type, read));
         }
         actions.push({ kind: 'couple' });
     }

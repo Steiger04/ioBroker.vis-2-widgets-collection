@@ -245,9 +245,10 @@ describe('syncStep: Betreten der CCT-Ansicht', () => {
             { widgetData: data, getPropertyValue: () => value as ioBroker.StateValue },
         );
 
-    it('writes nothing while the temperature holds a usable value (V2)', () => {
-        expect(enter(4000).writes).toEqual([]);
-        expect(enter('2700').writes).toEqual([]);
+    it('writes the stored temperature, whole, so the lamp switches to white (not iro’s lossy read-back)', () => {
+        expect(enter(4000).writes).toEqual([{ field: 'colorLightTemperatureOid', value: 4000 }]);
+        expect(enter('2700').writes).toEqual([{ field: 'colorLightTemperatureOid', value: 2700 }]);
+        expect(enter(3989.6).writes).toEqual([{ field: 'colorLightTemperatureOid', value: 3990 }]);
     });
 
     it.each([
