@@ -25,7 +25,9 @@
  * writes the stored temperature, whole, instead of iro's lossy read-back, so the lamp still
  * switches to white without drifting; and the read on leaving
  * the CCT-Ansicht runs under the sync guard of `useLampSync` like every other picker action, so
- * it no longer arrives as an input that writes the main colour (2d96a48c).
+ * it no longer arrives as an input that writes the main colour (2d96a48c). New since then:
+ * leaving the CCT-Ansicht writes the stored colour-view Kanäle back, so the lamp switches to
+ * colour with the view, as entering switches it to white.
  */
 import iro from '@jaames/iro';
 import { channelsOf, hasView, mainColorSyncFields, offersViewSwitch } from '../lib/light2Channels';
@@ -214,7 +216,7 @@ export function syncStep(
         actions.push({ kind: 'couple' });
     }
 
-    // Verlassen der CCT-Ansicht: the main picker shows the colour view again.
+    // Verlassen der CCT-Ansicht: the main picker shows the colour view again, the lamp its colour.
     if (prev?.cctView && prevViewSwitch && !next.cctView && viewSwitch && pickers.main) {
         // First the lamp's brightness into the main picker, which still holds the Kelvin-Picker's
         // white: a colour view whose Kanäle are not all configured reads nothing, so the picker
@@ -222,6 +224,8 @@ export function syncStep(
         // after. As the former effect did.
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 'brightness') });
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next) });
+        // The view switch itself switches the lamp back to colour: the stored colour-view Kanäle.
+        writes.push(...storedChannelWrites(pickerTargetOf(next), read.widgetData, read.getPropertyValue));
     }
 
     return { actions, writes };

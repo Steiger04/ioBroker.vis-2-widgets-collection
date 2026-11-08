@@ -321,6 +321,46 @@ describe('syncStep: Verlassen der CCT-Ansicht', () => {
         });
     });
 
+    /** Leaving the CCT-Ansicht of `type` with the stored Kanal `values`. */
+    const leave = (type: string, values: Partial<Record<Light2ChannelField, ioBroker.StateValue>>): LampSyncStep =>
+        syncStep(state(type, true, {}, values), state(type, false, {}, values), BOTH, readContext(values));
+
+    it.each([
+        ['rgbcct', { colorLightRgbHexOid: '#ff0000' }, [{ field: 'colorLightRgbHexOid', value: '#ff0000' }]],
+        [
+            'r/g/b/cct',
+            { colorLightRedOid: 10, colorLightGreenOid: 20.4, colorLightBlueOid: '30' },
+            [
+                { field: 'colorLightRedOid', value: 10 },
+                { field: 'colorLightGreenOid', value: 20 },
+                { field: 'colorLightBlueOid', value: 30 },
+            ],
+        ],
+        [
+            'h/s/v/cct',
+            { colorLightHueOid: 200, colorLightSaturationOid: 75, colorLightBrightnessOid: 40 },
+            [
+                { field: 'colorLightHueOid', value: 200 },
+                { field: 'colorLightSaturationOid', value: 75 },
+                { field: 'colorLightBrightnessOid', value: 40 },
+            ],
+        ],
+    ])('writes the stored colour of %s back, so the lamp switches to colour again', (type, values, writes) => {
+        expect(leave(type, values).writes).toEqual(writes);
+    });
+
+    it('skips a colour Kanal without OID, object or usable value', () => {
+        const { colorLightGreenOidObject: _object, ...withoutGreenObject } = DATA as unknown as Record<string, unknown>;
+        const values = { colorLightRedOid: 10, colorLightGreenOid: 20, colorLightBlueOid: '' };
+        const step = syncStep(state('r/g/b/cct', true, {}, values), state('r/g/b/cct', false, {}, values), BOTH, {
+            widgetData: withoutGreenObject as unknown as Light2WidgetData,
+            getPropertyValue: name => values[name as keyof typeof values] as ioBroker.StateValue,
+        });
+
+        expect(step.writes).toEqual([{ field: 'colorLightRedOid', value: 10 }]);
+        expect(leave('rgbcct', { colorLightRgbHexOid: '  ' }).writes).toEqual([]);
+    });
+
     it('does nothing when the Lichttyp loses its view switch', () => {
         expect(syncStep(state('rgbcct', true), state('rgb', false), BOTH, readContext()).actions).toEqual([]);
     });

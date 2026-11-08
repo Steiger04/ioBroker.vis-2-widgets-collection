@@ -177,14 +177,14 @@ describe('useLampSync', () => {
         expect(setters.colorLightTemperatureOid).not.toHaveBeenCalled();
     });
 
-    it('leaving the CCT-Ansicht after a Kelvin drag writes no colour', async () => {
+    it('leaving the CCT-Ansicht after a Kelvin drag writes the stored colour once, not the Kelvin white', async () => {
         backend = { colorLightTemperatureOid: 2700, colorLightBrightnessOid: 40, colorLightRgbHexOid: '#ff0000' };
         const { setters, hook, kelvin } = mountCct('rgbcct');
         await drag(kelvin.slider, 20, 150);
 
         hook.rerender(() => useLampSync(options('rgbcct', false, setters)));
 
-        expect(setters.colorLightRgbHexOid).not.toHaveBeenCalled();
+        expect(vi.mocked(setters.colorLightRgbHexOid).mock.calls).toEqual([['#ff0000']]);
         expect(kelvin.picker.color.hexString).toBe('#ff0000');
     });
 
