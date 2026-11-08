@@ -74,7 +74,10 @@ OBJECTS[POWER] = {
     common: { name: 'Power', type: 'boolean', role: 'switch', read: true, write: true },
 };
 
-const numberState = (id: string, common: { min?: number; max?: number; unit?: string }): unknown => ({
+const numberState = (
+    id: string,
+    common: { min?: number; max?: number; step?: number | null; unit?: string },
+): unknown => ({
     _id: id,
     type: 'state',
     common: { name: id, type: 'number', role: 'level', read: true, write: true, ...common },
@@ -237,6 +240,50 @@ const rowsOf = (data: WidgetData): unknown[][] =>
         data[`alias${i + 1}`],
         data[`iconColor${i + 1}`],
     ]);
+
+describe('oidChangeHandlerAsync — common.step joins the object copy (ticket 16, ADR-0110 Nr. 12)', () => {
+    const STEPPED = 'zigbee.0.lamp.stepped';
+    OBJECTS[STEPPED] = numberState(STEPPED, { step: 0.5 });
+
+    it('takes common.step into the object copy', async () => {
+        const picked = await pick('oid', { oid: STEPPED });
+
+        expect(picked.oidObject?.step).toBe(0.5);
+    });
+
+    it('leaves the key out for an object without common.step', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE });
+
+        expect(Object.keys(picked.oidObject ?? {})).not.toContain('step');
+    });
+
+    it('leaves the key out for a common.step of null', async () => {
+        const nullStep = 'zigbee.0.lamp.null_step';
+        OBJECTS[nullStep] = numberState(nullStep, { step: null });
+
+        const picked = await pick('oid', { oid: nullStep });
+
+        expect(Object.keys(picked.oidObject ?? {})).not.toContain('step');
+    });
+
+    it('drops an old step when the next object has none', async () => {
+        const picked = await pick('oid', { oid: NO_RANGE, oidObject: { step: 0.5 } });
+
+        expect(Object.keys(picked.oidObject ?? {})).not.toContain('step');
+    });
+
+    it('does not touch a root field step', async () => {
+        expect((await pick('oid', { oid: STEPPED, step: 7 })).step).toBe(7);
+        expect(Object.keys(await pick('oid', { oid: STEPPED }))).not.toContain('step');
+    });
+
+    it.each(['cid', 'dialogId'])('%s: takes it into its own copy, never into the root', async idName => {
+        const picked = await pick(idName, { [idName]: STEPPED });
+
+        expect(picked[`${idName}Object`]?.step).toBe(0.5);
+        expect(Object.keys(picked)).not.toContain('step');
+    });
+});
 
 describe('oidChangeHandlerAsync — the main-OID pick supplements the Zustandszeilen (ADR-0104 §6)', () => {
     it('creates one row per state on a first pick, with ignoreCommonStates off', async () => {
