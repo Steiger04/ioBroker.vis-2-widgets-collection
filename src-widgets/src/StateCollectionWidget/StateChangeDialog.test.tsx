@@ -35,6 +35,7 @@ const mount = (overrides: Partial<StateChangeDialogProps> = {}): RenderComponent
         states: rows([0, 'OFF'], [1, 'ON']),
         open: true,
         closeHandler: vi.fn(),
+        closeLabel: 'close',
         title: 'Wert ändern',
         currentValue: 1,
         onCommit: vi.fn(),
@@ -332,5 +333,30 @@ describe('StateChangeDialog colours (ticket 18)', () => {
 
         expect(getComputedStyle(paper()).backgroundColor).toBe('#fff');
         expect(getComputedStyle(card()).backgroundColor).toBe('#fff');
+    });
+});
+
+describe('StateChangeDialog accessibility (ticket 19)', () => {
+    let handle: RenderComponentHandle<StateChangeDialogProps> | undefined;
+
+    afterEach(() => {
+        handle?.unmount();
+        handle = undefined;
+    });
+
+    it('names the dialog by its title', () => {
+        handle = mount({ title: 'Wert ändern' });
+
+        const labelledBy = document.querySelector('[role="dialog"]')?.getAttribute('aria-labelledby') ?? '';
+
+        expect(document.getElementById(labelledBy)?.textContent).toBe('Wert ändern');
+    });
+
+    it('labels the close button with the label it is given', () => {
+        handle = mount({ closeLabel: 'Schließen' });
+
+        expect(document.querySelector('.MuiDialog-root .MuiIconButton-root')?.getAttribute('aria-label')).toBe(
+            'Schließen',
+        );
     });
 });

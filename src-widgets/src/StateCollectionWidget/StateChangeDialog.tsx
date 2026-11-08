@@ -6,9 +6,11 @@
  * @remarks
  * Purely props-driven: no CollectionContext access and no own `useValueState`
  * binding — every commit travels through `onCommit`, the body's single write
- * chain, so dialog and widget share one debounce/ignore window. The slider gate
- * and the title fallback are decided by the body (StateCollection) and arrive
- * here as `slider` / `title`; the dialog only renders what it is given.
+ * chain, so dialog and widget share one debounce/ignore window. The slider gate,
+ * the title fallback and the translated close label are decided by the body
+ * (StateCollection) and arrive here as `slider` / `title` / `closeLabel`; the
+ * dialog only renders what it is given. The title carries no id of its own: MUI
+ * links it to the dialog's `aria-labelledby` through the id it generates.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -43,6 +45,8 @@ export interface StateChangeDialogProps {
     open: boolean;
     /** Callback to close the dialog. */
     closeHandler: () => void;
+    /** Accessible name of the close button, translated by the body. */
+    closeLabel: string;
     /** Dialog title; the body resolves the header/OID-name/i18n fallback chain. */
     title: string;
     /** Background of the whole dialog, a gradient included; empty keeps the theme surface. */
@@ -64,6 +68,7 @@ export interface StateChangeDialogProps {
  * @param props.states - The resolved states to render as a selectable list.
  * @param props.open - Whether the dialog is open.
  * @param props.closeHandler - Callback to close the dialog.
+ * @param props.closeLabel - Accessible name of the close button, translated by the body.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
  * @param props.backgroundColor - Background of the whole dialog.
  * @param props.textColor - Text color of the whole dialog.
@@ -76,6 +81,7 @@ export interface StateChangeDialogProps {
  * <StateChangeDialog
  *   open={open}
  *   closeHandler={() => setOpen(false)}
+ *   closeLabel={closeLabel}
  *   states={states}
  *   title={dialogTitle}
  *   currentValue={oidValue}
@@ -88,6 +94,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     states,
     open,
     closeHandler,
+    closeLabel,
     title,
     backgroundColor,
     textColor,
@@ -202,14 +209,9 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 },
             }}
         >
-            <DialogTitle
-                sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}
-                id="customized-dialog-title"
-            >
-                {title}
-            </DialogTitle>
+            <DialogTitle sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}>{title}</DialogTitle>
             <IconButton
-                aria-label="close"
+                aria-label={closeLabel}
                 onClick={closeHandler}
                 sx={theme => ({
                     position: 'absolute',

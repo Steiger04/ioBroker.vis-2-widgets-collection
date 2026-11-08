@@ -120,6 +120,7 @@ function StateCollection(): React.ReactElement {
                     states={states}
                     open={open}
                     closeHandler={() => setOpen(false)}
+                    closeLabel={Generic.t('close')}
                     title={dialogTitle}
                     backgroundColor={data.backgroundColor || data.background}
                     textColor={data.textColor}
