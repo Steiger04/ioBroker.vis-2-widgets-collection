@@ -60,16 +60,9 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
         return StateCollectionWidget.getWidgetInfo();
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate(): void {
-        // Intentionally empty: the State widget has no derived runtime state.
-    }
-
     // This function is called every time when rxData is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxDataChanged(): void {
-        // this.propertiesUpdate();
-    }
+    onRxDataChanged(): void {}
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
@@ -81,7 +74,6 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
 
     componentDidMount(): void {
         super.componentDidMount();
-        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {

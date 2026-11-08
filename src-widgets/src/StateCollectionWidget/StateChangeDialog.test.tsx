@@ -33,7 +33,6 @@ const rows = (...entries: [StateStyleData['value'], string][]): StateStyleData[]
 const mount = (overrides: Partial<StateChangeDialogProps> = {}): RenderComponentHandle<StateChangeDialogProps> => {
     const props: StateChangeDialogProps = {
         states: rows([0, 'OFF'], [1, 'ON']),
-        open: true,
         closeHandler: vi.fn(),
         closeLabel: 'close',
         title: 'Wert ändern',

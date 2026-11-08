@@ -11,6 +11,7 @@
  * label by the body (StateCollection); they arrive here as `slider` / `title` /
  * `closeLabel` and the dialog only renders what it is given. The title carries no id
  * of its own: MUI links it to the dialog's `aria-labelledby` through the id it generates.
+ * The body mounts it only while it is open, so every opening seeds the slider anew.
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,7 +30,7 @@ import {
     Slider,
     Stack,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState, type FC, type MouseEvent } from 'react';
+import { useEffect, useState, type FC, type MouseEvent } from 'react';
 import type { StateStyleData } from '../hooks/useData/types';
 import { solidOf } from '../lib/helper/colorDerivation';
 import { isGradientColor } from '../lib/helper/colorValidation';
@@ -42,8 +43,6 @@ import isNumber from '../lib/helper/isNumber';
 export interface StateChangeDialogProps {
     /** The resolved states from useData, one list entry per state in the order of the rows. */
     states: StateStyleData[];
-    /** Whether the dialog is open. */
-    open: boolean;
     /** Callback to close the dialog. */
     closeHandler: () => void;
     /** Accessible name of the close button, translated by the body. */
@@ -78,7 +77,6 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  *
  * @param props - Component props.
  * @param props.states - The resolved states to render as a selectable list.
- * @param props.open - Whether the dialog is open.
  * @param props.closeHandler - Callback to close the dialog.
  * @param props.closeLabel - Accessible name of the close button, translated by the body.
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
@@ -91,22 +89,22 @@ const sliderPosition = (value: StateChangeDialogProps['currentValue']): number |
  * @returns Dialog UI.
  * @example
  * ```tsx
- * <StateChangeDialog
- *   open={open}
- *   closeHandler={() => setOpen(false)}
- *   closeLabel={closeLabel}
- *   states={states}
- *   title={dialogTitle}
- *   currentValue={oidValue}
- *   hasForeignChange={hasForeignChange}
- *   onCommit={setOidValueState}
- *   slider={{ min: 0, max: 100 }}
- * />
+ * {open && (
+ *   <StateChangeDialog
+ *     closeHandler={() => setOpen(false)}
+ *     closeLabel={closeLabel}
+ *     states={states}
+ *     title={dialogTitle}
+ *     currentValue={oidValue}
+ *     hasForeignChange={hasForeignChange}
+ *     onCommit={setOidValueState}
+ *     slider={{ min: 0, max: 100 }}
+ *   />
+ * )}
  * ```
  */
 const StateChangeDialog: FC<StateChangeDialogProps> = ({
     states,
-    open,
     closeHandler,
     closeLabel,
     title,
@@ -130,17 +128,15 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
 
     const hasStates = states.length > 0;
 
-    const handleSliderChange = useCallback(
-        (_event: Event, value: number | number[]) => {
-            const numericValue = Array.isArray(value) ? value[0] : value;
-            setSliderValue(numericValue);
-            onCommit(numericValue);
-        },
-        [onCommit],
-    );
+    const handleSliderChange = (_event: Event, value: number | number[]): void => {
+        const numericValue = Array.isArray(value) ? value[0] : value;
+        setSliderValue(numericValue);
+        onCommit(numericValue);
+    };
 
-    const createListItemClickHandler = useCallback(
-        (value: StateStyleData['value']) => (event: MouseEvent<HTMLDivElement>) => {
+    const createListItemClickHandler =
+        (value: StateStyleData['value']) =>
+        (event: MouseEvent<HTMLDivElement>): void => {
             event.preventDefault();
             // A state without a value is statically possible; useData skips it at runtime.
             if (value === undefined) {
@@ -151,70 +147,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 setSliderValue(value);
             }
             onCommit(value);
-        },
-        [onCommit],
-    );
-
-    const ChangeSlider = useMemo(() => {
-        if (!slider) {
-            return null;
-        }
-
-        return (
-            <Box sx={{ px: 3 }}>
-                <Slider
-                    // Room for the list below — the old commonStates condition
-                    // reads as "the dialog shows a list" now that the list is
-                    // the only thing besides the slider.
-                    sx={{ pb: hasStates ? 4 : 3 }}
-                    size="small"
-                    min={slider.min}
-                    max={slider.max}
-                    step={slider.step ?? 1}
-                    marks={[
-                        {
-                            value: slider.min,
-                            label: String(slider.min),
-                        },
-                        {
-                            value: slider.max,
-                            label: String(slider.max),
-                        },
-                    ]}
-                    valueLabelDisplay="auto"
-                    value={sliderValue}
-                    onChange={handleSliderChange}
-                />
-            </Box>
-        );
-    }, [slider, hasStates, sliderValue, handleSliderChange]);
-
-    const ChangeList = useMemo(() => {
-        if (!hasStates) {
-            return null;
-        }
-
-        return (
-            <List>
-                {states.map(state => (
-                    <ListItem
-                        disablePadding
-                        key={state.fieldNumber}
-                    >
-                        <ListItemButton
-                            selected={state.active}
-                            onClick={createListItemClickHandler(state.value)}
-                        >
-                            <ListItemText
-                                primaryTypographyProps={{ variant: 'body2' }}
-                                primary={state.label}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
-        );
-    }, [hasStates, states, createListItemClickHandler]);
+        };
 
     // `color` cannot draw a gradient: only the title clips it, everything below reads the
     // Repräsentative Vollfarbe. Any other value is drawn as given, a color name included.
@@ -222,7 +155,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
 
     return (
         <Dialog
-            open={open}
+            open
             onClose={closeHandler}
             maxWidth="xs"
             fullWidth
@@ -263,8 +196,53 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                         background: backgroundColor ? 'transparent' : undefined,
                     }}
                 >
-                    {ChangeSlider}
-                    {ChangeList}
+                    {slider && (
+                        <Box sx={{ px: 3 }}>
+                            <Slider
+                                // Room for the list below — the old commonStates condition
+                                // reads as "the dialog shows a list" now that the list is
+                                // the only thing besides the slider.
+                                sx={{ pb: hasStates ? 4 : 3 }}
+                                size="small"
+                                min={slider.min}
+                                max={slider.max}
+                                step={slider.step ?? 1}
+                                marks={[
+                                    {
+                                        value: slider.min,
+                                        label: String(slider.min),
+                                    },
+                                    {
+                                        value: slider.max,
+                                        label: String(slider.max),
+                                    },
+                                ]}
+                                valueLabelDisplay="auto"
+                                value={sliderValue}
+                                onChange={handleSliderChange}
+                            />
+                        </Box>
+                    )}
+                    {hasStates && (
+                        <List>
+                            {states.map(state => (
+                                <ListItem
+                                    disablePadding
+                                    key={state.fieldNumber}
+                                >
+                                    <ListItemButton
+                                        selected={state.active}
+                                        onClick={createListItemClickHandler(state.value)}
+                                    >
+                                        <ListItemText
+                                            primaryTypographyProps={{ variant: 'body2' }}
+                                            primary={state.label}
+                                        />
+                                    </ListItemButton>
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
                 </Stack>
             </DialogContent>
         </Dialog>

@@ -90,7 +90,6 @@ function StateCollection(): React.ReactElement {
             {dialog.open && (
                 <StateChangeDialog
                     states={states}
-                    open={dialog.open}
                     closeHandler={dialog.close}
                     closeLabel={Generic.t('close')}
                     title={dialogTitle}
