@@ -28,7 +28,7 @@ function StateCollection(): React.ReactElement {
     const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { data, states } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState, locked } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, locked, hasForeignChange } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
     const oidType = oidObject?.type;
@@ -124,6 +124,7 @@ function StateCollection(): React.ReactElement {
                     backgroundColor={data.backgroundColor}
                     textColor={data.textColor}
                     currentValue={oidValue}
+                    hasForeignChange={hasForeignChange}
                     onCommit={setOidValueState}
                     slider={sliderBounds}
                 />

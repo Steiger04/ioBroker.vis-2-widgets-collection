@@ -1050,19 +1050,19 @@ describe('StateCollection change dialog up to the socket', () => {
             expect(rangeOf().getAttribute('step')).toBe('1');
         });
 
-        it('V6 (ticket 15): a numeric string seeds the thumb at 0', () => {
+        it('ticket 15: a numeric string seeds the thumb at its number', () => {
             const state = mountState(SLIDER, '50');
 
             click(state);
 
-            expect(thumb()).toBe(0);
+            expect(thumb()).toBe(50);
         });
     });
 
     describe('Fremdänderung while the dialog is open', () => {
         const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
 
-        it('V5 (ticket 15): the button follows, the thumb stays where it was', () => {
+        it('ticket 15: the button and the thumb follow without reopening', () => {
             const state = mountState(SLIDER, 10);
 
             click(state);
@@ -1071,7 +1071,7 @@ describe('StateCollection change dialog up to the socket', () => {
             state.backend(70, 2000);
 
             expect(buttonOf(state).textContent).toBe('70');
-            expect(thumb()).toBe(10);
+            expect(thumb()).toBe(70);
         });
 
         it('the dialog stays open and nothing is written', () => {
@@ -1303,6 +1303,101 @@ describe('StateCollection change dialog marks the active row (ticket 14)', () =>
 
         expect(markedRows()).toEqual(['AUTO']);
         expect(dialogOf()).not.toBeNull();
+    });
+});
+
+describe('StateCollection dialog slider follows a Fremdänderung (ticket 15)', () => {
+    const SLIDER = { ...THREE_ROWS, oidObject: object('number', RANGE) };
+
+    it.each([
+        ['text', 'abc'],
+        ['a blank string', '  '],
+        ['a boolean', true],
+        ['null', null],
+    ])('%s seeds the thumb at 0 as before', (_case, value) => {
+        const state = mountState(SLIDER, value);
+
+        click(state);
+
+        expect(thumb()).toBe(0);
+    });
+
+    it('follows a change below the jitter filter: exactly, not only when significant', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(10.5, 2000);
+
+        expect(thumb()).toBe(10.5);
+    });
+
+    it('follows a numeric string', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend('70', 2000);
+
+        expect(thumb()).toBe(70);
+    });
+
+    it.each([
+        ['text', 'abc'],
+        ['a boolean', true],
+    ])('%s leaves the thumb where it was', (_case, value) => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(value, 2000);
+
+        expect(thumb()).toBe(10);
+    });
+
+    it('follows every further change', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        state.backend(40, 3000);
+
+        expect(thumb()).toBe(40);
+    });
+
+    it('the thumb stays on an own drag after a change, and the echo does not move it', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        drag(30);
+        expect(thumb()).toBe(30);
+
+        advance(300);
+        state.backend(30, 3000);
+        expect(thumb()).toBe(30);
+        expect(writes(state)).toEqual({ sent: [30], optimistic: [30] });
+    });
+
+    it('a stale echo inside the ignore window does not move the thumb, the next change after it does', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        drag(70);
+        state.backend(55, 2000);
+        expect(thumb()).toBe(70);
+
+        settle();
+        state.backend(20, 3000);
+
+        expect(thumb()).toBe(20);
+    });
+
+    it('following writes nothing', () => {
+        const state = mountState(SLIDER, 10);
+
+        click(state);
+        state.backend(70, 2000);
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
 });
 

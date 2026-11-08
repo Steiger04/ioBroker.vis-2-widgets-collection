@@ -27,8 +27,9 @@ import {
     Slider,
     Stack,
 } from '@mui/material';
-import { useCallback, useMemo, useState, type FC, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FC, type MouseEvent } from 'react';
 import type { StateStyleData } from '../hooks/useData/types';
+import isNumber from '../lib/helper/isNumber';
 
 /**
  * Props for {@link module:widgets/StateCollectionWidget/StateChangeDialog.default}.
@@ -46,13 +47,24 @@ export interface StateChangeDialogProps {
     backgroundColor?: string;
     /** Dialog paper text color. */
     textColor?: string;
-    /** Current OID value; seeds the slider position. */
+    /** Current OID value; seeds the slider position and moves it on a Fremdänderung. */
     currentValue?: string | number | boolean | null;
+    /** The body's Fremdänderung flag (`useValueState`): the slider position follows `currentValue`. */
+    hasForeignChange?: boolean;
     /** The body's single write chain — every list/slider commit goes through it. */
     onCommit: (value: string | number | boolean) => void;
     /** Range bounds; omit to render the state list without a slider. */
     slider?: { min: number; max: number };
 }
+
+/**
+ * The slider position an OID value stands for.
+ *
+ * @param value - Current OID value.
+ * @returns The number, a numeric string counting as one; `undefined` for anything else.
+ */
+const sliderPosition = (value: StateChangeDialogProps['currentValue']): number | undefined =>
+    typeof value !== 'boolean' && isNumber(value) ? Number(value) : undefined;
 
 /**
  * Dialog for changing a widget's current value.
@@ -64,7 +76,8 @@ export interface StateChangeDialogProps {
  * @param props.title - Dialog title (header/OID-name/i18n chain resolved by the body).
  * @param props.backgroundColor - Dialog paper background color.
  * @param props.textColor - Dialog paper text color.
- * @param props.currentValue - Current OID value; seeds the slider position.
+ * @param props.currentValue - Current OID value; seeds the slider position and moves it on a Fremdänderung.
+ * @param props.hasForeignChange - The body's Fremdänderung flag; the slider position follows `currentValue`.
  * @param props.onCommit - The body's single write chain — every commit goes through it.
  * @param props.slider - Range bounds; omit to render the list without a slider.
  * @returns Dialog UI.
@@ -76,6 +89,7 @@ export interface StateChangeDialogProps {
  *   states={states}
  *   title={dialogTitle}
  *   currentValue={oidValue}
+ *   hasForeignChange={hasForeignChange}
  *   onCommit={setOidValueState}
  *   slider={{ min: 0, max: 100 }}
  * />
@@ -89,10 +103,20 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     backgroundColor,
     textColor,
     currentValue,
+    hasForeignChange,
     onCommit,
     slider,
 }) => {
-    const [sliderValue, setSliderValue] = useState<number>(() => (typeof currentValue === 'number' ? currentValue : 0));
+    const [sliderValue, setSliderValue] = useState<number>(() => sliderPosition(currentValue) ?? 0);
+
+    // A Fremdänderung (any size) wins over the local position; the own write and its
+    // echo never raise the flag, so a drag does not hang on the echo.
+    useEffect(() => {
+        const position = sliderPosition(currentValue);
+        if (hasForeignChange && position !== undefined) {
+            setSliderValue(position);
+        }
+    }, [hasForeignChange, currentValue]);
 
     const hasStates = states.length > 0;
 
