@@ -176,6 +176,12 @@ The widget can automatically detect OIDs of a light:
 - Slider shows warm white → cool white
 - Widget writes Kelvin value
 
+### View switch (rgbcct, r/g/b/cct, h/s/v/cct)
+
+- Two buttons switch between the colour view (colour wheel) and the CCT view (white)
+- Switching to the CCT view writes the stored colour temperature (whole; 2000 K without a value) – the lamp switches to white
+- Switching back to the colour view writes the stored colour values (hex, R/G/B or H/S/V) – the lamp switches to colour again
+
 ## Brightness Control
 
 - Separate OID: `colorLightBrightnessOid`

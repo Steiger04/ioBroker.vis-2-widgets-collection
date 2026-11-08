@@ -176,6 +176,12 @@ Das Widget kann automatisch OIDs eines Lichts erkennen:
 - Slider zeigt Warmweiß → Kaltweiß
 - Widget schreibt Kelvin-Wert
 
+### Ansichtswechsel (rgbcct, r/g/b/cct, h/s/v/cct)
+
+- Zwei Knöpfe schalten zwischen Farbansicht (Farbrad) und CCT-Ansicht (Weiß)
+- Wechsel in die CCT-Ansicht schreibt die gespeicherte Farbtemperatur (ganzzahlig; ohne Wert 2000 K) – die Lampe schaltet auf Weiß
+- Wechsel zurück in die Farbansicht schreibt die gespeicherten Farbwerte (Hex, R/G/B oder H/S/V) – die Lampe schaltet wieder auf Farbe
+
 ## Helligkeitsregelung
 
 - Separate OID: `colorLightBrightnessOid`
