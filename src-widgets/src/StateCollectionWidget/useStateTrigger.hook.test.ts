@@ -205,6 +205,86 @@ describe('useStateTrigger', () => {
     });
 });
 
+describe('useStateTrigger — a press ending from outside (ticket 07)', () => {
+    const options = (
+        write: StateTriggerOptions['write'],
+        extra: Partial<StateTriggerOptions> = {},
+    ): StateTriggerOptions => ({
+        states: TWO_STATES,
+        onlyStates: true,
+        statePushButton: true,
+        write,
+        ...extra,
+    });
+
+    it('unmounting with an open press writes Wert[2] at once', () => {
+        const write = vi.fn();
+        const { result, unmount } = renderHook(() => useStateTrigger(options(write)));
+
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
+        unmount();
+
+        expect(write.mock.calls).toEqual([
+            [1, { immediate: true }],
+            [0, { immediate: true }],
+        ]);
+    });
+
+    it('unmounting without an open press writes nothing', () => {
+        const write = vi.fn();
+        const { unmount } = renderHook(() => useStateTrigger(options(write)));
+
+        unmount();
+
+        expect(write).not.toHaveBeenCalled();
+    });
+
+    it('unmounting writes through the setter and the Wert[2] of the latest render, not those of the mount', () => {
+        const mountWrite = vi.fn();
+        const latestWrite = vi.fn();
+        const { result, rerender, unmount } = renderHook(() => useStateTrigger(options(mountWrite)));
+
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
+        rerender(() =>
+            useStateTrigger(
+                options(latestWrite, {
+                    states: [
+                        { value: 1, active: false },
+                        { value: 7, active: false },
+                    ],
+                }),
+            ),
+        );
+        unmount();
+
+        expect(written(mountWrite)).toEqual([1]);
+        expect(written(latestWrite)).toEqual([7]);
+    });
+
+    it('the Sperre taking hold writes Wert[2] once and ends the press', () => {
+        const write = vi.fn();
+        const { result, rerender, unmount } = renderHook(() => useStateTrigger(options(write)));
+
+        act(() => result.current.buttonProps.onPointerDown(pointer()));
+        rerender(() => useStateTrigger(options(write, { locked: true })));
+        expect(written(write)).toEqual([1, 0]);
+
+        act(() => result.current.buttonProps.onPointerUp(pointer()));
+        unmount();
+
+        expect(written(write)).toEqual([1, 0]);
+    });
+
+    it('a render with the Sperre still on does not end anything again', () => {
+        const write = vi.fn();
+        const { rerender } = renderHook(() => useStateTrigger(options(write, { locked: true })));
+
+        rerender(() => useStateTrigger(options(write, { locked: true })));
+
+        expect(write).not.toHaveBeenCalled();
+    });
+});
+
 describe('useStateTrigger — the slider gate (ticket 17)', () => {
     it('hands the dialog the range of the gate', () => {
         const { result } = mountTrigger({

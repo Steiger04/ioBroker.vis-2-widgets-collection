@@ -623,7 +623,7 @@ describe('StateCollection push button up to the socket', () => {
     });
 
     describe('ending from outside', () => {
-        it('V3, V20 (tickets 06 and 07): unmounting right after the press keeps the press value, nothing more', () => {
+        it('V3, V20 (tickets 06 and 07): unmounting right after the press sends both values', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -631,10 +631,10 @@ describe('StateCollection push button up to the socket', () => {
             state.unmount();
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 07: unmounting while holding writes nothing more', () => {
+        it('ticket 07: unmounting while holding sends Wert[2]', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
@@ -642,17 +642,16 @@ describe('StateCollection push button up to the socket', () => {
             state.unmount();
             settle();
 
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
         });
 
-        it('ticket 07: the Sperre taking hold while holding writes nothing until the release', () => {
+        it('ticket 07: the Sperre taking hold while holding sends Wert[2] at once, the release nothing more', () => {
             const state = mountState(PUSH_BUTTON);
 
             press(state);
             advance(400);
             state.configure({ onlyDisplay: true });
-            settle();
-            expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+            expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
 
             // Unlike mouseup, React passes pointerup to a disabled button.
             release(state);
@@ -982,6 +981,115 @@ describe('StateCollection push button writes at once (ticket 06)', () => {
         settle();
 
         expect(writes(state).sent).toEqual([1, 0, 1]);
+    });
+});
+
+describe('StateCollection press ending from outside (ticket 07)', () => {
+    it('unmounting without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('unmounting after the release sends nothing more', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        tap(state, 400);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+    });
+
+    it('the Sperre taking hold without an open press sends nothing', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        state.configure({ onlyDisplay: true });
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [], optimistic: [] });
+    });
+
+    it('write === false taking hold while holding: the guard of the Schreibkette holds Wert[2] back', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        settle();
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+
+        release(state);
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('unmounting right after write === false took hold: the press has ended, nothing is sent', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('number', { write: false }) });
+        state.unmount();
+        settle();
+
+        expect(writes(state)).toEqual({ sent: [1], optimistic: [1] });
+    });
+
+    it('the Sperre lifting while still holding starts nothing until a new press', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ onlyDisplay: true });
+        state.configure({ onlyDisplay: false });
+        release(state);
+        settle();
+        expect(writes(state)).toEqual({ sent: [1, 0], optimistic: [1, 0] });
+
+        tap(state, 400);
+
+        expect(writes(state)).toEqual({ sent: [1, 0, 1, 0], optimistic: [1, 0, 1, 0] });
+    });
+
+    it('unmounting sends the Wert[2] of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ value2: '7' });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, 7]);
+    });
+
+    it('unmounting converts by the bound object of the latest configuration, not that of the mount', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        press(state);
+        state.configure({ oidObject: object('string') });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent).toEqual([1, '0']);
+    });
+
+    it('Wert[2] is the last thing the socket hears, also behind a value waiting in the debounce', () => {
+        const state = mountState(PUSH_BUTTON);
+
+        // A waiting 1 next to an open press: the toggle click of a former mode, behind the debounce.
+        press(state);
+        state.backend(0, 2000);
+        state.configure({ statePushButton: false });
+        click(state);
+        expect(writes(state).optimistic).toEqual([1, 1]);
+        state.configure({ statePushButton: true });
+        state.unmount();
+        settle();
+
+        expect(writes(state).sent.at(-1)).toBe(0);
     });
 });
 

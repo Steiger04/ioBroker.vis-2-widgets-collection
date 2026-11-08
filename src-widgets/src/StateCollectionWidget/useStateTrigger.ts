@@ -17,8 +17,11 @@
  * leaving the button would fire `pointerleave` only after it is lifted. The press hands that capture
  * back, then touch follows the leaving rule of the mouse. Pointer Events spec, not measured here:
  * the live check is ticket 22.
+ *
+ * Unmount and the Sperre taking hold end an open press from outside (ADR-0110 Nr. 4), which is what
+ * the two effects are for. `write === false` is held back by the guard of the Schreibkette.
  */
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 import { NO_PRESS, sliderRange, triggerStep } from './stateTrigger';
 import type { UpdateValueOptions } from '../hooks/useValueState';
@@ -61,21 +64,37 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     // The latest step, not the last render: two events in one tick build on each other, so a
     // second release right after the first finds no open press.
     const pressRef = useRef(NO_PRESS);
+    // The latest render: the cleanup on unmount must not write with the setter and the Wert[2] of the mount.
+    const optionsRef = useRef(options);
+    optionsRef.current = options;
 
-    const fire = (event: TriggerEvent): void => {
-        const step = triggerStep(pressRef.current, event, options);
+    const fire = useCallback((event: TriggerEvent): void => {
+        const current = optionsRef.current;
+        const step = triggerStep(pressRef.current, event, current);
         pressRef.current = step.press;
 
         if (step.action.type === 'write') {
             if (step.action.immediate) {
-                options.write(step.action.value, { immediate: true });
+                current.write(step.action.value, { immediate: true });
             } else {
-                options.write(step.action.value);
+                current.write(step.action.value);
             }
         } else if (step.action.type === 'open-dialog') {
             setOpen(true);
         }
-    };
+    }, []);
+
+    // The Sperre taking hold ends the open press; lifting it starts none.
+    const { locked } = options;
+    useEffect(() => {
+        if (locked) {
+            fire({ kind: 'end' });
+        }
+    }, [locked, fire]);
+
+    // Cleans up after `useValueState` (hook order, pinned in the body suite): Wert[2] is the last value
+    // sent, and the immediate write needs no live debounce.
+    useEffect(() => (): void => fire({ kind: 'end' }), [fire]);
 
     const onPointerDown = ({ pointerId, button, target }: StateTriggerPointerEvent): void => {
         fire({ kind: 'press', pointerId, button });
