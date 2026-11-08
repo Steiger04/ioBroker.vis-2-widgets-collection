@@ -12,6 +12,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import { solidOf } from '../lib/helper/colorDerivation';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
 
@@ -55,7 +56,9 @@ const InputCollection: FC = () => {
     const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidObject?.type);
     const attributes = buildEntryFieldAttributes({ fields: widget.data, object: oidObject, draft: field.value });
 
-    const textColor = data.textColor;
+    // A field cannot clip a gradient through its text without losing the caret, so it paints the
+    // Repräsentative Vollfarbe. Without one the rule stays out and the theme text colour remains.
+    const fieldColor = solidOf(data.textColor);
     const inputVariant = widget.data.inputVariant ?? 'standard';
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -98,9 +101,12 @@ const InputCollection: FC = () => {
                             },
                             htmlInput: attributes.htmlInput,
                         }}
+                        // The InputBase sets size and colour again, so both go to the input itself. MUI's
+                        // error red is the line around it, not the text. The unit's Typography has a
+                        // size of its own and keeps its colour. Unset values drop out of the rule.
                         sx={{
-                            fontSize: data.valueSize,
-                            color: textColor,
+                            '& .MuiInputBase-input': { fontSize: data.valueSize, color: fieldColor },
+                            '& .MuiInputAdornment-root .MuiTypography-root': { fontSize: data.valueSize },
                         }}
                     />
                     {showOkButton && (

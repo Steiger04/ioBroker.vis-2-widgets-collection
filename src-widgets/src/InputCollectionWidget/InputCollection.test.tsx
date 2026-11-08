@@ -369,15 +369,18 @@ describe('InputCollection field attributes', () => {
         expect(container.querySelector('.MuiInputAdornment-root')).toBeNull();
     });
 
-    // The `sx` stops at the FormControl root: the InputBase below it sets its own size and the
-    // theme text colour (Theme('light') → #3399CC), and the input inherits from there.
-    it('keeps value size and text colour away from the input and its InputBase (Ist-Verhalten, kippt in 09)', () => {
+    // The input carries both itself: the InputBase above it keeps its own size and the theme text
+    // colour (Theme('light') → #3399CC), so a rule on the FormControl root would stop there.
+    it('puts value size and text colour on the input, not on its InputBase or the root (09)', () => {
         const { container } = mountInput({ textColor: '#aa0000', valueSize: 200 });
         const input = getComputedStyle(start(container));
         const base = getComputedStyle(container.querySelector('.MuiInputBase-root') as HTMLElement);
+        const root = getComputedStyle(container.querySelector('.MuiFormControl-root') as HTMLElement);
 
-        expect([input.color, base.color]).toEqual(['currentcolor', '#3399CC']);
-        expect([input.fontSize, base.fontSize]).toEqual(['inherit', '16px']);
+        expect([input.color, base.color]).toEqual(['#aa0000', '#3399CC']);
+        expect([input.fontSize, base.fontSize]).toEqual(['calc(32px * 0.875)', '16px']);
+        expect([root.color, root.fontSize]).not.toContain('#aa0000');
+        expect([root.color, root.fontSize]).not.toContain('calc(32px * 0.875)');
     });
 });
 
@@ -750,5 +753,79 @@ describe('InputCollection unit through the panel field (Ticket 12)', () => {
         const emptied = await change('unit', { ...overridden, unit: '' });
         configure(emptied);
         expect(displayOf(container).textContent).toBe('40');
+    });
+});
+
+describe('InputCollection field style (Ticket 09)', () => {
+    const WITH_UNIT = { oidObject: object('number', { unit: '°C' }) };
+
+    /** The text of the unit adornment: MUI wraps a string in a Typography with its own size and colour. */
+    const unitOf = (container: HTMLElement): CSSStyleDeclaration =>
+        getComputedStyle(container.querySelector('.MuiInputAdornment-root .MuiTypography-root') as HTMLElement);
+
+    it.each([
+        ['a solid colour', '#aa0000', '#aa0000'],
+        ['an rgba colour', 'rgba(170, 0, 0, 0.5)', 'rgba(170, 0, 0, 0.5)'],
+        [
+            'a gradient, as its Repräsentative Vollfarbe',
+            'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)',
+            'rgb(128, 0, 128)',
+        ],
+    ])('paints %s on the input', (_case, textColor, painted) => {
+        const { container } = mountInput({ textColor });
+
+        expect(getComputedStyle(start(container)).color).toBe(painted);
+    });
+
+    it.each([
+        ['a colour name', 'red'],
+        ['transparent', 'transparent'],
+        ['a CSS variable', 'var(--vis2-text)'],
+        ['a gradient without readable stops', 'linear-gradient(90deg, red, blue)'],
+    ])('leaves the theme text colour on the input for %s: no Repräsentative Vollfarbe', (_case, textColor) => {
+        const { container } = mountInput({ textColor });
+
+        expect(getComputedStyle(start(container)).color).toBe('currentcolor');
+    });
+
+    it('puts the value size on the input and the unit', () => {
+        const { container } = mountInput({ ...WITH_UNIT, valueSize: 200 });
+
+        expect(getComputedStyle(start(container)).fontSize).toBe('calc(32px * 0.875)');
+        expect(unitOf(container).fontSize).toBe('calc(32px * 0.875)');
+    });
+
+    it('keeps the size of the field and the unit without a value size', () => {
+        const { container } = mountInput(WITH_UNIT);
+        const input = getComputedStyle(start(container));
+        const base = getComputedStyle(container.querySelector('.MuiInputBase-root') as HTMLElement);
+
+        expect([input.fontSize, base.fontSize]).toEqual(['inherit', '16px']);
+        expect(unitOf(container).fontSize).toBe('16px');
+    });
+
+    it('keeps the colour of the unit, whatever the text colour', () => {
+        const plain = mountInput(WITH_UNIT);
+        start(plain.container);
+        const unitColor = unitOf(plain.container).color;
+
+        const coloured = mountInput({ ...WITH_UNIT, textColor: '#aa0000', valueSize: 200 });
+        start(coloured.container);
+
+        expect(unitColor).not.toBe('#aa0000');
+        expect(unitOf(coloured.container).color).toBe(unitColor);
+    });
+
+    // MUI's red is the underline or outline behind `Mui-error`, never the text; the computed line
+    // colour is a live check (ticket 13).
+    it('keeps the red of the conflict on the field that carries the text colour', () => {
+        const { container, backend } = mountInput({ textColor: '#aa0000', valueSize: 200 });
+        start(container);
+
+        backend(50, 2000);
+
+        expect(isRed(container)).toBe(true);
+        expect(container.querySelector('.MuiInputBase-root')?.classList.contains('Mui-error')).toBe(true);
+        expect(getComputedStyle(requireField(container)).color).toBe('#aa0000');
     });
 });
