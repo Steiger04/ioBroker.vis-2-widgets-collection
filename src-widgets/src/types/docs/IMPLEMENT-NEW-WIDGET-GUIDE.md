@@ -168,9 +168,8 @@ export default MyNewCollection;
 
 Key hooks:
 
-- `useData('oid')`: returns attribute and style data.
+- `useData('oid')`: returns attribute and style data, and the current value as `oidValue`.
 - `useValueState('oid')`: returns current OID value plus an update function.
-- `useOidValue('oid')`: returns only the current value.
 - `useStyles(widget.style)`: processes styles.
 
 Reference: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollection.tsx](../../CheckboxCollectionWidget/CheckboxCollection.tsx)

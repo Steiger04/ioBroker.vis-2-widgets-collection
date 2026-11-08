@@ -8,9 +8,10 @@
  * CollectionProvider over a preview scene (the Select/ButtonGroup DOM-test pattern), so
  * the style resolution runs exactly as inside a widget.
  */
-import type { FC } from 'react';
+import { useContext, type FC } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { CollectionContext } from '../../components/CollectionProvider';
 import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../../lib/testing/collectionScene';
 import useData from './useData';
 import type { StateStyleData, UseDataResult } from './types';
@@ -274,5 +275,54 @@ describe('useData — the active flag of each state (Aktiver Zustand)', () => {
         const { states } = resolve(duplicateRows, 'x');
 
         expect(states.map(state => state.active)).toEqual([false, false, false]);
+    });
+});
+
+/**
+ * A body that builds from `oidValue` (the gauge's canvas options) would build twice per change
+ * if a render saw the old value next to the new context data.
+ */
+describe('useData — oidValue, in the render that brings it', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    /** Per render what useData publishes and what the context reads in that same render. */
+    let renders: { oidValue: unknown; read: unknown }[] = [];
+
+    const Probe: FC = () => {
+        const { getPropertyValue } = useContext(CollectionContext);
+        renders.push({ oidValue: useData('oid').oidValue, read: getPropertyValue('oid') });
+        return null;
+    };
+
+    const mountProbe = (status: unknown): MountedCollectionBody => {
+        renders = [];
+        const host = mountCollectionBody(Probe, scene({}, status));
+        mounted.push(host);
+        return host;
+    };
+
+    it.each([
+        ['a string', 'a'],
+        ['zero', 0],
+        ['false', false],
+        ['null', null],
+        ['no value yet', undefined],
+    ])('reads the same value as getPropertyValue: %s', (_label, status) => {
+        mountProbe(status);
+
+        expect(renders.at(-1)).toEqual({ oidValue: status, read: status });
+    });
+
+    it('has the new value in the render that brings it — no render with the old one', () => {
+        const host = mountProbe(1);
+        renders = [];
+
+        host.rerender(scene({}, 2));
+
+        expect(renders.map(render => render.oidValue)).toEqual([2]);
     });
 });

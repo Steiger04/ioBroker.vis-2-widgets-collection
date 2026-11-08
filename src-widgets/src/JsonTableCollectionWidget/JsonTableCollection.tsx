@@ -50,7 +50,6 @@ import type { FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 
@@ -156,8 +155,7 @@ const JsonTableCollection: FC = () => {
         id: widgetId,
     } = context;
 
-    const { data } = useData('oid');
-    const oidValue = useOidValue('oid');
+    const { data, oidValue } = useData('oid');
     const theme = useTheme();
 
     const oidType = oidObject?.type as string | undefined;
