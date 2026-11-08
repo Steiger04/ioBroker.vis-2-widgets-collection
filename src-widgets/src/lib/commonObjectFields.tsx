@@ -13,6 +13,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import { oidTypeFilter } from './allowedOidTypes';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, isStateRowKey, stateRowCount } from './stateRows';
@@ -277,7 +278,8 @@ export const oidChangeHandlerAsync =
  * @returns The field definition.
  * @remarks
  * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
- * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys).
+ * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys) — and as
+ * `filter` for the object dialog, which then offers only those types (ADR-0111 Nr. 4).
  * @example createIdField('oid', ANY_VALUE_TYPES)
  */
 export const createIdField = (
@@ -291,6 +293,7 @@ export const createIdField = (
         label: name,
         onChange: oidChangeHandlerAsync(allowedTypes, name, options),
         allowedTypes,
+        filter: oidTypeFilter(allowedTypes),
     }) as RxWidgetInfoAttributesField;
 
 /** Options to toggle optional sections emitted by {@link commonObjectFields}. */

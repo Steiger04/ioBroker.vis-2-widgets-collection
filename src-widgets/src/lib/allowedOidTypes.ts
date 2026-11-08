@@ -11,7 +11,7 @@
  * rejects with "invalid type". Both sides now consume these constants, and
  * `allowedOidTypes.parity.test.ts` pins the editor side by introspecting
  * `getWidgetInfo()` (the oid field carries an introspectable `allowedTypes`
- * mirror).
+ * mirror). The same list filters the field's object dialog ({@link oidTypeFilter}).
  *
  * Scope: only widgets with MULTI-type lists live here — a list long enough to
  * drift silently. Single-type guards (`Checkbox`/`Switch`/`Template`:
@@ -31,6 +31,19 @@ export const INPUT_ENTRY_TYPES = ['string', 'number', 'mixed'] as const satisfie
 
 /** Table payload types — the JsonTable widget. */
 export const JSON_TABLE_TYPES = ['string', 'mixed', 'json'] as const satisfies readonly AllowedType[];
+
+/**
+ * The object dialog's filter for an OID field: the host hands `field.filter` to the object browser,
+ * which keeps only objects whose `common.type` is listed (ADR-0111 Nr. 4). States without
+ * `common.type` leave the dialog; the pick would refuse them anyway. Typing an id stays possible.
+ *
+ * @param types - The field's allowed types.
+ * @returns The field's `filter`.
+ */
+export function oidTypeFilter(types: readonly AllowedType[]): { common: { type: ioBroker.CommonType[] } } {
+    // A cast: `json` is a real common.type the ioBroker typings do not list.
+    return { common: { type: [...types] as ioBroker.CommonType[] } };
+}
 
 /**
  * Renderer-side type guard over one of the allowed-types constants.

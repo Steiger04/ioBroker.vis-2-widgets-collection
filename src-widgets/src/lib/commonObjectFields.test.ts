@@ -18,7 +18,7 @@ vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
 vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 
-import { ANY_VALUE_TYPES } from './allowedOidTypes';
+import { ANY_VALUE_TYPES, JSON_TABLE_TYPES } from './allowedOidTypes';
 import commonObjectFields, { oidChangeHandlerAsync } from './commonObjectFields';
 
 const STATUS = 'zigbee.0.lamp.mode_status';
@@ -436,6 +436,18 @@ describe('commonObjectFields — the panel no longer offers the value-group swit
 
         expect(names).not.toContain('ignoreCommonStates');
         expect(names).not.toContain('values_count');
+    });
+});
+
+describe('commonObjectFields — the object dialog offers only the allowed types (ADR-0111 Nr. 4)', () => {
+    it.each([
+        { family: 'ANY_VALUE_TYPES', types: ANY_VALUE_TYPES },
+        { family: 'JSON_TABLE_TYPES', types: JSON_TABLE_TYPES },
+        { family: 'a single type', types: ['number'] as const },
+    ])('the oid field filters on $family', ({ types }) => {
+        const field = commonObjectFields(types).find(candidate => candidate.name === 'oid');
+
+        expect((field as { filter?: unknown }).filter).toEqual({ common: { type: [...types] } });
     });
 });
 

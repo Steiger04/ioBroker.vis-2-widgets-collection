@@ -277,6 +277,30 @@ describe('Light2 switch-OID pick — emptying the switch', () => {
     });
 });
 
+describe('Light2 id fields — the object dialog offers only the allowed types (ADR-0111 Nr. 4)', () => {
+    const idFields = light2Fields().filter(
+        field => (field as { type?: string }).type === 'id',
+    ) as (RxWidgetInfoAttributesField & { filter?: unknown })[];
+
+    it('covers the switch and all eight channels', () => {
+        expect(idFields.map(field => field.name)).toEqual([
+            'colorLightSwitchOid',
+            'colorLightTemperatureOid',
+            'colorLightRgbHexOid',
+            'colorLightRedOid',
+            'colorLightGreenOid',
+            'colorLightBlueOid',
+            'colorLightHueOid',
+            'colorLightSaturationOid',
+            'colorLightBrightnessOid',
+        ]);
+    });
+
+    it.each(idFields.map(field => [field.name, field] as const))('%s filters on the Light2 OID types', (_, field) => {
+        expect(field.filter).toEqual({ common: { type: ['boolean', 'number', 'string', 'mixed'] } });
+    });
+});
+
 describe('Light2 switch-OID pick — without a usable object (ADR-0111 Nr. 3)', () => {
     const DIMMER = 'hue.0.lamp.level';
     const REJECTED = 'hue.0.lamp.scene';
