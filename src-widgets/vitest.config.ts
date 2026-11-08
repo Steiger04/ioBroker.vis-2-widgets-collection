@@ -29,6 +29,7 @@ const DOM_TS_TESTS = [
     'src/hooks/useValueState.hook.test.ts',
     'src/InputCollectionWidget/useInlineEdit.hook.test.ts',
     'src/JsonTableCollectionWidget/useViewState.hook.test.ts',
+    'src/Light2CollectionWidget/useLampSync.hook.test.ts',
     'src/lib/allowedOidTypes.parity.test.ts',
     'src/lib/useEditorHistory.hook.test.ts',
     'src/ThemeConfigWizard/useStudioSession.hook.test.ts',

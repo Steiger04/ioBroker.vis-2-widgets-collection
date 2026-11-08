@@ -18,7 +18,7 @@
  * `createColorField({ name, label })` — the very case this test exists for — carries none.
  *
  * Deliberately NOT in scope: the Schlichte Farbfelder (`createPlainColorField`, ADR-0102 —
- * Gauge class C, `dialogCloseButtonColor`, `colorLightBorderColor`, `markerIconColor`). They
+ * Gauge class C, `dialogCloseButtonColor`, `markerIconColor`). They
  * have no cascade — their swatch shows exactly the stored value — so there is no swatch that
  * could disagree with the runtime. Their editor is a module of its own (`PlainColorField`,
  * mocked separately below), so the scan does not recognise them. Configurator-internal pickers
@@ -187,13 +187,18 @@ describe('colour field terminals (every contract colour field declares a termina
         for (const key of [
             'GaugeCollectionWidget.gaugeColorBar',
             'DialogCollectionWidget.dialogCloseButtonColor',
-            'Light2CollectionWidget.colorLightBorderColor',
             'SliderCollectionWidget.markerIconColor',
         ]) {
             expect(keys.has(key), key).toBe(false);
         }
         // … while the Gauge's contract colour fields are still scanned.
         expect(keys.has('GaugeCollectionWidget.gaugeColorBarProgress')).toBe(true);
+    });
+
+    it('scans the border colour of the Lampen-Bedienelement as a contract field with the primary terminal', () => {
+        // ADR-0102 Nachtrag 2026-11-07: a Schlichtes Farbfeld until then, its empty swatch hid the primary drawn.
+        const border = scanned.find(field => field.key === 'Light2CollectionWidget.colorLightBorderColor');
+        expect(border?.terminal).toBe('primary');
     });
 
     it.each(widgets)('%s: every colour field declares a terminal', name => {

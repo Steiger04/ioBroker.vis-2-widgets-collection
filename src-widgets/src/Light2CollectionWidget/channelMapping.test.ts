@@ -1,18 +1,24 @@
 /**
- * Unit tests for the backend-state → iro.Color initialization handlers.
+ * PIN — Light2 read behaviour: Kanal values → picker colour.
  *
- * @module Light2CollectionWidget/initHandlers.test
+ * @module Light2CollectionWidget/channelMapping.test
  * @remarks
- * These handlers define how the picker mirrors the device on init and on
- * backend changes: per-type channel reads, safe fallbacks (2000 K, #ffffff, 0),
+ * The cases of the former `initHandlers.test.ts`, moved unchanged with the read helper into
+ * the channel mapping (ADR-0108 Nr. 2); only the call form follows
+ * the new interface (Lichttyp, view, picker). They define how the picker mirrors the device on
+ * init and on backend changes: per-type channel reads, safe fallbacks (2000 K, #ffffff, 0),
  * and the Hue-254 → percent normalization. Pure functions of widget data and a
  * getPropertyValue accessor — the picker view itself is untested (project rule).
+ *
+ * Former entry points: `initializeKelvin` = the Kelvin-Picker of the CCT-Ansicht,
+ * `initializeBrightness` = its Helligkeits-Picker, `initializeColorFromStates(type, n)` = the
+ * effective Lichttyp's view with picker n (1 Kelvin, 2 Helligkeit) in the CCT-Ansicht.
  */
 import { describe, expect, it } from 'vitest';
 import type iro from '@jaames/iro';
 
-import { initializeBrightness, initializeColorFromStates, initializeKelvin } from './initHandlers';
-import type { Light2WidgetData } from './initHandlers';
+import { readChannelsIntoColor } from './channelMapping';
+import type { Light2WidgetData, PickerTarget } from './channelMapping';
 
 /** Fake iro.Color: the handlers only assign scalar properties. */
 const makeColor = (): { color: iro.Color; state: Record<string, unknown> } => {
@@ -30,6 +36,42 @@ const makeGetProperty =
         values[name];
 
 const makeData = (overrides: Record<string, unknown>): Light2WidgetData => overrides as unknown as Light2WidgetData;
+
+type Read = (
+    color: iro.Color,
+    widgetData: Light2WidgetData,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+) => void;
+
+/** The Kelvin-Picker of the CCT-Ansicht (former `initializeKelvin`). */
+const initializeKelvin: Read = (color, data, get) =>
+    readChannelsIntoColor(color, { type: 'cct', view: 'cct', picker: 'kelvin' }, data, get);
+
+/** The Helligkeits-Picker of the CCT-Ansicht (former `initializeBrightness`). */
+const initializeBrightness: Read = (color, data, get) =>
+    readChannelsIntoColor(color, { type: 'cct', view: 'cct', picker: 'brightness' }, data, get);
+
+/**
+ * The former `initializeColorFromStates(color, effectiveType, get, data, n)`: the effective
+ * Lichttyp 'cct' is the CCT-Ansicht, picker n 1 = Kelvin, 2 = Helligkeit.
+ */
+const initializeColorFromStates = (
+    color: iro.Color,
+    effectiveType: string,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+    data: Light2WidgetData,
+    pickerNumber?: 1 | 2,
+): void => {
+    const target: PickerTarget =
+        effectiveType === 'cct'
+            ? {
+                  type: 'cct',
+                  view: 'cct',
+                  picker: pickerNumber === 1 ? 'kelvin' : pickerNumber === 2 ? 'brightness' : undefined,
+              }
+            : { type: effectiveType, view: 'color' };
+    readChannelsIntoColor(color, target, data, getPropertyValue);
+};
 
 describe('initializeKelvin', () => {
     it('reads the temperature state', () => {
