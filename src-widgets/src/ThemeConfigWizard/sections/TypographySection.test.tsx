@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
+import type { GoogleFontsMap } from '../../lib/theme/themeTypes';
 import { CORNER_RADIUS_MAX } from '../../lib/theme/themeUtils';
 import type { TypographySectionProps } from './TypographySection';
 import TypographySection from './TypographySection';
@@ -74,6 +75,48 @@ describe('TypographySection Google font field', () => {
         ).toEqual(['theme_wizard_typography_google_font_load', 'theme_studio_help_google_font']);
         // The invisible caption above the row matches the field's caption, so the row sits on the input.
         expect(row?.previousElementSibling?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('embeds Regular and Bold of a loaded font, as the help hint promises', async () => {
+        // Google's CSS2 endpoint answers with the regular face only, unless the weights are named.
+        const face = (weight: number): string =>
+            `/* latin */\n@font-face {\n  font-weight: ${weight};\n  src: url(https://fonts.gstatic.com/${weight}.woff2) format('woff2');\n}\n`;
+        vi.stubGlobal(
+            'fetch',
+            vi.fn((url: string) =>
+                Promise.resolve(
+                    url.endsWith('.woff2')
+                        ? new Response(new Uint8Array([1, 2, 3]).buffer)
+                        : new Response(url.includes('wght@400;700') ? face(400) + face(700) : face(400)),
+                ),
+            ),
+        );
+        const onApply = vi.fn();
+        const mounted = renderComponent<TypographySectionProps>(TypographySection, {
+            theme: {},
+            onChange: () => {},
+            onApply,
+            expanded: true,
+        });
+        handle = mounted;
+
+        const group = mounted.container.querySelector('[data-google-font-group]');
+        const input = group?.querySelector<HTMLInputElement>('input[type="text"]');
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, 'Lato');
+            input?.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        const load = Array.from(group?.querySelectorAll('button') ?? []).find(
+            button => button.textContent === 'theme_wizard_typography_google_font_load',
+        );
+        await act(async () => {
+            load?.click();
+            await vi.waitFor(() => expect(onApply).toHaveBeenCalledOnce());
+        });
+        vi.unstubAllGlobals();
+
+        const applied = (onApply.mock.calls[0][0] as (prev: object) => { googleFonts: GoogleFontsMap })({});
+        expect(applied.googleFonts.Lato.map(({ weight }) => weight)).toEqual([400, 700]);
     });
 });
 
