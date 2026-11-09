@@ -444,6 +444,10 @@ _Avoid_: „full host merge“, host skin, cssVars mirror
 The in-section disclosure at the end of Schrift & Form holding the font-weight selects and the line-height slider — rare, expert knobs (bundled fonts ship real 400/700 faces only; other weights synthesise).
 _Avoid_: Advanced typography, more options
 
+**Wirkort**:
+Where a Theme Studio color shows up in the widgets — what the "?" hint of a color field names and what the wiki's color tables list. English pages: where it takes effect.
+_Avoid_: Verwendung, Einsatzort
+
 **Control kit**:
 The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds the modern family from the host mode, ADR-0038/0078).
 _Avoid_: Editor controls, per-editor widgets
