@@ -137,7 +137,6 @@ export interface MarkBaseStyle {
 
 /**
  * Return type for useData hook.
- * Matches the return type structure of useData for API compatibility.
  */
 export interface UseDataResult {
     /** Array of computed state items with resolved properties, marker layer included */

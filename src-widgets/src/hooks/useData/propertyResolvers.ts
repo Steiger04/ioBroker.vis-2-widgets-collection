@@ -372,7 +372,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
                 { condition: includeActive, value: getDataValue<string>('background', 'Active') },
                 { value: getDataValue<string>('background', String(ext)) },
                 { value: getDataValue<string>('background', '') },
-                // { value: backgroundStyles?.background },
             ]) ?? '',
 
         // Like backgroundColor: the widget's CSS background-color (base field retired 2026-02-12).

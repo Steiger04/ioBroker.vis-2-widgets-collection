@@ -80,7 +80,6 @@ function CollectionBase({
     cornerIcon,
 }: CollectionBaseProps): JSX.Element {
     // Consolidated refs
-    // const containerRef = useRef<HTMLDivElement>(null);
     const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
     // The inner Paper — the box the children live in; measured as the Content-Box.
     const [contentPaper, setContentPaper] = useState<HTMLDivElement | null>(null);

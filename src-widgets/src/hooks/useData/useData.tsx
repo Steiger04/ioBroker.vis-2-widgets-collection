@@ -149,7 +149,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
                 const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
 
-                // Type conversion (analog to states useMemo Lines 402-408)
+                // The row's value in the OID's type: a commonStates key is a string, a number OID reads numbers.
                 const convertedValue = commonStateEntry
                     ? oidType === 'number'
                         ? Number(commonStateEntry[0])
