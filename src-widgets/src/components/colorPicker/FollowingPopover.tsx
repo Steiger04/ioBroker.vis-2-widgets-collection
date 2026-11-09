@@ -23,7 +23,7 @@
 import { Box, Popover } from '@mui/material';
 import type { PopoverActions, PopoverOrigin } from '@mui/material/Popover';
 import type { SxProps, Theme } from '@mui/material/styles';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useInsertionEffect, useRef, useState } from 'react';
 import type React from 'react';
 
 /** Vertical side of the anchor the popover opens on. */
@@ -83,16 +83,30 @@ function FollowingPopover({ anchorEl, open, onClose, children, paperSx }: Follow
         setPlacement(next);
     }, []);
 
-    // Opening side on open, and again when the window changes size.
+    // Opening side on open, and again when the window changes size. An opening releases a held
+    // popover while rendering; the side needs the anchor's layout, so it is measured after the commit.
+    const [openedFor, setOpenedFor] = useState<{ open?: boolean; anchorEl?: HTMLElement | null }>({});
+    if (openedFor.open !== open || openedFor.anchorEl !== anchorEl) {
+        setOpenedFor({ open, anchorEl });
+        if (open && anchorEl) {
+            setHeld(false);
+        }
+    }
+    const anchorRef = useRef(anchorEl);
+    useInsertionEffect(() => {
+        anchorRef.current = anchorEl;
+    });
     useEffect(() => {
-        if (!open || !anchorEl) {
+        const anchor = anchorRef.current;
+        if (!open || !anchor) {
             return undefined;
         }
-        setHeld(false);
-        applyPlacement(roomierSide(anchorEl));
+        const side = roomierSide(anchor);
+        placementRef.current = side;
+        setPlacement(side);
         const onResize = (): void => {
             setHeld(false);
-            applyPlacement(roomierSide(anchorEl));
+            applyPlacement(roomierSide(anchor));
         };
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
