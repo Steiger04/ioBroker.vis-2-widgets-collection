@@ -289,167 +289,256 @@ Tabs: **Axes** | **Markings** | **Zoom**.
 
 ### X card
 
-Tabs: **Basis** | **Labels** | **Ticks & grid** | **Advanced**.
+The single, non-deletable card of the shared X axis, titled **X axis** and first in the Axes tab. Tabs: **Basics** | **Labels** | **Ticks & grid** | **Advanced**.
 
-| Setting                                           | Default                 | Description                                                                                                                                                                                                                                                                                                     |
-| ------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Axis name                                         | –                       | label below the axis                                                                                                                                                                                                                                                                                            |
-| Position                                          | bottom                  | top mirrors the axis above the chart                                                                                                                                                                                                                                                                            |
-| Offset (px)                                       | 0                       | moves the axis away from the chart (fine-tuning)                                                                                                                                                                                                                                                                |
-| Time format                                       | Automatic               | [moment.js](https://momentjs.com/docs/#/displaying/format/) tokens (e.g. `HH:mm`, `ddd`, `HH:mm <br /> DD.MM.`) driving the axis labels **and** the tooltip header. Auto = adaptive (seconds below 30 min span, date on day change). Hidden for JSON tables with a category X (the labels are the payload text) |
-| Axis color                                        | theme                   | line, labels and name                                                                                                                                                                                                                                                                                           |
-| Rotate labels                                     | 0°                      | angled time labels on narrow widgets                                                                                                                                                                                                                                                                            |
-| Label font size (px)                              | 12                      |                                                                                                                                                                                                                                                                                                                 |
-| Show ticks / tick color                           | on / inherited          |                                                                                                                                                                                                                                                                                                                 |
-| Gridlines / grid color / grid width / stroke type | off / theme / 1 / solid | vertical gridlines                                                                                                                                                                                                                                                                                              |
-| Tick segments                                     | 6                       | target tick count                                                                                                                                                                                                                                                                                               |
-| Min. interval                                     | –                       | milliseconds (e.g. 3600000 = 1 h)                                                                                                                                                                                                                                                                               |
-| Name rotation (°)                                 | 0                       | fine-tuning                                                                                                                                                                                                                                                                                                     |
+**Tab Basics**
+
+| Setting     | Default | Description                                                                                     |
+| ----------- | ------- | ----------------------------------------------------------------------------------------------- |
+| Axis name   | –       | Name centered on the axis                                                                       |
+| Offset (px) | 0       | Moves line, ticks and labels away from the chart in the direction of the position (fine-tuning) |
+| Position    | Bottom  | Bottom · Top. Top mirrors the axis above the chart                                              |
+
+**Tab Labels**
+
+| Setting         | Default                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Axis color      | the theme's primary color | Line, ticks and labels; the axis name only as a set value                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Time format     | Automatic                 | Pick from 26 presets grouped by purpose, or type [moment.js](https://momentjs.com/docs/#/displaying/format/) tokens (e.g. `HH:mm`, `ddd`, `HH:mm <br /> DD.MM.`) with a live example. Applies to the axis **and** the tooltip header, the language follows the host. Automatic = adaptive: seconds below 30 min span, date at chart start and on day change, date only from 7 days on; the tooltip header then shows `ddd, DD.MM.yyyy HH:mm`. Hidden for JSON tables with a category X (the labels are the payload text) |
+| Rotate labels   | 0°                        | −90° to 90° in steps of 5; angled time labels on narrow widgets                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Label size (px) | 12                        | 6–32                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+**Tab Ticks & grid**
+
+| Setting                                            | Default                     | Description                                                                                        |
+| -------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------- |
+| Show ticks                                         | on                          |                                                                                                    |
+| Grid lines                                         | off                         | Vertical gridlines                                                                                 |
+| Grid line color / Grid line width / Grid line type | divider token / 1 / Default | Only with grid lines on; the values survive switching off. Type: Default · Solid · Dashed · Dotted |
+| Tick segments                                      | 6 (ECharts)                 | Target tick count; no effect with a category X or a bar interval                                   |
+| Min interval                                       | –                           | Milliseconds (e.g. 3600000 = 1 h); no effect with a category X or a bar interval                   |
+| Tick color                                         | axis color                  |                                                                                                    |
+| Name rotation°                                     | 0                           | −90° to 90° in steps of 5; fine-tuning                                                             |
+
+An axis line without an offset replaces the gridline on its edge; with an offset both draw.
+
+**Tab Advanced:** [advanced JSON](#templates--advanced-json) of the X card.
 
 ### Y-axis cards
 
-Tabs: **Basis** | **Values** | **Scale & ticks** | **Presentation** | **Advanced**. Card: axis name (default: the name-giver series), side, place `side · place/total`, "closer to the chart"/"further away", delete.
+One card per axis, in draw order: the left side first, then the right, place 1 (at the chart) on top of each. While no series exists there is no card. Card header: swatch, axis name, `side · place/total`, the arrows **Move axis closer to the chart** and **Move axis further from the chart** (grayed out at the bounds and for an axis alone on its side), **Remove axis**. Tabs: **Basics** | **Values** | **Scale & ticks** | **Presentation** | **Advanced**.
 
-| Setting                                           | Default                       | Description                             |
-| ------------------------------------------------- | ----------------------------- | --------------------------------------- |
-| Axis name                                         | –                             | shows the name giver by default         |
-| Side                                              | Left (axis 0) / Right         |                                         |
-| Offset (px)                                       | 0                             | stacking on the same side               |
-| Y min / Y max                                     | auto                          | fixed value range                       |
-| Y label format                                    | –                             | string template `{value} kW`            |
-| Don't force zero                                  | off                           | `scale`: the axis need not contain 0    |
-| Logarithmic Y-axis                                | off                           | `type: 'log'`                           |
-| Align ticks                                       | on (from 2 axes)              | see [axis model](#axis-model-cartesian) |
-| Tick segments / min. interval                     | auto                          | tick density, e.g. 1 for integer axes   |
-| Gridlines / grid color / grid width / stroke type | axis 0: on · others off       | horizontal grid in the full style       |
-| Label font size (px)                              | 12                            |                                         |
-| Axis color                                        | the name giver's series color |                                         |
-| Name position / name gap (px) / name rotation (°) | Middle · 18 · 0               |                                         |
-| Advanced JSON                                     | –                             | deep-merge under the GUI (GUI wins)     |
+**Tab Basics**
 
-> **Phantom axes:** an axis no series binds anymore does not exist — it drops silently on open. In the JSON series document the editor heals over the overlay names; removed payload series take their axis along (Undo helps).
+| Setting      | Default                   | Description                                                                                       |
+| ------------ | ------------------------- | ------------------------------------------------------------------------------------------------- |
+| Axis name    | the name giver's name     | When cleared the axis inherits the name again                                                     |
+| Side         | Left (first axis) / Right | Left · Right. A switch puts the axis on its place of the target side, the axes there move outward |
+| Series color | the name giver's color    | Paints the axis line, labels and name together                                                    |
+| Offset (px)  | from the raster           | Stacking on the same side, see [axis model](#axis-model-cartesian)                                |
+
+**Tab Values**
+
+| Setting        | Default | Description                                                                                                                                                                            |
+| -------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Y min / Y max  | auto    | Fixed value range. The configurator reports min ≥ max. An axis with 100 % bars shows 0–100 % when unset                                                                                |
+| Y label format | –       | String template `{value} kW`; beats the inherited unit and the state texts. Without a format the axis inherits both when all bound series carry them alike; decimals it never inherits |
+
+**Tab Scale & ticks**
+
+| Setting                                            | Default                               | Description                                                    |
+| -------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
+| Logarithmic Y axis                                 | off                                   | `type: 'log'`                                                  |
+| Grid lines                                         | first displayed axis: on · others off | Horizontal gridlines                                           |
+| Scale to data range (without 0)                    | off                                   | `scale`: the axis need not contain 0                           |
+| Align ticks                                        | off                                   | Only on follower axes, see [axis model](#axis-model-cartesian) |
+| Show ticks                                         | on                                    |                                                                |
+| Grid line color / Grid line width / Grid line type | divider token / 1 / Default           | Only with grid lines on; the values survive switching off      |
+| Tick segments / Min interval                       | auto                                  | Tick density, e.g. 1 for integer axes                          |
+| Label size (px)                                    | 12                                    | 6–32                                                           |
+| Tick color                                         | the axis' color                       |                                                                |
+
+**Tab Presentation**
+
+| Setting        | Default | Description                                                           |
+| -------------- | ------- | --------------------------------------------------------------------- |
+| Name rotation° | 90      | −90° to 90° in steps of 5. Unset, ECharts aligns the name to the side |
+| Name position  | Middle  | Bottom (start) · Middle · Top (end)                                   |
+| Name gap (px)  | 18      | 0–60                                                                  |
+
+**Tab Advanced:** the axis' [advanced JSON](#templates--advanced-json): deep-merged under the GUI (the GUI wins).
+
+> **Remove axis:** in history and with table / columns the series stay and rebind to a remaining axis with the same Y label format, otherwise to the first axis with the hint to check the scale. With the last axis they rebind to a new default axis. With finished series **Remove axis** hides all bound payload series, the axis falls with them in the same undo step. When a payload series vanishes from the payload its axis falls with it, and the notice offers no **Undo**: the next reconcile would remove the axis again. Markings of the fallen axis move to a remaining axis.
 
 ### Markings
 
-Reference lines and bands with style and labels, anchored to a Y-axis. Per marking:
+Reference lines and bands with style and labels, anchored to a Y axis. **Add marking** creates a dashed line with upper limit 0. Per marking:
 
-| Setting                                  | Description                                                                                                                                                                                                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Upper/lower bound (value or OID)         | number **or** datapoint (resolves live via subscription). Both bounds ⇒ a band (area) plus two styled edge lines; exactly one ⇒ a line                                                                                                                   |
-| Axis                                     | the Y-axis the marking belongs to                                                                                                                                                                                                                        |
-| Band fill                                | opacity 0–1 (default 0.2)                                                                                                                                                                                                                                |
-| Color / line style / line width / shadow | the edge(s) style; width default 2                                                                                                                                                                                                                       |
-| Label upper/lower bound                  | one group per edge: text (empty = value fallback: the resolved bound as a fully styled label), position (12 ECharts places: start/middle/end plus the inside\* variants), X offset, font size, text color (empty = marking color or the axis text token) |
+| Setting                                   | Description                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Upper limit / Lower limit (value or OID)  | Number **or** data point (resolves live via subscription). A pure number, with a comma too, is stored as a number, anything else counts as an OID. Both limits ⇒ a band (area) plus two styled edge lines; exactly one ⇒ a line; no resolved limit ⇒ no drawing                                                                    |
+| Axis                                      | The Y axis the marking belongs to; selectable from two axes on                                                                                                                                                                                                                                                                     |
+| Band fill                                 | Opacity 0–1 in steps of 0.05, default 0.2; only with both limits                                                                                                                                                                                                                                                                   |
+| Series color                              | Color of edge line and band; empty = divider token                                                                                                                                                                                                                                                                                 |
+| Line style                                | Solid · Dashed · Dotted                                                                                                                                                                                                                                                                                                            |
+| Line width                                | 0.5–8 px, default 2                                                                                                                                                                                                                                                                                                                |
+| Line shadow                               | 0–30 px                                                                                                                                                                                                                                                                                                                            |
+| Label (upper limit) / Label (lower limit) | One group per set limit: Label (empty = the resolved limit as the label), Position (Default (end), 12 ECharts places: Left, Center, Right plus Inside start, Inside middle, Inside end, each also top and bottom), X offset (−100 to 100), Font size (6–32, default 12), Text color (empty = marking color or the axis text token) |
+
+The marking draws through the first active series of its axis. When all series of the axis are deselected in the legend it rests and returns with the first active series.
 
 ### Zoom
 
-| Setting               | Description                                                                    |
-| --------------------- | ------------------------------------------------------------------------------ |
-| Zoom slider           | dataZoom slider below the chart                                                |
-| Mouse/touch zoom      | scroll/pinch zoom without a visible element                                    |
-| Reset zoom after idle | off · 10 s … 30 min — resets the zoom to the full window after the idle period |
+| Setting               | Default | Description                                                                                                                                                                |
+| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zoom slider           | off     | dataZoom slider below the chart                                                                                                                                            |
+| Mouse/touch zoom      | off     | Scroll/pinch zoom without a visible element                                                                                                                                |
+| Reset zoom after idle | Off     | Visible once a zoom is on: 10 s · 15 s · 30 s · 1 min · 90 s · 2 · 3 · 5 · 10 · 20 · 30 min. Every zoom change restarts the period, after it the full window applies again |
 
 ## Pie options section (pie)
 
 Tabs: **Shape** | **Values** | **Advanced**.
 
-| Setting                  | Values / type                              | Default               | Description                                                                                                                                              |
-| ------------------------ | ------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Donut inner radius (0–1) | 0–1                                        | 0                     | 0 = full pie; 0.5 ≈ ring                                                                                                                                 |
-| Rose mode                | None · Radius · Area                       | None                  | radius/area proportional rose                                                                                                                            |
-| Slice aggregation        | Latest · Sum · Average · Minimum · Maximum | Latest                | History/JSON time data only: collapses the fetched points per series into one slice value. (Table/columns: every row **is** the value — the field rests) |
-| Slice label              | None · Name · Percent · Name + percent     | Name + percent        |                                                                                                                                                          |
-| Label color              | color                                      | Inherits (text color) | always emitted explicitly — prevents the ECharts auto-contrast halo on a transparent canvas                                                              |
-| Advanced JSON            | –                                          | –                     | whole-pie raw (deep-merge under the GUI; the target for `labelLine`, `emphasis`, `startAngle`, `selectedMode` …). Per slice: raw on the slice row        |
+**Tab Shape**
+
+| Setting                  | Values / type                 | Default | Description                   |
+| ------------------------ | ----------------------------- | ------- | ----------------------------- |
+| Donut inner radius (0–1) | 0–0.9 (slider, steps of 0.05) | 0       | 0 = full pie; 0.5 ≈ ring      |
+| Rose mode                | None · Radius · Area          | None    | Radius/area proportional rose |
+
+**Tab Values**
+
+| Setting           | Values / type                                    | Default               | Description                                                                                                                                                                                                                                                      |
+| ----------------- | ------------------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Slice aggregation | Latest value · Sum · Average · Minimum · Maximum | Latest value          | History and finished series: collapses the fetched points per series into one slice value. The total over the whole time window comes only from **Sum**, **Latest value** yields only the last interval. Hidden with table / columns: every row **is** the value |
+| Slice label       | None · Name · Percent · Name + percent           | Name + percent        |                                                                                                                                                                                                                                                                  |
+| Label color       | color                                            | Inherits (text color) | Hidden with slice label None. Always set explicitly, which prevents the ECharts auto-contrast halo on a transparent canvas                                                                                                                                       |
+
+**Tab Advanced:** [advanced JSON](#templates--advanced-json) of the whole pie, here in every data mode (the target for `labelLine`, `emphasis`, `startAngle`, `selectedMode` …). Per slice: advanced JSON on the slice row; with table / columns per ring the **JSON** tab of the ring card, which wins over the pie JSON.
 
 ## Legend section
 
 Tabs: **Display** | **Style** | **Templates**.
 
-**Display**
+**Tab Display**
 
-| Setting               | Default    | Description                               |
-| --------------------- | ---------- | ----------------------------------------- |
-| Show legend           | on         |                                           |
-| Legend position       | Top center | 3×3 grid                                  |
-| Show values in legend | off        | `name [value]` — live value or last point |
+| Setting               | Default    | Description                                                                                                                                                                                                                                 |
+| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Show legend           | on         | Off disables values, position and arrangement                                                                                                                                                                                               |
+| Show values in legend | off        | `Name [value]`: the last non-empty value of the fully processed series, formatted with the series' unit and decimals and the comma switch; the tooltip's units suffix and decimals do not apply here. Without a value the name stands alone |
+| Legend position       | Top center | 3×3 grid                                                                                                                                                                                                                                    |
+| Arrangement           | Auto       | Auto · In a row · Stacked. Auto: Middle left and Middle right stacked, otherwise in a row                                                                                                                                                   |
+| X offset / Y offset   | 0          | Nudge from the edge, positive to the right or downward. X offset visible only in the left and right column, Y offset only in the top and bottom row                                                                                         |
 
-**Style** — groups **Text** · **Symbol** · **Frame / panel**:
+**Tab Style** — groups **Text** · **Symbol** · **Frame / panel**:
 
-| Setting                                                            | Default                | Description                                                                |
-| ------------------------------------------------------------------ | ---------------------- | -------------------------------------------------------------------------- |
-| Text color / font size / font weight / font style                  | inherited              | legend `textStyle`                                                         |
-| Orientation                                                        | Auto                   | Auto follows the edge (top/bottom = row, left/right = column); overridable |
-| Symbol shape                                                       | Inherited              | circle, rect, roundRect, triangle, diamond, pin, arrow, none               |
-| Symbol width / symbol height / item gap                            | 25 · 14 · 10 (ECharts) |                                                                            |
-| Inactive item color                                                | #ccc                   | deselected series                                                          |
-| Background / border color / border width / corner radius / padding | – / #ccc / 0 / 0 / 5   | the legend as a panel                                                      |
-| X offset / Y offset                                                | 0                      | nudge from the edge; the center column/row ignores it                      |
+| Setting                                                            | Default                                 | Description                                                                                |
+| ------------------------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Text color / Font size / Font weight / Font style                  | inherited                               | Legend `textStyle`                                                                         |
+| Symbol shape                                                       | Inherit                                 | Inherit · Circle · Rectangle · Rounded rectangle · Triangle · Diamond · Pin · Arrow · None |
+| Symbol width / Symbol height / Item gap                            | 25 · 14 · 10 (ECharts)                  |                                                                                            |
+| Inactive color                                                     | divider token                           | Deselected series                                                                          |
+| Background / Border color / Border width / Corner radius / Padding | transparent / divider token / 0 / 0 / 5 | The legend as a panel. The border color draws only with a border width above 0             |
 
-The legend selection drives the visible series; axes follow the selection (an axis without a visible series disappears).
+**Tab Templates:** the legend's [advanced JSON](#templates--advanced-json), also for `selectedMode`, `selector` and paging, which the GUI does not carry.
+
+The legend selection drives the visible series and survives every data rebuild; axes follow the selection (an axis without a visible series disappears).
 
 ## Tooltip section
 
 Tabs: **Behavior** | **Values** | **Templates**.
 
-| Setting                     | Default                       | Description                                                                                                                                           |
-| --------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tooltip trigger             | Axis (cartesian) / Item (pie) | Axis = all series at the point in time; None = off                                                                                                    |
-| Tooltip template            | –                             | ECharts string template `{a}` series name · `{b}` category/time · `{c}` value · `{d}` share (pie); may contain vis-2 bindings. Live example beside it |
-| Decimals                    | 0                             | clamps the tooltip values                                                                                                                             |
-| Unit suffix                 | –                             | e.g. ` kW`                                                                                                                                            |
-| Tooltip background color    | theme                         |                                                                                                                                                       |
-| No interpolation in tooltip | off                           | cartesian only: drops rows whose value at the hovered timestamp is interpolated                                                                       |
-| Hide null values in tooltip | off                           | cartesian only                                                                                                                                        |
-| Comma as decimal separator  | off                           | applies to all chart values (tooltip, legend, default Y labels); an explicit axis format stays                                                        |
+**Tab Behavior**
+
+| Setting                     | Default                       | Description                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tooltip trigger             | Axis (cartesian) / Item (pie) | Axis · Item · None, on the pie only Item · None. Axis = all series at the point in time; None = off                                                                                                                                                                                                                                                    |
+| Tooltip template ({b}: {c}) | –                             | String template `{a}` series name · `{b}` time in the time format or category · `{c}` value with unit and decimals · `{d}` share (pie only). Cartesian: one line per series, replaces the time header, unknown tokens stay as they are, live example below. Pie: ECharts evaluates it. May contain vis-2 bindings; vis-2 resolves them, not the widget |
+
+**Tab Values**
+
+| Setting                     | Default                 | Description                                                                                                                           |
+| --------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Decimals                    | 0                       | Preset for series without their own decimals, in tooltip rows and value labels. 0 rounds to whole numbers; a value on the series wins |
+| Units suffix                | –                       | Preset for series without their own unit, e.g. `kW`; the widget adds the space                                                        |
+| Tooltip background          | the theme's paper token |                                                                                                                                       |
+| No interpolation in tooltip | off                     | Cartesian only: drops rows whose point is not at the hovered time; the header stays                                                   |
+| Hide null values in tooltip | off                     | Cartesian only: drops rows without a value; the header stays                                                                          |
+| Comma as decimal separator  | off                     | Applies to all chart values (tooltip, legend, value labels, default Y labels); an explicit axis format stays                          |
+
+Rows of 100 % stacked bars show share and absolute value (`25 % (10 W)`).
+
+**Tab Templates:** the tooltip's [advanced JSON](#templates--advanced-json) (e.g. `axisPointer`).
 
 ## Colors section
 
-Tabs: **Palette** | **Surface** | **Frame** | **Color scale** (cartesian only).
+Tabs: **Palette** | **Surface** | **Frame**. The **color scale** belongs to the series, see the **Style** tab of the [series card](#series-card-in-history-mode).
 
-| Setting                                                                        | Default                             | Description                                                                                                                                      |
-| ------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Palette source                                                                 | Theme (auto)                        | Theme follows the vis-2/MUI theme; Preset (pick, default Tableau) or Custom colors (`;`-separated list)                                          |
-| Dark mode                                                                      | Auto (follow theme)                 | force light/dark                                                                                                                                 |
-| Background                                                                     | transparent                         | CSS color of the chart surface                                                                                                                   |
-| Show frame / frame width (px) / frame color / frame style / frame padding (px) | off · 1 · divider token · solid · 0 | container CSS frame **around** the chart surface (not an ECharts object). Frame style: the 8 CSS values (double, groove, ridge, inset, outset …) |
-| Value→color scale                                                              | off · 0–100 · theme ramp            | continuous value→color mapping (overrides series colors); color stops `;`-separated, empty = theme ramp (blue→green→orange→red)                  |
+| Setting                     | Default             | Description                                                                                                                                                                                                                                                                        |
+| --------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Palette source              | Theme (auto)        | Theme (auto) follows the collection theme; presets `tableau`, `vibrant`, `pastel`, `warm`, `cool`, `accessible`, `dark`, `gray`, `vintage`, `macarons`, `infographic`, `shine`, `roma`, `azul`, `blue`, `royal`, `red`, `green`; Custom. Above it the resolved palette as swatches |
+| Custom colors (;-separated) | –                   | Only with Custom; when empty the theme palette applies                                                                                                                                                                                                                             |
+| Dark mode                   | Auto (follow theme) | Force light · Force dark                                                                                                                                                                                                                                                           |
+| Background                  | transparent         | Color of the chart surface. Empty and in a forced mode differing from the host: `#ffffff` or `#1e1e1e`                                                                                                                                                                             |
+| Show frame                  | off                 | CSS frame **around** the chart surface (not an ECharts object), in all families                                                                                                                                                                                                    |
+| Frame width (px)            | 1                   | 0–10 in steps of 0.5; 0 draws no frame. Disabled without a frame                                                                                                                                                                                                                   |
+| Frame style                 | Solid               | Solid · Dashed · Dotted · Double · Groove · Ridge · Inset · Outset                                                                                                                                                                                                                 |
+| Frame color                 | divider token       | Follows the host mode, also under a forced dark mode                                                                                                                                                                                                                               |
+| Frame padding (px)          | 0                   | 0–32, between frame and chart. Disabled without a frame                                                                                                                                                                                                                            |
 
 ## Toolbox section
 
-Off (no toolbox block) or on — then tabs **General** | **Features**.
+**Show toolbox**, off by default: then there is no toolbox block. The first switch-on activates Save as image, Restore, Data view and Zoom. Switched on: tabs **General** | **Features**.
 
-**General:** position (3×3), orientation (horizontal/vertical), icon size, icon gap, title on hover, icon color, hover color, frame (width/color/corner radius/padding), background.
+**Tab General**
 
-**Features** (the five ECharts features):
+| Setting                  | Default       | Description                            |
+| ------------------------ | ------------- | -------------------------------------- |
+| Position                 | Top right     | 3×3 grid, flush with the edge          |
+| Orientation              | Horizontal    | Horizontal · Vertical                  |
+| Icon size                | 15            | 8–30                                   |
+| Icon gap                 | 10            | 2–30                                   |
+| Icon color / Hover color | ECharts token | By the effective light/dark mode       |
+| Border width             | 0             | 0–6                                    |
+| Border color             | ECharts token | Draws only with a border width above 0 |
+| Corner radius            | 0             | 0–12                                   |
+| Padding                  | 15            | 0–24                                   |
+| Background               | transparent   |                                        |
+| Label on hover           | on            |                                        |
 
-| Feature           | Options                                                                 |
-| ----------------- | ----------------------------------------------------------------------- |
-| Save as image     | format (png/jpeg/svg), file name (empty = chart title), pixel ratio     |
-| Restore           | undo the user's zoom and type switches                                  |
-| Data view         | raw data table; read-only defaults **on** (vis is a display)            |
-| Data zoom         | icons for range zoom (drives existing dataZoom components); filter mode |
-| Chart type switch | cartesian only: types (line/bar/stack/tiled)                            |
+**Tab Features** (the five ECharts features):
+
+| Feature           | Options                                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Save as image     | Format (png · jpeg · svg, default png), File name (empty = chart title), Pixel ratio                                                                          |
+| Restore           | Undo the user's zoom and type switches                                                                                                                        |
+| Data view         | Raw data table; Read-only defaults **on**                                                                                                                     |
+| Zoom              | Icons for range zoom with their own internal zoom components, independent of the **Zoom** tab; Filter mode filter · weakFilter · empty · none, default filter |
+| Switch chart type | Cartesian only: Types line · bar · stack · tiled, default line and bar, one always stays active                                                               |
 
 ## Templates & advanced JSON
 
-Title, legend, tooltip, series, axes and the X card each carry an **advanced JSON** (Templates or Advanced tab): free JSON for ECharts options of **that component**. Rules:
+Title, legend and tooltip (**Templates** tab), X card, Y-axis cards and pie (**Advanced** tab), series (**JSON** tab) and pie slices (slice row) each carry a collapsible **advanced JSON**: free JSON for ECharts options of **that component**. Toolbox and markings have none. Rules:
 
-- **Deep-merge under the GUI** — the GUI wins every collision; only keys the GUI does not manage take effect.
-- **Template menu:** curated building blocks (grouped by category, searchable). Active templates appear as chips and merge with your own text.
+- **Deep-merge under the GUI** — the GUI wins every collision; only keys the GUI does not manage take effect. Objects merge, arrays replace as a whole. The editor reports invalid JSON, at runtime it has no effect.
+- **Template menu:** curated building blocks (grouped by category, searchable by label and JSON keys). The menu stays open for further ticks. Active templates appear as chips and merge with your own text in activation order, the last one wins.
 - **Chips follow the text:** deleting a template's keys inside the editor removes its chip; invalid JSON locks the menu and leaves the activations untouched.
-- On a family switch, activations the new family does not know are removed on Apply (warning beforehand).
+- **Catalog:** series get it by their effective type, pie slices and rings each their own. An activation the catalog does not know drops silently on load and on Apply, its keys stay as your own text.
+- A [boundary crossing](#data-modes-and-payload-families) deletes series and Y axes with their JSON (the notice counts the series' templates); the JSON of title, legend, tooltip, X card and pie stays.
 
 ## vis-2 panel settings
 
-In the vis-2 attributes panel (outside the configurator) the widget carries:
+In the vis-2 attributes panel (outside the configurator) the widget carries in the **Chart** group:
 
-| Field                                                   | Type                    | Default | Description                                                                                                                                           |
-| ------------------------------------------------------- | ----------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| chartConfig                                             | custom                  | –       | The **Edit chart configuration** button — opens the configurator                                                                                      |
-| paddingTop / paddingBottom / paddingLeft / paddingRight | slider (0–10, step 0.1) | 0       | Chart padding in MUI units (1 = 8 px), outside the frame, **additive** beneath the common `basePadding`. 0 = pixel-identical to the previous behavior |
+| Field                                  | Type                    | Default | Description                                                                                                                                                                     |
+| -------------------------------------- | ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Edit chart configuration `chartConfig` | custom                  | –       | The button opens the configurator                                                                                                                                               |
+| Padding top `paddingTop`               | slider (0-10, step 0.1) | 0       | Chart padding in MUI spacing units (1 = 8 px), outside the [frame](#colors-section), **additive** beneath the common `basePadding`. The configurator's preview does not show it |
+| Padding bottom `paddingBottom`         | slider (0-10, step 0.1) | 0       | Like `paddingTop`                                                                                                                                                               |
+| Padding left `paddingLeft`             | slider (0-10, step 0.1) | 0       | Like `paddingTop`                                                                                                                                                               |
+| Padding right `paddingRight`           | slider (0-10, step 0.1) | 0       | Like `paddingTop`                                                                                                                                                               |
 
-All other settings (modes, series, axes, …) are hidden rxData fields written by the configurator alone — including the base64 configuration blobs (`seriesConfig`, `chartConfig`, `toolboxConfig`, `markLines`, `yAxes`, `xAxis`, `jsonSeriesStyle`, `jsonHidden`). These blobs are the editor's storage format, not a documented contract — editing them by hand is unsupported.
+All other settings (modes, series, axes, …) are hidden rxData fields written by the configurator alone — including the indexed `oid1`…`oidN` and the base64 configuration blobs (`seriesConfig`, `chartConfig`, `legendConfig`, `toolboxConfig`, `markLines`, `yAxes`, `xAxis`, `axisSlotMemory`, `jsonSeriesStyle`, `jsonHidden`). These blobs are the editor's storage format, not a documented contract — editing them by hand is unsupported.
 
 ## Related pages
 
