@@ -263,7 +263,7 @@ With `colorLightButton = true`:
 - Click toggles `colorLightSwitchOid` on/off, like the [power button](#power-button)
 - Long press opens the modal with the lamp control and writes nothing
 - Long-press delay configurable via `colorLightDelayLongPress`
-- If the pointer leaves the button early or the browser cancels the press, for instance when a touch turns into scrolling, nothing switches and the modal stays closed
+- If the pointer leaves the button early or the browser cancels the press, for instance when a touch turns into scrolling, this counts as a click and switches, as long as no long press has fired yet
 
 ## Modal Dialog
 

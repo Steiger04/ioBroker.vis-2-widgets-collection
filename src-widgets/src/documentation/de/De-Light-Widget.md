@@ -263,7 +263,7 @@ Mit `colorLightButton = true`:
 - Click schaltet `colorLightSwitchOid` ein/aus, wie der [Power-Button](#power-button)
 - Langer Druck öffnet das Modal mit dem Lampen-Bedienelement und schreibt nichts
 - Long-Press-Verzögerung über `colorLightDelayLongPress` konfigurierbar
-- Verlässt der Zeiger den Button vorzeitig oder bricht der Browser den Druck ab, etwa weil eine Berührung in Scrollen übergeht, schaltet nichts und das Modal bleibt zu
+- Verlässt der Zeiger den Button vorzeitig oder bricht der Browser den Druck ab, etwa weil eine Berührung in Scrollen übergeht, gilt das als Click und schaltet, solange noch kein langer Druck gefeuert hat
 
 ## Modal-Dialog
 
