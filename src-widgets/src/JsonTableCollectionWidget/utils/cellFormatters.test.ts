@@ -211,6 +211,27 @@ describe('applyConditionalStyle — follows the Effektiver Typ', () => {
         expect(hits(rule, '', numberColumn)).toBe(false);
     });
 
+    it.each([
+        ['<', -5],
+        ['<=', -5],
+        ['>', 5],
+        ['>=', 5],
+    ])('keeps an empty cell out of a %s rule with the cell on the right', (operator, limit) => {
+        const rule = cfg({ cellStyle: [{ logic: { [operator]: [limit, { var: 'value' }] }, fontWeight: 'bold' }] });
+        const numberColumn: CellColumn = { type: 'number', readDate: dateReader() };
+        expect(hits(rule, null, numberColumn)).toBe(false);
+        expect(hits(rule, '', numberColumn)).toBe(false);
+    });
+
+    it('reads a comparison with three arguments as "between"', () => {
+        const between = cfg({ cellStyle: [{ logic: { '<=': [1, { var: 'value' }, 10] }, fontWeight: 'bold' }] });
+        const numberColumn: CellColumn = { type: 'number', readDate: dateReader() };
+        expect(hits(between, 5, numberColumn)).toBe(true);
+        expect(hits(between, 50, numberColumn)).toBe(false);
+        expect(hits(between, 0, numberColumn)).toBe(false);
+        expect(hits(between, null, numberColumn)).toBe(false);
+    });
+
     it('keeps a value that is no date out of a date comparison', () => {
         const before = cfg({
             format: { type: 'date' },

@@ -278,7 +278,7 @@ function compareText(operator: FilterOperator, cell: unknown, value: unknown): b
 }
 
 /** A cell without content: missing, or the empty string. */
-const isEmptyCell = (cell: unknown): boolean => cell === null || cell === undefined || cell === '';
+export const isEmptyCell = (cell: unknown): boolean => cell === null || cell === undefined || cell === '';
 
 /**
  * Whether a cell passes a valid filter, by the Column's Effektiver Typ.
