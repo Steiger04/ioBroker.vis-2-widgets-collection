@@ -72,13 +72,21 @@ export interface ColumnFormatConfig {
     type: ColumnFormatType;
 
     // ── Number formatting ───────────────────────────────────────
-    /** Decimal places (0-10). @default 2 */
+    /**
+     * Decimal places (0-10).
+     *
+     * @default 2
+     */
     numberDecimals?: number;
     /** Prefix prepended to the value, e.g. "$", "€" */
     numberPrefix?: string;
     /** Suffix appended to the value, e.g. "%", " kg" */
     numberSuffix?: string;
-    /** Insert thousands separator (comma). @default false */
+    /**
+     * Insert thousands separator (comma).
+     *
+     * @default false
+     */
     numberThousandsSeparator?: boolean;
 
     // ── Date formatting ─────────────────────────────────────────
@@ -89,9 +97,17 @@ export interface ColumnFormatConfig {
     dateFormat?: string;
 
     // ── Boolean formatting ──────────────────────────────────────
-    /** Display label for true values. @default "true" */
+    /**
+     * Display label for true values.
+     *
+     * @default "true"
+     */
     booleanTrue?: string;
-    /** Display label for false values. @default "false" */
+    /**
+     * Display label for false values.
+     *
+     * @default "false"
+     */
     booleanFalse?: string;
 
     // ── String formatting ───────────────────────────────────────
@@ -107,7 +123,11 @@ export interface ColumnFormatConfig {
     stringMaxLength?: number;
     /** Regex pattern applied to extract a substring for display. */
     stringRegex?: string;
-    /** Capture group index to use from regex match (0 = full match). @default 0 */
+    /**
+     * Capture group index to use from regex match (0 = full match).
+     *
+     * @default 0
+     */
     stringRegexGroup?: number;
     /** Regex flags, e.g. "i" for case-insensitive. */
     stringRegexFlags?: string;
@@ -123,11 +143,23 @@ export interface ColumnFormatConfig {
     // ── Image / icon formatting ────────────────────────────────────
     // When type === 'image', the cell value is the visual reference (URL,
     // data:image/… URI, or UTF-8 glyph) and is rendered as a graphic.
-    /** Target render size in pixels (height; width follows aspect ratio via object-fit). @default 64 */
+    /**
+     * Target render size in pixels (height; width follows aspect ratio via object-fit).
+     *
+     * @default 64
+     */
     imageSize?: number;
-    /** How the graphic fills its size box. @default 'contain' */
+    /**
+     * How the graphic fills its size box.
+     *
+     * @default 'contain'
+     */
     imageObjectFit?: ImageObjectFit;
-    /** Shape of the rendered avatar. @default 'square' */
+    /**
+     * Shape of the rendered avatar.
+     *
+     * @default 'square'
+     */
     imageVariant?: ImageVariant;
     /** Avatar background colour (CSS colour string). Transparent when unset. */
     imageBgColor?: string;
@@ -141,9 +173,17 @@ export interface ColumnFormatConfig {
      * colour string.
      */
     imageTint?: string;
-    /** Show the raw value as a hover tooltip (title attribute) on the graphic. @default true */
+    /**
+     * Show the raw value as a hover tooltip (title attribute) on the graphic.
+     *
+     * @default true
+     */
     imageTooltip?: boolean;
-    /** Show a broken-image placeholder when a URL fails to load. @default true */
+    /**
+     * Show a broken-image placeholder when a URL fails to load.
+     *
+     * @default true
+     */
     imageShowBroken?: boolean;
     /**
      * Per-side padding (px) around the avatar within the cell. When unset the legacy

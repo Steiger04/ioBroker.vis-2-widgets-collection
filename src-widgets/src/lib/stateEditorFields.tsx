@@ -62,7 +62,7 @@ const stateEditorComponent = (
  * @param noRows Hides while there is no row to show.
  * @param hidden The definition's own rule (vis-2 calls it without an index here).
  * @returns The combined predicate.
- * @throws When the rule is a vis-2 string condition — it cannot be combined without `eval`;
+ * @throws {Error} When the rule is a vis-2 string condition — it cannot be combined without `eval`;
  *   `commonFields` declares predicates.
  */
 const unlessRows = (noRows: (data: WidgetData) => boolean, hidden: unknown): HiddenPredicate => {

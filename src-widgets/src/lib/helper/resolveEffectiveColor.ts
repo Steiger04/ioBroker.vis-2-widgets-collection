@@ -103,7 +103,7 @@ function validColor(value: unknown): string | undefined {
  * colour the browser accepts, or a complete gradient; empty or invalid values count as
  * unset (Erben).
  *
- * @yields Each stage's color, most specific first; the last one is the terminal (`''` for transparent/none).
+ * @yields {string} Each stage's color, most specific first; the last one is the terminal (`''` for transparent/none).
  */
 function* cascadeCandidates(
     field: ColorFieldContract,

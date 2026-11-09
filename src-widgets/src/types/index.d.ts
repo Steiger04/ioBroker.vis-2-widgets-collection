@@ -67,7 +67,7 @@ export type * from './utility-types';
 export type { OidObject, OidType } from './utility-types';
 
 /**
- * Module augmentation and extensions for @iobroker/types-vis-2.
+ * Module augmentation and extensions for `@iobroker/types-vis-2`.
  *
  * Key exports:
  * - `CollectionWidgetInfo` - Extended widget info with collection metadata

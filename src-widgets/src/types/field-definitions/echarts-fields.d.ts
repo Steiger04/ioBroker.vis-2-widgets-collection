@@ -200,14 +200,20 @@ export type EchartsFontStyle = 'normal' | 'italic' | 'oblique';
 /**
  * Title placement on a 3×2 grid (ADR-0009 + ADR-0021). The bottom row was added in ADR-0021; it
  * needs the echarts `bottom` field, so `'title'` joined the `replaceMerge` list (top↔bottom
- * switches no longer leave a stale key). @default 'topCenter'
+ * switches no longer leave a stale key).
+ *
+ * @default 'topCenter'
  */
 export type EchartsTitlePos = 'topLeft' | 'topCenter' | 'topRight' | 'bottomLeft' | 'bottomCenter' | 'bottomRight';
 /** Palette source (ADR-0007 GUI ownership; defaults derived from the MUI theme). */
 export type EchartsPaletteSource = 'theme' | 'preset' | 'custom';
 /** Dark-mode policy. `auto` follows the resolved vis-2 theme. */
 export type EchartsDarkMode = 'auto' | 'light' | 'dark';
-/** Chart renderer (Canvas default; SVG for crisp export/print/scaling). @default 'canvas' */
+/**
+ * Chart renderer (Canvas default; SVG for crisp export/print/scaling).
+ *
+ * @default 'canvas'
+ */
 export type EchartsRenderer = 'canvas' | 'svg';
 /**
  * Zoom idle-reset ladder (ADR-0054 parity Build E, adapter `resetZoom` select verbatim) — the
@@ -265,9 +271,17 @@ export interface EchartsSeriesMeta {
     id?: string;
     name?: string;
     color?: string;
-    /** Cartesian sub-type. @default 'line' */
+    /**
+     * Cartesian sub-type.
+     *
+     * @default 'line'
+     */
     type?: EchartsCartesianType;
-    /** Cartesian Y-axis index this series binds to (0-based; ADR-0012 multi-axis). @default 0 */
+    /**
+     * Cartesian Y-axis index this series binds to (0-based; ADR-0012 multi-axis).
+     *
+     * @default 0
+     */
     yAxisIndex?: number;
     /**
      * History adapter instance this series reads Verlauf data from (ADR-0039) — pinned per
@@ -283,16 +297,26 @@ export interface EchartsSeriesMeta {
      * Verlauf ignore it. Never emitted to echarts.
      */
     yPath?: string;
-    /** Smooth line. @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family) */
+    /**
+     * Smooth line.
+     *
+     * @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family)
+     */
     smooth?: boolean;
     /** Line width. */
     lineWidth?: number;
-    /** Line dash style. @default 'solid' */
+    /**
+     * Line dash style.
+     *
+     * @default 'solid'
+     */
     lineStyle?: EchartsLineStyle;
     /**
      * Area fill mode for a line series (ADR-0008 r4). `off` = no fill; `flat` = solid
      * {@link areaOpacity} fill; `gradient` = linear gradient from {@link areaGradient}.
-     * Legacy boolean `true` is tolerated as `flat` (no auto-migration). @default 'off'
+     * Legacy boolean `true` is tolerated as `flat` (no auto-migration).
+     *
+     * @default 'off'
      */
     area?: EchartsAreaFill;
     /**
@@ -301,7 +325,11 @@ export interface EchartsSeriesMeta {
      * `LinearGradient` (`areaStyle.color`).
      */
     areaGradient?: string;
-    /** Area fill opacity (0–1) when {@link area} is `flat` or `gradient`. @default 0.15 (flat) / 0.8 (gradient) */
+    /**
+     * Area fill opacity (0–1) when {@link area} is `flat` or `gradient`.
+     *
+     * @default 0.15 (flat) / 0.8 (gradient)
+     */
     areaOpacity?: number;
     /**
      * Stapelgruppe, three-valued since ADR-0084 (the Erben-Override idiom): `undefined`/absent =
@@ -311,13 +339,29 @@ export interface EchartsSeriesMeta {
      * builder tolerates it as inherit so unhealed bodies render identically (mode default none).
      */
     stack?: 'none' | 'A' | 'B' | 'C';
-    /** Step rendering. @default 'none' */
+    /**
+     * Step rendering.
+     *
+     * @default 'none'
+     */
     step?: EchartsStep;
-    /** Show data-point symbols. @default false */
+    /**
+     * Show data-point symbols.
+     *
+     * @default false
+     */
     symbol?: boolean;
-    /** Data-point symbol size. @default 6 */
+    /**
+     * Data-point symbol size.
+     *
+     * @default 6
+     */
     symbolSize?: number;
-    /** Connect nulls within this series. @default false */
+    /**
+     * Connect nulls within this series.
+     *
+     * @default false
+     */
     connectNulls?: boolean;
     /**
      * Per-series value unit (parity Build B, ADR-0057): appended by the Wert-Formatter to this
@@ -449,7 +493,11 @@ export interface EchartsSeriesMeta {
      * scale derived from the effective series colour (light → series colour → dark).
      */
     colorScaleColors?: string;
-    /** Show value labels. @default false */
+    /**
+     * Show value labels.
+     *
+     * @default false
+     */
     label?: boolean;
     /**
      * Bar value-label placement (parity Build D, ADR-0056) — bar cards only; a line label stays
@@ -461,9 +509,17 @@ export interface EchartsSeriesMeta {
     labelFontSize?: number;
     /** Bar value-label colour; unset = the theme text default, emitted sparse. */
     labelColor?: string;
-    /** Gap between bars within one category (0–1, echarts `barGap`). @default 0 (echarts auto) */
+    /**
+     * Gap between bars within one category (0–1, echarts `barGap`).
+     *
+     * @default 0 (echarts auto)
+     */
     barGap?: number;
-    /** Gap between bar categories (0–1, echarts `barCategoryGap`). @default 0 (echarts auto) */
+    /**
+     * Gap between bar categories (0–1, echarts `barCategoryGap`).
+     *
+     * @default 0 (echarts auto)
+     */
     barCategoryGap?: number;
     /**
      * Absolute bar width (parity Build D): plain digits = px (`'20'`), a trailing `%` = percent of
@@ -504,7 +560,11 @@ export type EchartsJsonSeriesStyle = Record<string, EchartsSeriesMeta>;
 /** Pie config — aggregation + donut/rose/label. */
 export interface EchartsPieConfig {
     aggregate?: EchartsPieAggregate;
-    /** Donut inner radius (0–1 of the smaller viewport side). 0 = full pie. @default 0 */
+    /**
+     * Donut inner radius (0–1 of the smaller viewport side). 0 = full pie.
+     *
+     * @default 0
+     */
     innerRadius?: number;
     rose?: EchartsPieRose;
     label?: EchartsPieLabel;
@@ -552,23 +612,47 @@ export interface EchartsToolboxConfig {
     pos?: EchartsGrid9Position;
     /** Icon row orientation; unset = echarts default (horizontal). */
     orient?: 'horizontal' | 'vertical';
-    /** Icon size (`toolbox.itemSize`). @default 15 (echarts) */
+    /**
+     * Icon size (`toolbox.itemSize`).
+     *
+     * @default 15 (echarts)
+     */
     itemSize?: number;
-    /** Gap between icons (`toolbox.itemGap`). @default 10 (echarts) */
+    /**
+     * Gap between icons (`toolbox.itemGap`).
+     *
+     * @default 10 (echarts)
+     */
     itemGap?: number;
-    /** Show the feature title on hover (`toolbox.showTitle`). @default true (echarts) */
+    /**
+     * Show the feature title on hover (`toolbox.showTitle`).
+     *
+     * @default true (echarts)
+     */
     showTitle?: boolean;
     /** Icon colour (`iconStyle.borderColor`); unset = the echarts accent50 token literal. */
     iconColor?: string;
     /** Hover colour (`emphasis.iconStyle.borderColor`); unset = the echarts accent70 token literal. */
     iconHoverColor?: string;
-    /** Frame width; 0/unset = frameless. @default 0 */
+    /**
+     * Frame width; 0/unset = frameless.
+     *
+     * @default 0
+     */
     borderWidth?: number;
     /** Frame colour; unset = the echarts border token literal (only emits with a width > 0). */
     borderColor?: string;
-    /** Frame corner radius. @default 0 */
+    /**
+     * Frame corner radius.
+     *
+     * @default 0
+     */
     borderRadius?: number;
-    /** Frame inner padding. @default 15 (echarts, token size.m) */
+    /**
+     * Frame inner padding.
+     *
+     * @default 15 (echarts, token size.m)
+     */
     padding?: number;
     /** Frame background; unset/'transparent' = none. */
     backgroundColor?: string;
@@ -720,23 +804,55 @@ export interface EchartsLegendConfig {
      * override lets e.g. a top legend run vertically ("untereinander").
      */
     orient?: 'horizontal' | 'vertical';
-    /** Legend symbol width (`legend.itemWidth`). @default 25 (echarts) */
+    /**
+     * Legend symbol width (`legend.itemWidth`).
+     *
+     * @default 25 (echarts)
+     */
     itemWidth?: number;
-    /** Legend symbol height (`legend.itemHeight`). @default 14 (echarts) */
+    /**
+     * Legend symbol height (`legend.itemHeight`).
+     *
+     * @default 14 (echarts)
+     */
     itemHeight?: number;
-    /** Gap between legend items (`legend.itemGap`). @default 10 (echarts) */
+    /**
+     * Gap between legend items (`legend.itemGap`).
+     *
+     * @default 10 (echarts)
+     */
     itemGap?: number;
-    /** Colour of a deselected (toggled-off) legend item (`legend.inactiveColor`). @default '#ccc' */
+    /**
+     * Colour of a deselected (toggled-off) legend item (`legend.inactiveColor`).
+     *
+     * @default '#ccc'
+     */
     inactiveColor?: string;
     /** Legend panel background (`legend.backgroundColor`); `'transparent'`/`undefined` = none. */
     bgColor?: string;
-    /** Legend panel border colour (`legend.borderColor`). @default '#ccc' */
+    /**
+     * Legend panel border colour (`legend.borderColor`).
+     *
+     * @default '#ccc'
+     */
     borderColor?: string;
-    /** Legend panel border width (`legend.borderWidth`); 0 = no border. @default 0 */
+    /**
+     * Legend panel border width (`legend.borderWidth`); 0 = no border.
+     *
+     * @default 0
+     */
     borderWidth?: number;
-    /** Legend panel corner radius (`legend.borderRadius`). @default 0 */
+    /**
+     * Legend panel corner radius (`legend.borderRadius`).
+     *
+     * @default 0
+     */
     borderRadius?: number;
-    /** Legend panel inner padding (`legend.padding`). @default 5 (echarts) */
+    /**
+     * Legend panel inner padding (`legend.padding`).
+     *
+     * @default 5 (echarts)
+     */
     padding?: number;
     /**
      * Horizontal nudge in px (right-positive). Adds to the numeric edge on the left/right columns;
@@ -775,13 +891,25 @@ export interface EchartsAxisConfig {
     min?: number;
     /** Maximum; undefined = auto. */
     max?: number;
-    /** Logarithmic scale (type:'log'). @default false */
+    /**
+     * Logarithmic scale (type:'log').
+     *
+     * @default false
+     */
     log?: boolean;
     /** `axisLabel.formatter` string template ('{value} kW'). Empty = default formatting. */
     format?: string;
-    /** Side of the grid. @default 'left' for axis 0, 'right' otherwise. */
+    /**
+     * Side of the grid.
+     *
+     * @default 'left' for axis 0, 'right' otherwise.
+     */
     position?: 'left' | 'right';
-    /** Px offset from the grid edge (stacks axes on the same side). @default 0 */
+    /**
+     * Px offset from the grid edge (stacks axes on the same side).
+     *
+     * @default 0
+     */
     offset?: number;
     /** Axis colour (axis line + label + name). Defaults to the owner series' colour (ADR-0068). */
     color?: string;
@@ -796,15 +924,27 @@ export interface EchartsAxisConfig {
      * resolves it to the owner series' name/colour.
      */
     owner?: string;
-    /** Don't force the axis to include zero. @default false */
+    /**
+     * Don't force the axis to include zero.
+     *
+     * @default false
+     */
     scale?: boolean;
-    /** Show split lines. @default true for axis 0, false otherwise. */
+    /**
+     * Show split lines.
+     *
+     * @default true for axis 0, false otherwise.
+     */
     splitLine?: boolean;
     /** Approximate number of segments (tick density). */
     splitNumber?: number;
     /** Minimum tick interval (e.g. 1 for integer ticks on count axes). */
     minInterval?: number;
-    /** Align ticks across value axes (the #1 multi-axis legibility lever). @default true when ≥2 axes. */
+    /**
+     * Align ticks across value axes (the #1 multi-axis legibility lever).
+     *
+     * @default true when ≥2 axes.
+     */
     alignTicks?: boolean;
     /** Show axis ticks. */
     axisTick?: boolean;
@@ -813,12 +953,16 @@ export interface EchartsAxisConfig {
     /**
      * Where the axis name sits along the axis (echarts `nameLocation`; on a Y-axis 'end' = top,
      * 'start' = bottom). Promoted from a builder hard-emit to a card field (ADR-0037) so no
-     * always-emitted key remains silently un-overridable. @default 'middle'
+     * always-emitted key remains silently un-overridable.
+     *
+     * @default 'middle'
      */
     nameLocation?: 'start' | 'middle' | 'end';
     /**
      * Px gap between axis line and name. Card field since ADR-0037 (was the `AXIS_NAME_GAP`
-     * hard-emit). @default 18
+     * hard-emit).
+     *
+     * @default 18
      */
     nameGap?: number;
     /**
@@ -891,9 +1035,17 @@ export interface EchartsXAxisConfig {
     format?: string;
     /** Axis colour (line + labels + name); unset = theme token inherit (ADR-0027/0035). */
     color?: string;
-    /** Show axis ticks. @default true (echarts `auto` resolves true for time-x + value-y). */
+    /**
+     * Show axis ticks.
+     *
+     * @default true (echarts `auto` resolves true for time-x + value-y).
+     */
     axisTick?: boolean;
-    /** Show split lines. @default false (the echarts time-axis default). */
+    /**
+     * Show split lines.
+     *
+     * @default false (the echarts time-axis default).
+     */
     splitLine?: boolean;
     /** Target tick count (`splitNumber`); unset = the echarts time-axis default (6). */
     splitNumber?: number;
@@ -960,25 +1112,53 @@ export interface EchartsXAxisConfig {
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
-    /** Kind of chart (line/bar/scatter/pie — area is a per-series fill mode, not a type, ADR-0008 r4; gauge/radar removed by ADR-0071). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
+    /**
+     * Kind of chart (line/bar/scatter/pie — area is a per-series fill mode, not a type, ADR-0008 r4; gauge/radar removed by ADR-0071). Drives the data shape + binding UI; the family is derived via `familyOf`.
+     *
+     * @default 'line'
+     */
     chartType?: EchartsChartType;
 
-    /** Data source mode. @default 'history' */
+    /**
+     * Data source mode.
+     *
+     * @default 'history'
+     */
     mode?: EchartsMode;
 
     // ── History-mode options (shared across all cartesian/pie series) ────────
 
-    /** Time range to fetch. @default '24h' */
+    /**
+     * Time range to fetch.
+     *
+     * @default '24h'
+     */
     timeRange?: EchartsTimeRange;
-    /** Aggregation for getHistory. @default 'average' */
+    /**
+     * Aggregation for getHistory.
+     *
+     * @default 'average'
+     */
     aggregate?: EchartsAggregate;
-    /** Maximum number of points per series. @default 500 */
+    /**
+     * Maximum number of points per series.
+     *
+     * @default 500
+     */
     count?: number;
-    /** Periodic refresh interval in ms (0 = no periodic refresh). @default 60000 */
+    /**
+     * Periodic refresh interval in ms (0 = no periodic refresh).
+     *
+     * @default 60000
+     */
     refreshMs?: number;
     /** History adapter instance (optional; auto-detected when omitted). */
     instance?: string;
-    /** How null gaps in the fetched history are handled. @default 'keep' */
+    /**
+     * How null gaps in the fetched history are handled.
+     *
+     * @default 'keep'
+     */
     ignoreNull?: EchartsIgnoreNull;
 
     // ── JSON mode ───────────────────────────────────────────────────────────
@@ -991,7 +1171,9 @@ export interface EchartsFieldsRxData {
 
     /**
      * The JSON payload family (ADR-0075) — see {@link EchartsJsonKind}. Read tolerantly at
-     * runtime (absent/unknown → `'series'`). @default 'series'
+     * runtime (absent/unknown → `'series'`).
+     *
+     * @default 'series'
      */
     jsonKind?: EchartsJsonKind;
     /** Table family: dot-path to the rows array (empty = the document itself). Sparse — `null` clears. */
@@ -1004,11 +1186,23 @@ export interface EchartsFieldsRxData {
      * rxData; the widget injects the live string as `title.text` (a forced data-wins key).
      */
     titleText?: string;
-    /** Title placement on the 3×2 grid (ADR-0009 + ADR-0021). @default 'topCenter' */
+    /**
+     * Title placement on the 3×2 grid (ADR-0009 + ADR-0021).
+     *
+     * @default 'topCenter'
+     */
     titlePos?: EchartsTitlePos;
-    /** Title horizontal pixel offset (right-positive). Applies to the left-edge anchors (`*Left`) only — the one measurement-free horizontal offset (ADR-0009 addendum). @default 0 */
+    /**
+     * Title horizontal pixel offset (right-positive). Applies to the left-edge anchors (`*Left`) only — the one measurement-free horizontal offset (ADR-0009 addendum).
+     *
+     * @default 0
+     */
     titleDx?: number;
-    /** Title vertical pixel offset (down-positive). Applies to every anchor (ADR-0009). @default 0 */
+    /**
+     * Title vertical pixel offset (down-positive). Applies to every anchor (ADR-0009).
+     *
+     * @default 0
+     */
     titleDy?: number;
     /** Title text colour (`title.textStyle.color`); `undefined`/empty = inherit theme text-primary. */
     titleColor?: string;
@@ -1050,11 +1244,17 @@ export interface EchartsFieldsRxData {
     // ── Chart-wide presentation (cartesian-relevant items apply per family) ─
 
     legendShow?: boolean;
-    /** Legend placement on the 3×3 grid (ADR-0021); legacy 4-edge values are migrated on load. @default 'topCenter' */
+    /**
+     * Legend placement on the 3×3 grid (ADR-0021); legacy 4-edge values are migrated on load.
+     *
+     * @default 'topCenter'
+     */
     legendPos?: EchartsLegendPos;
     /**
      * Show each series' CURRENT value in the legend (`Name [value]`, adapter `legActual`; ADR-0054).
-     * Live = the subscribed value; Verlauf/JSON = the last point. @default false
+     * Live = the subscribed value; Verlauf/JSON = the last point.
+     *
+     * @default false
      */
     legendShowValues?: boolean;
     /** Base64 {@link EchartsLegendConfig} — legend styling (text/symbol/frame). `legendShow`+`legendPos` stay flat. */
@@ -1068,25 +1268,35 @@ export interface EchartsFieldsRxData {
     tooltipBgColor?: string;
     /**
      * Drop tooltip rows whose value is NOT exact at the hovered timestamp (adapter
-     * `hoverNoInterpolate`; ADR-0054). Cartesian axis tooltips only. @default false
+     * `hoverNoInterpolate`; ADR-0054). Cartesian axis tooltips only.
+     *
+     * @default false
      */
     tooltipNoInterpolate?: boolean;
     /**
      * Hide null-valued series rows from the tooltip (adapter `hoverNoNulls`; ADR-0054).
-     * Cartesian axis tooltips only. @default false
+     * Cartesian axis tooltips only.
+     *
+     * @default false
      */
     tooltipHideNulls?: boolean;
     /**
      * Comma as the decimal separator in chart values — tooltip values, legend values and the
      * default (un-authored) Y-axis labels (adapter `useComma`; ADR-0054). An explicit axis
-     * format wins verbatim. @default false
+     * format wins verbatim.
+     *
+     * @default false
      */
     decimalComma?: boolean;
     animation?: boolean;
     animationDuration?: number;
     /** echarts animation easing name (e.g. 'cubicOut'); empty/undefined = echarts default. GUI-owned (ADR-0011 D5). */
     animationEasing?: string;
-    /** Chart background colour (`'transparent'` or a CSS colour). @default 'transparent' */
+    /**
+     * Chart background colour (`'transparent'` or a CSS colour).
+     *
+     * @default 'transparent'
+     */
     bgColor?: string;
 
     /**
@@ -1125,15 +1335,27 @@ export interface EchartsFieldsRxData {
      */
     zoomResetAfterIdle?: EchartsZoomResetIdle;
 
-    /** Palette (ADR-0007). @default source 'theme' */
+    /**
+     * Palette (ADR-0007).
+     *
+     * @default source 'theme'
+     */
     paletteSource?: EchartsPaletteSource;
     palettePreset?: string;
     /** `;`- or `,`-separated custom colour list when source = 'custom'. */
     paletteCustom?: string;
 
-    /** Dark-mode policy. @default 'auto' */
+    /**
+     * Dark-mode policy.
+     *
+     * @default 'auto'
+     */
     darkMode?: EchartsDarkMode;
-    /** Chart renderer (Canvas default; SVG for crisp export/print). @default 'canvas' */
+    /**
+     * Chart renderer (Canvas default; SVG for crisp export/print).
+     *
+     * @default 'canvas'
+     */
     renderer?: EchartsRenderer;
 
     /** Threshold lines (cartesian), stored as a base64 `[...EchartsMarkLine]` blob. */
@@ -1141,25 +1363,57 @@ export interface EchartsFieldsRxData {
 
     // ── Chart frame (parity Build D, ADR-0056) — container CSS, not an echarts option ──
 
-    /** Frame on/off; width 0 while enabled also renders no frame. @default false */
+    /**
+     * Frame on/off; width 0 while enabled also renders no frame.
+     *
+     * @default false
+     */
     frameEnabled?: boolean;
-    /** Frame border width (px). @default 1 */
+    /**
+     * Frame border width (px).
+     *
+     * @default 1
+     */
     frameWidth?: number;
     /** Frame border colour; empty = the host theme's divider token. */
     frameColor?: string;
-    /** Frame border style (the eight CSS values). @default 'solid' */
+    /**
+     * Frame border style (the eight CSS values).
+     *
+     * @default 'solid'
+     */
     frameStyle?: EchartsFrameStyle;
-    /** Frame inner padding (px, the adapter's "Randabstand"). @default 0 */
+    /**
+     * Frame inner padding (px, the adapter's "Randabstand").
+     *
+     * @default 0
+     */
     framePadding?: number;
 
     // ── Chart padding (`.scratch/chart-padding/`) — container CSS, not an echarts option ──
 
-    /** Chart padding top (MUI spacing units, 1 = 8 px). @default 0 */
+    /**
+     * Chart padding top (MUI spacing units, 1 = 8 px).
+     *
+     * @default 0
+     */
     paddingTop?: number;
-    /** Chart padding bottom (MUI spacing units, 1 = 8 px). @default 0 */
+    /**
+     * Chart padding bottom (MUI spacing units, 1 = 8 px).
+     *
+     * @default 0
+     */
     paddingBottom?: number;
-    /** Chart padding left (MUI spacing units, 1 = 8 px). @default 0 */
+    /**
+     * Chart padding left (MUI spacing units, 1 = 8 px).
+     *
+     * @default 0
+     */
     paddingLeft?: number;
-    /** Chart padding right (MUI spacing units, 1 = 8 px). @default 0 */
+    /**
+     * Chart padding right (MUI spacing units, 1 = 8 px).
+     *
+     * @default 0
+     */
     paddingRight?: number;
 }

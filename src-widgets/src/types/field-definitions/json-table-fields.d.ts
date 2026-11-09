@@ -10,22 +10,38 @@
 export interface JsonTableFieldsRxData {
     // ── Layout ──────────────────────────────────────────────────────
 
-    /** Table density. @default 'standard' */
+    /**
+     * Table density.
+     *
+     * @default 'standard'
+     */
     tableDensity?: 'compact' | 'standard' | 'comfortable';
 
     /** Row height in pixels (overrides density). */
     tableRowHeight?: number;
 
-    /** Show the column header row. @default true */
+    /**
+     * Show the column header row.
+     *
+     * @default true
+     */
     tableShowHeader?: boolean;
 
     /** Column header height in pixels. */
     tableHeaderHeight?: number;
 
-    /** Auto-size columns to fit content on first render. @default false */
+    /**
+     * Auto-size columns to fit content on first render.
+     *
+     * @default false
+     */
     tableAutoSize?: boolean;
 
-    /** Header elevation/shadow intensity (0-24). @default 6 */
+    /**
+     * Header elevation/shadow intensity (0-24).
+     *
+     * @default 6
+     */
     tableHeaderElevation?: number;
 
     /**
@@ -37,44 +53,92 @@ export interface JsonTableFieldsRxData {
 
     // ── Pagination ──────────────────────────────────────────────────
 
-    /** Enable pagination. @default true */
+    /**
+     * Enable pagination.
+     *
+     * @default true
+     */
     tablePagination?: boolean;
 
-    /** Page size (rows per page). @default 25 */
+    /**
+     * Page size (rows per page).
+     *
+     * @default 25
+     */
     tablePageSize?: number;
 
-    /** Options offered in page-size selector. @default '10,25,50,100' */
+    /**
+     * Options offered in page-size selector.
+     *
+     * @default '10,25,50,100'
+     */
     tablePageSizeOptions?: string;
 
-    /** Row count threshold for virtualization when pagination is disabled. @default 50 */
+    /**
+     * Row count threshold for virtualization when pagination is disabled.
+     *
+     * @default 50
+     */
     tableVirtualizeThreshold?: number;
 
     // ── Features ────────────────────────────────────────────────────
 
-    /** Enable column sorting. @default true */
+    /**
+     * Enable column sorting.
+     *
+     * @default true
+     */
     tableSorting?: boolean;
 
-    /** Enable multi-column sorting. @default false */
+    /**
+     * Enable multi-column sorting.
+     *
+     * @default false
+     */
     tableSortingMulti?: boolean;
 
-    /** Enable column filter. @default true */
+    /**
+     * Enable column filter.
+     *
+     * @default true
+     */
     tableFiltering?: boolean;
 
-    /** Enable quick-search toolbar. @default false */
+    /**
+     * Enable quick-search toolbar.
+     *
+     * @default false
+     */
     tableQuickFilter?: boolean;
 
-    /** Show column menu on header click. @default true */
+    /**
+     * Show column menu on header click.
+     *
+     * @default true
+     */
     tableColumnMenu?: boolean;
 
-    /** Enable column hiding via column menu. @default true */
+    /**
+     * Enable column hiding via column menu.
+     *
+     * @default true
+     */
     tableHiding?: boolean;
 
     // ── Table Border (Tabellenrahmen) ───────────────────────────────
 
-    /** Table outer border width in pixels (0-20). @default 0 */
+    /**
+     * Table outer border width in pixels (0-20).
+     *
+     * @default 0
+     */
     borderWidth?: number;
 
-    /** Table border style (CSS border-style). @default 'solid' */
+    /**
+     * Table border style (CSS border-style).
+     *
+     * @default 'solid'
+     */
     borderStyle?:
         'none' | 'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset' | 'hidden';
 
@@ -86,24 +150,44 @@ export interface JsonTableFieldsRxData {
 
     // ── Selection ───────────────────────────────────────────────────
 
-    /** Enable row selection (checkbox column). @default false */
+    /**
+     * Enable row selection (checkbox column).
+     *
+     * @default false
+     */
     tableRowSelection?: boolean;
 
     // ── Border & Lines ──────────────────────────────────────────────
 
-    /** Show vertical cell borders. @default false */
+    /**
+     * Show vertical cell borders.
+     *
+     * @default false
+     */
     tableShowCellBorders?: boolean;
 
-    /** Vertical cell border width in pixels (0-10). @default 1 */
+    /**
+     * Vertical cell border width in pixels (0-10).
+     *
+     * @default 1
+     */
     verticalCellBorderWidth?: number;
 
     /** Vertical cell border color (CSS color). */
     verticalCellBorderColor?: string;
 
-    /** Show horizontal row borders. @default true */
+    /**
+     * Show horizontal row borders.
+     *
+     * @default true
+     */
     tableShowRowBorders?: boolean;
 
-    /** Horizontal cell border width in pixels (0-10). @default 1 */
+    /**
+     * Horizontal cell border width in pixels (0-10).
+     *
+     * @default 1
+     */
     horizontalCellBorderWidth?: number;
 
     /** Horizontal cell border color (CSS color). */
@@ -120,7 +204,11 @@ export interface JsonTableFieldsRxData {
     /** Header font size in pixels. */
     tableHeaderFontSize?: number;
 
-    /** Header bottom border width in pixels (0-10). @default 0 */
+    /**
+     * Header bottom border width in pixels (0-10).
+     *
+     * @default 0
+     */
     headerBorderWidth?: number;
 
     /** Header bottom border color (CSS color). */
@@ -160,6 +248,10 @@ export interface JsonTableFieldsRxData {
 
     // ── Analysis Options ────────────────────────────────────────────
 
-    /** Maximum depth for nested JSON flattening. @default 10 */
+    /**
+     * Maximum depth for nested JSON flattening.
+     *
+     * @default 10
+     */
     tableMaxDepth?: number;
 }

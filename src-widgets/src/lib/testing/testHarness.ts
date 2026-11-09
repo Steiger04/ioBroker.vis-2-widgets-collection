@@ -1,7 +1,7 @@
 /**
  * A minimal render harness (K5) — the ADR-0046 implementation addendum's "no renderHook
  * infrastructure" resolution: React 18's stable `act` + `react-dom/client` over a happy-dom
- * element, with NO @testing-library dependency (the project's chosen dev-dep abstinence).
+ * element, with NO `@testing-library` dependency (the project's chosen dev-dep abstinence).
  *
  * @module lib/testing/testHarness
  * @remarks

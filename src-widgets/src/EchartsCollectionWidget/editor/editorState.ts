@@ -154,9 +154,17 @@ export interface EditorState {
     titleColor: string | null;
     /** Title text size override; `undefined` = inherit (ADR-0021). */
     titleFontSize: number | undefined;
-    /** Title text weight (ADR-0021; widened to the full doc set ADR-0029). @default 'normal' */
+    /**
+     * Title text weight (ADR-0021; widened to the full doc set ADR-0029).
+     *
+     * @default 'normal'
+     */
     titleWeight: EchartsFontWeight;
-    /** Title font style (ADR-0029). @default 'normal' */
+    /**
+     * Title font style (ADR-0029).
+     *
+     * @default 'normal'
+     */
     titleFontStyle: EchartsFontStyle;
     // series (cartesian/pie full)
     series: EditorSeries[];
