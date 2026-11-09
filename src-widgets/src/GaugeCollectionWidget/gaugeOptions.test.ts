@@ -344,6 +344,34 @@ describe('buildGaugeOptions — prefix strip and specials', () => {
     });
 });
 
+describe('buildGaugeOptions — borders switch', () => {
+    const BORDER_FIELDS: BuilderField[] = [
+        { name: 'gaugeBorders', type: 'checkbox', default: true },
+        { name: 'gaugeBorderOuterWidth', type: 'number', default: 3 },
+        { name: 'gaugeBorderMiddleWidth', type: 'number', default: 3 },
+        { name: 'gaugeBorderInnerWidth', type: 'number', default: 3 },
+        { name: 'gaugeBorderShadowWidth', type: 'number', default: 3 },
+    ];
+
+    it('hands over no ring widths when switched off, the shadow stays', () => {
+        // canvas-gauges honours `borders: false` only in its constructor; every update() would
+        // bring the rings back from the widths it receives.
+        const options = buildGaugeOptions(BORDER_FIELDS, { gaugeBorders: false, gaugeBorderOuterWidth: 7 }, CTX);
+        expect(options).toMatchObject({
+            borders: false,
+            borderOuterWidth: 0,
+            borderMiddleWidth: 0,
+            borderInnerWidth: 0,
+            borderShadowWidth: 3,
+        });
+    });
+
+    it('keeps the stored ring widths when switched on', () => {
+        const options = buildGaugeOptions(BORDER_FIELDS, { gaugeBorderOuterWidth: 7 }, CTX);
+        expect(options).toMatchObject({ borderOuterWidth: 7, borderMiddleWidth: 3, borderInnerWidth: 3 });
+    });
+});
+
 describe('buildGaugeOptions — Canvas-Titel as plain text (ADR-0107 Nr. 6)', () => {
     const titleOf = (header: string | undefined): string | undefined => build({}, { ...CTX, header }).title;
 
