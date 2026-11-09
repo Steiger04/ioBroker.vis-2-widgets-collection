@@ -240,6 +240,21 @@ describe('useChartPipeline — JSON table family dispatch (ADR-0075)', () => {
         expect((result.current.option.series as { data: unknown[] }[])[0]?.data).toEqual([null, null]);
     });
 
+    it('a pie slice without an X column carries the translated row label, not a fixed German text', async () => {
+        const { adapter } = makeJsonAdapter(JSON.stringify([{ a: 1 }, { a: 2 }]));
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'pie', mode: 'json', jsonKind: 'table', jsonOid: 'js.0.payload' },
+                { ...COMPANIONS, series: [{ oid: '', name: 'A', yPath: 'a' }] },
+            ),
+        );
+        await actAdvance(100);
+        const ring = (result.current.option.series as { data: { name: string }[] }[])[0];
+        // The dom project's stub returns the key, so the assertion reads the key.
+        expect(ring.data.map(d => d.name)).toEqual(['echarts_mapping_row_label', 'echarts_mapping_row_label']);
+    });
+
     it('jsonKind UNDEFINED stays the series-shaped family byte-stable (existing widgets)', async () => {
         const { adapter } = makeJsonAdapter('{"series":[{"name":"S","data":[[1,2]]}]}');
         const { result } = renderHook(() =>

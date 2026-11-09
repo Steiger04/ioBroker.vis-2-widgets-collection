@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "De payload bevat nog geen rijenlijst — kies een datapunt waarvan de payload een JSON-array is (of een object dat er een bevat).",
     "echarts_mapping_depth_cap": "De zoekopdracht is beperkt tot 10 nestingsniveaus — diepere rijpaden en kolommen van de payload verschijnen niet in de selectie.",
     "echarts_mapping_row_index": "(rij-index)",
+    "echarts_mapping_row_label": "Rij %s",
     "echarts_mapping_rowpath": "Pad naar rijen",
     "echarts_mapping_drifted": "Niet langer in de payload",
     "echarts_mapping_suggestion_badge": "Suggestie",

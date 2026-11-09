@@ -88,19 +88,24 @@ export interface JsonTableSpec {
     /** X column; empty/absent → row-index X. */
     xPath?: string;
     ySeries: readonly JsonTableYSeries[];
+    /**
+     * The label of a row without a usable X value (1-based row number) — the caller owns the
+     * language, this module stays pure. Absent = the literal fallback.
+     */
+    rowLabel?: (row: number) => string;
 }
 
 /** A rows-array resolution: either the rows or the one hard error. */
 export type ResolveRowsResult = { rows: unknown[] } | { error: string };
 
 /** Fallback label for a row without a usable X value (the pie slice names ride it too, ADR-0075). */
-const rowLabel = (i: number): string => `Zeile ${i + 1}`;
+const defaultRowLabel = (row: number): string => `Zeile ${row}`;
 
 /** One row's SLICE name (ADR-0075 pie): the payload's own X text; the row fallback without one. */
-const sliceLabel = (v: unknown, i: number): string =>
+const sliceLabel = (v: unknown, i: number, rowLabel: (row: number) => string): string =>
     typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint'
         ? String(v)
-        : rowLabel(i);
+        : rowLabel(i + 1);
 
 /** Tokenizer for dot-paths with optional array indices: `a.b[0].c` → `['a', 'b', 0, 'c']`. */
 const PATH_TOKEN_RE = /([^.[\]]+)|\[(\d+)\]/g;
@@ -217,6 +222,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         return { series: [], xKind: 'index', error: resolved.error };
     }
     const rows = resolved.rows;
+    const rowLabel = spec.rowLabel ?? defaultRowLabel;
     // Y cells once per row (in `ySeries` order) — every X kind reads the same aligned cells.
     const cellsByRow = rows.map(row => yCells(row, spec.ySeries));
 
@@ -244,7 +250,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         // The slice name keeps the payload's OWN X text (`String(xVal)`) — a pie over a date
         // column shows what the document said, not a reformatted timestamp.
         const aligned = cellsByRow
-            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: sliceLabel(xVals![i], i), ys }))
+            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: sliceLabel(xVals![i], i, rowLabel), ys }))
             .filter(
                 (r): r is { xMs: number; label: string; ys: (number | typeof MAPPED_GAP | null)[] } => r.xMs !== null,
             );
@@ -278,11 +284,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         // Category X: per-row labels in payload order, duplicates kept (decision 4: no dedup).
         // Only primitives stringify — objects/arrays/missing values fall back to the row label
         // ('[object Object]' would read worse than nothing).
-        const categories = xVals!.map((v, i) =>
-            typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint'
-                ? String(v)
-                : rowLabel(i),
-        );
+        const categories = xVals!.map((v, i) => sliceLabel(v, i, rowLabel));
         return { series: plainSeries, xKind: 'category', categories, sliceNames: categories };
     }
 
@@ -292,6 +294,6 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         series: plainSeries,
         xKind: 'index',
         categories: rows.map((_, i) => String(i + 1)),
-        sliceNames: rows.map((_, i) => rowLabel(i)),
+        sliceNames: rows.map((_, i) => rowLabel(i + 1)),
     };
 };

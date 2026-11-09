@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "负载中尚无行列表——请选择一个负载为 JSON 数组（或包含 JSON 数组的对象）的数据点。",
     "echarts_mapping_depth_cap": "搜索限制为 10 层嵌套——更深层的行路径和负载列不会出现在选择项中。",
     "echarts_mapping_row_index": "（行索引）",
+    "echarts_mapping_row_label": "第 %s 行",
     "echarts_mapping_rowpath": "行路径",
     "echarts_mapping_drifted": "已不在负载中",
     "echarts_mapping_suggestion_badge": "建议",

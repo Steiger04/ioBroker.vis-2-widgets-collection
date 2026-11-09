@@ -62,6 +62,7 @@ import { normalizeStackMode } from './stackMode';
 import { configuredAxes } from './axisResolution';
 import { finishValueChain, transformChainSeries } from './valueChain';
 import { chartBackgroundOverride, type ThemeTokens } from './echartsTheme';
+import { translate } from '../lib/translate';
 import type {
     EchartsAggregate,
     EchartsAxisConfig,
@@ -168,6 +169,9 @@ const jsonText = (raw: unknown): string => {
     }
     return '';
 };
+
+/** A table row without a usable X value, in the host language (axis fallback and pie slice). */
+const tableRowLabel = (row: number): string => translate('echarts_mapping_row_label', String(row));
 
 const numOr = (raw: unknown, fallback: number): number =>
     typeof raw === 'number' && Number.isFinite(raw) ? raw : fallback;
@@ -609,6 +613,7 @@ export function useChartPipeline(
                 ? parseJsonTableState(jsonText(jsonRaw), {
                       rowPath: jsonRowPath,
                       xPath: jsonXPath,
+                      rowLabel: tableRowLabel,
                       // NOT usableSeries (it filters oid-leere series — every table binding has
                       // `oid:''`); an unset yPath maps to '' = an empty series (decision 9).
                       ySeries: companions.series.map(s => ({

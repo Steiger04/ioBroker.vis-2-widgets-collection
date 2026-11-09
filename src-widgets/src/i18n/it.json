@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "Il payload non contiene ancora un elenco di righe — scegliere un punto dati il cui payload sia un array JSON (o un oggetto che ne contenga uno).",
     "echarts_mapping_depth_cap": "La ricerca è limitata a 10 livelli di annidamento — i percorsi di riga e le colonne del payload più profondi non compaiono nella selezione.",
     "echarts_mapping_row_index": "(indice di riga)",
+    "echarts_mapping_row_label": "Riga %s",
     "echarts_mapping_rowpath": "Percorso righe",
     "echarts_mapping_drifted": "Non più presente nel payload",
     "echarts_mapping_suggestion_badge": "Suggerito",

@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "Payload nie zawiera jeszcze listy wierszy — wybierz punkt danych, którego payload jest tablicą JSON (lub obiektem ją zawierającym).",
     "echarts_mapping_depth_cap": "Wyszukiwanie jest ograniczone do 10 poziomów zagnieżdżenia — głębsze ścieżki wierszy i kolumny payloadu nie pojawiają się na liście wyboru.",
     "echarts_mapping_row_index": "(indeks wiersza)",
+    "echarts_mapping_row_label": "Wiersz %s",
     "echarts_mapping_rowpath": "Ścieżka wierszy",
     "echarts_mapping_drifted": "Już nie ma w payloadzie",
     "echarts_mapping_suggestion_badge": "Sugestia",

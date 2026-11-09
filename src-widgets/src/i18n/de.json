@@ -221,6 +221,7 @@
     "echarts_mapping_rows_top": "(oberste Ebene)",
     "echarts_mapping_xpath": "X-Spalte",
     "echarts_mapping_row_index": "(Zeilenindex)",
+    "echarts_mapping_row_label": "Zeile %s",
     "echarts_mapping_time_axis": "Zeitachse",
     "echarts_col_type_date": "Datum",
     "echarts_col_type_number": "Zahl",

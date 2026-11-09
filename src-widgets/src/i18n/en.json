@@ -225,6 +225,7 @@
     "echarts_mapping_rows_top": "(top level)",
     "echarts_mapping_xpath": "X column",
     "echarts_mapping_row_index": "(row index)",
+    "echarts_mapping_row_label": "Row %s",
     "echarts_mapping_time_axis": "Time axis",
     "echarts_col_type_date": "Date",
     "echarts_col_type_number": "Number",

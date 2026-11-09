@@ -343,6 +343,18 @@ describe('parseJsonTableState — sliceNames (ADR-0075 decision 5, the pie famil
         expect(out.sliceNames).toEqual(['Zeile 1', 'Zeile 2']); // the PIE names
     });
 
+    it('the row fallback reads the caller-supplied label, on the axis labels and the slice names', () => {
+        const rowLabel = (row: number): string => `Row ${row}`;
+        const noX = parseJsonTableState(JSON.stringify([{ a: 1 }, { a: 2 }]), { ySeries: ys('a'), rowLabel });
+        expect(noX.sliceNames).toEqual(['Row 1', 'Row 2']);
+        const scattered = parseJsonTableState(JSON.stringify([{ m: 'Jan', a: 1 }, { a: 2 }]), {
+            xPath: 'm',
+            ySeries: ys('a'),
+            rowLabel,
+        });
+        expect(scattered.categories).toEqual(['Jan', 'Row 2']);
+    });
+
     it('time X: the payload OWN X text per KEPT row, in the sorted order', () => {
         const out = parseJsonTableState(
             JSON.stringify([
