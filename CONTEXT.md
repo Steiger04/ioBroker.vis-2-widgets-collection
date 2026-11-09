@@ -828,6 +828,10 @@ _Avoid_: Hue (that is the colour angle Kanal), 8-Bit-Skala
 The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Switching the view switches the lamp: entering writes the stored temperature (2000 K without a usable value), leaving writes the stored colour Kanäle back. A foreign change of temperature or brightness reaches its pickers in both cases.
 _Avoid_: CCT-Modus (sounds like a Lichttyp), Weiß-Modus, cctLight as a prose term
 
+**Farbansicht**:
+The colour view of a Light2 widget: one picker in the chosen UI component that writes all colour Kanäle of the **Lichttyp**. Every Lichttyp except none and cct has it, and the widget always starts in it.
+_Avoid_: Farbmodus (not in the code or the UI), RGB-Ansicht (h/s/v has it too)
+
 **Kelvin-Picker** / **Helligkeits-Picker**:
 The two pickers of the **CCT-Ansicht** — the first writes the temperature Kanal, the second the brightness Kanal; in every other view one picker writes all colour Kanäle of the Lichttyp.
 _Avoid_: Picker 1/2, component number as a prose term
