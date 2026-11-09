@@ -316,6 +316,7 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
                     allowUnknown: 'ignore',
                     properties: {
                         weight: { kind: 'number', optional: true },
+                        weightMax: { kind: 'number', optional: true },
                         data: { kind: 'string' },
                     },
                 },

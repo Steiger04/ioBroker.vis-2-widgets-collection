@@ -77,20 +77,26 @@ describe('TypographySection Google font field', () => {
         expect(row?.previousElementSibling?.getAttribute('aria-hidden')).toBe('true');
     });
 
-    it('embeds Regular and Bold of a loaded font, as the help hint promises', async () => {
-        // Google's CSS2 endpoint answers with the regular face only, unless the weights are named.
-        const face = (weight: number): string =>
-            `/* latin */\n@font-face {\n  font-weight: ${weight};\n  src: url(https://fonts.gstatic.com/${weight}.woff2) format('woff2');\n}\n`;
-        vi.stubGlobal(
-            'fetch',
-            vi.fn((url: string) =>
-                Promise.resolve(
-                    url.endsWith('.woff2')
-                        ? new Response(new Uint8Array([1, 2, 3]).buffer)
-                        : new Response(url.includes('wght@400;700') ? face(400) + face(700) : face(400)),
-                ),
+    /** Google's answer for one latin face; the woff2 URL names the file. */
+    const latinFace = (weight: number, file: string): string =>
+        `/* latin */
+@font-face {
+  font-weight: ${weight};
+  src: url(https://fonts.gstatic.com/${file}.woff2) format('woff2');
+}
+`;
+
+    /** Loads a font through the field against a stubbed Google; returns the fetches and the stored faces. */
+    const loadFont = async (
+        name: string,
+        answer: (url: string) => string,
+    ): Promise<{ files: string[]; faces: GoogleFontsMap[string] }> => {
+        const fetched = vi.fn((url: string) =>
+            Promise.resolve(
+                url.endsWith('.woff2') ? new Response(new Uint8Array([1, 2, 3]).buffer) : new Response(answer(url)),
             ),
         );
+        vi.stubGlobal('fetch', fetched);
         const onApply = vi.fn();
         const mounted = renderComponent<TypographySectionProps>(TypographySection, {
             theme: {},
@@ -103,7 +109,7 @@ describe('TypographySection Google font field', () => {
         const group = mounted.container.querySelector('[data-google-font-group]');
         const input = group?.querySelector<HTMLInputElement>('input[type="text"]');
         act(() => {
-            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, 'Lato');
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, name);
             input?.dispatchEvent(new Event('input', { bubbles: true }));
         });
         const load = Array.from(group?.querySelectorAll('button') ?? []).find(
@@ -116,7 +122,38 @@ describe('TypographySection Google font field', () => {
         vi.unstubAllGlobals();
 
         const applied = (onApply.mock.calls[0][0] as (prev: object) => { googleFonts: GoogleFontsMap })({});
-        expect(applied.googleFonts.Lato.map(({ weight }) => weight)).toEqual([400, 700]);
+        return {
+            files: fetched.mock.calls.map(([url]) => url).filter(url => url.endsWith('.woff2')),
+            faces: applied.googleFonts[name],
+        };
+    };
+
+    it('embeds Regular and Bold of a loaded font, as the help hint promises', async () => {
+        // Google's CSS2 endpoint answers with the regular face only, unless the weights are named.
+        const { files, faces } = await loadFont('Lato', url =>
+            url.includes('wght@400;700')
+                ? latinFace(400, 'regular') + latinFace(700, 'bold')
+                : latinFace(400, 'regular'),
+        );
+        expect(faces.map(({ weight }) => weight)).toEqual([400, 700]);
+        expect(files).toHaveLength(2);
+    });
+
+    it('embeds the one file of a variable font once, and Bold still draws from it', async () => {
+        // A variable font answers both named weights with the same file.
+        const { files, faces } = await loadFont('Inter', () => latinFace(400, 'inter') + latinFace(700, 'inter'));
+        expect(files).toHaveLength(1);
+        expect(faces).toHaveLength(1);
+
+        handle?.unmount();
+        handle = renderComponent<TypographySectionProps>(TypographySection, {
+            theme: { googleFonts: { Inter: faces } },
+            onChange: () => {},
+            onApply: () => {},
+            expanded: true,
+        });
+        const css = document.querySelector('style[data-collection-google-fonts]')?.textContent;
+        expect(css).toContain('font-weight:400 700;');
     });
 });
 

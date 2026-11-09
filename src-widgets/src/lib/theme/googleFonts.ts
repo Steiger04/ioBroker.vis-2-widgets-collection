@@ -70,7 +70,9 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
         bodies.push(...allBodies);
     }
 
-    const faces: GoogleFontFace[] = [];
+    // A variable font answers both named weights with the same file: it is embedded once, as a
+    // face spanning them.
+    const facesByUrl = new Map<string, GoogleFontFace>();
     for (const body of bodies) {
         const weightMatch = body.match(/font-weight:\s*(\d+)/);
         // The modern (woff2) browser stylesheet has a single woff2 `src: url(…)`.
@@ -79,10 +81,15 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
             continue;
         }
         const weight = weightMatch ? Number(weightMatch[1]) : 400;
-        const data = await fetchAsDataUri(urlMatch[1]);
-        faces.push({ weight, data });
+        const known = facesByUrl.get(urlMatch[1]);
+        if (known) {
+            known.weightMax = weight;
+        } else {
+            facesByUrl.set(urlMatch[1], { weight, data: await fetchAsDataUri(urlMatch[1]) });
+        }
     }
 
+    const faces = [...facesByUrl.values()];
     if (faces.length === 0) {
         throw new Error(`No latin face found for "${name}"`);
     }
@@ -147,7 +154,7 @@ export function injectGoogleFontFaces(googleFonts: GoogleFontsMap | undefined): 
                 .map(
                     face =>
                         `@font-face{font-family:'${family}';font-style:normal;` +
-                        `font-display:swap;font-weight:${face.weight};` +
+                        `font-display:swap;font-weight:${face.weightMax ? `${face.weight} ${face.weightMax}` : face.weight};` +
                         `src:url(${face.data}) format("woff2")}`,
                 )
                 .join(''),
