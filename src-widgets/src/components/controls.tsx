@@ -36,7 +36,7 @@
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
  * All labels are translated at the call site.
  */
-import { useEffect, useId, useState, type FC, type ReactNode } from 'react';
+import { useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';
 import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
@@ -712,11 +712,13 @@ export const SectionTabs: FC<{
     // back after a manual tab switch). A fresh token selects the tab once.
     const focusKey = focus?.key;
     const focusToken = focus?.token;
-    useEffect(() => {
+    const [jumpSeen, setJumpSeen] = useState<{ key?: string; token?: number }>({});
+    if (jumpSeen.key !== focusKey || jumpSeen.token !== focusToken) {
+        setJumpSeen({ key: focusKey, token: focusToken });
         if (focusKey !== undefined) {
             setActive(focusKey);
         }
-    }, [focusKey, focusToken]);
+    }
     const items = Array.isArray(children) ? children : [children];
     // The children↔tabs contract is POSITIONAL — a diverging count silently hides content (an
     // extra child never renders). Dev-only guard: section/card authors see the mismatch
