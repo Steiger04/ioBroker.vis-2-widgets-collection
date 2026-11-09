@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Vitest uses this file in preference to vite.config.ts, so the Module Federation
 // plugin (build-time only, it crashes the node test env) never loads. Only the plugins tests actually need are wired here.
@@ -66,7 +65,7 @@ export default defineConfig({
         globals: true,
         projects: [
             {
-                plugins: [react(), tsconfigPaths()],
+                plugins: [react()],
                 test: {
                     name: 'node',
                     environment: 'node',
@@ -78,7 +77,7 @@ export default defineConfig({
                 },
             },
             {
-                plugins: [react(), tsconfigPaths()],
+                plugins: [react()],
                 test: {
                     name: 'dom',
                     environment: 'happy-dom',

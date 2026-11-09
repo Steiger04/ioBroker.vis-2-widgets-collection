@@ -3,32 +3,20 @@
     "private": true,
     "version": "2.6.0",
     "type": "module",
-    "exports": {
-        ".": "./src/index.js",
-        "./types": "./src/types/index.d.ts"
-    },
-    "typesVersions": {
-        "*": {
-            "types": [
-                "src/types/index.d.ts"
-            ]
-        }
-    },
     "devDependencies": {
-        "@iobroker/adapter-dev": "^1.5.0",
         "@iobroker/adapter-react-v5": "^8.0.16",
         "@iobroker/types-vis-2": "^2.20.1",
-        "@module-federation/vite": "^1.22.1",
+        "@module-federation/vite": "^1.23.11",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
-        "@vitejs/plugin-react": "^5.1.2",
-        "happy-dom": "^20.11.0",
-        "playwright": "^1.49.0",
-        "vite": "^7.1.12",
+        "@vitejs/plugin-react": "^6.3.0",
+        "esbuild": "^0.28.2",
+        "happy-dom": "20.13.0",
+        "playwright": "^1.65.0",
+        "vite": "^8.3.6",
         "vite-plugin-commonjs": "^0.10.4",
-        "vite-plugin-svgr": "^4.5.0",
-        "vite-tsconfig-paths": "^6.0.3",
-        "vitest": "^4.1.10"
+        "vite-plugin-svgr": "^5.2.0",
+        "vitest": "^5.1.0"
     },
     "dependencies": {
         "@fontsource/inter": "^5.2.8",
@@ -50,7 +38,6 @@
         "date-fns": "^4.4.0",
         "echarts": "^6.1.0",
         "expr-eval": "^2.0.2",
-        "iobroker.vis-2-widgets-collection": "file:..",
         "json-logic-engine": "^5.0.6",
         "moment": "^2.30.1",
         "react": "^19.3.0",
@@ -68,8 +55,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "i18n": "node node_modules/@iobroker/vis-2-widgets-react-dev/searchI18n vis-2-widgets-collection",
-        "update-browsers": "npx browserslist@latest --update-db",
-        "translate": "translate-adapter -a ../src-widgets -p ../io-package.json"
+        "update-browsers": "npx browserslist@latest --update-db"
     },
     "eslintConfig": {
         "extends": "react-app"

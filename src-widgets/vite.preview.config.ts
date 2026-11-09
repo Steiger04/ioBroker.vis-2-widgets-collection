@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Standalone config for the preview-image generator (scripts/gen-previews.mjs).
 //
@@ -11,5 +10,5 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // untouched. `?inline` (used by lib/theme/fontCatalogue for bundled woff2)
 // stays active because it is a Vite default.
 export default defineConfig({
-    plugins: [react(), tsconfigPaths()],
+    plugins: [react()],
 });
