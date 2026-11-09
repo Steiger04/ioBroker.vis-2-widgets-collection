@@ -76,24 +76,9 @@ const measureContentRect = (contentRect: { width: number; height: number }): voi
 };
 
 /** Dispatches one pointer event (pointer 1, primary button) on the element. */
-const pointer = (element: Element, type: 'pointerdown' | 'pointerup' | 'pointercancel'): void => {
+const pointer = (element: Element, type: 'pointerdown' | 'pointerup'): void => {
     act(() => {
         element.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, button: 0 }));
-    });
-};
-
-/** The pointer leaves the element: React derives `onPointerLeave` from `pointerout`. */
-const pointerLeave = (element: Element): void => {
-    act(() => {
-        element.dispatchEvent(
-            new PointerEvent('pointerout', {
-                bubbles: true,
-                cancelable: true,
-                pointerId: 1,
-                button: 0,
-                relatedTarget: document.body,
-            }),
-        );
     });
 };
 
@@ -154,39 +139,6 @@ describe('Light2Collection Button-Modus', () => {
             await vi.advanceTimersByTimeAsync(1);
         });
         expect(setValue).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        ['the pointer leaves the face', pointerLeave],
-        [
-            'the browser cancels the press (a touch turning into a pan)',
-            (face: Element) => pointer(face, 'pointercancel'),
-        ],
-    ])('neither toggles the Schalter-OID nor opens the modal when %s', async (_case, abort) => {
-        const { container, setState, setValue } = mountBody(
-            Light2Collection,
-            scene({ colorLightButton: true, colorLightDelayLongPress: 800 }),
-        );
-        vi.useFakeTimers();
-
-        const face = container.querySelector('button')!;
-        pointer(face, 'pointerdown');
-        abort(face);
-
-        await act(async () => {
-            await vi.advanceTimersByTimeAsync(801);
-        });
-        expect(setState).not.toHaveBeenCalled();
-        expect(setValue).not.toHaveBeenCalled();
-        expect(modal()).toBeNull();
-
-        // The aborted press is over: the next one is a plain click again.
-        pointer(face, 'pointerdown');
-        pointer(face, 'pointerup');
-        await act(async () => {
-            await vi.advanceTimersByTimeAsync(1);
-        });
-        expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
     });
 });
 

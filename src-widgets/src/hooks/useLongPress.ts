@@ -48,7 +48,7 @@ export interface UseLongPressHandlers<T = Element> {
  *
  * @template T - Element type used by React event generics.
  * @param config - Hook configuration.
- * @param config.onClick - Called when the pointer is released on the element before the threshold.
+ * @param config.onClick - Called when the press ends before the threshold.
  * @param config.onLongPress - Called when the press exceeds the threshold.
  * @param config.ms - Threshold in milliseconds.
  * @returns Event handlers and style to attach to an element.
@@ -99,54 +99,40 @@ export function useLongPress<T = Element>({
         [longPressCallback, ms],
     );
 
-    /** Ends the tracked press and hands back its event while no long press fired. */
-    const endPress = useCallback((event: PointerEvent<T>): PointerEvent<T> | null => {
-        // Ignore events from pointers we aren't tracking
-        if (event.pointerId !== activePointerIdRef.current) {
-            return null;
-        }
-
-        const pendingEvent = longPressTriggeredRef.current ? null : eventRef.current;
-
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
-
-        eventRef.current = null;
-        longPressTriggeredRef.current = false;
-        activePointerIdRef.current = null;
-
-        return pendingEvent;
-    }, []);
-
     const stop = useCallback(
         (event: PointerEvent<T>) => {
-            const pendingEvent = endPress(event);
-            if (pendingEvent) {
-                onClick(pendingEvent);
+            // Ignore events from pointers we aren't tracking
+            if (event.pointerId !== activePointerIdRef.current) {
+                return;
             }
-        },
-        [endPress, onClick],
-    );
 
-    // A press the pointer leaves, or the browser takes over (a touch turning into a pan), is no
-    // click: it ends without one.
-    const abort = useCallback(
-        (event: PointerEvent<T>) => {
-            endPress(event);
+            const currentEvent = eventRef.current;
+            const wasLongPress = longPressTriggeredRef.current;
+
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+
+            if (!wasLongPress && currentEvent) {
+                onClick(currentEvent);
+            }
+
+            eventRef.current = null;
+            longPressTriggeredRef.current = false;
+            activePointerIdRef.current = null;
         },
-        [endPress],
+        [onClick],
     );
 
     return useMemo(
         () => ({
             onPointerDown: start,
             onPointerUp: stop,
-            onPointerLeave: abort,
-            onPointerCancel: abort,
+            onPointerLeave: stop,
+            onPointerCancel: stop,
             style: { touchAction: 'manipulation' } as CSSProperties,
         }),
-        [start, stop, abort],
+        [start, stop],
     );
 }
