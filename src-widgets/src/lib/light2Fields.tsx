@@ -4,13 +4,13 @@
  * @module lib/light2Fields
  * @remarks
  * Light2 can auto-detect related RGB/CCT states from a selected "switch" object and pre-fill additional OID
- * fields in the widget configuration.
+ * fields in the widget configuration. A channel's own field runs the shared OID handler: a Hilfs-OID whose
+ * pick stores or drops its object and nothing else (ADR-0096, ADR-0111 Nr. 1).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/light2-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { oidTypeFilter } from './allowedOidTypes';
-import { oidChangeHandlerAsync } from './commonObjectFields';
+import { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
 import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
 import { light2BorderColorContract } from './light2ColorContract';
@@ -86,13 +86,6 @@ const RGB_ROLES: Record<string, Light2ChannelField> = {
 
 /** The JS types a Light2 OID may have — the switch and every channel state. */
 const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
-
-/** What every Light2 id field shares: its object dialog offers only those types (ADR-0111 Nr. 4). */
-const LIGHT2_ID_FIELD = {
-    type: 'id',
-    allowedTypes: LIGHT2_OID_TYPES,
-    filter: oidTypeFilter(LIGHT2_OID_TYPES),
-} as const;
 
 /** A channel field may be filled by the detection only while it holds no pick of the user. */
 const isUnset = (value: unknown): boolean => !value || value === 'nothing_selected';
@@ -251,8 +244,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider />,
     },
     {
-        name: 'colorLightSwitchOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightSwitchOid', LIGHT2_OID_TYPES),
         label: 'color_light_switch_oid',
         onChange: loadStatesAsync,
     },
@@ -309,8 +301,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         hidden: (data: WidgetData) => viewsOf(lightTypeOf(data)).length === 0,
     },
     {
-        name: 'colorLightTemperatureOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightTemperatureOid', LIGHT2_OID_TYPES),
         label: 'color_light_temperature_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid'),
     },
@@ -342,44 +333,37 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'cct'),
     },
     {
-        name: 'colorLightRgbHexOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightRgbHexOid', LIGHT2_OID_TYPES),
         label: 'color_light_rgb_hex_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRgbHexOid'),
     },
     {
-        name: 'colorLightRedOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightRedOid', LIGHT2_OID_TYPES),
         label: 'color_light_red_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightRedOid'),
     },
     {
-        name: 'colorLightGreenOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightGreenOid', LIGHT2_OID_TYPES),
         label: 'color_light_green_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightGreenOid'),
     },
     {
-        name: 'colorLightBlueOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightBlueOid', LIGHT2_OID_TYPES),
         label: 'color_light_blue_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBlueOid'),
     },
     {
-        name: 'colorLightHueOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightHueOid', LIGHT2_OID_TYPES),
         label: 'color_light_hue_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightHueOid'),
     },
     {
-        name: 'colorLightSaturationOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightSaturationOid', LIGHT2_OID_TYPES),
         label: 'color_light_saturation_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightSaturationOid'),
     },
     {
-        name: 'colorLightBrightnessOid',
-        ...LIGHT2_ID_FIELD,
+        ...createIdField('colorLightBrightnessOid', LIGHT2_OID_TYPES),
         label: 'color_light_brightness_oid',
         hidden: (data: WidgetData) => !isChannelFieldVisible(lightTypeOf(data), 'colorLightBrightnessOid'),
     },
