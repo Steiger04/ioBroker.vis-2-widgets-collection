@@ -27,17 +27,21 @@
  *
  * Escape closes only the Farbwähler, never a surrounding MUI dialog — MUI's top-modal rule
  * (the popover is the topmost modal while open).
+ *
+ * The library's parser throws while rendering on a gradient it cannot read, and that error would
+ * take the surrounding editor down: the {@link UnparsedValueGuard} shows such a value as no colour.
  */
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Component, useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
 import { translate } from '../../lib/translate';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
+import { TRANSPARENT } from '../swatchCheckerboard';
 import ColorInputRow, { FOLLOW_PICKER_WIDTH } from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
 import ThemePresets from './ThemePresets';
@@ -186,6 +190,48 @@ function PickerHeader({ title, onClose }: { title?: string; onClose: () => void 
     );
 }
 
+/** Props of {@link UnparsedValueGuard}. */
+interface UnparsedValueGuardProps {
+    /** The value the library should show. */
+    value: string;
+    /** Renders the library's parts with the value they can read. */
+    children: (value: string) => React.ReactNode;
+}
+
+/** State of {@link UnparsedValueGuard}. */
+interface UnparsedValueGuardState {
+    value: string;
+    failed: boolean;
+}
+
+/**
+ * Renders the library's parts and, when its parser throws on the value (the regeln store a typed
+ * `linear-gradient(0.25turn, red, blue)` as it is, the library knows no such angle), renders them
+ * again without a colour. The stored value stays; the next value is read afresh.
+ *
+ * @remarks
+ * A boundary, not a check beforehand: the library exports neither its parser nor a function that
+ * would throw outside a render, and a copy of its grammar would have to follow every release.
+ */
+class UnparsedValueGuard extends Component<UnparsedValueGuardProps, UnparsedValueGuardState> {
+    state: UnparsedValueGuardState = { value: this.props.value, failed: false };
+
+    static getDerivedStateFromError(): Partial<UnparsedValueGuardState> {
+        return { failed: true };
+    }
+
+    static getDerivedStateFromProps(
+        { value }: UnparsedValueGuardProps,
+        state: UnparsedValueGuardState,
+    ): UnparsedValueGuardState | null {
+        return value === state.value ? null : { value, failed: false };
+    }
+
+    render(): React.ReactNode {
+        return this.props.children(this.state.failed ? TRANSPARENT : this.props.value);
+    }
+}
+
 /**
  * The Farbwähler popover.
  *
@@ -277,10 +323,10 @@ function CollectionColorPicker({
     useEffect(() => flush, [flush]);
 
     // Passed presets win; without them the Collection theme supplies them (read only while open).
-    const renderLibrary = (libraryPresets: string[]): React.JSX.Element => (
+    const renderLibrary = (libraryPresets: string[], libraryValue: string): React.JSX.Element => (
         <ColorPicker
             {...libraryConfig({ allowGradient, theme, presets: libraryPresets })}
-            value={draft}
+            value={libraryValue}
             onChange={handlePick}
         />
     );
@@ -303,21 +349,27 @@ function CollectionColorPicker({
                 title={title}
                 onClose={handleClose}
             />
-            {presets === undefined && socket ? (
-                <ThemePresets
-                    socket={socket}
-                    hostTheme={theme}
-                >
-                    {renderLibrary}
-                </ThemePresets>
-            ) : (
-                renderLibrary(presets ?? [])
-            )}
-            {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
-            <ColorInputRow
-                value={draft}
-                onChange={handlePick}
-            />
+            <UnparsedValueGuard value={draft}>
+                {(libraryValue): React.ReactNode => (
+                    <>
+                        {presets === undefined && socket ? (
+                            <ThemePresets
+                                socket={socket}
+                                hostTheme={theme}
+                            >
+                                {(themePresets): React.JSX.Element => renderLibrary(themePresets, libraryValue)}
+                            </ThemePresets>
+                        ) : (
+                            renderLibrary(presets ?? [], libraryValue)
+                        )}
+                        {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
+                        <ColorInputRow
+                            value={libraryValue}
+                            onChange={handlePick}
+                        />
+                    </>
+                )}
+            </UnparsedValueGuard>
         </FollowingPopover>
     );
 }

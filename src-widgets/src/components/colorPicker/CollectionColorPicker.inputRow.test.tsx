@@ -328,3 +328,49 @@ describe('CollectionColorPicker input row and Escape', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('CollectionColorPicker with a gradient the library cannot parse', () => {
+    beforeEach(() => {
+        // React reports the caught render error on the console.
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    // CSS reads the first one, the regeln store all three as typed, the library's parser throws on them.
+    it.each([
+        ['an angle in another unit', 'linear-gradient(0.25turn, red, blue)'],
+        ['an angle unit in upper case', 'linear-gradient(90DEG, red, blue)'],
+        ['no colour stop', 'linear-gradient(90deg)'],
+    ])('opens without a colour on %s, and stores nothing', (_what, value) => {
+        const { onCommit } = mount({ value });
+
+        expect(lastLibraryProps().value).toBe('transparent');
+        expect(field('a').value).toBe('0');
+        advance(1000);
+        expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it('reads the next value again', () => {
+        mount({ value: 'linear-gradient(90deg)' });
+
+        act(() => {
+            handle?.rerender({
+                anchorEl: anchor,
+                onClose: (): void => undefined,
+                onCommit: (): void => undefined,
+                allowGradient: true,
+                value: 'linear-gradient(90deg, rgba(0, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 100%)',
+            });
+        });
+
+        expect(field('g').value).toBe('128');
+    });
+
+    it('stores a pick made from there', () => {
+        const { onCommit } = mount({ value: 'linear-gradient(90deg)' });
+
+        pick('solid');
+        advance(150);
+
+        expect(onCommit).toHaveBeenCalledExactlyOnceWith('#ff0000');
+    });
+});
