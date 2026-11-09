@@ -121,6 +121,31 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         expect(lastLibraryProps().value).toBe('transparent');
     });
 
+    describe('a surface that paints nothing without the card', () => {
+        const surface: Partial<ExtendedField> = {
+            name: 'frameBackground',
+            terminal: 'paper',
+            terminalWithoutCard: 'transparent',
+        };
+
+        it('shows the checkerboard and "erbt" under noCard', () => {
+            const { container, input } = mount(surface, { noCard: true } as WidgetData);
+            expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
+            expect(input.value).toBe('');
+            expect(input.placeholder).toBe('t:color_inherit');
+        });
+
+        it('shows the paper in the card', () => {
+            const { container } = mount(surface, { noCard: false } as WidgetData);
+            expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
+        });
+
+        it('shows the set colour under noCard', () => {
+            const { container } = mount(surface, { noCard: true, frameBackground: '#336699' } as WidgetData);
+            expect(getComputedSwatch(container).toLowerCase()).toMatch(/#336699|rgb\(51, 102, 153\)/);
+        });
+    });
+
     it('shows a fallback field before the terminal', () => {
         const { container } = mount({ terminal: 'primary', fallbackFields: ['textColor'] }, {
             textColor: '#00ff00',

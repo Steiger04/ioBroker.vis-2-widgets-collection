@@ -335,15 +335,17 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         // Content background color field (no fallback of its own; the per-state and Active
         // variants inherit it, see inheritFrom). Terminal `paper`: with no value the
         // card's inner paper (CollectionBase, BASE-PAPER-1) keeps MUI's Paper default
-        // `palette.background.paper`, so the swatch shows that. Documented divergence
-        // (ADR-0004, pattern table header `noCard`): under `noCard` / embedded the runtime
-        // paints `transparent`. Read by the swatch only — the runtime resolver
-        // (`propertyResolvers` `background`) has its own chain and stays `''`.
+        // `palette.background.paper`, so the swatch shows that. Under `noCard` the runtime
+        // paints `transparent`, so the swatch shows the checkerboard (ADR-0004); an embedded
+        // widget paints it too, but its field data does not say so and the swatch stays on
+        // paper. Read by the swatch only — the runtime resolver (`propertyResolvers`
+        // `background`) has its own chain and stays `''`.
         createColorField({
             name: `background${groupName}`,
             label: 'background',
             fallbackFields: inheritFrom('background'),
             terminal: 'paper',
+            terminalWithoutCard: 'transparent',
         }),
         {
             label: '',
@@ -353,12 +355,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         // Frame background color field (no fallback of its own; the per-state and Active
         // variants inherit it, see inheritFrom). Terminal `paper`: with no
         // explicit override the card/frame surface inherits the effective theme's
-        // `palette.background.paper` (preset-controlled), matching the swatch.
+        // `palette.background.paper` (preset-controlled), matching the swatch. Under
+        // `noCard` the frame paints nothing and the swatch shows the checkerboard (ADR-0004).
         createColorField({
             name: `frameBackground${groupName}`,
             label: 'frame_background',
             fallbackFields: inheritFrom('frameBackground'),
             terminal: 'paper',
+            terminalWithoutCard: 'transparent',
         }),
     ];
 

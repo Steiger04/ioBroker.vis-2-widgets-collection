@@ -116,6 +116,12 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
     terminal?: ColorTerminal;
 
     /**
+     * The terminal under `noCard`, where the slot's surface differs from the card: the swatch
+     * then shows what the widget paints (ADR-0004). Omitted: `noCard` changes nothing.
+     */
+    terminalWithoutCard?: ColorTerminal;
+
+    /**
      * Schlichtes Farbfeld marker (`createPlainColorField`, ADR-0102): a colour field without a
      * Field-Vertrag — no cascade, the stored value or else the schema default. Runtime consumers
      * that walk a field list read it like a vis-2 `type: 'color'` field.

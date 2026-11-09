@@ -36,7 +36,10 @@ import { readStoredColor } from './colorInputRules';
 export type StyleColor = Pick<WidgetStyleState, 'color'> | undefined;
 
 /** Field-contract slice consumed by {@link resolveEffectiveColor}. */
-export type ColorFieldContract = Pick<ExtendedField, 'name' | 'fallbackFields' | 'terminal' | 'inheritTextStyle'>;
+export type ColorFieldContract = Pick<
+    ExtendedField,
+    'name' | 'fallbackFields' | 'terminal' | 'terminalWithoutCard' | 'inheritTextStyle'
+>;
 
 /**
  * Maps a terminal category to its concrete theme color.
@@ -93,7 +96,8 @@ function validColor(value: unknown): string | undefined {
  *    legacy `fallbackFields: ['']` convention — and invalid values are skipped)
  * 3. vis-2 widget CSS `color`, only when `field.inheritTextStyle` — not
  *    validated, only skipped when empty
- * 4. terminal default ({@link terminalColor}) — always yielded, last
+ * 4. terminal default ({@link terminalColor}) — always yielded, last; under `noCard`
+ *    `field.terminalWithoutCard` where the field declares one
  *
  * "Valid" is the editor's rule (Regeln für Farbeingaben, `colorInputRules`): any CSS
  * colour the browser accepts, or a complete gradient; empty or invalid values count as
@@ -126,7 +130,7 @@ function* cascadeCandidates(
         }
     }
 
-    yield terminalColor(field.terminal, theme);
+    yield terminalColor(data.noCard && field.terminalWithoutCard ? field.terminalWithoutCard : field.terminal, theme);
 }
 
 /**

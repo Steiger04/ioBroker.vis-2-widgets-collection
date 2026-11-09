@@ -6,8 +6,8 @@
  * Without a value the card's inner paper (CollectionBase, BASE-PAPER-1) paints MUI's Paper
  * default `palette.background.paper`, so the `background` contract — and with it the per-state
  * `background{n}` (the same field in the `values` group) and `backgroundActive` — names
- * `paper`. Under `noCard` / embedded the runtime paints `transparent` instead: a documented
- * divergence (ADR-0004, ticket 12), pinned in `components/CollectionBase.test.tsx`.
+ * `paper`. Under `noCard` the runtime paints `transparent` instead and the swatch shows the
+ * checkerboard (`terminalWithoutCard`); the paint is pinned in `components/CollectionBase.test.tsx`.
  * Expected colours are the stock MUI light and dark paper: `#fff` / `#121212`.
  */
 import { describe, expect, it } from 'vitest';
@@ -40,6 +40,33 @@ describe('commonFields — the content background swatch shows the card paper', 
 
     it('an explicit background stays as set', () => {
         expect(resolveEffectiveColor(fieldOf('', 'background'), { background: '#336699' }, LIGHT)).toBe('#336699');
+    });
+});
+
+describe('commonFields — without the card the swatch shows the transparent surface', () => {
+    it.each([
+        ['background', ''],
+        ['backgroundActive', 'Active'],
+        ['frameBackground', ''],
+        ['frameBackgroundActive', 'Active'],
+    ])('%s without a value under noCard resolves to no colour, the checkerboard', (name, groupName) => {
+        expect(resolveEffectiveColor(fieldOf(groupName, name), { noCard: true }, LIGHT)).toBe('');
+    });
+
+    it.each(['background', 'frameBackground'])('%s keeps the paper while noCard is off', name => {
+        expect(resolveEffectiveColor(fieldOf('', name), { noCard: false }, LIGHT)).toBe('#fff');
+    });
+
+    it.each(['background', 'frameBackground'])('an explicit %s stays as set under noCard', name => {
+        expect(resolveEffectiveColor(fieldOf('', name), { noCard: true, [name]: '#336699' }, LIGHT)).toBe('#336699');
+    });
+
+    it('a state row inherits the set base value under noCard, not the checkerboard', () => {
+        const row = commonFields({ groupName: '', allFields: false, perState: true }).find(
+            field => (field as { name?: string }).name === 'frameBackground',
+        ) as ExtendedField;
+
+        expect(resolveEffectiveColor(row, { noCard: true, frameBackground: '#336699' }, LIGHT)).toBe('#336699');
     });
 });
 

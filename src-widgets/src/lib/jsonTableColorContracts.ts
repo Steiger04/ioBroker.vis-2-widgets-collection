@@ -10,10 +10,11 @@
  * divider, the header bar to the theme paper — so the contracts declare exactly these
  * terminals and no fallback field.
  *
- * Three documented divergences between swatch and runtime: with `noCard` the header bar
- * stays transparent (the swatch shows paper); the header bar paints its explicit value raw,
- * so a legacy value that is no colour keeps painting (the swatch counts it as unset); and
- * the header text inherits at runtime when unset (its contract only drives the swatch).
+ * With `noCard` the header bar stays transparent and the swatch shows the checkerboard
+ * (`terminalWithoutCard`). Two documented divergences between swatch and runtime: the header
+ * bar paints its explicit value raw, so a legacy value that is no colour keeps painting (the
+ * swatch counts it as unset); and the header text inherits at runtime when unset (its
+ * contract only drives the swatch).
  *
  * The cells carry no colour field of their own for their text; their inherited text colour has
  * its own contract all the same ({@link jsonTableCellTextColorContract}), so the column editor's
@@ -37,7 +38,12 @@ export const jsonTableColorContracts = {
     headerBorderColor: { name: 'headerBorderColor', fallbackFields: [], terminal: 'divider' },
     verticalCellBorderColor: { name: 'verticalCellBorderColor', fallbackFields: [], terminal: 'divider' },
     horizontalCellBorderColor: { name: 'horizontalCellBorderColor', fallbackFields: [], terminal: 'divider' },
-    tableHeaderBgColor: { name: 'tableHeaderBgColor', fallbackFields: [], terminal: 'paper' },
+    tableHeaderBgColor: {
+        name: 'tableHeaderBgColor',
+        fallbackFields: [],
+        terminal: 'paper',
+        terminalWithoutCard: 'transparent',
+    },
     tableHeaderTextColor: {
         name: 'tableHeaderTextColor',
         fallbackFields: [],

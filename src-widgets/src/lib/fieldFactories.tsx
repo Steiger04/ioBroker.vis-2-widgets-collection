@@ -110,6 +110,8 @@ export interface ColorFieldOptions {
      * See `ExtendedField.terminal` and ADR 0004.
      */
     terminal?: ColorTerminal;
+    /** The terminal under `noCard`. See `ExtendedField.terminalWithoutCard` and ADR 0004. */
+    terminalWithoutCard?: ColorTerminal;
     /**
      * Whether the cascade consults the vis-2 widget CSS `color` before the
      * terminal default. See `ExtendedField.inheritTextStyle` and ADR 0004.
@@ -146,6 +148,7 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         fallbackFields,
         noGradient,
         terminal,
+        terminalWithoutCard,
         inheritTextStyle,
         hidden,
     } = options;
@@ -179,6 +182,10 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
 
     if (terminal !== undefined) {
         field.terminal = terminal;
+    }
+
+    if (terminalWithoutCard !== undefined) {
+        field.terminalWithoutCard = terminalWithoutCard;
     }
 
     if (inheritTextStyle !== undefined) {

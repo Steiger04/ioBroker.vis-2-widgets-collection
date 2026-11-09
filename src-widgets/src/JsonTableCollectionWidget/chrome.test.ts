@@ -98,6 +98,22 @@ describe('buildTableChrome — header bar', () => {
         expect(bar.boxShadow).toBe('none');
     });
 
+    it('the header background swatch shows what the bar paints, with noCard and without', () => {
+        const contract = jsonTableColorContracts.tableHeaderBgColor;
+
+        expect(resolveEffectiveColor(contract, { noCard: true }, theme)).toBe('');
+        expect(resolveEffectiveColor(contract, { noCard: false }, theme)).toBe(PAPER);
+        expect(resolveEffectiveColor(contract, { noCard: true, tableHeaderBgColor: '#123456' }, theme)).toBe('#123456');
+    });
+
+    it('the header background field declares the same contract', () => {
+        const field = jsonTableFields().find(
+            candidate => (candidate as { name?: string }).name === 'tableHeaderBgColor',
+        ) as ExtendedField;
+
+        expect(resolveEffectiveColor(field, { noCard: true }, theme)).toBe('');
+    });
+
     it('follows the RAW noCard, not noCard || usedInWidget: inside another widget the sticky bar keeps paper and shadow', () => {
         // A widget inside another widget: Generic unwraps the card (wrappedContent false), but
         // the widget data the renderer hands the chrome still says noCard false — the bar stays
@@ -392,16 +408,16 @@ describe('table colour fields — each declares the contract the chrome resolves
         jsonTableFields().find(candidate => (candidate as { name?: string }).name === name) as ExtendedField;
 
     it.each([
-        // field, terminal, inheritTextStyle, noGradient (as the field set it before the contract)
-        ['borderColor', 'divider', undefined, true],
-        ['headerBorderColor', 'divider', undefined, true],
-        ['verticalCellBorderColor', 'divider', undefined, true],
-        ['horizontalCellBorderColor', 'divider', undefined, true],
-        ['tableHeaderBgColor', 'paper', undefined, undefined],
-        ['tableHeaderTextColor', 'text', true, true],
+        // field, terminal, without the card, inheritTextStyle, noGradient (as the field set it before the contract)
+        ['borderColor', 'divider', undefined, undefined, true],
+        ['headerBorderColor', 'divider', undefined, undefined, true],
+        ['verticalCellBorderColor', 'divider', undefined, undefined, true],
+        ['horizontalCellBorderColor', 'divider', undefined, undefined, true],
+        ['tableHeaderBgColor', 'paper', 'transparent', undefined, undefined],
+        ['tableHeaderTextColor', 'text', undefined, true, true],
     ] as const)(
         '%s spreads exactly its contract: terminal %s, no fallback field',
-        (name, terminal, inherit, noGradient) => {
+        (name, terminal, withoutCard, inherit, noGradient) => {
             const field = fieldOf(name);
             const contract = jsonTableColorContracts[name];
 
@@ -409,12 +425,14 @@ describe('table colour fields — each declares the contract the chrome resolves
                 name,
                 fallbackFields: [],
                 terminal,
+                ...(withoutCard !== undefined && { terminalWithoutCard: withoutCard }),
                 ...(inherit !== undefined && { inheritTextStyle: inherit }),
             });
             expect({
                 name: field.name,
                 fallbackFields: field.fallbackFields,
                 terminal: field.terminal,
+                terminalWithoutCard: field.terminalWithoutCard,
                 inheritTextStyle: field.inheritTextStyle,
             }).toEqual(contract);
             expect(field.noGradient).toBe(noGradient);

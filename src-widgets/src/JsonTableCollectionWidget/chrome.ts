@@ -12,8 +12,8 @@
  * (ADR-0004, `lib/jsonTableColorContracts`): their fields declare the terminals the
  * runtime has always fallen back to — `divider` for the four lines (resolved as a solid
  * colour), `paper` for the header bar, `text` for the header text — and this module
- * resolves the same contracts. Three documented divergences: with `noCard` the header bar
- * stays transparent (the swatch shows paper), the header bar paints its explicit value
+ * resolves the same contracts. With `noCard` the header bar stays transparent and the swatch
+ * shows the checkerboard. Two documented divergences: the header bar paints its explicit value
  * raw (a legacy value the picker rejects keeps painting), and the header text inherits
  * when unset (its contract only drives the swatch). The row stripes are not contracts yet. Cell
  * content (Format type rendering, conditional styles) and the column-resize affordance
@@ -129,10 +129,10 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject 
     // rows never scroll visibly underneath it.
     const flat = settings.noCard === true;
 
-    // The header colour contract: explicit value → theme paper (terminal). Documented
-    // deviation under noCard: the bar stays transparent — the terminal yields to
-    // transparent, while the editor swatch keeps showing the paper.
-    const terminal = flat ? 'transparent' : jsonTableColorContracts.tableHeaderBgColor.terminal;
+    // The header colour contract: explicit value → theme paper (terminal), transparent under
+    // noCard — the editor swatch shows the same.
+    const { terminal: cardTerminal, terminalWithoutCard } = jsonTableColorContracts.tableHeaderBgColor;
+    const terminal = flat ? terminalWithoutCard : cardTerminal;
     // The explicit stage goes into the CSS raw, as before the contract: every colour the
     // cascade reads (Regeln für Farbeingaben) paints as the swatch shows it; a legacy value
     // that is no colour never crashed, so it keeps painting instead of counting as unset
