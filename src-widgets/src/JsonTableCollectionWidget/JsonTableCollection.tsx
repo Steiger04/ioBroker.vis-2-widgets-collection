@@ -59,7 +59,7 @@ import { useViewState } from './useViewState';
 import type { ViewColumn } from './viewState';
 import ColumnMenu from './components/ColumnMenu';
 import { buildColumnDefs } from './utils/columnDefinitions';
-import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
+import { columnCapabilities, tableCapabilities, virtualizesRows, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { translate } from '../lib/translate';
@@ -406,8 +406,7 @@ const JsonTableCollection: FC = () => {
         scrollPaddingStart: chrome.rowHeight,
     });
 
-    const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
-    const shouldVirtualize = !capabilities.pagination && tableRows.length > virtualizeThreshold;
+    const shouldVirtualize = virtualizesRows(capabilities, tableRows.length, widget.data.tableVirtualizeThreshold);
     const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
     // FIX-P1-3: Use optional chaining for safe array access in virtualizer
     const firstItem = virtualItems?.[0];
