@@ -33,7 +33,7 @@ import {
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import ColorField from '../colorFields';
-import { GRID9_POSITIONS, PositionGrid } from '../controls';
+import { grid9Positions, PositionGrid } from '../controls';
 import { effectiveDarkMode } from '../../echartsTheme';
 import { familyOf } from '../../families/kernel';
 import { TOOLBOX_TOKENS } from '../../optionBuilders/toolbox';
@@ -162,7 +162,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                             label={Generic.t('echarts_toolbox_position')}
                             value={tb.pos ?? 'topRight'}
                             onChange={v => patch({ pos: v as EchartsToolboxConfig['pos'] })}
-                            options={GRID9_POSITIONS}
+                            options={grid9Positions()}
                         />
                         <Box sx={{ mt: 1.5 }} />
                         <FieldGrid>
