@@ -424,6 +424,14 @@ export function buildGaugeOptions(
         options.barWidth = Math.min(options.barWidth, 50);
     }
 
+    // canvas-gauges honours `borders: false` only in its constructor (zeroing the ring widths);
+    // the adapter's update() would bring the rings back from the widths it hands over.
+    if (options.borders === false) {
+        options.borderOuterWidth = 0;
+        options.borderMiddleWidth = 0;
+        options.borderInnerWidth = 0;
+    }
+
     return options as GaugeOptions;
 }
 

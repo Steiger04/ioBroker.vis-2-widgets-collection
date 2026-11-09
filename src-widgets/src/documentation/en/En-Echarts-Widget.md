@@ -4,20 +4,20 @@
 
 ## Description
 
-The ECharts widget ("Chart (ECharts)") renders Apache ECharts charts directly inside vis-2: line charts, bar charts, scatter plots and pie/donut charts. All chart-specific settings are maintained in a dedicated configurator dialog, opened from the vis-2 attributes panel via **Edit chart configuration**.
+The ECharts widget ("Chart (ECharts)") renders Apache ECharts charts in vis-2: line charts, bar charts, scatter plots and pie/donut charts. All chart-specific settings live in the configurator, opened by **Edit chart configuration** in the vis-2 attributes panel.
 
 The widget supports two data source modes:
 
-- **History** — fetches aggregated history through a history adapter (history, SQL, InfluxDB …). Time window, aggregation, interval and refresh are configured per chart and per series.
-- **JSON** — a single datapoint supplies the finished data as a JSON payload. The JSON structures the datapoint must deliver are described on the dedicated page [ECharts JSON Formats](En-Echarts-JSON-Formats.md).
+- **History** — fetches history through a history adapter (history, SQL, InfluxDB …). Time window, fetch and refresh apply per chart; aggregation, difference and null values can be overridden per series.
+- **JSON** — one data point supplies the data as a JSON payload. The structures are described on [ECharts JSON Formats](En-Echarts-JSON-Formats.md).
 
 ## Settings hierarchy
 
-This widget uses all **vis-2 settings** and **common settings**. See [Home](En-Home.md) for details.
+This widget uses all **vis-2 settings** and **common settings**. See [Home](En-Home.md) for details. Deviation: the [Icon](En-Home.md#icon) and [Value](En-Home.md#value) blocks and No header icon `noHeaderIcon` have no effect here and are hidden in the panel.
 
 The widget-specific settings override the more general ones.
 
-> **Configurator, not panel:** Almost every ECharts setting lives in the configurator dialog, not in the vis-2 attributes panel. The panel itself only shows the open trigger and the four padding sliders (see [below](#vis-2-panel-settings)).
+> **Configurator, not panel:** Almost every ECharts setting lives in the configurator, not in the vis-2 attributes panel. The panel only shows the open trigger and the four padding sliders (see [below](#vis-2-panel-settings)).
 
 ## Concepts
 
@@ -25,51 +25,54 @@ The widget-specific settings override the more general ones.
 
 The **chart type** (pinned at the top of the configurator) picks the family at the same time:
 
-| Type    | Family    | Description                                                                               |
-| ------- | --------- | ----------------------------------------------------------------------------------------- |
-| Line    | Cartesian | Time series as a line; the area fill is a series property ("area"), not a type of its own |
-| Bar     | Cartesian | Time series as bars; optional calendar bucketing via the bar interval                     |
-| Scatter | Cartesian | Time series as scattered points                                                           |
-| Pie     | Pie       | One series/column = one ring; the values collapse into slices                             |
+| Type    | Family    | Description                                                                                                  |
+| ------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| Line    | Cartesian | Series as lines; the area fill is a series property, not a type of its own                                   |
+| Bar     | Cartesian | Series as bars; in history optional calendar bucketing via the bar interval                                  |
+| Scatter | Cartesian | Series as scattered points                                                                                   |
+| Pie     | Pie       | History and finished series: one series = one slice. Table / columns: one Y column = one ring, rows = slices |
 
-Within the cartesian family every series may override the type individually (line/bar/scatter) — the chart type is the default each series inherits.
+Within the cartesian family every series may override the type: the **Type** field appears from two series on and shows the chart type while the series carries no type of its own. Choosing the chart type stores no override.
 
 ### Data modes and payload families
 
 The **data mode** (second pinned selector) applies to the whole chart:
 
-- **History** — every series binds its own datapoint (OID); data is fetched via `getHistory` with time window, aggregation and maximum point count. Requires a history adapter configured on the datapoint.
-- **JSON** — exactly one JSON datapoint supplies all series. Under this mode a third pinned selector appears, the **payload family**:
-    - **Series document** — the payload carries finished series (`{ series: […] }`, arrays …). Count and values are owned by the payload alone; in the configurator you style, axis-bind and hide them by name.
-    - **Table/columns** — the payload is a list of rows; row path, X column and Y columns (in the Series section) derive the series from it. Here the user owns the structure, the payload the values.
+- **History** — every series binds its own data point; data is fetched via `getHistory` with time window, aggregation and maximum point count. Requires a history adapter on the data point.
+- **JSON** — exactly one JSON data point supplies all series. Under this mode a third pinned selector appears, the **payload family**:
+    - **Finished series** — the payload carries finished series (`{ series: […] }`, arrays …). Count and values are owned by the payload alone; in the configurator you style, axis-bind and hide them by name.
+    - **Table / columns** — the payload is a list of rows; rows path, X column and Y columns (in the Series section) derive the series from it. Here the user owns the structure, the payload the values.
 
-> **Boundary crossings delete:** Family switches (e.g. line → pie), data-mode switches (history ↔ JSON) and payload-family switches (series document ↔ table/columns) reset the data path — series, axes and markings fall. The configurator warns with a chip at the respective selector before the crossing. **Undo** restores an accidental switch in a single step. The JSON datapoint itself survives a payload-family switch (same state, read the other way).
+> **Boundary crossings delete:** Family switches (e.g. line → pie), data-mode switches (history ↔ JSON) and payload-family switches (finished series ↔ table / columns) reset the data path: series, Y axes, style and hiding of the payload series, JSON data point, mapping and markings fall. Title, legend, tooltip, colors, toolbox, X card and zoom stay. After the crossing a notice names what fell (series, axes, markings, JSON data point, active templates; nothing lost, no notice), and its **Undo** restores the state in a single step. The JSON data point itself survives a payload-family switch (same state, read the other way). Line ↔ bar ↔ scatter deletes nothing.
 
 The JSON payload formats with examples: [ECharts JSON Formats](En-Echarts-JSON-Formats.md).
 
 ### Per-series value processing (value chain)
 
-Every value passes through a fixed chain on its way into the chart. The stages are series properties (**Data** or **Transformation** tab of the series card):
+Every value passes through a fixed chain on its way into the chart. The stages are series properties on the **Data** tab of the series card:
 
-1. **Value map** (`valueMap`) — if the raw value as text matches a key exactly, the mapped number is adopted; an empty target is a **deliberate gap** that is never filled.
-2. **Interpretation** — booleans become 1/0, numeric texts are read (including `"true"`/`"false"`, comma decimals `23.5`, prefix parsing `23.5 °C`); anything uninterpretable becomes a gap.
-3. **NULL handling** — keep gaps / fill with last value / fill with 0. Deliberate (mapped) gaps stay immune.
+1. **Value mapping** (`valueMap`) — if the raw value as text matches a key exactly, the mapped number applies; an empty target is a **deliberate gap** that is never filled. Unmapped values pass through unchanged.
+2. **Plottable value** — booleans and `"true"`/`"false"` become 1/0, texts are read as the number at the start of the text (`23.5 °C`). A comma without a dot counts as the decimal separator (`23,5`; `1.234,5` yields 1.234). Anything uninterpretable and empty texts become a gap.
+3. **Null values** — keep gaps, fill with the last value or fill with 0. Deliberate gaps stay immune.
 4. **Y offset** — adds a fixed offset to the value.
-5. **Formula** — calculation over the symbol `val` (expr-eval syntax, e.g. `val / 1000 + 3`); context symbols `smin`, `smax`, `savg`, `sfirst`, `slast` provide the series' min/max/average/first/last value. An invalid formula falls back to the raw values.
-6. **Smoothing** — centered moving window over N points (history/JSON time data only).
-7. **Cumulative** — running total over the non-null values (runs after smoothing).
+5. **Formula** — calculation over the symbol `val` (expr-eval syntax, e.g. `val / 1000 + 3`); the context symbols `smin`, `smax`, `savg`, `sfirst`, `slast` provide the series' min/max/average/first/last value before Y offset and formula, gaps skipped. An invalid formula ⇒ values with the Y offset only, hint at the field. A non-finite or throwing result ⇒ a gap.
+6. **Bucketing** — category bars in history only, with the difference.
+7. **Moving average** — centered window over N points; clipped at the edges, gaps skipped but not filled.
+8. **Cumulative** — running total over the non-null values; gaps stay, no reset.
 
-In history mode the fetch (aggregation, point limit) precedes the chain and bar mode adds bucketing; afterwards optionally "hide future values".
+In history mode the fetch (aggregation, point limit) comes first. **Hide future values** cuts before Y offset and formula and only acts on points with a time X; with table / columns on a category or index X it has no effect.
 
 ### Axis model (cartesian)
 
-- **Series follow axes:** a fresh configuration has no axis — the first series creates the first axis (left, offset 0, gridlines on). Further axes appear via **New axis** or by rebinding and stack offset outward on their side.
-- **Y-axis binding:** every series binds to exactly one Y-axis (**Basis** tab of the series card). When the last series leaves an axis, the axis and its configuration fall.
-- **Name giver:** when several series share an axis, the axis shows the name and color of the series that bound it first. When that one moves on, the next remaining series takes over.
-- **Place memory:** each side (left/right) remembers the pixel places of its axes. An axis that disappears leaves its placement to the next arrival.
-- **Align ticks** works across axes: an axis aligns itself to the first displayed axis; a dedicated value range or tick setting overrides the alignment for that axis.
+- **Series follow axes:** an axis exists while at least one series binds it. Every new series gets its own axis; the axes alternate left and right on an 80 px raster.
+- **Y-axis binding:** every series binds to exactly one Y axis (**Basics** tab of the series card); the last entry **New axis** creates one. A duplicated series gets its own axis while every series has its own, otherwise the source's axis. When the last series leaves an axis, the axis and its configuration fall: on removing and rebinding a notice offers **Undo**, when the series vanishes from the payload it only informs.
+- **Structural events:** adding, duplicating, removing and rebinding re-arrange the bound axes. A manually set side and offset hold until the next event.
+- **Name giver:** when several series share an axis, the axis shows the name and color of its name giver; a newly rebound series does not take over the role. When it moves on, the first remaining series takes over.
+- **Place memory:** each side (left/right) remembers the pixel values of its places. The offset hangs on the place: an arriving axis takes the remembered value, a new place the raster value.
+- **Legend follow:** when all series of an axis are deselected in the legend, the axis vanishes with its reserved space, in the display only.
+- **Align ticks** is a per-axis choice, off by default. The switch appears only on follower axes from two displayed axes on; the reference is the first displayed axis. A dedicated value range or tick setting overrides the alignment for that axis, the configurator warns.
 
-The pie has no axes; the "Axes & Zoom" section does not exist there.
+The pie has no axes; the "Axes & zoom" section does not exist there.
 
 ## The configurator
 
@@ -77,77 +80,78 @@ The pie has no axes; the "Axes & Zoom" section does not exist there.
 
 Open it via: vis-2 attributes panel → group **Chart** → **Edit chart configuration**.
 
-- **Left:** section rail. Pinned on top: **chart type**, **data mode** and (in JSON mode) **payload family**. Below, the collapsible sections — in this order:
+- **Left:** section rail. Pinned on top: **Chart type**, **Data mode** and (in JSON mode) **Payload family**. Below, the collapsible sections, in this order:
     1. Data source
-    2. Behavior
-    3. Title
-    4. Series
-    5. _family-dependent:_ Axes & Zoom (cartesian) **or** Pie options (pie)
-    6. Legend
-    7. Tooltip
-    8. Colors
-    9. Toolbox
-- Every section starts collapsed with a summary line; a ⚠ counter in the header reports validation problems (e.g. min ≥ max, missing OID, lost Y column) — a click jumps to the affected spot.
-- **Right:** live preview. The splitter between configuration and preview is draggable (double-click resets); **Maximize** enlarges the dialog.
-- **Footer:** **Undo** (multi-step), **Apply** writes the rxData patch, **Cancel** discards (with a prompt while changes are open). Nothing becomes effective in the widget before **Apply**.
+    2. Series
+    3. _family-dependent:_ Axes & zoom (cartesian) **or** Pie options (pie)
+    4. Title
+    5. Legend
+    6. Tooltip
+    7. Colors
+    8. Toolbox
+    9. Behavior
+- Every section starts collapsed with a summary line; a ⚠ counter in the header reports validation problems (missing OID, missing or text Y column, stale axis binding, Y min ≥ max, scale min ≥ max, stack on the time axis). They never block **Apply**.
+- **Right:** preview with real data, at most 200 points per series, polling yes, no re-fetch on value change. The splitter between configuration and preview is draggable and keyboard-operable (320–720 px, start 440, remembered; double-click resets).
+- **Header:** **Undo** and redo (Ctrl+Z, Ctrl+Shift+Z, Ctrl+Y), **Maximize** (for the session only), **Close**, a dot for open changes.
+- **Footer:** **Reset** returns to the loaded state in one undoable step; the problem counter jumps to the first affected section and its tab; **Cancel** discards; **Apply** writes the rxData patch. **Reset** and **Apply** are disabled without a change. Every way of closing prompts while changes are open; nothing becomes effective in the widget before **Apply**.
 
 ### Pinned selectors
 
-| Selector       | Values                          | Description                                                                     |
-| -------------- | ------------------------------- | ------------------------------------------------------------------------------- |
-| Chart type     | Line · Bar · Scatter · Pie      | Family and type in one (see [concepts](#chart-families))                        |
-| Data mode      | History · JSON                  | Chart-global, not per series (see [concepts](#data-modes-and-payload-families)) |
-| Payload family | Series document · Table/columns | Only visible in JSON mode                                                       |
+| Selector       | Values                            | Description                                                                     |
+| -------------- | --------------------------------- | ------------------------------------------------------------------------------- |
+| Chart type     | Line · Bar · Scatter · Pie        | Family and type in one (see [concepts](#chart-families))                        |
+| Data mode      | History · JSON                    | Chart-global, not per series (see [concepts](#data-modes-and-payload-families)) |
+| Payload family | Finished series · Table / columns | Only visible in JSON mode                                                       |
 
 ## Data source section
 
-Applies chart-global as the **preset for all series**; every series can override the fetch parameters on its card (inherit overrides).
+Applies chart-global. Aggregation with its parameters, difference and null values are the **preset for all series**: every series can override them on its card (inherit overrides). Time window, time step, max. points, refresh interval and bar interval apply to all series. On the pie these fields shape the points, the slice aggregation then collapses them.
 
 ### History mode
 
-Tabs: **Time window** | **Data fetch**.
+Tabs: **Time window** | **Data retrieval**.
 
 **Tab Time window**
 
-| Setting     | Values / type                                         | Default  | Description                                                                                       |
-| ----------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
-| Time window | Relative · Static                                     | Relative | Relative = moving window; Static = fixed start/end datetimes (DateTimePicker)                     |
-| Time range  | 10 m … 14 d (minute-based) · 1–6 M / 1–2 Y (calendar) | 1 day    | `10m`–`14d` count minutes/hours/days; `1m`–`6m` are calendar months, `1y`/`2y` calendar years     |
-| End         | now · minute/hour/day/week/month/year boundaries      | now      | Rounds the window end to the boundary instead of "now" (17 options, adapter `relativeEndOptions`) |
-| Start / End | date/time                                             | –        | Static only: ISO date pickers. Incomplete or start ≥ end ⇒ the default window applies until fixed |
+| Setting     | Values / type                                                                                                                                                      | Default  | Description                                                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Time window | Relative · Static                                                                                                                                                  | Relative | Relative = moving window; Static = fixed start/end datetimes. Static hides time range, end and refresh interval; polling and the re-fetch on value change drop out |
+| Time range  | 10/30 minutes · 1/2/3/6/12 hours · 1/2/3/7/14 days · 1/2/3/6 months · 1/2 years                                                                                    | 1 day    | Months and years count by the calendar, a month end is clamped (`1m` before Mar 31 lands on Feb 28/29)                                                             |
+| End         | Now · End of minute · End of 5/10/30 minutes · End of hour · End of 2/3/4/6/8/12 hours · End of day · End of Sunday · End of Saturday · End of month · End of year | Now      | Rounds the window end up to the next boundary; the time range counts back from there                                                                               |
+| Start / End | date/time                                                                                                                                                          | –        | Static only. Incomplete or start ≥ end ⇒ the default window applies (now − 24 h), the configurator says so                                                         |
 
-**Tab Data fetch**
+**Tab Data retrieval**
 
-| Setting                                | Values / type                                                                                    | Default       | Description                                                                                                     |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------- |
-| Aggregation                            | Average · Min–Max · Minimum · Maximum · Total · Count · On change · None · Percentile · Integral | Average       | `getHistory` aggregation; percentile/integral bring their own parameters (below)                                |
-| Percentile (%)                         | 0–100                                                                                            | 50 (server)   | Only visible under aggregation Percentile                                                                       |
-| Unit (seconds)                         | number                                                                                           | 60 (server)   | Only under Integral: integration interval                                                                       |
-| Interpolation                          | none · linear                                                                                    | none (server) | Only under Integral                                                                                             |
-| Time step (seconds, instead of points) | number                                                                                           | –             | Replaces the point count with a fixed grid in seconds                                                           |
-| Max. points                            | number                                                                                           | 500           | Upper bound per series (widget hard limit: 5000)                                                                |
-| Bar interval                           | auto (time axis) · 15 minutes · 1 hour · 1 day · 30 days                                         | auto          | Bar charts only: enforces calendar buckets (`30d` = calendar months, 1st-to-1st). "auto" draws on the time axis |
-| Difference to previous bar             | boolean                                                                                          | off           | Bar + interval only: difference against the previous bucket (first bar drops)                                   |
-| Stacking                               | None · Stacked · 100 % stacked                                                                   | None          | Chart-global bar stack mode. Acts on bars without their own stack group                                         |
-| Sum over stack                         | on/off                                                                                           | off           | Only under "Stacked": an additional total series on top of the stack group                                      |
-| Null gaps                              | Keep gaps · Fill gaps (last value) · Fill gaps with 0                                            | Keep gaps     | NULL handling preset; every series can override                                                                 |
-| Refresh interval (ms)                  | number                                                                                           | 60000         | Periodic re-fetch; 0 = never. The widget also refreshes on value changes                                        |
+| Setting                                | Values / type                                                                                    | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aggregation                            | Average · Min–Max · Minimum · Maximum · Total · Count · On change · None · Percentile · Integral | Average          | `getHistory` aggregation; percentile/integral bring their own parameters (below)                                                                                                                                                                                                                                                                                                                                                                               |
+| Percentile (%)                         | 0–100                                                                                            | 50 (server)      | Only visible under aggregation Percentile                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Unit (seconds)                         | number                                                                                           | 60 (server)      | Only under Integral: integration interval                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Interpolation                          | None · Linear                                                                                    | None (server)    | Only under Integral                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Time step (seconds, instead of points) | number                                                                                           | –                | Replaces the point count with a fixed grid in seconds; too small a value is raised to span ÷ 5000                                                                                                                                                                                                                                                                                                                                                              |
+| Max. points                            | number                                                                                           | 500              | Upper bound per series (widget hard limit: 5000). Disabled with a time step set                                                                                                                                                                                                                                                                                                                                                                                |
+| Bar interval                           | Auto (time axis) · 15 minutes · 1 hour · 1 day · 30 days                                         | Auto (time axis) | Chart type Bar only: enforces calendar buckets (`30d` = calendar months, 1st-to-1st), the point count follows the buckets; reduced client-side by average, minimum, maximum or total, otherwise the last value applies. The choice follows the time range (up to 1 h: 15 minutes; up to 1 day: + 1 hour; up to 30 days: + 1 day; otherwise and with Static all); a stored, filtered-out value stays visible. Bar series in a line chart stay without bucketing |
+| Difference to the previous bar         | boolean                                                                                          | off              | Only with a chosen bar interval: difference against the previous bucket, one bucket more is fetched for it; the first bar drops                                                                                                                                                                                                                                                                                                                                |
+| Null values                            | Keep gaps · Forward-fill gaps · Fill gaps with 0                                                 | Keep gaps        | Preset of the null values stage; every series can override                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Refresh interval (ms)                  | number                                                                                           | 60000            | Periodic re-fetch; 0 = never. The widget also re-fetches 1.5 s after a value change                                                                                                                                                                                                                                                                                                                                                                            |
 
-> **Bar stack on the time axis:** stacking without a bar interval aligns bars by data position — diverging timestamps draw misaligned stacks. The configurator reports this with a hint and the one-click fix "Set bar interval".
+> **Bar stack on the time axis:** without a bar interval echarts stacks by data index instead of timestamp, diverging timestamps draw misassigned stacks. In history the configurator reports this on stacking with at least one stacked bar series, the button **Set bar interval** picks it by the span (up to 12 h 15 minutes, from 3 days 1 day, from 60 days 30 days, otherwise 1 hour).
 
 > **Server aggregation first:** aggregation and point count run server-side — large histories spare the client. "None"/"On change" load raw points; for very large ranges prefer an explicit step or point limit.
 
 ### JSON mode
 
-Without a bound payload the section shows only the datapoint. With payload family **Table/columns** the tabs **Datapoint** | **Mapping** appear:
+With family **Finished series** the section shows only the data point. With family **Table / columns** the tabs **Data point** | **Mapping** appear:
 
-| Setting              | Values / type | Default     | Description                                                                                                                          |
-| -------------------- | ------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| JSON datapoint (OID) | id            | –           | The datapoint whose **string value** carries the JSON payload                                                                        |
-| Row path             | path          | (top level) | Dot-path to the rows array; empty = the document itself must be the array. Array indices allowed (`plant.strings`, `rows[0].values`) |
-| X column             | path          | (row index) | Column for the X dimension. A date column ⇒ time axis, anything else category; empty ⇒ row index                                     |
+| Setting               | Values / type | Default     | Description                                                                                                                                                                                                                                                                                         |
+| --------------------- | ------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JSON data point (OID) | id            | –           | The data point whose **string value** carries the JSON payload                                                                                                                                                                                                                                      |
+| Rows path             | chips         | (top level) | Chips for the top level and every array reachable through object keys, with its length (`plant.strings`). Top level = the payload itself must be the array. If it is none, the longest path carries the badge **Suggested**, it is not set. The runtime also reads array indices (`rows[0].values`) |
+| X column              | column        | (row index) | Column for the X dimension; disabled without columns. A date column (badge **Time axis**) ⇒ time axis, sorted ascending, unreadable X values drop the row; otherwise category in payload order, duplicates stay; no column ⇒ row index                                                              |
 
-The configurator analyzes the current payload live: columns appear with a type badge (date/number/text/boolean/…), sample values and a suggestion badge for the most likely X column. The search is limited to 10 nesting levels. Paths no longer present in the document are marked "no longer in the document".
+The configurator analyzes the current payload: columns appear with a type badge (date/number/text/boolean/…), the X column with sample values ("e.g. …"). The search is limited to 10 nesting levels and says so; the runtime resolves any depth. A rows path no longer in the payload stays as a warning chip "No longer in the payload".
+
+Drift at runtime: a missing rows path makes the widget show an error; a missing X column falls back to the row index; a missing Y column renders an empty series, a text column only its values readable as numbers (both with a warning in the configurator).
 
 The Y columns are bound as cards in the Series section (see below). Formats and rules: [ECharts JSON Formats](En-Echarts-JSON-Formats.md).
 
@@ -158,111 +162,126 @@ Tabs: **Motion** | **Renderer**.
 | Setting                 | Values / type                                         | Default | Description                                                                              |
 | ----------------------- | ----------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
 | Animation               | boolean                                               | on      | Animation while drawing                                                                  |
-| Animation duration (ms) | 0–2000 (slider, 50 steps)                             | 600     | Only effective with animation on                                                         |
-| Easing                  | Default · Linear · Cubic out · Cubic in-out · Elastic | Default | ECharts easing curve                                                                     |
+| Animation duration (ms) | 0–2000 (slider, 50 steps)                             | 600     | Disabled without animation                                                               |
+| Animation easing        | Default · Linear · Cubic out · Cubic in-out · Elastic | Default | ECharts easing curve; disabled without animation                                         |
 | Renderer                | Canvas · SVG                                          | Canvas  | Canvas = faster for live data and large datasets; SVG = crisp for print, export, scaling |
 
 ## Title section
 
 Tabs: **Text** | **Position** | **Style** | **Templates**.
 
-| Setting         | Values / type                              | Default    | Description                            |
-| --------------- | ------------------------------------------ | ---------- | -------------------------------------- |
-| Chart title     | text                                       | –          | May contain vis-2 bindings `{oid.val}` |
-| Title position  | top/bottom × left/center/right (3×2)       | Top center |                                        |
-| X offset        | px                                         | 0          | Left/right anchors only                |
-| Y offset        | px                                         | 0          | Every anchor                           |
-| Title color     | color                                      | inherited  | Empty = theme text color               |
-| Title font size | number                                     | inherited  |                                        |
-| Font weight     | Normal · Bold · Bolder · Lighter · 100–900 | Normal     |                                        |
-| Font style      | Normal · Italic · Oblique                  | Normal     |                                        |
+| Setting         | Values / type                                                                                                                      | Default    | Description                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| Chart title     | text                                                                                                                               | –          | May contain vis-2 bindings `{oid.val}` (e.g. `{0.0.temperature.val}`); vis-2 resolves them, not the widget |
+| Title position  | Top/Bottom × left/center/right (3×2)                                                                                               | Top center | When title and legend share an edge, legend and plot move past the title                                   |
+| X offset        | px                                                                                                                                 | 0          | Left anchors only (Top left, Bottom left)                                                                  |
+| Y offset        | px                                                                                                                                 | 0          | Every anchor; positive points down                                                                         |
+| Title color     | color                                                                                                                              | inherited  | Empty = theme text color                                                                                   |
+| Title font size | number                                                                                                                             | inherited  |                                                                                                            |
+| Font weight     | Normal · Bold · Bolder · Lighter · 100 Thin · 200 Extra Light · 300 Light · 500 Medium · 600 Semibold · 800 Extra Bold · 900 Black | Normal     |                                                                                                            |
+| Font style      | Normal · Italic · Oblique                                                                                                          | Normal     |                                                                                                            |
 
-The **Templates** tab carries the title's [advanced JSON](#templates--advanced-json).
+The **Templates** tab carries the title's [advanced JSON](#templates--advanced-json); it also acts without a title text.
 
 ## Series section
 
 The layout of this section depends on data mode, payload family and chart type:
 
-| Context                              | View                                                                                                                                                       |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| History (all types)                  | Series cards with tabs **Basis \| Data \| Presentation \| Values \| Advanced**                                                                             |
-| JSON, series document (cartesian)    | One card per payload series, tabs **Basis \| Transformation \| Presentation \| Values \| Advanced** — the payload owns count/names; style, axis-bind, hide |
-| JSON, table/columns (cartesian)      | One card per bound Y column: name, Y column (path), presentation, values                                                                                   |
-| Pie (history & JSON series document) | Slice rows: display name, color, (history: one OID per slice)                                                                                              |
-| Pie, table/columns                   | One row per Y column = ring; the X column names the slices                                                                                                 |
+| Context                              | View                                                                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| History (cartesian)                  | Series cards with tabs **Basics \| Data \| Style \| Format \| JSON**; actions sort ▲▼, duplicate, remove                                 |
+| JSON, finished series (cartesian)    | One card per payload series with the same tabs, **Data** without fetch fields; the only action is hide. The payload owns count and names |
+| JSON, table / columns (cartesian)    | One card per bound Y column with the same tabs, **Data** without fetch fields; actions as in history                                     |
+| Pie (history & JSON finished series) | Slice rows: name, series color, (history: one OID per slice)                                                                             |
+| Pie, table / columns                 | Ring cards per Y column with tabs **Basics \| Data \| JSON**; the X column names the slices                                              |
 
-Card header: color swatch, name, (OID/column), sort ▲▼, duplicate, delete. **Add series** (history) opens the OID picker — the first series creates the first Y-axis.
+**Add first series** or **Add series** opens the OID picker (in history only history-capable OIDs), the series comes into being with the choice. With table / columns the action is **Add column as series**.
+
+With chart type Bar the stack mode sits above the cards in every data mode:
+
+| Setting        | Values / type                  | Default | Description                                                                                                                                                          |
+| -------------- | ------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stacking       | None · Stacked · 100 % stacked | None    | Acts on bars without their own stack group. At 100 %: negative values can show a share of 0 %, absolute series on the same axis run against the 0–100 % scale (hint) |
+| Sum over stack | on/off                         | off     | Only under Stacked: the per-category sum as a label above every stack with at least two visible series                                                               |
 
 ### Series card in history mode
 
-**Tab Basis**
+**Tab Basics**
 
-| Setting          | Description                                                                   |
-| ---------------- | ----------------------------------------------------------------------------- |
-| Name             | Display name (legend, tooltip)                                                |
-| OID              | The series' datapoint; in history mode restricted to history-capable OIDs     |
-| Type             | inherit (→ chart type) · Line · Bar · Scatter — visible from two series       |
-| Y-axis           | Binding to an axis (default: first axis)                                      |
-| History instance | Auto (from the datapoint's configuration) or a pinned instance (e.g. `sql.0`) |
+| Setting          | Description                                                                                                                      |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| OID              | The series' data point; in history mode restricted to history-capable OIDs                                                       |
+| History instance | Auto (from the data point's configuration) or a pinned instance (e.g. `sql.0`); without a history adapter Auto only, with a hint |
+| Name             | Display name (legend, tooltip)                                                                                                   |
+| Series color     | Color field; empty = palette slot                                                                                                |
+| Type             | Line · Bar · Scatter — visible from two series; without its own type it shows the chart type                                     |
+| Y axis           | Binding to an axis; last entry **New axis**                                                                                      |
 
-**Tab Data** — fetch overrides (inherit the data-source preset; the entry names its inheritance target) **plus** the value-chain transformation stages:
+**Tab Data** — fetch overrides (inherit the data-source preset, the entry names its inheritance target) **plus** the value-chain stages:
 
-| Setting            | Description                                                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Aggregation        | inherit (→ chart aggregation) or own value; percentile/integral parameters appear alongside                                                            |
-| Difference         | inherit · differentiate · raw — effective bar mode only                                                                                                |
-| X offset           | off · seconds (number) · ±1–6 months / ±1–2 years (calendar; positive = into the past) — shifts the request window, e.g. to overlay last year's values |
-| Formula            | calculation over `val` (and `smin`/`smax`/`savg`/`sfirst`/`slast`), e.g. `val / 1000 + 3`. An invalid formula keeps the raw values (with a hint)       |
-| Y offset           | numeric offset before the formula: `f(val + yOffset)`                                                                                                  |
-| NULL handling      | inherit (→ chart setting) · keep · fill · zero                                                                                                         |
-| Smoothing (points) | centered moving window; edges clipped, gaps stay gaps, never interpolated                                                                              |
-| Cumulative sum     | running total; after smoothing, no reset                                                                                                               |
-| Hide future values | cuts points after "now"                                                                                                                                |
+| Setting                 | Description                                                                                                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aggregation             | Inherit (→ chart aggregation) or own value. Percentile (%), Unit (seconds) and Interpolation appear alongside and inherit only under the same chart aggregate                                                             |
+| Difference              | Inherit · Differentiate · Raw — chart type Bar only, acts only with a bar interval. With mixed difference the first bucket stays, without a value in the difference series                                                |
+| X offset                | Seconds (number) · ±1/2/3/6 months · ±1/2 years (calendar; positive = into the past) — shifts the request window, e.g. to overlay last year's values. In a category bar chart the series lands outside the buckets (hint) |
+| Formula                 | Calculation over `val` (and `smin`/`smax`/`savg`/`sfirst`/`slast`), e.g. `val / 1000 + 3`. An invalid formula ⇒ values with the Y offset only (hint at the field)                                                         |
+| Y offset                | Numeric offset before the formula: `f(val + yOffset)`                                                                                                                                                                     |
+| Null values             | Inherit (→ chart setting) · Keep gaps · Forward-fill gaps · Fill gaps with 0                                                                                                                                              |
+| Value mapping           | Raw value → Number (empty = gap); exact text match. **Add mapping** creates the next free integer mapped to itself, a cleared raw value removes the row                                                                   |
+| Hide future values      | Cuts points after "now"                                                                                                                                                                                                   |
+| Moving average (points) | Centered moving window, odd 3–51, switching on sets 5; edges clipped, gaps stay gaps, never interpolated                                                                                                                  |
+| Sum cumulatively        | Running total; after the moving average, no reset                                                                                                                                                                         |
 
-**Tab Presentation** — grouped by type (Line · Bar · Area) plus legend behavior:
+**Tab Style** — grouped by type: line and area on lines, bar on bars. **Color scale** and **Only in legend** exist on all types, on scatter only these:
 
-| Setting                    | Description                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Series color               | color field; empty = palette slot                                                                      |
-| Line style / line width    | solid · dashed · dotted / px                                                                           |
-| Smooth                     | smooth (spline) curve                                                                                  |
-| Step                       | None · Step (start) · Step (middle) · Step (end)                                                       |
-| Show symbols / symbol size | point symbols on the line / px                                                                         |
-| Connect gaps               | draw the line across null gaps (independent of NULL handling)                                          |
-| Line shadow                | blur in series color (px)                                                                              |
-| Area fill                  | Off · Flat · Gradient (CSS `linear-gradient`), plus area opacity                                       |
-| Stack group                | inherit (→ chart stacking) · No stack · Group A/B/C — own groups stack independently of the chart mode |
-| Bar width (px/%)           | e.g. `20` or `30 %`; empty = auto                                                                      |
-| Bar gap / category gap     | 0–1 (ECharts `barGap`/`barCategoryGap`)                                                                |
-| Bar corner radius          | px                                                                                                     |
-| Value labels               | on/off; bars: label position (Above the bar · Inside top/middle/bottom), label size, label color       |
-| Legend only                | hide the series, keep the legend entry (toggleable)                                                    |
+| Setting                    | Description                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Smooth curve               | Smooth (spline) curve                                                                                                                                |
+| Show symbols / Symbol size | Point symbols on the line / 2–20 px, default 6                                                                                                       |
+| Value labels               | Line: sit on the symbols and keep them visible (hint). Bar: see Label position                                                                       |
+| Connect gaps               | Draw the line across null gaps (independent of the null values stage)                                                                                |
+| Line width                 | 0.5–8 px, default 2                                                                                                                                  |
+| Line shadow                | Blur in series color, 0–30 px                                                                                                                        |
+| Line style                 | Solid · Dashed · Dotted                                                                                                                              |
+| Step                       | None · Step (start) · Step (middle) · Step (end) — staircase display                                                                                 |
+| Area fill                  | Off · Flat · Gradient                                                                                                                                |
+| Area opacity               | Default 0.15 on Flat, 0.8 on Gradient                                                                                                                |
+| Area gradient              | CSS `linear-gradient` for area fill Gradient                                                                                                         |
+| Stack group                | Bar: Inherit (→ Stacking) · No stack · Group A/B/C — own groups stack independently of the chart mode. Line: No stack · Group A/B/C, without inherit |
+| Label position             | Off · Above bar · Inside, top · Inside, bottom · Inside, middle; unset = middle                                                                      |
+| Label size / Label color   | 6–24 px, default 12 / empty = auto contrast                                                                                                          |
+| Bar width (px/%)           | E.g. `20` or `30 %`; empty = auto                                                                                                                    |
+| Bar gap / Bar category gap | 0–1 (ECharts `barGap`/`barCategoryGap`), default 0.1 / 0.2                                                                                           |
+| Bar corner radius          | 0–30 px                                                                                                                                              |
+| Color by value             | Color scale: replaces the series color by value; the area keeps its gradient                                                                         |
+| Scale min / Scale max      | Empty inherits the axis bound, otherwise the data range. Min ≥ max ⇒ no scale, warning; disabled while **Color by value** is off                     |
+| Scale gradient             | Empty = derived from the series color, from light (low) to dark (high); disabled while **Color by value** is off                                     |
+| Only in legend             | Hide the series, keep the legend entry (toggleable)                                                                                                  |
 
-**Tab Values** — value presentation:
+**Tab Format** — value presentation. **Text when true / Text when false** and **State names** appear only when the series' OID supplies the type, so only in history:
 
-| Setting             | Description                                                                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit                | suffix in tooltip, legend value and labels; an axis inherits it when every bound series carries the same unit                                        |
-| Decimals            | clamps the series' values; 0 is a fact, not "unset"                                                                                                  |
-| Value map           | raw value → number table; exact string matching; an empty target is a deliberate gap                                                                 |
-| Text for true/false | boolean OIDs: texts for 1/0 (authoring one defaults the other to the adapter standard)                                                               |
-| State names         | enumeration (enum): value → text (prefilled from `common.states` on OID selection); exact hit for tooltip/legend/label, nearest state for axis ticks |
+| Setting                          | Description                                                                                                                                                                      |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit                             | Suffix in tooltip, legend value and labels; an axis inherits it when every bound series carries the same unit                                                                    |
+| Decimals                         | Clamps the series' values; 0 is a fact, not "unset"                                                                                                                              |
+| Text when true / Text when false | Boolean OIDs: texts for 1/0, prefilled from `common.states`; if one is missing, `TRUE` or `FALSE` applies. A text hit suppresses unit and decimals                               |
+| State names                      | OIDs with `common.states` and without a unit: value → text, prefilled, **Add state** adds; exact hit for tooltip/legend/label (a miss stays empty), nearest state for axis ticks |
 
-**Tab Advanced** — the series' [advanced JSON](#templates--advanced-json): deep-merged **under** the GUI entries (the GUI wins every collision); data points are force-set. Escape hatch for ECharts keys the GUI does not expose (`markPoint`, `emphasis`, `label.formatter` …).
+**Tab JSON** — the series' [advanced JSON](#templates--advanced-json): deep-merged **under** the GUI entries (the GUI wins every collision); data points are force-set. Escape hatch for ECharts keys the GUI does not expose (`markPoint`, `emphasis`, `label.formatter` …).
 
-### JSON: series document (cartesian)
+### JSON: finished series (cartesian)
 
-The payload owns the series — adding/removing is impossible here; only **styling** (tabs as in history, but **Transformation** instead of **Data**: no X offset; formula/Y offset/NULL/smoothing/cumulative stay) and **hiding** (hidden series remain re-enableable). Series sharing a name share style, axis binding and hidden state — use unique names in the payload (the configurator warns).
+The payload owns the series — there is no adding or removing, only **styling** (tabs as in history; **Basics** without OID and history instance, an empty name falls back to the payload name; **Data** without aggregation, difference and X offset) and **hiding** ("Hidden series" can be re-enabled as chips). Series sharing a name share style, axis binding and hiding — use unique names in the payload (the configurator warns).
 
 ### JSON: table/columns (cartesian)
 
-One card per bound Y column: name (free), Y column (path picker from the detected column list), axis binding, presentation, values, advanced. Row path and X column live in the Data source section. A Y column missing from the document renders an empty series (hint, no error); a text column plots only the values interpretable as numbers.
+One card per bound Y column: **Basics** with Y column (picker from the detected column list, an empty name falls back to the last path segment), name, series color, type and Y axis; **Data** without aggregation, difference and X offset; **Style**, **Format** and **JSON** as in history. Rows path and X column live in the Data source section. A Y column missing from the payload renders an empty series (warning, no error); a text column plots only the values interpretable as numbers.
 
 ### Pie: slice rows
 
-- **History:** one row per slice — display name, color, OID. The values collapse via the **slice aggregation** (Pie options section).
-- **JSON series document:** rows per payload series — name (from payload), color, per-slice advanced JSON.
-- **JSON table/columns:** one row per Y column (ring). The X column names the slices and drives the color — same name = same color across all rings; without an X column the slices read "Row n".
+- **History:** one row per slice — name, OID, series color, remove, expandable advanced JSON. The values collapse via the **slice aggregation** (Pie options section).
+- **JSON finished series:** rows per payload series — name (from payload), series color, hide, advanced JSON per slice.
+- **JSON table / columns:** one ring card per Y column, ring icon instead of a swatch, tabs **Basics \| Data \| JSON**, without series color, type and Y axis; actions as in history. The X column names the slices and drives the color — same name = same color across all rings; without an X column the slices read "Zeile n".
 
 ## Axes & Zoom section (cartesian)
 

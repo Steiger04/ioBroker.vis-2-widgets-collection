@@ -180,7 +180,11 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                 },
             }}
         >
-            <DialogTitle sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}>{title}</DialogTitle>
+            {/* Title and list labels come from `html` fields (header, alias), like the frame's lines. */}
+            <DialogTitle
+                sx={{ m: 0, p: 2, ...gradientTextSx(textColor) }}
+                dangerouslySetInnerHTML={{ __html: title }}
+            />
             <IconButton
                 aria-label={closeLabel}
                 onClick={closeHandler}
@@ -253,7 +257,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                                     >
                                         <ListItemText
                                             primaryTypographyProps={{ variant: 'body2' }}
-                                            primary={state.label}
+                                            primary={<span dangerouslySetInnerHTML={{ __html: state.label ?? '' }} />}
                                         />
                                     </ListItemButton>
                                 </ListItem>

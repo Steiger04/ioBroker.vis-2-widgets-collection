@@ -104,6 +104,24 @@ describe('StateChangeDialog', () => {
         handle.unmount();
     });
 
+    it('draws the HTML of an alias in its list entry, as the html field and the other list widgets do', () => {
+        const handle = mount({ states: rows([1, '<b>Ein</b>']) });
+
+        const bold = listItems()[0]?.querySelector('b');
+        expect(bold?.textContent).toBe('Ein');
+        expect(listItems()[0]?.textContent).toBe('Ein');
+        handle.unmount();
+    });
+
+    it('draws the HTML of a header in the title, as the html field and the frame do', () => {
+        const handle = mount({ title: '<b>Kopf</b>' });
+
+        const title = document.querySelector('.MuiDialogTitle-root');
+        expect(title?.querySelector('b')?.textContent).toBe('Kopf');
+        expect(title?.textContent).toBe('Kopf');
+        handle.unmount();
+    });
+
     it('closes through the X button', () => {
         const closeHandler = vi.fn();
         const handle = mount({ closeHandler });
