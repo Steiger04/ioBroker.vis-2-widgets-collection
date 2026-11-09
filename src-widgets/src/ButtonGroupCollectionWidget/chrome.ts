@@ -79,7 +79,10 @@ export function buildGroupChrome(input: ButtonGroupChromeInput): CSSObject {
     // The explicit value counts as stored first, as before the contract: alpha()
     // drew every value the colour calculation reads. Since the cascade reads stored
     // values by the Regeln für Farbeingaben (hsl() and a 4-digit hex included), the
-    // contract reaches the same colour; the explicit-first read only keeps that order.
+    // contract reaches the same colour for hsl(), every hex, colour names and complete
+    // gradients. The explicit-first read stays for what those rules reject and the
+    // calculation still reads: a gradient without its closing parenthesis or with text
+    // after it, an rgb() with text after it. The contract alone would draw the theme text.
     const separatorColor = alphaOf(
         solidOf(data.buttonGroupColor) ?? resolveEffectiveSolidColor(buttonGroupColorContract, data, theme),
         SEPARATOR_ALPHA,
