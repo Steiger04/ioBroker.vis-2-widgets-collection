@@ -22,14 +22,16 @@ import { isGradientColor } from './colorValidation';
 import { extractColorFromValue } from './extractColorFromValue';
 
 /** `rgb()` / `hsl()` in CSS's space syntax, an alpha after a slash. */
-const SPACE_SYNTAX = /^(rgb|hsl)a?\(\s*([^\s,/]+)\s+([^\s,/]+)\s+([^\s,/]+)\s*(?:\/\s*([^\s,/]+)\s*)?\)\s*$/;
+const SPACE_SYNTAX = /^(rgb|hsl)a?\(\s*([^\s,/]+)\s+([^\s,/]+)\s+([^\s,/]+)\s*(?:\/\s*([^\s,/]+)\s*)?\)$/;
 
 /**
  * A solid value as MUI's parser can calculate with it. MUI splits `rgb()` / `hsl()` on commas
  * only, so the space syntax CSS also reads comes out as `rgba(51, , , 0.5)` — hand it over in
- * the comma syntax. Every other value stays as it is.
+ * the comma syntax. Trailing whitespace goes too: in a `#rgba` MUI counts it as a fifth digit.
+ * Every other value stays as it is.
  */
-function forCalculation(solid: string): string {
+function forCalculation(value: string): string {
+    const solid = value.trimEnd();
     const match = SPACE_SYNTAX.exec(solid);
     if (!match) {
         return solid;
@@ -48,14 +50,17 @@ function forCalculation(solid: string): string {
  * own parser (`extractColorFromValue`) on a value without surrounding whitespace.
  * The second reading covers `rgb()`/`rgba()` in another letter case — CSS reads
  * it and the borders and lines have always drawn it; MUI's parser is case-sensitive.
+ * MUI's parser throws on few malformed values: `#xyz` or `hsl(foo)` pass it with channels that
+ * are no colour, and a derivation from them would write CSS the browser drops. Those read as nothing.
  */
 function readsAsGiven(value: string): boolean {
+    let channels: readonly number[];
     try {
-        decomposeColor(value);
-        return true;
+        channels = decomposeColor(forCalculation(value)).values;
     } catch {
         return value === value.trim() && extractColorFromValue(value) !== null;
     }
+    return channels.length >= 3 && channels.length <= 4 && channels.every(channel => Number.isFinite(channel));
 }
 
 /**
