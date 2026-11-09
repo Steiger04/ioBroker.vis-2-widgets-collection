@@ -20,8 +20,7 @@ type Predicate = (data: WidgetData) => boolean;
 
 const hiddenOf = (name: string): Predicate => {
     const field = jsonTableFields().find(f => (f as { name?: string }).name === name) as
-        | { hidden?: Predicate }
-        | undefined;
+        { hidden?: Predicate } | undefined;
     return field?.hidden ?? (() => false);
 };
 
@@ -70,11 +69,11 @@ describe('jsonTableFields — row border fields follow the runtime', () => {
     const ROW_BORDER_FIELDS = ['horizontalCellBorderWidth', 'horizontalCellBorderColor'];
 
     it.each(ROW_BORDER_FIELDS)('shows %s while the key is missing: the runtime draws the borders then', name => {
-        expect(isHidden(name, {} as WidgetData)).toBe(false);
+        expect(isHidden(name, {})).toBe(false);
     });
 
     it.each(ROW_BORDER_FIELDS)('hides %s only with the row borders explicitly off', name => {
-        expect(isHidden(name, { tableShowRowBorders: false } as WidgetData)).toBe(true);
-        expect(isHidden(name, { tableShowRowBorders: true } as WidgetData)).toBe(false);
+        expect(isHidden(name, { tableShowRowBorders: false })).toBe(true);
+        expect(isHidden(name, { tableShowRowBorders: true })).toBe(false);
     });
 });

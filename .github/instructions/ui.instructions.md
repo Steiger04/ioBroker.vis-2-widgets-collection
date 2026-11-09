@@ -1597,15 +1597,7 @@ import CollectionBase from '../components/CollectionBase';
     data={data}
     oidValue={oidValue}
 >
-    <Box
-        sx={
-            {
-                /* main content */
-            }
-        }
-    >
-        {/* Widget-specific UI */}
-    </Box>
+    <Box sx={{/* main content */}}>{/* Widget-specific UI */}</Box>
 
     {data.showFooter && <Typography variant="caption">{footerText}</Typography>}
 </CollectionBase>;

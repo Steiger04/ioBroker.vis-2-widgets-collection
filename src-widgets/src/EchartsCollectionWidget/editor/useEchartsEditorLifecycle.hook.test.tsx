@@ -37,7 +37,7 @@ const storedWidget = (patch: Partial<EditorState>): WidgetData =>
             ...patch,
         },
         0,
-    ) as WidgetData;
+    );
 
 /** Mount the modal's composition: lifecycle, then the reconcile over the given payload names. */
 const mountEditor = (

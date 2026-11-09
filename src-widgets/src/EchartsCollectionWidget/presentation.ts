@@ -610,7 +610,7 @@ export const toPresentationBase = (opts: {
         // the preview previously decoded an undefined blob → empty legend styling).
         legend:
             s.legend && typeof s.legend === 'object' && !Array.isArray(s.legend)
-                ? (s.legend as EchartsLegendConfig)
+                ? s.legend
                 : decodeLegendConfig(s.legendConfig as string),
         tooltipTrigger:
             // 'axis' is meaningless off-cartesian (ADR-0012 WS2): a non-cartesian that still stores
@@ -636,7 +636,7 @@ export const toPresentationBase = (opts: {
         // base64 BLOB — read whichever is present (the legendConfig-precedent idiom).
         toolbox:
             s.toolbox && typeof s.toolbox === 'object' && !Array.isArray(s.toolbox)
-                ? (s.toolbox as EchartsToolboxConfig)
+                ? s.toolbox
                 : decodeToolboxConfig(s.toolboxConfig as string),
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,

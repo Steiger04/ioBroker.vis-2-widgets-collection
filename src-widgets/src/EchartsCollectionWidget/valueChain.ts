@@ -240,14 +240,12 @@ const percentStage = (
 const sliceStage = (windowed: readonly ChartSeries[], names: readonly string[]): ChartSeries[] =>
     windowed.map(s => ({
         name: s.name,
-        data: (s.data as SeriesPoint[] | (number | null)[]).map(
-            (d, i): PieSliceDatum => ({
-                // names align 1:1 with every series' rows by construction — the literal is the
-                // defensive fallback for a misaligned sight, never a reachable path.
-                name: names[i] ?? `Zeile ${i + 1}`,
-                value: Array.isArray(d) ? d[1] : d,
-            }),
-        ),
+        data: (s.data as SeriesPoint[] | (number | null)[]).map((d, i): PieSliceDatum => ({
+            // names align 1:1 with every series' rows by construction — the literal is the
+            // defensive fallback for a misaligned sight, never a reachable path.
+            name: names[i] ?? `Zeile ${i + 1}`,
+            value: Array.isArray(d) ? d[1] : d,
+        })),
     }));
 
 /**

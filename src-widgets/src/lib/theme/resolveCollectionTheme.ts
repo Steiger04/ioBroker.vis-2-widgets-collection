@@ -137,7 +137,7 @@ export function sanitizeHostTheme(host: Theme): ThemeOptions {
         }
         sanitized.palette = cleaned;
     }
-    return sanitized as ThemeOptions;
+    return sanitized;
 }
 
 /**
@@ -181,7 +181,7 @@ function withCollectionCssVariables(options: ThemeOptions): ThemeOptions {
     return {
         ...options,
         cssVariables: { disableCssColorScheme: true, ...own, cssVarPrefix },
-    } as ThemeOptions;
+    };
 }
 
 /**
@@ -238,7 +238,7 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
         return theme;
     }
     const cleaned = withoutUnusableLeaves(palette, 'palette');
-    return cleaned === palette ? theme : { ...theme, palette: cleaned as ThemeOptions['palette'] };
+    return cleaned === palette ? theme : { ...theme, palette: cleaned };
 }
 
 /**

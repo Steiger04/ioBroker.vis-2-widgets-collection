@@ -165,7 +165,7 @@ export const buildPieOption = (
             legend: buildLegend(p, names),
             tooltip: buildTooltip(p),
             series: buildRingSeries(series, meta, p, inner, rose, labelShow, labelFormatter),
-        } as unknown as EChartsOption;
+        };
     }
 
     const data = series.map((s, i) => {
@@ -208,5 +208,5 @@ export const buildPieOption = (
             ),
         ],
     };
-    return option as unknown as EChartsOption;
+    return option;
 };

@@ -76,16 +76,7 @@ export interface JsonTableFieldsRxData {
 
     /** Table border style (CSS border-style). @default 'solid' */
     borderStyle?:
-        | 'none'
-        | 'dotted'
-        | 'dashed'
-        | 'solid'
-        | 'double'
-        | 'groove'
-        | 'ridge'
-        | 'inset'
-        | 'outset'
-        | 'hidden';
+        'none' | 'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset' | 'hidden';
 
     /** Table border color (CSS color). */
     borderColor?: string;

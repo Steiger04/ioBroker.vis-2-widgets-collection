@@ -302,7 +302,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                                         value={saveAsImage?.type ?? 'png'}
                                         onChange={v =>
                                             patchFeature('saveAsImage', {
-                                                type: v as 'png' | 'jpeg' | 'svg',
+                                                type: v,
                                             })
                                         }
                                         options={SAVE_FORMATS}
@@ -341,7 +341,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                                         value={dataZoom?.filterMode ?? 'filter'}
                                         onChange={v =>
                                             patchFeature('dataZoom', {
-                                                filterMode: v as 'filter' | 'weakFilter' | 'empty' | 'none',
+                                                filterMode: v,
                                             })
                                         }
                                         options={ZOOM_FILTER_MODES}
@@ -360,12 +360,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set,
                                     value={magicType?.type ?? ['line', 'bar']}
                                     onChange={(_, next: string[]) =>
                                         patchFeature('magicType', {
-                                            type: (next.length ? next : ['line']) as (
-                                                | 'line'
-                                                | 'bar'
-                                                | 'stack'
-                                                | 'tiled'
-                                            )[],
+                                            type: next.length ? next : ['line'],
                                         })
                                     }
                                 >

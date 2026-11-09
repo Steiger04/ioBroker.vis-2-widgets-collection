@@ -127,7 +127,7 @@ function ColumnDetailEditor({
 
     const resetFormatting = useCallback(() => {
         const { format: _, ...rest } = column;
-        onChange(rest as ColumnConfigEntry);
+        onChange(rest);
     }, [column, onChange]);
 
     const isStylingDirty = useMemo(
@@ -137,7 +137,7 @@ function ColumnDetailEditor({
 
     const resetStyling = useCallback(() => {
         const { cellStyle: _cs, cellStyleMode: _csm, ...rest } = column;
-        onChange(rest as ColumnConfigEntry);
+        onChange(rest);
     }, [column, onChange]);
 
     const isAdvancedDirty = useMemo(
@@ -150,7 +150,7 @@ function ColumnDetailEditor({
 
     const resetAdvanced = useCallback(() => {
         const { sortable: _s, filterable: _f, enableHiding: _h, ...rest } = column;
-        onChange({ ...rest, sortable: 'auto', filterable: 'auto', enableHiding: 'auto' } as ColumnConfigEntry);
+        onChange({ ...rest, sortable: 'auto', filterable: 'auto', enableHiding: 'auto' });
     }, [column, onChange]);
 
     // ── Format update helper ──────────────────────────────────────
@@ -424,7 +424,7 @@ function ColumnDetailEditor({
                                                 format: undefined,
                                             });
                                         } else {
-                                            updateFormat({ type: selectedType as ColumnFormatConfig['type'] });
+                                            updateFormat({ type: selectedType });
                                         }
                                     }}
                                 >

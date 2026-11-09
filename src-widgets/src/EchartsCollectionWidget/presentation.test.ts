@@ -498,13 +498,12 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
             legendValues?: Record<string, number | null>;
             decimalComma?: boolean;
         } = {},
-    ): PresentationBase =>
-        ({
-            ...legendP(),
-            legendShowValues: over.legendShowValues ?? true,
-            legendValues: over.legendValues,
-            decimalComma: over.decimalComma,
-        }) as PresentationBase;
+    ): PresentationBase => ({
+        ...legendP(),
+        legendShowValues: over.legendShowValues ?? true,
+        legendValues: over.legendValues,
+        decimalComma: over.decimalComma,
+    });
 
     it('no legendShowValues → no formatter key (characterisation pin)', () => {
         expect(buildLegend(legendP(), ['a'])).not.toHaveProperty('formatter');

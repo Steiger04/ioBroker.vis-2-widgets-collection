@@ -54,7 +54,7 @@ export function useSubscribedValues(oids: string[], socket: Connection): Subscri
         Promise.all(list.map(id => socket.getState(id).then(st => [id, st?.val] as const)))
             .then(init => {
                 if (active) {
-                    setValues(Object.fromEntries(init) as SubscribedValues);
+                    setValues(Object.fromEntries<ioBroker.StateValue | undefined>(init));
                 }
             })
             .catch(() => {

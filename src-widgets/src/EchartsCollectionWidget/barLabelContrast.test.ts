@@ -25,7 +25,7 @@ use([BarChart, GridComponent, SVGRenderer]);
  * `position` only when set) on the given canvas, and read the label's painted fill.
  */
 const paintedLabelFill = (barFill: string, position: EchartsBarLabelPos | undefined, canvas: string): string => {
-    const chart = init(null as unknown as HTMLElement, undefined, {
+    const chart = init(null, undefined, {
         renderer: 'svg',
         ssr: true,
         width: 300,

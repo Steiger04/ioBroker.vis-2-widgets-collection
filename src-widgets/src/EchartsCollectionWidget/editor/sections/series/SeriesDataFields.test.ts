@@ -96,7 +96,7 @@ const mount = (over: Partial<DataProps> = {}): RenderComponentHandle<DataProps> 
     renderComponent(SeriesDataFields, {
         meta: {},
         onPatch: () => undefined,
-        chartAggregate: 'average' as DataProps['chartAggregate'],
+        chartAggregate: 'average',
         isBarChart: false,
         ...over,
     });

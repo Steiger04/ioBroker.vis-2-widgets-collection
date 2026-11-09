@@ -71,12 +71,7 @@ export const createHistoryFetcher =
                     opts.instance = auto;
                 }
             }
-            return socket.getHistory(id, opts) as Promise<
-                {
-                    ts: number;
-                    val: ioBroker.StateValue | null;
-                }[]
-            >;
+            return socket.getHistory(id, opts);
         })();
 
         let timer: ReturnType<typeof setTimeout> | undefined;

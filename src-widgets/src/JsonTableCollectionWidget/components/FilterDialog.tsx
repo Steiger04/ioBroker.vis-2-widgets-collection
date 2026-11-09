@@ -224,7 +224,7 @@ function FilterDialog({
                             value={operator}
                             label={Generic.t('json_table_filter_operator')}
                             labelId={`filter-operator-label-${columnId}`}
-                            onChange={e => handleOperatorChange(e.target.value as FilterOperator)}
+                            onChange={e => handleOperatorChange(e.target.value)}
                         >
                             {operators.map(op => (
                                 <MenuItem

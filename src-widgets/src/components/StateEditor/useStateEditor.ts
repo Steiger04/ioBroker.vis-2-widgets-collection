@@ -100,7 +100,7 @@ export const selectedWidgetDatas = ({ data, props }: Pick<StateEditorFieldProps,
  * @returns `stateRowSelectionKey` of the selected view and widgets.
  */
 export const stateEditorSelectionKey = (props: RxWidgetInfoCustomComponentProperties): string =>
-    stateRowSelectionKey(props.selectedView, (props.selectedWidgets ?? []) as string[]);
+    stateRowSelectionKey(props.selectedView, props.selectedWidgets ?? []);
 
 /** The state every Zustandseditor field works from. */
 export type StateEditorState = {

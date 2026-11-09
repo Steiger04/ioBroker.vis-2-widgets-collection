@@ -35,7 +35,7 @@ type FieldLike = {
     plainColor?: boolean;
 };
 
-const fields = (): FieldLike[] => gaugeFields() as FieldLike[];
+const fields = (): FieldLike[] => gaugeFields();
 
 /** Option keys the builder computes instead of deriving them from a field. */
 const COMPUTED_KEYS = [

@@ -139,7 +139,7 @@ const mount = (
     options: Omit<HostProps, 'widgets' | 'onPatch'> = {},
 ): { container: HTMLElement; patches: WidgetData[] } => {
     const patches: WidgetData[] = [];
-    const stored = 'oid' in widgets ? { w1: widgets as WidgetData } : (widgets as Record<string, WidgetData>);
+    const stored = 'oid' in widgets ? { w1: widgets } : (widgets as Record<string, WidgetData>);
     const host = renderComponent<HostProps>(Host, {
         widgets: stored,
         onPatch: patch => {

@@ -89,16 +89,7 @@ export type EchartsJsonKind = 'series' | 'table';
  * (ADR-0072 — the former conscious rejection, overruled).
  */
 export type EchartsAggregate =
-    | 'average'
-    | 'minmax'
-    | 'min'
-    | 'max'
-    | 'total'
-    | 'count'
-    | 'onchange'
-    | 'none'
-    | 'percentile'
-    | 'integral';
+    'average' | 'minmax' | 'min' | 'max' | 'total' | 'count' | 'onchange' | 'none' | 'percentile' | 'integral';
 export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
 
 /**
@@ -223,18 +214,7 @@ export type EchartsRenderer = 'canvas' | 'svg';
  * value is the idle time in SECONDS as a string ('' = off). Parsed by `parseZoomIdleSeconds`.
  */
 export type EchartsZoomResetIdle =
-    | ''
-    | '10'
-    | '15'
-    | '30'
-    | '60'
-    | '90'
-    | '120'
-    | '180'
-    | '300'
-    | '600'
-    | '1200'
-    | '1800';
+    '' | '10' | '15' | '30' | '60' | '90' | '120' | '180' | '300' | '600' | '1200' | '1800';
 /**
  * Chart frame border style (parity Build D, ADR-0056) — the eight CSS `border-style` values the
  * adapter offers. Pure container styling around the chart area, never an echarts option.

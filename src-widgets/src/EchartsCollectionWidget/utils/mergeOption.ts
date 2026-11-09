@@ -75,7 +75,7 @@ export const mergeGeneratedOverTheme = (generated: EChartsOption, themeBase: ECh
             delete base[key];
         }
     }
-    return deepMerge(base, g) as EChartsOption;
+    return deepMerge(base, g);
 };
 
 /**

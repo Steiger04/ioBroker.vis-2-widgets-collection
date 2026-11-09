@@ -15,8 +15,8 @@ const ts = (y: number, mo: number, d: number, h = 0, mi = 0, s = 0): number =>
 
 const rel = (timeRange: string, relativeEnd = 'now', extra: Partial<TimeWindowSpec> = {}): TimeWindowSpec => ({
     timeType: 'relative',
-    timeRange: timeRange as TimeWindowSpec['timeRange'],
-    relativeEnd: relativeEnd as TimeWindowSpec['relativeEnd'],
+    timeRange: timeRange,
+    relativeEnd: relativeEnd,
     ...extra,
 });
 

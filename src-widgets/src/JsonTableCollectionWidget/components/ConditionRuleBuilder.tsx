@@ -257,7 +257,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                                 label={Generic.t('json_table_condition_operator')}
                                 value={cond.operator}
                                 onChange={e => {
-                                    const newOp = e.target.value as ConditionOperator;
+                                    const newOp = e.target.value;
                                     // Clear operand when switching to/from no-operand ops
                                     const operand = NO_OPERAND_OPERATORS.has(newOp) ? '' : cond.operand;
                                     updateCondition(idx, { operator: newOp, operand });

@@ -877,7 +877,7 @@ describe('InputCollection unit through the panel field (Ticket 12)', () => {
     };
 
     it('shows the picked unit, then the override, and nothing once the field is emptied', async () => {
-        const picked = await change('oid', { oid: OID } as WidgetData);
+        const picked = await change('oid', { oid: OID });
         const { container, configure } = mountInput(picked);
         expect(displayOf(container).textContent).toBe('40°C');
         expect(picked.unit).toBe('°C');

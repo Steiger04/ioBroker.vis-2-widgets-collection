@@ -432,7 +432,7 @@ export function buildGaugeOptions(
         options.borderInnerWidth = 0;
     }
 
-    return options as GaugeOptions;
+    return options;
 }
 
 /**

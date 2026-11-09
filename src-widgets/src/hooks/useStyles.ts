@@ -127,11 +127,11 @@ const useStyles = (
         // Cast to WidgetStyleState for return type
         // Safe because we only assign valid CSS properties with correct value types
         return {
-            backgroundStyles: _backgroundStyles as WidgetStyleState,
-            borderStyles: _borderStyles as WidgetStyleState,
-            textStyles: _textStyles as WidgetStyleState,
-            fontStyles: _fontStyles as WidgetStyleState,
-            boxStyles: _boxStyles as WidgetStyleState,
+            backgroundStyles: _backgroundStyles,
+            borderStyles: _borderStyles,
+            textStyles: _textStyles,
+            fontStyles: _fontStyles,
+            boxStyles: _boxStyles,
         };
     }, [_styles]);
 };

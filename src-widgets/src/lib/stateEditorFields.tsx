@@ -91,7 +91,7 @@ const stateDetailFields = (
         const { hidden, label, tooltip } = definition;
         if (!definition.name) {
             // A section divider: unchanged, only gone without a row.
-            return { ...definition, hidden: unlessRows(noRows, hidden) } as RxWidgetInfoAttributesField;
+            return { ...definition, hidden: unlessRows(noRows, hidden) };
         }
         // A rule reading the Feldnummer locks the field instead (StateDetailField); only rules on
         // widget level hide the row — vis-2 passes no index outside an indexed group, so for
@@ -109,7 +109,7 @@ const stateDetailFields = (
                     definition={definition}
                 />
             )),
-        } as RxWidgetInfoAttributesField;
+        };
     });
 
 /**

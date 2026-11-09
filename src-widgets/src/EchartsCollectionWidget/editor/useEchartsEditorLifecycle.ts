@@ -103,7 +103,7 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
         // First-open onboarding is the empty-state CTA, not an injected skeleton (ADR-0013 reversed
         // the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays disabled until the
         // user adds a real series.
-        const loaded = loadEditorState(data as Record<string, unknown>);
+        const loaded = loadEditorState(data);
         // The number of indexed `oidN` fields to clear on save.
         loadedCountRef.current = loadedOidCount(loaded);
         loadedSnapshotRef.current = JSON.stringify(loaded);

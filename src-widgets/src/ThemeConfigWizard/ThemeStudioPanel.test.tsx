@@ -453,7 +453,7 @@ describe('ThemeStudioPanel field errors', () => {
     });
 
     it('reports the CSS variables prefix mui, reserved by the vis-2 editor, at the prefix field', async () => {
-        await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } } as UserTheme);
+        await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } });
         expect(document.body.querySelector('button.MuiButton-colorError')?.textContent).toBe(
             'theme_studio_problems_one',
         );

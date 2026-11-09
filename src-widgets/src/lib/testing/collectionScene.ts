@@ -127,13 +127,12 @@ export function mountCollectionBody(
 ): MountedCollectionBody {
     const setState = vi.fn();
     const setValue = vi.fn();
-    const contextOf = (next: CollectionScene): AllCollectionContextProps =>
-        ({
-            ...buildPreviewContext(next),
-            ...extraContext,
-            setState,
-            setValue,
-        }) as unknown as AllCollectionContextProps;
+    const contextOf = (next: CollectionScene): AllCollectionContextProps => ({
+        ...buildPreviewContext(next),
+        ...extraContext,
+        setState,
+        setValue,
+    });
 
     const handle = renderComponent(CollectionHost, { context: contextOf(scene), body, contentBox: scene.contentBox });
     return {

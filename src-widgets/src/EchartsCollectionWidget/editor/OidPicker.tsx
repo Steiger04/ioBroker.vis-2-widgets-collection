@@ -14,7 +14,7 @@ import { useState } from 'react';
 import type React from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme, type ThemeType } from '@iobroker/gui-components';
+import { SelectID, type Connection, type ThemeType } from '@iobroker/gui-components';
 import type { VisTheme } from '@iobroker/types-vis-2';
 
 import Generic from '../../Generic';
@@ -72,8 +72,8 @@ export default function OidPicker({
             </IconButton>
             {open && (
                 <SelectID
-                    socket={ctx.socket as unknown as Connection}
-                    theme={ctx.theme as unknown as IobTheme}
+                    socket={ctx.socket}
+                    theme={ctx.theme}
                     themeType={ctx.themeType}
                     selected={value || ''}
                     title={Generic.t('oid')}

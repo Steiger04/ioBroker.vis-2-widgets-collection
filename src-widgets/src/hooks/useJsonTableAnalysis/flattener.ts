@@ -74,7 +74,7 @@ function flattenValue(
         }
         seen.add(value);
 
-        const keys = Object.keys(value as Record<string, unknown>);
+        const keys = Object.keys(value);
         if (keys.length === 0) {
             // Empty object: register path as null
             target[prefix] = null;
@@ -121,7 +121,7 @@ export function flattenAll(data: unknown[], maxDepth: number = 10): FlattenResul
 
         if (item !== null && item !== undefined && typeof item === 'object' && !Array.isArray(item)) {
             // Top-level object: flatten its keys directly
-            for (const key of Object.keys(item as Record<string, unknown>)) {
+            for (const key of Object.keys(item)) {
                 flattenValue((item as Record<string, unknown>)[key], key, row, globalPathSet, seen, 1, maxDepth, stats);
             }
         } else {

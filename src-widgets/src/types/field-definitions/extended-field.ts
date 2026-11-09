@@ -142,11 +142,4 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
  * Terminal default categories for color fields. See {@link ExtendedField.terminal}.
  */
 export type ColorTerminal =
-    | 'primary'
-    | 'text'
-    | 'paper'
-    | 'divider'
-    | 'textSecondary'
-    | 'onBackground'
-    | 'switchThumbOff'
-    | 'transparent';
+    'primary' | 'text' | 'paper' | 'divider' | 'textSecondary' | 'onBackground' | 'switchThumbOff' | 'transparent';

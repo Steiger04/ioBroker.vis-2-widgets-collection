@@ -11,15 +11,14 @@ import { describe, expect, it } from 'vitest';
 import { deepMerge, mergeGeneratedOverTheme } from './mergeOption';
 import type { EChartsOption } from 'echarts';
 
-const G = (overrides: Record<string, unknown> = {}): EChartsOption =>
-    ({
-        legend: { data: ['Temperature'] },
-        xAxis: { type: 'time' },
-        yAxis: [{ type: 'value' }, { type: 'value' }],
-        series: [{ name: 'Temperature', type: 'line', data: [[1, 2]] }],
-        tooltip: { trigger: 'axis' },
-        ...overrides,
-    }) as EChartsOption;
+const G = (overrides: Record<string, unknown> = {}): EChartsOption => ({
+    legend: { data: ['Temperature'] },
+    xAxis: { type: 'time' },
+    yAxis: [{ type: 'value' }, { type: 'value' }],
+    series: [{ name: 'Temperature', type: 'line', data: [[1, 2]] }],
+    tooltip: { trigger: 'axis' },
+    ...overrides,
+});
 
 const THEME_BASE = {
     color: ['#111', '#222'],
@@ -49,7 +48,7 @@ describe('mergeGeneratedOverTheme — layering (ADR-0007/0045)', () => {
         const merged = mergeGeneratedOverTheme(G({ color: ['#aaa'] }), {
             color: ['#111', '#222'],
             xAxis: { axisLine: { lineStyle: { color: '#theme' } } },
-        } as unknown as EChartsOption);
+        });
         expect(merged.color).toEqual(['#aaa']); // G, not the theme palette
         const xAxis = merged.xAxis as Record<string, unknown>;
         expect(xAxis.type).toBe('time'); // from G

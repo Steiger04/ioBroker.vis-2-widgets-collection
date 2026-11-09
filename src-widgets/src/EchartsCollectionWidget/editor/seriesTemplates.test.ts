@@ -24,7 +24,6 @@ import {
     type SeriesTemplateSlot,
 } from './seriesTemplates';
 import { classifySeriesKeys, type SeriesAnalysisContext } from './seriesRawAnalysis';
-import type { EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
 
 /** Every conditional card emit ACTIVE — the most restrictive state each slot can be in. */
 const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
@@ -39,7 +38,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             area: 'gradient',
             unit: '°C', // ADR-0057: the per-series Wert-Formatter facts activate label.formatter
             shadowBlur: 6, // ADR-0060: the line shadow leaves are card-owned while the blur is set
-        } as EchartsSeriesMeta,
+        },
         markLineHost: true,
     },
     'cartesian-bar': {
@@ -54,7 +53,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             barGap: 0.2,
             barCategoryGap: 0.3,
             barWidth: '20',
-        } as EchartsSeriesMeta,
+        },
         markLineHost: true,
         barLabelFormatterActive: true,
     },
@@ -65,12 +64,12 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             symbolSize: 8,
             cornerRadius: 4,
             unit: '°C', // the Wert-Formatter facts activate label.formatter here too
-        } as EchartsSeriesMeta,
+        },
         markLineHost: true,
     },
     pie: { slot: 'pie', pieRoseActive: true, animationEasingActive: true },
     'pie-ring': { slot: 'pie-ring', pieRoseActive: true, animationEasingActive: true },
-    'pie-slice': { slot: 'pie-slice', meta: {} as EchartsSeriesMeta },
+    'pie-slice': { slot: 'pie-slice', meta: {} },
 };
 
 describe('SERIES_TEMPLATES catalog shape (ADR-0043)', () => {

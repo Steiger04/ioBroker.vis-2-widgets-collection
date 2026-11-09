@@ -130,7 +130,7 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(auto.barDiff).toBe(false);
         // The unset form rides as null — vis-2's custom-field patch contract DELETES the key
         // on null (a missing key would keep a previously stored value alive forever).
-        expect(saveEditorState({ ...baseState() } as EditorState, 0)).toMatchObject({
+        expect(saveEditorState({ ...baseState() }, 0)).toMatchObject({
             barInterval: null,
             barDiff: null,
         });
@@ -324,7 +324,7 @@ describe('editorState — Apply round-trip (save → load)', () => {
                 { id: 's2', oid: 'b.0', name: 'B', area: 'off', yAxisIndex: 1 },
             ] as EditorSeries[],
         };
-        const first = saveEditorState(legacy as EditorState, 2);
+        const first = saveEditorState(legacy, 2);
         const reloaded = loadEditorState(first);
         const second = saveEditorState(reloaded, 2);
         expect(second.seriesConfig).toBe(first.seriesConfig); // no field injected, none dropped

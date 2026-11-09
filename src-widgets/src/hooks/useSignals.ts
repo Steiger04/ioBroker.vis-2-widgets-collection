@@ -69,7 +69,7 @@ const useSignals = (): void => {
             const signalIcon = child.children[0];
 
             if (signalIcon && signalIcon instanceof HTMLElement && signalIcon.className === 'vis-signal-icon iconOwn') {
-                signalElements.push(signalIcon as SignalElement);
+                signalElements.push(signalIcon);
             }
         });
 

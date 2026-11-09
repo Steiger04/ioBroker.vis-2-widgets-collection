@@ -43,10 +43,7 @@ const measureContentRect = (contentRect: { width: number; height: number }): voi
             }
 
             observe(target: Element): void {
-                this.callback(
-                    [{ target, contentRect } as unknown as ResizeObserverEntry],
-                    this as unknown as ResizeObserver,
-                );
+                this.callback([{ target, contentRect } as unknown as ResizeObserverEntry], this);
             }
 
             /* eslint-disable class-methods-use-this -- nothing to release */

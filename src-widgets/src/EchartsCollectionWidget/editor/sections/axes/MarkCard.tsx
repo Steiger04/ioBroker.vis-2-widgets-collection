@@ -21,7 +21,7 @@
 import { useState, type FC } from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
 import { DeleteOutlineOutlined as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme } from '@iobroker/gui-components';
+import { SelectID } from '@iobroker/gui-components';
 
 import Generic from '../../../../Generic';
 import {
@@ -95,8 +95,8 @@ const BoundField: FC<{
                 </IconButton>
                 {open && (
                     <SelectID
-                        socket={ctx.socket as unknown as Connection}
-                        theme={ctx.theme as unknown as IobTheme}
+                        socket={ctx.socket}
+                        theme={ctx.theme}
                         themeType={ctx.themeType}
                         selected={typeof value === 'string' ? value : ''}
                         title={label}

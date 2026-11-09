@@ -79,13 +79,13 @@ describe('subscribedOids (family/mode knowledge, ADR-0046)', () => {
 
 describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
     it('is true when any merged series carries a non-empty data array', () => {
-        expect(hasMergedData({ series: [{ data: [] }, { data: [[1, 2]] }] } as never)).toBe(true);
+        expect(hasMergedData({ series: [{ data: [] }, { data: [[1, 2]] }] })).toBe(true);
     });
 
     it('is false for empty data arrays, no series, or non-array data', () => {
-        expect(hasMergedData({ series: [{ data: [] }] } as never)).toBe(false);
-        expect(hasMergedData({} as never)).toBe(false);
-        expect(hasMergedData({ series: [{ data: 'nope' }] } as never)).toBe(false);
+        expect(hasMergedData({ series: [{ data: [] }] })).toBe(false);
+        expect(hasMergedData({})).toBe(false);
+        expect(hasMergedData({ series: [{ data: 'nope' }] })).toBe(false);
     });
 
     it('NULL-only payloads are NO data (ADR-0082 ticket 04) — a datum counts only with a value', () => {
@@ -101,7 +101,7 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
                         ],
                     },
                 ],
-            } as never),
+            }),
         ).toBe(false);
         // Cartesian: a series of only null points renders nothing either
         expect(
@@ -114,9 +114,9 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
                         ],
                     },
                 ],
-            } as never),
+            }),
         ).toBe(false);
-        expect(hasMergedData({ series: [{ data: [null, undefined] }] } as never)).toBe(false);
+        expect(hasMergedData({ series: [{ data: [null, undefined] }] })).toBe(false);
         // One real value flips it true — in either datum shape
         expect(
             hasMergedData({
@@ -128,7 +128,7 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
                         ],
                     },
                 ],
-            } as never),
+            }),
         ).toBe(true);
         expect(
             hasMergedData({
@@ -140,10 +140,10 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
                         ],
                     },
                 ],
-            } as never),
+            }),
         ).toBe(true);
         // 0 is a VALUE (echarts stillShowZeroSum draws equal slices) — only null/undefined are empty
-        expect(hasMergedData({ series: [{ data: [0, 0] }] } as never)).toBe(true);
+        expect(hasMergedData({ series: [{ data: [0, 0] }] })).toBe(true);
     });
 });
 
@@ -198,7 +198,7 @@ const makeInput = (
         history: { series: [], loading: false, error: null },
         jsonParsed: { series: [] },
         presentation: presentationFor(family, src),
-        themeBase: {} as EChartsOption,
+        themeBase: {},
         companions: { chartConfig: {}, yAxes: [], markLines: [], jsonSeriesStyle: {}, jsonHidden: [], series: [] },
         ...over,
         src,
@@ -1435,7 +1435,7 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
         const { src: _drop, ...rest } = extra;
         return assemblePipelineResult(
             makeInput('cartesian', 'history', {
-                usable: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })) as never[],
+                usable: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })),
                 history: { series: hist as never, loading: false, error: null },
                 src: srcFull,
                 companions: {
@@ -1444,7 +1444,7 @@ describe('assemblePipelineResult — Balken-Stapelmodus 100 % (ADR-0084 decision
                     markLines: [],
                     jsonSeriesStyle: {},
                     jsonHidden: [],
-                    series: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })) as never[],
+                    series: metas.map((m, i) => ({ oid: `o${i}`, name: hist[i]?.name, ...m })),
                 },
                 presentation: presentationFor('cartesian', srcFull, [], { stackMode: 'percent' }),
                 ...rest,
