@@ -164,15 +164,15 @@ const relativeDefault = (now: number): TimeWindow => ({ start: now - 86_400_000,
 
 /**
  * Resolve the authored window against a clock (ADR-0063). Static: the ISO pair, ALL-OR-NOTHING
- * (one invalid side degrades the whole window to the relative default — a mixed window would
- * silently fetch the wrong span). Relative: the rounded end minus the range; legacy range keys
- * map to their migrated successors first.
+ * (one invalid side, or a start not before the end, degrades the whole window to the relative
+ * default — a mixed window would silently fetch the wrong span). Relative: the rounded end minus
+ * the range; legacy range keys map to their migrated successors first.
  */
 export const resolveTimeWindow = (spec: TimeWindowSpec, now: number): TimeWindow => {
     if (spec.timeType === 'static') {
         const start = spec.staticStart ? new Date(spec.staticStart).getTime() : NaN;
         const end = spec.staticEnd ? new Date(spec.staticEnd).getTime() : NaN;
-        if (Number.isFinite(start) && Number.isFinite(end)) {
+        if (Number.isFinite(start) && Number.isFinite(end) && start < end) {
             return { start, end };
         }
         return relativeDefault(now);
