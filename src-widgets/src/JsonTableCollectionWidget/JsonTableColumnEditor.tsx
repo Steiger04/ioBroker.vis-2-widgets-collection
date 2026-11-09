@@ -113,7 +113,7 @@ function JsonTableColumnEditor(
             {totalCount > 0 && (
                 <Typography
                     variant="caption"
-                    color="primary.main"
+                    color="primary"
                     sx={{ mt: 0.5, display: 'block' }}
                     aria-live="polite"
                 >

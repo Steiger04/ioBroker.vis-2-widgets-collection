@@ -207,7 +207,7 @@ function FilterDialog({
                 <Typography
                     id={dialogDescriptionId}
                     variant="body2"
-                    color="text.secondary"
+                    color="textSecondary"
                     sx={{ mb: 2, mt: 1 }}
                 >
                     {Generic.t('json_table_filter_dialog_description')}
@@ -301,7 +301,7 @@ function FilterDialog({
                     {!needsValue && (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="textSecondary"
                             sx={{ fontStyle: 'italic' }}
                         >
                             {Generic.t('json_table_filter_no_value_needed')}

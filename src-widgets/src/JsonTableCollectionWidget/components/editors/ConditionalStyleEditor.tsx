@@ -166,7 +166,7 @@ function ConditionalStyleEditor({
                     </ToggleButtonGroup>
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {(cellStyleMode ?? 'first-match') === 'first-match'
                             ? Generic.t('json_table_cell_style_mode_hint_first')
@@ -385,7 +385,7 @@ function ConditionalStyleEditor({
             {(cellStyle?.length ?? 0) >= 2 && (
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     sx={{ px: 0.5 }}
                 >
                     {(cellStyleMode ?? 'first-match') === 'first-match'

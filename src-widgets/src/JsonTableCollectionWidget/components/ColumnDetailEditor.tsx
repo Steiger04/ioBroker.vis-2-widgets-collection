@@ -494,7 +494,7 @@ function ColumnDetailEditor({
                                 !column.format && (
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                     >
                                         {Generic.t('json_table_no_format_options')}
                                     </Typography>
@@ -647,7 +647,7 @@ function ColumnDetailEditor({
                                 >
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                         sx={{ fontWeight: 500, display: 'block', mb: 1 }}
                                     >
                                         {Generic.t('json_table_analysis_info')}
@@ -656,7 +656,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_type_label')}
                                             </Typography>
@@ -674,7 +674,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_confidence')}
                                             </Typography>
@@ -685,7 +685,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_nulls')}
                                             </Typography>
@@ -698,7 +698,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_distinct')}
                                             </Typography>
@@ -708,7 +708,7 @@ function ColumnDetailEditor({
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
+                                                    color="textSecondary"
                                                 >
                                                     {Generic.t('json_table_range')}
                                                 </Typography>
@@ -721,7 +721,7 @@ function ColumnDetailEditor({
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
+                                                    color="textSecondary"
                                                 >
                                                     {Generic.t('json_table_date_input_format')}
                                                 </Typography>

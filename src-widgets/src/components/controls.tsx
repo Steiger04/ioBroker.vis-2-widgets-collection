@@ -63,7 +63,7 @@ export const noSpinnerSx = {
 export const FieldLabel: FC<{ children: React.ReactNode }> = ({ children }) => (
     <Typography
         variant="caption"
-        color="text.secondary"
+        color="textSecondary"
         noWrap
         title={typeof children === 'string' ? children : undefined}
         sx={{ display: 'block', mb: 0.5 }}
@@ -84,7 +84,7 @@ export const SectionLabel: FC<{ children: React.ReactNode; hint?: string }> = ({
         {hint && (
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
             >
                 {hint}
             </Typography>
@@ -338,7 +338,7 @@ export const SubGroup: FC<{ title: string; hint?: string; children: ReactNode; s
             {hint && (
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     noWrap
                 >
                     {hint}
@@ -654,7 +654,7 @@ export const InfoBox: FC<{
     >
         <Typography
             variant="caption"
-            color="text.secondary"
+            color="textSecondary"
         >
             {children ?? text}
         </Typography>

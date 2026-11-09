@@ -242,7 +242,7 @@ function EchartsConfigEditorModal({
                             </Typography>
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                color="textSecondary"
                                 noWrap
                                 sx={{ display: { xs: 'none', sm: 'block' } }}
                             >
@@ -392,7 +392,7 @@ function EchartsConfigEditorModal({
                             >
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    color="textSecondary"
                                     noWrap
                                     sx={{ flexShrink: 0 }}
                                 >
@@ -400,7 +400,7 @@ function EchartsConfigEditorModal({
                                 </Typography>
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    color="textSecondary"
                                     noWrap
                                     title={previewMeta}
                                     sx={{ minWidth: 0 }}

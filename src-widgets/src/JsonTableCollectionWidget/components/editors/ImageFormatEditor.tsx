@@ -75,7 +75,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_image_format')}
@@ -183,7 +183,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             />
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
             >
                 {Generic.t('json_table_image_tint_hint')}
             </Typography>
@@ -215,7 +215,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             {/* Per-side padding around the avatar */}
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_image_padding')}
@@ -273,7 +273,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

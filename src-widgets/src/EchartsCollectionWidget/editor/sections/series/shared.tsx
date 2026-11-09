@@ -65,7 +65,7 @@ export const EmptyState: FC<{ text: string; children: ReactNode }> = ({ text, ch
     >
         <Typography
             variant="caption"
-            color="text.secondary"
+            color="textSecondary"
             sx={{ display: 'block', mb: 1 }}
         >
             {text}
@@ -144,7 +144,7 @@ export const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
             <Typography
                 key={i}
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 component="div"
             >
                 • {issue.args?.length ? `${issue.args[0]}: ` : ''}

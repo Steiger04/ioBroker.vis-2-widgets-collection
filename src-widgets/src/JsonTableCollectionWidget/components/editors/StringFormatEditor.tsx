@@ -50,7 +50,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_string_format')}
@@ -269,7 +269,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

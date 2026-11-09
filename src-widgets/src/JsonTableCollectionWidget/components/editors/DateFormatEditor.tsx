@@ -38,7 +38,7 @@ function DateFormatEditor({ format, detectedFormat, onChange }: DateFormatEditor
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_date_format')}
@@ -79,7 +79,7 @@ function DateFormatEditor({ format, detectedFormat, onChange }: DateFormatEditor
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

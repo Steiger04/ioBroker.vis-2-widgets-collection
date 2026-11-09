@@ -227,7 +227,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                     </ToggleButtonGroup>
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {state.mode === 'and'
                             ? Generic.t('json_table_condition_mode_hint_and')

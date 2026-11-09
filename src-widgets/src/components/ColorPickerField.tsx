@@ -184,7 +184,7 @@ function ColorPickerField({
             >
                 <Typography
                     variant="body2"
-                    color={error ? 'error' : 'text.secondary'}
+                    color={error ? 'error' : 'textSecondary'}
                     sx={{ userSelect: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                     {label}

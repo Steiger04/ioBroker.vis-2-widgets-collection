@@ -357,7 +357,7 @@ function JsonTableColumnEditorModal({
                                 >
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                     >
                                         {editedColumns.length > 0
                                             ? Generic.t('json_table_select_column')

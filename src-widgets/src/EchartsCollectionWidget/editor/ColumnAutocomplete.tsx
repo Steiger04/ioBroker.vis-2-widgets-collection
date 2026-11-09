@@ -173,7 +173,7 @@ const ColumnAutocomplete: FC<ColumnAutocompleteProps> = ({
             {sampleLine && (
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     sx={{ display: 'block', mt: 0.5 }}
                 >
                     {sampleLine}

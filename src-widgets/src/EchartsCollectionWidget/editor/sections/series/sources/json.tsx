@@ -81,7 +81,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
         <Box sx={{ border: '1px dashed', borderColor: 'divider', borderRadius: 1.5, p: 2, textAlign: 'center' }}>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
             >
                 {text}
             </Typography>
@@ -237,7 +237,7 @@ export const JsonSeriesList: FC<JsonSeriesListProps> = ({
                 <Box sx={{ mt: 1.5, p: 1, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                         sx={{ display: 'block', mb: 0.5 }}
                     >
                         {Generic.t('echarts_json_hidden')}

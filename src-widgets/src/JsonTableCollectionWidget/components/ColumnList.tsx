@@ -346,7 +346,7 @@ function ColumnList({
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="textSecondary"
                         >
                             {columns.length === 0
                                 ? Generic.t('json_table_no_columns')
@@ -435,7 +435,7 @@ function ColumnList({
                                         {col.headerName && col.headerName !== col.path && (
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                                 sx={{
                                                     fontFamily: 'monospace',
                                                     fontSize: '0.65rem',
@@ -473,7 +473,7 @@ function ColumnList({
                 >
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                         aria-live="polite"
                         aria-atomic="true"
                     >

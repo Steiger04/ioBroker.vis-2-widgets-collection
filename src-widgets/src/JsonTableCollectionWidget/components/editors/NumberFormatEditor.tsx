@@ -43,7 +43,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_number_format')}
@@ -51,7 +51,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
             <Box>
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     gutterBottom
                 >
                     {Generic.t('json_table_number_decimals')}: {format.numberDecimals ?? 2}
@@ -103,7 +103,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

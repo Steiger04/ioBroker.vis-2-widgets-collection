@@ -728,7 +728,7 @@ const JsonTableCollection: FC = () => {
                 >
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {Generic.t(emptyText)}
                     </Typography>

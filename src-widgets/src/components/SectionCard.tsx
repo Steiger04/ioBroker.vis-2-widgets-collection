@@ -95,7 +95,7 @@ function SectionCard({
                 {!expanded && summary ? (
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                         noWrap
                         sx={{ flex: 1, minWidth: 0, textAlign: 'right' }}
                     >

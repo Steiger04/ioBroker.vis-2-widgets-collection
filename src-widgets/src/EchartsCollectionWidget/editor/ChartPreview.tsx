@@ -74,7 +74,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
         <>
             <Typography
                 variant="body2"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ textAlign: 'center' }}
             >
                 {loading ? Generic.t('echarts_preview_loading') : placeholder}
