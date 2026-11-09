@@ -573,7 +573,7 @@ The icon at either end of the rail (`iconMin`/`iconSmallMin`, `iconMax`/`iconSma
 _Avoid_: Eck-Icon (the frame's corner icon), Start-/End-Icon without saying min/max where orientation matters
 
 **Wert-Label**:
-The number the slider shows at its thumb (English pages: value label), switched by the panel field Label (`valueLabelDisplay`). It shows the bare number without the **Einheit**. Its colour and size resolve like the active style and never carry the **Marker-Ebene**; it is not a **Marke**.
+The number the slider shows at its thumb (English pages: value label), switched by the panel field Label. It shows the bare number without the **Einheit**. Its colour and size resolve like the active style and never carry the **Marker-Ebene**; it is not a **Marke**.
 _Avoid_: Label alone (that is a resolved state's name in a list), Wert-Anzeige (the icon + value cluster of other widgets; the slider has none)
 
 # Gauge Collection Widget
@@ -707,12 +707,12 @@ The area a Collection widget's contents live in — the frame's inner paper, mea
 _Avoid_: Container-Größe (unsaid which container), Widget-Größe (that is the vis-2 widget frame)
 
 **Rahmenfläche**:
-The outer painted surface of a Collection widget, around the **Inhaltsfläche**: it carries the Rahmen-Kopfzeile and Rahmen-Fußzeile and paints `frameBackground`. English pages: frame area.
-_Avoid_: Card (that is the field label's old word, `noCard` keeps it), Rahmen without saying the surface
+The outer painted surface of a Collection widget, around the **Inhaltsfläche**: it carries the Rahmen-Kopfzeile and Rahmen-Fußzeile and paints the frame background. English pages: frame area.
+_Avoid_: Card (that is the field label's old word), Rahmen without saying the surface
 
 **Inhaltsfläche**:
-The inner painted surface of a Collection widget — the surface of the **Content-Box**: it paints `background` and takes the Geometrie forms. English pages: content area.
-_Avoid_: Paper (implementation), Widget-Fläche (unsaid which of the two)
+The inner painted surface of a Collection widget — the surface of the **Content-Box**: it paints the background and takes the Geometrie forms. English pages: content area.
+_Avoid_: Paper, Widget-Fläche (unsaid which of the two)
 
 **Farbwähler**:
 The one color-picking popover every Collection editor opens from a color field — vis-2 attribute panel, ECharts configurator, Theme Studio and the JSON-Table editors alike (`CollectionColorPicker`, ADR-0102). It edits the value; which colour a field resolves to when empty stays the field's business (Field-Vertrag or Schlichtes Farbfeld). Each surface keeps its own field row around it.

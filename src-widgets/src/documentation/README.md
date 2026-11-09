@@ -136,7 +136,7 @@ The test does not check wording, the order of H2 headings or whether every panel
 1. Edit the Markdown files in this directory, German first, then English line by line
 2. Run the structure test
 3. Commit and push changes to the repository
-4. Documentation is synced to the wiki after the merge to `main`
+4. Documentation is synced to the wiki on a push to `main` or a version tag
 5. No manual wiki editing required
 
 ## Wiki Initialization
