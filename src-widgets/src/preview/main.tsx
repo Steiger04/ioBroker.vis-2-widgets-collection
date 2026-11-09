@@ -105,12 +105,14 @@ function App(): JSX.Element {
         };
     }, []);
 
-    win.__scaffoldSlug = scaffold ? slugFor(scaffold) : undefined;
-    win.__scaffoldSource = scaffoldSource ?? undefined;
-
     const scene = sceneSlug ? scenes[sceneSlug] : undefined;
 
-    win.__previewReady = ready && Boolean(scene);
+    // The handshake gen-previews waits for, published once the render is committed.
+    useEffect(() => {
+        win.__scaffoldSlug = scaffold ? slugFor(scaffold) : undefined;
+        win.__scaffoldSource = scaffoldSource ?? undefined;
+        win.__previewReady = ready && Boolean(scene);
+    });
 
     if (scaffold) {
         return (
