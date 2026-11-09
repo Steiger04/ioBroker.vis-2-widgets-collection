@@ -199,6 +199,31 @@ describe('applyConditionalStyle — follows the Effektiver Typ', () => {
         expect(hits(isEmpty, value, stringColumn)).toBe(true);
     });
 
+    it.each([
+        ['<', 5],
+        ['<=', 5],
+        ['>', -5],
+        ['>=', -5],
+    ])('keeps an empty cell out of a %s rule', (operator, limit) => {
+        const rule = cfg({ cellStyle: [{ logic: { [operator]: [{ var: 'value' }, limit] }, fontWeight: 'bold' }] });
+        const numberColumn: CellColumn = { type: 'number', readDate: dateReader() };
+        expect(hits(rule, null, numberColumn)).toBe(false);
+        expect(hits(rule, '', numberColumn)).toBe(false);
+    });
+
+    it('keeps a value that is no date out of a date comparison', () => {
+        const before = cfg({
+            format: { type: 'date' },
+            cellStyle: [{ logic: { '<': [{ var: 'value' }, '2024-12-01'] }, fontWeight: 'bold' }],
+        });
+        expect(hits(before, 'n/a', dateColumn())).toBe(false);
+    });
+
+    it('still compares a value of 0', () => {
+        const below = cfg({ cellStyle: [{ logic: { '<': [{ var: 'value' }, 5] }, fontWeight: 'bold' }] });
+        expect(hits(below, 0, { type: 'number', readDate: dateReader() })).toBe(true);
+    });
+
     it('compares every other type on the Raw value', () => {
         expect(hits(onDay('2024-12-01'), '2024-12-01T10:00:00Z', stringColumn)).toBe(false);
         const above = cfg({ cellStyle: [{ logic: { '>': [{ var: 'value' }, 5] }, fontWeight: 'bold' }] });
