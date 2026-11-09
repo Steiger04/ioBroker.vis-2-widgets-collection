@@ -135,6 +135,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
                 },
             ]) ?? '24px',
 
+        // No base stage: see forceColorMask.
         iconSizeOnly: (ext: string | number, _includeActive: boolean) =>
             resolvePriority([
                 {
@@ -173,14 +174,13 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
         forceColorMaskCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: getDataValue<boolean>('enableIconColorMask', '') }]) ?? false,
 
+        // No base stage, like iconXOffset, iconYOffset and iconSizeOnly: the base field also
+        // carries the Eck-Icon (the Cm chains), so a base stage would move a corner setting
+        // onto every content icon (ADR-0111 Nr. 9). Pinned by the chain table.
         forceColorMask: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<boolean>('enableIconColorMask', 'Active') },
                 { value: getDataValue<boolean>('enableIconColorMask', String(ext)) },
-                {
-                    condition: Boolean(getDataValue<boolean>('enableIconColorMask', String(ext))),
-                    value: getDataValue<boolean>('enableIconColorMask', ''),
-                },
             ]) ?? false,
 
         iconColor: (ext: string | number, includeActive: boolean) =>
@@ -197,6 +197,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
         iconYOffsetCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: getDataValue<string>('iconYOffset', '') }]) ?? '0px',
 
+        // No base stage in the two offsets: see forceColorMask.
         iconXOffset: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconXOffset', 'Active') },
