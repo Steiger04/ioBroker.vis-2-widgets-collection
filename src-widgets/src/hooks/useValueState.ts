@@ -16,11 +16,12 @@
  * The decision logic is exported as pure transitions ({@link convertToOidType},
  * {@link isSignificantBackendChange}, {@link decideBackendChange} — the useOptimisticNumber /
  * useEditorHistory pattern) so the echo/significance contract is testable without React.
- * The hook itself is a thin shell: context reads, the ref carrying the last decision's
- * `next` state, and the write wiring.
+ * The hook itself is a thin shell: context reads, the observation state carrying the last
+ * decision's `next` state (decided while rendering, when the observed snapshot changes), the
+ * ignore window as state a timer closes, and the write wiring.
  */
 
-import { useCallback, useContext, useMemo, useRef } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
 import isOidReadOnly from '../lib/helper/isOidReadOnly';
@@ -145,8 +146,7 @@ export interface BackendChangeDecision {
  * @param current - The observation landing this render (`lc` + raw value).
  * @param current.lc - Last-change timestamp of the observed state.
  * @param current.value - Raw value of the observed state.
- * @param ignoreUntil - Timestamp (ms) until which changes are absorbed as own-write echoes.
- * @param now - Current time (ms); injected so tests control the clock.
+ * @param inIgnoreWindow - Whether the ignore window of an own write is open (its echo is absorbed).
  * @returns The decision plus the state to remember.
  * @remarks
  * Precedence (first match wins):
@@ -160,8 +160,7 @@ export interface BackendChangeDecision {
 export function decideBackendChange(
     prev: BackendChangeState,
     current: { lc: number | undefined; value: string | number | boolean | undefined | null },
-    ignoreUntil: number,
-    now: number,
+    inIgnoreWindow: boolean,
 ): BackendChangeDecision {
     if (current.lc === VALUE_NOT_CHANGED_TIMESTAMP) {
         return {
@@ -173,7 +172,7 @@ export function decideBackendChange(
 
     const next: BackendChangeState = { lc: current.lc, value: current.value };
 
-    if (now < ignoreUntil || prev.lc === undefined) {
+    if (inIgnoreWindow || prev.lc === undefined) {
         return { foreign: false, significant: false, next };
     }
 
@@ -181,6 +180,26 @@ export function decideBackendChange(
 
     return { foreign, significant: foreign && isSignificantBackendChange(prev.value, current.value), next };
 }
+
+/** The snapshot the hook last decided over, the state carried forward and the decision. */
+interface Observation {
+    oid: string | undefined;
+    lc: unknown;
+    value: unknown;
+    next: BackendChangeState;
+    foreign: boolean;
+    significant: boolean;
+}
+
+/** Nothing observed yet: the first observation of a bound OID initialises without a flag. */
+const UNOBSERVED: Observation = {
+    oid: undefined,
+    lc: undefined,
+    value: undefined,
+    next: { lc: undefined, value: undefined },
+    foreign: false,
+    significant: false,
+};
 
 /** Options of {@link UseValueStateReturn.updateValue}. */
 export interface UpdateValueOptions {
@@ -265,11 +284,10 @@ const useValueState = (idName: string): UseValueStateReturn => {
     const objectWrite = oidObject?.write;
     const locked = useMemo(() => isOidReadOnly({ onlyDisplay, write: objectWrite }), [onlyDisplay, objectWrite]);
 
-    const prevStateRef = useRef<{
-        lc: number | undefined;
-        value: string | number | boolean | undefined | null;
-    }>({ lc: undefined, value: undefined });
-    const ignoreUntilRef = useRef<number>(0);
+    // The ignore window of the own write: open from the write until a timer closes it.
+    const [inIgnoreWindow, setInIgnoreWindow] = useState(false);
+    const ignoreTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    useEffect(() => () => clearTimeout(ignoreTimerRef.current), []);
 
     // Echo-ignore window only — the write itself debounces in useDebounce.
     const delay = Number((widget.data as Partial<DelayFieldsRxData>).delay) || DEFAULT_WRITE_DELAY_MS;
@@ -277,22 +295,34 @@ const useValueState = (idName: string): UseValueStateReturn => {
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;
 
-    const { foreign: hasForeignChange, significant: hasBackendChange } = useMemo(() => {
-        if (!oidObject?._id) {
-            return { foreign: false, significant: false };
+    // The last observed snapshot and its decision. A changed snapshot is decided while rendering;
+    // without a bound OID nothing is decided and the remembered state stays.
+    const oid = oidObject?._id;
+    const [observation, setObservation] = useState<Observation>(UNOBSERVED);
+    let { foreign: hasForeignChange, significant: hasBackendChange } = observation;
+    if (
+        !Object.is(observation.oid, oid) ||
+        !Object.is(observation.lc, currentLc) ||
+        !Object.is(observation.value, currentValue)
+    ) {
+        let { next } = observation;
+        hasForeignChange = false;
+        hasBackendChange = false;
+        if (oid) {
+            const decision = decideBackendChange(next, { lc: currentLc, value: currentValue }, inIgnoreWindow);
+            next = decision.next;
+            hasForeignChange = decision.foreign;
+            hasBackendChange = decision.significant;
         }
-
-        const decision = decideBackendChange(
-            prevStateRef.current,
-            { lc: currentLc, value: currentValue },
-            ignoreUntilRef.current,
-            Date.now(),
-        );
-
-        prevStateRef.current = decision.next;
-
-        return { foreign: decision.foreign, significant: decision.significant };
-    }, [oidObject?._id, currentLc, currentValue]);
+        setObservation({
+            oid,
+            lc: currentLc,
+            value: currentValue,
+            next,
+            foreign: hasForeignChange,
+            significant: hasBackendChange,
+        });
+    }
 
     const debounce = useDebounce({
         oidObject,
@@ -331,11 +361,13 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 },
             }));
 
-            ignoreUntilRef.current = Date.now() + delay + 1500;
-            prevStateRef.current = {
-                lc: VALUE_NOT_CHANGED_TIMESTAMP,
-                value: processedValue,
-            };
+            clearTimeout(ignoreTimerRef.current);
+            setInIgnoreWindow(true);
+            ignoreTimerRef.current = setTimeout(() => setInIgnoreWindow(false), delay + 1500);
+            setObservation(prev => ({
+                ...prev,
+                next: { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: processedValue },
+            }));
 
             if (options?.immediate) {
                 debounce?.cancel();

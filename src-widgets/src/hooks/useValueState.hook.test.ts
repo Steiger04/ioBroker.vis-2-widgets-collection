@@ -331,6 +331,49 @@ describe('useValueState hook', () => {
         expect(captured.current?.hasForeignChange).toBe(false);
         unmount();
     });
+
+    it('weighs a change after the window against the own write, even unrendered', async () => {
+        const box = makeBox(numberOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 5 });
+        const { captured, rerender, unmount } = mount(box);
+
+        rerender(); // first observation
+        act(() => {
+            captured.current?.updateValue(6);
+        });
+
+        // No render in between: the own write was never observed. The next change lands after
+        // the window with the value of the own write — a Fremdänderung, but no significant one.
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 6 };
+        await flushWrites(2500);
+        rerender();
+        expect(captured.current?.hasForeignChange).toBe(true);
+        expect(captured.current?.hasBackendChange).toBe(false);
+        unmount();
+    });
+
+    it('closes the ignore window on time: a change right after it is a Fremdänderung', async () => {
+        const box = makeBox(numberOid(), { [`${OID}.lc`]: 1000, [`${OID}.val`]: 5 });
+        const { captured, rerender, unmount } = mount(box);
+
+        rerender(); // first observation
+        act(() => {
+            captured.current?.updateValue(6);
+        });
+        rerender();
+
+        // 1799 ms: still inside the 1800 ms window.
+        await flushWrites(1799);
+        box.values = { ...box.values, [`${OID}.lc`]: 2000, [`${OID}.val`]: 7 };
+        rerender();
+        expect(captured.current?.hasForeignChange).toBe(false);
+
+        // 1800 ms: the window is closed.
+        await flushWrites(1);
+        box.values = { ...box.values, [`${OID}.lc`]: 3000, [`${OID}.val`]: 8 };
+        rerender();
+        expect(captured.current?.hasForeignChange).toBe(true);
+        unmount();
+    });
 });
 
 describe('useValueState hook — the immediate option (ticket 06)', () => {

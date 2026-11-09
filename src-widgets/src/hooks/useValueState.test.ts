@@ -91,8 +91,7 @@ describe('decideBackendChange', () => {
         const decision = decideBackendChange(
             { lc: 1000, value: 'old' },
             { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: 'mine' },
-            0,
-            5000,
+            false,
         );
 
         expect(decision.significant).toBe(false);
@@ -100,40 +99,40 @@ describe('decideBackendChange', () => {
     });
 
     it('absorbs changes inside the ignore window (own write echo)', () => {
-        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, 10_000, 5000);
+        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, true);
 
         expect(decision.significant).toBe(false);
         expect(decision.next).toEqual({ lc: 2000, value: 42 });
     });
 
     it('does not flag the first observation (initialisation)', () => {
-        const decision = decideBackendChange({ lc: undefined, value: undefined }, { lc: 2000, value: 42 }, 0, 5000);
+        const decision = decideBackendChange({ lc: undefined, value: undefined }, { lc: 2000, value: 42 }, false);
 
         expect(decision.significant).toBe(false);
         expect(decision.next).toEqual({ lc: 2000, value: 42 });
     });
 
     it('requires an lc change even when the value changed', () => {
-        const decision = decideBackendChange({ lc: 2000, value: 5 }, { lc: 2000, value: 42 }, 0, 5000);
+        const decision = decideBackendChange({ lc: 2000, value: 5 }, { lc: 2000, value: 42 }, false);
 
         expect(decision.significant).toBe(false);
     });
 
     it('flags significant foreign changes outside the window', () => {
-        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, 0, 5000);
+        const decision = decideBackendChange({ lc: 1000, value: 5 }, { lc: 2000, value: 42 }, false);
 
         expect(decision.significant).toBe(true);
         expect(decision.next).toEqual({ lc: 2000, value: 42 });
     });
 
     it('keeps numeric jitter outside the window insignificant', () => {
-        const decision = decideBackendChange({ lc: 1000, value: 100 }, { lc: 2000, value: 100.4 }, 0, 5000);
+        const decision = decideBackendChange({ lc: 1000, value: 100 }, { lc: 2000, value: 100.4 }, false);
 
         expect(decision.significant).toBe(false);
     });
 
     it('flags a foreign string change outside the window (ADR-0087)', () => {
-        const decision = decideBackendChange({ lc: 1000, value: '#ff0000' }, { lc: 2000, value: '#00ff00' }, 0, 5000);
+        const decision = decideBackendChange({ lc: 1000, value: '#ff0000' }, { lc: 2000, value: '#00ff00' }, false);
 
         expect(decision.significant).toBe(true);
     });
@@ -145,13 +144,13 @@ describe('decideBackendChange — foreign (Fremdänderung, ADR-0087 addendum)', 
             'an own optimistic write (lc sentinel)',
             { lc: 1000, value: 0.2 },
             { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: 0.7 },
-            0,
+            false,
         ],
-        ['an echo inside the ignore window', { lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, 10_000],
-        ['the first observation', { lc: undefined, value: undefined }, { lc: 2000, value: 0.7 }, 0],
-        ['an unchanged lc', { lc: 2000, value: 0.2 }, { lc: 2000, value: 0.7 }, 0],
-    ])('is false for %s', (_case, prev, current, ignoreUntil) => {
-        expect(decideBackendChange(prev, current, ignoreUntil, 5000).foreign).toBe(false);
+        ['an echo inside the ignore window', { lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, true],
+        ['the first observation', { lc: undefined, value: undefined }, { lc: 2000, value: 0.7 }, false],
+        ['an unchanged lc', { lc: 2000, value: 0.2 }, { lc: 2000, value: 0.7 }, false],
+    ])('is false for %s', (_case, prev, current, inIgnoreWindow) => {
+        expect(decideBackendChange(prev, current, inIgnoreWindow).foreign).toBe(false);
     });
 
     it.each([
@@ -160,11 +159,11 @@ describe('decideBackendChange — foreign (Fremdänderung, ADR-0087 addendum)', 
         ['5 → 42', 5, 42],
         ['#ff0000 → #00ff00', '#ff0000', '#00ff00'],
     ])('is true for an lc change outside the window, whatever the delta (%s)', (_case, from, to) => {
-        expect(decideBackendChange({ lc: 1000, value: from }, { lc: 2000, value: to }, 0, 5000).foreign).toBe(true);
+        expect(decideBackendChange({ lc: 1000, value: from }, { lc: 2000, value: to }, false).foreign).toBe(true);
     });
 
     it('keeps significant = foreign AND the jitter filter: a sub-unit change is foreign, not significant', () => {
-        const decision = decideBackendChange({ lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, 0, 5000);
+        const decision = decideBackendChange({ lc: 1000, value: 0.2 }, { lc: 2000, value: 0.7 }, false);
 
         expect(decision.foreign).toBe(true);
         expect(decision.significant).toBe(false);
