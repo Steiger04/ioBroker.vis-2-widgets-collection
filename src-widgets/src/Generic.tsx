@@ -5,6 +5,7 @@
  * @remarks
  * All widgets extend this class (directly or indirectly). It provides:
  * - the i18n prefix used by vis-2
+ * - the instance `getWidgetInfo()` vis-2 reads, so a widget class declares only the static one
  * - a convenience `getPropertyValue()` wrapper around the widget runtime state
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
@@ -12,7 +13,7 @@
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
 
-import type { VisRxWidgetState, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { VisRxWidgetState, RxRenderWidgetProps, RxWidgetInfo } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import withCollectionProvider from './components/withCollectionProvider';
 import { I18N_PREFIX } from './lib/translate';
@@ -40,6 +41,18 @@ class Generic<
     /** Returns the translation prefix used by this widget set. */
     static getI18nPrefix(): string {
         return I18N_PREFIX;
+    }
+
+    /**
+     * Answers vis-2 with the static `getWidgetInfo` of the instance's own class.
+     *
+     * @remarks
+     * Do not delete: the host calls `this.getWidgetInfo()` in its constructor to read the widget
+     * configuration, and its own method throws. It stays a method because a class property is
+     * not set yet at that point.
+     */
+    getWidgetInfo(): RxWidgetInfo {
+        return (this.constructor as unknown as { getWidgetInfo(): RxWidgetInfo }).getWidgetInfo();
     }
 
     /**

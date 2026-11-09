@@ -59,38 +59,6 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
         };
     }
 
-    // Do not delete this method. It is used by vis to read the widget configuration.
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo(): RxWidgetInfo {
-        return RadioGroupCollectionWidget.getWidgetInfo();
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate(): void {
-        // Intentionally empty.
-        // Kept as a hook for future state/object initialization.
-    }
-
-    // This function is called every time when rxData is changed
-    // eslint-disable-next-line class-methods-use-this
-    onRxDataChanged(): void {
-        // this.propertiesUpdate();
-    }
-
-    // This function is called every time when rxStyle is changed
-    // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged(): void {}
-
-    // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this
-    onStateUpdated(_id: string, _state: ioBroker.State): void {}
-
-    componentDidMount(): void {
-        super.componentDidMount();
-        // Update data
-        // this.propertiesUpdate();
-    }
-
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 

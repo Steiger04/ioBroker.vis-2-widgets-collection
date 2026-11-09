@@ -107,12 +107,6 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
         };
     }
 
-    // Do not delete this method. It is used by vis to read the widget configuration.
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo(): RxWidgetInfo {
-        return JsonTableCollectionWidget.getWidgetInfo();
-    }
-
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 

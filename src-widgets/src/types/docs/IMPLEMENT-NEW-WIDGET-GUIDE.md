@@ -75,11 +75,11 @@ Baseline structure:
 import React from 'react';
 import type { WidgetRegistry } from '../types';
 import Generic from '../Generic';
-import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 // add more field imports as needed
+import MyNewCollection from './MyNewCollection';
 
 class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWidget']> {
     static getWidgetInfo() {
@@ -111,30 +111,17 @@ class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWi
         };
     }
 
-    componentDidMount() {
-        // optional subscriptions or initialization
-    }
-
-    onRxDataChanged() {
-        // react to editor data changes
-    }
-
-    onRxStyleChanged() {
-        // react to style changes
-    }
-
-    onStateUpdated(id, state) {
-        // react to state updates from the socket
-    }
-
     renderWidgetBody(props) {
-        const Component = withCollectionProvider(MyNewCollection);
-        return <Component {...props} />;
+        super.renderWidgetBody(props);
+
+        return this.renderWithProvider(<MyNewCollection />, props);
     }
 }
 
-export default withCollectionProvider(MyNewCollectionWidget);
+export default MyNewCollectionWidget;
 ```
+
+The class declares only the static `getWidgetInfo`. The instance method vis-2 calls in its constructor is inherited from `Generic`. Override `onRxDataChanged`, `onRxStyleChanged` or `onStateUpdated` only for real logic of your own: the host's versions are empty, and new state values reach the body through `this.state.values` anyway. The same goes for `componentDidMount`, which must then call `super.componentDidMount()`: the host subscribes there.
 
 Reference: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollectionWidget.tsx](../../CheckboxCollectionWidget/CheckboxCollectionWidget.tsx)
 
@@ -309,8 +296,7 @@ sequenceDiagram
     participant H as Hooks
 
     V->>W: renderWidgetBody()
-    W->>W: getWidgetInfo()
-    W->>C: withCollectionProvider()
+    W->>C: renderWithProvider()
     C->>H: useData('oid')
     C->>H: useValueState('oid')
     H-->>C: data, value, updateValue
@@ -318,7 +304,7 @@ sequenceDiagram
     CB-->>V: rendered widget
 
     Note over V,CB: User Interaction
-    V->>W: onStateUpdated()
+    V->>W: this.state.values, renderWidgetBody()
     W->>C: context update
     C->>H: hooks re-run
     H-->>C: updated data
@@ -351,7 +337,7 @@ Issue: Type error in WidgetRegistry
 
 Issue: Context is undefined
 
-- Confirm `withCollectionProvider` wraps the widget.
+- Confirm `renderWidgetBody` returns `this.renderWithProvider(...)`.
 - Ensure `CollectionContext` is imported correctly.
 
 ## 19. Final review checklist
