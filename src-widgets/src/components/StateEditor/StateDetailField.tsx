@@ -30,7 +30,7 @@
  * bound field is rendered as a plain text field through the same `Editor`.
  */
 import { Box } from '@mui/material';
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
@@ -39,7 +39,7 @@ import { stateRowKeyDiffers } from '../../lib/stateRows';
 import type { StateFieldDefinition } from '../../lib/stateEditorConfig';
 import StateBindingSwitch, { stateBindingTextField, useStateFieldBinding } from './StateBindingSwitch';
 import { StateDifferentMark } from './StateDifferentMark';
-import { useLabelCell } from './useLabelCell';
+import { useDimmedLabelCell, useLabelCell } from './useLabelCell';
 import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 /** What vis-2's `Editor` takes (fork `WidgetField.tsx`; `data`/`onChange` it declares are unused). */
@@ -153,17 +153,8 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     const differs = field !== null && stateRowKeyDiffers(stored, field.name as string);
     const anchor = useRef<HTMLDivElement>(null);
     const labelCell = useLabelCell(anchor);
-    // A locked row looks like a disabled vis-2 row (`fieldTitleDisabled`: opacity 0.8); vis-2
-    // cannot grey the label itself — its `disabled` rule knows no selected row.
-    useLayoutEffect(() => {
-        if (!labelCell || !locked) {
-            return undefined;
-        }
-        labelCell.style.opacity = '0.8';
-        return () => {
-            labelCell.style.opacity = '';
-        };
-    }, [labelCell, locked]);
+    // A locked row looks like a disabled vis-2 row; vis-2's `disabled` rule knows no selected row.
+    useDimmedLabelCell(anchor, locked);
     const binding = useStateFieldBinding(fieldProps, definition, field ? (field.name as string) : null);
     // The field data on purpose: vis-2 draws the preview from the first widget unless the values
     // differ (`!isDifferent`), and the merged `commonValues` hold exactly that (`null` if they differ).
