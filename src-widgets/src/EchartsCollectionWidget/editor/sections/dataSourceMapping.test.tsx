@@ -13,13 +13,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
 vi.mock('../OidPicker', () => ({ default: () => null }));
 // Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &

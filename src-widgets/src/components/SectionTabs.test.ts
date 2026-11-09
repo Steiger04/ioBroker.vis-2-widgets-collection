@@ -5,19 +5,11 @@
  *
  * @module components/SectionTabs.test
  * @remarks
- * `window.visRxWidget` is stubbed in a hoisted block where Generic is in the import chain; the
- * MUI icons barrel is mocked (minutes of Node module resolution in vitest otherwise — see the
- * SeriesDataFields test for the probe).
+ * The MUI icons barrel is mocked (minutes of Node module resolution in vitest otherwise — see
+ * the SeriesDataFields test for the probe).
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null }));
 
 import { act, createElement } from 'react';

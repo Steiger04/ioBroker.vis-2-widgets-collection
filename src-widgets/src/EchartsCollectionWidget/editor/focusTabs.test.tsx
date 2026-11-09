@@ -10,13 +10,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 // The full section stack pulls many icons — every named import the stack touches, nulled.
 vi.mock('@mui/icons-material', () => ({
     ExpandMore: () => null,

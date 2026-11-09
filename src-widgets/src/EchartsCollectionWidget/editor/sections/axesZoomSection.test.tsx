@@ -13,13 +13,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('../useEditorTheme', () => ({
     useEditorTheme: () => ({
         palette: ['#111', '#222'],
@@ -140,7 +133,7 @@ describe('AxesZoomSection — the Achsen-Platz stepper (ADR-0079)', () => {
     });
 
     it('the subtitle composes "Seite · Platz/Total" from the i18n pattern placeholders', () => {
-        // The hoisted t-stub returns keys verbatim, so the {side}/{place}/{total} replacement
+        // The host stub's t returns keys verbatim, so the {side}/{place}/{total} replacement
         // never runs against real placeholders — mock JUST the pattern key to prove the
         // composition (side label from its own key, numbers from the sight).
         const t = vi

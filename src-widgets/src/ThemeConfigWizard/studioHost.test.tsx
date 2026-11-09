@@ -11,14 +11,6 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 import { act, type FC } from 'react';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { CustomPaletteProperties } from '@iobroker/types-vis-2';

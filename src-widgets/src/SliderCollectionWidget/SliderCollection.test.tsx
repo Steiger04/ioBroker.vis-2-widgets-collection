@@ -12,17 +12,7 @@
  * configured value size only, which positions the mark icon. The backend sync cases pin the thumb
  * against Fremdänderungen of any size, the own write's echo and an OID rebind (ADR-0087 addendum).
  */
-import { describe, expect, it, vi } from 'vitest';
-
-vi.hoisted(() => {
-    // CollectionBase pulls Generic (extends window.visRxWidget, undefined outside the
-    // vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+import { describe, expect, it } from 'vitest';
 
 import { act } from 'react';
 

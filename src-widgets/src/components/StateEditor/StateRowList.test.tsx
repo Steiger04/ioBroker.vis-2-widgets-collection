@@ -12,7 +12,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
-    // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
+    // An own `t`: its `t:` prefix tells a translated text from a literal one.
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static t(key: string): string {
             return `t:${key}`;

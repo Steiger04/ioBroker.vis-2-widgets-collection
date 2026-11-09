@@ -10,17 +10,8 @@
  * `getWidgetView`, stubbed as a marker carrying the view name. The Modal portals into
  * `document.body`, so every query runs there.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-vi.hoisted(() => {
-    // CollectionBase translates its hints through Generic, which extends
-    // window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 import { createElement, useContext, type FC } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';

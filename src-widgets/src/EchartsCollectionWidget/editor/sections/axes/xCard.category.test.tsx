@@ -15,13 +15,6 @@ vi.mock('../../colorFields', () => ({
     default: () => <span>COLOR_FIELD</span>,
 }));
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import XCard from './XCard';

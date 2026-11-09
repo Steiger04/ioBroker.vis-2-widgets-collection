@@ -8,7 +8,7 @@
  * real one; Slider and Gauge draw one and keep the seed (ADR-0109 Nr. 8).
  *
  * Runs in the dom project: the widget modules import Generic, whose base class is
- * `window.visRxWidget` — stubbed before the dynamic imports below.
+ * `window.visRxWidget`.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -19,9 +19,6 @@ import type {
     RxWidgetInfoFieldChangeHandler,
     WidgetData,
 } from '@iobroker/types-vis-2';
-
-// Generic extends window.visRxWidget at module scope — stub it before importing widgets.
-(window as unknown as { visRxWidget: unknown }).visRxWidget = class {};
 
 const OID = 'zigbee.0.lamp.no_range';
 

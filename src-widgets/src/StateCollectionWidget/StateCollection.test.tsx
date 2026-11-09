@@ -23,16 +23,6 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    // The body imports Generic for the dialog title fallback (Generic.t extends
-    // window.visRxWidget, undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
-
 import { act } from 'react';
 
 import {

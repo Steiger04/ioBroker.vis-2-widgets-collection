@@ -16,10 +16,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
-    // Mirrors vis-2's VisRxWidget.t, which reads `this.getI18nPrefix()` (an unbound
-    // Generic.t throws in the host; identity stubs would hide that). Generic overrides the
-    // prefix, so a correctly bound call carries Generic's. Arguments are appended so the
-    // %s substitution stays visible.
+    // An own `t` that uses the prefix: Generic overrides it, so a correctly bound call
+    // carries Generic's. Arguments are appended so the %s substitution stays visible.
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static getI18nPrefix(): string {
             return '';

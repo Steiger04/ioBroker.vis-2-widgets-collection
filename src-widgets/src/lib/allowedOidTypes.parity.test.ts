@@ -13,16 +13,13 @@
  * offer exactly those types in the object dialog (ADR-0111 Nr. 4).
  *
  * Runs in the dom project: the widget modules import Generic, whose base class
- * is `window.visRxWidget` — stubbed before the dynamic imports below.
+ * is `window.visRxWidget`.
  */
 import { describe, expect, it } from 'vitest';
 
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import { ANY_VALUE_TYPES, INPUT_ENTRY_TYPES } from './allowedOidTypes';
-
-// Generic extends window.visRxWidget at module scope — stub it before importing widgets.
-(window as unknown as { visRxWidget: unknown }).visRxWidget = class {};
 
 interface IdFieldFragment {
     name?: string;

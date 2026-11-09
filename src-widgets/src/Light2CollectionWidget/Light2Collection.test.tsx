@@ -12,16 +12,6 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// CollectionBase translates its hints through Generic, which extends window.visRxWidget —
-// undefined outside the vis-2 host. Stubbed before the imports load.
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
-
 import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';

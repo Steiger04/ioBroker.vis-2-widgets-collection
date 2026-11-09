@@ -3,10 +3,8 @@
  *
  * @module widgets/JsonTableCollectionWidget/components/TypeBadgeChip.test
  * @remarks
- * The stub mirrors vis-2's `VisRxWidget.t`, which reads `this.getI18nPrefix()`: an unbound
- * `Generic.t` handed on as a callback loses `this` and throws in the host ("Cannot read
- * properties of undefined (reading 'getI18nPrefix')") — the identity stubs elsewhere
- * cannot show that, so this one keeps the prefix lookup.
+ * An own `t` that uses the prefix: the chip's text reaches the host's `t` bound to `Generic`,
+ * so the assertions read the prefixed key.
  */
 import { describe, expect, it, vi } from 'vitest';
 
