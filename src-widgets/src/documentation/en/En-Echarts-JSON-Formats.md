@@ -13,7 +13,9 @@ The widget knows the data modes **History** (fetched through a history adapter, 
 
 Both families read the **same data point** — switching the family resets the data path (series, Y axes, style and hiding of payload series, mapping, markings), the JSON data point stays.
 
-## The JSON data point
+## The JSON datapoint
+
+In the panel: **JSON data point (OID)**.
 
 | Property | Requirement                                                                              |
 | -------- | ---------------------------------------------------------------------------------------- |
@@ -38,9 +40,9 @@ const statistics = [
 setState('0_userdata.0.charts.daily_statistics', JSON.stringify(statistics), true);
 ```
 
-## Family "Finished series"
+## Family "Series document"
 
-Four payload shapes are detected automatically — the choice happens through the JSON's shape alone (no switch in the configurator). The payload supplies names and points only, the widget does not read other keys of a series (`color`, `type`, `stack` …). With the chart type **Pie** every series becomes a slice, the slice aggregation condenses its points. The cards are described under [JSON: finished series](En-Echarts-Widget.md#json-finished-series-cartesian).
+In the panel: **Finished series**. Four payload shapes are detected automatically — the choice happens through the JSON's shape alone (no switch in the configurator). The payload supplies names and points only, the widget does not read other keys of a series (`color`, `type`, `stack` …). With the chart type **Pie** every series becomes a slice, the slice aggregation condenses its points. The cards are described under [JSON: finished series](En-Echarts-Widget.md#json-finished-series-cartesian).
 
 ### Shape 1: object with `series` (multiple series)
 
@@ -144,9 +146,9 @@ The keys may change from point to point — every point is read individually. Ti
 - The payload alone decides the series count and order; adding/removing is impossible in the configurator (hiding only, re-enableable).
 - The open configurator reconciles the axes: a new name gets its own Y axis, a set binding survives payload changes. A vanished or hidden name loses its binding, an axis without a visible series falls. Without a binding the runtime draws on the first Y axis.
 
-## Family "Table / columns"
+## Family "Table/columns"
 
-The payload is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source**, tab **Mapping**, and section **Series**) connect payload and chart; the cards are described under [JSON: table / columns](En-Echarts-Widget.md#json-table--columns-cartesian):
+In the panel: **Table / columns**. The payload is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source**, tab **Mapping**, and section **Series**) connect payload and chart; the cards are described under [JSON: table / columns](En-Echarts-Widget.md#json-table--columns-cartesian):
 
 | Setting                            | Location    | Meaning                                                                                                                                                                                                                                       |
 | ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

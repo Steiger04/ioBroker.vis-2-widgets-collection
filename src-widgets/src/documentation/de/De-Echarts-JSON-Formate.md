@@ -15,6 +15,8 @@ Beide Familien lesen **denselben Datenpunkt** — der Familien-Wechsel setzt den
 
 ## Der JSON-Datenpunkt
 
+Im Panel: **JSON-Datenpunkt (OID)**.
+
 | Eigenschaft    | Vorgabe                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------- |
 | Typ            | `string` — der State-Wert muss der JSON-**Text** sein                                         |
@@ -38,9 +40,9 @@ const statistik = [
 setState('0_userdata.0.charts.tagesstatistik', JSON.stringify(statistik), true);
 ```
 
-## Familie „Fertige Serien"
+## Familie „Serien-Dokument"
 
-Vier Payload-Formen werden automatisch erkannt — die Wahl geschieht allein über die Gestalt des JSON (kein Schalter im Konfigurator). Der Payload liefert nur Namen und Punkte, weitere Schlüssel einer Serie (`color`, `type`, `stack` …) liest das Widget nicht. Im Diagrammtyp **Torte** wird jede Serie ein Segment, die Segment-Aggregation verdichtet ihre Punkte. Die Karten beschreibt [JSON: Fertige Serien](De-Echarts-Widget.md#json-fertige-serien-kartesisch).
+Im Panel: **Fertige Serien**. Vier Payload-Formen werden automatisch erkannt — die Wahl geschieht allein über die Gestalt des JSON (kein Schalter im Konfigurator). Der Payload liefert nur Namen und Punkte, weitere Schlüssel einer Serie (`color`, `type`, `stack` …) liest das Widget nicht. Im Diagrammtyp **Torte** wird jede Serie ein Segment, die Segment-Aggregation verdichtet ihre Punkte. Die Karten beschreibt [JSON: Fertige Serien](De-Echarts-Widget.md#json-fertige-serien-kartesisch).
 
 ### Form 1: Objekt mit `series` (mehrere Serien)
 
@@ -146,7 +148,7 @@ Die Schlüssel dürfen sich von Punkt zu Punkt ändern — jeder Punkt wird einz
 
 ## Familie „Tabelle/Spalten"
 
-Der Payload ist (oder enthält) ein **Array von Zeilen**; jede Objekt-Eigenschaft einer Zeile ist eine Spalte. Drei Einstellungen im Konfigurator (Sektion **Datenquelle**, Tab **Zuordnung**, und Sektion **Serien**) verbinden Payload und Diagramm; die Karten beschreibt [JSON: Tabelle/Spalten](De-Echarts-Widget.md#json-tabellespalten-kartesisch):
+Im Panel: **Tabelle/Spalten**. Der Payload ist (oder enthält) ein **Array von Zeilen**; jede Objekt-Eigenschaft einer Zeile ist eine Spalte. Drei Einstellungen im Konfigurator (Sektion **Datenquelle**, Tab **Zuordnung**, und Sektion **Serien**) verbinden Payload und Diagramm; die Karten beschreibt [JSON: Tabelle/Spalten](De-Echarts-Widget.md#json-tabellespalten-kartesisch):
 
 | Einstellung                      | Ort         | Bedeutung                                                                                                                                                                                                                                         |
 | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
