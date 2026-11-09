@@ -138,6 +138,20 @@ describe('resolveTimeWindow — static', () => {
         expect(w.start).toBe(now - 86_400_000);
         expect(w.end).toBe(now);
     });
+
+    it('start at or after end degrades to the relative default, as the editor hint promises', () => {
+        const now = ts(2026, 8, 24, 15);
+        const reversed = resolveTimeWindow(
+            { timeType: 'static', staticStart: '2026-02-01T00:00', staticEnd: '2026-01-01T00:00' },
+            now,
+        );
+        expect(reversed).toEqual({ start: now - 86_400_000, end: now });
+        const equal = resolveTimeWindow(
+            { timeType: 'static', staticStart: '2026-01-01T00:00', staticEnd: '2026-01-01T00:00' },
+            now,
+        );
+        expect(equal).toEqual({ start: now - 86_400_000, end: now });
+    });
 });
 
 describe('resolveTimeWindow — the full 18×17 sweep (acceptance [4])', () => {
