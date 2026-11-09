@@ -22,7 +22,7 @@
  * pipeline, and the unmount has nothing left to send. A Taster-Betätigung uses it (ADR-0110 Nr. 5).
  */
 
-import { useContext, useEffect, useMemo, useRef } from 'react';
+import { useContext, useEffect, useInsertionEffect, useMemo, useRef } from 'react';
 import { Subject, debounceTime, tap, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
 import { DEFAULT_SAMPLE_INTERVAL_MS, DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
@@ -86,7 +86,9 @@ function useDebounce({
     const connectRef = useRef<(() => void) | null>(null);
     const waitingRef = useRef<{ oid: string; value: string | number | boolean } | null>(null);
     const setValueRef = useRef(setValue);
-    setValueRef.current = setValue;
+    useInsertionEffect(() => {
+        setValueRef.current = setValue;
+    });
     const oid = oidObject?._id;
 
     const _delay = useMemo(
