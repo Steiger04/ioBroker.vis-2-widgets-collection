@@ -1,5 +1,4 @@
 import { useCallback, useContext, useMemo } from 'react';
-import { Utils } from '@iobroker/adapter-react-v5/build/Components/Utils';
 import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
 import { getDynamicProperty } from '../../types/utility-types';
@@ -26,15 +25,15 @@ export interface UseDataOptions {
 const NO_MARKER_LAYER: MarkerLayer = {};
 
 /**
- * An object's name as text: `common.name` can hold one text per language. Without a text in the
- * host language or in English nothing is shown (the host's helper would print "undefined").
+ * An object's name as text: `common.name` can hold one text per language. The text stays as
+ * written, like a plain name. Without a text in the host language or in English nothing is shown.
  */
 const displayName = (name: ioBroker.StringOrTranslated | undefined, lang: ioBroker.Languages): string | undefined => {
     if (typeof name !== 'object' || name === null) {
         return name;
     }
     const texts = name as Record<string, string | undefined>;
-    return texts[lang] || texts.en ? Utils.getObjectNameFromObj({ common: { name } }, lang) : undefined;
+    return texts[lang] || texts.en;
 };
 
 /**

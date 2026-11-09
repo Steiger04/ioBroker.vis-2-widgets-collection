@@ -371,4 +371,8 @@ describe('useData — the OID name behind the header', () => {
     it('leaves a plain name as it is', () => {
         expect(headerOf('LAMP_1.2', 'de')).toBe('LAMP_1.2');
     });
+
+    it('leaves the text of a name in several languages as it is, like a plain one', () => {
+        expect(headerOf({ de: 'MY_LAMP.1' }, 'de')).toBe('MY_LAMP.1');
+    });
 });
