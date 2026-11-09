@@ -9,7 +9,7 @@
  * subtracted again.
  */
 
-import { useContext, useEffect, useState, useMemo, type RefObject } from 'react';
+import { useContext, useState, useMemo, type RefObject } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useElementDimensions from './useElementDimensions';
 
@@ -60,23 +60,25 @@ const useSize = (ref: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | nu
         [widget.data.square, widget.data.circle],
     );
 
-    useEffect(() => {
-        if (!clientWidth || !clientHeight || clientWidth < 0 || clientHeight < 0) {
-            return;
+    // Re-sized while rendering whenever the measurement or the shape changes; without a usable
+    // measurement the last size stays.
+    const sizeKey = [clientWidth, clientHeight, widgetConfig.isSquare, widgetConfig.isCircle].join('|');
+    const [sizedFor, setSizedFor] = useState<string>();
+    if (sizedFor !== sizeKey) {
+        setSizedFor(sizeKey);
+        if (clientWidth && clientHeight && clientWidth >= 0 && clientHeight >= 0) {
+            if (!widgetConfig.isSquare && !widgetConfig.isCircle) {
+                setWidth('100%');
+                setHeight('100%');
+            } else {
+                // The measurement is the content area: the padding is already outside it.
+                const squareSize = Math.min(clientWidth, clientHeight);
+
+                setWidth(`${squareSize}px`);
+                setHeight(`${squareSize}px`);
+            }
         }
-
-        if (!widgetConfig.isSquare && !widgetConfig.isCircle) {
-            setWidth('100%');
-            setHeight('100%');
-            return;
-        }
-
-        // The measurement is the content area: the padding is already outside it.
-        const squareSize = Math.min(clientWidth, clientHeight);
-
-        setWidth(`${squareSize}px`);
-        setHeight(`${squareSize}px`);
-    }, [clientWidth, clientHeight, widgetConfig.isSquare, widgetConfig.isCircle]);
+    }
 
     return { width, height };
 };
