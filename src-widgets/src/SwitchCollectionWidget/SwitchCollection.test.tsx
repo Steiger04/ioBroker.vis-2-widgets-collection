@@ -70,6 +70,12 @@ describe('SwitchCollection height budget (Content-Box)', () => {
         // No cap rule at all ('' or the initial 'none', whichever happy-dom reports).
         expect(['', 'none']).toContain(maxHeight);
     });
+
+    it('draws the switch with the schema thumb size when none is stored', () => {
+        const { container } = mountBody(SwitchCollection, scene({ thumbSize: undefined }));
+
+        expect(getComputedStyle(thumb(container)).height).toBe('62px');
+    });
 });
 
 describe('SwitchCollection Sperre', () => {
