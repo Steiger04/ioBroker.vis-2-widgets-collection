@@ -379,14 +379,15 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 10,
         step: 1,
         default: 1,
-        hidden: '!data.tableShowRowBorders',
+        // Default-on toggle, raw data: only an explicit false switches the row borders off
+        hidden: 'data.tableShowRowBorders === false',
     },
     // Horizontal cell border color (noGradient, hidden condition); contract: explicit → theme divider
     createColorField({
         ...jsonTableColorContracts.horizontalCellBorderColor,
         label: 'horizontal_cell_border_color',
         noGradient: true,
-        hidden: '!data.tableShowRowBorders',
+        hidden: 'data.tableShowRowBorders === false',
     }),
 
     // ── Cell Styling ──────────────────────────────────────────────────
