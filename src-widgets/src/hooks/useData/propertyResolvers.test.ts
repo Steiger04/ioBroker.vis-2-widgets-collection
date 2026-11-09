@@ -2,12 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
-import { createPropertyResolvers } from './propertyResolvers';
-import { getStyleData } from './styleDataResolver';
-import type { MarkerLayer, PropertyResolvers } from './types';
+import { createPropertyResolvers, resolveStyleEntry, type PropertyResolvers } from './propertyResolvers';
+import type { MarkerLayer, StyleData } from './types';
 
 // Characterization tests pinning the resolver layer's de-facto contract
-// (params -> createPropertyResolvers -> getStyleData -> StyleData). The chain is
+// (params -> createPropertyResolvers -> resolveStyleEntry -> StyleData). The chain is
 // fully pure — runtime seams live only in useData.tsx, which passes everything in
 // as plain values — so we build a CreatePropertyResolversParams literal with
 // hand-rolled getDataValue/formatSize closures. No vi.mock needed.
@@ -53,36 +52,26 @@ function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
     });
 }
 
-const resolve = (
-    r: PropertyResolvers,
-    ext: string | number = '',
-    includeActive = false,
-): ReturnType<typeof getStyleData> => getStyleData(ext, includeActive, r);
+const resolve = (r: PropertyResolvers, ext: string | number = '', includeActive = false): StyleData =>
+    resolveStyleEntry(r, ext, includeActive);
 
-describe('getStyleData — empty rxData resolves to known defaults', () => {
+describe('resolveStyleEntry — empty rxData resolves to known defaults', () => {
     it('returns the full default StyleData shape for an empty non-slider widget', () => {
         const r = buildResolvers();
         expect(resolve(r)).toEqual({
             icon: '',
-            iconActive: '',
             iconSizeCm: '24px',
             iconSize: '24px',
-            iconSizeActive: '24px',
             iconSizeOnly: '100%',
             iconWidth: 100,
             iconHeight: 100,
-            iconSizeActiveOnly: undefined,
             forceColorMaskCm: false,
             forceColorMask: false,
-            forceColorMaskActive: false,
             iconColor: THEME_PRIMARY,
-            iconColorActive: '',
             iconXOffsetCm: '0px',
             iconYOffsetCm: '0px',
             iconXOffset: '0px',
             iconYOffset: '0px',
-            iconXOffsetActive: '0px',
-            iconYOffsetActive: '0px',
             textColorActive: undefined,
             textColorCm: THEME_TEXT,
             textColor: THEME_TEXT,
@@ -93,18 +82,15 @@ describe('getStyleData — empty rxData resolves to known defaults', () => {
             alias: '',
             value: undefined,
             valueSize: null,
-            valueSizeActive: null,
             backgroundColor: '',
             background: '',
-            backgroundActive: undefined,
             frameBackgroundColor: '',
             frameBackground: THEME_PAPER,
-            frameBackgroundActive: undefined,
         });
     });
 });
 
-describe('getStyleData — populated base tier (ext="", includeActive=false)', () => {
+describe('resolveStyleEntry — populated base tier (ext="", includeActive=false)', () => {
     const r = buildResolvers({
         rxData: {
             icon: 'base-icon',
@@ -131,25 +117,18 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
     it('resolves every field from its base rxData tier', () => {
         expect(resolve(r)).toEqual({
             icon: 'base-icon',
-            iconActive: '',
             iconSizeCm: 'calc(24px * 200 / 100)',
             iconSize: 'calc(24px * 200 / 100)',
-            iconSizeActive: '24px',
             iconSizeOnly: '200%',
             iconWidth: 200,
             iconHeight: 200,
-            iconSizeActiveOnly: undefined,
             forceColorMaskCm: true,
             forceColorMask: true,
-            forceColorMaskActive: false,
             iconColor: '#basecolor',
-            iconColorActive: '',
             iconXOffsetCm: '5px',
             iconYOffsetCm: '7px',
             iconXOffset: '5px',
             iconYOffset: '7px',
-            iconXOffsetActive: '0px',
-            iconYOffsetActive: '0px',
             textColorActive: undefined,
             textColorCm: '#text',
             textColor: '#text',
@@ -160,13 +139,10 @@ describe('getStyleData — populated base tier (ext="", includeActive=false)', (
             alias: 'My Alias',
             value: '42°C',
             valueSize: '16%',
-            valueSizeActive: null,
             backgroundColor: '',
             background: 'grad(x)',
-            backgroundActive: undefined,
             frameBackgroundColor: '',
             frameBackground: 'grad(y)',
-            frameBackgroundActive: undefined,
         });
     });
 
@@ -301,14 +277,6 @@ const MARKER_CHAINS: [string, MarkerChainCase][] = [
         },
     ],
     [
-        'fontSize',
-        {
-            ...TEXT_SIZE_TIERS,
-            read: (r, ext) => r.fontSize(ext, false),
-            resolved: { marker: '18%', base: '16%', perState: '30%' },
-        },
-    ],
-    [
         'valueSize',
         {
             ...TEXT_SIZE_TIERS,
@@ -387,11 +355,10 @@ describe('value — the row value with its unit', () => {
 });
 
 describe('noIcon short-circuit', () => {
-    it('suppresses icon and iconActive regardless of other config', () => {
-        const r = buildResolvers({ rxData: { noIcon: true, icon: 'base', iconActive: 'act' } });
+    it('suppresses the icon regardless of other config', () => {
+        const r = buildResolvers({ rxData: { noIcon: true, icon: 'base', iconActive: 'act', icon1: 'row' } });
         expect(resolve(r).icon).toBe('');
         expect(resolve(r, 1, true).icon).toBe('');
-        expect(resolve(r, 1, true).iconActive).toBe('');
     });
 });
 

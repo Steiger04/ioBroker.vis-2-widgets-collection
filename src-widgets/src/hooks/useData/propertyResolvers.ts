@@ -11,7 +11,7 @@
 import type { Theme } from '@mui/material';
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
-import type { MarkerLayer, PropertyResolvers } from './types';
+import type { MarkerLayer, StyleData } from './types';
 import { resolvePriority } from './priorityResolver';
 import { valueWithUnit } from '../../lib/displayText';
 import { terminalColor } from '../../lib/helper/resolveEffectiveColor';
@@ -42,17 +42,22 @@ interface CreatePropertyResolversParams {
  * Each resolver accepts a state extension and an `includeActive` flag to
  * control whether active-state values participate in the fallback chain.
  *
- * The eight chains carrying the marker layer (`iconSize`, `iconWidth`,
- * `iconHeight`, `iconColor`, `textColor`, `textColorActive`, `fontSize`,
- * `valueSize`) place it uniformly behind the per-state tier and before the
- * base. Their per-state tier is skipped for `ext === ''`, so the base
- * resolution of a mark takes the marker before the base as well.
+ * The chains carrying the marker layer (`iconSize`, `iconWidth`, `iconHeight`,
+ * `iconColor`, `textColor`, `textColorActive`, `valueSize`) place it uniformly
+ * behind the per-state tier and before the base. Their per-state tier is skipped
+ * for `ext === ''`, so the base resolution of a mark takes the marker before the
+ * base as well.
+ *
+ * The returned keys are the style entry: {@link StyleData} derives from them, so
+ * a key exists here and nowhere else.
  *
  * @param params - Resolver dependencies derived from widget context and rxData
- * @returns PropertyResolvers with normalized fallback behavior across all properties
+ * @returns One resolver per style key, with normalized fallback behavior
  * @since 2.2.2
  */
-export function createPropertyResolvers(params: CreatePropertyResolversParams): PropertyResolvers {
+// The inferred return type IS the style entry's type: naming it would bring back a mirror.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function createPropertyResolvers(params: CreatePropertyResolversParams) {
     const {
         rxData,
         oidObject,
@@ -88,18 +93,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     { value: getDataValue<string>('iconSmall', String(ext)) },
                     { value: getDataValue<string>('icon', '') },
                     { value: getDataValue<string>('iconSmall', '') },
-                ]) ?? ''
-            );
-        },
-
-        iconActive: (ext: string | number, includeActive: boolean) => {
-            if (!includeActive || rxData.noIcon) {
-                return '';
-            }
-            return (
-                resolvePriority([
-                    { value: getDataValue<string>('icon', String(ext)) },
-                    { value: getDataValue<string>('iconSmall', String(ext)) },
                 ]) ?? ''
             );
         },
@@ -142,17 +135,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 },
             ]) ?? '24px',
 
-        iconSizeActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
-                      {
-                          condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
-                          value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
-                      },
-                  ]) ?? '24px')
-                : '24px',
-
         iconSizeOnly: (ext: string | number, _includeActive: boolean) =>
             resolvePriority([
                 {
@@ -170,12 +152,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 },
             ]) ?? '100%',
 
-        iconSizeActiveOnly: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([{ value: getDataValue<number>('iconSize', String(ext)) }]) ?? undefined)
-                : undefined,
-
-        iconWidth: (ext: string | number, includeActive: boolean) =>
+        iconWidth: (ext: string | number, includeActive: boolean): number =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { condition: isStateExt(ext), value: getDataValue<number>('iconSize', String(ext)) },
@@ -184,7 +161,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { value: 100 },
             ]) ?? 100,
 
-        iconHeight: (ext: string | number, includeActive: boolean) =>
+        iconHeight: (ext: string | number, includeActive: boolean): number =>
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { condition: isStateExt(ext), value: getDataValue<number>('iconSize', String(ext)) },
@@ -206,11 +183,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 },
             ]) ?? false,
 
-        forceColorMaskActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([{ value: getDataValue<boolean>('enableIconColorMask', String(ext)) }]) ?? false)
-                : false,
-
         iconColor: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
@@ -218,9 +190,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { value: markerLayer.iconColor },
                 { value: getDataValue<string>('iconColor', '') },
             ]) ?? terminalColor('primary', theme),
-
-        iconColorActive: (ext: string | number, includeActive: boolean) =>
-            includeActive ? (resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '') : '',
 
         iconXOffsetCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([{ value: getDataValue<string>('iconXOffset', '') }]) ?? '0px',
@@ -240,24 +209,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { value: getDataValue<string>('iconYOffset', String(ext)) },
             ]) ?? '0px',
 
-        iconXOffsetActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      { condition: !getDataValue<string>('iconXOffset', String(ext)), value: '0px' },
-                      { value: getDataValue<string>('iconXOffset', String(ext)) },
-                  ]) ?? '0px')
-                : '0px',
-
-        iconYOffsetActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      { condition: !getDataValue<string>('iconYOffset', String(ext)), value: '0px' },
-                      { value: getDataValue<string>('iconYOffset', String(ext)) },
-                  ]) ?? '0px')
-                : '0px',
-
         // Text Properties
-        textColorActive: (ext: string | number, includeActive: boolean) =>
+        textColorActive: (ext: string | number, includeActive: boolean): string | undefined =>
             includeActive
                 ? (resolvePriority([
                       {
@@ -314,32 +267,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             ]) ?? terminalColor('text', theme),
 
         // Size Properties
-        fontSize: (ext: string | number, includeActive: boolean) =>
-            resolvePriority([
-                {
-                    condition: includeActive && typeof rxData.valueSizeActive === 'number',
-                    value: formatSize(rxData.valueSizeActive),
-                },
-                {
-                    condition: isStateExt(ext),
-                    value:
-                        typeof getDataValue<number>('valueSize', String(ext)) === 'number'
-                            ? formatSize(getDataValue<number>('valueSize', String(ext)))
-                            : undefined,
-                },
-                {
-                    condition: typeof markerLayer.textSize === 'number',
-                    value: formatSize(markerLayer.textSize),
-                },
-                {
-                    value: typeof rxData.valueSize === 'number' ? formatSize(rxData.valueSize) : undefined,
-                },
-                {
-                    condition: typeof fontStyles?.['font-size'] === 'string',
-                    value: fontStyles?.['font-size'],
-                },
-            ]) ?? null,
-
         headerSize: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 {
@@ -404,18 +331,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 },
             ]) ?? null,
 
-        valueSizeActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      {
-                          value:
-                              typeof getDataValue<number>('valueSize', String(ext)) === 'number'
-                                  ? formatSize(getDataValue<number>('valueSize', String(ext)))
-                                  : null,
-                      },
-                  ]) ?? null)
-                : null,
-
         // Content Properties
         header: (ext: string | number, includeActive: boolean) =>
             String(
@@ -459,9 +374,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 // { value: backgroundStyles?.background },
             ]) ?? '',
 
-        backgroundActive: (ext: string | number, includeActive: boolean) =>
-            includeActive ? getDataValue<string>('background', String(ext)) : undefined,
-
         // Like backgroundColor: the widget's CSS background-color (base field retired 2026-02-12).
         frameBackgroundColor: (_ext: string | number, _includeActive: boolean) =>
             backgroundStyles?.['background-color'] || '',
@@ -475,8 +387,25 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { value: getDataValue<string>('frameBackground', String(ext)) },
                 { value: getDataValue<string>('frameBackground', '') },
             ]) ?? terminalColor('paper', theme),
-
-        frameBackgroundActive: (ext: string | number, includeActive: boolean) =>
-            includeActive ? getDataValue<string>('frameBackground', String(ext)) : undefined,
     };
+}
+
+/** The resolver set {@link createPropertyResolvers} builds, one function per style key. */
+export type PropertyResolvers = ReturnType<typeof createPropertyResolvers>;
+
+/**
+ * The style entry of a state or the base: every resolver of the set, called once.
+ *
+ * @param resolvers - The resolver set to read
+ * @param ext - State extension: '' for the base, the Feldnummer for a state
+ * @param includeActive - Whether the Active tier of each chain takes part
+ */
+export function resolveStyleEntry(
+    resolvers: PropertyResolvers,
+    ext: string | number,
+    includeActive: boolean,
+): StyleData {
+    return Object.fromEntries(
+        Object.entries(resolvers).map(([key, resolve]) => [key, resolve(ext, includeActive)]),
+    ) as StyleData;
 }

@@ -5,8 +5,7 @@ import { getDynamicProperty } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import effectiveStateCount from '../../lib/effectiveStateCount';
 import { isBlankStateValue } from '../../lib/filledStateRows';
-import { createPropertyResolvers } from './propertyResolvers';
-import { getStyleData } from './styleDataResolver';
+import { createPropertyResolvers, resolveStyleEntry } from './propertyResolvers';
 import { sameStateValue } from './stateValueEquality';
 
 import type { OidObject } from '../../types/utility-types';
@@ -16,9 +15,8 @@ import type { UseDataResult, MarkerLayer, MarkBaseStyle, StyleData, StateStyleDa
 export interface UseDataOptions {
     /**
      * The widget's marker layer (see {@link MarkerLayer}), applied to marks only:
-     * `states` and `markBaseStyle` resolve with it, `data` and `resolveStyleData`
-     * without. Omitted, nothing carries the tier. Read by content, so the
-     * reference need not be stable.
+     * `states` and `markBaseStyle` resolve with it, `data` without. Omitted, nothing
+     * carries the tier. Read by content, so the reference need not be stable.
      */
     markerLayer?: MarkerLayer;
 }
@@ -87,8 +85,8 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     // Two resolver sets over the same widget data: the marker layer applies to
     // marks only (CONTEXT "Marker-Ebene") — `states` and `markBaseStyle` resolve
-    // with it, `data` and `resolveStyleData` without. Without a marker layer both
-    // resolve alike, so the marks reuse the one set.
+    // with it, `data` without. Without a marker layer both resolve alike, so the
+    // marks reuse the one set.
     const propertyResolvers = useMemo(
         () => createPropertyResolvers({ ...resolverParams, markerLayer: NO_MARKER_LAYER }),
         [resolverParams],
@@ -98,16 +96,15 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         [hasMarkerLayer, resolverParams, markerLayer, propertyResolvers],
     );
 
-    // getStyleData is now a pure function imported from styleDataResolver.ts
-    // This wrapper memoizes the call with the current propertyResolvers
     const resolveStyleData = useCallback(
-        (ext: string | number = '', includeActive: boolean = false): StyleData =>
-            getStyleData(ext, includeActive, propertyResolvers),
+        (ext: string | number, includeActive: boolean): StyleData =>
+            resolveStyleEntry(propertyResolvers, ext, includeActive),
         [propertyResolvers],
     );
 
     const resolveMarkStyleData = useCallback(
-        (ext: string | number, includeActive: boolean): StyleData => getStyleData(ext, includeActive, markResolvers),
+        (ext: string | number, includeActive: boolean): StyleData =>
+            resolveStyleEntry(markResolvers, ext, includeActive),
         [markResolvers],
     );
 
@@ -167,7 +164,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 // A state is the basis of a Zustandsmarke, so it carries the marker layer.
                 const styleData = resolveMarkStyleData(i, isActive);
 
-                // Map to StateItem interface
                 states.push({
                     // The field row's own number — after a skipped blank row it is NOT position + 1.
                     fieldNumber: i,
@@ -178,7 +174,6 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     // value without a text (object, NaN) leaves the label empty.
                     label: isBlankStateValue(styleData.alias) ? String(styleData.value ?? '') : styleData.alias,
                     alias: styleData.alias,
-                    fontSize: styleData.valueSize,
                     textColor: styleData.textColor,
                     icon: styleData.icon,
                     iconSize: styleData.iconSize,
@@ -210,11 +205,11 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         return { states, minValue, maxValue };
     }, [oidObject?.type, oidObject?.commonStates, rxData, getDataValue, oidValue, resolveMarkStyleData]);
 
-    // `data`, `activeFieldNumber` and `activePosition` are pure functions of the
-    // current OID value and resolved states, so they are derived together here — no
-    // setState side effect during render (the previous setActiveIndex-in-useMemo was
-    // a React anti-pattern and could leave it stale relative to `data`).
-    const { data, activeFieldNumber, activePosition } = useMemo(() => {
+    // `data` and `activePosition` are pure functions of the current OID value and
+    // resolved states, so they are derived together here — no setState side effect
+    // during render (the previous setActiveIndex-in-useMemo was a React anti-pattern
+    // and could leave it stale relative to `data`).
+    const { data, activePosition } = useMemo(() => {
         const oidType = oidObject?.type;
 
         switch (oidType) {
@@ -229,19 +224,17 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                 if (position !== -1) {
                     // Apply state-specific styles with active properties — keyed by the state's
                     // Feldnummer, never by its list position.
-                    const { fieldNumber } = states[position];
                     return {
-                        data: resolveStyleData(fieldNumber, true),
-                        activeFieldNumber: fieldNumber,
+                        data: resolveStyleData(states[position].fieldNumber, true),
                         activePosition: position,
                     };
                 }
 
                 // Default to base state properties with active properties included.
-                return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
+                return { data: baseStyle.active, activePosition: undefined };
             }
             default:
-                return { data: baseStyle.active, activeFieldNumber: undefined, activePosition: undefined };
+                return { data: baseStyle.active, activePosition: undefined };
         }
     }, [oidObject, states, resolveStyleData, baseStyle]);
 
@@ -249,42 +242,11 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
         minValue,
         maxValue,
         data,
-        activeFieldNumber,
         activePosition,
         oidValue,
         states,
         markBaseStyle,
-        resolveStyleData,
     };
-}
-
-/**
- * Convenience hook that returns only the resolveStyleData function.
- *
- * Use this when you only need the style resolver without the full useData result.
- * Internally uses useData, so all context dependencies are automatically resolved.
- *
- * @param _oid - OID property name from rxData (e.g. "oid", "oid1")
- * @returns Memoized style data resolver function
- * @since 2.2.3
- * @example
- * ```typescript
- * import { useStyleData } from '../hooks/useData';
- *
- * function MyWidget() {
- *   const resolveStyleData = useStyleData('oid');
- *
- *   // Use resolveStyleData anywhere - no parameter collection needed
- *   const baseData = resolveStyleData('', true);
- *   const stateStyle = resolveStyleData(1, false);
- *
- *   return <div style={{ background: baseData.backgroundColor }}>...</div>;
- * }
- * ```
- */
-export function useStyleData(_oid: string): (ext: string | number, includeActive: boolean) => StyleData {
-    const { resolveStyleData } = useData(_oid);
-    return resolveStyleData;
 }
 
 export default useData;

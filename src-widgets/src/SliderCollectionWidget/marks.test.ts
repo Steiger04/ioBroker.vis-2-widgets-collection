@@ -2,10 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material';
 
 import { buildSliderMarks, type BuildSliderMarksParams } from './marks';
-import { createPropertyResolvers } from '../hooks/useData/propertyResolvers';
-import { getStyleData } from '../hooks/useData/styleDataResolver';
+import { createPropertyResolvers, resolveStyleEntry, type PropertyResolvers } from '../hooks/useData/propertyResolvers';
 
-import type { MarkerLayer, PropertyResolvers, StateStyleData, StyleData } from '../hooks/useData/types';
+import type { MarkerLayer, StateStyleData, StyleData } from '../hooks/useData/types';
 
 const baseStyle = (overrides: Partial<StyleData> = {}): StyleData => ({
     iconSize: '24px',
@@ -208,7 +207,7 @@ describe('buildSliderMarks — active overlay', () => {
     });
 
     // The legacy `iconSizeActive !== undefined` / `enableIconColorMaskActive !== undefined`
-    // guards were dropped: with the Active fields unset, resolveStyleData('', true)
+    // guards were dropped: with the Active fields unset, the active base style
     // falls back to the base cascade, so rewriting iconSize/forceColorMask from
     // activeStyle writes back exactly what the base spread already set. The test
     // below pins that outcome: activeStyle equal to baseStyle leaves the mark
@@ -462,7 +461,7 @@ describe('buildSliderMarks — marker layer applies to marks only, between per-s
             { textColor: '#base', valueSize: 16, iconSize: 200 },
             { textColor: '#marker', textSize: 18, iconSize: 50 },
         );
-        const stateStyle = getStyleData(1, false, r);
+        const stateStyle = resolveStyleEntry(r, 1, false);
 
         const { marks } = buildSliderMarks(
             params({
@@ -476,8 +475,8 @@ describe('buildSliderMarks — marker layer applies to marks only, between per-s
                 minValue: 0,
                 maxValue: 100,
                 markStep: 50,
-                baseStyle: getStyleData('', false, r),
-                activeStyle: getStyleData('', true, r),
+                baseStyle: resolveStyleEntry(r, '', false),
+                activeStyle: resolveStyleEntry(r, '', true),
             }),
         );
 

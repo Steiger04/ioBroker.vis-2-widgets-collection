@@ -77,10 +77,10 @@ describe('useData — Feldnummer across a blank value row', () => {
     });
 
     it('resolves the active state by its Feldnummer, not by its list position', () => {
-        const { activeFieldNumber, data } = resolve(gapRows, 'c');
+        const { states, activePosition, data } = resolve(gapRows, 'c');
 
-        expect({ activeFieldNumber, textColor: data.textColor }).toEqual({
-            activeFieldNumber: 3,
+        expect({ fieldNumber: states[activePosition!].fieldNumber, textColor: data.textColor }).toEqual({
+            fieldNumber: 3,
             textColor: MATCHED_ROW_COLOR,
         });
     });
@@ -91,10 +91,10 @@ describe('useData — Feldnummer across a blank value row', () => {
         expect(activePosition).toBe(1);
     });
 
-    it('reports neither number while no state matches the status', () => {
-        const { activeFieldNumber, activePosition } = resolve(gapRows, 'x');
+    it('reports no position while no state matches the status', () => {
+        const { activePosition } = resolve(gapRows, 'x');
 
-        expect([activeFieldNumber, activePosition]).toEqual([undefined, undefined]);
+        expect(activePosition).toBeUndefined();
     });
 });
 
@@ -275,9 +275,9 @@ describe('useData — the active flag of each state (Aktiver Zustand)', () => {
     });
 
     it('keeps activePosition on the first duplicate', () => {
-        const { activePosition, activeFieldNumber } = resolve(duplicateRows, 'a');
+        const { states, activePosition } = resolve(duplicateRows, 'a');
 
-        expect([activePosition, activeFieldNumber]).toEqual([0, 1]);
+        expect([activePosition, states[activePosition!].fieldNumber]).toEqual([0, 1]);
     });
 
     it('flags no state as active while no state matches the status', () => {
