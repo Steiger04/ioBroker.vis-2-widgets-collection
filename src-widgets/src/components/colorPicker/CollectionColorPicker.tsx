@@ -79,6 +79,45 @@ export interface CollectionColorPickerProps {
 const GRADIENT_HEAD =
     /^(?:linear|radial)-gradient\(\s*(?:(?:-?[\d.]+deg|to\s|circle|ellipse|closest-|farthest-|at\s)[^,]*,)?/i;
 
+/** The commas between a gradient's stops: those outside a colour function. */
+const BETWEEN_STOPS = /,(?![^(]*\))/;
+
+/** A stop's position behind its colour, in a unit the library reads. */
+const STOP_POSITION = /(?:^|\s)(-?[\d.]+)(?:%|px|em)$/i;
+
+/**
+ * Gives every stop without a position the one CSS reads there: the first 0 %, the last 100 %, those
+ * between evenly between their neighbours. The library reads a missing position as `NaN`: its slider
+ * loses that handle and the next edit writes `NaN%` into the value.
+ *
+ * @param stops - The gradient's stops, without its name, orientation and closing bracket.
+ * @returns The stops; those with a position stay as they are.
+ */
+function withStopPositions(stops: string): string {
+    const parts = stops.split(BETWEEN_STOPS);
+    const given = parts.map(stop => STOP_POSITION.exec(stop.trim())?.[1]);
+    if (!given.includes(undefined)) {
+        return stops;
+    }
+
+    const last = parts.length - 1;
+    const positions = given.map(position => (position === undefined ? undefined : parseFloat(position)));
+    positions[0] ??= 0;
+    positions[last] ??= 100;
+    for (let i = 1; i < last; i++) {
+        if (positions[i] === undefined) {
+            const next = positions.findIndex((position, j) => j > i && position !== undefined);
+            const before = positions[i - 1] as number;
+            positions[i] = before + ((positions[next] as number) - before) / (next - i + 1);
+        }
+    }
+
+    // Whole numbers: the library reads a position with parseInt.
+    return parts
+        .map((stop, i) => (given[i] === undefined ? `${stop.trimEnd()} ${Math.round(positions[i] as number)}%` : stop))
+        .join(',');
+}
+
 /**
  * The value as the library reads it. CSS and the widgets take `LINEAR-GRADIENT(…)` as a gradient,
  * the library finds one by `includes('gradient')` and its angle by a lower-case `deg`: it would show
@@ -87,9 +126,16 @@ const GRADIENT_HEAD =
  * until the user changes it, and then comes back in the lower case the library writes.
  *
  * @param value - The Farbwähler's raw value.
- * @returns The value with a lower-case gradient head.
+ * @returns The value with a lower-case gradient head and a position on every stop.
  */
-const forLibrary = (value: string): string => value.replace(GRADIENT_HEAD, head => head.toLowerCase());
+function forLibrary(value: string): string {
+    const head = GRADIENT_HEAD.exec(value)?.[0];
+    if (head === undefined) {
+        return value;
+    }
+    const stops = value.slice(head.length);
+    return head.toLowerCase() + (stops.endsWith(')') ? `${withStopPositions(stops.slice(0, -1))})` : stops);
+}
 
 /** Most presets the library shows (two rows of nine). */
 const MAX_PRESETS = 18;
