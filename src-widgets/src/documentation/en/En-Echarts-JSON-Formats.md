@@ -1,32 +1,33 @@
 # ECharts Widget – JSON Formats
 
-This page describes the **JSON structures the datapoint** must deliver in the **JSON** data mode of the [ECharts widget](En-Echarts-Widget.md) — for both payload families (**series document** and **table/columns**), with a short example for every format.
+This page describes the **JSON structures the data point** must deliver in the **JSON** data mode of the [ECharts widget](En-Echarts-Widget.md#data-modes-and-payload-families) — for both payload families (**Finished series** and **Table / columns**), with a short example for every format. The fields for it are on the widget page under [JSON mode](En-Echarts-Widget.md#json-mode).
 
 ## Context: data modes and payload families
 
-The widget knows the data modes **History** (history adapter fetch, no JSON) and **JSON** (everything from one datapoint). In JSON mode the pinned selector **payload family** chooses **how** the document is read:
+The widget knows the data modes **History** (fetched through a history adapter, no JSON) and **JSON** (everything from one data point). In JSON mode the pinned selector **Payload family** chooses **how** the payload is read:
 
-| Payload family      | Principle                                                                             | Who owns the series?                                         |
-| ------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| **Series document** | The document carries finished series (names + points). Four shapes are auto-detected. | The **payload** — the configurator only styles/hides by name |
-| **Table/columns**   | The document is a list of rows; row path + X column + Y columns derive the series.    | The **user** (mapping) — the payload supplies the values     |
+| Payload family      | Principle                                                                            | Who owns the series?                                         |
+| ------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Finished series** | The payload carries finished series (names + points). Four shapes are auto-detected. | The **payload** — the configurator only styles/hides by name |
+| **Table / columns** | The payload is a list of rows; rows path + X column + Y columns derive the series.   | The **user** (mapping) — the payload supplies the values     |
 
-Both families read the **same datapoint** — switching the family only deletes the derived configuration (series/axes), never the OID.
+Both families read the **same data point** — switching the family resets the data path (series, Y axes, style and hiding of payload series, mapping, markings), the JSON data point stays.
 
-## The JSON datapoint
+## The JSON data point
 
-| Property | Requirement                                                          |
-| -------- | -------------------------------------------------------------------- |
-| Type     | `string` — the state value must be the JSON **text**                 |
-| Writing  | `setState(id, JSON.stringify(object))` — **never the object itself** |
-| Updates  | Every value change redraws the chart (live subscription)             |
+| Property | Requirement                                                                              |
+| -------- | ---------------------------------------------------------------------------------------- |
+| Type     | `string` — the state value must be the JSON **text**                                     |
+| Writing  | `setState(id, JSON.stringify(object))` — **never the object itself**                     |
+| Updates  | Every value change redraws the chart (live subscription)                                 |
+| Points   | No upper limit: **Max. points** applies to history only, the payload limits its own size |
 
-> **Objects read as empty:** if a script passes an unparsed object (instead of a string), the widget reads the value as empty — the empty state remains, no error. Number/boolean values are useless as payloads. ioBroker datapoints of type `json` work as long as the content stays a string.
+> **Other value types:** the widget reads an unparsed object (instead of a string) as empty — the empty state remains, no error. Numbers and booleans are useless as payloads: they do parse, but yield the empty state with Finished series and the error surface with Table / columns. ioBroker data points of type `json` work as long as the value stays a string.
 
-Example: create the datapoint and fill it from a script:
+Example: create the data point and fill it from a script:
 
 ```js
-// Create the datapoint once (type string):
+// Create the data point once (type string):
 createState('0_userdata.0.charts.daily_statistics', { type: 'string', role: 'json', def: '' });
 
 // Fill it periodically — JSON.stringify produces the text:
@@ -37,9 +38,9 @@ const statistics = [
 setState('0_userdata.0.charts.daily_statistics', JSON.stringify(statistics), true);
 ```
 
-## Family "Series document"
+## Family "Finished series"
 
-Four document shapes are detected automatically — the choice happens through the JSON's shape alone (no switch in the configurator).
+Four payload shapes are detected automatically — the choice happens through the JSON's shape alone (no switch in the configurator). The payload supplies names and points only, the widget does not read other keys of a series (`color`, `type`, `stack` …). With the chart type **Pie** every series becomes a slice, the slice aggregation condenses its points. The cards are described under [JSON: finished series](En-Echarts-Widget.md#json-finished-series-cartesian).
 
 ### Shape 1: object with `series` (multiple series)
 
@@ -66,7 +67,7 @@ Four document shapes are detected automatically — the choice happens through t
 }
 ```
 
-Every element becomes a series: `name` is the identity (legend, style, axis binding, hiding), `data` the points. A missing `name` yields `Series n`.
+Every element becomes a series: `name` is the identity (legend, style, axis binding, hiding), `data` the points. If `name` is missing or not a string, the series is called `Series n`; without an array in `data` it stays empty. If `series` and `data` both occur, `series` applies.
 
 ### Shape 2: object with `data` (one series)
 
@@ -92,7 +93,7 @@ Produces exactly one series named `Series 1`.
 ]
 ```
 
-The document itself is the points list — one series (`Series 1`).
+The payload itself is the points list — one series (`Series 1`).
 
 ### Shape 4: array of series objects (multiple series)
 
@@ -115,15 +116,16 @@ The document itself is the points list — one series (`Series 1`).
 ]
 ```
 
-Detected via the first element with an array-valued `data`; the shape of shape 1 without the enclosing object.
+The first element other than `null` decides: an object with an array-valued `data` makes the array a series list, otherwise shape 3 applies. In substance it is shape 1 without the enclosing object.
 
 ### Point formats (all shapes)
 
-| Form             | Example                                                                         | Timestamp                                         |
-| ---------------- | ------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Pair array       | `[1767229200000, 420]`                                                          | The first element **must be a number** (epoch ms) |
-| Object           | `{ "ts": 1767229200000, "val": 420 }`                                           | `ts`/`time`/`x`; non-numeric ⇒ row index          |
-| Object (aliases) | `{ "time": 1767229200000, "value": 420 }` or `{ "x": 1767229200000, "y": 420 }` | Value keys: `val`/`value`/`y`                     |
+| Form             | Example                                                                         | Timestamp                                                     |
+| ---------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Pair array       | `[1767229200000, 420]`                                                          | The first element **must be a number**; else array index, gap |
+| Object           | `{ "ts": 1767229200000, "val": 420 }`                                           | `ts`, else `time`, else `x`; non-numeric ⇒ array index        |
+| Object (aliases) | `{ "time": 1767229200000, "value": 420 }` or `{ "x": 1767229200000, "y": 420 }` | Value keys: `val`, else `value`, else `y`                     |
+| Other            | `420`, `"420"`                                                                  | No point: array index and gap                                 |
 
 ```json
 [
@@ -133,25 +135,26 @@ Detected via the first element with an array-valued `data`; the shape of shape 1
 ]
 ```
 
-The keys may change from point to point — every point is read individually. A string timestamp (`"ts": "2026-01-01"`) is not a number: the point slides onto its row index (0, 1, 2 …) and plots as a flat X position, not as time.
+The keys may change from point to point — every point is read individually. Timestamps count as milliseconds unchanged: seconds epochs are not converted here, nothing is sorted. A string timestamp (`"ts": "2026-01-01"`) is not a number: the point slides onto its array index (0, 1, 2 …) and lands as a millisecond value at the start of the time axis (1970), not at its time.
 
 ### Naming rules
 
-- `name` is the series' **identity**: style, axis binding and hiding attach to the name (via the overlay) and survive payload changes.
+- `name` is the series' **identity**: style, axis binding and hiding attach to the name. The style of a vanished name stays stored and applies again once the name returns; a renamed name is a new series.
 - Series with the **same name** share style, axis and hidden state — use unique names in the payload (the configurator warns about duplicates).
 - The payload alone decides the series count and order; adding/removing is impossible in the configurator (hiding only, re-enableable).
+- The open configurator reconciles the axes: a new name gets its own Y axis, a set binding survives payload changes. A vanished or hidden name loses its binding, an axis without a visible series falls. Without a binding the runtime draws on the first Y axis.
 
-## Family "Table/columns"
+## Family "Table / columns"
 
-The document is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source → Mapping** + **Series**) connect payload and chart:
+The payload is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source**, tab **Mapping**, and section **Series**) connect payload and chart; the cards are described under [JSON: table/columns](En-Echarts-Widget.md#json-tablecolumns-cartesian):
 
-| Setting                                 | Location    | Meaning                                                                                                                                                             |
-| --------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Row path** (`rowPath`)                | Data source | Dot-path to the rows array. Empty = the document **itself** must be the array. Array indices allowed. A path that misses the array is this family's only hard error |
-| **X column** (`xPath`)                  | Data source | Column of the X dimension; empty = row index                                                                                                                        |
-| **Y columns** (`yPath`, one per series) | Series      | One card per bound Y column; plus display name, style, value processing                                                                                             |
+| Setting                            | Location    | Meaning                                                                                                                                                                                                                                       |
+| ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Rows path** (`jsonRowPath`)      | Data source | Dot-path to the rows array. Empty = the payload **itself** must be the array. The chips offer the arrays reachable through object keys, the runtime also reads array indices. If the path misses an array, the widget shows the error surface |
+| **X column** (`jsonXPath`)         | Data source | Column of the X dimension; empty = row index                                                                                                                                                                                                  |
+| **Y column** (`yPath`, per series) | Series      | One card per bound Y column; plus display name (empty = last path segment), style, value processing                                                                                                                                           |
 
-### Category example: the document itself is the array
+### Category example: the payload itself is the array
 
 ```json
 [
@@ -161,7 +164,7 @@ The document is (or contains) an **array of rows**; every object property of a r
 ]
 ```
 
-- Row path: **empty** (top level)
+- Rows path: **empty** (top level)
 - X column: `room` — text ⇒ **category axis** with the labels "Living room", "Bedroom", "Kitchen" (payload order, duplicates kept)
 - Y column: `temp` — one series with 21.7 / 19.2 / 22.9
 
@@ -175,10 +178,10 @@ The document is (or contains) an **array of rows**; every object property of a r
 ]
 ```
 
-- X column: `day` — date **text** is detected ⇒ **time axis**; points become `[ms, value]`, sorted ascending. `2026-01-01` reads as local midnight — full ISO strings (`2026-01-01T12:00:00Z`) keep their offset
+- X column: `day` — date **text** is detected ⇒ **time axis**; points become `[ms, value]`, sorted ascending. `2026-01-01` reads as local midnight — ISO strings with an offset (`2026-01-01T12:00:00Z`) keep their offset
 - Y columns: `production` **and** `consumption` — two series (two cards in the Series section)
 
-### Row path example: nested document
+### Rows path example: nested payload
 
 ```json
 {
@@ -190,7 +193,7 @@ The document is (or contains) an **array of rows**; every object property of a r
 }
 ```
 
-- Row path: `rows` — metadata like `query` stays outside
+- Rows path: `rows` — metadata like `query` stays outside; the chip carries the **Suggested** badge, it is not set
 - X column: `ts` (epoch number ⇒ time axis; seconds and milliseconds epochs are detected)
 - Y column: `temp`
 
@@ -200,7 +203,7 @@ The document is (or contains) an **array of rows**; every object property of a r
 [{ "temp": 21.4 }, { "temp": 21.9 }, { "temp": 22.3 }]
 ```
 
-Without an X column (or when the column has no usable values) the widget numbers the rows: X labels `1`, `2`, `3` …; in a pie chart the slices read "Row 1", …
+Without an X column (or when the column has only `null` or no values at all) the widget numbers the rows: X labels `1`, `2`, `3` …; with the chart type Pie the slices read "Row 1", …
 
 ### Example: paths with array indices
 
@@ -218,7 +221,7 @@ Without an X column (or when the column has no usable values) the widget numbers
 ```
 
 - X column: `room`
-- Y columns: `sensors[0].value` (temperature) and `sensors[1].value` (humidity) — two series from one document
+- Y columns: `sensors[0].value` (temperature) and `sensors[1].value` (humidity) — two series from one payload. Without their own names both read `value` (last path segment), the configurator warns
 
 ### Pie example: multiple rings
 
@@ -230,50 +233,51 @@ Without an X column (or when the column has no usable values) the widget numbers
 ]
 ```
 
-With the chart type **Pie**, every Y column becomes a ring (here `actual` and `target`). The X column names the slices and drives the color: **same name = same color across all rings**. Without an X column the slices read "Row n".
+With the chart type **Pie**, every Y column becomes a ring (here `actual` and `target`). The X column names the slices and drives the color: **same name = same color across all rings**; rows of the same name stay separate slices and share one legend entry. With a date column the slices carry the payload text, sorted by time; rows without a readable date drop out. Without an X column the slices read "Row n".
 
 ### X derivation rules (table/columns)
 
-The axis kind derives from the **dominant type** of the X column:
+The axis kind derives from the types of the non-`null` values in the X column. A single date value in an otherwise text column already makes it a date column; any other mix is a category:
 
-| X column                        | X kind            | Behavior                                                                                                                           |
-| ------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Date values                     | **Time axis**     | Points `[ms, value]`; rows with an unparseable X **drop** (no position); sorted ascending, equal timestamps keep the payload order |
-| Any other values                | **Category axis** | Labels are the cell text (`String(value)`), payload order, **duplicates kept**; object/array cells fall back to "Row n"            |
-| No X column / only empty values | **Row index**     | Labels `1..n`; pie slices "Row n"                                                                                                  |
+| X column                     | X kind            | Behavior                                                                                                                                     |
+| ---------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date values (also with text) | **Time axis**     | Points `[ms, value]`; rows without a readable date **drop** (no position); sorted ascending, equal timestamps keep the payload order         |
+| Any other values             | **Category axis** | Labels are the cell text (`String(value)`), payload order, **duplicates kept**; `null`, missing, object and array cells fall back to "Row n" |
+| No X column / only `null`    | **Row index**     | Labels `1..n`; pie slices "Row n"                                                                                                            |
 
-**Recognized date forms:** ISO 8601 (incl. time/offset), `YYYY-MM-DD`, `DD.MM.YYYY` (optionally `HH:mm[:ss]`), `MM/DD/YYYY` (optionally time) and epoch numbers — milliseconds (≥ 10¹¹) and seconds (≥ 10⁹). Day-only dates count as **local midnight**; full ISO strings with `Z`/offset follow ISO rules. Epoch values written as text (`"1767225600000"`) are **not** numbers and do not read as dates.
+**Recognized date forms:** ISO 8601 **with** `Z` or an offset, `YYYY-MM-DD`, `DD.MM.YYYY` (optionally `HH:mm[:ss]`), `MM/DD/YYYY` (optionally time), two-digit day and month, and epoch numbers — milliseconds (≥ 10¹¹) and seconds (≥ 10⁹; smaller numbers are categories). Forms without an offset count as **local time**, day-only dates as local midnight. ISO text without an offset (`2026-01-01T12:00:00`) is **not** a date; epoch values written as text (`"1767225600000"`) are **not** numbers and do not read as dates.
 
 ## Value interpretation (both families)
 
-Every Y value runs the same chain — first the **value map**, then the **numeric interpretation**, then the **NULL handling**:
+Every Y value runs the same start of the [value chain](En-Echarts-Widget.md#per-series-value-processing-value-chain) — first the **value mapping**, then the **plottable value**, then the **null values**:
 
-### 1. Value map (`valueMap`, optional per series)
+### 1. Value mapping (`valueMap`, optional per series)
 
 - If `String(rawValue)` matches a key of the map **exactly**, the mapped number is adopted.
-- A `null` target (in the GUI: an empty target) is a **deliberate gap** — no NULL handling ever fills it.
-- Unmatched values pass into the interpretation unchanged.
+- A `null` target (in the GUI: an empty target) is a **deliberate gap** — no null-values stage ever fills it.
+- Unmatched values pass into the plottable value unchanged.
 
-### 2. Numeric interpretation
+### 2. Plottable value
 
-| Raw value                                  | Read as                     |
-| ------------------------------------------ | --------------------------- |
-| `true` / `false` (boolean)                 | `1` / `0`                   |
-| `"true"` / `"false"` (text)                | `1` / `0`                   |
-| number                                     | unchanged                   |
-| `"23,5"` (comma without dot)               | `23.5` — comma decimal      |
-| `"23.5 °C"`, `"12 Watt"`                   | prefix number: `23.5`, `12` |
-| anything else (`"unreadable"`, objects, …) | **gap** (null) — no error   |
+| Raw value                                                     | Read as                               |
+| ------------------------------------------------------------- | ------------------------------------- |
+| `true` / `false` (boolean)                                    | `1` / `0`                             |
+| `"true"` / `"false"` (text)                                   | `1` / `0`                             |
+| number                                                        | unchanged                             |
+| `"23,5"` (comma without dot)                                  | `23.5` — comma decimal                |
+| `"1.234,5"` (comma and dot)                                   | `1.234` — thousands are not supported |
+| `"23.5 °C"`, `"12 Watt"`                                      | prefix number: `23.5`, `12`           |
+| anything else (`"unreadable"`, `""`, `null`, objects, arrays) | **gap** (null) — no error             |
 
-### 3. NULL handling (`keep` / `forward` / `zero`)
+### 3. Null values (`keep` / `forward` / `zero`)
 
-Chart-level preset (data source) with a per-series override (series card). Deliberate (mapped) gaps stay immune in every mode.
+The preset is the chart setting **Null values** (`ignoreNull`): it is in the panel in history mode only (tab **Data retrieval**), but applies here too. The field of the same name on the **Data** tab of the series card (`nullMode`) overrides it; the slice rows of a pie with Finished series do not have this tab. Deliberate (mapped) gaps stay immune in every mode.
 
-| Mode                      | Meaning                                                              |
-| ------------------------- | -------------------------------------------------------------------- |
-| Keep gaps (`keep`)        | gaps stay gaps (default)                                             |
-| Fill gaps (`forward`)     | the last value carries forward — on the time axis **after** the sort |
-| Fill gaps with 0 (`zero`) | gaps become `0`                                                      |
+| Mode                          | Meaning                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Keep gaps (`keep`)            | gaps stay gaps (default)                                                                                   |
+| Forward-fill gaps (`forward`) | the last value carries forward — on the time axis **after** the sort; before the first value the gap stays |
+| Fill gaps with 0 (`zero`)     | gaps become `0`                                                                                            |
 
 ### Interpretation example
 
@@ -286,21 +290,26 @@ Chart-level preset (data source) with a per-series override (series card). Delib
 ```
 
 - `pump` (Y column): `1`, `0`, `1`
-- `pressure` (Y column): `2.4`, `2.1`, **gap** (stays a gap in "keep" mode; "fill" would carry 2.1 forward)
+- `pressure` (Y column): `2.4`, `2.1`, **gap** (stays a gap in "keep" mode; "forward-fill" would carry 2.1 forward)
 
 ## Error and empty cases
 
-| Situation                                                               | Behavior                                                                                           |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Datapoint empty / never written                                         | **Empty state** — placeholder with a configuration hint, no error                                  |
-| Invalid JSON (`JSON.parse` fails)                                       | **Error surface** with the parser message                                                          |
-| Table: row path misses an array (`rows path "…" is not an array`)       | **Error surface** — the table family's only hard error                                             |
-| Table: Y column missing from the document / drifted                     | **Empty series** (no error); the configurator marks the column "no longer in the document"         |
-| Table: Y column of type text                                            | the series plots only the cells interpretable as numbers, the rest gaps (hint in the configurator) |
-| Series document: shape is neither object-with-`series`/`data` nor array | **Empty state** ("The datapoint delivers no plottable data — check the format")                    |
-| Value map misses                                                        | the value passes through the normal interpretation (no error)                                      |
+| Situation                                                                   | Behavior                                                                                                                         |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| No JSON data point selected                                                 | **Empty state** "Select a JSON OID"                                                                                              |
+| Table: no Y column bound yet                                                | **Empty state** "Map the columns — pick the X and Y columns in the configurator"; takes precedence over the other empty states   |
+| Data point empty / never written                                            | **Empty state** "The data point yields no plottable data — check its format; row-list payloads need the 'Table/columns' family." |
+| Invalid JSON (`JSON.parse` fails)                                           | **Error surface** with the parser message                                                                                        |
+| Table: rows path misses an array (`rows path "…" is not an array`)          | **Error surface**; the configurator marks the chip "No longer in the payload"                                                    |
+| Table: rows path empty, payload no array (`payload is not a rows array`)    | **Error surface**, also before the first mapping; the Mapping tab shows only the suggestion                                      |
+| Table: X column missing from the payload                                    | **Row index**, without a warning                                                                                                 |
+| Table: Y column missing from the payload                                    | **Empty series** (no error); the configurator warns "Y column … is missing from the payload — the series renders empty."         |
+| Table: Y column of type text                                                | the series plots only the cells interpretable as numbers, the rest gaps (hint in the configurator)                               |
+| Finished series: object without `series`/`data` or JSON primitive           | **Empty state** as with an empty data point                                                                                      |
+| No point with a value, e.g. a row list or bare numbers with Finished series | **Empty state** as with an empty data point; also applies when all series with Table / columns carry gaps only                   |
+| Value mapping misses                                                        | the value passes through the plottable value (no error)                                                                          |
 
-> **Configurator analysis:** in JSON mode the configurator analyzes the current payload live — a column list with type badges (date/number/text/boolean/…), sample values and an X suggestion. Table/columns documents with sensible column names usually only need the mapping confirmed. The analysis is limited to 10 nesting levels.
+> **Configurator analysis:** with Table / columns the configurator analyzes the current payload live — rows path chips with array length, a column list with type badges (date/number/text/boolean/…) and sample values at the X column. Nothing is set automatically: with an object payload the **Suggested** badge marks the longest path, the user picks the X and Y columns. The analysis is limited to 10 nesting levels and says so, the runtime resolves any depth. With Finished series the configurator reads the series names only.
 
 ## Related pages
 

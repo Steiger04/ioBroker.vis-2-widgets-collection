@@ -99,7 +99,7 @@ The pinned-selector choice (cartesian/pie only) of how a chart's series acquire 
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Payload-Familie**:
-How a JSON document is read into series — a property OF the JSON data mode, never a third mode (acquisition is untouched: always one state, always realtime subscription). **Serien-förmig**: the document carries finished series; the payload owns count, names and data, the user only styles/hides by name (ADR-0011). **Tabellarisch**: the document is a rows list; the user derives series via the **Zuordnung** and thereby owns the structure while the payload owns the values (ADR-0075). Switching families resets the **Data path** but keeps the JSON data point — the same state, read the other way.
+How a JSON document is read into series — a property OF the JSON data mode, never a third mode (acquisition is untouched: always one state, always realtime subscription). **Serien-förmig** (panel and wiki: „Fertige Serien"): the document carries finished series; the payload owns count, names and data, the user only styles/hides by name (ADR-0011). **Tabellarisch** (panel and wiki: „Tabelle/Spalten"): the document is a rows list; the user derives series via the **Zuordnung** and thereby owns the structure while the payload owns the values (ADR-0075). Switching families resets the **Data path** but keeps the JSON data point — the same state, read the other way.
 _Avoid_: JSON-Variante, zweiter JSON-Modus, Untermodus (it is not a data mode). In UI texts the **Datenpunkt** is the state (OID) and the **Payload** its JSON content — never „Dokument".
 
 **Zuordnung**:
