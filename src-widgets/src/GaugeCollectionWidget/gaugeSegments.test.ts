@@ -29,6 +29,7 @@ const state = (value: number, style: Partial<StateStyleData> = {}): StateStyleDa
     valueSize: undefined,
     background: undefined,
     frameBackground: '#ffffff',
+    frameBackgroundInherited: false,
     ...style,
 });
 
@@ -148,6 +149,7 @@ describe('resolveZones — active zone style', () => {
         );
         expect(active).toStrictEqual({
             frameBackground: '#336699',
+            frameBackgroundInherited: false,
             background: '#aa0000',
             icon: 'warm.svg',
             iconColor: '#f00',

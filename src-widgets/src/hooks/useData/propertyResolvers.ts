@@ -77,6 +77,14 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
     const normalizeString = (val: string | number | undefined): string | undefined =>
         val && String(val) !== '' ? String(val) : undefined;
 
+    /** The frame background's stored stages (Active → row → base), undefined when none is set. */
+    const storedFrameBackground = (ext: string | number, includeActive: boolean): string | undefined =>
+        resolvePriority([
+            { condition: includeActive, value: getDataValue<string>('frameBackground', 'Active') },
+            { value: getDataValue<string>('frameBackground', String(ext)) },
+            { value: getDataValue<string>('frameBackground', '') },
+        ]);
+
     return {
         // Icon Properties
         icon: (ext: string | number, includeActive: boolean) => {
@@ -382,11 +390,12 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams) {
         // (commonFields): unset ⇒ the card surface follows the effective theme's
         // palette.background.paper. See ADR 0004.
         frameBackground: (ext: string | number, includeActive: boolean) =>
-            resolvePriority([
-                { condition: includeActive, value: getDataValue<string>('frameBackground', 'Active') },
-                { value: getDataValue<string>('frameBackground', String(ext)) },
-                { value: getDataValue<string>('frameBackground', '') },
-            ]) ?? terminalColor('paper', theme),
+            storedFrameBackground(ext, includeActive) ?? terminalColor('paper', theme),
+
+        // The frame chain found no value and ended on the terminal: without the card
+        // CollectionBase paints nothing then, the paper names the card (ADR-0004).
+        frameBackgroundInherited: (ext: string | number, includeActive: boolean) =>
+            storedFrameBackground(ext, includeActive) === undefined,
     };
 }
 

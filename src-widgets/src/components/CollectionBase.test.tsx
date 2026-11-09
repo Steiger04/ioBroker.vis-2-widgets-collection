@@ -389,6 +389,37 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
         themePaper = undefined;
     });
 
+    /** The background the frame surface (BASE-PAPER-0) paints. */
+    const frameSurfaceBackground = ({ container }: MountedCollectionBody): string => {
+        const frame = container.querySelector('.BASE-PAPER-0');
+        expect(frame).not.toBeNull();
+        const style = getComputedStyle(frame!);
+        return style.background || style.backgroundColor;
+    };
+
+    it('without the card (noCard / embedded), without a frame value, the frame surface paints transparent', () => {
+        expect(frameSurfaceBackground(mountBackgroundFrame({ noCard: true }, false))).toBe('transparent');
+    });
+
+    it('without the card, an unset frame leaves the border colour to the vis-2 CSS', () => {
+        const frame = mountBackgroundFrame({ noCard: true }, false);
+
+        expect(getComputedStyle(frame.container.querySelector('.BASE-PAPER-0')!).borderColor).not.toBe(themePaper);
+    });
+
+    it.each([true, false])('an explicit frame value paints as set (card: %s)', wrappedContent => {
+        expect(frameSurfaceBackground(mountBackgroundFrame({ frameBackground: '#aa0000' }, wrappedContent))).toBe(
+            '#aa0000',
+        );
+    });
+
+    it('in the card, without a frame value, the frame surface paints the theme paper', () => {
+        const frame = mountBackgroundFrame({}, true);
+
+        expect(themePaper).toBeTruthy();
+        expect(frameSurfaceBackground(frame)).toBe(themePaper);
+    });
+
     it('in the card, without a value, paints the theme paper (MUI Paper default) — the swatch terminal', () => {
         const frame = mountBackgroundFrame({}, true);
 
@@ -402,7 +433,7 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
         expect(getComputedStyle(frame.container.querySelector('.BASE-PAPER-1')!).backgroundColor).toBe(themePaper);
     });
 
-    it('without the card (noCard / embedded), without a value, paints transparent — the documented divergence', () => {
+    it('without the card (noCard / embedded), without a value, paints transparent', () => {
         expect(contentBackground(mountBackgroundFrame({ noCard: true }, false))).toBe('transparent');
     });
 

@@ -94,6 +94,7 @@ export type StateStyleData = Pick<
     | 'valueSize'
     | 'background'
     | 'frameBackground'
+    | 'frameBackgroundInherited'
 > & {
     value?: string | number | boolean;
 

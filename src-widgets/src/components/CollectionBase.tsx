@@ -121,6 +121,9 @@ function CollectionBase({
 
     // Build memoized sx object for outer Paper
     const paper0Sx = useMemo((): SxProps<Theme> | undefined => {
+        // Without the card an unset frame paints nothing: its terminal, the paper, names the card (ADR-0004).
+        const frameBackground = !wrappedContent && data.frameBackgroundInherited ? '' : data.frameBackground;
+
         return cleanSx({
             overflow: 'hidden',
             width: '100%',
@@ -132,19 +135,19 @@ function CollectionBase({
 
             ...backgroundStyles,
 
-            background: wrappedContent ? data.frameBackground : data.frameBackground || 'transparent',
+            background: wrappedContent ? frameBackground : frameBackground || 'transparent',
 
             backgroundColor: wrappedContent
-                ? gradientColor(data.frameBackground)
+                ? gradientColor(frameBackground)
                     ? undefined
-                    : data.frameBackground
-                : gradientColor(data.frameBackground)
+                    : frameBackground
+                : gradientColor(frameBackground)
                   ? 'transparent'
-                  : data.frameBackground,
+                  : frameBackground,
 
-            borderColor: !wrappedContent ? data.frameBackground || borderStyles?.['border-color'] : '',
+            borderColor: !wrappedContent ? frameBackground || borderStyles?.['border-color'] : '',
         });
-    }, [backgroundStyles, borderStyles, data.frameBackground, wrappedContent]);
+    }, [backgroundStyles, borderStyles, data.frameBackground, data.frameBackgroundInherited, wrappedContent]);
 
     // Build memoized sx object for inner Paper
     const paper1Sx = useMemo((): SxProps<Theme> | undefined => {

@@ -200,6 +200,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
                     valueSize: styleData.valueSize,
                     background: styleData.background,
                     frameBackground: styleData.frameBackground,
+                    frameBackgroundInherited: styleData.frameBackgroundInherited,
                 });
             }
         }

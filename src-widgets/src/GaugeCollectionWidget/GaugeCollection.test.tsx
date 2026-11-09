@@ -127,6 +127,41 @@ describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
         expect(frameColor(container)).toBe('#336699');
     });
 
+    /** Zones 0–20 and 20–100 with no frame colour of their own; the scene value 21 lies in the second. */
+    const uncolouredZoneScene = (data: Record<string, unknown>, wrappedContent: boolean): PreviewScene => {
+        const zones = scene({
+            gaugeMaxValue: 100,
+            values_count: 2,
+            value1: 0,
+            textColor1: '#00ff00',
+            value2: 20,
+            textColor2: '#ff0000',
+            ...data,
+        });
+        return { ...zones, context: { ...zones.context, wrappedContent } } as PreviewScene;
+    };
+
+    /** The background the frame (BASE-PAPER-0) paints, shorthand first. */
+    const frameSurface = (container: HTMLElement): string => {
+        const style = getComputedStyle(container.querySelector('.BASE-PAPER-0')!);
+        return style.background || style.backgroundColor;
+    };
+
+    it('leaves the frame transparent under noCard in a zone without a frame colour', () => {
+        const { container } = mountBody(GaugeCollection, uncolouredZoneScene({ noCard: true }, false));
+
+        expect(frameSurface(container)).toBe('transparent');
+    });
+
+    it("paints the active zone's frame colour under noCard", () => {
+        const { container } = mountBody(
+            GaugeCollection,
+            uncolouredZoneScene({ noCard: true, frameBackground2: '#336699' }, false),
+        );
+
+        expect(frameSurface(container)).toBe('#336699');
+    });
+
     it('keeps the base frame colour when the value lies in no zone', () => {
         // Zones 50–70 and 70–100: the value 21 lies below both.
         const { container } = mountBody(GaugeCollection, zoneScene(50));

@@ -86,6 +86,7 @@ describe('resolveStyleEntry — empty rxData resolves to known defaults', () => 
             background: '',
             frameBackgroundColor: '',
             frameBackground: THEME_PAPER,
+            frameBackgroundInherited: true,
         });
     });
 });
@@ -143,6 +144,7 @@ describe('resolveStyleEntry — populated base tier (ext="", includeActive=false
             background: 'grad(x)',
             frameBackgroundColor: '',
             frameBackground: 'grad(y)',
+            frameBackgroundInherited: false,
         });
     });
 
@@ -560,6 +562,16 @@ const CHAINS: [keyof PropertyResolvers, ChainCase][] = [
             row: ['r-grad', 'r-grad'],
             base: ['b-grad', 'b-grad'],
             terminal: THEME_PAPER,
+        },
+    ],
+    [
+        'frameBackgroundInherited',
+        {
+            field: 'frameBackground',
+            active: ['a-grad', false],
+            row: ['r-grad', false],
+            base: ['b-grad', false],
+            terminal: true,
         },
     ],
 ];

@@ -34,6 +34,7 @@ export interface ZoneArc {
 export type ZoneStyle = Pick<
     StateStyleData,
     | 'frameBackground'
+    | 'frameBackgroundInherited'
     | 'background'
     | 'icon'
     | 'iconColor'
@@ -114,6 +115,7 @@ export const resolveZones = (states: StateStyleData[], maxValue: number, value: 
         active: zone
             ? {
                   frameBackground: zone.state.frameBackground,
+                  frameBackgroundInherited: zone.state.frameBackgroundInherited,
                   background: zone.state.background,
                   icon: zone.state.icon,
                   iconColor: zone.state.iconColor,

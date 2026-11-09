@@ -184,6 +184,9 @@ function GaugeCollection(): React.JSX.Element {
         return {
             ...data,
             frameBackground: active.frameBackground || data.frameBackground,
+            frameBackgroundInherited: active.frameBackground
+                ? active.frameBackgroundInherited
+                : data.frameBackgroundInherited,
             background: active.background || data.background,
         };
     }, [data, active]);
