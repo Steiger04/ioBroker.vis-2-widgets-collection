@@ -16,7 +16,7 @@ import { useRef } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { stateRowsDifference } from '../../lib/stateRows';
 import { InfoBox } from '../controls';
 import StateEditorSurface from './StateEditorSurface';
@@ -60,12 +60,12 @@ function StateEditorRowsField(fieldProps: StateEditorFieldProps): React.JSX.Elem
                         {difference ? (
                             <InfoBox
                                 tone="warning"
-                                text={Generic.t(ROWS_DIFFER_TEXTS[difference])}
+                                text={translate(ROWS_DIFFER_TEXTS[difference])}
                             />
                         ) : null}
                     </>
                 ) : (
-                    <InfoBox text={Generic.t('state_editor_pick_oid_first')} />
+                    <InfoBox text={translate('state_editor_pick_oid_first')} />
                 )}
             </div>
         </StateEditorSurface>

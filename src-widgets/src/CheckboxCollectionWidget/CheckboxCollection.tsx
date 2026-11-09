@@ -11,8 +11,8 @@ import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueText from '../components/CollectionValueText';
 import useData from '../hooks/useData/useData';
 import { sameStateValue } from '../hooks/useData/stateValueEquality';
-import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
+import { displayText } from '../lib/displayText';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import SafeImg from '../components/SafeImg';
 
@@ -41,9 +41,6 @@ function renderCheckboxIcon(isChecked: boolean, data: StyleData, iconStyle: CSSP
 
 function CheckboxCollection(): React.JSX.Element {
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('CheckboxCollection must be used within a CollectionProvider');
-    }
 
     const checkboxContext = context as CheckboxCollectionContextProps;
     const { widget } = checkboxContext;
@@ -60,7 +57,12 @@ function CheckboxCollection(): React.JSX.Element {
     // state-value equality — the rule useData resolves the label and colours by (ADR-0105).
     const checked = sameStateValue(true, oidValue);
 
-    const contentValue = useHtmlValue(oidValue, widget, data);
+    const contentValue = displayText({
+        value: oidValue,
+        unit: oidObject?.unit,
+        alias: data.alias,
+        rowValue: data.value,
+    });
     // Frozen label collapse: the legacy template dropped falsy values
     // (`${v || ''}`) — a raw `false` renders an empty label, unlike the
     // null-only collapse State/Input apply for their centered values.

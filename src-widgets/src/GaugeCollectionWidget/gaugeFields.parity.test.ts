@@ -10,7 +10,7 @@
  * historically allowed to rot.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { Theme } from '@mui/material';
 import type { ColorTerminal } from '../types/field-definitions/extended-field';
 
@@ -18,14 +18,6 @@ import type { ColorTerminal } from '../types/field-definitions/extended-field';
 const theme = {
     palette: { primary: { main: '#1976d2' }, text: { primary: 'rgba(0,0,0,0.87)' }, background: { paper: '#fff' } },
 } as unknown as Theme;
-
-// gaugeFields pulls fieldFactories → ContractColorField/PlainColorField/CollectionDivider,
-// which pull Generic, which extends window.visRxWidget — undefined outside the vis-2
-// runtime. The parity invariant reads only the field DATA, so mock the components
-// (same pattern as lib/fieldFactories.test.ts).
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import gaugeFields from '../lib/gaugeFields';
 import { buildGaugeOptions, isEditorChrome } from './gaugeOptions';

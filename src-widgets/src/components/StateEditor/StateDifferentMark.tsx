@@ -18,7 +18,7 @@
 import { Box } from '@mui/material';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 
 /**
  * The word "different" beside a detail field whose value differs between the widgets.
@@ -32,7 +32,7 @@ export function StateDifferentMark(): React.JSX.Element {
             data-state-detail-different
             sx={{ flex: '0 0 auto', ml: 0.5, fontSize: '80%', color: 'text.disabled', whiteSpace: 'nowrap' }}
         >
-            {Generic.t('state_editor_different')}
+            {translate('state_editor_different')}
         </Box>
     );
 }
@@ -47,7 +47,7 @@ export function StateDifferentMark(): React.JSX.Element {
 export const stateRowDiffersProps = (
     differs: boolean,
 ): { 'data-state-row-differs'?: true; 'aria-description'?: string } =>
-    differs ? { 'data-state-row-differs': true, 'aria-description': Generic.t('state_editor_different') } : {};
+    differs ? { 'data-state-row-differs': true, 'aria-description': translate('state_editor_different') } : {};
 
 /** The right edge of a list row; warning-coloured when the row differs (see the module remarks). */
 export const stateRowDiffersSx = (differs: boolean): Record<string, unknown> => ({

@@ -10,12 +10,9 @@
  * filled here, whatever its binding resolves to at runtime.
  */
 import { ANY_VALUE_TYPES, isAllowedOidType } from './allowedOidTypes';
-import { stateRowCount, stateRowOidObject } from './stateRows';
+import { MAIN_OID_ROWS, stateRowCount, stateRowOidObject } from './stateRows';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
-
-/** The rows of the main OID — the only ones the State widget's push button reads. */
-const MAIN_OID_ROWS = { oidProperty: 'oid' };
 
 /**
  * The ONE blank rule: a row without a value, or with nothing but whitespace, is no state.

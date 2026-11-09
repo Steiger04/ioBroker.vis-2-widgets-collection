@@ -11,13 +11,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 // The expanded card mounts the colour pickers (Basis + Darstellung) — they build a collection
 // theme off the host theme, which a headless mount cannot provide (the sectionTabs precedent).
 vi.mock('../../../colorFields', () => ({

@@ -7,16 +7,7 @@
  * whether the switch is on or off (no second copy as help hint). The text direction toggle is
  * gone (it never mirrored anything, spec B16).
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
-
-vi.hoisted(() => {
-    // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';

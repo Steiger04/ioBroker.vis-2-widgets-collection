@@ -8,9 +8,10 @@
  * CollectionProvider over a preview scene (the Select/ButtonGroup DOM-test pattern), so
  * the style resolution runs exactly as inside a widget.
  */
-import type { FC } from 'react';
+import { useContext, type FC } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { CollectionContext } from '../../components/CollectionProvider';
 import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../../lib/testing/collectionScene';
 import useData from './useData';
 import type { StateStyleData, UseDataResult } from './types';
@@ -76,10 +77,10 @@ describe('useData — Feldnummer across a blank value row', () => {
     });
 
     it('resolves the active state by its Feldnummer, not by its list position', () => {
-        const { activeFieldNumber, data } = resolve(gapRows, 'c');
+        const { states, activePosition, data } = resolve(gapRows, 'c');
 
-        expect({ activeFieldNumber, textColor: data.textColor }).toEqual({
-            activeFieldNumber: 3,
+        expect({ fieldNumber: states[activePosition!].fieldNumber, textColor: data.textColor }).toEqual({
+            fieldNumber: 3,
             textColor: MATCHED_ROW_COLOR,
         });
     });
@@ -90,10 +91,10 @@ describe('useData — Feldnummer across a blank value row', () => {
         expect(activePosition).toBe(1);
     });
 
-    it('reports neither number while no state matches the status', () => {
-        const { activeFieldNumber, activePosition } = resolve(gapRows, 'x');
+    it('reports no position while no state matches the status', () => {
+        const { activePosition } = resolve(gapRows, 'x');
 
-        expect([activeFieldNumber, activePosition]).toEqual([undefined, undefined]);
+        expect(activePosition).toBeUndefined();
     });
 });
 
@@ -236,6 +237,15 @@ describe('useData — the label of a state — ticket 12', () => {
     it('leaves the alias of the state raw', () => {
         expect(labelledRow('  ').alias).toBe('  ');
     });
+
+    it.each<[string, unknown]>([
+        ['an object', { a: 1 }],
+        ['NaN', NaN],
+    ])('has no text for a row value that gives none: %s', (_label, value1) => {
+        const { states } = resolve({ values_count: 1, value1 }, 'x');
+
+        expect(states[0].label).toBe('');
+    });
 });
 
 describe('useData — the active flag of each state (Aktiver Zustand)', () => {
@@ -265,14 +275,63 @@ describe('useData — the active flag of each state (Aktiver Zustand)', () => {
     });
 
     it('keeps activePosition on the first duplicate', () => {
-        const { activePosition, activeFieldNumber } = resolve(duplicateRows, 'a');
+        const { states, activePosition } = resolve(duplicateRows, 'a');
 
-        expect([activePosition, activeFieldNumber]).toEqual([0, 1]);
+        expect([activePosition, states[activePosition!].fieldNumber]).toEqual([0, 1]);
     });
 
     it('flags no state as active while no state matches the status', () => {
         const { states } = resolve(duplicateRows, 'x');
 
         expect(states.map(state => state.active)).toEqual([false, false, false]);
+    });
+});
+
+/**
+ * A body that builds from `oidValue` (the gauge's canvas options) would build twice per change
+ * if a render saw the old value next to the new context data.
+ */
+describe('useData — oidValue, in the render that brings it', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    /** Per render what useData publishes and what the context reads in that same render. */
+    let renders: { oidValue: unknown; read: unknown }[] = [];
+
+    const Probe: FC = () => {
+        const { getPropertyValue } = useContext(CollectionContext);
+        renders.push({ oidValue: useData('oid').oidValue, read: getPropertyValue('oid') });
+        return null;
+    };
+
+    const mountProbe = (status: unknown): MountedCollectionBody => {
+        renders = [];
+        const host = mountCollectionBody(Probe, scene({}, status));
+        mounted.push(host);
+        return host;
+    };
+
+    it.each([
+        ['a string', 'a'],
+        ['zero', 0],
+        ['false', false],
+        ['null', null],
+        ['no value yet', undefined],
+    ])('reads the same value as getPropertyValue: %s', (_label, status) => {
+        mountProbe(status);
+
+        expect(renders.at(-1)).toEqual({ oidValue: status, read: status });
+    });
+
+    it('has the new value in the render that brings it — no render with the old one', () => {
+        const host = mountProbe(1);
+        renders = [];
+
+        host.rerender(scene({}, 2));
+
+        expect(renders.map(render => render.oidValue)).toEqual([2]);
     });
 });

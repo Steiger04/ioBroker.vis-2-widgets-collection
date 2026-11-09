@@ -48,30 +48,6 @@ import type { WidgetRegistry } from './widget-registry';
 // and is augmented in vis-2-extensions.d.ts to support collection_${string} patterns
 
 /**
- * Minimal widget data interface for {@link module:hooks/useHtmlValue}.
- *
- * @remarks
- * This interface defines only the object copy's `unit` used by useHtmlValue
- * to avoid requiring the full widget data type.
- *
- * Used to replace `any` with a precise, type-safe contract.
- * @example
- * ```typescript
- * import type { UseHtmlValueWidgetData, CollectionContextProps } from '../types';
- *
- * const myHook = (
- *     widget: CollectionContextProps<UseHtmlValueWidgetData>['widget']
- * ) => {
- *     const unit = widget.data.oidObject?.unit; // Type-safe access
- * };
- * ```
- */
-export interface UseHtmlValueWidgetData {
-    /** The bound object's copy; its unit is displayed alongside the value (e.g., '°C', '%', 'kWh'). */
-    oidObject?: { unit?: string };
-}
-
-/**
  * Generic React Context properties for Collection widgets.
  *
  * @template T - Widget data type (object that will be intersected with {@link VisRxData})

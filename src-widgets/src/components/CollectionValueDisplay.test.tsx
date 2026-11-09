@@ -63,6 +63,15 @@ describe('CollectionValueDisplay', () => {
         unmount();
     });
 
+    it('paints the icon in the colour useData resolved', () => {
+        const { container, unmount } = mount({
+            data: makeData({ icon: 'data:image/png;base64,x', iconColor: '#abcdef' }),
+        });
+
+        expect(container.querySelector('img')?.style.color).toBe('#abcdef');
+        unmount();
+    });
+
     it('renders no icon without data.icon or with noIcon', () => {
         const withoutIcon = mount({});
         expect(withoutIcon.container.querySelector('img')).toBeNull();

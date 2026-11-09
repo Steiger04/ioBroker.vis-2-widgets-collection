@@ -12,15 +12,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-// The fields modules in the import chain pull Generic, which extends window.visRxWidget —
-// undefined outside the vis-2 host. Stubbed before the imports load.
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 import type { GaugeOptions } from 'canvas-gauges';
 
 import {
@@ -270,6 +261,18 @@ describe('GaugeCollection probe (cost of the Canvas-Farbe)', () => {
         });
 
         expect(calls).toBe(4);
+    });
+});
+
+describe('GaugeCollection options per value change', () => {
+    it('builds one option set from the new value, none from the old one', () => {
+        const first = withContentBox(scene(), { width: 300, height: 200 });
+        const { rerender } = mountBody(GaugeCollection, first);
+        handedOver.options.length = 0;
+
+        rerender({ ...first, context: { ...first.context, values: { [`${OID}.val`]: 22 } } });
+
+        expect([...new Set(handedOver.options)].map(options => options.value)).toStrictEqual([22]);
     });
 });
 

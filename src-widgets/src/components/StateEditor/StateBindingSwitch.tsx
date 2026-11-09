@@ -19,7 +19,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { stateFieldBindable, stateFieldBindingPatch, stateFieldBound } from '../../lib/stateFieldBinding';
 import { stateRowConversion } from '../../lib/stateRows';
 import { selectedWidgetDatas, type StateEditorFieldProps } from './useStateEditor';
@@ -98,10 +98,10 @@ export type StateBindingSwitchProps = Pick<StateFieldBinding, 'bound' | 'canTogg
  * @returns The 16-px icon button with its tooltip; the span keeps the tooltip on a disabled button.
  */
 function StateBindingSwitch({ bound, canToggle, toggle }: StateBindingSwitchProps): React.JSX.Element {
-    const label = bound ? Generic.t('state_editor_binding_off') : Generic.t('state_editor_binding_on');
+    const label = bound ? translate('state_editor_binding_off') : translate('state_editor_binding_on');
     return (
         <Tooltip
-            title={canToggle ? label : Generic.t('state_editor_binding_differs')}
+            title={canToggle ? label : translate('state_editor_binding_differs')}
             slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
         >
             <Box

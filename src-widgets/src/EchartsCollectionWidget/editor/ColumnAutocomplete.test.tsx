@@ -7,13 +7,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 // The icons barrel is a heavy leaf (minutes of transform) — controls.tsx only needs the
 // chevron, which these assertions never look at. Marker-mock, the sectionTabs precedent.
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, ErrorOutline: () => null }));

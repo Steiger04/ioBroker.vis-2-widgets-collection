@@ -184,8 +184,8 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
-        // OID-typed, NOT text: the runtime body reads the JSON-state value via
-        // useOidValue('jsonOid') → getPropertyValue → this.state.values['<oid>.val'],
+        // OID-typed, NOT text: the runtime body reads the JSON-state value from the
+        // context's values['<oid>.val'] (EchartsCollection, `useValues`),
         // which vis-2 populates ONLY for id-type fields. A text field would store the
         // OID string but never subscribe, so the value stays undefined at runtime → no
         // chart (the editor preview still works because it subscribes directly via

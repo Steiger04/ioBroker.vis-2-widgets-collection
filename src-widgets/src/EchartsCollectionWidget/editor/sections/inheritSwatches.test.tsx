@@ -12,13 +12,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 vi.mock('../JsonEditor', () => ({ default: () => null }));

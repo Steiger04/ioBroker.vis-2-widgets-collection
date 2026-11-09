@@ -8,12 +8,8 @@ import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { buildTableChrome } from './chrome';
 import type { TableChromeSettings } from './chrome';
 
-// The field list renders CollectionDivider / ContractColorField / the column
-// editor, which pull Generic (extends window.visRxWidget, absent outside vis-2). The
-// parity test reads only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+// The field list renders the column editor, which pulls Generic (extends window.visRxWidget,
+// absent outside vis-2). The parity test reads only the field data.
 vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
 
 import jsonTableFields from '../lib/jsonTableFields';

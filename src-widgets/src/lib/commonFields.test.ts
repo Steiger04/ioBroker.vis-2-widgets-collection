@@ -10,17 +10,11 @@
  * divergence (ADR-0004, ticket 12), pinned in `components/CollectionBase.test.tsx`.
  * Expected colours are the stock MUI light and dark paper: `#fff` / `#121212`.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { createTheme } from '@mui/material/styles';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { resolveEffectiveColor } from './helper/resolveEffectiveColor';
-
-// The field list renders CollectionDivider / ContractColorField, which pull Generic (extends
-// window.visRxWidget, absent outside vis-2). The tests read only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import commonFields from './commonFields';
 

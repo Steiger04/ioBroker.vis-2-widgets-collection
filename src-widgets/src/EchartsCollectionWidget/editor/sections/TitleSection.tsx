@@ -23,7 +23,7 @@ import {
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import ColorField from '../colorFields';
-import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
+import { fontStyleOptions, fontWeightOptions, PositionGrid } from '../controls';
 import { parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import { TITLE_CATALOG } from '../titleTemplates';
@@ -65,7 +65,7 @@ interface TitleSectionProps {
 }
 
 /** The 6 title positions in grid row-order (a 3×2 grid). */
-const TITLE_POSITIONS: ReadonlyArray<[string, string]> = [
+const titlePositions = (): ReadonlyArray<[string, string]> => [
     ['topLeft', Generic.t('echarts_pos_top_left')],
     ['topCenter', Generic.t('echarts_pos_top_center')],
     ['topRight', Generic.t('echarts_pos_top_right')],
@@ -105,7 +105,7 @@ const TitleSection: FC<TitleSectionProps> = ({ focusTab, issues, state, set, pic
                     label={Generic.t('echarts_title_position')}
                     value={state.titlePos}
                     onChange={v => set({ titlePos: v as TitleSlice['titlePos'] })}
-                    options={TITLE_POSITIONS}
+                    options={titlePositions()}
                 />
                 <FieldGrid sx={{ mt: 1.5 }}>
                     {dxRelevant && (
@@ -143,13 +143,13 @@ const TitleSection: FC<TitleSectionProps> = ({ focusTab, issues, state, set, pic
                     label={Generic.t('echarts_weight')}
                     value={weightToSelectValue(state.titleWeight)}
                     onChange={v => set({ titleWeight: parseFontWeight(v) })}
-                    options={FONT_WEIGHT_OPTIONS}
+                    options={fontWeightOptions()}
                 />
                 <LabeledSelect
                     label={Generic.t('echarts_font_style')}
                     value={state.titleFontStyle}
                     onChange={v => set({ titleFontStyle: parseFontStyle(v) })}
-                    options={FONT_STYLE_OPTIONS}
+                    options={fontStyleOptions()}
                 />
             </FieldGrid>
             {/* The Title section's own raw escape hatch (ADR-0044) — deep-merged UNDER

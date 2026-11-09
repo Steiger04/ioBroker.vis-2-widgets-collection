@@ -4,19 +4,12 @@
  *
  * @module lib/radioColorContract.test
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { Theme } from '@mui/material';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { resolveEffectiveColor } from './helper/resolveEffectiveColor';
 import { radioUncheckedIconColorContract, resolveRadioColors } from './radioColorContract';
-
-// The field list renders CollectionDivider / ContractColorField, which pull
-// Generic (extends window.visRxWidget, absent outside vis-2). The parity test reads only
-// the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import radioGroupFields from './radioGroupFields';
 

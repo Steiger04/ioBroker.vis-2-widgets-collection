@@ -27,7 +27,7 @@ import {
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../issueTabs';
 import ColorField from '../colorFields';
-import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, GRID9_POSITIONS, PositionGrid } from '../controls';
+import { fontStyleOptions, fontWeightOptions, grid9Positions, PositionGrid } from '../controls';
 import { fontStyleToSelectValue, parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
@@ -68,7 +68,7 @@ interface LegendSectionProps {
 }
 
 /** Legend symbol shapes (the `legend.icon` keywords) plus "inherit from series". */
-const LEGEND_ICONS: ReadonlyArray<[string, string]> = [
+const legendIcons = (): ReadonlyArray<[string, string]> => [
     ['', Generic.t('echarts_legend_icon_inherit')],
     ['circle', Generic.t('echarts_legend_icon_circle')],
     ['rect', Generic.t('echarts_legend_icon_rect')],
@@ -126,7 +126,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                     label={Generic.t('echarts_legend_position')}
                     value={state.legendPos}
                     onChange={v => set({ legendPos: v as LegendSlice['legendPos'] })}
-                    options={GRID9_POSITIONS}
+                    options={grid9Positions()}
                     disabled={!state.legendShow}
                 />
                 <Box sx={{ mt: 1.5 }}>
@@ -186,13 +186,13 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                             label={Generic.t('echarts_weight')}
                             value={weightToSelectValue(lg.fontWeight)}
                             onChange={v => patch({ fontWeight: parseFontWeight(v) })}
-                            options={FONT_WEIGHT_OPTIONS}
+                            options={fontWeightOptions()}
                         />
                         <LabeledSelect
                             label={Generic.t('echarts_font_style')}
                             value={fontStyleToSelectValue(lg.fontStyle)}
                             onChange={v => patch({ fontStyle: parseFontStyle(v) })}
-                            options={FONT_STYLE_OPTIONS}
+                            options={fontStyleOptions()}
                         />
                     </FieldGrid>
                 </SubGroup>
@@ -203,7 +203,7 @@ const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, p
                             label={Generic.t('echarts_legend_icon')}
                             value={lg.icon ?? ''}
                             onChange={v => patch({ icon: (v || undefined) as typeof lg.icon })}
-                            options={LEGEND_ICONS}
+                            options={legendIcons()}
                         />
                         <OptionalNumberField
                             label={Generic.t('echarts_legend_item_width')}

@@ -6,8 +6,8 @@
  * Extracted from the former inline `useMemo` in `SliderCollection.tsx` so the
  * mark logic (numeric filter, range filter, min/max injection, step division,
  * active flag, selected mark) is testable without mounting the widget. The
- * caller resolves the style data (`resolveStyleData`) and passes the results
- * in — this module stays free of React and context.
+ * caller passes in the style data `useData` resolved (`states`, `markBaseStyle`,
+ * `data`) — this module stays free of React and context.
  *
  * The selected mark is ONE decision here (ADR-0106): every mark carries
  * `active`, the selected mark is the first active one, and its final

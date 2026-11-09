@@ -56,28 +56,6 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
         };
     }
 
-    // Do not delete this method. It is used by vis to read the widget configuration.
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo(): RxWidgetInfo {
-        return InputCollectionWidget.getWidgetInfo();
-    }
-
-    // This function is called every time when rxData is changed
-    // eslint-disable-next-line class-methods-use-this
-    onRxDataChanged(): void {}
-
-    // This function is called every time when rxStyle is changed
-    // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged(): void {}
-
-    // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this
-    onStateUpdated(_id: string, _state: ioBroker.State): void {}
-
-    componentDidMount(): void {
-        super.componentDidMount();
-    }
-
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 

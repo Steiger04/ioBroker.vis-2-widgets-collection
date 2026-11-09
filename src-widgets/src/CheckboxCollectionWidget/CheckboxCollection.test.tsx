@@ -17,16 +17,6 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    // CollectionBase translates its hints through Generic, which extends
-    // window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
-
 import { act } from 'react';
 
 import {
@@ -233,5 +223,15 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
 
     it('lets the alias of a matching row win over the object unit', () => {
         expect(labelOf({ oidObject: { _id: OID, type: 'boolean', unit: 'x' } })).toBe('AN');
+    });
+
+    it('shows the value for an alias of only spaces', () => {
+        expect(labelOf({ alias1: '   ' })).toBe('true');
+    });
+
+    it('leaves the label empty for a false', () => {
+        const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0 });
+
+        expect(container.querySelector('.MuiFormControlLabel-root > div')?.textContent).toBe('');
     });
 });

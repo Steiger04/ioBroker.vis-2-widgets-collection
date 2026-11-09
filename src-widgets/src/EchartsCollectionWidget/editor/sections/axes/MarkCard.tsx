@@ -47,7 +47,7 @@ import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsMarkLabelPosition, EchartsMarkLine } from '../../../../types/field-definitions/echarts-fields';
 
 /** The 12 echarts-native label places (ADR-0061) → select options with their i18n labels. */
-const LABEL_POSITIONS: ReadonlyArray<[EchartsMarkLabelPosition, string]> = [
+const labelPositions = (): ReadonlyArray<[EchartsMarkLabelPosition, string]> => [
     ['start', Generic.t('echarts_mark_pos_start')],
     ['middle', Generic.t('echarts_mark_pos_middle')],
     ['end', Generic.t('echarts_mark_pos_end')],
@@ -146,7 +146,7 @@ const EdgeLabelFields: FC<{
                             : { labelLowerPosition: (v || undefined) as EchartsMarkLabelPosition },
                     )
                 }
-                options={[['', Generic.t('echarts_mark_label_position_default')], ...LABEL_POSITIONS]}
+                options={[['', Generic.t('echarts_mark_label_position_default')], ...labelPositions()]}
             />
             <OptionalSliderField
                 label={Generic.t('echarts_mark_label_offset')}

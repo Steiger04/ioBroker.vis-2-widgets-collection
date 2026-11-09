@@ -11,13 +11,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
 // The pie options' Erweitert tab mounts a SeriesRawOverride — the shared series block pulls
 // adapter-react (SelectID) whose FileBrowser wants icons the barrel mock above withholds, and

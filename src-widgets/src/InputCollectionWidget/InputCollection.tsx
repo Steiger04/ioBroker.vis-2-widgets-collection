@@ -10,8 +10,8 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useHtmlValue from '../hooks/useHtmlValue';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import { displayText } from '../lib/displayText';
 import { solidOf } from '../lib/helper/colorDerivation';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
@@ -49,9 +49,9 @@ const InputCollection: FC = () => {
     const showOkButton = Boolean(widget.data.showOkButton);
     const { editing, locked, start, confirm, field } = useInlineEdit('oid', { showOkButton });
 
-    // Formatted display value (alias → value → oidValue+unit, may contain HTML).
-    const htmlValue = useHtmlValue(oidValue, widget, data);
-    const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
+    // The Anzeigetext (alias → value → oidValue+unit, may contain HTML).
+    const text = displayText({ value: oidValue, unit: oidObject?.unit, alias: data.alias, rowValue: data.value });
+    const contentValue = text !== undefined ? String(text) : '';
 
     const isValidType = isAllowedOidType(INPUT_ENTRY_TYPES, oidObject?.type);
     const attributes = buildEntryFieldAttributes({ fields: widget.data, object: oidObject, draft: field.value });

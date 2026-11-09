@@ -50,7 +50,6 @@ import type { FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 
@@ -63,7 +62,7 @@ import { buildColumnDefs } from './utils/columnDefinitions';
 import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
-import { translate } from './translate';
+import { translate } from '../lib/translate';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
@@ -156,8 +155,7 @@ const JsonTableCollection: FC = () => {
         id: widgetId,
     } = context;
 
-    const { data } = useData('oid');
-    const oidValue = useOidValue('oid');
+    const { data, oidValue } = useData('oid');
     const theme = useTheme();
 
     const oidType = oidObject?.type as string | undefined;

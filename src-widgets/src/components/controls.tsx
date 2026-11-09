@@ -34,7 +34,7 @@
  *   card bodies; view-only local state, ⚠ dot per tab beside the section rollup.
  *
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
- * All labels go through `Generic.t` at the call site.
+ * All labels are translated at the call site.
  */
 import { useEffect, useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';

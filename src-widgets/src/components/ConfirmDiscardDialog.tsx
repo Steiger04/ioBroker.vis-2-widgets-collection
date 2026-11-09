@@ -11,7 +11,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import type React from 'react';
 
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 
 /** Props for {@link ConfirmDiscardDialog}. */
 export interface ConfirmDiscardDialogProps {
@@ -41,7 +41,7 @@ function ConfirmDiscardDialog({ open, text, onCancel, onConfirm }: ConfirmDiscar
             open={open}
             onClose={onCancel}
         >
-            <DialogTitle>{Generic.t('theme_studio_discard_title')}</DialogTitle>
+            <DialogTitle>{translate('theme_studio_discard_title')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>{text}</DialogContentText>
             </DialogContent>
@@ -50,14 +50,14 @@ function ConfirmDiscardDialog({ open, text, onCancel, onConfirm }: ConfirmDiscar
                     onClick={onCancel}
                     color="inherit"
                 >
-                    {Generic.t('cancel')}
+                    {translate('cancel')}
                 </Button>
                 <Button
                     onClick={onConfirm}
                     color="error"
                     variant="contained"
                 >
-                    {Generic.t('theme_studio_discard')}
+                    {translate('theme_studio_discard')}
                 </Button>
             </DialogActions>
         </Dialog>

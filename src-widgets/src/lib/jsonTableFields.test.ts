@@ -10,12 +10,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
-// The field list renders CollectionDivider / ContractColorField / the column
-// editor, which pull Generic (extends window.visRxWidget, absent outside vis-2). The
-// predicates never render.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+// The field list renders the column editor, which pulls Generic (extends window.visRxWidget,
+// absent outside vis-2). The predicates never render.
 vi.mock('../JsonTableCollectionWidget/JsonTableColumnEditor', () => ({ default: () => null }));
 
 import jsonTableFields from './jsonTableFields';

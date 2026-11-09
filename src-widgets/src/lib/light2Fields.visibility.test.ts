@@ -11,15 +11,9 @@
  * calls it with the raw widget data. An unset Lichttyp (a widget stored without the key) is
  * pinned too.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-
-// The field list renders CollectionDivider and colour fields, which pull Generic (extends
-// window.visRxWidget, absent outside vis-2). The predicates under test never render them.
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
 
 import light2Fields from './light2Fields';
 

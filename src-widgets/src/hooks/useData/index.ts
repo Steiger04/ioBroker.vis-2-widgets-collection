@@ -2,31 +2,13 @@
  * useData Hook Module - Public API
  *
  * @module hooks/useData
- * @version 2.2.1
  * @since 2.2.0
  * @description
- * Improved data computation hook for collection widgets with declarative priority resolution.
- * This module provides a drop-in replacement for the legacy `useData` hook with enhanced
- * performance, maintainability, and type safety.
+ * Resolves a collection widget's states and style data from the CollectionContext.
  *
  * **Key Features**:
- * - Declarative fallback chains using `resolvePriority()`
+ * - Declarative fallback chains using `resolvePriority()`, in `createPropertyResolvers()`
  * - Optional caller-supplied marker layer (`useData(idName, { markerLayer })`), applied to marks only
- * - Full API compatibility with legacy `useData`
- * - Optimized dependency tracking for React memoization
- * - Comprehensive TypeScript type definitions
- *
- * **Migration from useData**:
- * Simply replace the import statement - no code changes required:
- * ```typescript
- * // OLD:
- * import useData from '../hooks/useData';
- *
- * // NEW:
- * import useData from '../hooks/useData';
- * // or
- * import { useData } from '../hooks/useData';
- * ```
  * @example
  * Basic usage in a collection widget:
  * ```typescript
@@ -51,55 +33,45 @@
  * }
  * ```
  *
- * **Feldnummer vs. list position** — two numbers name the active state, NOT
- * interchangeable (CONTEXT "Feldnummer", `StateStyleData.fieldNumber`):
- * `activeFieldNumber` is its Feldnummer, `activePosition` its 0-based position in
- * `states` — the one to index the list with. Both are `undefined` when no state
- * matches the current OID value; with duplicate values the first state wins. Whether
- * a single state is active (CONTEXT "Aktiver Zustand", every duplicate included) is
- * its `active` flag — read it instead of comparing values again. State equality
- * itself goes through `sameStateValue` (string-coercion contract), also exported
- * below.
+ * **Feldnummer vs. list position** — two numbers name a state, NOT interchangeable
+ * (CONTEXT "Feldnummer", `StateStyleData.fieldNumber`): `fieldNumber` is its field
+ * row, `activePosition` the active state's 0-based position in `states` — the one to
+ * index the list with. It is `undefined` when no state matches the current OID value;
+ * with duplicate values the first state wins. Whether a single state is active
+ * (CONTEXT "Aktiver Zustand", every duplicate included) is its `active` flag — read
+ * it instead of comparing values again. State equality itself goes through
+ * `sameStateValue` (string-coercion contract), also exported below.
  * @example
- * Advanced usage with slider properties:
+ * The range of a numeric OID, from its numeric states:
  * ```typescript
  * import { useData } from '../hooks/useData';
  *
  * function SliderWidget() {
- *   const { states, data, minValue, maxValue, step } = useData('oid');
+ *   const { states, minValue, maxValue } = useData('oid');
  *
  *   return (
  *     <Slider
  *       min={minValue ?? 0}
  *       max={maxValue ?? 100}
- *       step={step ?? 1}
- *       marks={states.map((s, i) => ({
- *         value: i + 1,
- *         label: s.text,
+ *       marks={states.map(state => ({
+ *         value: Number(state.value),
+ *         label: state.label,
  *       }))}
  *     />
  *   );
  * }
  * ```
- * @see {@link README.md} for complete documentation
- * @see {@link ROLLOUT_PLAN.md} for deployment strategy
  */
 
-import useDataImpl, { useStyleData } from './useData';
+import useDataImpl from './useData';
 
-// Main hook export (both default and named for flexibility)
+// Main hook export (both default and named)
 export default useDataImpl;
 export { useDataImpl as useData };
-export { useStyleData };
 
-// Type exports - re-exported from types module for API compatibility
-export type { StateItem, StyleData, UseDataResult } from './types';
-
-// Additional type exports for advanced usage
+export type { StyleData, UseDataResult } from './types';
 export type { MarkBaseStyle, MarkerLayer, PriorityOption } from './types';
 export type { UseDataOptions } from './useData';
 
-// Utility function exports (optional - for advanced customization)
 export { resolvePriority } from './priorityResolver';
-export { getStyleData } from './styleDataResolver';
 export { sameStateValue } from './stateValueEquality';

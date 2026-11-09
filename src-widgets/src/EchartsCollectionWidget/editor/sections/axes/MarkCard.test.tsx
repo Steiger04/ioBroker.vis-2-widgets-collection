@@ -11,13 +11,6 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('@mui/icons-material', () => ({
     DeleteOutline: () => null,
     Search: () => null,

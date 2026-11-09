@@ -10,11 +10,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/state-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import effectiveStateCount from './effectiveStateCount';
 import { createOnlyDisplayField } from './fieldFactories';
 import { pushButtonModeOffered } from './filledStateRows';
+import { MAIN_OID_ROWS, stateRowCount } from './stateRows';
 
-import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 /**
  * Options controlling which state fields are generated.
@@ -40,14 +40,6 @@ type StateFieldsSettings = {
 const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesField[] => {
     const { onlyStates = true } = settings || {};
 
-    // The option itself follows the Zustandsmenge, which counts blank rows too.
-    const countOf = (data: WidgetData): number =>
-        effectiveStateCount({
-            valuesCount: data.values_count,
-            commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
-            ignoreCommonStates: data.ignoreCommonStates,
-        });
-
     return [
         // Discrete-state selection block — only for widgets that cycle/pick states directly.
         ...(onlyStates
@@ -61,7 +53,8 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
                       type: 'checkbox',
                       label: 'only_states',
                       default: false,
-                      hidden: (data, _i) => countOf(data) === 0,
+                      // The option itself follows the Zustandsmenge, which counts blank rows too.
+                      hidden: (data, _i) => stateRowCount(data, MAIN_OID_ROWS) === 0,
                   },
                   {
                       name: 'statePushButton',

@@ -3,11 +3,11 @@ import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import { CollectionContext } from '../components/CollectionProvider';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import useData from '../hooks/useData';
-import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { ANY_VALUE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import { displayText } from '../lib/displayText';
 import { useStateTrigger } from './useStateTrigger';
 import StateChangeDialog from './StateChangeDialog';
 import type { StateCollectionContextProps } from '../types';
@@ -31,10 +31,10 @@ function StateCollection(): React.ReactElement {
     const oidType = oidObject?.type;
 
     // Title fallback chain: `data.header` resolves the configured header, then the OID's name; then i18n.
-    const dialogTitle = data.header || Generic.t('state_change_dialog_title');
+    const dialogTitle = data.header || translate('state_change_dialog_title');
 
-    const htmlValue = useHtmlValue(oidValue, widget, data);
-    const contentValue = htmlValue !== undefined ? String(htmlValue) : '';
+    const text = displayText({ value: oidValue, unit: oidObject?.unit, alias: data.alias, rowValue: data.value });
+    const contentValue = text !== undefined ? String(text) : '';
 
     const { buttonProps, buttonSx, dialog } = useStateTrigger({
         states,
@@ -91,7 +91,7 @@ function StateCollection(): React.ReactElement {
                 <StateChangeDialog
                     states={states}
                     closeHandler={dialog.close}
-                    closeLabel={Generic.t('close')}
+                    closeLabel={translate('close')}
                     title={dialogTitle}
                     backgroundColor={data.backgroundColor || data.background}
                     textColor={data.textColor}

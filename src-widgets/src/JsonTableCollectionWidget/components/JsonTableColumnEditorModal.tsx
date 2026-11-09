@@ -35,7 +35,7 @@ import ColumnList from './ColumnList';
 import ColumnDetailEditor from './ColumnDetailEditor';
 import { tableCapabilities } from '../capabilities';
 import { depthWarningText, readJsonTable } from '../columns';
-import { translate } from '../translate';
+import { translate } from '../../lib/translate';
 import type { ColumnConfigEntry } from '../types';
 import type { CellColorInheritance } from '../utils/cellColors';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';

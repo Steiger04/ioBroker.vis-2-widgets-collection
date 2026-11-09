@@ -20,12 +20,13 @@ import { useContext, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
 import CornerIcon from './CornerIcon';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
+import { displayText } from '../lib/displayText';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { cleanSx } from '../lib/helper/sxUtils';
@@ -79,16 +80,12 @@ function CollectionBase({
     cornerIcon,
 }: CollectionBaseProps): JSX.Element {
     // Consolidated refs
-    // const containerRef = useRef<HTMLDivElement>(null);
     const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
     // The inner Paper — the box the children live in; measured as the Content-Box.
     const [contentPaper, setContentPaper] = useState<HTMLDivElement | null>(null);
 
     // Get context
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('CollectionBase must be used within CollectionProvider');
-    }
 
     const { wrappedContent, widget } = context;
 
@@ -111,16 +108,15 @@ function CollectionBase({
     const oidObject = widget.data.oidObject;
     const oid = oidObject?._id;
 
-    // Calculate footer value with proper fallback using nullish coalescing
+    // The active state's footer text, else the Anzeigetext; a `false` reads as text here.
     const footerValue = useMemo(() => {
         if (widget.data.noFooter) {
             return '';
         }
 
-        const valueWithUnit =
-            oidValue || oidValue === 0 || String(oidValue) === 'false' ? `${oidValue}${oidObject?.unit ?? ''}` : '';
+        const text = displayText({ value: oidValue, unit: oidObject?.unit, alias: data.alias, rowValue: data.value });
 
-        return data.footer || data.alias || data.value || valueWithUnit || '';
+        return data.footer || String(text ?? '');
     }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);
 
     // Build memoized sx object for outer Paper
@@ -294,7 +290,7 @@ function CollectionBase({
                             textAlign: 'center',
                         }}
                     >
-                        {oid ? Generic.t('collection_base_invalid_type', oid) : Generic.t('collection_base_select_oid')}
+                        {oid ? translate('collection_base_invalid_type', oid) : translate('collection_base_select_oid')}
                     </Typography>
                 </Box>
             )}

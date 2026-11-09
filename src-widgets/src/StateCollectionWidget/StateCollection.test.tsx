@@ -23,16 +23,6 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    // The body imports Generic for the dialog title fallback (Generic.t extends
-    // window.visRxWidget, undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
-
 import { act } from 'react';
 
 import {
@@ -41,7 +31,6 @@ import {
     testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
-import Generic from '../Generic';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
 
@@ -352,6 +341,12 @@ describe('StateCollection value text (Ticket 12)', () => {
         const state = mountState({ oidObject: object('number', { unit: '°C' }) }, 1);
 
         expect(buttonOf(state).textContent).toBe('ON');
+    });
+
+    it('shows a false as text', () => {
+        const state = mountState({ oidObject: object('boolean'), values_count: 0 }, false);
+
+        expect(buttonOf(state).textContent).toBe('false');
     });
 });
 
@@ -2023,7 +2018,7 @@ describe('StateCollection change dialog close label (ticket 19)', () => {
     });
 
     it('translates the label of the close button', () => {
-        vi.spyOn(Generic, 't').mockImplementation((key: string) => `translated ${key}`);
+        vi.spyOn(window.visRxWidget, 't').mockImplementation((key: string) => `translated ${key}`);
         const state = mountState(THREE_ROWS);
 
         click(state);

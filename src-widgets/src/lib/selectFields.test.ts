@@ -4,19 +4,13 @@
  *
  * @module lib/selectFields.test
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { Theme } from '@mui/material';
 import type { WidgetData } from '@iobroker/types-vis-2';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { resolveEffectiveColor } from './helper/resolveEffectiveColor';
 import { arrowColorContract } from './selectColorContract';
-
-// The field list renders CollectionDivider / ContractColorField, which pull
-// Generic (extends window.visRxWidget, absent outside vis-2). The predicates never render.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import selectFields from './selectFields';
 

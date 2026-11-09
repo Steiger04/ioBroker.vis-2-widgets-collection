@@ -191,7 +191,6 @@ Hooks consume the typed data and context.
 
 - useData: returns widget data, synchronized with context
 - useValueState: pairs value with ack and timestamp
-- useOidValue: binds an OID to state subscriptions
 
 ```typescript
 // file:src-widgets/src/hooks/useData.ts

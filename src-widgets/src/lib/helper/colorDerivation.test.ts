@@ -38,7 +38,15 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
         ['hsla', 'hsla(0, 100%, 50%, 0.5)', 'hsla(0, 100%, 50%, 0.5)'],
         ['#rgba', '#f00f', '#f00f'],
         ['#rrggbbaa', '#ff0000ff', '#ff0000ff'],
-        ['rgb in upper case (CSS reads it, MUI does not)', 'RGB(255, 0, 0)', 'RGB(255, 0, 0)'],
+        ['rgb in upper case', 'RGB(255, 0, 0)', 'RGB(255, 0, 0)'],
+        ['rgb in mixed case', 'Rgb(255, 0, 0)', 'Rgb(255, 0, 0)'],
+        ['rgba in upper case', 'RGBA(255, 0, 0, 0.5)', 'RGBA(255, 0, 0, 0.5)'],
+        ['hsl in upper case', 'HSL(0, 100%, 50%)', 'HSL(0, 100%, 50%)'],
+        ['hsla in mixed case', 'Hsla(0, 100%, 50%, 0.5)', 'Hsla(0, 100%, 50%, 0.5)'],
+        ['hex in upper case', '#FF0000', '#FF0000'],
+        ['gradient in upper case → its midpoint', LINEAR.toUpperCase(), 'rgb(128, 0, 128)'],
+        ['rgb in space syntax', 'rgb(51 153 204)', 'rgb(51 153 204)'],
+        ['hsl in space syntax', 'hsl(200 60% 50%)', 'hsl(200 60% 50%)'],
         ['linear gradient → its midpoint', LINEAR, 'rgb(128, 0, 128)'],
         ['radial gradient → its midpoint', RADIAL, 'rgb(128, 128, 128)'],
     ])('%s', (_label, value, expected) => {
@@ -66,6 +74,20 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
         },
     );
 
+    it.each(['#xyz', '#12', '#12345', 'hsl(foo)', 'rgb()', 'rgb(1,2,3'])(
+        '%s has none — MUI parses it without an error, but the channels it reads are no colour',
+        value => {
+            expect(solidOf(value)).toBeUndefined();
+            expect(alphaOf(value, 0.5)).toBeUndefined();
+            expect(lightenOf(value, 0.5)).toBeUndefined();
+        },
+    );
+
+    it('a #rgba with trailing whitespace is tinted like the others — MUI would count the blank as a digit', () => {
+        expect(solidOf('#39cf ')).toBe('#39cf ');
+        expect(alphaOf('#39cf ', 0.5)).toBe('rgba(51, 153, 204, 0.5)');
+    });
+
     it('a gradient padded with whitespace still stands for its midpoint', () => {
         expect(solidOf(` ${LINEAR} `)).toBe('rgb(128, 0, 128)');
     });
@@ -86,8 +108,29 @@ describe('alphaOf', () => {
         expect(alphaOf('#f00f', 0.5)).toBe('rgba(255, 0, 0, 0.5)');
     });
 
-    it('tints no rgb() in upper case — MUI cannot calculate with it', () => {
-        expect(alphaOf('RGB(255, 0, 0)', 0.5)).toBeUndefined();
+    it.each([
+        ['rgb()', 'rgb(51 153 204)', 'rgba(51, 153, 204, 0.5)'],
+        ['rgb() with an alpha', 'rgb(51 153 204 / 25%)', 'rgba(51, 153, 204, 0.5)'],
+        ['hsl()', 'hsl(200 60% 50%)', 'hsla(200, 60%, 50%, 0.5)'],
+    ])(
+        'applies the opacity to %s in the space syntax CSS reads — MUI splits on commas only',
+        (_label, value, tinted) => {
+            expect(alphaOf(value, 0.5)).toBe(tinted);
+        },
+    );
+
+    it.each([
+        ['RGB(255, 0, 0)', 'rgba(255, 0, 0, 0.5)'],
+        ['Rgb(255, 0, 0)', 'rgba(255, 0, 0, 0.5)'],
+        ['RGBA(255, 0, 0, 0.2)', 'rgba(255, 0, 0, 0.5)'],
+        ['RGB(51 153 204)', 'rgba(51, 153, 204, 0.5)'],
+        ['HSL(0, 100%, 50%)', 'hsla(0, 100%, 50%, 0.5)'],
+        ['Hsla(0, 100%, 50%, 0.2)', 'hsla(0, 100%, 50%, 0.5)'],
+        ['COLOR(DISPLAY-P3 1 0 0)', 'color(display-p3 1 0 0 /0.5)'],
+        ['#F00', 'rgba(255, 0, 0, 0.5)'],
+        ['#FF0000', 'rgba(255, 0, 0, 0.5)'],
+    ])('applies the opacity to %s — CSS reads colour functions in any letter case', (value, tinted) => {
+        expect(alphaOf(value, 0.5)).toBe(tinted);
     });
 
     it.each(UNREADABLE.map(value => [String(value), value]))('%s → undefined', (_label, value) => {
@@ -112,6 +155,23 @@ describe('lightenOf', () => {
     it('lightens every other colour MUI reads, as MUI does (hsl, #rgba)', () => {
         expect(lightenOf('hsl(0, 100%, 50%)', 0.5)).toBe('hsl(0, 100%, 75%)');
         expect(lightenOf('#f00f', 0.5)).toBe('rgba(255, 127, 127, 1)');
+    });
+
+    it.each([
+        ['rgb()', 'rgb(51 153 204)', 'rgb(153, 204, 229)'],
+        ['rgb() with an alpha', 'rgb(51 153 204 / 25%)', 'rgba(153, 204, 229, 0.25)'],
+        ['hsl()', 'hsl(200 60% 50%)', 'hsl(200, 60%, 75%)'],
+    ])('lightens %s in the space syntax CSS reads', (_label, value, lightened) => {
+        expect(lightenOf(value, 0.5)).toBe(lightened);
+    });
+
+    it.each([
+        ['RGB(51, 153, 204)', 'rgb(153, 204, 229)'],
+        ['Rgb(51, 153, 204)', 'rgb(153, 204, 229)'],
+        ['HSL(0, 100%, 50%)', 'hsl(0, 100%, 75%)'],
+        ['#3399CC', 'rgb(153, 204, 229)'],
+    ])('lightens %s — CSS reads colour functions in any letter case', (value, lightened) => {
+        expect(lightenOf(value, 0.5)).toBe(lightened);
     });
 
     it.each(UNREADABLE.map(value => [String(value), value]))('%s → undefined', (_label, value) => {

@@ -12,16 +12,6 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// The fields modules in the import chain pull Generic, which extends window.visRxWidget —
-// undefined outside the vis-2 host. Stubbed before the imports load.
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
-
 import { act } from 'react';
 
 import {

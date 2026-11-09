@@ -6,16 +6,7 @@
  * A card is a native `<button>`: without an explicit colour and font it falls back to the
  * browser's button defaults (black system text), unreadable on the dark chrome theme.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
-
-vi.hoisted(() => {
-    // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub pattern.
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { createElement, type FC } from 'react';
 import { ThemeProvider } from '@mui/material';

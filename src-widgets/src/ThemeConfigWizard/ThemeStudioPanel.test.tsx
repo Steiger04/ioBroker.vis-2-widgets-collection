@@ -17,8 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
-    // Generic extends window.visRxWidget (undefined outside the vis-2 host) — the repo's stub
-    // pattern. Arguments are echoed so tests can tell the singular from the plural key.
+    // An own `t`: arguments are echoed so tests can tell the singular from the plural key.
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static t(key: string, ...args: unknown[]): string {
             return args.length ? `${key}(${args.join(',')})` : key;

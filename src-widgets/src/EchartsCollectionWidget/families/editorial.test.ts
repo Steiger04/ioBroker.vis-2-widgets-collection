@@ -10,17 +10,7 @@
  * its family via the kernel); the inventory/summary literals are the pre-registry goldmaster —
  * Neu == Alt for the rail order, the slot titles and the family summary lines.
  */
-import { describe, expect, it, vi } from 'vitest';
-
-// The section modules extend Generic, which extends window.visRxWidget — undefined outside
-// the vis-2 host (the axesZoomSection.test precedent).
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+import { describe, expect, it } from 'vitest';
 
 import { FAMILY_CORES } from './cores';
 import { FAMILY_EDITORIAL, chartTypePickerEntries } from './editorial';

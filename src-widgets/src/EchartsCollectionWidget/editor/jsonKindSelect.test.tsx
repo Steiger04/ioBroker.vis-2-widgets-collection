@@ -8,15 +8,8 @@
  * The identity-t stub surfaces label keys verbatim (the sectionTabs precedent); the reset
  * SCOPE itself is pinned in lifecycleGuards.test — this file pins the component's wiring.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { JsonKindSelect } from './controls';

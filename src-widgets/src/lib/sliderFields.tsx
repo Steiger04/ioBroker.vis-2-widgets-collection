@@ -8,27 +8,20 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import effectiveStateCount from './effectiveStateCount';
 import { createColorField, createOnlyDisplayField, createPlainColorField } from './fieldFactories';
 import { sliderColorContracts } from './sliderColorContract';
+import { MAIN_OID_ROWS, stateRowCount } from './stateRows';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 /**
- * The effective state count (Zustandsmenge) of the widget's editor data — the same reading of
- * `effectiveStateCount` as `stateFields` and useData, so the `onlyStates` option shows exactly
- * when the runtime has states to snap to (ADR-0106 decision 8).
+ * Hides the `onlyStates` option unless the runtime has states to snap to: the Zustandsmenge of
+ * the raw widget data vis-2 hands a hidden predicate (ADR-0106 decision 8).
  *
- * @param data The raw widget data vis-2 hands a hidden predicate.
- * @remarks Twin of `countOf` in `stateFields.tsx` — kept apart because the shared state layer
- * is used, not changed, by the slider rework; change both together.
+ * @param data The raw widget data.
+ * @returns `true` without any state.
  */
-const stateCountOf = (data: WidgetData): number =>
-    effectiveStateCount({
-        valuesCount: data.values_count,
-        commonStatesCount: Object.keys(data.oidObject?.commonStates || {}).length,
-        ignoreCommonStates: data.ignoreCommonStates,
-    });
+const hasNoStates = (data: WidgetData): boolean => stateRowCount(data, MAIN_OID_ROWS) === 0;
 
 const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
@@ -209,14 +202,14 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) => stateCountOf(data) === 0,
+        hidden: hasNoStates,
     } as const,
     {
         name: 'onlyStates',
         type: 'checkbox',
         label: 'only_states',
         default: false,
-        hidden: (data: WidgetData) => stateCountOf(data) === 0,
+        hidden: hasNoStates,
     } as const,
     {
         type: 'custom',

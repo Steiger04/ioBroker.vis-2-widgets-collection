@@ -36,12 +36,6 @@ class ThemeConfigWizard extends Generic<Record<string, any>> {
         };
     }
 
-    // Do not delete this method. It is used by vis to read the widget configuration.
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo(): RxWidgetInfo {
-        return ThemeConfigWizard.getWidgetInfo();
-    }
-
     // Never rendered as a widget (customPalette takes over); kept as a safe no-op.
     // eslint-disable-next-line class-methods-use-this
     renderWidgetBody(): null {

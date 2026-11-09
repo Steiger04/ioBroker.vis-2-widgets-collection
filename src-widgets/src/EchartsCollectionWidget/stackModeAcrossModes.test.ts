@@ -9,14 +9,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 // DOM pool: editorState's heal dispatch loads the family profiles' section modules — they
-// extend Generic (→ window.visRxWidget, undefined outside the vis-2 host).
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+// pull the adapter-react barrel.
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
 import { decodeBlob } from '../lib/encoding';

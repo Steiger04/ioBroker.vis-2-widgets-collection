@@ -51,12 +51,6 @@ class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollection
         };
     }
 
-    // Do not delete this method. It is used by vis to read the widget configuration.
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo(): RxWidgetInfo {
-        return DialogCollectionWidget.getWidgetInfo();
-    }
-
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element {
         super.renderWidgetBody(props);
 

@@ -2,14 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
-// fieldFactories pulls ContractColorField, which pulls Generic, which
-// extends window.visRxWidget — undefined outside the vis-2 runtime. The pure
-// factory logic (predicates, options, createDivider shape) is independent of
-// those components, so mock them to isolate the unit under test.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
-
 import {
     createColorField,
     createDivider,
@@ -121,7 +113,7 @@ describe('createPlainColorField', () => {
         expect(field).toMatchObject({ name: 'gaugeColorBar', label: 'gauge_color_bar', default: '#ccc' });
         expect((field as { type?: string }).type).toBe('custom');
         // Compared relatively: the node project shares its module cache (vitest `isolate: false`),
-        // so a sentinel of this file's mocks need not be the one fieldFactories was loaded with.
+        // so another file's mock may be the adapter fieldFactories was loaded with.
         expect(render(field).type).not.toBe(render(createColorField({ name: 'iconColor', label: 'icon_color' })).type);
         expect(render(field).props.field).toBe(field);
     });

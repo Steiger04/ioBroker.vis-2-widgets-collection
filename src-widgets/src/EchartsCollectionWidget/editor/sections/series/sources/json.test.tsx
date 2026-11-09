@@ -6,13 +6,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
 vi.mock('../../../colorFields', () => ({ default: () => null, ColorListField: () => null }));
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 vi.mock('../shared', () => ({

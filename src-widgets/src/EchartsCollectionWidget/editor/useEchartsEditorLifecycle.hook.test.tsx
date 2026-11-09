@@ -10,15 +10,8 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// DOM pool: editorState's load heal reaches the family profiles' section modules (Generic →
-// window.visRxWidget, the editorState.test precedent).
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+// editorState's load heal reaches the family profiles' section modules, which pull the
+// adapter-react barrel (the editorState.test precedent).
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 
 import { act } from 'react';

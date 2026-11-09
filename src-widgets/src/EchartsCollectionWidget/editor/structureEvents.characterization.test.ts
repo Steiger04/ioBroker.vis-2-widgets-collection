@@ -11,14 +11,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // DOM pool: the editor-state fixture reaches the family editorial → the section modules,
-// which extend Generic (window.visRxWidget) — the summaries/lifecycleGuards precedent.
-vi.hoisted(() => {
-    (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
-        static t(key: string): string {
-            return key;
-        }
-    };
-});
+// which pull the adapter-react barrel — the summaries/lifecycleGuards precedent.
 vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
 // Deterministic ids for freshly born axes (axisLayout draws a random UUID) — pinned per test.
 const ids = vi.hoisted(() => ({ n: 0 }));

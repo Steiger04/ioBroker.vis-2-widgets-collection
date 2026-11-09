@@ -172,7 +172,7 @@ export const JsonKindSelect: FC<BoundaryPickerProps> = props =>
  * every 9-position {@link PositionGrid} consumer (Legend ADR-0021, Toolbox ADR-0045; the Title
  * keeps its own 6-entry table — its grid is 3×2).
  */
-export const GRID9_POSITIONS: ReadonlyArray<[string, string]> = [
+export const grid9Positions = (): ReadonlyArray<[string, string]> => [
     ['topLeft', Generic.t('echarts_pos_top_left')],
     ['topCenter', Generic.t('echarts_pos_top_center')],
     ['topRight', Generic.t('echarts_pos_top_right')],
@@ -277,10 +277,8 @@ const WEIGHT_OPTIONS_RAW: ReadonlyArray<[string, string]> = [
 ];
 
 /** Font-weight select options — `[value, translated label]`. */
-export const FONT_WEIGHT_OPTIONS: ReadonlyArray<[string, string]> = WEIGHT_OPTIONS_RAW.map(([v, key]) => [
-    v,
-    Generic.t(key),
-]);
+export const fontWeightOptions = (): ReadonlyArray<[string, string]> =>
+    WEIGHT_OPTIONS_RAW.map(([v, key]) => [v, Generic.t(key)]);
 
 // The three ECharts `textStyle.fontStyle` doc values; `oblique` is doc-faithful though ≈ italic.
 const STYLE_OPTIONS_RAW: ReadonlyArray<[string, string]> = [
@@ -290,7 +288,5 @@ const STYLE_OPTIONS_RAW: ReadonlyArray<[string, string]> = [
 ];
 
 /** Font-style select options — `[value, translated label]`. */
-export const FONT_STYLE_OPTIONS: ReadonlyArray<[string, string]> = STYLE_OPTIONS_RAW.map(([v, key]) => [
-    v,
-    Generic.t(key),
-]);
+export const fontStyleOptions = (): ReadonlyArray<[string, string]> =>
+    STYLE_OPTIONS_RAW.map(([v, key]) => [v, Generic.t(key)]);

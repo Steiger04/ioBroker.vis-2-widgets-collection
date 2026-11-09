@@ -27,17 +27,21 @@
  *
  * Escape closes only the Farbwähler, never a surrounding MUI dialog — MUI's top-modal rule
  * (the popover is the topmost modal while open).
+ *
+ * The library's parser throws while rendering on a gradient it cannot read, and that error would
+ * take the surrounding editor down: the {@link UnparsedValueGuard} shows such a value as no colour.
  */
 
 import type { Connection } from '@iobroker/adapter-react-v5';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Component, useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
+import { TRANSPARENT } from '../swatchCheckerboard';
 import ColorInputRow, { FOLLOW_PICKER_WIDTH } from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
 import ThemePresets from './ThemePresets';
@@ -69,6 +73,68 @@ export interface CollectionColorPickerProps {
      * Farbwähler is open. Without both, the preset row stays off.
      */
     socket?: Connection;
+}
+
+/** A gradient's name and, where one stands before the first stop, its orientation. */
+const GRADIENT_HEAD =
+    /^(?:linear|radial)-gradient\(\s*(?:(?:-?[\d.]+deg|to\s|circle|ellipse|closest-|farthest-|at\s)[^,]*,)?/i;
+
+/** The commas between a gradient's stops: those outside a colour function. */
+const BETWEEN_STOPS = /,(?![^(]*\))/;
+
+/** A stop's position behind its colour, in a unit the library reads. */
+const STOP_POSITION = /(?:^|\s)(-?[\d.]+)(?:%|px|em)$/i;
+
+/**
+ * Gives every stop without a position the one CSS reads there: the first 0 %, the last 100 %, those
+ * between evenly between their neighbours. The library reads a missing position as `NaN`: its slider
+ * loses that handle and the next edit writes `NaN%` into the value.
+ *
+ * @param stops - The gradient's stops, without its name, orientation and closing bracket.
+ * @returns The stops; those with a position stay as they are.
+ */
+function withStopPositions(stops: string): string {
+    const parts = stops.split(BETWEEN_STOPS);
+    const given = parts.map(stop => STOP_POSITION.exec(stop.trim())?.[1]);
+    if (!given.includes(undefined)) {
+        return stops;
+    }
+
+    const last = parts.length - 1;
+    const positions = given.map(position => (position === undefined ? undefined : parseFloat(position)));
+    positions[0] ??= 0;
+    positions[last] ??= 100;
+    for (let i = 1; i < last; i++) {
+        if (positions[i] === undefined) {
+            const next = positions.findIndex((position, j) => j > i && position !== undefined);
+            const before = positions[i - 1] as number;
+            positions[i] = before + ((positions[next] as number) - before) / (next - i + 1);
+        }
+    }
+
+    // Whole numbers: the library reads a position with parseInt.
+    return parts
+        .map((stop, i) => (given[i] === undefined ? `${stop.trimEnd()} ${Math.round(positions[i] as number)}%` : stop))
+        .join(',');
+}
+
+/**
+ * The value as the library reads it. CSS and the widgets take `LINEAR-GRADIENT(…)` as a gradient,
+ * the library finds one by `includes('gradient')` and its angle by a lower-case `deg`: it would show
+ * a solid colour, and the next pick would replace the gradient with that colour. The stops stay as
+ * they are, an upper-case stop is how the library marks the selected one. The stored value stays
+ * until the user changes it, and then comes back in the lower case the library writes.
+ *
+ * @param value - The Farbwähler's raw value.
+ * @returns The value with a lower-case gradient head and a position on every stop.
+ */
+function forLibrary(value: string): string {
+    const head = GRADIENT_HEAD.exec(value)?.[0];
+    if (head === undefined) {
+        return value;
+    }
+    const stops = value.slice(head.length);
+    return head.toLowerCase() + (stops.endsWith(')') ? `${withStopPositions(stops.slice(0, -1))})` : stops);
 }
 
 /** Most presets the library shows (two rows of nine). */
@@ -154,7 +220,7 @@ function libraryConfig({
  * @returns The header row.
  */
 function PickerHeader({ title, onClose }: { title?: string; onClose: () => void }): React.JSX.Element {
-    const closeLabel = Generic.t('color_picker_close');
+    const closeLabel = translate('color_picker_close');
     return (
         <Box
             data-picker-header
@@ -184,6 +250,48 @@ function PickerHeader({ title, onClose }: { title?: string; onClose: () => void 
             </Tooltip>
         </Box>
     );
+}
+
+/** Props of {@link UnparsedValueGuard}. */
+interface UnparsedValueGuardProps {
+    /** The value the library should show. */
+    value: string;
+    /** Renders the library's parts with the value they can read. */
+    children: (value: string) => React.ReactNode;
+}
+
+/** State of {@link UnparsedValueGuard}. */
+interface UnparsedValueGuardState {
+    value: string;
+    failed: boolean;
+}
+
+/**
+ * Renders the library's parts and, when its parser throws on the value (the regeln store a typed
+ * `linear-gradient(0.25turn, red, blue)` as it is, the library knows no such angle), renders them
+ * again without a colour. The stored value stays; the next value is read afresh.
+ *
+ * @remarks
+ * A boundary, not a check beforehand: the library exports neither its parser nor a function that
+ * would throw outside a render, and a copy of its grammar would have to follow every release.
+ */
+class UnparsedValueGuard extends Component<UnparsedValueGuardProps, UnparsedValueGuardState> {
+    state: UnparsedValueGuardState = { value: this.props.value, failed: false };
+
+    static getDerivedStateFromError(): Partial<UnparsedValueGuardState> {
+        return { failed: true };
+    }
+
+    static getDerivedStateFromProps(
+        { value }: UnparsedValueGuardProps,
+        state: UnparsedValueGuardState,
+    ): UnparsedValueGuardState | null {
+        return value === state.value ? null : { value, failed: false };
+    }
+
+    render(): React.ReactNode {
+        return this.props.children(this.state.failed ? TRANSPARENT : this.props.value);
+    }
 }
 
 /**
@@ -277,10 +385,10 @@ function CollectionColorPicker({
     useEffect(() => flush, [flush]);
 
     // Passed presets win; without them the Collection theme supplies them (read only while open).
-    const renderLibrary = (libraryPresets: string[]): React.JSX.Element => (
+    const renderLibrary = (libraryPresets: string[], libraryValue: string): React.JSX.Element => (
         <ColorPicker
             {...libraryConfig({ allowGradient, theme, presets: libraryPresets })}
-            value={draft}
+            value={libraryValue}
             onChange={handlePick}
         />
     );
@@ -303,21 +411,27 @@ function CollectionColorPicker({
                 title={title}
                 onClose={handleClose}
             />
-            {presets === undefined && socket ? (
-                <ThemePresets
-                    socket={socket}
-                    hostTheme={theme}
-                >
-                    {renderLibrary}
-                </ThemePresets>
-            ) : (
-                renderLibrary(presets ?? [])
-            )}
-            {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
-            <ColorInputRow
-                value={draft}
-                onChange={handlePick}
-            />
+            <UnparsedValueGuard value={forLibrary(draft)}>
+                {(libraryValue): React.ReactNode => (
+                    <>
+                        {presets === undefined && socket ? (
+                            <ThemePresets
+                                socket={socket}
+                                hostTheme={theme}
+                            >
+                                {(themePresets): React.JSX.Element => renderLibrary(themePresets, libraryValue)}
+                            </ThemePresets>
+                        ) : (
+                            renderLibrary(presets ?? [], libraryValue)
+                        )}
+                        {/* Own input row; an edit is handled like a library change (Escape: see ColorInputRow). */}
+                        <ColorInputRow
+                            value={libraryValue}
+                            onChange={handlePick}
+                        />
+                    </>
+                )}
+            </UnparsedValueGuard>
         </FollowingPopover>
     );
 }

@@ -17,7 +17,7 @@ import NextIcon from '@mui/icons-material/ChevronRight';
 import { useMemo } from 'react';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { filterStateRows, neighbourStateRow, useStateRowSearch } from './stateRowListStore';
 import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
 import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
@@ -35,8 +35,8 @@ function SelectedStateRow(fieldProps: StateEditorFieldProps): React.JSX.Element 
     const previous = neighbourStateRow(shown, selected, -1);
     const next = neighbourStateRow(shown, selected, 1);
     const row = rows[selected - 1];
-    const previousLabel = Generic.t('state_editor_previous_row');
-    const nextLabel = Generic.t('state_editor_next_row');
+    const previousLabel = translate('state_editor_previous_row');
+    const nextLabel = translate('state_editor_next_row');
 
     return (
         <StateEditorSurface props={fieldProps.props}>

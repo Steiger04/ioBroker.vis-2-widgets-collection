@@ -3,8 +3,8 @@
  *
  * @module hooks/useStyles
  * @remarks
- * The vis-2 editor provides style objects that may contain kebab-case keys.
- * This hook normalizes and groups known style keys into:
+ * The vis-2 editor provides style objects with kebab-case keys. This hook groups the
+ * known keys, unchanged, into:
  * - background
  * - border
  * - text
@@ -16,7 +16,7 @@ import { type WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import { useMemo } from 'react';
 
 /**
- * Style keys that are extracted and mapped to camelCase.
+ * Style keys that are extracted, in the kebab-case form the style object carries them.
  *
  * @remarks
  * This list intentionally focuses on properties that frequently occur in vis-2 widget styles.
@@ -63,17 +63,14 @@ type StyleBuilder = Record<string, string | number | boolean | string[] | null>;
  * @returns Grouped styles (background, border, text, font, box).
  * @example
  * ```tsx
- * const { backgroundStyles, textStyles } = useStyles(widget.style);
+ * const { borderStyles, textStyles } = useStyles(widget.style);
  *
- * return (
- *   <Box sx={{ ...backgroundStyles, ...textStyles }}>
- *     Content
- *   </Box>
- * );
+ * const borderColor = borderStyles?.['border-color'];
+ * const color = textStyles?.color;
  * ```
  * @remarks
- * The input is JSON-stringified to create a stable memo dependency.
- * This works well for plain style objects coming from the vis editor.
+ * The memo compares the input by reference: a new style object rebuilds the groups, even
+ * with the same content.
  */
 const useStyles = (
     _styles: WidgetStyleState | undefined,
