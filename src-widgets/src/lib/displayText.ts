@@ -25,7 +25,7 @@ interface DisplayTextInput {
     /** The state's alias. */
     alias?: string;
     /** The state's value: the `value` resolver has already added the unit. */
-    rowValue?: TextValue;
+    rowValue?: string;
 }
 
 /**

@@ -50,7 +50,7 @@ function forCalculation(value: string): string {
  * MUI's parser throws on few malformed values: `#xyz` or `hsl(foo)` pass it with channels that
  * are no colour, and a derivation from them would write CSS the browser drops. Those read as nothing.
  */
-function readsAsGiven(value: string): boolean {
+function calculationReads(value: string): boolean {
     try {
         const channels: readonly number[] = decomposeColor(forCalculation(value)).values;
         return channels.length >= 3 && channels.length <= 4 && channels.every(channel => Number.isFinite(channel));
@@ -64,7 +64,7 @@ function readsAsGiven(value: string): boolean {
  *
  * @param value - Any color value: hex, rgb(a), hsl(a), a gradient, a CSS color name/keyword/variable, or nothing.
  * @returns A gradient's interpolated color at 50 %; any other value a color
- *   calculation reads as given (hex in every length, rgb(a), hsl(a), `color()`,
+ *   calculation reads (hex in every length, rgb(a), hsl(a), `color()`,
  *   each in any letter case) UNCHANGED, never trimmed; `undefined` for a value none reads — a color name,
  *   `transparent`, `var(…)`, a gradient without hex/rgb stops, a value starting
  *   with whitespace, `''` and `null`/`undefined`.
@@ -89,7 +89,7 @@ export function solidOf(value: string | null | undefined): string | undefined {
     if (isGradientColor(value)) {
         return extractColorFromValue(value) ?? undefined;
     }
-    return readsAsGiven(value) ? value : undefined;
+    return calculationReads(value) ? value : undefined;
 }
 
 /**
