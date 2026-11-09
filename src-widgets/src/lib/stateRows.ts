@@ -165,7 +165,7 @@ export const stateRowConversion = (datas: readonly WidgetData[], config: StateRo
  * @param type The OID's value type.
  * @returns The typed value; `mixed` takes `true`/`false`/numbers literally, else the string.
  */
-export const convertValueByType = (value: string, type: AllowedType): boolean | number | string => {
+const convertValueByType = (value: string, type: AllowedType): boolean | number | string => {
     switch (type) {
         case 'boolean':
             return value === 'true';
@@ -468,7 +468,7 @@ const bindingsAgree = (datas: readonly WidgetData[], config: StateRowsConfig): b
  * @returns `true` when row count, every row key of every row and the bindings agree;
  *   orphaned keys past the rows and everything outside the rows do not count.
  */
-export const stateRowsIdentical = (datas: readonly WidgetData[], config: StateRowsConfig): boolean => {
+const stateRowsIdentical = (datas: readonly WidgetData[], config: StateRowsConfig): boolean => {
     if (datas.length < 2) {
         return true;
     }

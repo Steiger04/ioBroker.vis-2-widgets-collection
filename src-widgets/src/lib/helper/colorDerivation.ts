@@ -21,20 +21,46 @@ import { alpha, decomposeColor, lighten } from '@mui/material/styles';
 import { isGradientColor } from './colorValidation';
 import { extractColorFromValue } from './extractColorFromValue';
 
+/** `rgb()` / `hsl()` in CSS's space syntax, an alpha after a slash. */
+const SPACE_SYNTAX = /^(rgb|hsl)a?\(\s*([^\s,/]+)\s+([^\s,/]+)\s+([^\s,/]+)\s*(?:\/\s*([^\s,/]+)\s*)?\)$/;
+
+/**
+ * A solid value as MUI's parser can calculate with it. MUI splits `rgb()` / `hsl()` on commas
+ * only, so the space syntax CSS also reads comes out as `rgba(51, , , 0.5)` — hand it over in
+ * the comma syntax. Trailing whitespace goes too: in a `#rgba` MUI counts it as a fifth digit.
+ * Every other value stays as it is.
+ */
+function forCalculation(value: string): string {
+    const solid = value.trimEnd();
+    const match = SPACE_SYNTAX.exec(solid);
+    if (!match) {
+        return solid;
+    }
+    const [, name, first, second, third, opacity] = match;
+    if (opacity === undefined) {
+        return `${name}(${first}, ${second}, ${third})`;
+    }
+    const fraction = opacity.endsWith('%') ? parseFloat(opacity) / 100 : parseFloat(opacity);
+    return `${name}a(${first}, ${second}, ${third}, ${fraction})`;
+}
+
 /**
  * Whether a colour calculation reads a solid value exactly as given: MUI's
  * `decomposeColor` (the parser behind `alpha`/`lighten`), else the collection's
  * own parser (`extractColorFromValue`) on a value without surrounding whitespace.
  * The second reading covers `rgb()`/`rgba()` in another letter case — CSS reads
  * it and the borders and lines have always drawn it; MUI's parser is case-sensitive.
+ * MUI's parser throws on few malformed values: `#xyz` or `hsl(foo)` pass it with channels that
+ * are no colour, and a derivation from them would write CSS the browser drops. Those read as nothing.
  */
 function readsAsGiven(value: string): boolean {
+    let channels: readonly number[];
     try {
-        decomposeColor(value);
-        return true;
+        channels = decomposeColor(forCalculation(value)).values;
     } catch {
         return value === value.trim() && extractColorFromValue(value) !== null;
     }
+    return channels.length >= 3 && channels.length <= 4 && channels.every(channel => Number.isFinite(channel));
 }
 
 /**
@@ -52,8 +78,8 @@ function readsAsGiven(value: string): boolean {
  * every value MUI reads as given keeps its legacy derivation — including one
  * the picker rejects (`hsl()`, `#rgba`) and one with trailing whitespace, which
  * MUI reads past. MUI throws on a value starting with whitespace, so that one
- * has none. The derivations below hand the unchanged value to MUI, so their
- * output is MUI's own.
+ * has none. The derivations below hand the unchanged value to MUI, only the
+ * space syntax in the comma syntax MUI parses, so their output is MUI's own.
  * @example
  * solidOf('#ff0000') // → '#ff0000'
  * solidOf('hsl(0, 100%, 50%)') // → 'hsl(0, 100%, 50%)'
@@ -84,7 +110,7 @@ export function alphaOf(value: string | null | undefined, opacity: number): stri
         return undefined;
     }
     try {
-        return alpha(solid, opacity);
+        return alpha(forCalculation(solid), opacity);
     } catch {
         return undefined;
     }
@@ -104,7 +130,7 @@ export function lightenOf(value: string | null | undefined, coefficient: number)
         return undefined;
     }
     try {
-        return lighten(solid, coefficient);
+        return lighten(forCalculation(solid), coefficient);
     } catch {
         return undefined;
     }

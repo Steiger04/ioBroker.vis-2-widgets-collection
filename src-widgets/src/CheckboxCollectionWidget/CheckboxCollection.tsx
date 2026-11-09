@@ -41,9 +41,6 @@ function renderCheckboxIcon(isChecked: boolean, data: StyleData, iconStyle: CSSP
 
 function CheckboxCollection(): React.JSX.Element {
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('CheckboxCollection must be used within a CollectionProvider');
-    }
 
     const checkboxContext = context as CheckboxCollectionContextProps;
     const { widget } = checkboxContext;

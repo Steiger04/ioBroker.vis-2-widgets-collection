@@ -86,9 +86,6 @@ function CollectionBase({
 
     // Get context
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('CollectionBase must be used within CollectionProvider');
-    }
 
     const { wrappedContent, widget } = context;
 

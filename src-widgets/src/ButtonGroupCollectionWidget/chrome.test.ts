@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Theme } from '@mui/material/styles';
 
 import { buttonGroupColorContract } from '../lib/buttonGroupColorContract';
-import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
+import { alphaOf } from '../lib/helper/colorDerivation';
+import { resolveEffectiveColor, resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { buildButtonChrome, buildGroupChrome } from './chrome';
 import type { ButtonGroupChromeInput } from './chrome';
@@ -176,6 +177,78 @@ describe('buildGroupChrome — the separator resolves the button-group colour co
                 `inset 1px 0 0 0 ${THEME_TEXT_SEPARATOR}`,
             );
         }
+    });
+});
+
+describe('buildGroupChrome — the explicit read before the contract (Vollfarb-Stufe)', () => {
+    const THEME_TEXT_SEPARATOR = 'rgba(47, 62, 81, 0.6)';
+    const BLUE_SEPARATOR = 'rgba(51, 153, 204, 0.6)';
+    const MIDPOINT_SEPARATOR = 'rgba(128, 0, 128, 0.6)';
+
+    /** What Chrome's `CSS.supports('color', …)` rejects of the values below; it accepts all the others. */
+    const BROWSER_REJECTS = new Set([
+        '#xyz',
+        '#12',
+        'hsl(foo)',
+        'rgb()',
+        'rgb(51, 153, 204)x',
+        'not-a-colour',
+        'conic-gradient(#ff0000, #0000ff)',
+    ]);
+
+    const drawn = (buttonGroupColor: string): string | undefined =>
+        first(groupSx({ variant: 'outlined', data: { buttonGroupColor } })).borderColor;
+    const contractAlone = (buttonGroupColor: string): string | undefined =>
+        alphaOf(resolveEffectiveSolidColor(buttonGroupColorContract, { buttonGroupColor }, theme), 0.6);
+
+    beforeEach(() => {
+        vi.stubGlobal('CSS', {
+            supports: (_property: string, value?: string): boolean => !BROWSER_REJECTS.has(value ?? ''),
+        });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it.each([
+        ['hsl()', 'hsl(200, 60%, 50%)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['hsla()', 'hsla(200, 60%, 50%, 0.5)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['hsl() in space syntax', 'hsl(200 60% 50%)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['a 4-digit hex', '#39cf', BLUE_SEPARATOR],
+        ['a 4-digit hex with trailing whitespace', '#39cf ', BLUE_SEPARATOR],
+        ['a 3-digit hex', '#39c', BLUE_SEPARATOR],
+        ['a 6-digit hex', '#3399cc', BLUE_SEPARATOR],
+        ['an 8-digit hex', '#3399ccff', BLUE_SEPARATOR],
+        ['a hex with leading whitespace', ' #3399cc', BLUE_SEPARATOR],
+        ['rgb()', 'rgb(51, 153, 204)', BLUE_SEPARATOR],
+        ['rgb() in space syntax', 'rgb(51 153 204)', BLUE_SEPARATOR],
+        ['rgb() in upper case, which MUI cannot tint', 'RGB(51, 153, 204)', undefined],
+        ['a colour name', 'red', THEME_TEXT_SEPARATOR],
+        ['transparent', 'transparent', THEME_TEXT_SEPARATOR],
+        ['a CSS variable', 'var(--x)', THEME_TEXT_SEPARATOR],
+        ['a linear gradient', 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)', MIDPOINT_SEPARATOR],
+        ['a radial gradient', 'radial-gradient(circle, #ff0000, #0000ff)', MIDPOINT_SEPARATOR],
+        ['a gradient with whitespace around it', ' linear-gradient(#ff0000, #0000ff) ', MIDPOINT_SEPARATOR],
+        ['a gradient with named stops', 'linear-gradient(red, blue)', THEME_TEXT_SEPARATOR],
+        ['a conic gradient', 'conic-gradient(#ff0000, #0000ff)', THEME_TEXT_SEPARATOR],
+        ['a malformed hex', '#xyz', THEME_TEXT_SEPARATOR],
+        ['a too short hex', '#12', THEME_TEXT_SEPARATOR],
+        ['a malformed hsl()', 'hsl(foo)', THEME_TEXT_SEPARATOR],
+        ['an empty rgb()', 'rgb()', THEME_TEXT_SEPARATOR],
+        ['free text', 'not-a-colour', THEME_TEXT_SEPARATOR],
+    ])('%s draws the same separator as the contract alone', (_case, value, separator) => {
+        expect(drawn(value)).toBe(separator);
+        expect(contractAlone(value)).toBe(separator);
+    });
+
+    it.each([
+        ['a gradient without its closing parenthesis', 'linear-gradient(#ff0000, #0000ff', MIDPOINT_SEPARATOR],
+        ['a gradient with text after it', 'linear-gradient(#ff0000, #0000ff) x', MIDPOINT_SEPARATOR],
+        ['a rgb() with text after it', 'rgb(51, 153, 204)x', BLUE_SEPARATOR],
+    ])('%s keeps its colour only through the explicit read', (_case, value, separator) => {
+        expect(drawn(value)).toBe(separator);
+        expect(contractAlone(value)).toBe(THEME_TEXT_SEPARATOR);
     });
 });
 

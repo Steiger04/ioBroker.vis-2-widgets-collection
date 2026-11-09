@@ -28,7 +28,6 @@ import {
     stateRowOperationAllowed,
     stateRowSchema,
     stateRowsDifference,
-    stateRowsIdentical,
 } from './stateRows';
 import type { StateRowOperation, StateRowPatch, StateRowsConfig } from './stateRows';
 
@@ -548,6 +547,9 @@ describe('supplement — from common.states (re-picking the OID)', () => {
         { type: 'string', states: { 1: 'One' }, value: '1' },
         // Integer-like keys come first in a JS object — the order Object.entries hands out.
         { type: 'mixed', states: { true: 'Yes', 2: 'Two', x: 'X' }, value: [2, true, 'x'] },
+        { type: 'mixed', states: { false: 'No', '': 'Empty' }, value: [false, ''] },
+        // A type outside the allowed ones keeps the key as a string.
+        { type: 'json', states: { 1: 'One' }, value: '1' },
     ])('converts a $type state key to the value the OID carries', ({ type, states, value }) => {
         const data = { oidObject: { type, commonStates: states }, ignoreCommonStates: false, values_count: 0 };
         const values = rowsOf(after(data, { kind: 'supplement' })).map(([v]) => v);
@@ -563,21 +565,22 @@ describe('supplement — from common.states (re-picking the OID)', () => {
     });
 });
 
-describe('stateRowsIdentical — may one patch restructure all selected widgets?', () => {
+describe('identical Zustandszeilen — may one patch restructure all selected widgets?', () => {
+    /** "Move" is offered on every OID, so identical rows are all it asks of the selection. */
+    const mayRestructure = (datas: readonly WidgetData[]): boolean => stateRowOperationAllowed('move', datas, CONFIG);
+
     it('a single widget always is', () => {
-        expect(stateRowsIdentical([THREE_ROWS], CONFIG)).toBe(true);
+        expect(mayRestructure([THREE_ROWS])).toBe(true);
     });
 
     it('widgets with the same rows are, whatever else differs', () => {
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, header: 'Other', oid: 'other.0.mode' }], CONFIG)).toBe(
-            true,
-        );
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, header: 'Other', oid: 'other.0.mode' }])).toBe(true);
     });
 
     it('a widget saved with ignoreCommonStates on has the same rows as its edited twin', () => {
         const legacy = { ...THREE_ROWS, ignoreCommonStates: undefined, values_count: 0 };
 
-        expect(stateRowsIdentical([THREE_ROWS, legacy], CONFIG)).toBe(true);
+        expect(mayRestructure([THREE_ROWS, legacy])).toBe(true);
     });
 
     it.each([
@@ -586,26 +589,26 @@ describe('stateRowsIdentical — may one patch restructure all selected widgets?
         ['the order', { value1: 1, alias1: 'Eco', value2: 0, alias2: 'Off' }],
         ['the row count', { values_count: 2 }],
     ])('widgets differing in %s are not', (_what, change) => {
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, ...change }], CONFIG)).toBe(false);
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, ...change }])).toBe(false);
     });
 
     it('ignores orphaned keys past the rows', () => {
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, value4: 9 }], CONFIG)).toBe(true);
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, value4: 9 }])).toBe(true);
     });
 
     it('widgets binding different row fields are not (the binding moves with the patch)', () => {
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, bindings: ['header'] }], CONFIG)).toBe(false);
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, bindings: ['header'] }])).toBe(false);
     });
 
     it('with a bound row field the other bindings must agree too — the patch writes the whole array', () => {
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, bindings: ['header2'] }], CONFIG)).toBe(false);
-        expect(stateRowsIdentical([THREE_ROWS, { ...THREE_ROWS, bindings: ['header', 'header2'] }], CONFIG)).toBe(true);
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, bindings: ['header2'] }])).toBe(false);
+        expect(mayRestructure([THREE_ROWS, { ...THREE_ROWS, bindings: ['header', 'header2'] }])).toBe(true);
     });
 
     it('without a bound row field the other bindings may differ — the patch leaves them out', () => {
         const unbound = { ...THREE_ROWS, bindings: ['header'] };
 
-        expect(stateRowsIdentical([unbound, { ...unbound, bindings: ['footer'] }], CONFIG)).toBe(true);
+        expect(mayRestructure([unbound, { ...unbound, bindings: ['footer'] }])).toBe(true);
     });
 });
 
