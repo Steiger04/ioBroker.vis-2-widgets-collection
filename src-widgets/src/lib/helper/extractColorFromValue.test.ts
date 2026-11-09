@@ -84,6 +84,17 @@ describe('toEchartsLinearGradient', () => {
         expect(g!.colorStops.map(s => s.offset)).toEqual([0, 0.5, 1]);
     });
 
+    it('reads the gradient function, its direction and its stops in any letter case, as CSS does', () => {
+        const g = toEchartsLinearGradient('LINEAR-GRADIENT(90DEG, #AAA 0%, RGB(0, 0, 255) 100%)');
+
+        expect(g).toMatchObject({ x: 0, y: 0.5, x2: 1, y2: 0.5 });
+        expect(g!.colorStops).toEqual([
+            { offset: 0, color: '#AAA' },
+            { offset: 1, color: 'RGB(0, 0, 255)' },
+        ]);
+        expect(toEchartsLinearGradient('Linear-Gradient(TO TOP, #aaa, #bbb)')).toMatchObject({ y: 1, y2: 0 });
+    });
+
     it('returns null for a solid colour or radial-gradient', () => {
         expect(toEchartsLinearGradient('#ff0000')).toBeNull();
         expect(toEchartsLinearGradient('radial-gradient(#aaa, #bbb)')).toBeNull();

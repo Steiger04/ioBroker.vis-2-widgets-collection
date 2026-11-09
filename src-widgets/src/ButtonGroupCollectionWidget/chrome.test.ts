@@ -223,7 +223,15 @@ describe('buildGroupChrome — the explicit read before the contract (Vollfarb-S
         ['a hex with leading whitespace', ' #3399cc', BLUE_SEPARATOR],
         ['rgb()', 'rgb(51, 153, 204)', BLUE_SEPARATOR],
         ['rgb() in space syntax', 'rgb(51 153 204)', BLUE_SEPARATOR],
-        ['rgb() in upper case, which MUI cannot tint', 'RGB(51, 153, 204)', undefined],
+        ['rgb() in upper case', 'RGB(51, 153, 204)', BLUE_SEPARATOR],
+        ['rgb() in mixed case', 'Rgb(51, 153, 204)', BLUE_SEPARATOR],
+        ['rgba() in upper case', 'RGBA(51, 153, 204, 0.5)', BLUE_SEPARATOR],
+        ['rgb() in upper case and space syntax', 'RGB(51 153 204)', BLUE_SEPARATOR],
+        ['hsl() in upper case', 'HSL(200, 60%, 50%)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['hsla() in mixed case', 'Hsla(200, 60%, 50%, 0.5)', 'hsla(200, 60%, 50%, 0.6)'],
+        ['a hex in upper case', '#3399CC', BLUE_SEPARATOR],
+        ['a short hex in upper case', '#39C', BLUE_SEPARATOR],
+        ['a gradient in upper case', 'LINEAR-GRADIENT(90DEG, #FF0000 0%, #0000FF 100%)', MIDPOINT_SEPARATOR],
         ['a colour name', 'red', THEME_TEXT_SEPARATOR],
         ['transparent', 'transparent', THEME_TEXT_SEPARATOR],
         ['a CSS variable', 'var(--x)', THEME_TEXT_SEPARATOR],
@@ -297,8 +305,7 @@ describe('buildButtonChrome', () => {
     });
 
     it('gives a background no tint calculation can read no hover/selected tint instead of throwing', () => {
-        // 'RGB(…)' is a valid stored colour (case-insensitive) that MUI's lighten() rejects.
-        for (const background of ['red', 'var(--x)', 'RGB(51, 153, 204)']) {
+        for (const background of ['red', 'var(--x)']) {
             expect(() => buildButtonChrome({ background, isActive: false })).not.toThrow();
 
             const root = buttonRoot(buildButtonChrome({ background, isActive: false }));
@@ -307,6 +314,17 @@ describe('buildButtonChrome', () => {
             expect(root['&.Mui-selected'].background).toBeUndefined();
         }
     });
+
+    it.each(['RGB(51, 153, 204)', 'Rgb(51, 153, 204)', '#3399CC'])(
+        'tints %s like its lower-case form, as stored — CSS reads it in any letter case',
+        background => {
+            const root = buttonRoot(buildButtonChrome({ background, isActive: false }));
+
+            expect(root.background).toBe(background);
+            expect(root['&:hover'].background).toBe('rgb(153, 204, 229)');
+            expect(root['&.Mui-selected'].background).toBe('rgb(112, 183, 219)');
+        },
+    );
 
     it('gives a background its own reading never took (hsl(), a 4-digit hex) no hover/selected tint, as before the spec', () => {
         // The button tints only what extractColorFromValue reads (hex 3/6/8, rgb(a)), even
