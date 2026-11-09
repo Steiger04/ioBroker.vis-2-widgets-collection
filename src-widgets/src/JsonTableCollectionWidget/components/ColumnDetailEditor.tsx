@@ -27,7 +27,7 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import { ExpandMore as ExpandMoreIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';

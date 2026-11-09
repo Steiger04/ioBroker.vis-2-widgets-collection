@@ -20,7 +20,7 @@ import { applyStateRowOperation, assignStateRowPatch, isStateRowKey, stateRowCou
 import { writeTargetDeniesWrite } from './writeTarget';
 
 import type { AllowedType } from './allowedOidTypes';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {

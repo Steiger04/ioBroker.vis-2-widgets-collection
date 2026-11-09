@@ -38,7 +38,7 @@
  * ```
  */
 
-import type { Theme, ThemeType, Connection } from '@iobroker/adapter-react-v5';
+import type { Theme, ThemeType, Connection } from '@iobroker/gui-components';
 import type { VisRxData, VisRxWidgetStateValues } from '@iobroker/types-vis-2';
 import { type WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { CSSProperties } from 'react';

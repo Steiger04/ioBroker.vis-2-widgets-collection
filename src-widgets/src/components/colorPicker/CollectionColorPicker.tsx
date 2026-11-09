@@ -32,7 +32,7 @@
  * take the surrounding editor down: the {@link UnparsedValueGuard} shows such a value as no colour.
  */
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import type { Theme } from '@mui/material/styles';

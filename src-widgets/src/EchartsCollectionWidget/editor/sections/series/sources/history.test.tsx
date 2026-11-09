@@ -27,7 +27,7 @@ vi.mock('@mui/icons-material', () => ({
     VisibilityOff: () => null,
 }));
 vi.mock('../../../colorFields', () => ({ default: () => null, ColorListField: () => null }));
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 vi.mock('../../../OidPicker', () => ({ default: () => null }));
 vi.mock('../shared', () => ({
     AddSeriesViaOid: () => null,

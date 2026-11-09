@@ -27,7 +27,7 @@ vi.mock('../colorFields', () => ({ default: () => null, ColorListField: () => nu
 // Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &
 // Zoom → MarkCard) reaches the adapter-react barrel (FileBrowser → icons): stubbed, the
 // focusTabs precedent.
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 vi.mock('../OidPicker', () => ({ default: () => null }));
 vi.mock('./RawJsonSection', () => ({ default: () => <div>RAW_SECTION</div> }));
 vi.mock('./series/shared', () => ({

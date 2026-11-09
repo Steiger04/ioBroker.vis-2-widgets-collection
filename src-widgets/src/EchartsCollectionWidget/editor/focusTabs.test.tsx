@@ -44,7 +44,7 @@ vi.mock('./sections/series/shared', () => ({
 }));
 // The adapter-react barrel (FileBrowser → icons → minutes of resolution): the ONE live
 // importer in the chain gets a stub instead of the 10k-module library.
-vi.mock('@iobroker/adapter-react-v5', () => ({
+vi.mock('@iobroker/gui-components', () => ({
     SelectID: () => null,
     I18n: { t: (k: string) => k },
 }));

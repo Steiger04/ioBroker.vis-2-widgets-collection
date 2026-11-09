@@ -26,7 +26,7 @@ import { BrokenImage as BrokenImageIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../../Generic';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import ColorPickerField from '../../../components/ColorPickerField';
 import type { CellImageContent, ColumnFormatConfig, ImageObjectFit, ImageVariant } from '../../types';
 import { ImageGraphic } from '../TableCellRenderer';

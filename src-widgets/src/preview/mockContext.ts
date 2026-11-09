@@ -11,7 +11,7 @@
  * it from crashing and yields the clean host theme with no persisted user theme.
  */
 
-import { Theme } from '@iobroker/adapter-react-v5';
+import { Theme } from '@iobroker/gui-components';
 
 import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from './types';

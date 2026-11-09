@@ -19,7 +19,7 @@ import { JSON_TABLE_TYPES } from '../lib/allowedOidTypes';
 import JsonTableCollection from './JsonTableCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { WidgetRegistry } from '../types';
 
 /**

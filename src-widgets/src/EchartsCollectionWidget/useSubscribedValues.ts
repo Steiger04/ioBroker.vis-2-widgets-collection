@@ -14,7 +14,7 @@
  * re-exports it for the editor modules (ADR-0103 K4).
  */
 import { useEffect, useState } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 export type SubscribedValues = Record<string, ioBroker.StateValue | undefined>;
 

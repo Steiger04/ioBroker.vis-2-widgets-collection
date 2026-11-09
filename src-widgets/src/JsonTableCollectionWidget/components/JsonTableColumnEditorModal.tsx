@@ -25,7 +25,7 @@ import {
     ThemeProvider,
     Typography,
 } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';

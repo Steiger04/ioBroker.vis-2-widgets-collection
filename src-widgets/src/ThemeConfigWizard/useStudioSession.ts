@@ -24,7 +24,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';

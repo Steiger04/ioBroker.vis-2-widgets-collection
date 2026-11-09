@@ -15,7 +15,7 @@
 import { useState, type FC, type ReactNode } from 'react';
 import { Box, Button, Collapse, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
+import { SelectID, type Connection, type IobTheme } from '@iobroker/gui-components';
 
 import Generic from '../../../../Generic';
 import JsonEditor from '../../JsonEditor';

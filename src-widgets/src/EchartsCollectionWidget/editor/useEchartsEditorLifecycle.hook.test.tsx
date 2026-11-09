@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // editorState's load heal reaches the family profiles' section modules, which pull the
 // adapter-react barrel (the editorState.test precedent).
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { act } from 'react';
 import type { WidgetData } from '@iobroker/types-vis-2';

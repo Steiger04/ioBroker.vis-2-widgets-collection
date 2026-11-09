@@ -13,7 +13,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 vi.mock('../JsonEditor', () => ({ default: () => null }));
 vi.mock('./RawJsonSection', () => ({ default: () => null }));
 vi.mock('../colorFields', () => ({

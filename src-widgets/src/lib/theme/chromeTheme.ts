@@ -5,9 +5,9 @@
  * @remarks
  * The vis-2 editor renders in the modern admin family (`modernDark` /
  * `modernLight` from @iobroker/gui-components, MUI 9) since the React-19 host
- * update. That package cannot be bundled here (it peers MUI 9 while the set
- * ships MUI 6), so this factory mirrors its palette constants locally: the
- * panel chrome stays in the editor's family without importing it. Palette and
+ * update. This factory mirrors its palette constants locally (written while
+ * the set still shipped MUI 6 and could not bundle that package): the panel
+ * chrome stays in the editor's family without importing the admin theme. Palette and
  * the family-typical border radius only — deliberately NO component overrides,
  * those would re-introduce exactly the admin-skin leak the collection theme
  * strips at the host boundary (see useCollectionTheme / ADR-0078).

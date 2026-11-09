@@ -1,6 +1,6 @@
 /**
  * OID picker for the echarts editor — a text field plus a "…" button that opens the
- * adapter-react-v5 `SelectID` dialog (the dialog form of the ObjectBrowser) filtered to
+ * gui-components `SelectID` dialog (the dialog form of the ObjectBrowser) filtered to
  * history-enabled states.
  *
  * @module EchartsCollectionWidget/editor/OidPicker
@@ -14,7 +14,7 @@ import { useState } from 'react';
 import type React from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme, type ThemeType } from '@iobroker/adapter-react-v5';
+import { SelectID, type Connection, type IobTheme, type ThemeType } from '@iobroker/gui-components';
 import type { VisTheme } from '@iobroker/types-vis-2';
 
 import Generic from '../../Generic';

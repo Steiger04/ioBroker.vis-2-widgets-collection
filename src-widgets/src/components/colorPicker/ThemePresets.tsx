@@ -8,7 +8,7 @@
  * for every colour field on mount.
  */
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { Theme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import type React from 'react';

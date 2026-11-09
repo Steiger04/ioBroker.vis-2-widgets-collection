@@ -10,7 +10,7 @@
  * family/mode does not use the json pipeline (gauge / radar / non-json).
  */
 import { useMemo } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import { parseJsonState } from '../optionBuilder';
 import { useSubscribedValues } from './useSubscribedValues';

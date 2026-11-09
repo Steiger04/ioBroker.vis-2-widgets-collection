@@ -26,7 +26,7 @@ vi.hoisted(() => {
 });
 import { act, createElement, useState, type FC } from 'react';
 import { createTheme } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import type * as GoogleFonts from '../lib/theme/googleFonts';
 

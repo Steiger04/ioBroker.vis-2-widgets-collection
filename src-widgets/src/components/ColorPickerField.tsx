@@ -21,7 +21,7 @@
  * to the swatch (theme studio; off by default).
  */
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useId, useState } from 'react';

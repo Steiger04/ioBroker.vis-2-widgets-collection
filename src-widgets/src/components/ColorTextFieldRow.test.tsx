@@ -19,7 +19,7 @@ vi.mock(
 import { createTheme, ThemeProvider } from '@mui/material';
 import { act, type ComponentProps } from 'react';
 import type React from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';

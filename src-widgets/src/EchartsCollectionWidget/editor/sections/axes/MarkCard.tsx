@@ -21,7 +21,7 @@
 import { useState, type FC } from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
 import { DeleteOutline as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
+import { SelectID, type Connection, type IobTheme } from '@iobroker/gui-components';
 
 import Generic from '../../../../Generic';
 import {

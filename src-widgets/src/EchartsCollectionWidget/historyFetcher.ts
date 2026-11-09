@@ -15,7 +15,7 @@
  * admin's OID settings). Only when the datapoint configures none does the `instance` key stay
  * absent and the server decide. Shared by the live widget body and the editor preview.
  */
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 /** Client-side timeout (ioBroker does not reliably honor the `timeout` option). */
 const HISTORY_FETCH_TIMEOUT_MS = 12_000;

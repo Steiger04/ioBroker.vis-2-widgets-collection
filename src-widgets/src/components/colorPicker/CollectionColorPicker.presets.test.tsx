@@ -14,7 +14,7 @@ vi.mock(
     async () => (await import('./testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
 );
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { act } from 'react';
 import type React from 'react';

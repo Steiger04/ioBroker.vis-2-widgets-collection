@@ -58,7 +58,7 @@ import { PreviewExtentsContext, sameExtents, type PreviewExtents } from './edito
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
 import { issueCountLabel, previewHeaderMeta } from './editor/summaries';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
 interface EchartsConfigEditorModalProps {

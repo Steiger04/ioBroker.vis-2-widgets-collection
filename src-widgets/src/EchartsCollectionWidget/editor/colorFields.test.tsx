@@ -18,7 +18,7 @@ vi.mock(
 
 import { act, type FC } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { VisTheme } from '@iobroker/types-vis-2';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';

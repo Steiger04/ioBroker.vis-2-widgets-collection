@@ -32,7 +32,7 @@ import type React from 'react';
 import { useCallback } from 'react';
 
 import Generic from '../../../Generic';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../../lib/helper/gradientTextSx';

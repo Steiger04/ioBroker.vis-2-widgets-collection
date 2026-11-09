@@ -22,7 +22,7 @@
  */
 
 import { createRoot, type Root } from 'react-dom/client';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import ThemeStudioPanel from './ThemeStudioPanel';
 
