@@ -216,15 +216,15 @@ The displayed text is the alias of the active row, otherwise its value, otherwis
 
 The widget consists of the frame area and the content area inside it.
 
-| Field Name                     | Type                    | Default | Description                                                                                                                                                                                                                      |
-| ------------------------------ | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Without border `noCard`        | checkbox                | false   | The frame area fills the widget without the surrounding gap of 4 px, the content area is transparent without `background`. The frame area keeps painting `frameBackground`. A widget embedded in another widget behaves the same |
-| Squared corner `squaredCorner` | checkbox                | false   | Square instead of rounded corners on both areas                                                                                                                                                                                  |
-| Text color `textColor`         | color                   | -       | Text color (gradient possible). Without a value `color` from [CSS Font & Text](#css-font--text), otherwise the text color of the theme                                                                                           |
-| Outlined `outlined`            | checkbox                | false   | Content area with a line instead of a shadow, `baseElevation` then has no effect                                                                                                                                                 |
-| Outlined frame `outlinedFrame` | checkbox                | false   | Frame area with a line instead of a shadow                                                                                                                                                                                       |
-| Padding `basePadding`          | slider (0-10, step 0.1) | 1       | Gap between frame and content area in MUI spacing units. At `0` the content area has square corners                                                                                                                              |
-| Elevation `baseElevation`      | slider (0-24)           | 4       | MUI elevation of the content area                                                                                                                                                                                                |
+| Field Name                     | Type                    | Default | Description                                                                                                                                                                                                                                                                                                                |
+| ------------------------------ | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Without border `noCard`        | checkbox                | false   | The frame area fills the widget without the surrounding gap of 4 px. Frame area and content area are transparent without `frameBackground` and `background`, their color fields then show the checkerboard. A widget embedded in another widget paints the same, but its color fields show the widget surface of the theme |
+| Squared corner `squaredCorner` | checkbox                | false   | Square instead of rounded corners on both areas                                                                                                                                                                                                                                                                            |
+| Text color `textColor`         | color                   | -       | Text color (gradient possible). Without a value `color` from [CSS Font & Text](#css-font--text), otherwise the text color of the theme                                                                                                                                                                                     |
+| Outlined `outlined`            | checkbox                | false   | Content area with a line instead of a shadow, `baseElevation` then has no effect                                                                                                                                                                                                                                           |
+| Outlined frame `outlinedFrame` | checkbox                | false   | Frame area with a line instead of a shadow                                                                                                                                                                                                                                                                                 |
+| Padding `basePadding`          | slider (0-10, step 0.1) | 1       | Gap between frame and content area in MUI spacing units. At `0` the content area has square corners                                                                                                                                                                                                                        |
+| Elevation `baseElevation`      | slider (0-24)           | 4       | MUI elevation of the content area                                                                                                                                                                                                                                                                                          |
 
 ### Geometry
 
@@ -244,9 +244,9 @@ The panel offers one shape at a time: while one is active, it hides the other tw
 
 ### Frame Background
 
-| Field Name                         | Type  | Default | Description                                                                                  |
-| ---------------------------------- | ----- | ------- | -------------------------------------------------------------------------------------------- |
-| Frame background `frameBackground` | color | -       | Color of the frame area (gradient possible). Without a value the widget surface of the theme |
+| Field Name                         | Type  | Default | Description                                                                                                             |
+| ---------------------------------- | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Frame background `frameBackground` | color | -       | Color of the frame area (gradient possible). Without a value the widget surface of the theme, with `noCard` transparent |
 
 ### Write Value
 
