@@ -179,6 +179,24 @@ describe('applyConditionalStyle — follows the Effektiver Typ', () => {
         expect(hits(isEmpty, '2024-12-01 10:00', dateColumn())).toBe(false);
     });
 
+    it.each([
+        ['0', 0, { type: 'number', readDate: dateReader() } as CellColumn],
+        ['false', false, { type: 'boolean', readDate: dateReader() } as CellColumn],
+    ])('does not count the value %s as empty', (_name, value, column) => {
+        const isEmpty = cfg({ cellStyle: [{ logic: { '!': [{ '!!': [{ var: 'value' }] }] }, fontWeight: 'bold' }] });
+        const isNotEmpty = cfg({ cellStyle: [{ logic: { '!!': [{ var: 'value' }] }, fontWeight: 'bold' }] });
+        expect(hits(isEmpty, value, column)).toBe(false);
+        expect(hits(isNotEmpty, value, column)).toBe(true);
+    });
+
+    it.each([
+        ['null', null],
+        ['the empty string', ''],
+    ])('counts %s as empty', (_name, value) => {
+        const isEmpty = cfg({ cellStyle: [{ logic: { '!': [{ '!!': [{ var: 'value' }] }] }, fontWeight: 'bold' }] });
+        expect(hits(isEmpty, value, stringColumn)).toBe(true);
+    });
+
     it('compares every other type on the Raw value', () => {
         expect(hits(onDay('2024-12-01'), '2024-12-01T10:00:00Z', stringColumn)).toBe(false);
         const above = cfg({ cellStyle: [{ logic: { '>': [{ var: 'value' }, 5] }, fontWeight: 'bold' }] });

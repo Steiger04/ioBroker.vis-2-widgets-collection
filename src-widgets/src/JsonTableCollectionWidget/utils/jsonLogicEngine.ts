@@ -31,6 +31,12 @@ function toStr(v: unknown): string {
 
 const engine = new LogicEngine();
 
+// The rule builder's `empty`/`not_empty` are stored as `!!`: a cell is empty when it has no
+// content (missing or the empty string, as in the Spaltenfilter), so 0 and false are values.
+engine.addMethod('!!', ([value]: [unknown]) => value !== null && value !== undefined && value !== '', {
+    deterministic: true,
+});
+
 engine.addMethod('contains', ([str, sub]: [unknown, unknown]) => toStr(str).includes(toStr(sub)), {
     deterministic: true,
 });
