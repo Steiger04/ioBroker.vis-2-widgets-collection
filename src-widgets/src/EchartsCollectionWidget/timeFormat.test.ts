@@ -8,6 +8,7 @@
  * hold in every test-runner timezone (moment formats in the runtime's local zone). The locale is
  * always passed/applied per instance — the tests never rely on moment's global default locale.
  */
+import moment from 'moment';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -29,6 +30,23 @@ const WED_2026_08_19_14_05_09 = SAMPLE_TS;
 
 afterEach(() => {
     delete (window as { sysLang?: string }).sysLang;
+});
+
+describe('the user language in the bundle (ADR-0052)', () => {
+    // Kept first in the file: under Node moment require()s a missing locale on first use, which
+    // would hide a lost import here. The widget bundle has no such loader — there only the locales
+    // the module registers on import format in the user's language.
+    it('registers the 10 widget languages beside en with moment on import, before any format call', () => {
+        const registered = moment.locales();
+        for (const lang of ['de', 'es', 'fr', 'it', 'nl', 'pl', 'pt', 'ru', 'uk', 'zh-cn']) {
+            expect(registered).toContain(lang);
+        }
+    });
+
+    it('renders German month names for a German user', () => {
+        expect(formatAxisLabel('D. MMMM', at(2026, 2, 3), 'de')).toBe('3. März');
+        expect(formatAxisLabel('D. MMMM', at(2026, 2, 3), 'en')).toBe('3. March');
+    });
 });
 
 describe('resolveHostLang', () => {
