@@ -36,7 +36,7 @@ import type { Theme } from '@mui/material/styles';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker, { type ColorPickerProps } from 'react-best-gradient-color-picker';
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { applyColorInputRules } from '../../lib/helper/colorInputRules';
 import ColorInputRow, { FOLLOW_PICKER_WIDTH } from './ColorInputRow';
 import FollowingPopover from './FollowingPopover';
@@ -154,7 +154,7 @@ function libraryConfig({
  * @returns The header row.
  */
 function PickerHeader({ title, onClose }: { title?: string; onClose: () => void }): React.JSX.Element {
-    const closeLabel = Generic.t('color_picker_close');
+    const closeLabel = translate('color_picker_close');
     return (
         <Box
             data-picker-header

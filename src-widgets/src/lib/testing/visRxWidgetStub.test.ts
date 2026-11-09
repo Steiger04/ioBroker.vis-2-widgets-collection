@@ -7,9 +7,10 @@
  * `Generic.t` handed on as a callback crashed the host on 2026-11-01 while every stub of
  * the time stayed green.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import Generic from '../../Generic';
+import { translate } from '../translate';
 
 describe('the host stub', () => {
     it('throws on an unbound Generic.t, with the error the host shows', () => {
@@ -31,5 +32,22 @@ describe('the host stub', () => {
 
     it('returns the key and leaves the placeholder arguments alone', () => {
         expect(Generic.t('some_key', 'first', 'second')).toBe('some_key');
+    });
+
+    it('survives translate handed on as a callback, the same way the bare Generic.t does not', () => {
+        const handedOn: (key: string) => string = translate;
+
+        expect(handedOn('some_key')).toBe('some_key');
+    });
+
+    it('sees the same prefix from Generic and from translate', () => {
+        const hostT = vi.spyOn(window.visRxWidget, 't');
+
+        Generic.t('some_key');
+        translate('some_key');
+
+        const prefixes = hostT.mock.contexts.map((receiver: { getI18nPrefix(): string }) => receiver.getI18nPrefix());
+        expect(prefixes).toEqual(['vis_2_widgets_collection_', 'vis_2_widgets_collection_']);
+        hostT.mockRestore();
     });
 });

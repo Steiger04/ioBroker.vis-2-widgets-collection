@@ -26,7 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useId, useState } from 'react';
 import type React from 'react';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
 import { CheckerboardSwatch, TRANSPARENT } from './swatchCheckerboard';
 
@@ -236,7 +236,7 @@ function ColorPickerField({
                         <IconButton
                             size="small"
                             onClick={handleReset}
-                            title={Generic.t('theme_studio_reset_color')}
+                            title={translate('theme_studio_reset_color')}
                             sx={{ p: 0.25 }}
                         >
                             <DeleteIcon fontSize="inherit" />

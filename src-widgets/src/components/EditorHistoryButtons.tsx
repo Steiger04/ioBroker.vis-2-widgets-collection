@@ -13,7 +13,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import { IconButton, Tooltip } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 
 /** Props for {@link EditorHistoryButtons}. */
 export interface EditorHistoryButtonsProps {
@@ -53,27 +53,27 @@ function EditorHistoryButtons({
 }: EditorHistoryButtonsProps): React.JSX.Element {
     return (
         <>
-            <Tooltip title={Generic.t('theme_studio_undo')}>
+            <Tooltip title={translate('theme_studio_undo')}>
                 <span>
                     <IconButton
                         onClick={onUndo}
                         disabled={!canUndo}
                         size={size}
                         sx={sx}
-                        aria-label={Generic.t('theme_studio_undo')}
+                        aria-label={translate('theme_studio_undo')}
                     >
                         <UndoIcon fontSize={size} />
                     </IconButton>
                 </span>
             </Tooltip>
-            <Tooltip title={Generic.t('theme_studio_redo')}>
+            <Tooltip title={translate('theme_studio_redo')}>
                 <span>
                     <IconButton
                         onClick={onRedo}
                         disabled={!canRedo}
                         size={size}
                         sx={sx}
-                        aria-label={Generic.t('theme_studio_redo')}
+                        aria-label={translate('theme_studio_redo')}
                     >
                         <RedoIcon fontSize={size} />
                     </IconButton>

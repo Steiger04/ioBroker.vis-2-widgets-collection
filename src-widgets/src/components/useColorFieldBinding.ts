@@ -11,7 +11,7 @@
 
 import { useCallback } from 'react';
 import type { WidgetData } from '@iobroker/types-vis-2';
-import Generic from '../Generic';
+import { translateFieldLabel } from '../lib/translate';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 
 /** What an adapter hands the Textfeld-Zeile from its field. */
@@ -48,16 +48,4 @@ export function useColorFieldBinding(
         title: 'label' in field && field.label ? translateFieldLabel(field.label) : undefined,
         onChange,
     };
-}
-
-/**
- * Translates a field label exactly once.
- *
- * @param label - Field label; the vis-2 host catalog has usually prefixed it with the set's i18n
- *   prefix already (`i18nPrefix + label`), while `Generic.t` adds that prefix itself.
- * @returns The translated label.
- */
-function translateFieldLabel(label: string): string {
-    const prefix = Generic.getI18nPrefix();
-    return Generic.t(label.startsWith(prefix) ? label.slice(prefix.length) : label);
 }

@@ -6,7 +6,7 @@
 
 import { Box, Divider, Typography } from '@mui/material';
 import React from 'react';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 
 /**
  * Props for the CollectionDivider component.
@@ -21,7 +21,7 @@ interface CollectionDividerProps {
  *
  * @remarks
  * This component is used in widget property editors to visually separate sections.
- * If `dividerText` is provided, the text is translated via `Generic.t()`.
+ * If `dividerText` is provided, the text is translated via `translate()`.
  * @example
  * ```tsx
  * // Divider without text
@@ -55,7 +55,7 @@ const CollectionDivider: React.FC<CollectionDividerProps> = ({ dividerText = '' 
                         }}
                         variant="caption"
                     >
-                        {Generic.t(dividerText)}
+                        {translate(dividerText)}
                     </Typography>
                 </Divider>
             ) : (

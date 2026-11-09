@@ -15,6 +15,7 @@ import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { editorialOf, FAMILY_EDITORIAL, type RailSlotProps } from '../families/editorial';
 import SectionCard from '../../components/SectionCard';
 import { ChartTypePicker, JsonKindSelect, ModeSelect } from './controls';
@@ -148,10 +149,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     onAdvisory,
 }) => {
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
-    const summaries = useMemo(
-        () => sectionSummaries(state, Generic.t.bind(Generic), jsonSeriesNames),
-        [state, jsonSeriesNames],
-    );
+    const summaries = useMemo(() => sectionSummaries(state, translate, jsonSeriesNames), [state, jsonSeriesNames]);
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
     const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});

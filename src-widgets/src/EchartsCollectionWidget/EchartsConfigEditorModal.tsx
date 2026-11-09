@@ -41,6 +41,7 @@ import {
 import { Close as CloseIcon, CloseFullscreen as RestoreIcon, OpenInFull as MaximizeIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
 import NoticeSnackbar from './components/NoticeSnackbar';
 import EditorHistoryButtons from '../components/EditorHistoryButtons';
@@ -141,8 +142,7 @@ function EchartsConfigEditorModal({
         setMaximized(false);
         clearNotice();
     }, [loadToken, clearNotice]);
-    // Generic.t needs its `this` — never hand it over unbound (host crash).
-    const shownNotice = notice ? noticeOf(notice.advisory, (key, ...args) => Generic.t(key, ...args)) : null;
+    const shownNotice = notice ? noticeOf(notice.advisory, translate) : null;
 
     const handleApply = useCallback(() => {
         onDataChange(apply());
@@ -198,10 +198,7 @@ function EchartsConfigEditorModal({
 
     // Preview-header meta: "{count} · {mode} · {renderer}" — a one-glance summary of what the
     // preview currently shows (the table family counts its mapped series, not payload names).
-    const previewMeta = useMemo(
-        () => previewHeaderMeta(state, visibleJsonNames, (key, ...args) => Generic.t(key, ...args)),
-        [state, visibleJsonNames],
-    );
+    const previewMeta = useMemo(() => previewHeaderMeta(state, visibleJsonNames, translate), [state, visibleJsonNames]);
 
     const titleId = 'echarts-config-editor-title';
 
@@ -442,7 +439,7 @@ function EchartsConfigEditorModal({
                                 onClick={() => firstIssueSection && handlePlaceholderClick(firstIssueSection)}
                                 sx={{ textTransform: 'none' }}
                             >
-                                {issueCountLabel(issueCount, (key, ...args) => Generic.t(key, ...args))}
+                                {issueCountLabel(issueCount, translate)}
                             </Button>
                         ) : null}
                     </Box>

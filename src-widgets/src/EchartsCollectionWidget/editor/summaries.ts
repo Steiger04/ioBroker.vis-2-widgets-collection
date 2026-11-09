@@ -13,7 +13,7 @@ import { editorialOf } from '../families/editorial';
 import type { EditorState } from './editorState';
 import type { SectionKey } from './validation';
 
-/** Translate function signature (Generic.t). */
+/** Translate function signature (`translate` from lib/translate). */
 export type TFunc = (key: string, ...args: string[]) => string;
 
 const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, Math.max(0, n - 1))}…` : s);
@@ -35,7 +35,7 @@ const seriesCountLabel = (count: number, t: TFunc): string =>
  *
  * @param state - Current editor state.
  * @param visibleJsonNames - Serien-förmig JSON: the payload names the chart draws (hidden ones removed).
- * @param t - Translation function (Generic.t).
+ * @param t - Translation function (`translate` from lib/translate).
  */
 export const previewHeaderMeta = (state: EditorState, visibleJsonNames: readonly string[], t: TFunc): string =>
     [
@@ -52,7 +52,7 @@ export const issueCountLabel = (count: number, t: TFunc): string =>
  * Compute the summary line per section.
  *
  * @param state - Current editor state.
- * @param t - Translation function (Generic.t).
+ * @param t - Translation function (`translate` from lib/translate).
  * @param jsonSeriesNames - Serien-förmig JSON: the payload's series names (the payload owns the
  *  series there, `state.series` stays empty) — the Series digest counts the visible ones.
  * @returns Map of section key → summary text (empty string = nothing useful to say).

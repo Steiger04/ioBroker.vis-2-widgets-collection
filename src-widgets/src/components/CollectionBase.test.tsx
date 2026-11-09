@@ -16,8 +16,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
-    // An own `t` that uses the prefix: Generic overrides it, so a correctly bound call
-    // carries Generic's. Arguments are appended so the %s substitution stays visible.
+    // An own `t` that uses the prefix: the text module hands over its own, so a correct call
+    // carries the widget set's. Arguments are appended so the %s substitution stays visible.
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static getI18nPrefix(): string {
             return '';

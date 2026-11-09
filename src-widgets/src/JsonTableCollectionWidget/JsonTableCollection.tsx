@@ -62,7 +62,7 @@ import { buildColumnDefs } from './utils/columnDefinitions';
 import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
-import { translate } from './translate';
+import { translate } from '../lib/translate';
 import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';

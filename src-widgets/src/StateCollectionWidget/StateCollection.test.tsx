@@ -31,7 +31,6 @@ import {
     testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
-import Generic from '../Generic';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 import StateCollection from './StateCollection';
 
@@ -2019,7 +2018,7 @@ describe('StateCollection change dialog close label (ticket 19)', () => {
     });
 
     it('translates the label of the close button', () => {
-        vi.spyOn(Generic, 't').mockImplementation((key: string) => `translated ${key}`);
+        vi.spyOn(window.visRxWidget, 't').mockImplementation((key: string) => `translated ${key}`);
         const state = mountState(THREE_ROWS);
 
         click(state);

@@ -28,7 +28,7 @@ import IconHintIcon from '@mui/icons-material/Lightbulb';
 import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { stateRowDiffers } from '../../lib/stateRows';
 import {
     clampStateRowListRows,
@@ -179,7 +179,7 @@ const StateRowItem = memo(function StateRowItem({
                 {row.hasIcon ? (
                     <IconHintIcon
                         data-icon-hint
-                        titleAccess={Generic.t('state_editor_has_icon')}
+                        titleAccess={translate('state_editor_has_icon')}
                         sx={{ fontSize: 16, color: 'warning.main' }}
                     />
                 ) : null}
@@ -247,7 +247,7 @@ function HeightGrip({
         <Box
             role="separator"
             aria-orientation="horizontal"
-            aria-label={Generic.t('state_editor_resize_list')}
+            aria-label={translate('state_editor_resize_list')}
             aria-valuemin={STATE_ROW_LIST_MIN_ROWS}
             aria-valuemax={STATE_ROW_LIST_MAX_ROWS}
             aria-valuenow={rows}
@@ -376,7 +376,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
                 ref={listRef}
                 role="listbox"
                 tabIndex={0}
-                aria-label={Generic.t('state_editor_rows')}
+                aria-label={translate('state_editor_rows')}
                 aria-activedescendant={selectedIndex >= 0 ? `state-row-${selected}` : undefined}
                 onClick={event => {
                     const n = rowOf(event);
@@ -409,7 +409,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
                             fontStyle: 'italic',
                         }}
                     >
-                        {Generic.t(rows.length === 0 ? 'state_editor_no_rows' : 'state_editor_no_search_results')}
+                        {translate(rows.length === 0 ? 'state_editor_no_rows' : 'state_editor_no_search_results')}
                     </Box>
                 ) : (
                     shown.map(row => (

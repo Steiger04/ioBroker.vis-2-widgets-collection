@@ -38,7 +38,7 @@ import RecreateIcon from '@mui/icons-material/RestartAlt';
 import { useRef, useState } from 'react';
 import type React from 'react';
 
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import { filterStateRows, focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
 import { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
@@ -188,55 +188,55 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
                 size="small"
                 type="search"
                 value={search}
-                placeholder={Generic.t('state_editor_search')}
+                placeholder={translate('state_editor_search')}
                 onChange={event => setSearch(event.target.value)}
-                slotProps={{ htmlInput: { 'aria-label': Generic.t('state_editor_search') } }}
+                slotProps={{ htmlInput: { 'aria-label': translate('state_editor_search') } }}
                 sx={{ flex: '1 1 64px', minWidth: 40, mr: 0.5, '& .MuiInputBase-root': { fontSize: 'inherit' } }}
             />
             <ToolButton
-                label={Generic.t('state_editor_add_row')}
+                label={translate('state_editor_add_row')}
                 disabled={!can('add')}
                 onClick={() => run({ kind: 'add' })}
             >
                 <AddIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t('state_editor_clone_row')}
+                label={translate('state_editor_clone_row')}
                 disabled={!hasRow || !can('clone')}
                 onClick={() => run({ kind: 'clone', row: selected })}
             >
                 <CloneIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t('state_editor_delete_row')}
+                label={translate('state_editor_delete_row')}
                 disabled={!hasRow || !can('delete')}
                 onClick={() => run({ kind: 'delete', row: selected })}
             >
                 <DeleteIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t('state_editor_move_row_up')}
+                label={translate('state_editor_move_row_up')}
                 disabled={selected <= 1 || !can('move')}
                 onClick={() => run({ kind: 'move', from: selected, to: selected - 1 })}
             >
                 <MoveUpIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t('state_editor_move_row_down')}
+                label={translate('state_editor_move_row_down')}
                 disabled={!hasRow || selected >= rows.length || !can('move')}
                 onClick={() => run({ kind: 'move', from: selected, to: selected + 1 })}
             >
                 <MoveDownIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t(QUESTIONS.clear.name)}
+                label={translate(QUESTIONS.clear.name)}
                 disabled={!hasRow || !can('clear')}
                 onClick={() => ask('clear')}
             >
                 <ClearRowIcon />
             </ToolButton>
             <ToolButton
-                label={Generic.t(QUESTIONS.recreate.name)}
+                label={translate(QUESTIONS.recreate.name)}
                 disabled={!can('recreate')}
                 onClick={() => ask('recreate')}
             >
@@ -257,10 +257,10 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
                     },
                 }}
             >
-                <DialogTitle id="state-editor-confirm-title">{Generic.t(QUESTIONS[question].name)}</DialogTitle>
+                <DialogTitle id="state-editor-confirm-title">{translate(QUESTIONS[question].name)}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="state-editor-confirm-text">
-                        {Generic.t(QUESTIONS[question].text)}
+                        {translate(QUESTIONS[question].text)}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -269,7 +269,7 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
                         onClick={() => setAsking(false)}
                         color="primary"
                     >
-                        {Generic.t('cancel')}
+                        {translate('cancel')}
                     </Button>
                     <Button
                         data-state-editor-confirm="ok"
@@ -278,7 +278,7 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
                         variant="contained"
                         autoFocus
                     >
-                        {Generic.t(QUESTIONS[question].name)}
+                        {translate(QUESTIONS[question].name)}
                     </Button>
                 </DialogActions>
             </Dialog>

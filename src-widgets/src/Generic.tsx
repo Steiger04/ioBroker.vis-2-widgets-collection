@@ -15,6 +15,7 @@ import { Box } from '@mui/material';
 import type { VisRxWidgetState, RxRenderWidgetProps } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import withCollectionProvider from './components/withCollectionProvider';
+import { I18N_PREFIX } from './lib/translate';
 
 import type { CollectionContextProps } from './types';
 
@@ -38,7 +39,7 @@ class Generic<
 
     /** Returns the translation prefix used by this widget set. */
     static getI18nPrefix(): string {
-        return 'vis_2_widgets_collection_';
+        return I18N_PREFIX;
     }
 
     /**

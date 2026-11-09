@@ -34,7 +34,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { VisTheme } from '@iobroker/types-vis-2';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
 import { CheckerboardSwatch, TRANSPARENT } from './swatchCheckerboard';
@@ -174,8 +174,8 @@ function ColorTextFieldRow({
                 fullWidth
                 value={text}
                 error={error}
-                placeholder={placeholder === 'inherit' && !overridden ? Generic.t('color_inherit') : ''}
-                helperText={errorReason ? Generic.t(ERROR_MESSAGE[errorReason]) : ''}
+                placeholder={placeholder === 'inherit' && !overridden ? translate('color_inherit') : ''}
+                helperText={errorReason ? translate(ERROR_MESSAGE[errorReason]) : ''}
                 onChange={handleTextChange}
                 slotProps={{
                     htmlInput: {
@@ -191,7 +191,7 @@ function ColorTextFieldRow({
             {overridden && (
                 <IconButton
                     onClick={handleClear}
-                    title={Generic.t('clear_color')}
+                    title={translate('clear_color')}
                     size={outlined ? 'small' : 'large'}
                     sx={outlined ? undefined : { mt: -1, mr: -1.5 }}
                 >
@@ -207,7 +207,7 @@ function ColorTextFieldRow({
                         setAnchorEl(event.currentTarget);
                     }
                 }}
-                title={Generic.t('choose_color')}
+                title={translate('choose_color')}
                 sx={{
                     mt: outlined ? 0 : text ? '4px' : '-2px',
                     px: '4px',

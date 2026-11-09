@@ -10,7 +10,7 @@
 import { Chip, Tooltip, type SxProps, type Theme } from '@mui/material';
 import type React from 'react';
 
-import { translate } from '../translate';
+import { translate } from '../../lib/translate';
 import { TYPE_COLORS } from '../utils/columnConfig';
 import { typeBadgeText, type TypeBadge } from './typeBadge';
 

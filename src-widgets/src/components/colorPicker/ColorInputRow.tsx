@@ -19,7 +19,7 @@ import { Box, TextField, Tooltip } from '@mui/material';
 import { useState } from 'react';
 import type React from 'react';
 import { useColorPicker } from 'react-best-gradient-color-picker';
-import Generic from '../../Generic';
+import { translate } from '../../lib/translate';
 import { clamp, normaliseSolid, parseHexColor, rgbaToHex } from '../../lib/helper/colorInputRules';
 
 /**
@@ -241,7 +241,7 @@ function ColorInputRow({ value, onChange }: ColorInputRowProps): React.JSX.Eleme
                 disabled={unreadable}
             />
             <Tooltip
-                title={Generic.t('color_picker_alpha_hint')}
+                title={translate('color_picker_alpha_hint')}
                 disableFocusListener
             >
                 <Box sx={{ minWidth: 0, display: 'grid' }}>

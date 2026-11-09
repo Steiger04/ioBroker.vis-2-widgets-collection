@@ -183,7 +183,7 @@ export function emptyState(columns: readonly EffectiveColumn[]): EmptyStateText 
  * The depth warning as the one localized text.
  *
  * @param warning The table's depth warning.
- * @param t The translation function (`translate` from `./translate` — never a bare `Generic.t`, which loses `this`).
+ * @param t The translation function (`translate` from `lib/translate` — never a bare `Generic.t`, which loses `this`).
  * @returns The text, placeholders filled.
  */
 export function depthWarningText(warning: DepthWarning, t: (key: string) => string): string {

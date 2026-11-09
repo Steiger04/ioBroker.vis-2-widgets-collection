@@ -20,7 +20,7 @@ import { useContext, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import { ContentBoxContext, useMeasuredContentBox } from '../hooks/useContentBox';
 import CornerIcon from './CornerIcon';
-import Generic from '../Generic';
+import { translate } from '../lib/translate';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
@@ -290,7 +290,7 @@ function CollectionBase({
                             textAlign: 'center',
                         }}
                     >
-                        {oid ? Generic.t('collection_base_invalid_type', oid) : Generic.t('collection_base_select_oid')}
+                        {oid ? translate('collection_base_invalid_type', oid) : translate('collection_base_select_oid')}
                     </Typography>
                 </Box>
             )}
