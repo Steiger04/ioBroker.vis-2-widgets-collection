@@ -234,29 +234,29 @@ With chart type Bar the stack mode sits above the cards in every data mode:
 
 **Tab Style** — grouped by type: line and area on lines, bar on bars. **Color scale** and **Only in legend** exist on all types, on scatter only these:
 
-| Setting                    | Description                                                                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Smooth curve               | Smooth (spline) curve                                                                                                                                |
-| Show symbols / Symbol size | Point symbols on the line / 2–20 px, default 6                                                                                                       |
-| Value labels               | Line: sit on the symbols and keep them visible (hint). Bar: see Label position                                                                       |
-| Connect gaps               | Draw the line across null gaps (independent of the null values stage)                                                                                |
-| Line width                 | 0.5–8 px, default 2                                                                                                                                  |
-| Line shadow                | Blur in series color, 0–30 px                                                                                                                        |
-| Line style                 | Solid · Dashed · Dotted                                                                                                                              |
-| Step                       | None · Step (start) · Step (middle) · Step (end) — staircase display                                                                                 |
-| Area fill                  | Off · Flat · Gradient                                                                                                                                |
-| Area opacity               | Default 0.15 on Flat, 0.8 on Gradient                                                                                                                |
-| Area gradient              | CSS `linear-gradient` for area fill Gradient                                                                                                         |
-| Stack group                | Bar: Inherit (→ Stacking) · No stack · Group A/B/C — own groups stack independently of the stack mode. Line: No stack · Group A/B/C, without inherit |
-| Label position             | Off · Above bar · Inside, top · Inside, bottom · Inside, middle; unset = middle                                                                      |
-| Label size / Label color   | 6–24 px, default 12 / empty = auto contrast                                                                                                          |
-| Bar width (px/%)           | E.g. `20` or `30 %`; empty = auto                                                                                                                    |
-| Bar gap / Bar category gap | 0–1 (ECharts `barGap`/`barCategoryGap`), default 0.1 / 0.2                                                                                           |
-| Bar corner radius          | 0–30 px                                                                                                                                              |
-| Color by value             | Color scale: replaces the series color by value; the area keeps its gradient                                                                         |
-| Scale min / Scale max      | Empty inherits the axis bound, otherwise the data range. Min ≥ max ⇒ no scale, warning; disabled while **Color by value** is off                     |
-| Scale gradient             | Empty = derived from the series color, from light (low) to dark (high); disabled while **Color by value** is off                                     |
-| Only in legend             | Hide the series, keep the legend entry (toggleable)                                                                                                  |
+| Setting                    | Description                                                                                                                                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Smooth curve               | Smooth (spline) curve                                                                                                                                                                                           |
+| Show symbols / Symbol size | Point symbols on the line / 2–20 px, default 6                                                                                                                                                                  |
+| Value labels               | Line: sit on the symbols and keep them visible (hint). Bar: see Label position                                                                                                                                  |
+| Connect gaps               | Draw the line across null gaps (independent of the null values stage)                                                                                                                                           |
+| Line width                 | 0.5–8 px, default 2                                                                                                                                                                                             |
+| Line shadow                | Blur in series color, 0–30 px                                                                                                                                                                                   |
+| Line style                 | Solid · Dashed · Dotted                                                                                                                                                                                         |
+| Step                       | None · Step (start) · Step (middle) · Step (end) — staircase display                                                                                                                                            |
+| Area fill                  | Off · Flat · Gradient                                                                                                                                                                                           |
+| Area opacity               | Default 0.15 on Flat, 0.8 on Gradient                                                                                                                                                                           |
+| Area gradient              | CSS `linear-gradient` for area fill Gradient                                                                                                                                                                    |
+| Stack group                | Bar: Inherit (→ Stacking) · No stack · Group A/B/C — own groups stack independently of the stack mode. Line: No stack · Group A/B/C, without inherit                                                            |
+| Label position             | Off · Above bar · Inside, top · Inside, bottom · Inside, middle; unset = middle                                                                                                                                 |
+| Label size / Label color   | 6–24 px, default 12 / empty = auto contrast                                                                                                                                                                     |
+| Bar width (px/%)           | E.g. `20` or `30 %`; empty = auto                                                                                                                                                                               |
+| Bar gap / Bar category gap | 0–1 (ECharts `barGap`/`barCategoryGap`). Without a value the ECharts default applies: bar gap 10 %, bar category gap dynamic (35 % minus 4 % per bar column, at least 15 %); the slider then rests at 0.1 / 0.2 |
+| Bar corner radius          | 0–30 px                                                                                                                                                                                                         |
+| Color by value             | Color scale: replaces the series color by value; the area keeps its gradient                                                                                                                                    |
+| Scale min / Scale max      | Empty inherits the axis bound, otherwise the data range. Min ≥ max ⇒ no scale, warning; disabled while **Color by value** is off                                                                                |
+| Scale gradient             | Empty = derived from the series color, from light (low) to dark (high); disabled while **Color by value** is off                                                                                                |
+| Only in legend             | Hide the series, keep the legend entry (toggleable)                                                                                                                                                             |
 
 **Tab Format** — value presentation. **Text when true / Text when false** and **State names** appear only when the series' OID supplies the type, so only in history:
 
