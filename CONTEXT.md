@@ -698,6 +698,14 @@ _Avoid_: Neben-OID (sounds equal-ranking), Zusatz-OID (Light2 channels are not o
 The area a Collection widget's contents live in — the frame's inner paper, measured by CollectionBase and published to its children as `{ width, height }` (`useContentBox()`, ADR-0098), so square/circle sizing, the outlined border and padding are already reflected. Consumers read it instead of measuring themselves: the Select's width bound, the Gauge canvas, the Radio item size, the Switch's height budget. They read it in a component rendered INSIDE the frame — the body that renders CollectionBase sits outside the box. `undefined` until the first measurement and outside CollectionBase. Elements with a box of their own still measure locally (the Switch's track row, Light2's picker box with its `colorLightPadding`).
 _Avoid_: Container-Größe (unsaid which container), Widget-Größe (that is the vis-2 widget frame)
 
+**Rahmenfläche**:
+The outer painted surface of a Collection widget, around the **Inhaltsfläche**: it carries the Rahmen-Kopfzeile and Rahmen-Fußzeile and paints `frameBackground`. English pages: frame area.
+_Avoid_: Card (that is the field label's old word, `noCard` keeps it), Rahmen without saying the surface
+
+**Inhaltsfläche**:
+The inner painted surface of a Collection widget — the surface of the **Content-Box**: it paints `background` and takes the Geometrie forms. English pages: content area.
+_Avoid_: Paper (implementation), Widget-Fläche (unsaid which of the two)
+
 **Farbwähler**:
 The one color-picking popover every Collection editor opens from a color field — vis-2 attribute panel, ECharts configurator, Theme Studio and the JSON-Table editors alike (`CollectionColorPicker`, ADR-0102). It edits the value; which colour a field resolves to when empty stays the field's business (Field-Vertrag or Schlichtes Farbfeld). Each surface keeps its own field row around it.
 _Avoid_: Color Picker, Farbpicker; Swatch (that is only the preview box in the field row); Light2-Farbsteuerung (that is the **Lampen-Bedienelement**, not an editor)
