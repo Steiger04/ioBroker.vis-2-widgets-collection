@@ -260,9 +260,6 @@ export function useFloatingPanel(options: {
     const appliedRef = useRef(applied);
     const panelRef = useRef<HTMLDivElement>(null);
     const [activeDrag, setActiveDrag] = useState<PanelGrip | 'move' | null>(null);
-    // Latest labels in a ref so the pointer handlers never go stale.
-    const labelsRef = useRef(options.labels);
-    labelsRef.current = options.labels;
 
     // Last measured element height — the Auto-height fallback for clamps while unmounted.
     const measuredRef = useRef(PANEL_MIN_H);
@@ -273,6 +270,15 @@ export function useFloatingPanel(options: {
         }
         measuredRef.current = el.offsetHeight;
         return measuredRef.current;
+    };
+    // The measured height as of the last applied geometry — what the n/s grips announce for Auto height.
+    const [announcedHeight, setAnnouncedHeight] = useState(PANEL_MIN_H);
+
+    /** Render a clamped geometry, together with the height it was measured against. */
+    const apply = (nextApplied: PanelGeometry): void => {
+        appliedRef.current = nextApplied;
+        setApplied(nextApplied);
+        setAnnouncedHeight(measuredRef.current);
     };
 
     /** The resolved start rectangle for a resize interaction (Auto height measured in). */
@@ -285,8 +291,7 @@ export function useFloatingPanel(options: {
     const commit = (nextIntent: PanelGeometry): void => {
         intentRef.current = nextIntent;
         const nextApplied = clampGeometry(nextIntent, measuredHeight(), currentViewport());
-        appliedRef.current = nextApplied;
-        setApplied(nextApplied);
+        apply(nextApplied);
     };
 
     const persist = (): void => storeGeometry(options.storageKey, intentRef.current);
@@ -473,8 +478,7 @@ export function useFloatingPanel(options: {
     useEffect(() => {
         const onResize = (): void => {
             const nextApplied = clampGeometry(intentRef.current, measuredHeight(), currentViewport());
-            appliedRef.current = nextApplied;
-            setApplied(nextApplied);
+            apply(nextApplied);
         };
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
@@ -486,8 +490,7 @@ export function useFloatingPanel(options: {
             return;
         }
         const nextApplied = clampGeometry(intentRef.current, measuredHeight(), currentViewport());
-        appliedRef.current = nextApplied;
-        setApplied(nextApplied);
+        apply(nextApplied);
     }, [options.active]);
 
     // Release the window listeners if the element unmounts mid-move.
@@ -520,13 +523,13 @@ export function useFloatingPanel(options: {
     const edgeProps = Object.fromEntries(
         EDGES.map(edge => {
             const horizontal = edge === 'e' || edge === 'w';
-            const label = horizontal ? labelsRef.current.width : labelsRef.current.height;
+            const label = horizontal ? options.labels.width : options.labels.height;
             const props: EdgeGripProps = {
                 role: 'separator',
                 'aria-orientation': horizontal ? 'vertical' : 'horizontal',
                 'aria-valuemin': horizontal ? PANEL_MIN_W : PANEL_MIN_H,
                 'aria-valuemax': horizontal ? maxPanelWidth(currentViewport().w) : maxPanelHeight(currentViewport().h),
-                'aria-valuenow': horizontal ? applied.w : (applied.h ?? measuredRef.current),
+                'aria-valuenow': horizontal ? applied.w : (applied.h ?? announcedHeight),
                 ...(horizontal || applied.h != null ? {} : { 'aria-valuetext': 'auto' }),
                 'aria-label': label,
                 title: label,
