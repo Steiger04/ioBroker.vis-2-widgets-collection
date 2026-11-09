@@ -53,9 +53,6 @@ function SwitchCollection(): React.JSX.Element {
     const { width: rowWidth } = useElementDimensions(trackRowRef);
 
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('SwitchCollection must be used within a CollectionProvider');
-    }
     const { widget, theme } = context as SwitchCollectionContextProps;
 
     const oidObject = widget.data.oidObject;

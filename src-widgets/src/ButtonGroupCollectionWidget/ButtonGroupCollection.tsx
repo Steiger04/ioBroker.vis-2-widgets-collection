@@ -20,9 +20,6 @@ import type { ButtonGroupCollectionContextProps } from '../types';
 
 function ButtonGroupCollection(): React.JSX.Element {
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('ButtonGroupCollection must be used within a CollectionProvider');
-    }
     const { widget, theme } = context as ButtonGroupCollectionContextProps;
 
     const oidObject = widget.data.oidObject;

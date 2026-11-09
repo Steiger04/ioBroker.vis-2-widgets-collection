@@ -176,9 +176,6 @@ function RadioStack({ states, onChange, disabled }: RadioStackProps): React.Reac
 
 function RadioGroupCollection(): React.ReactElement {
     const context = useContext(CollectionContext);
-    if (!context) {
-        throw new Error('RadioGroupCollection must be used within a CollectionProvider');
-    }
     const {
         widget: {
             data: { oidObject },
