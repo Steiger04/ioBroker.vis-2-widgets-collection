@@ -18,7 +18,7 @@ import type { GoogleFontFace, GoogleFontsMap } from './themeTypes';
 /** Marker attribute on the `<style>` element holding the injected `@font-face`s. */
 const STYLE_DATA_ATTR = 'data-collection-google-fonts';
 
-/** Google Fonts CSS2 stylesheet endpoint (latin, default weights 400/700). */
+/** Google Fonts CSS2 stylesheet endpoint. */
 const GOOGLE_CSS2_URL = 'https://fonts.googleapis.com/css2';
 
 /**
@@ -34,7 +34,9 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
     if (!family) {
         throw new Error('Empty font name');
     }
-    const cssUrl = `${GOOGLE_CSS2_URL}?family=${family}&display=swap`;
+    // Without named weights the endpoint answers with the regular face only. A font lacking one of
+    // the two still loads with what it has.
+    const cssUrl = `${GOOGLE_CSS2_URL}?family=${family}:wght@400;700&display=swap`;
 
     const cssResponse = await fetch(cssUrl);
     if (!cssResponse.ok) {

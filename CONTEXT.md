@@ -444,6 +444,10 @@ _Avoid_: „full host merge“, host skin, cssVars mirror
 The in-section disclosure at the end of Schrift & Form holding the font-weight selects and the line-height slider — rare, expert knobs (bundled fonts ship real 400/700 faces only; other weights synthesise).
 _Avoid_: Advanced typography, more options
 
+**Wirkort**:
+Where a Theme Studio color shows up in the widgets — what the "?" hint of a color field names and what the wiki's color tables list. English pages: where it takes effect.
+_Avoid_: Verwendung, Einsatzort
+
 **Control kit**:
 The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds the modern family from the host mode, ADR-0038/0078).
 _Avoid_: Editor controls, per-editor widgets
@@ -567,6 +571,10 @@ _Avoid_: Slider-Resolver (the retired mechanism that found it by type detection)
 **Endsymbol**:
 The icon at either end of the rail (`iconMin`/`iconSmallMin`, `iconMax`/`iconSmallMax`), coloured by `startIconColor` / `endIconColor`. The colour follows the SOURCE icon (start = min, end = max), not its rendered position, which swaps with the orientation. The colour is applied through a forced mask, so every icon with an explicit value is coloured — an image icon (URL, path) as a silhouette too. Unset, only a Base64 icon falls back to the theme primary; an image icon stays uncoloured and keeps its own colours. This is a documented state rule (pattern Select arrow, ADR-0004): "uncoloured" is no colour a swatch can name, so the field's swatch (terminal `primary`) shows the colour a Base64 icon gets. Implemented by `resolveEndSymbols` in `SliderCollectionWidget/endSymbols.ts`, pinned by `endSymbols.test.ts` and `SliderCollection.test.tsx`.
 _Avoid_: Eck-Icon (the frame's corner icon), Start-/End-Icon without saying min/max where orientation matters
+
+**Wert-Label**:
+The number the slider shows at its thumb (English pages: value label), switched by the panel field Label (`valueLabelDisplay`). It shows the bare number without the **Einheit**. Its colour and size resolve like the active style and never carry the **Marker-Ebene**; it is not a **Marke**.
+_Avoid_: Label alone (that is a resolved state's name in a list), Wert-Anzeige (the icon + value cluster of other widgets; the slider has none)
 
 # Gauge Collection Widget
 
@@ -791,12 +799,20 @@ The collection's button that opens a vis view in a modal dialog, optionally mirr
 ## Language
 
 **Dialog-Sitzung**:
-The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back.
+The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back. English pages: dialog session.
 _Avoid_: Dialog-Status (unsaid whether local or backend), Öffnungslogik (that is the wiring), Popup-State
 
 **Sitzungs-OID**:
-The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it.
+The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it. English pages: session OID.
 _Avoid_: Steuer-OID, Steuer ID (that is the Select's `cid`), Dialog-OID, control OID
+
+**Ansichtsrahmen**:
+The Collection frame inside the open dialog, around the embedded view — a second frame beside the button's, with the same Common settings but no **Eck-Icon**. English pages: view frame.
+_Avoid_: Dialog-Rahmen (unsaid which of the two), Modal (that is the window around it)
+
+**Titelzeile**:
+The line at the top of the **Ansichtsrahmen**: it holds the header text when "header as title" is on and the upper close button. Distinct from the **Rahmen-Kopfzeile**, which it replaces in that case. English pages: title line.
+_Avoid_: Header-Zeile, Dialog-Kopf
 
 # Light2 Collection Widget
 
@@ -827,6 +843,10 @@ _Avoid_: Hue (that is the colour angle Kanal), 8-Bit-Skala
 **CCT-Ansicht**:
 The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Switching the view switches the lamp: entering writes the stored temperature (2000 K without a usable value), leaving writes the stored colour Kanäle back. A foreign change of temperature or brightness reaches its pickers in both cases.
 _Avoid_: CCT-Modus (sounds like a Lichttyp), Weiß-Modus, cctLight as a prose term
+
+**Farbansicht**:
+The colour view of a Light2 widget: one picker in the chosen UI component that writes all colour Kanäle of the **Lichttyp**. Every Lichttyp except none and cct has it, and the widget always starts in it.
+_Avoid_: Farbmodus (not in the code or the UI), RGB-Ansicht (h/s/v has it too)
 
 **Kelvin-Picker** / **Helligkeits-Picker**:
 The two pickers of the **CCT-Ansicht** — the first writes the temperature Kanal, the second the brightness Kanal; in every other view one picker writes all colour Kanäle of the Lichttyp.
