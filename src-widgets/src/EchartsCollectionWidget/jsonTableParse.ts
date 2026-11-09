@@ -73,7 +73,8 @@ export interface JsonTableParseResult {
     /**
      * Per-row SLICE names for the pie family (ADR-0075 decision 5): `String(xVal)` per emitted
      * row — the payload's own text, duplicates kept. Without a usable X column every row reads
-     * „Zeile n" (NOT the cartesian index labels `1..n` — a pie slice named "3" says nothing).
+     * the caller's row label (NOT the cartesian index labels `1..n` — a pie slice named "3" says
+     * nothing).
      * Aligned 1:1 with every series' data (all series share the row alignment).
      */
     sliceNames?: string[];
@@ -90,19 +91,16 @@ export interface JsonTableSpec {
     ySeries: readonly JsonTableYSeries[];
     /**
      * The label of a row without a usable X value (1-based row number) — the caller owns the
-     * language, this module stays pure. Absent = the literal fallback.
+     * language, this module stays pure.
      */
-    rowLabel?: (row: number) => string;
+    rowLabel: (row: number) => string;
 }
 
 /** A rows-array resolution: either the rows or the one hard error. */
 export type ResolveRowsResult = { rows: unknown[] } | { error: string };
 
-/** Fallback label for a row without a usable X value (the pie slice names ride it too, ADR-0075). */
-const defaultRowLabel = (row: number): string => `Zeile ${row}`;
-
-/** One row's SLICE name (ADR-0075 pie): the payload's own X text; the row fallback without one. */
-const sliceLabel = (v: unknown, i: number, rowLabel: (row: number) => string): string =>
+/** One row's X text, for axis categories and slice names (ADR-0075): the payload's own, the row label without one. */
+const xValueLabel = (v: unknown, i: number, rowLabel: (row: number) => string): string =>
     typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint'
         ? String(v)
         : rowLabel(i + 1);
@@ -222,7 +220,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         return { series: [], xKind: 'index', error: resolved.error };
     }
     const rows = resolved.rows;
-    const rowLabel = spec.rowLabel ?? defaultRowLabel;
+    const { rowLabel } = spec;
     // Y cells once per row (in `ySeries` order) — every X kind reads the same aligned cells.
     const cellsByRow = rows.map(row => yCells(row, spec.ySeries));
 
@@ -250,7 +248,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         // The slice name keeps the payload's OWN X text (`String(xVal)`) — a pie over a date
         // column shows what the document said, not a reformatted timestamp.
         const aligned = cellsByRow
-            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: sliceLabel(xVals![i], i, rowLabel), ys }))
+            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: xValueLabel(xVals![i], i, rowLabel), ys }))
             .filter(
                 (r): r is { xMs: number; label: string; ys: (number | typeof MAPPED_GAP | null)[] } => r.xMs !== null,
             );
@@ -284,12 +282,12 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         // Category X: per-row labels in payload order, duplicates kept (decision 4: no dedup).
         // Only primitives stringify — objects/arrays/missing values fall back to the row label
         // ('[object Object]' would read worse than nothing).
-        const categories = xVals!.map((v, i) => sliceLabel(v, i, rowLabel));
+        const categories = xVals!.map((v, i) => xValueLabel(v, i, rowLabel));
         return { series: plainSeries, xKind: 'category', categories, sliceNames: categories };
     }
 
     // Index X (no xPath, or a column without any non-null value): labels 1..n (the cartesian
-    // axis labels); the PIE names read „Zeile n" instead — see JsonTableParseResult.sliceNames.
+    // axis labels); the PIE names read the row label instead — see JsonTableParseResult.sliceNames.
     return {
         series: plainSeries,
         xKind: 'index',
