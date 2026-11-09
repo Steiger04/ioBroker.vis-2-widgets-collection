@@ -10,7 +10,7 @@
  * them.
  */
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';
 import useValueState from '../hooks/useValueState';
@@ -63,6 +63,16 @@ export function rebindLocalValue(
     return prevOid === oid ? local : initLocalValue(undefined, oidValue);
 }
 
+/** Marks an input the sync cases have not run for yet. */
+const UNSYNCED: unique symbol = Symbol('unsynced');
+
+/** The inputs the sync cases of {@link useOptimisticNumber} last ran for. */
+interface SyncedInputs {
+    oidValue: OidValue | typeof UNSYNCED;
+    hasForeignChange: boolean | typeof UNSYNCED;
+    boundOid: unknown;
+}
+
 /** Return type for {@link useOptimisticNumber}. */
 export interface UseOptimisticNumberReturn {
     /** Optimistic backend value (marks, CollectionBase) — may be non-numeric. */
@@ -82,7 +92,7 @@ export interface UseOptimisticNumberReturn {
  * @returns The backend value, the controlled slider value, the combined setter and the
  * binding's Sperre (`locked`).
  * @remarks
- * The sync cases, in the order their effects run:
+ * The sync cases, in this order, applied while rendering whenever their inputs changed:
  * 1. **Init** — while no local value exists, backend numbers are adopted
  *    ({@link initLocalValue}).
  * 2. **Echo** — the debounced own write echoes back through the backend value;
@@ -103,32 +113,31 @@ const useOptimisticNumber = (idName: string): UseOptimisticNumberReturn => {
 
     // The binding key: getPropertyValue reads rxData[idName], so this is what the value follows.
     const boundOid: unknown = widget.data[idName as keyof CommonObjectFieldsRxData];
-    const boundOidRef = useRef(boundOid);
 
     const [localValue, setLocalValue] = useState<number | undefined>(initLocalValue(undefined, oidValue));
 
-    // Init: adopt the backend value while there is nothing local yet.
-    useEffect(() => {
-        setLocalValue(prev => initLocalValue(prev, oidValue));
-    }, [oidValue]);
-
-    // Echo/backend: a Fremdänderung (any size) outside the ignore window wins;
-    // a non-numeric value dismantles the control.
-    useEffect(() => {
-        if (!hasForeignChange) {
-            return;
+    // The inputs the sync cases last ran for (none yet on the first render; the binding counts
+    // as unchanged there).
+    const [synced, setSynced] = useState<SyncedInputs>({ oidValue: UNSYNCED, hasForeignChange: UNSYNCED, boundOid });
+    const oidValueChanged = !Object.is(synced.oidValue, oidValue);
+    if (oidValueChanged || synced.hasForeignChange !== hasForeignChange || !Object.is(synced.boundOid, boundOid)) {
+        let next = localValue;
+        // Init: adopt the backend value while there is nothing local yet.
+        if (oidValueChanged) {
+            next = initLocalValue(next, oidValue);
         }
-
-        setLocalValue(adoptBackendValue(oidValue));
-    }, [hasForeignChange, oidValue]);
-
-    // Rebind: a new OID binding replaces the local value with the new OID's.
-    useEffect(() => {
-        const prevOid = boundOidRef.current;
-        boundOidRef.current = boundOid;
-        // An unchanged binding returns `prev` — React bails out of the update.
-        setLocalValue(prev => rebindLocalValue(prev, oidValue, prevOid, boundOid));
-    }, [boundOid, oidValue]);
+        // Echo/backend: a Fremdänderung (any size) outside the ignore window wins;
+        // a non-numeric value dismantles the control.
+        if (hasForeignChange) {
+            next = adoptBackendValue(oidValue);
+        }
+        // Rebind: a new OID binding replaces the local value with the new OID's.
+        next = rebindLocalValue(next, oidValue, synced.boundOid, boundOid);
+        setSynced({ oidValue, hasForeignChange, boundOid });
+        if (!Object.is(next, localValue)) {
+            setLocalValue(next);
+        }
+    }
 
     const setValue = useCallback(
         (value: number): void => {
