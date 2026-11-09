@@ -9,16 +9,9 @@
  * tests pin. The geometry cases are the nine former geometry-module cases, read through
  * the chrome output.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { createTheme } from '@mui/material/styles';
-
-// The chrome reads the thumb size default from the field list, which renders
-// CollectionDivider / ContractColorField — they pull Generic (extends window.visRxWidget,
-// absent outside vis-2).
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import { buildSwitchChrome } from './chrome';
 import type { SwitchChromeInput } from './chrome';

@@ -6,17 +6,11 @@
  * @remarks
  * Expected colours are the stock MUI light and dark primaries `#1976d2` / `#90caf9`.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { createTheme } from '@mui/material/styles';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { light2BorderColorContract, resolveLight2BorderColor } from './light2ColorContract';
-
-// The field list renders CollectionDivider and the colour field adapters, which pull Generic
-// (extends window.visRxWidget, absent outside vis-2). The field test reads only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import light2Fields from './light2Fields';
 

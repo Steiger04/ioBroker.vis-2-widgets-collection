@@ -11,13 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
-// The module's field lists (its own, and the per-state list its row keys come from) render
-// CollectionDivider and colour fields, which pull Generic (extends window.visRxWidget, absent
-// outside vis-2). The handler under test never renders them.
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-
 import { ANY_VALUE_TYPES, JSON_TABLE_TYPES } from './allowedOidTypes';
 import commonObjectFields, { oidChangeHandlerAsync } from './commonObjectFields';
 

@@ -7,15 +7,9 @@
  * `null` deletes a key, an unnamed key keeps its value) and the widget data that results from
  * applying it the way vis-2 does. The row keys are derived from the real per-state field list.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
-
-// The field list renders CollectionDivider / colour fields, which pull Generic (extends
-// window.visRxWidget, absent outside vis-2). The module reads only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import commonFields from './commonFields';
 import {

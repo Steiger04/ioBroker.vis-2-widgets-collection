@@ -7,14 +7,7 @@
  * runtime would have two states to press and release; the `onlyStates` option above it keeps
  * following the Zustandsmenge, which counts blank rows too (ADR-0104).
  */
-import { describe, expect, it, vi } from 'vitest';
-
-// The field list pulls CollectionDivider, ContractColorField and PlainColorField, which all pull
-// Generic (extends window.visRxWidget, absent outside vis-2) — each mock is needed. The tests
-// read only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+import { describe, expect, it } from 'vitest';
 
 import stateFields from './stateFields';
 

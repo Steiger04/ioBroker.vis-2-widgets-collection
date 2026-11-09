@@ -8,17 +8,10 @@
  * of `sliderColorContracts`, and the field list around it — name, label, `noGradient`,
  * `hidden` — stays as the editor and the stored widget data know it.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import { sliderColorContracts } from './sliderColorContract';
-
-// The field list pulls CollectionDivider, ContractColorField and PlainColorField, which all pull
-// Generic (extends window.visRxWidget, absent outside vis-2) — each mock is needed. The tests
-// read only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 
 import sliderFields from './sliderFields';
 

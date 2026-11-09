@@ -11,13 +11,7 @@
  * compared by behaviour: a string expression literally (vis-2 evaluates it), a predicate by its
  * answers over probe data (vis-2 hands it the raw widget data).
  */
-import { describe, expect, it, vi } from 'vitest';
-
-// The field lists pull the field components, which pull Generic (extends window.visRxWidget,
-// absent outside vis-2). Only the field DATA is read here.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+import { describe, expect, it } from 'vitest';
 
 import dialogFields from './dialogFields';
 import { createColorField, createPlainColorField } from './fieldFactories';
@@ -42,8 +36,8 @@ const renderedBy = (field: FieldLike): unknown =>
     (field.component?.(field, {}, () => undefined, {}) as { type?: unknown } | null)?.type;
 
 // The adapters, read off the factories themselves: the node project shares its module cache
-// across files (vitest `isolate: false`), so a sentinel of this file's mock may not be the one
-// the field lists were built with — the factories always are.
+// across files (vitest `isolate: false`), so another file's mock may be the adapter the field
+// lists were built with — the factories always read the same one.
 const PLAIN_ADAPTER = renderedBy(createPlainColorField({ name: 'probe', label: 'probe' }) as FieldLike);
 const CONTRACT_ADAPTER = renderedBy(createColorField({ name: 'probe', label: 'probe' }) as FieldLike);
 

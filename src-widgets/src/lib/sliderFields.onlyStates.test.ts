@@ -7,14 +7,7 @@
  * exactly when `effectiveStateCount` reads more than zero states — the same rule as
  * `stateFields` and useData.
  */
-import { describe, expect, it, vi } from 'vitest';
-
-// The field list pulls CollectionDivider, ContractColorField and PlainColorField, which all pull
-// Generic (extends window.visRxWidget, absent outside vis-2) — each mock is needed. The tests
-// read only the field data.
-vi.mock('../components/ContractColorField', () => ({ default: () => null }));
-vi.mock('../components/PlainColorField', () => ({ default: () => null }));
-vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
+import { describe, expect, it } from 'vitest';
 
 import sliderFields from './sliderFields';
 
