@@ -8,7 +8,7 @@ Das JSON Table Widget zeigt Tabellendaten aus dem JSON-Wert einer OID. Es verwen
 
 ## Einstellungshierarchie
 
-Dieses Widget verwendet alle **vis-2 Einstellungen** und **Allgemeinen Einstellungen**. Siehe [Home](De-Home.md) für Details.
+Dieses Widget verwendet alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die widgetspezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 
@@ -144,7 +144,7 @@ Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwer
 Dynamische Stile im Abschnitt **Bedingte Formatierung**, je Regel eine **Vorschau**:
 
 - **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten (json-logic-Regeln), mehrere Bedingungen per **UND**/**ODER** verknüpft. Eine Regel ohne vollständige Bedingung greift nie. Der Regel-Editor folgt dem Effektiven Typ der Spalte; bei einer Datums-Spalte — erkannt oder selbst gesetzt — vergleichen Regeln den lokalen Kalendertag des Werts als `YYYY-MM-DD`.
-- **Vergleich**: Text-Operatoren unterscheiden Groß-/Kleinschreibung, **ist gleich** vergleicht lose (`1` trifft `"1"`). Leer sind `null`, ein fehlender Wert und `""`, `0` und `false` nicht. Eine leere Zelle trifft keine Regel mit größer oder kleiner, ein unlesbarer Wert in einer Datums-Spalte zählt als leer.
+- **Vergleich**: Text-Operatoren unterscheiden Groß-/Kleinschreibung, **ist gleich** vergleicht lose (`1` trifft `"1"`). Leer sind `null`, ein fehlender Wert und `""`, `0` und `false` nicht. Eine leere Zelle trifft keine Regel mit größer oder kleiner, auch nicht **ist gleich** `0` oder **ist falsch**; **ist ungleich** trifft sie, auch gegen `0`. Ein unlesbarer Wert in einer Datums-Spalte zählt als leer.
 - **Stile**: **Hintergrundfarbe** `backgroundColor` und **Textfarbe** `textColor` (beide Gradient möglich), **Fett** `fontWeight`, **Kursiv** `fontStyle`. Eine neue Regel steht auf `normal`, das zählt als gesetzt und übersteuert ein statisches Fett oder Kursiv der Spalte.
 - **Auswertung** `cellStyleMode`:
 
@@ -187,12 +187,12 @@ Der erste Klick auf den Spaltenkopf sortiert Text aufsteigend und alles andere a
 
 ### Filterung
 
-| Feldname                         | Typ      | Standard | Beschreibung                                                                                                                                     | Bedingung                    |
-| -------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| Filterung `tableFiltering`       | checkbox | true     | Spaltenfilter aktivieren. Fehlt der Schlüssel in den Widget-Daten, ist er aus                                                                    | Kopfzeile und Spaltenmenü an |
-| Schnellfilter `tableQuickFilter` | checkbox | false    | Globales Suchfeld anzeigen                                                                                                                       | -                            |
-| Spaltenmenü `tableColumnMenu`    | checkbox | true     | Spaltenmenü anzeigen. Der Button erscheint nur an Spalten, die sortier-, filter- oder ausblendbar sind                                           | Kopfzeile sichtbar           |
-| Spalten ausblenden `tableHiding` | checkbox | true     | **Spalte ausblenden** und **Alle Spalten anzeigen** im Menü erlauben. Das ist Ansichtszustand des Browsers, `visible` im Editor bleibt unberührt | Kopfzeile und Spaltenmenü an |
+| Feldname                         | Typ      | Standard | Beschreibung                                                                                                                                                                                                                                                                                 | Bedingung                    |
+| -------------------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Filterung `tableFiltering`       | checkbox | true     | Spaltenfilter aktivieren. Fehlt der Schlüssel in den Widget-Daten, ist er aus                                                                                                                                                                                                                | Kopfzeile und Spaltenmenü an |
+| Schnellfilter `tableQuickFilter` | checkbox | false    | Globales Suchfeld anzeigen                                                                                                                                                                                                                                                                   | -                            |
+| Spaltenmenü `tableColumnMenu`    | checkbox | true     | Spaltenmenü anzeigen. Der Button erscheint an Spalten, die sortier-, filter- oder ausblendbar sind, und an allen, solange eine Spalte ausgeblendet ist                                                                                                                                       | Kopfzeile sichtbar           |
+| Spalten ausblenden `tableHiding` | checkbox | true     | **Spalte ausblenden** und **Alle Spalten anzeigen** im Menü erlauben. Die letzte sichtbare Spalte lässt sich nicht ausblenden; ein Ansichtszustand, der alle gezeigten Spalten ausblendet, wird nicht angewendet. Das ist Ansichtszustand des Browsers, `visible` im Editor bleibt unberührt | Kopfzeile und Spaltenmenü an |
 
 > **Spaltenfilter vergleichen nach dem Effektiven Typ der Spalte:** Textspalten als Text ohne Groß-/Kleinschreibung (`gleich „Raum 1"` trifft nicht `Raum 01`), Zahlenspalten nur numerisch (eine Zelle, die keine Zahl ist, trifft bei Wert-Operatoren nie), Datumsspalten nach lokalem Kalendertag, Boolean-Spalten nach `true`/`false` (auch `'true'`/`'false'` und `1`/`0`). Andere Typen (gemischt, Objekt, Array, Bild) vergleichen als Text, Objekte als JSON. Eine fehlende Zelle trifft nur **Ist leer**. Der Filter-Dialog bietet die Operatoren dieses Typs an; ein gespeicherter Filter, dessen Operator der Typ nicht mehr anbietet (z. B. nach Änderung des Formattyps), wird verworfen.
 

@@ -144,7 +144,7 @@ An **image column** renders every raw value as a graphic instead of text. The ra
 Dynamic styles in the **Conditional Styling** section, with a **Preview** per rule:
 
 - **Conditions**: Compare against fixed values or thresholds (json-logic rules), several conditions combined by **AND**/**OR**. A rule without a complete condition never applies. The rule builder follows the column's effective type; on a date column — detected or set — rules compare the value's local calendar day as `YYYY-MM-DD`.
-- **Comparison**: Text operators are case-sensitive, **equals** compares loosely (`1` matches `"1"`). Empty means `null`, a missing value and `""`, not `0` or `false`. An empty cell matches no greater-than or less-than rule; an unreadable value in a date column counts as empty.
+- **Comparison**: Text operators are case-sensitive, **equals** compares loosely (`1` matches `"1"`). Empty means `null`, a missing value and `""`, not `0` or `false`. An empty cell matches no greater-than or less-than rule, nor **equals** `0` or **is false**; **does not equal** matches it, also against `0`. An unreadable value in a date column counts as empty.
 - **Styles**: **Background color** `backgroundColor` and **Text color** `textColor` (both gradient possible), **Bold** `fontWeight`, **Italic** `fontStyle`. A new rule is set to `normal`, which counts as set and overrides a static bold or italic of the column.
 - **Evaluation** `cellStyleMode`:
 
@@ -187,12 +187,12 @@ The first click on the column header sorts text ascending and everything else de
 
 ### Filtering
 
-| Field Name                      | Type     | Default | Description                                                                                                                           | Condition                 |
-| ------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| Filtering `tableFiltering`      | checkbox | true    | Enable column filters. Off when the key is missing from the widget data                                                               | Header and column menu on |
-| Quick filter `tableQuickFilter` | checkbox | false   | Show global search field                                                                                                              | -                         |
-| Column menu `tableColumnMenu`   | checkbox | true    | Show column menu. The button only appears on columns that can be sorted, filtered, or hidden                                          | Header shown              |
-| Column hiding `tableHiding`     | checkbox | true    | Allow **Hide column** and **Show all columns** in the menu. This is the browser's view state, `visible` in the editor stays untouched | Header and column menu on |
+| Field Name                      | Type     | Default | Description                                                                                                                                                                                                                                | Condition                 |
+| ------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Filtering `tableFiltering`      | checkbox | true    | Enable column filters. Off when the key is missing from the widget data                                                                                                                                                                    | Header and column menu on |
+| Quick filter `tableQuickFilter` | checkbox | false   | Show global search field                                                                                                                                                                                                                   | -                         |
+| Column menu `tableColumnMenu`   | checkbox | true    | Show column menu. The button appears on columns that can be sorted, filtered, or hidden, and on all of them while a column is hidden                                                                                                       | Header shown              |
+| Column hiding `tableHiding`     | checkbox | true    | Allow **Hide column** and **Show all columns** in the menu. The last visible column cannot be hidden; a view state that hides every shown column is not applied. This is the browser's view state, `visible` in the editor stays untouched | Header and column menu on |
 
 > **Column filters compare by the column's effective type:** text columns as text without case (`equals "Room 1"` does not match `Room 01`), number columns only numerically (a cell that is not a number never matches a value operator), date columns by local calendar day, boolean columns by `true`/`false` (also `'true'`/`'false'` and `1`/`0`). Other types (mixed, object, array, image) compare as text, objects as their JSON. A missing cell only matches **Is empty**. The filter dialog offers the operators of that type; a stored filter whose operator the type no longer offers (e.g. after the format type was changed) is discarded.
 
