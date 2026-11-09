@@ -13,7 +13,6 @@
  */
 
 import { Avatar, Box } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import type { JSX } from 'react';
 
 import CollectionValueText from './CollectionValueText';
@@ -51,12 +50,9 @@ const CollectionValueDisplay = ({
     noIcon = false,
     noValue = false,
 }: CollectionValueDisplayProps): JSX.Element => {
-    const theme = useTheme();
-
     const showIcon = !noIcon && Boolean(data.icon);
     const iconSrc = data.icon;
-    const iconColor = data.iconColor || theme.palette.primary.main;
-    const iconStyles = getIconColorStyles(iconSrc, iconColor, Boolean(data.forceColorMask));
+    const iconStyles = getIconColorStyles(iconSrc, data.iconColor, Boolean(data.forceColorMask));
     const textColor = data.textColor;
 
     return (

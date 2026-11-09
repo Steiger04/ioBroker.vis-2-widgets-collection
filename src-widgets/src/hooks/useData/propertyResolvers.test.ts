@@ -649,6 +649,20 @@ describe('chains — the stages of every key, and its terminal', () => {
     });
 });
 
+describe('chains — the icon colour never ends empty', () => {
+    // The Wert-Anzeige paints this value as it comes, without a fallback of its own.
+    it.each([
+        ['an empty string', ''],
+        ['spaces', '  '],
+        ['null', null],
+    ])('skips %s at every stage and ends on the primary colour', (_what, blank) => {
+        const rxData = { iconColorActive: blank, iconColor1: blank, iconColor: blank };
+
+        expect(readRow('iconColor', { rxData, markerLayer: { iconColor: blank as string } })).toBe(THEME_PRIMARY);
+        expect(buildResolvers({ rxData }).iconColor('', true)).toBe(THEME_PRIMARY);
+    });
+});
+
 describe('chains — a field without a base stage still resolves for the base itself', () => {
     // At ext='' the row stage reads the unsuffixed field: the base resolution sees what no
     // row falls back on. That is what the Eck-Icon reads through the Cm chains too.
