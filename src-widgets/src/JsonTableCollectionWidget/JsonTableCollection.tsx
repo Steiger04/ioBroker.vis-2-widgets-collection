@@ -63,7 +63,7 @@ import { columnCapabilities, tableCapabilities, type EffectiveType } from './cap
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { translate } from '../lib/translate';
-import { createDateAwareGlobalFilter } from './utils/quickFilter';
+import { quickFilterOptions } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
 
@@ -229,7 +229,7 @@ const JsonTableCollection: FC = () => {
     // ── Date-aware global (quick) filter ────────────────────────────────────────
     // Built in utils/quickFilter.ts; date columns also match their formatted display
     // value via the formatter registry so filter and display can never drift.
-    const globalFilterFn = useMemo(() => createDateAwareGlobalFilter(tableColumns), [tableColumns]);
+    const quickFilter = useMemo(() => quickFilterOptions(tableColumns), [tableColumns]);
 
     // ── Ansichtszustand (sorting, filters, page, widths, hidden columns) ────────
 
@@ -278,7 +278,7 @@ const JsonTableCollection: FC = () => {
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: capabilities.multiSort,
-        globalFilterFn: globalFilterFn,
+        ...quickFilter,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
         defaultColumn: { minSize: 40, maxSize: 2000 },
