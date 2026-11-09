@@ -69,6 +69,8 @@ export interface ColumnMenuProps {
     onShowAllColumns?: () => void;
     /** Whether any columns are currently hidden */
     hasHiddenColumns?: boolean;
+    /** Whether a visible Column may be hidden: the last one stays, or the menu would be gone with it. */
+    canHideColumn?: boolean;
 }
 
 /**
@@ -93,17 +95,18 @@ function ColumnMenu({
     onClearSorting,
     onShowAllColumns,
     hasHiddenColumns,
+    canHideColumn,
 }: ColumnMenuProps): React.JSX.Element | null {
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
     // Each item needs its table capability and the active column's own permission
     const canSort = capabilities.sorting && activeColumn?.getCanSort?.() === true;
     const canFilter = capabilities.columnFiltering && activeColumn?.getCanFilter?.() === true;
-    const canHide = capabilities.hiding && activeColumn?.getCanHide?.() === true;
+    const canHide = capabilities.hiding && canHideColumn === true && activeColumn?.getCanHide?.() === true;
     const canShowAll = capabilities.hiding && hasHiddenColumns === true && onShowAllColumns !== undefined;
     const hasFilter = activeColumnFilter !== undefined && activeColumnFilter !== null;
 
-    const hasVisibleItems = canSort || canFilter || canHide;
+    const hasVisibleItems = canSort || canFilter || canHide || canShowAll;
 
     if (!hasVisibleItems) {
         return null;

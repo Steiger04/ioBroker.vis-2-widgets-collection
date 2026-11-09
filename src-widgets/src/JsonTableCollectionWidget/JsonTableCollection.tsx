@@ -56,7 +56,7 @@ import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useViewState } from './useViewState';
-import type { ViewColumn } from './viewState';
+import { canHideColumn, type ViewColumn } from './viewState';
 import ColumnMenu from './components/ColumnMenu';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { columnCapabilities, tableCapabilities, virtualizesRows, type EffectiveType } from './capabilities';
@@ -267,6 +267,8 @@ const JsonTableCollection: FC = () => {
         columns: viewColumns,
     });
     const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
+    const hasHiddenColumns = Object.keys(columnVisibility).some(k => columnVisibility[k] === false);
+    const hideAllowed = canHideColumn(columnVisibility, viewColumns);
 
     // ── useReactTable ─────────────────────────────────────────────────────────
 
@@ -551,7 +553,9 @@ const JsonTableCollection: FC = () => {
                                                                     {capabilities.columnMenu &&
                                                                         (header.column.getCanSort() ||
                                                                             header.column.getCanFilter() ||
-                                                                            header.column.getCanHide()) && (
+                                                                            (hideAllowed &&
+                                                                                header.column.getCanHide()) ||
+                                                                            hasHiddenColumns) && (
                                                                             <Tooltip
                                                                                 title={Generic.t(
                                                                                     'json_table_column_menu',
@@ -703,7 +707,8 @@ const JsonTableCollection: FC = () => {
                             view.onSortingChange(old => old.filter(s => s.id !== columnId))
                         }
                         onShowAllColumns={view.showAllColumns}
-                        hasHiddenColumns={Object.keys(columnVisibility).some(k => columnVisibility[k] === false)}
+                        hasHiddenColumns={hasHiddenColumns}
+                        canHideColumn={hideAllowed}
                     />
                 </Box>
             ) : (
