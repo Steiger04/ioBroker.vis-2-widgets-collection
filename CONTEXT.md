@@ -795,12 +795,20 @@ The collection's button that opens a vis view in a modal dialog, optionally mirr
 ## Language
 
 **Dialog-Sitzung**:
-The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back.
+The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back. English pages: dialog session.
 _Avoid_: Dialog-Status (unsaid whether local or backend), Öffnungslogik (that is the wiring), Popup-State
 
 **Sitzungs-OID**:
-The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it.
+The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it. English pages: session OID.
 _Avoid_: Steuer-OID, Steuer ID (that is the Select's `cid`), Dialog-OID, control OID
+
+**Ansichtsrahmen**:
+The Collection frame inside the open dialog, around the embedded view — a second frame beside the button's, with the same Common settings but no **Eck-Icon**. English pages: view frame.
+_Avoid_: Dialog-Rahmen (unsaid which of the two), Modal (that is the window around it)
+
+**Titelzeile**:
+The line at the top of the **Ansichtsrahmen**: it holds the header text when "header as title" is on and the upper close button. Distinct from the **Rahmen-Kopfzeile**, which it replaces in that case. English pages: title line.
+_Avoid_: Header-Zeile, Dialog-Kopf
 
 # Light2 Collection Widget
 
