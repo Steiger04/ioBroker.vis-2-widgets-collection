@@ -335,10 +335,9 @@ describe('CollectionColorPicker with a gradient the library cannot parse', () =>
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
     });
 
-    // CSS reads the first one, the regeln store all three as typed, the library's parser throws on them.
+    // CSS reads the first one, the regeln store both as typed, the library's parser throws on them.
     it.each([
         ['an angle in another unit', 'linear-gradient(0.25turn, red, blue)'],
-        ['an angle unit in upper case', 'linear-gradient(90DEG, red, blue)'],
         ['no colour stop', 'linear-gradient(90deg)'],
     ])('opens without a colour on %s, and stores nothing', (_what, value) => {
         const { onCommit } = mount({ value });
@@ -372,5 +371,75 @@ describe('CollectionColorPicker with a gradient the library cannot parse', () =>
         advance(150);
 
         expect(onCommit).toHaveBeenCalledExactlyOnceWith('#ff0000');
+    });
+});
+
+describe('CollectionColorPicker with a gradient in upper case', () => {
+    /** The library finds a gradient by `includes('gradient')`, so CSS's other spellings read as solid. */
+    const SHOUTED = 'LINEAR-GRADIENT(90DEG, #FF0000 0%, #0000FF 100%)';
+
+    it('shows the stop of the gradient, not the black of an unreadable colour', () => {
+        mount({ value: SHOUTED });
+
+        expect(lastLibraryProps().value).toBe('linear-gradient(90deg, #FF0000 0%, #0000FF 100%)');
+        expect(field('hex').value).toBe('#ff0000');
+    });
+
+    it('stores nothing just from being shown', () => {
+        const { onCommit } = mount({ value: SHOUTED });
+
+        advance(1000);
+
+        expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['a mixed spelling', 'Linear-Gradient(90deg, rgba(0, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 100%)'],
+        ['a keyword direction', 'LINEAR-GRADIENT(TO RIGHT, rgba(0, 128, 255, 1) 0%, rgba(0, 0, 255, 1) 100%)'],
+    ])('an edit of %s stays a gradient, in the lower case the library writes', (_what, value) => {
+        const { onCommit } = mount({ value });
+
+        type('r', '99');
+        press(field('r'), 'Enter');
+        advance(150);
+
+        const compact = String(onCommit.mock.calls[0][0]).replace(/\s+/g, '');
+        expect(compact).toContain('linear-gradient(90deg,');
+        expect(compact).toContain('rgba(0,0,255,1)100%');
+    });
+
+    it('reads a radial gradient the same way', () => {
+        mount({ value: 'RADIAL-GRADIENT(CIRCLE, #F00 0%, #00F 100%)' });
+
+        expect(field('hex').value).toBe('#ff0000');
+    });
+
+    it('reads an angle unit in upper case behind a lower-case name: the parser would throw on it', () => {
+        mount({ value: 'linear-gradient(90DEG, red, blue)' });
+
+        expect(lastLibraryProps().value).toBe('linear-gradient(90deg, red, blue)');
+        expect(field('hex').value).toBe('#ff0000');
+    });
+
+    it('takes a gradient without an orientation', () => {
+        mount({ value: 'LINEAR-GRADIENT(RGB(0, 128, 255), BLUE)' });
+
+        expect(lastLibraryProps().value).toBe('linear-gradient(RGB(0, 128, 255), BLUE)');
+        expect(field('g').value).toBe('128');
+    });
+
+    it('leaves the upper-case stop alone: that is how the library marks the selected one', () => {
+        const value = 'linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, RGBA(0, 128, 255, 1) 100%)';
+
+        mount({ value });
+
+        expect(lastLibraryProps().value).toBe(value);
+        expect(field('g').value).toBe('128');
+    });
+
+    it('leaves a solid colour as it is', () => {
+        mount({ value: 'RGB(0, 128, 255)' });
+
+        expect(lastLibraryProps().value).toBe('RGB(0, 128, 255)');
     });
 });

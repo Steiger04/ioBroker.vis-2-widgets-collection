@@ -75,6 +75,22 @@ export interface CollectionColorPickerProps {
     socket?: Connection;
 }
 
+/** A gradient's name and, where one stands before the first stop, its orientation. */
+const GRADIENT_HEAD =
+    /^(?:linear|radial)-gradient\(\s*(?:(?:-?[\d.]+deg|to\s|circle|ellipse|closest-|farthest-|at\s)[^,]*,)?/i;
+
+/**
+ * The value as the library reads it. CSS and the widgets take `LINEAR-GRADIENT(…)` as a gradient,
+ * the library finds one by `includes('gradient')` and its angle by a lower-case `deg`: it would show
+ * a solid colour, and the next pick would replace the gradient with that colour. The stops stay as
+ * they are, an upper-case stop is how the library marks the selected one. The stored value stays
+ * until the user changes it, and then comes back in the lower case the library writes.
+ *
+ * @param value - The Farbwähler's raw value.
+ * @returns The value with a lower-case gradient head.
+ */
+const forLibrary = (value: string): string => value.replace(GRADIENT_HEAD, head => head.toLowerCase());
+
 /** Most presets the library shows (two rows of nine). */
 const MAX_PRESETS = 18;
 
@@ -349,7 +365,7 @@ function CollectionColorPicker({
                 title={title}
                 onClose={handleClose}
             />
-            <UnparsedValueGuard value={draft}>
+            <UnparsedValueGuard value={forLibrary(draft)}>
                 {(libraryValue): React.ReactNode => (
                     <>
                         {presets === undefined && socket ? (
