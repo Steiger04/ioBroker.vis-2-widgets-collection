@@ -232,6 +232,46 @@ describe('applyConditionalStyle — follows the Effektiver Typ', () => {
         expect(hits(between, null, numberColumn)).toBe(false);
     });
 
+    describe('equality on an empty cell', () => {
+        const numberColumn: CellColumn = { type: 'number', readDate: dateReader() };
+        const on = (logic: Record<string, unknown>): ColumnConfigEntry =>
+            cfg({ cellStyle: [{ logic, fontWeight: 'bold' }] });
+
+        it.each([
+            ['null', null],
+            ['a missing value', undefined],
+            ['the empty string', ''],
+        ])('%s is neither 0 nor false', (_name, empty) => {
+            expect(hits(on({ '==': [{ var: 'value' }, 0] }), empty, numberColumn)).toBe(false);
+            expect(hits(on({ '==': [{ var: 'value' }, false] }), empty, numberColumn)).toBe(false);
+        });
+
+        it.each([
+            ['null', null],
+            ['a missing value', undefined],
+            ['the empty string', ''],
+        ])('%s differs from 0, as from every other number', (_name, empty) => {
+            expect(hits(on({ '!=': [{ var: 'value' }, 0] }), empty, numberColumn)).toBe(true);
+            expect(hits(on({ '!=': [{ var: 'value' }, 5] }), empty, numberColumn)).toBe(true);
+        });
+
+        it('leaves the values 0 and false and the loose reading alone', () => {
+            expect(hits(on({ '==': [{ var: 'value' }, 0] }), 0, numberColumn)).toBe(true);
+            expect(hits(on({ '==': [{ var: 'value' }, 1] }), '1', numberColumn)).toBe(true);
+            expect(hits(on({ '==': [{ var: 'value' }, false] }), false, numberColumn)).toBe(true);
+            expect(hits(on({ '==': [{ var: 'value' }, false] }), 0, numberColumn)).toBe(true);
+            expect(hits(on({ '!=': [{ var: 'value' }, 0] }), 0, numberColumn)).toBe(false);
+            expect(hits(on({ '!=': [{ var: 'value' }, 5] }), 7, numberColumn)).toBe(true);
+            expect(hits(on({ '==': [{ var: 'value' }, 'a'] }), 'a', stringColumn)).toBe(true);
+            expect(hits(on({ '!=': [{ var: 'value' }, 'a'] }), 'b', stringColumn)).toBe(true);
+        });
+
+        it('finds no verdict between text that is no number and a number', () => {
+            expect(hits(on({ '==': [{ var: 'value' }, 5] }), 'n/a', numberColumn)).toBe(false);
+            expect(hits(on({ '!=': [{ var: 'value' }, 5] }), 'n/a', numberColumn)).toBe(false);
+        });
+    });
+
     it('keeps a value that is no date out of a date comparison', () => {
         const before = cfg({
             format: { type: 'date' },

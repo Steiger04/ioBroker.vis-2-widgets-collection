@@ -14,6 +14,7 @@
  * Built-in operators replaced, because they read an empty cell as a number:
  *   - !!(value)             → the cell has content (0 and false are values)
  *   - <, <=, >, >=          → false for an empty cell on either side; three arguments read as "between"
+ *   - ==, !=                → an empty cell is neither 0 nor false
  */
 
 import { LogicEngine } from 'json-logic-engine';
@@ -64,6 +65,30 @@ for (const [operator, compare] of Object.entries(COMPARISONS)) {
         deterministic: true,
     });
 }
+
+/**
+ * The engine's loose equality, except that an empty cell is no number: it equals only the same
+ * empty value, never 0 or false.
+ *
+ * @returns `undefined` where the two have no common reading (an object, or text that is no number
+ *   against a number): the engine throws there, so neither `==` nor `!=` holds.
+ */
+function looselyEqual(left: unknown, right: unknown): boolean | undefined {
+    if (isEmptyCell(left) || isEmptyCell(right) || (typeof left === 'string' && typeof right === 'string')) {
+        return left === right;
+    }
+    const [leftNumber, rightNumber] = [Number(left), Number(right)];
+    return typeof left === 'object' || typeof right === 'object' || isNaN(leftNumber) || isNaN(rightNumber)
+        ? undefined
+        : leftNumber === rightNumber;
+}
+
+engine.addMethod('==', (args: unknown[]) => everyPair(args, (left, right) => looselyEqual(left, right) === true), {
+    deterministic: true,
+});
+engine.addMethod('!=', (args: unknown[]) => everyPair(args, (left, right) => looselyEqual(left, right) === false), {
+    deterministic: true,
+});
 
 engine.addMethod('contains', ([str, sub]: [unknown, unknown]) => toStr(str).includes(toStr(sub)), {
     deterministic: true,
