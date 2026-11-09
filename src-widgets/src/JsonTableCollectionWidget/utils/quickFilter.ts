@@ -81,3 +81,18 @@ export function createDateAwareGlobalFilter(columns: readonly QuickFilterColumn[
         return cellStr.toLowerCase().includes(term);
     };
 }
+
+/**
+ * The quick filter's table options: its filter function, on every Column. TanStack's default
+ * gate would judge a Column by the type of its FIRST row's value, so a Column starting with
+ * an empty cell or a boolean would never be searched.
+ *
+ * @param columns - The table's Columns.
+ * @returns The options to spread into `useReactTable`.
+ */
+export function quickFilterOptions(columns: readonly QuickFilterColumn[]): {
+    globalFilterFn: FilterFn<Record<string, unknown>>;
+    getColumnCanGlobalFilter: () => boolean;
+} {
+    return { globalFilterFn: createDateAwareGlobalFilter(columns), getColumnCanGlobalFilter: () => true };
+}

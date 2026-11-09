@@ -31,6 +31,28 @@ function toStr(v: unknown): string {
 
 const engine = new LogicEngine();
 
+/** A cell with content: not missing and not the empty string, as in the Spaltenfilter; 0 and false are values. */
+const hasContent = (value: unknown): boolean => value !== null && value !== undefined && value !== '';
+
+// The rule builder's `empty`/`not_empty` are stored as `!!`.
+engine.addMethod('!!', ([value]: [unknown]) => hasContent(value), {
+    deterministic: true,
+});
+
+// JavaScript reads a missing value as 0 and the empty string as the smallest text: without the
+// guard an empty cell would match every "less than" rule.
+const COMPARISONS: Record<string, (value: number, limit: number) => boolean> = {
+    '<': (value, limit) => value < limit,
+    '<=': (value, limit) => value <= limit,
+    '>': (value, limit) => value > limit,
+    '>=': (value, limit) => value >= limit,
+};
+for (const [operator, compare] of Object.entries(COMPARISONS)) {
+    engine.addMethod(operator, ([value, limit]: [number, number]) => hasContent(value) && compare(value, limit), {
+        deterministic: true,
+    });
+}
+
 engine.addMethod('contains', ([str, sub]: [unknown, unknown]) => toStr(str).includes(toStr(sub)), {
     deterministic: true,
 });

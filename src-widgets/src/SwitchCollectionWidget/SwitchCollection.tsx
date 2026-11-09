@@ -100,7 +100,7 @@ function SwitchCollection(): React.JSX.Element {
                         alignItems: 'center',
                     }}
                 >
-                    {oidValue !== undefined && widget.data.thumbSize !== undefined && (
+                    {oidValue !== undefined && (
                         <BudgetedSwitch
                             data={widget.data}
                             icon={data}

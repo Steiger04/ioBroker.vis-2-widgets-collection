@@ -103,6 +103,20 @@ export function tableCapabilities(data: CapabilitySettings | WidgetData): TableC
     };
 }
 
+/**
+ * Whether the table body renders only the rows in view: never while it pages, otherwise above
+ * the threshold.
+ *
+ * @param table The Tabellen-Fähigkeiten.
+ * @param rowCount The rows after filtering.
+ * @param threshold `tableVirtualizeThreshold` (unset ⇒ 50, 0 ⇒ never).
+ * @returns `true` when the rows are virtualized.
+ */
+export function virtualizesRows(table: TableCapabilities, rowCount: number, threshold?: number | null): boolean {
+    const limit = threshold ?? 50;
+    return !table.pagination && limit > 0 && rowCount > limit;
+}
+
 /** What one Column allows its users. */
 export type ColumnCapabilities = Readonly<{
     sortable: boolean;

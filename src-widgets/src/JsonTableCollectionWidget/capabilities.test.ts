@@ -9,7 +9,27 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { columnCapabilities, effectiveType, tableCapabilities, typeDefaults } from './capabilities';
+import { columnCapabilities, effectiveType, tableCapabilities, typeDefaults, virtualizesRows } from './capabilities';
+
+describe('virtualizesRows', () => {
+    const paged = tableCapabilities({});
+    const unpaged = tableCapabilities({ tablePagination: false });
+
+    it('never virtualizes a paged table', () => {
+        expect(virtualizesRows(paged, 1000, 50)).toBe(false);
+    });
+
+    it('virtualizes above the threshold, 50 when unset', () => {
+        expect(virtualizesRows(unpaged, 51)).toBe(true);
+        expect(virtualizesRows(unpaged, 50)).toBe(false);
+        expect(virtualizesRows(unpaged, 11, 10)).toBe(true);
+        expect(virtualizesRows(unpaged, 10, 10)).toBe(false);
+    });
+
+    it('never virtualizes with the threshold 0, as the field tooltip promises', () => {
+        expect(virtualizesRows(unpaged, 1000, 0)).toBe(false);
+    });
+});
 
 describe('tableCapabilities — missing keys keep their historic polarity', () => {
     it('resolves empty widget data to the documented defaults', () => {
