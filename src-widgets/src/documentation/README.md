@@ -7,6 +7,9 @@ This directory contains the complete documentation for the ioBroker.vis-2 Widget
 ```
 documentation/
 ├── Home.md          # Main entry point with language selection
+├── _Sidebar.md      # Wiki sidebar, shared by all pages
+├── README.md        # This file; not synced
+├── wikiStructure.test.ts  # Structure test for the wiki rules; not synced
 ├── de/              # German documentation
 │   ├── De-Home.md
 │   ├── De-State-Widget.md
@@ -72,21 +75,69 @@ The documentation is automatically synchronized to the GitHub Wiki via GitHub Ac
 - **Trigger**: Pushes to the `main` branch or version tags. The `sync-wiki` job in `.github/workflows/test-and-release.yml` calls this reusable workflow; it does **not** run on other branches (e.g. `dev`) or on pull requests. Doc changes made on `dev` therefore go live only after they are merged to `main`.
 - **Workflow**: `.github/workflows/sync-wiki.yml` (reusable, `workflow_call`), invoked by `.github/workflows/test-and-release.yml`
 - **Process**:
-    1. Creates a temporary directory `/tmp/wiki-sync`
+    1. Creates a temporary directory `/tmp/wiki-sync` with an `img/` subfolder
     2. Copies `Home.md` (language selection page)
-    3. Copies all `De-*.md` files from `de/`
-    4. Copies all `En-*.md` files from `en/`
-    5. Copies all images from `img/`
-    6. Adjusts image paths for wiki compatibility (`../img/` → `img/`)
-    7. Performs a single sync operation to the wiki
-- **Result**: Both German and English documentation are published to the wiki with proper language prefixes
+    3. Copies `_Sidebar.md` (wiki sidebar)
+    4. Copies all `De-*.md` files from `de/`
+    5. Copies all `En-*.md` files from `en/`
+    6. Copies the direct files of `img/` to `img/`
+    7. Rewrites `../img/` to `img/` in every copied Markdown file, anywhere in the text (`sed`)
+    8. Performs a single sync operation to the wiki
+- **Result**: Both German and English documentation are published to the wiki with proper language prefixes. Nothing else in this directory reaches the wiki, including this README and the structure test.
+
+## Wiki Rules
+
+The form below keeps the pages working in the wiki. The structure test enforces it where the rule says so.
+
+**Documented by GitHub:**
+
+- The file name sets the page title. The characters `\ / : * ? " < > |` are forbidden.
+- The extension sets the rendering, here `.md`.
+- `_Sidebar` fills the sidebar.
+- Images only as PNG, JPEG or GIF.
+- Not supported: transclusion, definition lists, indentation, table of contents.
+
+**Verified on the live wiki and in the sync:**
+
+- Page links keep the form `[Text](De-Xxx.md)`. GitHub renders them as working wiki links.
+- Images stay `../img/name.png` in the sources. The sync rewrites `../img/` to `img/` everywhere in the text, code included, so this string may only appear in image references. The dots in the `sed` pattern match any character, so any two characters before `/img/` count as well (`example.com/img/` too).
+- The sync only copies `Home.md`, `_Sidebar.md`, `de/De-*.md`, `en/En-*.md` and the direct files of `img/`. Subfolders in `img/` would break the copy step.
+- Mermaid renders in the live wiki.
+
+**Derived:**
+
+- No new Markdown constructs: no inline HTML, no alert boxes, no footnotes, no `[[wiki links]]`. Mermaid stays allowed.
+
+### Structure Test
+
+`wikiStructure.test.ts` reads the sources and reports each violation as `file:line [rule] message`:
+
+```bash
+cd src-widgets && npx vitest run --project node src/documentation/
+```
+
+| Rule                                                                        | Checks                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file-name`                                                                 | `de/` holds only `De-*.md`, `en/` only `En-*.md`, no forbidden characters; `Home.md` and `_Sidebar.md` exist                                                                                                                          |
+| `sidebar-link`, `sidebar-page`                                              | Every sidebar link leads to an existing page; every page in `de/` and `en/` is in the sidebar                                                                                                                                         |
+| `link-form`, `link-target`                                                  | Internal page links use the flat `.md` form and have an existing target                                                                                                                                                               |
+| `anchor`                                                                    | Anchors, on the same page or on another, lead to a heading, computed as on GitHub: lowercase, punctuation removed, umlauts kept, each space a hyphen, duplicates with a counter; code blocks are no headings                          |
+| `image-path`, `image-file`, `image-string`                                  | References use `../img/name`, the file exists, and the string occurs nowhere else, code included                                                                                                                                      |
+| `image-folder`                                                              | `img/` has no subfolders and only PNG, JPEG or GIF                                                                                                                                                                                    |
+| `inline-html`, `alert-box`, `footnote`, `wiki-link`                         | Forbidden constructs; code blocks and inline code do not count                                                                                                                                                                        |
+| `parity-pair`, `parity-lines`, `parity-kind`, `parity-image`, `parity-link` | Each DE/EN pair (`De-Echarts-JSON-Formate` pairs with `En-Echarts-JSON-Formats`) matches in line count, line kind, images and link targets apart from language prefix and anchor; only the first deviating line of a pair is reported |
+
+Line kinds for parity: heading with level, table row, code fence, line inside a code block, blank line, blockquote, list item, other text.
+
+The test does not check wording, the order of H2 headings or whether every panel field is documented; that remains a matter for review.
 
 ## Editing Documentation
 
-1. Edit the Markdown files in this directory
-2. Commit and push changes to the repository
-3. Documentation is automatically synced to the wiki
-4. No manual wiki editing required
+1. Edit the Markdown files in this directory, German first, then English line by line
+2. Run the structure test
+3. Commit and push changes to the repository
+4. Documentation is synced to the wiki after the merge to `main`
+5. No manual wiki editing required
 
 ## Wiki Initialization
 
@@ -137,6 +188,6 @@ To add a new language:
 3. Rename all files with the appropriate language prefix (e.g., `Fr-Home.md`)
 4. Update all internal links to use the new prefix
 5. Update image paths to use `../img/` (for local viewing)
-6. Add a link to the new language in the main `Home.md` file
-7. The sync workflow will automatically include the new language files
-8. Update `.github/workflows/sync-wiki.yml` to include the new language
+6. Add a link to the new language in the main `Home.md` file and the pages to `_Sidebar.md`
+7. Update `.github/workflows/sync-wiki.yml` to copy the new language files; the sync does not pick them up on its own
+8. Extend `wikiStructure.test.ts` with the new folder and prefix
