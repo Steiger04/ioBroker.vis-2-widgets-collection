@@ -109,6 +109,7 @@
     "echarts_axis_delete": "Remove axis",
     "echarts_axis_died": "Axis removed with its configuration: %s",
     "echarts_axis_died_info": "Axis removed — its series left the payload: %s",
+    "echarts_axis_fallback_name": "Axis %s",
     "echarts_axis_grid_color": "Grid line color",
     "echarts_axis_grid_type": "Grid line type",
     "echarts_axis_grid_type_default": "Default",

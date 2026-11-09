@@ -6,7 +6,7 @@
  *
  * @module EchartsCollectionWidget/editor/axisSight.test
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     alignTicksDisabledByOverride,
@@ -20,6 +20,7 @@ import {
     effectiveAxisColor,
     effectiveAxisName,
     emittedAxisRanks,
+    jsonAxisDeathName,
     jsonBindingView,
 } from './axisSight';
 import { dropUnboundAxes } from './structureEvents';
@@ -361,5 +362,18 @@ describe('axis name owner „Namensgeber" — the incumbent keeps the axis ident
         expect(boundJsonAxisName(axis, 1, ['N2', 'N3'], overlay, [])).toBe('Drei');
         // owner gone/hidden → first visible binder
         expect(boundJsonAxisName(axis, 1, ['N2', 'N3'], overlay, ['N3'])).toBe('N2');
+    });
+});
+
+describe('jsonAxisDeathName — an axis nothing names', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('reads the translated position, not a fixed German text', () => {
+        vi.stubGlobal('window', {
+            visRxWidget: { t: (key: string, ...args: string[]) => `${key}:${args.join()}` },
+        });
+        expect(jsonAxisDeathName({}, 1, [], {}, [])).toBe('echarts_axis_fallback_name:2');
     });
 });

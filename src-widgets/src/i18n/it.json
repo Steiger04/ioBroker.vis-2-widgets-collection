@@ -1379,5 +1379,6 @@
     "state_editor_search": "Cerca",
     "state_editor_rows_differ_bindings": "I widget selezionati associano campi diversi. Lo spostamento, l'aggiunta, la clonazione, l'eliminazione e la ricreazione delle righe funzionano solo su righe e associazioni identiche: modifica i widget uno alla volta.",
     "state_editor_rows_differ_count": "I widget selezionati hanno un numero diverso di righe. Lo spostamento, l'aggiunta, la clonazione, l'eliminazione e la ricreazione delle righe funzionano solo su righe identiche: modifica i widget uno alla volta.",
-    "state_editor_rows_differ_states": "Gli oggetti dei widget selezionati dichiarano stati diversi. La ricreazione delle righe da common.states funziona solo con stati identici — modificare i widget uno alla volta."
+    "state_editor_rows_differ_states": "Gli oggetti dei widget selezionati dichiarano stati diversi. La ricreazione delle righe da common.states funziona solo con stati identici — modificare i widget uno alla volta.",
+    "echarts_axis_fallback_name": "Asse %s"
 }

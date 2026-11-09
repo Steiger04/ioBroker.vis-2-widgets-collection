@@ -1379,5 +1379,6 @@
     "state_editor_search": "Suchen",
     "state_editor_rows_differ_bindings": "Die gewählten Widgets binden unterschiedliche Felder. Verschieben, Hinzufügen, Klonen, Löschen und Neu anlegen gehen nur bei gleichen Zeilen und Bindungen – die Widgets einzeln bearbeiten.",
     "state_editor_rows_differ_count": "Die gewählten Widgets haben unterschiedlich viele Zeilen. Verschieben, Hinzufügen, Klonen, Löschen und Neu anlegen gehen nur bei gleichen Zeilen – die Widgets einzeln bearbeiten.",
-    "state_editor_rows_differ_states": "Die Objekte der gewählten Widgets deklarieren unterschiedliche Zustände. Neu anlegen aus common.states geht nur bei gleichen Zuständen – die Widgets einzeln bearbeiten."
+    "state_editor_rows_differ_states": "Die Objekte der gewählten Widgets deklarieren unterschiedliche Zustände. Neu anlegen aus common.states geht nur bei gleichen Zuständen – die Widgets einzeln bearbeiten.",
+    "echarts_axis_fallback_name": "Achse %s"
 }

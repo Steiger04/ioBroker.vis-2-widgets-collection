@@ -11,6 +11,7 @@
  * resets) is a structure event in `editor/structureEvents`; the former `axisLayout` module is
  * dissolved into these two.
  */
+import { translate } from '../../lib/translate';
 import { lastPathSegment } from '../jsonTableParse';
 import { binderIndexOf, effectiveSeriesName } from '../axisResolution';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
@@ -267,5 +268,7 @@ export const jsonAxisDeathName = (
     hidden: readonly string[],
 ): string => {
     const extended = [...names, ...Object.keys(overlay).filter(n => !names.includes(n) && !hidden.includes(n))];
-    return boundJsonAxisName(axis, i, extended, overlay, hidden) ?? `Achse ${i + 1}`;
+    return (
+        boundJsonAxisName(axis, i, extended, overlay, hidden) ?? translate('echarts_axis_fallback_name', String(i + 1))
+    );
 };

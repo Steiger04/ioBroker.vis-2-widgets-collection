@@ -64,6 +64,21 @@ describe('AxesZoomSection — the tabellarisch positional sight (ADR-0075 family
         expect(el.textContent).not.toContain('Achse 2');
     });
 
+    it('titles an axis nothing names with the translated position, not a fixed German text', () => {
+        const t = vi.spyOn(Generic, 't');
+        const el = mount(AxesZoomSection, {
+            state: tableState({
+                series: [{ id: 's0', oid: '', yAxisIndex: 1 }],
+                yAxes: [axisLayout(0), axisLayout(1)],
+            }),
+            set: () => undefined,
+            pickerCtx: {},
+        });
+        expect(el.textContent).not.toContain('Achse 1');
+        expect(t).toHaveBeenCalledWith('echarts_axis_fallback_name', '1');
+        t.mockRestore();
+    });
+
     it('deleting an axis REBINDS the positional series (Verlauf semantics), leaving nothing stale', () => {
         const set = vi.fn();
         const el = mount(AxesZoomSection, { state: tableState(), set, pickerCtx: {} });

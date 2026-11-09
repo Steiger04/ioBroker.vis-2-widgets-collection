@@ -1379,5 +1379,6 @@
     "state_editor_search": "Rechercher",
     "state_editor_rows_differ_bindings": "Les widgets sélectionnés sont liés à des champs différents. Déplacer, ajouter, cloner, supprimer et recréer des lignes ne fonctionne que sur des lignes et des liaisons identiques — modifiez les widgets un par un.",
     "state_editor_rows_differ_count": "Les widgets sélectionnés ont un nombre de lignes différent. Déplacer, ajouter, cloner, supprimer et recréer des lignes ne fonctionne que sur des lignes identiques — modifiez les widgets un par un.",
-    "state_editor_rows_differ_states": "Les objets des widgets sélectionnés déclarent des états différents. La recréation de lignes à partir de common.states ne fonctionne qu'avec des états identiques — modifiez les widgets un par un."
+    "state_editor_rows_differ_states": "Les objets des widgets sélectionnés déclarent des états différents. La recréation de lignes à partir de common.states ne fonctionne qu'avec des états identiques — modifiez les widgets un par un.",
+    "echarts_axis_fallback_name": "Axe %s"
 }
