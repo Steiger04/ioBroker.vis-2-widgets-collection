@@ -466,7 +466,7 @@ export function toEchartsLinearGradient(value: string | null | undefined): Echar
         return null;
     }
     const trimmed = value.trim();
-    if (!trimmed.startsWith('linear-gradient(')) {
+    if (!/^linear-gradient\(/i.test(trimmed)) {
         return null;
     }
     const open = trimmed.indexOf('(');
