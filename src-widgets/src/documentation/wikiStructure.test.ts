@@ -26,8 +26,10 @@ interface Violation {
     message: string;
 }
 
-const report = (violations: Violation[]): string[] =>
-    violations.map(v => `${v.file}:${v.line} [${v.rule}] ${v.message}`);
+/** Where a violation sits and which rule it broke; the self-tests pin this part down. */
+const located = (v: Violation): string => `${v.file}:${v.line} [${v.rule}]`;
+
+const report = (violations: Violation[]): string[] => violations.map(v => `${located(v)} ${v.message}`);
 
 /** GitHub derives the page title from the file name and rejects these characters in it. */
 const FORBIDDEN_NAME_CHARS = /[\\:*?"<>|]/;
@@ -238,8 +240,10 @@ const eachLink = (
         ),
     );
 
+const pageNamesOf = (tree: WikiTree): Set<string> => new Set(Object.keys(tree.pages).map(flatName));
+
 const linkViolations = (tree: WikiTree): Violation[] => {
-    const pageNames = new Set(Object.keys(tree.pages).map(flatName));
+    const pageNames = pageNamesOf(tree);
     return eachLink(tree, (file, line, { target }) => {
         if (isExternal(target)) {
             return null;
@@ -269,7 +273,7 @@ const linkViolations = (tree: WikiTree): Violation[] => {
 };
 
 const sidebarViolations = (tree: WikiTree): Violation[] => {
-    const pageNames = new Set(Object.keys(tree.pages).map(flatName));
+    const pageNames = pageNamesOf(tree);
     const listed = new Set<string>();
     const broken = eachLink(
         tree,
@@ -428,9 +432,17 @@ const neutralTarget = (target: string): string => {
     return path === '' ? '#' : neutralName(path);
 };
 
-const sortedTargets = (refs: Ref[], normalize: (target: string) => string): string =>
+const imageTargets = (refs: Ref[]): string =>
     refs
-        .map(ref => normalize(ref.target))
+        .filter(ref => ref.image)
+        .map(ref => ref.target)
+        .sort()
+        .join(' ');
+
+const linkTargets = (refs: Ref[]): string =>
+    refs
+        .filter(ref => !ref.image)
+        .map(ref => neutralTarget(ref.target))
         .sort()
         .join(' ');
 
@@ -452,22 +464,8 @@ const firstParityBreak = (dePath: string, de: Line[], enPath: string, en: Line[]
         const where = `${enPath}:${enLine.number}`;
         const deRefs = refsIn(deLine);
         const enRefs = refsIn(enLine);
-        const deImages = sortedTargets(
-            deRefs.filter(ref => ref.image),
-            target => target,
-        );
-        const enImages = sortedTargets(
-            enRefs.filter(ref => ref.image),
-            target => target,
-        );
-        const deLinks = sortedTargets(
-            deRefs.filter(ref => !ref.image),
-            neutralTarget,
-        );
-        const enLinks = sortedTargets(
-            enRefs.filter(ref => !ref.image),
-            neutralTarget,
-        );
+        const [deImages, enImages] = [imageTargets(deRefs), imageTargets(enRefs)];
+        const [deLinks, enLinks] = [linkTargets(deRefs), linkTargets(enRefs)];
         const [rule, message] =
             deLine.kind !== enLine.kind
                 ? [
@@ -548,8 +546,17 @@ const validTree = (): WikiTree => ({
     folders: { de: ['De-Home.md'], en: ['En-Home.md'], img: ['a.png'] },
 });
 
-/** The file:line [rule] part of each violation, which is what the self-tests pin down. */
-const fired = (violations: Violation[]): string[] => violations.map(v => `${v.file}:${v.line} [${v.rule}]`);
+const fired = (violations: Violation[]): string[] => violations.map(located);
+
+/** The valid tree with `text` as its German page. */
+const germanPage = (text: string): WikiTree => {
+    const tree = validTree();
+    tree.pages['de/De-Home.md'] = text;
+    return tree;
+};
+
+/** The valid tree with `line` on line 3 of its German page. */
+const germanLine = (line: string): WikiTree => germanPage(`# Start\n\n${line}\n`);
 
 describe('wiki rules fire on sample text', () => {
     describe('file names', () => {
@@ -578,12 +585,6 @@ describe('wiki rules fire on sample text', () => {
     });
 
     describe('markdown constructs', () => {
-        const page = (text: string): WikiTree => {
-            const tree = validTree();
-            tree.pages['de/De-Home.md'] = text;
-            return tree;
-        };
-
         it('accepts the valid tree', () => {
             expect(fired(constructViolations(validTree()))).toEqual([]);
         });
@@ -601,7 +602,7 @@ describe('wiki rules fire on sample text', () => {
             ['a wiki link', 'Siehe [[De-Home]]', 'wiki-link'],
             ['a wiki link with a title', 'Siehe [[Start|De-Home]]', 'wiki-link'],
         ])('%s', (_label, line, rule) => {
-            expect(fired(constructViolations(page(`# Start\n\n${line}\n`)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
+            expect(fired(constructViolations(germanLine(line)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
         });
 
         it.each([
@@ -613,20 +614,20 @@ describe('wiki rules fire on sample text', () => {
             ['a nested JSON array', 'Daten [[1,2],[3,4]]'],
             ['a plain blockquote', '> **Hinweis:** Text'],
         ])('leaves %s alone', (_label, line) => {
-            expect(fired(constructViolations(page(`# Start\n\n${line}\n`)))).toEqual([]);
+            expect(fired(constructViolations(germanLine(line)))).toEqual([]);
         });
 
         it('leaves code blocks alone, mermaid included', () => {
             const text = '```mermaid\ngraph TD; A-->B\n```\n\n```html\n<br>\n[[a]]\n[^1]\n> [!NOTE]\n```\n';
-            expect(fired(constructViolations(page(text)))).toEqual([]);
+            expect(fired(constructViolations(germanPage(text)))).toEqual([]);
         });
 
         it('leaves a tilde fence alone and does not end it at a backtick fence', () => {
-            expect(fired(constructViolations(page('~~~\n```\n<br>\n~~~\n')))).toEqual([]);
+            expect(fired(constructViolations(germanPage('~~~\n```\n<br>\n~~~\n')))).toEqual([]);
         });
 
         it('resumes after the closing fence', () => {
-            expect(fired(constructViolations(page('```\n<br>\n```\n<br>\n')))).toEqual([
+            expect(fired(constructViolations(germanPage('```\n<br>\n```\n<br>\n')))).toEqual([
                 'de/De-Home.md:4 [inline-html]',
             ]);
         });
@@ -639,12 +640,6 @@ describe('wiki rules fire on sample text', () => {
     });
 
     describe('page links', () => {
-        const withLine = (line: string): WikiTree => {
-            const tree = validTree();
-            tree.pages['de/De-Home.md'] = `# Start\n\n${line}\n`;
-            return tree;
-        };
-
         it('accepts the valid tree', () => {
             expect(fired(linkViolations(validTree()))).toEqual([]);
         });
@@ -657,7 +652,7 @@ describe('wiki rules fire on sample text', () => {
             ['a link in the wrong case', '[Text](en-home.md)', 'link-target'],
             ['a link to a page the sync does not copy', '[Text](README.md)', 'link-target'],
         ])('%s', (_label, line, rule) => {
-            expect(fired(linkViolations(withLine(line)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
+            expect(fired(linkViolations(germanLine(line)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
         });
 
         it.each([
@@ -668,15 +663,15 @@ describe('wiki rules fire on sample text', () => {
             ['a link with inline code in its text', '[`Text`](En-Home.md)'],
             ['an image wrapped in a link', '[![Bild](../img/a.png)](En-Home.md)'],
         ])('leaves %s alone', (_label, line) => {
-            expect(fired(linkViolations(withLine(line)))).toEqual([]);
+            expect(fired(linkViolations(germanLine(line)))).toEqual([]);
         });
 
         it('leaves a link in a code block alone', () => {
-            expect(fired(linkViolations(withLine('```\n[Text](De-Nope.md)\n```')))).toEqual([]);
+            expect(fired(linkViolations(germanLine('```\n[Text](De-Nope.md)\n```')))).toEqual([]);
         });
 
         it('reports every broken link of a line, naming the target', () => {
-            const violations = linkViolations(withLine('[a](De-Nope.md) und [b](De-Auch-Nicht.md)'));
+            const violations = linkViolations(germanLine('[a](De-Nope.md) und [b](De-Auch-Nicht.md)'));
             expect(violations.map(v => v.message).join()).toContain('De-Nope.md');
             expect(violations.map(v => v.message).join()).toContain('De-Auch-Nicht.md');
         });
@@ -747,11 +742,7 @@ describe('wiki rules fire on sample text', () => {
             expect(anchorsOf('```\n# Kommentar\n```\n\n## Echt\n')).toEqual(['echt']);
         });
 
-        const withLink = (extra: string, link: string): WikiTree => {
-            const tree = validTree();
-            tree.pages['de/De-Home.md'] = `# Start\n\n${extra}\n\n${link}\n`;
-            return tree;
-        };
+        const withLink = (extra: string, link: string): WikiTree => germanLine(`${extra}\n\n${link}`);
 
         it('accepts the valid tree', () => {
             expect(fired(anchorViolations(validTree()))).toEqual([]);
@@ -788,12 +779,6 @@ describe('wiki rules fire on sample text', () => {
     });
 
     describe('images', () => {
-        const withLine = (line: string): WikiTree => {
-            const tree = validTree();
-            tree.pages['de/De-Home.md'] = `# Start\n\n${line}\n`;
-            return tree;
-        };
-
         it('accepts the valid tree', () => {
             expect(fired(imageViolations(validTree()))).toEqual([]);
         });
@@ -805,7 +790,7 @@ describe('wiki rules fire on sample text', () => {
             ['a subfolder path', '![Bild](../img/sub/a.png)', 'image-path'],
             ['an external image', '![Bild](https://example.com/a.png)', 'image-path'],
         ])('%s', (_label, line, rule) => {
-            expect(fired(imageViolations(withLine(line)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
+            expect(fired(imageViolations(germanLine(line)))).toEqual([`de/De-Home.md:3 [${rule}]`]);
         });
 
         // The sync's sed rewrites `../img/` everywhere, and its dots match any character.
@@ -816,17 +801,17 @@ describe('wiki rules fire on sample text', () => {
             ['after any two characters, as sed reads the dots', 'Siehe https://example.com/img/a.png'],
             ['in a table row', '| Pfad | ../img/ |'],
         ])('the rewritten string %s', (_label, line) => {
-            expect(fired(imageViolations(withLine(line)))).toEqual(['de/De-Home.md:3 [image-string]']);
+            expect(fired(imageViolations(germanLine(line)))).toEqual(['de/De-Home.md:3 [image-string]']);
         });
 
         it('the rewritten string in a code block', () => {
-            expect(fired(imageViolations(withLine('```\n../img/a.png\n```')))).toEqual([
+            expect(fired(imageViolations(germanLine('```\n../img/a.png\n```')))).toEqual([
                 'de/De-Home.md:4 [image-string]',
             ]);
         });
 
         it('the rewritten string on a line that also holds a valid image', () => {
-            expect(fired(imageViolations(withLine('![Bild](../img/a.png) aus ../img/')))).toEqual([
+            expect(fired(imageViolations(germanLine('![Bild](../img/a.png) aus ../img/')))).toEqual([
                 'de/De-Home.md:3 [image-string]',
             ]);
         });
@@ -845,7 +830,7 @@ describe('wiki rules fire on sample text', () => {
             ['/img/ at the start of a line', '/img/ allein'],
             ['a mention of img/ alone', 'Ablage img/a.png'],
         ])('leaves %s alone', (_label, line) => {
-            expect(fired(imageViolations(withLine(line)))).toEqual([]);
+            expect(fired(imageViolations(germanLine(line)))).toEqual([]);
         });
 
         it.each([
