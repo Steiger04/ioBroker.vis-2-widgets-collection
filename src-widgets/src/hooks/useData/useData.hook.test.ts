@@ -335,3 +335,40 @@ describe('useData — oidValue, in the render that brings it', () => {
         expect(renders.map(render => render.oidValue)).toEqual([2]);
     });
 });
+
+describe('useData — the OID name behind the header', () => {
+    afterEach(() => {
+        for (const host of mounted.splice(0)) {
+            host.unmount();
+        }
+    });
+
+    /** The header without a header text, for an object named `name`, in the host language `lang`. */
+    const headerOf = (name: unknown, lang: string): string | undefined => {
+        const captured: { current?: UseDataResult } = {};
+        const Probe: FC = () => {
+            captured.current = useData('oid');
+            return null;
+        };
+        mounted.push(
+            mountCollectionBody(Probe, scene({ oidObject: { _id: OID, type: 'string', name } }, 'a'), { lang }),
+        );
+        return captured.current?.data.header;
+    };
+
+    it('reads a name in several languages in the host language', () => {
+        expect(headerOf({ en: 'Lamp', de: 'Lampe' }, 'de')).toBe('Lampe');
+    });
+
+    it('falls back to the English name when the host language has none', () => {
+        expect(headerOf({ en: 'Lamp', de: 'Lampe' }, 'fr')).toBe('Lamp');
+    });
+
+    it('stays empty when the name has neither the host language nor English', () => {
+        expect(headerOf({ de: 'Lampe' }, 'fr')).toBe('');
+    });
+
+    it('leaves a plain name as it is', () => {
+        expect(headerOf('LAMP_1.2', 'de')).toBe('LAMP_1.2');
+    });
+});

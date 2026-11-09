@@ -1,4 +1,5 @@
 import { useCallback, useContext, useMemo } from 'react';
+import { Utils } from '@iobroker/adapter-react-v5/build/Components/Utils';
 import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
 import { getDynamicProperty } from '../../types/utility-types';
@@ -25,6 +26,18 @@ export interface UseDataOptions {
 const NO_MARKER_LAYER: MarkerLayer = {};
 
 /**
+ * An object's name as text: `common.name` can hold one text per language. Without a text in the
+ * host language or in English nothing is shown (the host's helper would print "undefined").
+ */
+const displayName = (name: ioBroker.StringOrTranslated | undefined, lang: ioBroker.Languages): string | undefined => {
+    if (typeof name !== 'object' || name === null) {
+        return name;
+    }
+    const texts = name as Record<string, string | undefined>;
+    return texts[lang] || texts.en ? Utils.getObjectNameFromObj({ common: { name } }, lang) : undefined;
+};
+
+/**
  * Resolves the widget's states and style data from the CollectionContext.
  *
  * @param _oid - OID property name from rxData (e.g. "oid", "oid1")
@@ -32,6 +45,7 @@ const NO_MARKER_LAYER: MarkerLayer = {};
  */
 function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     const {
+        lang,
         theme,
         widget,
         widget: { data: rxData },
@@ -40,7 +54,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     const oidObject = rxData[`${_oid}Object`];
     const oidValue = getPropertyValue(_oid);
-    const oidName = oidObject?.name;
+    const oidName = displayName(oidObject?.name, lang);
 
     const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 

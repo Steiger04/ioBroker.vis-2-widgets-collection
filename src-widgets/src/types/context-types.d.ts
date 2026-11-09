@@ -340,6 +340,9 @@ export interface CollectionContextProps<T extends object = object> {
      */
     socket: Connection;
 
+    /** The host language (the ioBroker system language). */
+    lang: ioBroker.Languages;
+
     /**
      * Material-UI theme object.
      *
