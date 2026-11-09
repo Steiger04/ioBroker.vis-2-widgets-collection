@@ -43,7 +43,7 @@ describe('displayText', () => {
         ['the alias wins, without a unit', { value: 21, unit: UNIT, alias: 'warm', rowValue: '21 kWh' }, 'warm'],
         ['the row value wins as it is', { value: 21, unit: UNIT, rowValue: '21 kWh' }, '21 kWh'],
         ['an empty alias and row value fall through', { value: 21, unit: UNIT, alias: '', rowValue: '' }, '21°C'],
-        ['a row value of only spaces falls through', { value: 21, unit: UNIT, rowValue: '   ' }, '21°C'],
+        ['a row value of only spaces stays text', { value: 21, unit: UNIT, rowValue: '   ' }, '   '],
         ['a row value of 0 is skipped', { value: 21, unit: UNIT, rowValue: 0 }, '21°C'],
         ['a row value of false is skipped', { value: 21, unit: UNIT, rowValue: false }, '21°C'],
         ['the current value takes the unit', { value: 21, unit: UNIT }, '21°C'],

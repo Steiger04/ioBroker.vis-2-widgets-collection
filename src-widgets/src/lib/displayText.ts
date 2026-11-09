@@ -52,7 +52,7 @@ export const valueWithUnit = (value: unknown, unit: string | undefined): TextVal
  * @returns The raw text, `undefined` when there is nothing to show.
  */
 export const displayText = (input: DisplayTextInput): TextValue | undefined =>
-    // A blank alias names nothing (ADR-0110 Nr. 10), a blank row is no state.
+    // A blank alias names nothing (ADR-0110 Nr. 10).
     (isBlankStateValue(input.alias) ? undefined : input.alias) ||
-    (isBlankStateValue(input.rowValue) ? undefined : input.rowValue) ||
+    input.rowValue ||
     valueWithUnit(input.value, input.unit);
