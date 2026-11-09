@@ -20,7 +20,7 @@
  */
 import { useState, type FC } from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
-import { DeleteOutline as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { DeleteOutlineOutlined as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { SelectID, type Connection, type IobTheme } from '@iobroker/gui-components';
 
 import Generic from '../../../../Generic';

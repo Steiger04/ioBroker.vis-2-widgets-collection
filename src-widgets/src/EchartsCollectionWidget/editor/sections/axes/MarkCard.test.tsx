@@ -12,7 +12,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@mui/icons-material', () => ({
-    DeleteOutline: () => null,
+    DeleteOutlineOutlined: () => null,
     Search: () => null,
     ExpandMore: () => null,
 }));

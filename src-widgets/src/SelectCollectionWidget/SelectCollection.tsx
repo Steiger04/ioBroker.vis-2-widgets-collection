@@ -17,7 +17,7 @@ import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 import { resolveWriteTarget } from '../lib/writeTarget';
-import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome } from './chrome';
+import { buildMenuChrome, buildMenuItemChrome, buildSelectChrome, menuPropsOf } from './chrome';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
@@ -58,7 +58,7 @@ function BoundedSelect({
             value={value}
             onChange={onChange}
             disabled={disabled}
-            MenuProps={buildMenuChrome({ ...menuChrome, width })}
+            MenuProps={menuPropsOf(buildMenuChrome({ ...menuChrome, width }))}
             sx={buildSelectChrome({ ...fieldChrome, width })}
         >
             {children}

@@ -16,7 +16,7 @@ import { Fragment, useContext, type ComponentProps, type FC, type ReactElement, 
 import { Box, IconButton } from '@mui/material';
 import {
     ContentCopy as DuplicateIcon,
-    DeleteOutline as DeleteIcon,
+    DeleteOutlineOutlined as DeleteIcon,
     DonutLarge as DonutIcon,
     KeyboardArrowDown as DownIcon,
     KeyboardArrowUp as UpIcon,

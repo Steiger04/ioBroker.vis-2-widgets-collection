@@ -77,7 +77,7 @@ export const SectionLabel: FC<{ children: React.ReactNode; hint?: string }> = ({
     <Box>
         <Typography
             variant="subtitle2"
-            fontWeight={600}
+            sx={{ fontWeight: 600 }}
         >
             {children}
         </Typography>
@@ -144,7 +144,7 @@ export const NumberField: FC<{
             size="small"
             type="number"
             value={value}
-            inputProps={{ step }}
+            slotProps={{ htmlInput: { step } }}
             onChange={e => onChange(Number(e.target.value) || 0)}
             error={error}
             helperText={helperText}
@@ -184,10 +184,12 @@ export const OptionalNumberField: FC<{
                 size="small"
                 type="number"
                 value={value ?? ''}
-                inputProps={{
-                    step,
-                    ...(titled && empty ? { title: placeholderTitle } : {}),
-                    ...(titled ? { 'aria-label': empty ? `${label}, ${placeholderTitle}` : label } : {}),
+                slotProps={{
+                    htmlInput: {
+                        step,
+                        ...(titled && empty ? { title: placeholderTitle } : {}),
+                        ...(titled ? { 'aria-label': empty ? `${label}, ${placeholderTitle}` : label } : {}),
+                    },
                 }}
                 error={error}
                 helperText={helperText}
@@ -435,7 +437,7 @@ export const SliderField: FC<{
                     max={max}
                     step={step}
                     disabled={disabled}
-                    onChange={(_, v) => onChange(v as number)}
+                    onChange={(_, v) => onChange(v)}
                     aria-label={label}
                     sx={{ flex: 1, minWidth: 0 }}
                 />
@@ -444,7 +446,7 @@ export const SliderField: FC<{
                     type="number"
                     disabled={disabled}
                     value={draft ?? String(value)}
-                    inputProps={{ min, max, step, 'aria-label': label }}
+                    slotProps={{ htmlInput: { min, max, step, 'aria-label': label } }}
                     onFocus={() => setDraft(String(value))}
                     onChange={e => {
                         setDraft(e.target.value);
@@ -496,7 +498,7 @@ export const OptionalSliderField: FC<{
                     min={min}
                     max={max}
                     step={step}
-                    onChange={(_, v) => onChange(v as number)} // a drag commits a concrete value
+                    onChange={(_, v) => onChange(v)} // a drag commits a concrete value
                     aria-label={label}
                     sx={{ flex: 1, minWidth: 0 }}
                 />
@@ -504,7 +506,7 @@ export const OptionalSliderField: FC<{
                     size="small"
                     type="number"
                     value={draft ?? (unset ? '' : String(value))}
-                    inputProps={{ min, max, step, 'aria-label': label }}
+                    slotProps={{ htmlInput: { min, max, step, 'aria-label': label } }}
                     placeholder={unset ? String(fallback) : undefined}
                     onFocus={() => setDraft(unset ? '' : String(value))}
                     onChange={e => {

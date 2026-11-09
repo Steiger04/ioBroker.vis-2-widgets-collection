@@ -172,11 +172,13 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
             onClose={closeHandler}
             maxWidth="xs"
             fullWidth
-            PaperProps={{
-                sx: {
-                    // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
-                    background: backgroundColor || undefined,
-                    color: bodyTextColor,
+            slotProps={{
+                paper: {
+                    sx: {
+                        // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
+                        background: backgroundColor || undefined,
+                        color: bodyTextColor,
+                    },
                 },
             }}
         >
@@ -256,7 +258,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                                         onClick={locked ? undefined : createListItemClickHandler(state.value)}
                                     >
                                         <ListItemText
-                                            primaryTypographyProps={{ variant: 'body2' }}
+                                            slotProps={{ primary: { variant: 'body2' } }}
                                             primary={<span dangerouslySetInnerHTML={{ __html: state.label ?? '' }} />}
                                         />
                                     </ListItemButton>

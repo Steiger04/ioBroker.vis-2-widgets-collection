@@ -58,7 +58,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
                 </Typography>
                 <Slider
                     value={format.numberDecimals ?? 2}
-                    onChange={(_e, val) => onChange({ type: 'number', numberDecimals: val as number })}
+                    onChange={(_e, val) => onChange({ type: 'number', numberDecimals: val })}
                     min={0}
                     max={10}
                     marks

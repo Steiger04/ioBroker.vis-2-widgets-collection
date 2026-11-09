@@ -32,7 +32,7 @@
  * (`themeType`), not the theme object, and the palette React tree does not reliably provide the
  * editor theme by context — so the chrome theme is REBUILT in the editor's family
  * (modernDark/modernLight since the React-19 host update; the palette constants are mirrored
- * locally in `lib/theme/chromeTheme` because gui-components peers MUI 9, not bundled here). It stays unaffected by the theme being EDITED — the draft only flows to the
+ * locally in `lib/theme/chromeTheme`). It stays unaffected by the theme being EDITED — the draft only flows to the
  * canvas widgets via the draft store, never back into the panel; the canvas is the preview
  * (ADR-0020 decision 2).
  */
@@ -170,8 +170,7 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
 
     // Panel chrome follows the vis-2 host mode in the modern admin family (ADR-0038):
     // the editor itself renders modernDark/modernLight since the React-19 host update;
-    // gui-components cannot be bundled (MUI 9 peer), so the palette is mirrored locally
-    // (see lib/theme/chromeTheme). Independent of the theme being edited.
+    // the palette is mirrored locally (see lib/theme/chromeTheme). Independent of the theme being edited.
     const chromeTheme = useMemo(() => createChromeTheme(themeType), [themeType]);
 
     // Effective colours for the swatches: the canvas resolution itself, against the chrome
@@ -344,9 +343,8 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                 >
                     <Stack
                         direction="row"
-                        alignItems="center"
                         spacing={0.5}
-                        sx={{ minWidth: 0 }}
+                        sx={{ alignItems: 'center', minWidth: 0 }}
                     >
                         <DragIndicatorIcon
                             fontSize="small"
@@ -375,9 +373,8 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                     </Stack>
                     <Stack
                         direction="row"
-                        alignItems="center"
                         spacing={0}
-                        sx={{ flexShrink: 0 }}
+                        sx={{ alignItems: 'center', flexShrink: 0 }}
                     >
                         <EditorHistoryButtons
                             canUndo={session.canUndo}

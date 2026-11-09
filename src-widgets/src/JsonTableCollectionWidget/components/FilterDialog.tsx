@@ -268,8 +268,10 @@ function FilterDialog({
                             type="date"
                             fullWidth
                             autoFocus
-                            InputLabelProps={{
-                                shrink: true,
+                            slotProps={{
+                                inputLabel: {
+                                    shrink: true,
+                                },
                             }}
                         />
                     )}

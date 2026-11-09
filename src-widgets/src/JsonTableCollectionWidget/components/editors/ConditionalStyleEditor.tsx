@@ -279,7 +279,7 @@ function ConditionalStyleEditor({
                             <Stack
                                 direction="row"
                                 spacing={1}
-                                alignItems="flex-start"
+                                sx={{ alignItems: 'flex-start' }}
                             >
                                 <ColorPickerField
                                     label={Generic.t('json_table_bg_color')}

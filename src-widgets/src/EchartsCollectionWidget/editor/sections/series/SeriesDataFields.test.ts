@@ -76,7 +76,7 @@ import { SeriesDataFields, xOffsetMode } from './tabs/DatenTab';
 // The icons named below are every one the unmocked render path (card + controls) touches.
 vi.mock('@mui/icons-material', () => ({
     ContentCopy: () => null,
-    DeleteOutline: () => null,
+    DeleteOutlineOutlined: () => null,
     KeyboardArrowDown: () => null,
     KeyboardArrowUp: () => null,
     ExpandMore: () => null,

@@ -13,7 +13,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
+vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutlineOutlined: () => null }));
 vi.mock('../OidPicker', () => ({ default: () => null }));
 // Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &
 // Zoom → MarkCard) reaches the adapter-react barrel (FileBrowser → icons): stubbed, the

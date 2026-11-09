@@ -110,7 +110,22 @@ export interface MenuChromeInput {
 }
 
 /**
- * Builds the MenuProps of the popup: the paper surface (noCard flattens it —
+ * The popup chrome as data: the paper surface, the backdrop and the popup root.
+ * `PaperProps` keeps its MUI 6 name — the tests pin the chrome by it — but MUI 9
+ * dropped that prop: {@link menuPropsOf} hands it to the menu's `paper` slot.
+ */
+export interface MenuChrome {
+    /** The props of the popup paper. */
+    PaperProps: { sx: SxObject };
+    /** The props of the popup's backdrop and root slots. */
+    slotProps: {
+        backdrop: { style: SxObject };
+        root: { sx: SxObject };
+    };
+}
+
+/**
+ * Builds the chrome of the popup: the paper surface (noCard flattens it —
  * no shadow, no overlay; a frame background always paints it, and since an
  * unset one resolves to the theme paper, a noCard popup stays opaque — it is
  * transparent only for an empty resolved value, a defensive branch; the
@@ -119,9 +134,9 @@ export interface MenuChromeInput {
  * width, offset below the field, list unpadded.
  *
  * @param input - Measured width, the explicit noCard flag, frame background and border styles.
- * @returns The popup's MenuProps; pass them as `<Select MenuProps={…}>`.
+ * @returns The popup's chrome; pass it as `<Select MenuProps={menuPropsOf(…)}>`.
  */
-export function buildMenuChrome(input: MenuChromeInput): Partial<MenuProps> {
+export function buildMenuChrome(input: MenuChromeInput): MenuChrome {
     const { width, noCard, frameBackground, borderStyles } = input;
 
     return {
@@ -155,6 +170,22 @@ export function buildMenuChrome(input: MenuChromeInput): Partial<MenuProps> {
                     },
                 },
             },
+        },
+    };
+}
+
+/**
+ * Hands the popup chrome to MUI: the paper props go to the menu's `paper` slot,
+ * next to the backdrop and root slots.
+ *
+ * @param chrome - The popup chrome from {@link buildMenuChrome}.
+ * @returns The popup's MenuProps; pass them as `<Select MenuProps={…}>`.
+ */
+export function menuPropsOf(chrome: MenuChrome): Partial<MenuProps> {
+    return {
+        slotProps: {
+            ...chrome.slotProps,
+            paper: chrome.PaperProps,
         },
     };
 }

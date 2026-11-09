@@ -340,7 +340,7 @@ function ColumnDetailEditor({
                                     onChange={e =>
                                         onChange({
                                             ...column,
-                                            align: e.target.value as 'left' | 'center' | 'right',
+                                            align: e.target.value,
                                         })
                                     }
                                 >

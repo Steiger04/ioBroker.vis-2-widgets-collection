@@ -134,14 +134,15 @@ const ColumnAutocomplete: FC<ColumnAutocompleteProps> = ({
                         </Box>
                     </li>
                 )}
-                renderInput={({ InputProps, inputProps, ...params }) => (
+                renderInput={({ slotProps, ...params }) => (
                     <TextField
                         {...params}
                         slotProps={{
-                            // v6 slotProps form: MUI's own adornments (the dropdown arrow) ride
-                            // along, the badges sit BEFORE them — the arrow stays reachable.
+                            ...slotProps,
+                            // MUI's own adornments (the dropdown arrow) ride along, the badges
+                            // sit BEFORE them — the arrow stays reachable.
                             input: {
-                                ...InputProps,
+                                ...slotProps.input,
                                 endAdornment: (
                                     <>
                                         {selected && (
@@ -153,12 +154,12 @@ const ColumnAutocomplete: FC<ColumnAutocompleteProps> = ({
                                                 )}
                                             </Box>
                                         )}
-                                        {InputProps.endAdornment}
+                                        {slotProps.input.endAdornment}
                                     </>
                                 ),
                             },
                             htmlInput: {
-                                ...inputProps,
+                                ...slotProps.htmlInput,
                                 // The closed input ellipsizes long dot-paths — the native title
                                 // carries the full one on hover (an unconditional title on a
                                 // NON-truncated path is harmless; CSS ellipsis is not detectable).

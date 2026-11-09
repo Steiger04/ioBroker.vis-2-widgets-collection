@@ -12,13 +12,13 @@
  */
 import type { FC } from 'react';
 import { Alert, Box, Button, Chip, ListSubheader, MenuItem, TextField } from '@mui/material';
-import { ErrorOutline } from '@mui/icons-material';
+import { ErrorOutlineOutlined } from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-// The V3 subpath — the adapter for date-fns v3/v4. The plain '@mui/x-date-pickers/AdapterDateFns'
-// is built for date-fns V2 and deep-imports `date-fns/_lib/format/longFormatters`, which v4
-// removed (the build-time "Missing specifier" error). The class re-exports under the same name.
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
+// Since x-date-pickers 8 the plain path is the adapter for date-fns v3/v4 (the former V3
+// subpath is gone); the date-fns V2 adapter, which deep-imports
+// `date-fns/_lib/format/longFormatters` that v4 removed, moved to the V2 subpath.
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
@@ -606,7 +606,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                             size="small"
                                             variant={selected ? 'filled' : 'outlined'}
                                             color={chip.drifted ? 'warning' : selected ? 'primary' : 'default'}
-                                            icon={chip.drifted ? <ErrorOutline fontSize="small" /> : undefined}
+                                            icon={chip.drifted ? <ErrorOutlineOutlined fontSize="small" /> : undefined}
                                             title={chip.drifted ? Generic.t('echarts_mapping_drifted') : undefined}
                                             onClick={() => set({ jsonRowPath: chip.path })}
                                             label={

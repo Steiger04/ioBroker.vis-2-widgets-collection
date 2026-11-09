@@ -10,7 +10,7 @@
  */
 import type { FC } from 'react';
 import { Box, IconButton } from '@mui/material';
-import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { DeleteOutlineOutlined as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
 import { FieldGrid, FieldLabel, TextField2 } from '../../../../components/controls';

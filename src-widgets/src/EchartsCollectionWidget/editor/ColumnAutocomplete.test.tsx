@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 // The icons barrel is a heavy leaf (minutes of transform) — controls.tsx only needs the
 // chevron, which these assertions never look at. Marker-mock, the sectionTabs precedent.
-vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, ErrorOutline: () => null }));
+vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, ErrorOutlineOutlined: () => null }));
 
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';

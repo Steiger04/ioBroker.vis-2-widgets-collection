@@ -15,7 +15,11 @@
  */
 import type { FC } from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
-import { ArrowDownward as DownIcon, ArrowUpward as UpIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import {
+    ArrowDownward as DownIcon,
+    ArrowUpward as UpIcon,
+    DeleteOutlineOutlined as DeleteIcon,
+} from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
 import {
