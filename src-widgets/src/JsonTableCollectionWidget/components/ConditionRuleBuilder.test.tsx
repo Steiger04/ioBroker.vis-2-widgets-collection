@@ -25,7 +25,7 @@ const greaterThan = (operand: string): JsonLogicRule | undefined =>
     buildFromState({ mode: 'and', conditions: [{ operator: 'gt', operand }] }, 'number');
 
 const mount = (logic: JsonLogicRule | undefined): RenderComponentHandle<Props> => {
-    const handle = renderComponent(ConditionRuleBuilder, { logic, columnType: 'number', onChange: vi.fn() });
+    const handle = renderComponent<Props>(ConditionRuleBuilder, { logic, columnType: 'number', onChange: vi.fn() });
     mounted.push(handle);
     return handle;
 };
