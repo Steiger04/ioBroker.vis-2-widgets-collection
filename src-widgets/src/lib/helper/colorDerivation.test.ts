@@ -39,6 +39,8 @@ describe('solidOf — the Repräsentative Vollfarbe of a color value', () => {
         ['#rgba', '#f00f', '#f00f'],
         ['#rrggbbaa', '#ff0000ff', '#ff0000ff'],
         ['rgb in upper case (CSS reads it, MUI does not)', 'RGB(255, 0, 0)', 'RGB(255, 0, 0)'],
+        ['rgb in space syntax', 'rgb(51 153 204)', 'rgb(51 153 204)'],
+        ['hsl in space syntax', 'hsl(200 60% 50%)', 'hsl(200 60% 50%)'],
         ['linear gradient → its midpoint', LINEAR, 'rgb(128, 0, 128)'],
         ['radial gradient → its midpoint', RADIAL, 'rgb(128, 128, 128)'],
     ])('%s', (_label, value, expected) => {
@@ -86,6 +88,14 @@ describe('alphaOf', () => {
         expect(alphaOf('#f00f', 0.5)).toBe('rgba(255, 0, 0, 0.5)');
     });
 
+    it.each([
+        ['rgb()', 'rgb(51 153 204)', 'rgba(51, 153, 204, 0.5)'],
+        ['rgb() with an alpha', 'rgb(51 153 204 / 25%)', 'rgba(51, 153, 204, 0.5)'],
+        ['hsl()', 'hsl(200 60% 50%)', 'hsla(200, 60%, 50%, 0.5)'],
+    ])('applies the opacity to %s in the space syntax CSS reads — MUI splits on commas only', (_label, value, tinted) => {
+        expect(alphaOf(value, 0.5)).toBe(tinted);
+    });
+
     it('tints no rgb() in upper case — MUI cannot calculate with it', () => {
         expect(alphaOf('RGB(255, 0, 0)', 0.5)).toBeUndefined();
     });
@@ -112,6 +122,14 @@ describe('lightenOf', () => {
     it('lightens every other colour MUI reads, as MUI does (hsl, #rgba)', () => {
         expect(lightenOf('hsl(0, 100%, 50%)', 0.5)).toBe('hsl(0, 100%, 75%)');
         expect(lightenOf('#f00f', 0.5)).toBe('rgba(255, 127, 127, 1)');
+    });
+
+    it.each([
+        ['rgb()', 'rgb(51 153 204)', 'rgb(153, 204, 229)'],
+        ['rgb() with an alpha', 'rgb(51 153 204 / 25%)', 'rgba(153, 204, 229, 0.25)'],
+        ['hsl()', 'hsl(200 60% 50%)', 'hsl(200, 60%, 75%)'],
+    ])('lightens %s in the space syntax CSS reads', (_label, value, lightened) => {
+        expect(lightenOf(value, 0.5)).toBe(lightened);
     });
 
     it.each(UNREADABLE.map(value => [String(value), value]))('%s → undefined', (_label, value) => {
