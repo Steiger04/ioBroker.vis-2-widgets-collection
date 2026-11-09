@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createDateAwareGlobalFilter, type QuickFilterColumn } from './quickFilter';
+import { createTable, getCoreRowModel, getFilteredRowModel } from '@tanstack/react-table';
+import { createDateAwareGlobalFilter, quickFilterOptions, type QuickFilterColumn } from './quickFilter';
 import { dateReader, type DateReader } from '../dateReader';
 
 /** A Column formatted as date, read by its Datums-Leser (default: no detection). */
@@ -82,5 +83,33 @@ describe('createDateAwareGlobalFilter', () => {
     it('does not match a date the browser would have guessed', () => {
         // "1.12.2024" is no date → displayed raw; the browser read it as 12 January.
         expect(filter(row('1.12.2024'), 'd', '12.01.2024')).toBe(false);
+    });
+});
+
+describe('quickFilterOptions — on a real table', () => {
+    /** The rows a table with these options keeps for a quick-filter term. */
+    const rowsFound = (data: Record<string, unknown>[], columns: string[], term: string): unknown[] => {
+        const table = createTable<Record<string, unknown>>({
+            data,
+            columns: columns.map(id => ({ id, accessorFn: row => row[id] ?? null })),
+            state: { globalFilter: term },
+            onStateChange: () => undefined,
+            renderFallbackValue: null,
+            getCoreRowModel: getCoreRowModel(),
+            getFilteredRowModel: getFilteredRowModel(),
+            ...quickFilterOptions(columns.map(textCol)),
+        });
+        table.setOptions(previous => ({ ...previous, state: { ...table.initialState, globalFilter: term } }));
+        return table.getFilteredRowModel().rows.map(r => r.original);
+    };
+
+    it('searches a Column whose first row holds no value', () => {
+        const data = [{ name: null }, { name: 'Lampe' }];
+        expect(rowsFound(data, ['name'], 'lamp')).toEqual([{ name: 'Lampe' }]);
+    });
+
+    it('searches a boolean Column', () => {
+        const data = [{ on: true }, { on: false }];
+        expect(rowsFound(data, ['on'], 'false')).toEqual([{ on: false }]);
     });
 });

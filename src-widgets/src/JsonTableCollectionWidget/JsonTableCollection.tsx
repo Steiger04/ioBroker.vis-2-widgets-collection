@@ -56,14 +56,14 @@ import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useViewState } from './useViewState';
-import type { ViewColumn } from './viewState';
+import { canHideColumn, type ViewColumn } from './viewState';
 import ColumnMenu from './components/ColumnMenu';
 import { buildColumnDefs } from './utils/columnDefinitions';
-import { columnCapabilities, tableCapabilities, type EffectiveType } from './capabilities';
+import { columnCapabilities, tableCapabilities, virtualizesRows, type EffectiveType } from './capabilities';
 import { buildTableChrome, type TableChrome } from './chrome';
 import { depthWarningText, emptyState, readJsonTable } from './columns';
 import { translate } from '../lib/translate';
-import { createDateAwareGlobalFilter } from './utils/quickFilter';
+import { quickFilterOptions } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
 
@@ -229,7 +229,7 @@ const JsonTableCollection: FC = () => {
     // ── Date-aware global (quick) filter ────────────────────────────────────────
     // Built in utils/quickFilter.ts; date columns also match their formatted display
     // value via the formatter registry so filter and display can never drift.
-    const globalFilterFn = useMemo(() => createDateAwareGlobalFilter(tableColumns), [tableColumns]);
+    const quickFilter = useMemo(() => quickFilterOptions(tableColumns), [tableColumns]);
 
     // ── Ansichtszustand (sorting, filters, page, widths, hidden columns) ────────
 
@@ -267,6 +267,8 @@ const JsonTableCollection: FC = () => {
         columns: viewColumns,
     });
     const { sorting, columnFilters, globalFilter, pagination, columnVisibility } = view.state;
+    const hasHiddenColumns = Object.keys(columnVisibility).some(k => columnVisibility[k] === false);
+    const hideAllowed = canHideColumn(columnVisibility, viewColumns);
 
     // ── useReactTable ─────────────────────────────────────────────────────────
 
@@ -278,7 +280,7 @@ const JsonTableCollection: FC = () => {
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: capabilities.multiSort,
-        globalFilterFn: globalFilterFn,
+        ...quickFilter,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
         defaultColumn: { minSize: 40, maxSize: 2000 },
@@ -406,8 +408,7 @@ const JsonTableCollection: FC = () => {
         scrollPaddingStart: chrome.rowHeight,
     });
 
-    const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
-    const shouldVirtualize = !capabilities.pagination && tableRows.length > virtualizeThreshold;
+    const shouldVirtualize = virtualizesRows(capabilities, tableRows.length, widget.data.tableVirtualizeThreshold);
     const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
     // FIX-P1-3: Use optional chaining for safe array access in virtualizer
     const firstItem = virtualItems?.[0];
@@ -552,7 +553,9 @@ const JsonTableCollection: FC = () => {
                                                                     {capabilities.columnMenu &&
                                                                         (header.column.getCanSort() ||
                                                                             header.column.getCanFilter() ||
-                                                                            header.column.getCanHide()) && (
+                                                                            (hideAllowed &&
+                                                                                header.column.getCanHide()) ||
+                                                                            hasHiddenColumns) && (
                                                                             <Tooltip
                                                                                 title={Generic.t(
                                                                                     'json_table_column_menu',
@@ -704,7 +707,8 @@ const JsonTableCollection: FC = () => {
                             view.onSortingChange(old => old.filter(s => s.id !== columnId))
                         }
                         onShowAllColumns={view.showAllColumns}
-                        hasHiddenColumns={Object.keys(columnVisibility).some(k => columnVisibility[k] === false)}
+                        hasHiddenColumns={hasHiddenColumns}
+                        canHideColumn={hideAllowed}
                     />
                 </Box>
             ) : (

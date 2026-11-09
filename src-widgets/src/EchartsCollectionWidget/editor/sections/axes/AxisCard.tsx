@@ -144,7 +144,7 @@ const AxisCard: FC<{
                     component="span"
                     sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}
                 >
-                    {a.name || seriesName || `Achse ${i + 1}`}
+                    {a.name || seriesName || Generic.t('echarts_axis_fallback_name', String(i + 1))}
                 </Box>
             }
             subtitle={subtitle}

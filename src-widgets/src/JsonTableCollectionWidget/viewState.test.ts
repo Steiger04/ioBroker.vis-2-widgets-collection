@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 import { effectiveType, tableCapabilities, type CapabilitySettings, type EffectiveType } from './capabilities';
 import {
+    canHideColumn,
     clampPage,
     recordBaselines,
     resolveView,
@@ -63,6 +64,39 @@ const STORED = {
     columnSizing: { name: { width: 240, baseline: null } },
     columnVisibility: { temp: false },
 };
+
+describe('the last visible Column', () => {
+    // Without a Column there is no column menu, and so no "Show all columns" (ADR-0092 rejects a
+    // view hidden with no way to see or undo it).
+    it.each<[string, Record<string, boolean>, boolean]>([
+        ['nothing is hidden', {}, true],
+        ['two Columns stay', { temp: false }, true],
+        ['one Column stays', { temp: false, room: false }, false],
+        [
+            'one Column stays, hidden ids of Columns not shown do not count',
+            { temp: false, room: false, gone: false },
+            false,
+        ],
+        ['a Column shown again counts', { temp: false, room: true }, true],
+    ])('can another be hidden while %s', (_case, columnVisibility, expected) => {
+        expect(canHideColumn(columnVisibility, SHOWN_COLUMNS)).toBe(expected);
+    });
+
+    it('shows every Column when the stored view would hide them all', () => {
+        const allHidden = { columnVisibility: { name: false, temp: false, room: false } };
+        expect(resolveView(allHidden, ALL_ON, CONFIG).columnVisibility).toEqual({});
+    });
+
+    it('still hides what the stored view hides while a Column stays', () => {
+        const oneStays = { columnVisibility: { temp: false, room: false, gone: false } };
+        expect(resolveView(oneStays, ALL_ON, CONFIG).columnVisibility).toEqual(oneStays.columnVisibility);
+    });
+
+    it('has nothing to judge while the table shows no Column', () => {
+        const stored = { columnVisibility: { temp: false } };
+        expect(resolveView(stored, ALL_ON, { ...CONFIG, columns: {} }).columnVisibility).toEqual({ temp: false });
+    });
+});
 
 describe('resolveView — a stored view', () => {
     it('applies every part while its capability is on', () => {

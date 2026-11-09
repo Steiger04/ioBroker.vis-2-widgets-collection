@@ -119,6 +119,7 @@ class Generic<
             getPropertyValue: this.getPropertyValue.bind(this),
             mode: this.props.context.themeType,
             socket: this.props.context.socket,
+            lang: this.props.context.lang,
             theme: this.props.context.theme,
             wrappedContent: this.wrappedCollectionContent,
             ...extraContext,

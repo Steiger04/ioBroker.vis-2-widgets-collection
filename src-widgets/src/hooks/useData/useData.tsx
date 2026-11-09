@@ -25,6 +25,18 @@ export interface UseDataOptions {
 const NO_MARKER_LAYER: MarkerLayer = {};
 
 /**
+ * An object's name as text: `common.name` can hold one text per language. The text stays as
+ * written, like a plain name. Without a text in the host language or in English nothing is shown.
+ */
+const displayName = (name: ioBroker.StringOrTranslated | undefined, lang: ioBroker.Languages): string | undefined => {
+    if (typeof name !== 'object' || name === null) {
+        return name;
+    }
+    const texts = name as Record<string, string | undefined>;
+    return texts[lang] || texts.en;
+};
+
+/**
  * Resolves the widget's states and style data from the CollectionContext.
  *
  * @param _oid - OID property name from rxData (e.g. "oid", "oid1")
@@ -32,6 +44,7 @@ const NO_MARKER_LAYER: MarkerLayer = {};
  */
 function useData(_oid: string, options?: UseDataOptions): UseDataResult {
     const {
+        lang,
         theme,
         widget,
         widget: { data: rxData },
@@ -40,7 +53,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     const oidObject = rxData[`${_oid}Object`];
     const oidValue = getPropertyValue(_oid);
-    const oidName = oidObject?.name;
+    const oidName = displayName(oidObject?.name, lang);
 
     const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 

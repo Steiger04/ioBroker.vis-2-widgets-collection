@@ -22,6 +22,8 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
 export interface GoogleFontFace {
     /** Numeric CSS font-weight (e.g. `400`, `700`). */
     weight: number;
+    /** Upper end of the weight range when one variable-font file serves several weights. */
+    weightMax?: number;
     /** Inlined woff2 data URI (`data:font/woff2;base64,…`). */
     data: string;
 }

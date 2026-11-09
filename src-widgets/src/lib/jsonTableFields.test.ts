@@ -59,3 +59,22 @@ describe('jsonTableFields — feature settings follow the Tabellen-Fähigkeiten'
         expect(hiddenOf('tableQuickFilter')({ tableShowHeader: false })).toBe(false);
     });
 });
+
+describe('jsonTableFields — row border fields follow the runtime', () => {
+    /** Evaluates a `hidden` expression as vis-2 does: against the raw widget data. */
+    const isHidden = (name: string, data: WidgetData): boolean => {
+        const field = jsonTableFields().find(f => (f as { name?: string }).name === name) as { hidden: string };
+        return Boolean(new Function('data', `return ${field.hidden};`)(data));
+    };
+
+    const ROW_BORDER_FIELDS = ['horizontalCellBorderWidth', 'horizontalCellBorderColor'];
+
+    it.each(ROW_BORDER_FIELDS)('shows %s while the key is missing: the runtime draws the borders then', name => {
+        expect(isHidden(name, {} as WidgetData)).toBe(false);
+    });
+
+    it.each(ROW_BORDER_FIELDS)('hides %s only with the row borders explicitly off', name => {
+        expect(isHidden(name, { tableShowRowBorders: false } as WidgetData)).toBe(true);
+        expect(isHidden(name, { tableShowRowBorders: true } as WidgetData)).toBe(false);
+    });
+});

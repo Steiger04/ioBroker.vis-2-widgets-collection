@@ -171,7 +171,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         if (idx < 0) {
             return undefined;
         }
-        return positionalBinderName(state.series[idx]) || `Series ${idx + 1}`;
+        return positionalBinderName(state.series[idx]) || Generic.t('echarts_series_title_fallback', String(idx + 1));
     };
     // The bound set — under ADR-0069 every axis is IN it (an axis outside died at the structural
     // event that emptied it); the set still feeds the emitted-rank computation. The positional

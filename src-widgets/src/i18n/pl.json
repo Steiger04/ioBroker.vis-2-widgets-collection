@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "Payload nie zawiera jeszcze listy wierszy — wybierz punkt danych, którego payload jest tablicą JSON (lub obiektem ją zawierającym).",
     "echarts_mapping_depth_cap": "Wyszukiwanie jest ograniczone do 10 poziomów zagnieżdżenia — głębsze ścieżki wierszy i kolumny payloadu nie pojawiają się na liście wyboru.",
     "echarts_mapping_row_index": "(indeks wiersza)",
+    "echarts_mapping_row_label": "Wiersz %s",
     "echarts_mapping_rowpath": "Ścieżka wierszy",
     "echarts_mapping_drifted": "Już nie ma w payloadzie",
     "echarts_mapping_suggestion_badge": "Sugestia",
@@ -1378,5 +1379,6 @@
     "state_editor_search": "Szukaj",
     "state_editor_rows_differ_bindings": "Wybrane widżety wiążą różne pola. Przenoszenie, dodawanie, klonowanie, usuwanie i odtwarzanie wierszy działa tylko na identycznych wierszach i powiązaniach — edytuj widżety jeden po drugim.",
     "state_editor_rows_differ_count": "Wybrane widżety mają różną liczbę wierszy. Przenoszenie, dodawanie, klonowanie, usuwanie i odtwarzanie wierszy działa tylko na identycznych wierszach — edytuj widżety jeden po drugim.",
-    "state_editor_rows_differ_states": "Obiekty wybranych widżetów deklarują różne stany. Ponowne tworzenie wierszy z common.states działa tylko przy identycznych stanach — edytuj widżety pojedynczo."
+    "state_editor_rows_differ_states": "Obiekty wybranych widżetów deklarują różne stany. Ponowne tworzenie wierszy z common.states działa tylko przy identycznych stanach — edytuj widżety pojedynczo.",
+    "echarts_axis_fallback_name": "Oś %s"
 }

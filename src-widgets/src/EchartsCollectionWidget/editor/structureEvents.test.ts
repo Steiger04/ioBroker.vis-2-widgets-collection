@@ -8,7 +8,7 @@
  * the event-specific policies (moved here from the former `lifecycleGuards.reconcileJsonAxesStep`
  * suite — replace, don't layer).
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type { EditorPatch } from './editorState';
@@ -16,6 +16,14 @@ import { axisOptionLabel } from './axisSight';
 import { applyStructureEvent, dispatchStructureEvent, type StructureView } from './structureEvents';
 
 /** A minimal serien-förmig JSON line view; overrides win. */
+// An axis nothing names dies under its translated position, and the host's `t` lives on `window`.
+beforeAll(() => {
+    vi.stubGlobal('window', { visRxWidget: { t: (key: string) => key } });
+});
+afterAll(() => {
+    vi.unstubAllGlobals();
+});
+
 const view = (overrides: Partial<StructureView>): StructureView => ({
     chartType: 'line',
     mode: 'json',

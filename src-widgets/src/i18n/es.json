@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "El payload aún no contiene ninguna lista de filas: elige un punto de datos cuyo payload sea un array JSON (o un objeto que contenga uno).",
     "echarts_mapping_depth_cap": "La búsqueda está limitada a 10 niveles de anidación; las rutas de filas y columnas más profundas del payload no aparecen en la selección.",
     "echarts_mapping_row_index": "(índice de fila)",
+    "echarts_mapping_row_label": "Fila %s",
     "echarts_mapping_rowpath": "Ruta de filas",
     "echarts_mapping_drifted": "Ya no está en el payload",
     "echarts_mapping_suggestion_badge": "Sugerencia",
@@ -1378,5 +1379,6 @@
     "state_editor_search": "Buscar",
     "state_editor_rows_differ_bindings": "Los widgets seleccionados vinculan campos diferentes. Mover, añadir, clonar, eliminar y recrear filas solo funciona con filas y vinculaciones idénticas: edite los widgets uno por uno.",
     "state_editor_rows_differ_count": "Los widgets seleccionados tienen un número diferente de filas. Mover, añadir, clonar, eliminar y recrear filas solo funciona con filas idénticas: edite los widgets uno por uno.",
-    "state_editor_rows_differ_states": "Los objetos de los widgets seleccionados declaran estados diferentes. Recrear filas desde common.states solo funciona con estados idénticos; edite los widgets uno por uno."
+    "state_editor_rows_differ_states": "Los objetos de los widgets seleccionados declaran estados diferentes. Recrear filas desde common.states solo funciona con estados idénticos; edite los widgets uno por uno.",
+    "echarts_axis_fallback_name": "Eje %s"
 }

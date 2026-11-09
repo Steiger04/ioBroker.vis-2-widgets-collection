@@ -153,6 +153,28 @@ const readVisibility = (stored: unknown): VisibilityState => {
     return visibility;
 };
 
+/** How many of the Columns the table shows stay visible under a visibility. */
+const visibleCount = (visibility: VisibilityState, columns: ViewConfig['columns']): number =>
+    Object.keys(columns).filter(id => visibility[id] !== false).length;
+
+/**
+ * Whether one more Column may be hidden: the last one stays, the column menu with its way back
+ * ("Show all columns") lives on the Columns.
+ *
+ * @param visibility The effective column visibility.
+ * @param columns The Columns the table shows, per id.
+ * @returns `true` while hiding a visible Column leaves another one visible.
+ */
+export const canHideColumn = (visibility: VisibilityState, columns: ViewConfig['columns']): boolean =>
+    visibleCount(visibility, columns) > 1;
+
+/**
+ * The stored visibility to apply: one that hides every Column the table shows (stored earlier, or
+ * the last visible Column vanished from the data) would leave no way back, so it is not applied.
+ */
+const applicableVisibility = (visibility: VisibilityState, columns: ViewConfig['columns']): VisibilityState =>
+    Object.keys(columns).length > 0 && visibleCount(visibility, columns) === 0 ? {} : visibility;
+
 /** A stored page: the page, the chosen page size and the configured page size it was chosen against. */
 type StoredPage = { pageIndex: number; pageSize: number; pageSizeBaseline?: number };
 
@@ -282,7 +304,7 @@ export function resolveView(stored: StoredView, capabilities: TableCapabilities,
             ? ALL_ROWS
             : resolvePage(readPage(stored.pagination), config),
         columnSizing: resolveWidths(readWidths(live('columnSizing')), config),
-        columnVisibility: readVisibility(live('columnVisibility')),
+        columnVisibility: applicableVisibility(readVisibility(live('columnVisibility')), config.columns),
     };
 }
 

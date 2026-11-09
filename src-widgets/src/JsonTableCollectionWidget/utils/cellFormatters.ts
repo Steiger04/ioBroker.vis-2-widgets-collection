@@ -16,6 +16,7 @@
 
 import type { CellImageContent, ColumnConfigEntry, ColumnFormatConfig, ColumnFormatType } from '../types';
 import { effectiveType, type EffectiveType } from '../capabilities';
+import { readNumber } from '../columnFilter';
 import { dateReader, localDay, type DateReader } from '../dateReader';
 import { formatBooleanValue, formatDateValue, formatNumberValue, formatStringValue } from './formatters';
 import { evaluateLogic } from './jsonLogicEngine';
@@ -138,9 +139,10 @@ export interface FormatterDescriptor {
 export const FORMATTERS: Record<ColumnFormatType, FormatterDescriptor> = {
     number: {
         format: (rawValue, ctx) => {
-            if (typeof rawValue === 'number' || (typeof rawValue === 'string' && !isNaN(Number(rawValue)))) {
+            const number = readNumber(rawValue);
+            if (number !== null) {
                 return {
-                    displayValue: formatNumberValue(Number(rawValue), {
+                    displayValue: formatNumberValue(number, {
                         decimals: ctx.fmt.numberDecimals,
                         prefix: ctx.fmt.numberPrefix,
                         suffix: ctx.fmt.numberSuffix,

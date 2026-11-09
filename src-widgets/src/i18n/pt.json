@@ -306,6 +306,7 @@
     "echarts_mapping_no_array": "O payload ainda não contém uma lista de linhas — escolha um ponto de dados cujo payload seja um array JSON (ou um objeto contendo um).",
     "echarts_mapping_depth_cap": "A pesquisa está limitada a 10 níveis de aninhamento — caminhos de linhas e colunas mais profundos do payload não aparecem na seleção.",
     "echarts_mapping_row_index": "(índice da linha)",
+    "echarts_mapping_row_label": "Linha %s",
     "echarts_mapping_rowpath": "Caminho das linhas",
     "echarts_mapping_drifted": "Não está mais no payload",
     "echarts_mapping_suggestion_badge": "Sugestão",
@@ -1378,5 +1379,6 @@
     "state_editor_search": "Pesquisar",
     "state_editor_rows_differ_bindings": "Os widgets selecionados vinculam campos diferentes. Mover, adicionar, clonar, excluir e recriar linhas funciona apenas em linhas e vinculações idênticas — edite os widgets um a um.",
     "state_editor_rows_differ_count": "Os widgets selecionados têm um número diferente de linhas. Mover, adicionar, clonar, excluir e recriar linhas funciona apenas em linhas idênticas — edite os widgets um a um.",
-    "state_editor_rows_differ_states": "Os objetos dos widgets selecionados declaram estados diferentes. Recriar linhas a partir de common.states funciona apenas com estados idênticos — edite os widgets um a um."
+    "state_editor_rows_differ_states": "Os objetos dos widgets selecionados declaram estados diferentes. Recriar linhas a partir de common.states funciona apenas com estados idênticos — edite os widgets um a um.",
+    "echarts_axis_fallback_name": "Eixo %s"
 }

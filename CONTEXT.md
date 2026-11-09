@@ -99,7 +99,7 @@ The pinned-selector choice (cartesian/pie only) of how a chart's series acquire 
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Payload-Familie**:
-How a JSON document is read into series — a property OF the JSON data mode, never a third mode (acquisition is untouched: always one state, always realtime subscription). **Serien-förmig**: the document carries finished series; the payload owns count, names and data, the user only styles/hides by name (ADR-0011). **Tabellarisch**: the document is a rows list; the user derives series via the **Zuordnung** and thereby owns the structure while the payload owns the values (ADR-0075). Switching families resets the **Data path** but keeps the JSON data point — the same state, read the other way.
+How a JSON document is read into series — a property OF the JSON data mode, never a third mode (acquisition is untouched: always one state, always realtime subscription). **Serien-förmig** (panel and wiki: „Fertige Serien"): the document carries finished series; the payload owns count, names and data, the user only styles/hides by name (ADR-0011). **Tabellarisch** (panel and wiki: „Tabelle/Spalten"): the document is a rows list; the user derives series via the **Zuordnung** and thereby owns the structure while the payload owns the values (ADR-0075). Switching families resets the **Data path** but keeps the JSON data point — the same state, read the other way.
 _Avoid_: JSON-Variante, zweiter JSON-Modus, Untermodus (it is not a data mode). In UI texts the **Datenpunkt** is the state (OID) and the **Payload** its JSON content — never „Dokument".
 
 **Zuordnung**:
@@ -119,7 +119,7 @@ The data-mode decision tree from acquisition to option — ONE implementation (`
 _Avoid_: preview pipeline (there is only one), data source (that is the Data mode), renderer (that is EChart)
 
 **Section**:
-One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, the family's Rail-Slot (from the Familien-Profil, ADR-0083: cartesian hosts `Axes & Zoom`, pie the Torten-Optionen), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling). Since ADR-0073 every section body bundles its fields into **Sektions-Tabs**; the Series body (a card list) is the one tab-less body.
+One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Series`, the family's Rail-Slot (from the Familien-Profil, ADR-0083: cartesian hosts `Axes & Zoom`, pie the Torten-Optionen), `Title`, `Legend`, `Tooltip`, `Colours`, `Toolbox`, `Behaviour` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling). Since ADR-0073 every section body bundles its fields into **Sektions-Tabs**; the Series body (a card list) is the one tab-less body.
 _Avoid_: page, panel, SectionCard (that's the shell component, not the concept), Tab without prefix (the v2 top-level Tab is dead — say Sektions-Tab or Karten-Tab)
 
 **Sektions-Tab**:
@@ -179,7 +179,7 @@ The data path a **Series card** belongs to — Verlauf (an OID), serien-förmig 
 _Avoid_: card variant, card type, mode card
 
 **Slice row**:
-A pie slice item — a light list row (name, data point, colour, per-slice Raw, delete inline) with no expand; the thinnest series-authoring surface. In the serien-förmig JSON family the name belongs to the payload (display-only).
+A pie slice item — a light list row (name, data point, colour, per-slice Raw, delete inline); only its Raw collapses, there is no expand to further knobs; the thinnest series-authoring surface. In the serien-förmig JSON family the name belongs to the payload (display-only).
 _Avoid_: Slice card, accordion
 
 **Empty-state CTA**:
@@ -215,7 +215,7 @@ A reference marking on a cartesian chart (the reworked threshold, ADR-0061/0062)
 _Avoid_: Threshold (the retired pre-0061 name), mark line (that is the echarts key), limit line
 
 **X-Karte**:
-The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (primary-token inherit — line+ticks+labels wear the theme accent, the head of the colour chain; the field is labelled „Achsfarbe", never „Serienfarbe", for the axis inherits no series value), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
+The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (primary-token inherit — line+ticks+labels wear the theme accent, the head of the colour chain; the field is labelled „Achsenfarbe", never „Serienfarbe", for the axis inherits no series value), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
 _Avoid_: X axis settings, X axis card list (there is exactly one)
 
 **Time format**:
@@ -231,7 +231,7 @@ The numeric display rules every rendered value passes through — the ONE Wert-F
 _Avoid_: number format (ambiguous — the JSON table and moment have their own), locale (the comma is an explicit switch, not a locale inference)
 
 **Series transform**:
-The per-series DATA transforms applied in the chart pipeline's pure core (ADR-0059/0060, parity Build B) — the „Transformation" Sub-group on the series card: the conversion FORMULA over the `val` symbol (expr-eval math syntax, deliberately no JS execution; an invalid formula is flagged red and the chart keeps the raw values), the **Y offset** feeding it (`f(val + yOffset)`, alone without a formula — the adapter's `processOneValue` order), the **X offset** in seconds (shifts that series' Verlauf request window so time-shifted recordings overlap; JSON has no request), the per-series **NULL handling** (keep/forward-fill/zero, overriding the chart-level setting) and **„Keine Zukunft"** (points after now are cut, every mode). Beside it: **„Nur in Legende"** — the series stays emitted with its legend entry pre-deselected (`legend.selected`), re-enableable by legend click. One application seam in `assemblePipelineResult` covers every data mode — Verlauf and JSON both transform against their meta. Since ADR-0077 these stages sit inside the **Wert-Kette**, which adds the value mapping (before the numeric intake), the series-context formula symbols, the smoothing window and the running total (after bucketing).
+The per-series DATA transforms applied in the chart pipeline's pure core (ADR-0059/0060, parity Build B) — in the series card's Daten tab (ADR-0100): the conversion FORMULA over the `val` symbol (expr-eval math syntax, deliberately no JS execution; an invalid formula is flagged red and the chart keeps the raw values), the **Y offset** feeding it (`f(val + yOffset)`, alone without a formula — the adapter's `processOneValue` order), the **X offset** in seconds (shifts that series' Verlauf request window so time-shifted recordings overlap; JSON has no request), the per-series **NULL handling** (keep/forward-fill/zero, overriding the chart-level setting) and **„Keine Zukunft"** (points after now are cut, every mode). Beside it: **„Nur in Legende"** — the series stays emitted with its legend entry pre-deselected (`legend.selected`), re-enableable by legend click. One application seam in `assemblePipelineResult` covers every data mode — Verlauf and JSON both transform against their meta. Since ADR-0077 these stages sit inside the **Wert-Kette**, which adds the value mapping (before the numeric intake), the series-context formula symbols, the smoothing window and the running total (after bucketing).
 _Avoid_: convert (that is the formula field's adapter name, not the concept), data filter (nothing is filtered), axis offset (that is the pixel offset of an axis, ADR-0012), line shadow (that is line styling, not a data transform — it lives on the Line Sub-group)
 
 **Plottbarer Wert**:
@@ -444,6 +444,10 @@ _Avoid_: „full host merge“, host skin, cssVars mirror
 The in-section disclosure at the end of Schrift & Form holding the font-weight selects and the line-height slider — rare, expert knobs (bundled fonts ship real 400/700 faces only; other weights synthesise).
 _Avoid_: Advanced typography, more options
 
+**Wirkort**:
+Where a Theme Studio color shows up in the widgets — what the "?" hint of a color field names and what the wiki's color tables list. English pages: where it takes effect.
+_Avoid_: Verwendung, Einsatzort
+
 **Control kit**:
 The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds the modern family from the host mode, ADR-0038/0078).
 _Avoid_: Editor controls, per-editor widgets
@@ -568,6 +572,10 @@ _Avoid_: Slider-Resolver (the retired mechanism that found it by type detection)
 The icon at either end of the rail (`iconMin`/`iconSmallMin`, `iconMax`/`iconSmallMax`), coloured by `startIconColor` / `endIconColor`. The colour follows the SOURCE icon (start = min, end = max), not its rendered position, which swaps with the orientation. The colour is applied through a forced mask, so every icon with an explicit value is coloured — an image icon (URL, path) as a silhouette too. Unset, only a Base64 icon falls back to the theme primary; an image icon stays uncoloured and keeps its own colours. This is a documented state rule (pattern Select arrow, ADR-0004): "uncoloured" is no colour a swatch can name, so the field's swatch (terminal `primary`) shows the colour a Base64 icon gets. Implemented by `resolveEndSymbols` in `SliderCollectionWidget/endSymbols.ts`, pinned by `endSymbols.test.ts` and `SliderCollection.test.tsx`.
 _Avoid_: Eck-Icon (the frame's corner icon), Start-/End-Icon without saying min/max where orientation matters
 
+**Wert-Label**:
+The number the slider shows at its thumb (English pages: value label), switched by the panel field Label. It shows the bare number without the **Einheit**. Its colour and size resolve like the active style and never carry the **Marker-Ebene**; it is not a **Marke**.
+_Avoid_: Label alone (that is a resolved state's name in a list), Wert-Anzeige (the icon + value cluster of other widgets; the slider has none)
+
 # Gauge Collection Widget
 
 The canvas-gauge of the collection (linear or radial instrument on a canvas, driven by a numeric OID). This glossary pins down the seam language introduced with the Options-Builder.
@@ -639,7 +647,7 @@ The icon the Collection frame shows in its top-right corner — the active state
 _Avoid_: Header-Icon (the editor's label for its switch — the icon sits in the corner, with or without a header), Kopf-Icon, Wert-Icon (that is the **Wert-Anzeige**'s icon)
 
 **Rahmen-Kopfzeile**:
-The single text line above a Collection widget's content, owned by the frame — the active state's header text, HTML allowed, switched off by `noHeader`. Shown only while the bound OID has a valid type; until then the frame shows its OID hint instead of both lines. The hint reads the Haupt-OID's object: Light2 and the Dialog, which bind another OID, get the request to select a valid object ID.
+The single text line above a Collection widget's content, owned by the frame — the active state's header text, HTML allowed, switched off by `noHeader`. Shown only while the bound OID has a valid type; until then the frame shows its OID hint instead of both lines. The hint reads the Haupt-OID's object: Light2, which binds another OID, gets the request to select a valid object ID; the Dialog has no type check and shows no hint.
 _Avoid_: Header (that is the JSON Table's column-header row), Titel, Überschrift
 
 **Rahmen-Fußzeile**:
@@ -697,6 +705,14 @@ _Avoid_: Neben-OID (sounds equal-ranking), Zusatz-OID (Light2 channels are not o
 **Content-Box**:
 The area a Collection widget's contents live in — the frame's inner paper, measured by CollectionBase and published to its children as `{ width, height }` (`useContentBox()`, ADR-0098), so square/circle sizing, the outlined border and padding are already reflected. Consumers read it instead of measuring themselves: the Select's width bound, the Gauge canvas, the Radio item size, the Switch's height budget. They read it in a component rendered INSIDE the frame — the body that renders CollectionBase sits outside the box. `undefined` until the first measurement and outside CollectionBase. Elements with a box of their own still measure locally (the Switch's track row, Light2's picker box with its `colorLightPadding`).
 _Avoid_: Container-Größe (unsaid which container), Widget-Größe (that is the vis-2 widget frame)
+
+**Rahmenfläche**:
+The outer painted surface of a Collection widget, around the **Inhaltsfläche**: it carries the Rahmen-Kopfzeile and Rahmen-Fußzeile and paints the frame background. English pages: frame area.
+_Avoid_: Card (that is the field label's old word), Rahmen without saying the surface
+
+**Inhaltsfläche**:
+The inner painted surface of a Collection widget — the surface of the **Content-Box**: it paints the background and takes the Geometrie forms. English pages: content area.
+_Avoid_: Paper, Widget-Fläche (unsaid which of the two)
 
 **Farbwähler**:
 The one color-picking popover every Collection editor opens from a color field — vis-2 attribute panel, ECharts configurator, Theme Studio and the JSON-Table editors alike (`CollectionColorPicker`, ADR-0102). It edits the value; which colour a field resolves to when empty stays the field's business (Field-Vertrag or Schlichtes Farbfeld). Each surface keeps its own field row around it.
@@ -783,12 +799,20 @@ The collection's button that opens a vis view in a modal dialog, optionally mirr
 ## Language
 
 **Dialog-Sitzung**:
-The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back.
+The open state of one Dialog widget and the ONE rule for how it changes: a click opens; closing (X, backdrop, Escape) and the auto-close timer close — the timer runs for every opened session, whoever opened it. The **Sitzungs-OID** opens on `true` and closes on `false`, including the value already present at view load. Only the widget's own actions write to the Sitzungs-OID; an observed backend value never writes back. English pages: dialog session.
 _Avoid_: Dialog-Status (unsaid whether local or backend), Öffnungslogik (that is the wiring), Popup-State
 
 **Sitzungs-OID**:
-The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it.
+The optional boolean state (`dialogId`) that mirrors a **Dialog-Sitzung** in both directions — read to open/close, written on the widget's own open/close (never when its object is read-only). Only real booleans count; any other value is ignored. A **Hilfs-OID**, not a **Schreibziel**: it is read AND written, and no status OID stands beside it. English pages: session OID.
 _Avoid_: Steuer-OID, Steuer ID (that is the Select's `cid`), Dialog-OID, control OID
+
+**Ansichtsrahmen**:
+The Collection frame inside the open dialog, around the embedded view — a second frame beside the button's, with the same Common settings but no **Eck-Icon**. English pages: view frame.
+_Avoid_: Dialog-Rahmen (unsaid which of the two), Modal (that is the window around it)
+
+**Titelzeile**:
+The line at the top of the **Ansichtsrahmen**: it holds the header text when "header as title" is on and the upper close button. Distinct from the **Rahmen-Kopfzeile**, which it replaces in that case. English pages: title line.
+_Avoid_: Header-Zeile, Dialog-Kopf
 
 # Light2 Collection Widget
 
@@ -819,6 +843,10 @@ _Avoid_: Hue (that is the colour angle Kanal), 8-Bit-Skala
 **CCT-Ansicht**:
 The white-light view of a Light2 widget: the **Kelvin-Picker** beside the **Helligkeits-Picker** instead of the colour picker. A Lichttyp with „& cct" offers it as a second view, switched with the colour-wheel and white icons; for the Lichttyp cct it is the only view. Switching the view switches the lamp: entering writes the stored temperature (2000 K without a usable value), leaving writes the stored colour Kanäle back. A foreign change of temperature or brightness reaches its pickers in both cases.
 _Avoid_: CCT-Modus (sounds like a Lichttyp), Weiß-Modus, cctLight as a prose term
+
+**Farbansicht**:
+The colour view of a Light2 widget: one picker in the chosen UI component that writes all colour Kanäle of the **Lichttyp**. Every Lichttyp except none and cct has it, and the widget always starts in it.
+_Avoid_: Farbmodus (not in the code or the UI), RGB-Ansicht (h/s/v has it too)
 
 **Kelvin-Picker** / **Helligkeits-Picker**:
 The two pickers of the **CCT-Ansicht** — the first writes the temperature Kanal, the second the brightness Kanal; in every other view one picker writes all colour Kanäle of the Lichttyp.

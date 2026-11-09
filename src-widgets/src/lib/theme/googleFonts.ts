@@ -18,7 +18,7 @@ import type { GoogleFontFace, GoogleFontsMap } from './themeTypes';
 /** Marker attribute on the `<style>` element holding the injected `@font-face`s. */
 const STYLE_DATA_ATTR = 'data-collection-google-fonts';
 
-/** Google Fonts CSS2 stylesheet endpoint (latin, default weights 400/700). */
+/** Google Fonts CSS2 stylesheet endpoint. */
 const GOOGLE_CSS2_URL = 'https://fonts.googleapis.com/css2';
 
 /**
@@ -34,7 +34,9 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
     if (!family) {
         throw new Error('Empty font name');
     }
-    const cssUrl = `${GOOGLE_CSS2_URL}?family=${family}&display=swap`;
+    // Without named weights the endpoint answers with the regular face only. A font lacking one of
+    // the two still loads with what it has.
+    const cssUrl = `${GOOGLE_CSS2_URL}?family=${family}:wght@400;700&display=swap`;
 
     const cssResponse = await fetch(cssUrl);
     if (!cssResponse.ok) {
@@ -68,7 +70,9 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
         bodies.push(...allBodies);
     }
 
-    const faces: GoogleFontFace[] = [];
+    // A variable font answers both named weights with the same file: it is embedded once, as a
+    // face spanning them.
+    const facesByUrl = new Map<string, GoogleFontFace>();
     for (const body of bodies) {
         const weightMatch = body.match(/font-weight:\s*(\d+)/);
         // The modern (woff2) browser stylesheet has a single woff2 `src: url(…)`.
@@ -77,10 +81,15 @@ export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
             continue;
         }
         const weight = weightMatch ? Number(weightMatch[1]) : 400;
-        const data = await fetchAsDataUri(urlMatch[1]);
-        faces.push({ weight, data });
+        const known = facesByUrl.get(urlMatch[1]);
+        if (known) {
+            known.weightMax = weight;
+        } else {
+            facesByUrl.set(urlMatch[1], { weight, data: await fetchAsDataUri(urlMatch[1]) });
+        }
     }
 
+    const faces = [...facesByUrl.values()];
     if (faces.length === 0) {
         throw new Error(`No latin face found for "${name}"`);
     }
@@ -145,7 +154,7 @@ export function injectGoogleFontFaces(googleFonts: GoogleFontsMap | undefined): 
                 .map(
                     face =>
                         `@font-face{font-family:'${family}';font-style:normal;` +
-                        `font-display:swap;font-weight:${face.weight};` +
+                        `font-display:swap;font-weight:${face.weightMax ? `${face.weight} ${face.weightMax}` : face.weight};` +
                         `src:url(${face.data}) format("woff2")}`,
                 )
                 .join(''),

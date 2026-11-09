@@ -10,9 +10,16 @@
  *   - contains(str, sub)    → str.includes(sub)
  *   - startsWith(str, pre)  → str.startsWith(pre)
  *   - endsWith(str, suf)    → str.endsWith(suf)
+ *
+ * Built-in operators replaced, because they read an empty cell as a number:
+ *   - !!(value)             → the cell has content (0 and false are values)
+ *   - <, <=, >, >=          → false for an empty cell on either side; three arguments read as "between"
+ *   - ==, !=                → an empty cell is neither 0 nor false
  */
 
 import { LogicEngine } from 'json-logic-engine';
+
+import { isEmptyCell } from '../columnFilter';
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -30,6 +37,58 @@ function toStr(v: unknown): string {
 // ── Engine Singleton ────────────────────────────────────────────
 
 const engine = new LogicEngine();
+
+// The rule builder's `empty`/`not_empty` are stored as `!!`: as in the Spaltenfilter, 0 and false are values.
+engine.addMethod('!!', ([value]: [unknown]) => !isEmptyCell(value), {
+    deterministic: true,
+});
+
+/** What an ordering rule compares: a number, or text (a date rule's `YYYY-MM-DD`). */
+type Ordered = number | string;
+
+/** Whether every two neighbours pass, the engine's reading of more than two arguments. */
+const everyPair = <T>(args: T[], passes: (left: T, right: T) => boolean): boolean =>
+    args.length > 1 && args.slice(1).every((right, i) => passes(args[i], right));
+
+// JavaScript reads a missing value as 0 and the empty string as the smallest text: without the
+// guard an empty cell would match every "less than" rule. An object has no order, as in the engine.
+const isOrdered = (value: unknown): boolean => !isEmptyCell(value) && typeof value !== 'object';
+
+const COMPARISONS: Record<string, (left: Ordered, right: Ordered) => boolean> = {
+    '<': (left, right) => left < right,
+    '<=': (left, right) => left <= right,
+    '>': (left, right) => left > right,
+    '>=': (left, right) => left >= right,
+};
+for (const [operator, compare] of Object.entries(COMPARISONS)) {
+    engine.addMethod(operator, (args: Ordered[]) => args.every(isOrdered) && everyPair(args, compare), {
+        deterministic: true,
+    });
+}
+
+/**
+ * The engine's loose equality, except that an empty cell is no number: it equals only the same
+ * empty value, never 0 or false.
+ *
+ * @returns `undefined` where the two have no common reading (an object, or text that is no number
+ *   against a number): the engine throws there, so neither `==` nor `!=` holds.
+ */
+function looselyEqual(left: unknown, right: unknown): boolean | undefined {
+    if (isEmptyCell(left) || isEmptyCell(right) || (typeof left === 'string' && typeof right === 'string')) {
+        return left === right;
+    }
+    const [leftNumber, rightNumber] = [Number(left), Number(right)];
+    return typeof left === 'object' || typeof right === 'object' || isNaN(leftNumber) || isNaN(rightNumber)
+        ? undefined
+        : leftNumber === rightNumber;
+}
+
+engine.addMethod('==', (args: unknown[]) => everyPair(args, (left, right) => looselyEqual(left, right) === true), {
+    deterministic: true,
+});
+engine.addMethod('!=', (args: unknown[]) => everyPair(args, (left, right) => looselyEqual(left, right) === false), {
+    deterministic: true,
+});
 
 engine.addMethod('contains', ([str, sub]: [unknown, unknown]) => toStr(str).includes(toStr(sub)), {
     deterministic: true,
