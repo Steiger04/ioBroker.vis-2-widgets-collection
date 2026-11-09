@@ -6,7 +6,7 @@
  *
  * @module EchartsCollectionWidget/editor/axisSight.test
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     alignTicksDisabledByOverride,
@@ -25,6 +25,16 @@ import {
 } from './axisSight';
 import { dropUnboundAxes } from './structureEvents';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
+
+// The fallback names are translated, and the host's `t` lives on `window`.
+beforeAll(() => {
+    vi.stubGlobal('window', {
+        visRxWidget: { t: (key: string, ...args: string[]) => `${key}:${args.join()}` },
+    });
+});
+afterAll(() => {
+    vi.unstubAllGlobals();
+});
 
 describe('binding predicates + the 1:1 geometry', () => {
     it('boundAxisIndices collects the referenced indices (undefined → 0, like the builder)', () => {
@@ -79,15 +89,15 @@ describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
         expect(effectiveAxisName({}, 1, series)).toBe('Power');
     });
 
-    it('falls back to the Series-N label when neither axis nor bound series has a name (F11: dropdown === card === chart)', () => {
-        expect(effectiveAxisName({}, 2, series)).toBe('Series 3');
-        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('Series 1');
+    it('falls back to the translated Series-N label when neither axis nor bound series has a name (F11: dropdown === card)', () => {
+        expect(effectiveAxisName({}, 2, series)).toBe('echarts_series_title_fallback:3');
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('echarts_series_title_fallback:1');
     });
 
     it('a BOUND unnamed series keys its Series-N label by SERIES position — even in a misaligned binding (F11)', () => {
-        // Series #0 (unnamed) binds axis 2: the builder renders "Series 1" and the Axis-card title
-        // shows "Series 1" — the dropdown must not diverge to the axis index ("Series 3").
-        expect(effectiveAxisName({}, 2, [{ yAxisIndex: 2 }])).toBe('Series 1');
+        // Series #0 (unnamed) binds axis 2: the builder numbers it 1 and the Axis-card title too —
+        // the dropdown must not diverge to the axis index (3).
+        expect(effectiveAxisName({}, 2, [{ yAxisIndex: 2 }])).toBe('echarts_series_title_fallback:1');
     });
 
     it('prefers the explicit axis name over a bound series name', () => {
@@ -127,7 +137,7 @@ describe('effectiveAxisName — the tabellarisch yPath default (ADR-0075 family 
     });
 
     it('history sights (no yPath, no name) keep the Series-N fallback', () => {
-        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('Series 1');
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('echarts_series_title_fallback:1');
     });
 
     it('axisOptionLabel prefixes the index — the Series dropdown reads the same column name', () => {
@@ -146,7 +156,7 @@ describe('implicit axis-0 binding — the materialised display sight (Q7)', () =
     });
 
     it('only axis 0 gains binders — an implicit binder never matches a higher axis', () => {
-        expect(effectiveAxisName({}, 1, [{ name: 'PV' }])).toBe('Series 2');
+        expect(effectiveAxisName({}, 1, [{ name: 'PV' }])).toBe('echarts_series_title_fallback:2');
         expect(effectiveAxisColor({}, 1, [{ color: '#f00' }], ['#aaa'])).toBeUndefined();
     });
 
@@ -280,7 +290,7 @@ describe('axisOptionLabel — the binding-dropdown item carries the axis number 
     });
 
     it('the unnamed fallback inherits the Series-N label — prefixed like every other name', () => {
-        expect(axisOptionLabel(1, axes[1], [{ yAxisIndex: 0, name: '' }])).toBe('2 · Series 2');
+        expect(axisOptionLabel(1, axes[1], [{ yAxisIndex: 0, name: '' }])).toBe('2 · echarts_series_title_fallback:2');
     });
 });
 
@@ -366,14 +376,7 @@ describe('axis name owner „Namensgeber" — the incumbent keeps the axis ident
 });
 
 describe('jsonAxisDeathName — an axis nothing names', () => {
-    afterEach(() => {
-        vi.unstubAllGlobals();
-    });
-
     it('reads the translated position, not a fixed German text', () => {
-        vi.stubGlobal('window', {
-            visRxWidget: { t: (key: string, ...args: string[]) => `${key}:${args.join()}` },
-        });
         expect(jsonAxisDeathName({}, 1, [], {}, [])).toBe('echarts_axis_fallback_name:2');
     });
 });

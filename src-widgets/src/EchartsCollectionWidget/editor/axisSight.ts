@@ -139,12 +139,13 @@ export const positionalBinderName = (s: { name?: string; yPath?: string }): stri
 /**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
  * axis name, else the name inherited from the axis' owner series (first binder before ADR-0068),
- * else the `Series N` label. The inherited name reads {@link positionalBinderName} — so a
+ * else the translated `Series N` label. The inherited name reads {@link positionalBinderName} — so a
  * tabellarisch series without an authored name titles its axis with the bound COLUMN name,
- * never `Series N` on a fully mapped series. N is the binder's SERIES position — the exact
- * label the builder renders for an unnamed series and the Axis-card title shows
- * (`boundAxisName`), so all three agree even in a misaligned binding. An unbound axis no
- * longer exists (ADR-0069) — the index fallback below is defensive only.
+ * never `Series N` on a fully mapped series. N is the binder's SERIES position — the number the
+ * builder gives an unnamed series and the Axis-card title shows (`boundAxisName`), so all three
+ * agree on it even in a misaligned binding. The word differs: the chart's `Series N` is the
+ * series identity and stays fixed. An unbound axis no longer exists (ADR-0069) — the index
+ * fallback below is defensive only.
  */
 export const effectiveAxisName = (
     axis: EchartsAxisConfig,
@@ -161,7 +162,7 @@ export const effectiveAxisName = (
             return inherited;
         }
     }
-    return `Series ${(boundPos >= 0 ? boundPos : i) + 1}`;
+    return translate('echarts_series_title_fallback', String((boundPos >= 0 ? boundPos : i) + 1));
 };
 
 /**
