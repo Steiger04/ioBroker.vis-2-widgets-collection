@@ -568,6 +568,10 @@ _Avoid_: Slider-Resolver (the retired mechanism that found it by type detection)
 The icon at either end of the rail (`iconMin`/`iconSmallMin`, `iconMax`/`iconSmallMax`), coloured by `startIconColor` / `endIconColor`. The colour follows the SOURCE icon (start = min, end = max), not its rendered position, which swaps with the orientation. The colour is applied through a forced mask, so every icon with an explicit value is coloured — an image icon (URL, path) as a silhouette too. Unset, only a Base64 icon falls back to the theme primary; an image icon stays uncoloured and keeps its own colours. This is a documented state rule (pattern Select arrow, ADR-0004): "uncoloured" is no colour a swatch can name, so the field's swatch (terminal `primary`) shows the colour a Base64 icon gets. Implemented by `resolveEndSymbols` in `SliderCollectionWidget/endSymbols.ts`, pinned by `endSymbols.test.ts` and `SliderCollection.test.tsx`.
 _Avoid_: Eck-Icon (the frame's corner icon), Start-/End-Icon without saying min/max where orientation matters
 
+**Wert-Label**:
+The number the slider shows at its thumb (English pages: value label), switched by the panel field Label (`valueLabelDisplay`). It shows the bare number without the **Einheit**. Its colour and size resolve like the active style and never carry the **Marker-Ebene**; it is not a **Marke**.
+_Avoid_: Label alone (that is a resolved state's name in a list), Wert-Anzeige (the icon + value cluster of other widgets; the slider has none)
+
 # Gauge Collection Widget
 
 The canvas-gauge of the collection (linear or radial instrument on a canvas, driven by a numeric OID). This glossary pins down the seam language introduced with the Options-Builder.
