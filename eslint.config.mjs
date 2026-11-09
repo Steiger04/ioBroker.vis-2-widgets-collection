@@ -61,6 +61,16 @@ export default [
         },
     },
     {
+        // TanStack Table's useReactTable is on the React Compiler's list of incompatible APIs:
+        // the rule only reports that the compiler would skip this component. The build runs
+        // without the React Compiler, and the library has no compatible API; rules-of-hooks and
+        // exhaustive-deps still check the component.
+        files: ['src-widgets/src/JsonTableCollectionWidget/JsonTableCollection.tsx'],
+        rules: {
+            'react-hooks/incompatible-library': 'off',
+        },
+    },
+    {
         // Special rules for types directory - allow comprehensive JSDoc comments
         files: ['src-widgets/src/types/**/*.{ts,d.ts}'],
         rules: {
