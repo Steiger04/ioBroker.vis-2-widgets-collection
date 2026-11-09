@@ -58,6 +58,8 @@ describe('FORMATTERS.number', () => {
     });
 
     it('returns no displayValue for non-numeric input (caller keeps the default)', () => {
+        const blank = FORMATTERS.number.format('', ctx(fmt({ type: 'number' }), ''));
+        expect(blank.displayValue).toBeUndefined();
         const r = FORMATTERS.number.format('abc', ctx(fmt({ type: 'number' }), 'abc'));
         expect(r.displayValue).toBeUndefined();
     });
