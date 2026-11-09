@@ -181,9 +181,9 @@ describe('applyConditionalStyle — follows the Effektiver Typ', () => {
         expect(hits(isEmpty, '2024-12-01 10:00', dateColumn())).toBe(false);
     });
 
-    it.each([
-        ['0', 0, { type: 'number', readDate: dateReader() } as CellColumn],
-        ['false', false, { type: 'boolean', readDate: dateReader() } as CellColumn],
+    it.each<[string, unknown, CellColumn]>([
+        ['0', 0, { type: 'number', readDate: dateReader() }],
+        ['false', false, { type: 'boolean', readDate: dateReader() }],
     ])('does not count the value %s as empty', (_name, value, column) => {
         const isEmpty = cfg({ cellStyle: [{ logic: { '!': [{ '!!': [{ var: 'value' }] }] }, fontWeight: 'bold' }] });
         const isNotEmpty = cfg({ cellStyle: [{ logic: { '!!': [{ var: 'value' }] }, fontWeight: 'bold' }] });

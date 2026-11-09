@@ -286,7 +286,10 @@ export function buildCellContent(
         isTruncated = true;
         defaultDisplay = JSON.stringify(rawValue);
     } else {
-        defaultDisplay = String(rawValue as string | number | boolean | bigint);
+        // A named primitive: String() takes any argument, so an inline assertion counts as unnecessary,
+        // while the narrowed `unknown` alone counts as a possible object.
+        const primitive = rawValue as string | number | boolean | bigint;
+        defaultDisplay = String(primitive);
     }
 
     // No column config at all → unstyled default display (no chip, no graphic).

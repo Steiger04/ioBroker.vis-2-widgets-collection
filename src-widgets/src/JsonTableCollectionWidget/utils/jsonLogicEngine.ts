@@ -31,7 +31,10 @@ function toStr(v: unknown): string {
     if (typeof v === 'object') {
         return JSON.stringify(v);
     }
-    return String(v as string | number | boolean | bigint);
+    // A named primitive: String() takes any argument, so an inline assertion counts as unnecessary,
+    // while the narrowed `unknown` alone counts as a possible object.
+    const primitive = v as string | number | boolean | bigint;
+    return String(primitive);
 }
 
 // ── Engine Singleton ────────────────────────────────────────────

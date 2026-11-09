@@ -28,7 +28,7 @@ vi.mock('../colorFields', () => ({
 }));
 
 /** The collection theme the editor resolves — switched per test (host light / dark). */
-const host = vi.hoisted(() => ({ mode: 'light' as 'light' | 'dark' }));
+const host = vi.hoisted((): { mode: 'light' | 'dark' } => ({ mode: 'light' }));
 vi.mock('../useEditorTheme', async () => {
     const { createTheme } = await import('@mui/material/styles');
     const { resolveThemeTokens } = await import('../../echartsTheme');

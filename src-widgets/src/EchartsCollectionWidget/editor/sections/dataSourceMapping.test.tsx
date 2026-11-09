@@ -27,14 +27,16 @@ type Scenario = {
     /** Set when a discovery walk hit the depth cap — the Zuordnung's honest sight hint. */
     depthCapped?: boolean;
 };
-const { schema } = vi.hoisted(() => ({
-    schema: {
-        current: {
-            arrayPaths: [],
-            columns: [],
-        } as unknown as { arrayPaths: { path: string; length: number }[]; columns: unknown[] },
-    },
-}));
+const { schema } = vi.hoisted(
+    (): { schema: { current: { arrayPaths: { path: string; length: number }[]; columns: unknown[] } } } => ({
+        schema: {
+            current: {
+                arrayPaths: [],
+                columns: [],
+            },
+        },
+    }),
+);
 vi.mock('../useJsonTableSchema', async importOriginal => ({
     // The pure helpers (suggestedRowPath above all) stay REAL — only the subscription hook
     // is pinned to the scenario.
