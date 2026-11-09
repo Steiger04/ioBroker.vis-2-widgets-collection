@@ -16,16 +16,16 @@ The widget-specific and value-specific settings override the more general settin
 
 The fields are in the **Button group** group. The **Active** and **Values** groups are described under [Value-Specific Settings](#value-specific-settings).
 
-| Field Name                           | Type                              | Default      | Description                                                                                                              | Condition                                |
-| ------------------------------------ | --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| Object ID `oid`                      | id                                | -            | OID whose value decides the selection and which is written to; accepts the types boolean, number, string and mixed       | -                                        |
-| Unit `unit`                          | text                              | ''           | Unit (taken from the object, can be overridden here, clearing removes it); appears on labels without an alias            | Only when an OID is selected             |
-| Only display `onlyDisplay`           | checkbox                          | false        | Locks the buttons, nothing is written. Every OID pick sets the field anew: true with `write=false`, otherwise false      | Hidden when the object has `write=false` |
-| Only icon `onlyIcon`                 | checkbox                          | -            | Hides the label                                                                                                          | Hidden with active `onlyText`            |
-| Only text `onlyText`                 | checkbox                          | -            | Hides the icons of the buttons                                                                                           | Hidden with active `onlyIcon`            |
-| Variant `buttonGroupVariant`         | select (`text`, `outlined`)       | `text`       | Display, see [Variants](#variants)                                                                                       | -                                        |
-| Orientation `buttonGroupOrientation` | select (`horizontal`, `vertical`) | `horizontal` | Arrangement, see [Orientation](#orientation)                                                                             | -                                        |
-| Color `buttonGroupColor`             | color                             | -            | Solid colors only. Color of the separators and borders. Without a value the text color of the theme, see [Color](#color) | -                                        |
+| Field Name                           | Type                              | Default      | Description                                                                                                              | Condition                                 |
+| ------------------------------------ | --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| Object ID `oid`                      | id                                | -            | OID whose value decides the selection and which is written to; accepts the types boolean, number, string and mixed       | -                                         |
+| Unit `unit`                          | text                              | ''           | Unit (taken from the object, can be overridden here, clearing removes it); appears on labels without an alias            | Only when an OID is selected              |
+| Only display `onlyDisplay`           | checkbox                          | false        | Locks the buttons, nothing is written. Every OID pick sets the field anew: true with `write: false`, otherwise false     | Hidden when the object has `write: false` |
+| Only icon `onlyIcon`                 | checkbox                          | -            | Hides the label                                                                                                          | Hidden with active `onlyText`             |
+| Only text `onlyText`                 | checkbox                          | -            | Hides the icons of the buttons                                                                                           | Hidden with active `onlyIcon`             |
+| Variant `buttonGroupVariant`         | select (`text`, `outlined`)       | `text`       | Display, see [Variants](#variants)                                                                                       | -                                         |
+| Orientation `buttonGroupOrientation` | select (`horizontal`, `vertical`) | `horizontal` | Arrangement, see [Orientation](#orientation)                                                                             | -                                         |
+| Color `buttonGroupColor`             | color                             | -            | Solid colors only. Color of the separators and borders. Without a value the text color of the theme, see [Color](#color) | -                                         |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 
@@ -34,7 +34,7 @@ The fields are in the **Button group** group. The **Active** and **Values** grou
 - **Click**: Writes the value of the button with the **Write Value** settings, converted to the type of the OID (see [Data Types](#data-types)). The selection jumps to the button at once.
 - **Repeated click**: A click on a button that is already selected sends the value again. A button cannot be deselected.
 - **Selection**: Every button whose value matches the current value of the OID is selected, also after a change from outside. Several rows with the same value are all selected. If no row matches, no button is selected.
-- **Lock**: With active `onlyDisplay` or `write=false` on the object, all buttons are disabled and nothing is written. The selection keeps following the value.
+- **Lock**: With active `onlyDisplay` or `write: false` on the object, all buttons are disabled and nothing is written. The selection keeps following the value.
 
 ## Variants
 
@@ -84,7 +84,7 @@ The fields are in the **Button group** group. The **Active** and **Values** grou
 
 ### Button Background
 
-In the ButtonGroup Widget, `background`, `background{n}` and `backgroundActive` color the buttons, not the content area. The content area keeps the paper color of the theme, with `noCard` it is transparent. How the button reacts depends on the color value:
+In the ButtonGroup Widget, `background`, `background{n}` and `backgroundActive` color the buttons, not the content area. The content area keeps the widget surface of the theme, with `noCard` it is transparent. How the button reacts depends on the color value:
 
 - **Hex or rgb(a)**: Lightened by 50 % on hover, by 30 % when selected
 - **Gradient**: Not lightened, but drawn with 80 % opacity on hover and in the active state

@@ -121,16 +121,16 @@ An **image column** renders every raw value as a graphic instead of text. The ra
 - **`data:image/…` URI**
 - **UTF-8 character** (a non-ASCII character of at most 2 UTF-16 units, e.g. 💡; an emoji with a variation selector is longer and stays text)
 
-**Icon vs image** is a value-level, runtime distinction — not a separate column type: an _icon_ is a small monochrome glyph (SVG data URI or UTF-8 character), an _image_ is a raster photo (png/jpg/webp/…). A configured colour **tint** applies to either via a CSS mask (the source's alpha channel) — exact for monochrome icons.
+**Icon vs image** is a value-level, runtime distinction — not a separate column type: an _icon_ is a small monochrome glyph (SVG data URI or UTF-8 character), an _image_ is a raster photo (png/jpg/webp/…). A configured color **tint** applies to either via a CSS mask (the source's alpha channel) — exact for monochrome icons.
 
 | Property                                                         | Default | Description                                                                                                                        |
 | ---------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Image size `imageSize`                                           | 64      | Render size in px (8–256), limited by the cell height                                                                              |
 | Object fit `imageObjectFit`                                      | contain | `contain`, `cover`, `fill` (CSS `object-fit`)                                                                                      |
 | Shape `imageVariant`                                             | square  | `square`, `rounded`, `circular` (avatar shape)                                                                                     |
-| Background `imageBgColor`                                        | -       | Avatar background colour                                                                                                           |
-| Border color `imageBorderColor`, Border width `imageBorderWidth` | - / -   | Avatar border, only with a colour and width > 0 (0–16)                                                                             |
-| Tint `imageTint`                                                 | -       | Colour tint via CSS mask                                                                                                           |
+| Background `imageBgColor`                                        | -       | Avatar background color                                                                                                            |
+| Border color `imageBorderColor`, Border width `imageBorderWidth` | - / -   | Avatar border, only with a color and width > 0 (0–16)                                                                              |
+| Tint `imageTint`                                                 | -       | Color tint via CSS mask                                                                                                            |
 | Show value as tooltip `imageTooltip`                             | true    | Show raw value as a hover tooltip                                                                                                  |
 | Show placeholder for broken images `imageShowBroken`             | true    | Placeholder icon when a URL fails to load, only without `imageTint`: the mask reports no load error. `false` leaves the cell empty |
 | Padding `imagePadding` (top/right/bottom/left)                   | 0 8 0 8 | Per-side inner padding in px (0–64). As soon as one side is set, unset sides are 0                                                 |
@@ -248,18 +248,18 @@ At depth N a value on level N+1 stays as it is: an object or array shows as JSON
 | ---------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------- | --------- |
 | Border width `borderWidth`   | slider | 0       | Outer border width (0-20), a border exists only above 0                                       | -         |
 | Border style `borderStyle`   | select | 'solid' | `none`, `dotted`, `dashed`, `solid`, `double`, `groove`, `ridge`, `inset`, `outset`, `hidden` | -         |
-| Border color `borderColor`   | color  | -       | Border color. Without a value the theme's divider colour                                      | -         |
+| Border color `borderColor`   | color  | -       | Border color. Without a value the theme's divider color                                       | -         |
 | Border radius `borderRadius` | text   | -       | Border radius (CSS value)                                                                     | -         |
 
 ### Header Style
 
-| Field Name                               | Type   | Default | Description                                                                                              | Condition    |
-| ---------------------------------------- | ------ | ------- | -------------------------------------------------------------------------------------------------------- | ------------ |
-| Header background `tableHeaderBgColor`   | color  | -       | Header background color (gradient possible). Without a value the paper colour, transparent with `noCard` | Header shown |
-| Header text color `tableHeaderTextColor` | color  | -       | Header text color. Inherited without a value                                                             | Header shown |
-| Header font size `tableHeaderFontSize`   | number | -       | Header font size in px, from 8                                                                           | Header shown |
-| Header border width `headerBorderWidth`  | slider | 0       | Header bottom border width (0-10)                                                                        | Header shown |
-| Header border color `headerBorderColor`  | color  | -       | Header border color. Without a value the theme's divider colour                                          | Header shown |
+| Field Name                               | Type   | Default | Description                                                                                                             | Condition    |
+| ---------------------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Header background `tableHeaderBgColor`   | color  | -       | Header background color (gradient possible). Without a value the widget surface of the theme, transparent with `noCard` | Header shown |
+| Header text color `tableHeaderTextColor` | color  | -       | Header text color. Inherited without a value                                                                            | Header shown |
+| Header font size `tableHeaderFontSize`   | number | -       | Header font size in px, from 8                                                                                          | Header shown |
+| Header border width `headerBorderWidth`  | slider | 0       | Header bottom border width (0-10)                                                                                       | Header shown |
+| Header border color `headerBorderColor`  | color  | -       | Header border color. Without a value the theme's divider color                                                          | Header shown |
 
 ### Vertical / Horizontal Borders
 

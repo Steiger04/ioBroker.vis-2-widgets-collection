@@ -85,7 +85,7 @@ This enables e.g. shutter control (press = Up, release = Stop) or remote control
 - **Pressing** with the main button, by touch or with a pen: Value[1] is sent to the OID.
 - **Releasing**: Value[2] is sent to the OID.
 - **Leaving the whole button while holding**: Acts as a release. Moving between the icon and the text inside the button does not count. A finger sliding off the button counts as leaving too; this is checked in the touch emulation of Chromium, not yet on real devices.
-- **A touch cancelled by the browser**: Acts as a release.
+- **A touch canceled by the browser**: Acts as a release.
 - **A short tap**: Sends both values shortly after each other, Value[1] first, then Value[2]. There is no minimum duration.
 
 Value[2] comes only out of a running press, and exactly once per press. So nothing is sent in these cases:
@@ -133,7 +133,7 @@ The click opens the dialog when **Only states** is off or more than 2 rows have 
 
 The slider appears only for an OID of type **number**, with **Only states** off and when the minimum is below the maximum. With minimum ≥ maximum there is no slider.
 
-- **Range**: When an OID is selected, the widget makes a copy of the object data and takes `common.min` and `common.max` into it. A limit the object does not declare is pre-filled there with 0 or 100. A number OID without a range therefore shows a slider from 0 to 100. The range cannot be set in the widget and limits only the slider, not the list entries. Both limits are labelled at the slider.
+- **Range**: When an OID is selected, the widget makes a copy of the object data and takes `common.min` and `common.max` into it. A limit the object does not declare is pre-filled there with 0 or 100. A number OID without a range therefore shows a slider from 0 to 100. The range cannot be set in the widget and limits only the slider, not the list entries. Both limits are labeled at the slider.
 - **Step**: `common.step` of the object, also from the copy. Without one, or with a value of 0 or below, the step is 1.
 - **Later changes to the object**: The copy is made only when an OID is selected. A changed range or step applies after the next OID selection. A copy without a step stays at step 1 until then.
 - **Dragging**: The slider writes while it is dragged, not only on release. The display follows at once, the values go to the OID according to the [Write Value](En-Home.md#write-value) settings.

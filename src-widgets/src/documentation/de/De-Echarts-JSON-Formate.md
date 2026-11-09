@@ -271,7 +271,7 @@ Jeder Y-Wert durchläuft denselben Anfang der [Wert-Kette](De-Echarts-Widget.md#
 
 ### 3. Null-Werte (`keep` / `forward` / `zero`)
 
-Voreinstellung ist die Chart-Einstellung **Null-Werte** (`ignoreNull`): Sie steht nur im Modus Verlauf im Panel (Tab **Datenabruf**), wirkt aber auch hier. Das gleichnamige Feld im Tab **Daten** der Serienkarte (`nullMode`) überschreibt sie; die Segment-Zeilen der Torte bei Fertige Serien haben diesen Tab nicht. Bewusste (zugeordnete) Lücken bleiben in jedem Modus immun.
+Voreinstellung ist die Diagramm-Einstellung **Null-Werte** (`ignoreNull`): Sie steht nur im Modus Verlauf im Panel (Tab **Datenabruf**), wirkt aber auch hier. Das gleichnamige Feld im Tab **Daten** der Serienkarte (`nullMode`) überschreibt sie; die Segment-Zeilen der Torte bei Fertige Serien haben diesen Tab nicht. Bewusste (zugeordnete) Lücken bleiben in jedem Modus immun.
 
 | Modus                                       | Bedeutung                                                                                                           |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |

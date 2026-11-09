@@ -247,7 +247,7 @@ With chart type Bar the stack mode sits above the cards in every data mode:
 | Area fill                  | Off · Flat · Gradient                                                                                                                                |
 | Area opacity               | Default 0.15 on Flat, 0.8 on Gradient                                                                                                                |
 | Area gradient              | CSS `linear-gradient` for area fill Gradient                                                                                                         |
-| Stack group                | Bar: Inherit (→ Stacking) · No stack · Group A/B/C — own groups stack independently of the chart mode. Line: No stack · Group A/B/C, without inherit |
+| Stack group                | Bar: Inherit (→ Stacking) · No stack · Group A/B/C — own groups stack independently of the stack mode. Line: No stack · Group A/B/C, without inherit |
 | Label position             | Off · Above bar · Inside, top · Inside, bottom · Inside, middle; unset = middle                                                                      |
 | Label size / Label color   | 6–24 px, default 12 / empty = auto contrast                                                                                                          |
 | Bar width (px/%)           | E.g. `20` or `30 %`; empty = auto                                                                                                                    |
@@ -273,7 +273,7 @@ With chart type Bar the stack mode sits above the cards in every data mode:
 
 The payload owns the series — there is no adding or removing, only **styling** (tabs as in history; **Basics** without OID and history instance, an empty name falls back to the payload name; **Data** without aggregation, difference and X offset) and **hiding** ("Hidden series" can be re-enabled as chips). Series sharing a name share style, axis binding and hiding — use unique names in the payload (the configurator warns).
 
-### JSON: table/columns (cartesian)
+### JSON: table / columns (cartesian)
 
 One card per bound Y column: **Basics** with Y column (picker from the detected column list, an empty name falls back to the last path segment), name, series color, type and Y axis; **Data** without aggregation, difference and X offset; **Style**, **Format** and **JSON** as in history. Rows path and X column live in the Data source section. A Y column missing from the payload renders an empty series (warning, no error); a text column plots only the values interpretable as numbers.
 
@@ -518,7 +518,7 @@ Tabs: **Palette** | **Surface** | **Frame**. The **color scale** belongs to the 
 
 ## Templates & advanced JSON
 
-Title, legend and tooltip (**Templates** tab), X card, Y-axis cards and pie (**Advanced** tab), series (**JSON** tab) and pie slices (slice row) each carry a collapsible **advanced JSON**: free JSON for ECharts options of **that component**. Toolbox and markings have none. Rules:
+Title, legend and tooltip (**Templates** tab), X card, Y-axis cards and pie (**Advanced** tab), series (**JSON** tab) and pie slices (slice row) each carry a collapsible **advanced JSON**: JSON for ECharts options of **that component**. Toolbox and markings have none. Rules:
 
 - **Deep-merge under the GUI** — the GUI wins every collision; only keys the GUI does not manage take effect. Objects merge, arrays replace as a whole. The editor reports invalid JSON, at runtime it has no effect.
 - **Template menu:** curated building blocks (grouped by category, searchable by label and JSON keys). The menu stays open for further ticks. Active templates appear as chips and merge with your own text in activation order, the last one wins.
@@ -542,5 +542,5 @@ All other settings (modes, series, axes, …) are hidden rxData fields written b
 
 ## Related pages
 
-- [ECharts JSON Formats](En-Echarts-JSON-Formats.md) — datapoint payloads with examples
+- [ECharts JSON Formats](En-Echarts-JSON-Formats.md) — data point payloads with examples
 - [Home](En-Home.md) — common settings of all widgets

@@ -238,15 +238,15 @@ The panel offers one shape at a time: while one is active, it hides the other tw
 
 ### Background
 
-| Field Name              | Type  | Default | Description                                                                                                            |
-| ----------------------- | ----- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Background `background` | color | -       | Color of the content area (gradient possible). Without a value the paper color of the theme, with `noCard` transparent |
+| Field Name              | Type  | Default | Description                                                                                                               |
+| ----------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Background `background` | color | -       | Color of the content area (gradient possible). Without a value the widget surface of the theme, with `noCard` transparent |
 
 ### Frame Background
 
-| Field Name                         | Type  | Default | Description                                                                               |
-| ---------------------------------- | ----- | ------- | ----------------------------------------------------------------------------------------- |
-| Frame background `frameBackground` | color | -       | Color of the frame area (gradient possible). Without a value the paper color of the theme |
+| Field Name                         | Type  | Default | Description                                                                                  |
+| ---------------------------------- | ----- | ------- | -------------------------------------------------------------------------------------------- |
+| Frame background `frameBackground` | color | -       | Color of the frame area (gradient possible). Without a value the widget surface of the theme |
 
 ### Write Value
 
@@ -356,6 +356,6 @@ The Widget Collection includes the following widgets:
 - [Gauge Widget](En-Gauge-Widget.md) - Gauge for displaying numeric values (Linear/Radial)
 - [Light Widget](En-Light-Widget.md) - Light control with color selection
 - [JSON Table Widget](En-JsonTable-Widget.md) - Table widget for JSON data with sorting, filtering, and pagination
-- [ECharts Widget](En-Echarts-Widget.md) - Charts (line, bar, scatter, pie) with a full configurator — history adapter or JSON datapoint
+- [ECharts Widget](En-Echarts-Widget.md) - Charts (line, bar, scatter, pie) with a full configurator — history adapter or JSON data point
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md) - The JSON payload formats of the ECharts widget, with examples
 - [Theme Studio](En-Theme-Studio.md) - Collection-wide theme editor (colors, typography, shape) for all widgets of the collection

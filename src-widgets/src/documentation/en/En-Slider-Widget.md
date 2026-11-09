@@ -16,27 +16,27 @@ The **Slider** group covers the slider, the marks and the end symbols. On the ma
 
 ### Basic Settings
 
-| Field Name                                         | Type                              | Default      | Description                                                                                                                                                                                             | Condition                               |
-| -------------------------------------------------- | --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Object ID `oid`                                    | id                                | -            | Accepts only type number. The pick sets `minValue` and `maxValue` to `common.min` and `common.max`, without them to 0 and 100, and adds state rows from `common.states`. It does not take `common.step` | -                                       |
-| Unit `unit`                                        | text                              | -            | Unit on the marks and in the footer, not in the value label. Comes from the object, can be overwritten here, emptying removes it                                                                        | Only when an OID is picked              |
-| Only display `onlyDisplay`                         | checkbox                          | false        | Locks the slider. The OID pick sets the field to true if the object has `write: false`, otherwise to false                                                                                              | Hidden if the object has `write: false` |
-| Size `sliderSize`                                  | select (`small`, `medium`)        | `medium`     | MUI size of the slider. The dimensions of thumb, track and rail come from their own fields                                                                                                              | -                                       |
-| Orientation `sliderOrientation`                    | select (`horizontal`, `vertical`) | `horizontal` | See [Orientation](#orientation). Without a value horizontal                                                                                                                                             | -                                       |
-| Gap between slider and icons (min/max) `sliderGap` | number (0-100, step 0.1)          | 0            | Gap between the slider and the end symbols in MUI spacing units                                                                                                                                         | -                                       |
-| Label `valueLabelDisplay`                          | select (`on`, `off`, `auto`)      | `off`        | Value label at the thumb: `on` always, `auto` on hover, focus and while dragging, `off` never. It shows the number without the unit                                                                     | -                                       |
-| Label position `labelPosition`                     | text                              | `-5px`       | CSS length: `top` of the value label on a horizontal slider, `right` on a vertical one                                                                                                                  | Hidden with `valueLabelDisplay` = `off` |
-| Slider color `sliderColor`                         | color                             | -            | Color (gradient possible) of all slider parts without their own color. Without a value the primary color of the theme                                                                                   | -                                       |
-| Padding `sliderPadding`                            | number (from 0, step 0.5)         | 1            | Inner padding of the content area in MUI spacing units                                                                                                                                                  | -                                       |
+| Field Name                                         | Type                              | Default      | Description                                                                                                                                                                                                           | Condition                               |
+| -------------------------------------------------- | --------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Object ID `oid`                                    | id                                | -            | Accepts only type number. The pick sets `minValue` and `maxValue` to `common.min` and `common.max`, without them to 0 and 100, and adds rows to the state editor from `common.states`. It does not take `common.step` | -                                       |
+| Unit `unit`                                        | text                              | -            | Unit on the marks and in the footer, not in the value label. Comes from the object, can be overwritten here, emptying removes it                                                                                      | Only when an OID is picked              |
+| Only display `onlyDisplay`                         | checkbox                          | false        | Locks the slider. The OID pick sets the field to true if the object has `write: false`, otherwise to false                                                                                                            | Hidden if the object has `write: false` |
+| Size `sliderSize`                                  | select (`small`, `medium`)        | `medium`     | MUI size of the slider. The dimensions of thumb, track and rail come from their own fields                                                                                                                            | -                                       |
+| Orientation `sliderOrientation`                    | select (`horizontal`, `vertical`) | `horizontal` | See [Orientation](#orientation). Without a value horizontal                                                                                                                                                           | -                                       |
+| Gap between slider and icons (min/max) `sliderGap` | number (0-100, step 0.1)          | 0            | Gap between the slider and the end symbols in MUI spacing units                                                                                                                                                       | -                                       |
+| Label `valueLabelDisplay`                          | select (`on`, `off`, `auto`)      | `off`        | Value label at the thumb: `on` always, `auto` on hover, focus and while dragging, `off` never. It shows the number without the unit                                                                                   | -                                       |
+| Label position `labelPosition`                     | text                              | `-5px`       | CSS length: `top` of the value label on a horizontal slider, `right` on a vertical one                                                                                                                                | Hidden with `valueLabelDisplay` = `off` |
+| Slider color `sliderColor`                         | color                             | -            | Color (gradient possible) of all slider parts without their own color. Without a value the primary color of the theme                                                                                                 | -                                       |
+| Padding `sliderPadding`                            | number (from 0, step 0.5)         | 1            | Inner padding of the content area in MUI spacing units                                                                                                                                                                | -                                       |
 
 ### Value Range
 
 | Field Name               | Type     | Default | Description                                                                                                                           | Condition                                   |
 | ------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Min value `minValue`     | number   | 0       | Lower limit. Empty: the smallest value of the state rows, without rows 0. No effect with `onlyStates`                                 | -                                           |
-| Max value `maxValue`     | number   | 100     | Upper limit. Empty: the largest value of the state rows, without rows 100. No effect with `onlyStates`                                | -                                           |
+| Min value `minValue`     | number   | 0       | Lower limit. Empty: the smallest value of the rows, without rows 0. No effect with `onlyStates`                                       | -                                           |
+| Max value `maxValue`     | number   | 100     | Upper limit. Empty: the largest value of the rows, without rows 100. No effect with `onlyStates`                                      | -                                           |
 | Step `step`              | number   | 10      | Grid of the thumb, counted from `minValue`. Empty: 1. With `0` the thumb snaps to the marks when dragged. No effect with `onlyStates` | -                                           |
-| Only states `onlyStates` | checkbox | false   | See [Discrete Values](#discrete-values-onlystates)                                                                                    | Only visible when the widget has state rows |
+| Only states `onlyStates` | checkbox | false   | See [Discrete Values](#discrete-values-onlystates)                                                                                    | Only visible when the state editor has rows |
 
 ### Marks
 
@@ -74,13 +74,13 @@ The slider consists of multiple components that can be styled individually:
 
 #### Thumb (Knob)
 
-| Field Name                            | Type            | Default | Description                                                                                                                                | Condition |
-| ------------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| Thumb Width `thumbWidth`              | number (from 0) | 20      | Width in px                                                                                                                                | -         |
-| Thumb Height `thumbHeight`            | number (from 0) | 20      | Height in px                                                                                                                               | -         |
-| Thumb Color `thumbColor`              | color           | -       | Color of the knob (gradient possible). Without a value `sliderColor`. The halo on hover and while dragging uses this color at 32 % opacity | -         |
-| Thumb border width `thumbBorderWidth` | number (0-100)  | 0       | Border width in px. Only a positive value draws a border                                                                                   | -         |
-| Thumb border color `thumbBorderColor` | color           | -       | Border color (gradient possible). Without a value `thumbColor`, then `sliderColor`                                                         | -         |
+| Field Name                            | Type            | Default | Description                                                                                                                                 | Condition |
+| ------------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Thumb Width `thumbWidth`              | number (from 0) | 20      | Width in px                                                                                                                                 | -         |
+| Thumb Height `thumbHeight`            | number (from 0) | 20      | Height in px                                                                                                                                | -         |
+| Thumb Color `thumbColor`              | color           | -       | Color of the thumb (gradient possible). Without a value `sliderColor`. The halo on hover and while dragging uses this color at 32 % opacity | -         |
+| Thumb border width `thumbBorderWidth` | number (0-100)  | 0       | Border width in px. Only a positive value draws a border                                                                                    | -         |
+| Thumb border color `thumbBorderColor` | color           | -       | Border color (gradient possible). Without a value `thumbColor`, then `sliderColor`                                                          | -         |
 
 #### Track (Active Area)
 
@@ -143,7 +143,7 @@ flowchart TD
 - **Mark**: The point of a mark on the rail. Points within the track are lighter: `brightness(2.5)` and MUI opacity 0.8
 - **Mark (with label)**: Point, text and icon at a value, as a state mark or a generated mark, see [Kinds](#kinds)
 - **End symbol**: The icon at one end of the slider, see [Min/Max Icons](#minmax-icons)
-- **Value label**: The number at the thumb. Color and size follow `textColorActive` and `valueSizeActive`, then the active state row, then `textColor` and `valueSize`, never the marker fields
+- **Value label**: The number at the thumb. Color and size follow `textColorActive` and `valueSizeActive`, then the active row, then `textColor` and `valueSize`, never the marker fields
 
 ### Gradient Support
 
@@ -183,7 +183,7 @@ Marks help with orientation on the slider. The points always appear, text and ic
 
 ### Kinds
 
-- **State mark**: One per state row with a numeric value inside the range. The label is `alias{n}` (HTML allowed), otherwise the value with the unit
+- **State mark**: One per row with a numeric value inside the range. The label is `alias{n}` (HTML allowed), otherwise the value with the unit
 - **Generated mark**: `minValue`, `maxValue` and the steps of `markStep`, where no state mark lies. The label is the value with the unit
 - **Icon**: `icon{n}`, otherwise the base icon. The OID pick sets `icon`, so an object with an icon shows it on every mark
 
@@ -192,7 +192,7 @@ Marks help with orientation on the slider. The points always appear, text and ic
 - `markStep` defines the distance between generated marks, counted from `minValue`. A negative value counts as its absolute value, empty or `0` as 1
 - Example: With `minValue`=0, `maxValue`=100, `markStep`=10, marks are displayed at 0, 10, 20, ... 100
 - `maxValue` is always a mark, even if the step does not fit
-- If both range fields are empty and there are no state rows, no marks appear
+- If both range fields are empty and there are no rows, no marks appear
 - The grid of the thumb is set by `step`, not by `markStep`
 
 ### Position
@@ -236,7 +236,7 @@ Icons at the ends of the slider visualize the value range. Icon, color and size 
 
 ## Discrete Values (onlyStates)
 
-The `onlyStates` setting is only visible when the widget has state rows.
+The `onlyStates` setting is only visible when the state editor has rows.
 
 ### Functionality
 

@@ -238,15 +238,15 @@ Das Panel bietet immer nur eine Form an: Ist eine aktiv, blendet es die beiden a
 
 ### Hintergrund
 
-| Feldname                 | Typ   | Standard | Beschreibung                                                                                               |
-| ------------------------ | ----- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| Hintergrund `background` | color | -        | Farbe der Inhaltsfläche (Gradient möglich). Ohne Wert die Papierfarbe des Themes, bei `noCard` transparent |
+| Feldname                 | Typ   | Standard | Beschreibung                                                                                                 |
+| ------------------------ | ----- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| Hintergrund `background` | color | -        | Farbe der Inhaltsfläche (Gradient möglich). Ohne Wert die Widget-Fläche des Themes, bei `noCard` transparent |
 
 ### Rahmenhintergrund
 
-| Feldname                            | Typ   | Standard | Beschreibung                                                                    |
-| ----------------------------------- | ----- | -------- | ------------------------------------------------------------------------------- |
-| Rahmenhintergrund `frameBackground` | color | -        | Farbe der Rahmenfläche (Gradient möglich). Ohne Wert die Papierfarbe des Themes |
+| Feldname                            | Typ   | Standard | Beschreibung                                                                      |
+| ----------------------------------- | ----- | -------- | --------------------------------------------------------------------------------- |
+| Rahmenhintergrund `frameBackground` | color | -        | Farbe der Rahmenfläche (Gradient möglich). Ohne Wert die Widget-Fläche des Themes |
 
 ### Wert schreiben
 
@@ -355,7 +355,7 @@ Die Widget Collection umfasst folgende Widgets:
 - [Dialog Widget](De-Dialog-Widget.md) - Dialog zur Anzeige von Views
 - [Gauge Widget](De-Gauge-Widget.md) - Gauge zur Anzeige numerischer Werte (Linear/Radial)
 - [Light Widget](De-Light-Widget.md) - Lichtsteuerung mit Farbauswahl
-- [JSON Table Widget](De-JsonTable-Widget.md) - Tabellen-Widget für JSON-Daten mit Sortierung, Filterung und Paginierung
+- [JSON Table Widget](De-JsonTable-Widget.md) - Tabellen-Widget für JSON-Daten mit Sortierung, Filterung und Seitenumbruch
 - [ECharts Widget](De-Echarts-Widget.md) - Diagramme (Linie, Balken, Punktwolke, Torte) mit vollem Konfigurator — History-Adapter oder JSON-Datenpunkt
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md) - Die JSON-Payload-Formate des ECharts-Widgets mit Beispielen
 - [Theme-Studio](De-Theme-Studio.md) - Collection-weiter Theme-Editor (Farben, Schrift, Form) für alle Widgets der Sammlung

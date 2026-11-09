@@ -16,15 +16,15 @@ Die Widget-spezifischen und Value-spezifischen Einstellungen überschreiben die 
 
 Die Felder stehen in der Gruppe **Radio-Gruppe**.
 
-| Feldname                                           | Typ                               | Standard     | Beschreibung                                                                                                                | Bedingung                                       |
-| -------------------------------------------------- | --------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Objekt-ID `oid`                                    | id                                | -            | OID, deren Wert die Auswahl bestimmt und an die geschrieben wird; akzeptiert die Typen boolean, number, string und mixed    | -                                               |
-| Einheit `unit`                                     | text                              | ''           | Einheit (wird aus dem Objekt übernommen, hier überschreibbar, Leeren entfernt sie); erscheint an Labels ohne Alias          | Nur wenn eine OID gewählt ist                   |
-| Orientierung `radioOrientation`                    | select (`horizontal`, `vertical`) | `horizontal` | Ausrichtung der Radio-Gruppe, siehe [Orientierung](#orientierung)                                                           | -                                               |
-| Label ausblenden `hideLabels`                      | checkbox                          | false        | Blendet die Labels aus, siehe [Label ausblenden](#label-ausblenden)                                                         | -                                               |
-| Labelposition `labelPlacement`                     | select (`start`, `end`)           | `end`        | Position des Labels relativ zum Radio-Button                                                                                | Ausgeblendet bei aktivem `hideLabels`           |
-| Unchecked Iconfarbe `radioGroupUncheckedIconColor` | color                             | -            | Nur Vollfarbe. Farbe der nicht ausgewählten Radio-Buttons. Ohne Wert die sekundäre Textfarbe des Themes                     | -                                               |
-| Nur Anzeige `onlyDisplay`                          | checkbox                          | false        | Sperrt die Radio-Buttons, es wird nichts geschrieben. Jede OID-Wahl setzt das Feld neu: true bei `write=false`, sonst false | Ausgeblendet, wenn das Objekt `write=false` hat |
+| Feldname                                           | Typ                               | Standard     | Beschreibung                                                                                                                 | Bedingung                                        |
+| -------------------------------------------------- | --------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Objekt-ID `oid`                                    | id                                | -            | OID, deren Wert die Auswahl bestimmt und an die geschrieben wird; akzeptiert die Typen boolean, number, string und mixed     | -                                                |
+| Einheit `unit`                                     | text                              | ''           | Einheit (wird aus dem Objekt übernommen, hier überschreibbar, Leeren entfernt sie); erscheint an Labels ohne Alias           | Nur wenn eine OID gewählt ist                    |
+| Orientierung `radioOrientation`                    | select (`horizontal`, `vertical`) | `horizontal` | Ausrichtung der Radio-Gruppe, siehe [Orientierung](#orientierung)                                                            | -                                                |
+| Label ausblenden `hideLabels`                      | checkbox                          | false        | Blendet die Labels aus, siehe [Label ausblenden](#label-ausblenden)                                                          | -                                                |
+| Labelposition `labelPlacement`                     | select (`start`, `end`)           | `end`        | Position des Labels relativ zum Radio-Button                                                                                 | Ausgeblendet bei aktivem `hideLabels`            |
+| Unchecked Iconfarbe `radioGroupUncheckedIconColor` | color                             | -            | Nur Vollfarbe. Farbe der nicht ausgewählten Radio-Buttons. Ohne Wert die sekundäre Textfarbe des Themes                      | -                                                |
+| Nur Anzeige `onlyDisplay`                          | checkbox                          | false        | Sperrt die Radio-Buttons, es wird nichts geschrieben. Jede OID-Wahl setzt das Feld neu: true bei `write: false`, sonst false | Ausgeblendet, wenn das Objekt `write: false` hat |
 
 **Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
 
@@ -33,7 +33,7 @@ Die Felder stehen in der Gruppe **Radio-Gruppe**.
 - **Anwählen**: Schreibt den Wert der Zeile mit den **Wert schreiben**-Einstellungen, gewandelt in den Typ der OID (siehe [Datentypen](#datentypen)). Die Auswahl springt sofort auf den Radio-Button.
 - **Erneuter Klick**: Ein Klick auf einen schon ausgewählten Radio-Button schreibt nichts.
 - **Auswahl**: Ausgewählt ist jeder Radio-Button, dessen Wert dem aktuellen Wert der OID entspricht, auch nach einer Änderung von außen. Mehrere Zeilen mit demselben Wert sind alle ausgewählt. Passt keine Zeile, ist keiner ausgewählt.
-- **Sperre**: Bei aktivem `onlyDisplay` oder `write=false` am Objekt sind alle Radio-Buttons deaktiviert und es wird nichts geschrieben. Die Auswahl folgt weiter dem Wert.
+- **Sperre**: Bei aktivem `onlyDisplay` oder `write: false` am Objekt sind alle Radio-Buttons deaktiviert und es wird nichts geschrieben. Die Auswahl folgt weiter dem Wert.
 
 ## Orientierung
 

@@ -78,7 +78,7 @@ Der Slider besteht aus mehreren Komponenten, die individuell gestylt werden kön
 | ------------------------------------ | -------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | Thumbbreite `thumbWidth`             | number (ab 0)  | 20       | Breite in px                                                                                                                            | -         |
 | Thumbhöhe `thumbHeight`              | number (ab 0)  | 20       | Höhe in px                                                                                                                              | -         |
-| Thumbfarbe `thumbColor`              | color          | -        | Farbe des Knopfs (Gradient möglich). Ohne Wert `sliderColor`. Der Schein bei Hover und beim Ziehen nutzt diese Farbe mit 32 % Deckkraft | -         |
+| Thumbfarbe `thumbColor`              | color          | -        | Farbe des Thumbs (Gradient möglich). Ohne Wert `sliderColor`. Der Schein bei Hover und beim Ziehen nutzt diese Farbe mit 32 % Deckkraft | -         |
 | Thumbrahmenbreite `thumbBorderWidth` | number (0-100) | 0        | Rahmenbreite in px. Nur ein positiver Wert zeichnet einen Rahmen                                                                        | -         |
 | Thumbrahmenfarbe `thumbBorderColor`  | color          | -        | Rahmenfarbe (Gradient möglich). Ohne Wert `thumbColor`, dann `sliderColor`                                                              | -         |
 

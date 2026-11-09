@@ -16,16 +16,16 @@ Die Widget-spezifischen und Value-spezifischen Einstellungen überschreiben die 
 
 Die Felder stehen in der Gruppe **Button-Gruppe**. Die Gruppen **Aktiv** und **Werte** beschreibt [Value-spezifische Einstellungen](#value-spezifische-einstellungen).
 
-| Feldname                              | Typ                               | Standard     | Beschreibung                                                                                                               | Bedingung                                       |
-| ------------------------------------- | --------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Objekt-ID `oid`                       | id                                | -            | OID, deren Wert die Auswahl bestimmt und an die geschrieben wird; akzeptiert die Typen boolean, number, string und mixed   | -                                               |
-| Einheit `unit`                        | text                              | ''           | Einheit (wird aus dem Objekt übernommen, hier überschreibbar, Leeren entfernt sie); erscheint an Beschriftungen ohne Alias | Nur wenn eine OID gewählt ist                   |
-| Nur Anzeige `onlyDisplay`             | checkbox                          | false        | Sperrt die Buttons, es wird nichts geschrieben. Jede OID-Wahl setzt das Feld neu: true bei `write=false`, sonst false      | Ausgeblendet, wenn das Objekt `write=false` hat |
-| Nur Icon `onlyIcon`                   | checkbox                          | -            | Blendet die Beschriftung aus                                                                                               | Ausgeblendet bei aktivem `onlyText`             |
-| Nur Text `onlyText`                   | checkbox                          | -            | Blendet die Icons der Buttons aus                                                                                          | Ausgeblendet bei aktivem `onlyIcon`             |
-| Variante `buttonGroupVariant`         | select (`text`, `outlined`)       | `text`       | Darstellung, siehe [Varianten](#varianten)                                                                                 | -                                               |
-| Orientierung `buttonGroupOrientation` | select (`horizontal`, `vertical`) | `horizontal` | Anordnung, siehe [Orientierung](#orientierung)                                                                             | -                                               |
-| Farbe `buttonGroupColor`              | color                             | -            | Nur Vollfarbe. Farbe der Trennlinien und Rahmen. Ohne Wert die Textfarbe des Themes, siehe [Farbe](#farbe)                 | -                                               |
+| Feldname                              | Typ                               | Standard     | Beschreibung                                                                                                               | Bedingung                                        |
+| ------------------------------------- | --------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Objekt-ID `oid`                       | id                                | -            | OID, deren Wert die Auswahl bestimmt und an die geschrieben wird; akzeptiert die Typen boolean, number, string und mixed   | -                                                |
+| Einheit `unit`                        | text                              | ''           | Einheit (wird aus dem Objekt übernommen, hier überschreibbar, Leeren entfernt sie); erscheint an Beschriftungen ohne Alias | Nur wenn eine OID gewählt ist                    |
+| Nur Anzeige `onlyDisplay`             | checkbox                          | false        | Sperrt die Buttons, es wird nichts geschrieben. Jede OID-Wahl setzt das Feld neu: true bei `write: false`, sonst false     | Ausgeblendet, wenn das Objekt `write: false` hat |
+| Nur Icon `onlyIcon`                   | checkbox                          | -            | Blendet die Beschriftung aus                                                                                               | Ausgeblendet bei aktivem `onlyText`              |
+| Nur Text `onlyText`                   | checkbox                          | -            | Blendet die Icons der Buttons aus                                                                                          | Ausgeblendet bei aktivem `onlyIcon`              |
+| Variante `buttonGroupVariant`         | select (`text`, `outlined`)       | `text`       | Darstellung, siehe [Varianten](#varianten)                                                                                 | -                                                |
+| Orientierung `buttonGroupOrientation` | select (`horizontal`, `vertical`) | `horizontal` | Anordnung, siehe [Orientierung](#orientierung)                                                                             | -                                                |
+| Farbe `buttonGroupColor`              | color                             | -            | Nur Vollfarbe. Farbe der Trennlinien und Rahmen. Ohne Wert die Textfarbe des Themes, siehe [Farbe](#farbe)                 | -                                                |
 
 **Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
 
@@ -34,7 +34,7 @@ Die Felder stehen in der Gruppe **Button-Gruppe**. Die Gruppen **Aktiv** und **W
 - **Klick**: Schreibt den Wert des Buttons mit den **Wert schreiben**-Einstellungen, gewandelt in den Typ der OID (siehe [Datentypen](#datentypen)). Die Auswahl springt sofort auf den Button.
 - **Erneuter Klick**: Ein Klick auf einen schon ausgewählten Button sendet den Wert erneut. Abwählen lässt sich ein Button nicht.
 - **Auswahl**: Ausgewählt ist jeder Button, dessen Wert dem aktuellen Wert der OID entspricht, auch nach einer Änderung von außen. Mehrere Zeilen mit demselben Wert sind alle ausgewählt. Passt keine Zeile, ist kein Button ausgewählt.
-- **Sperre**: Bei aktivem `onlyDisplay` oder `write=false` am Objekt sind alle Buttons deaktiviert und es wird nichts geschrieben. Die Auswahl folgt weiter dem Wert.
+- **Sperre**: Bei aktivem `onlyDisplay` oder `write: false` am Objekt sind alle Buttons deaktiviert und es wird nichts geschrieben. Die Auswahl folgt weiter dem Wert.
 
 ## Varianten
 
@@ -84,7 +84,7 @@ Die Felder stehen in der Gruppe **Button-Gruppe**. Die Gruppen **Aktiv** und **W
 
 ### Button-Hintergrund
 
-Im ButtonGroup Widget färben `background`, `background{n}` und `backgroundActive` die Buttons, nicht die Inhaltsfläche. Die Inhaltsfläche behält die Papierfarbe des Themes, bei `noCard` ist sie transparent. Die Reaktion des Buttons hängt von der Farbangabe ab:
+Im ButtonGroup Widget färben `background`, `background{n}` und `backgroundActive` die Buttons, nicht die Inhaltsfläche. Die Inhaltsfläche behält die Widget-Fläche des Themes, bei `noCard` ist sie transparent. Die Reaktion des Buttons hängt von der Farbangabe ab:
 
 - **Hex oder rgb(a)**: Beim Überfahren um 50 % aufgehellt, ausgewählt um 30 %
 - **Gradient**: Nicht aufgehellt, sondern beim Überfahren und im aktiven Zustand mit 80 % Deckkraft gezeichnet

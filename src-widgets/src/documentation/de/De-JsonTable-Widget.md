@@ -248,18 +248,18 @@ Bei Tiefe N bleibt ein Wert auf Ebene N+1 stehen: Ein Objekt oder Array erschein
 | --------------------------- | ------ | -------- | --------------------------------------------------------------------------------------------- | --------- |
 | Rahmenbreite `borderWidth`  | slider | 0        | Außenrahmen-Breite (0-20), nur über 0 gibt es einen Rahmen                                    | -         |
 | Rahmenstil `borderStyle`    | select | 'solid'  | `none`, `dotted`, `dashed`, `solid`, `double`, `groove`, `ridge`, `inset`, `outset`, `hidden` | -         |
-| Rahmenfarbe `borderColor`   | color  | -        | Rahmenfarbe. Ohne Wert die Divider-Farbe des Themes                                           | -         |
+| Rahmenfarbe `borderColor`   | color  | -        | Rahmenfarbe. Ohne Wert die Trennlinie des Themes                                              | -         |
 | Rahmenradius `borderRadius` | text   | -        | Eckenradius (CSS-Wert)                                                                        | -         |
 
 ### Kopfzeilen-Stil
 
-| Feldname                                      | Typ    | Standard | Beschreibung                                                                                           | Bedingung          |
-| --------------------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------ | ------------------ |
-| Kopfzeilen-Hintergrund `tableHeaderBgColor`   | color  | -        | Hintergrundfarbe der Kopfzeile (Gradient möglich). Ohne Wert die Papierfarbe, bei `noCard` transparent | Kopfzeile sichtbar |
-| Kopfzeilen-Textfarbe `tableHeaderTextColor`   | color  | -        | Textfarbe der Kopfzeile. Ohne Wert geerbt                                                              | Kopfzeile sichtbar |
-| Kopfzeilen-Schriftgröße `tableHeaderFontSize` | number | -        | Schriftgröße der Kopfzeile in px, ab 8                                                                 | Kopfzeile sichtbar |
-| Kopfzeilen-Rahmenbreite `headerBorderWidth`   | slider | 0        | Rahmenbreite unten der Kopfzeile (0-10)                                                                | Kopfzeile sichtbar |
-| Kopfzeilen-Rahmenfarbe `headerBorderColor`    | color  | -        | Rahmenfarbe der Kopfzeile. Ohne Wert die Divider-Farbe des Themes                                      | Kopfzeile sichtbar |
+| Feldname                                      | Typ    | Standard | Beschreibung                                                                                                        | Bedingung          |
+| --------------------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Kopfzeilen-Hintergrund `tableHeaderBgColor`   | color  | -        | Hintergrundfarbe der Kopfzeile (Gradient möglich). Ohne Wert die Widget-Fläche des Themes, bei `noCard` transparent | Kopfzeile sichtbar |
+| Kopfzeilen-Textfarbe `tableHeaderTextColor`   | color  | -        | Textfarbe der Kopfzeile. Ohne Wert geerbt                                                                           | Kopfzeile sichtbar |
+| Kopfzeilen-Schriftgröße `tableHeaderFontSize` | number | -        | Schriftgröße der Kopfzeile in px, ab 8                                                                              | Kopfzeile sichtbar |
+| Kopfzeilen-Rahmenbreite `headerBorderWidth`   | slider | 0        | Rahmenbreite unten der Kopfzeile (0-10)                                                                             | Kopfzeile sichtbar |
+| Kopfzeilen-Rahmenfarbe `headerBorderColor`    | color  | -        | Rahmenfarbe der Kopfzeile. Ohne Wert die Trennlinie des Themes                                                      | Kopfzeile sichtbar |
 
 ### Rahmen vertikal / horizontal
 

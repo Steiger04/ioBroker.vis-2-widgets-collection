@@ -146,7 +146,7 @@ The keys may change from point to point — every point is read individually. Ti
 
 ## Family "Table / columns"
 
-The payload is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source**, tab **Mapping**, and section **Series**) connect payload and chart; the cards are described under [JSON: table/columns](En-Echarts-Widget.md#json-tablecolumns-cartesian):
+The payload is (or contains) an **array of rows**; every object property of a row is a column. Three settings in the configurator (section **Data source**, tab **Mapping**, and section **Series**) connect payload and chart; the cards are described under [JSON: table / columns](En-Echarts-Widget.md#json-table--columns-cartesian):
 
 | Setting                            | Location    | Meaning                                                                                                                                                                                                                                       |
 | ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -235,7 +235,7 @@ Without an X column (or when the column has only `null` or no values at all) the
 
 With the chart type **Pie**, every Y column becomes a ring (here `actual` and `target`). The X column names the slices and drives the color: **same name = same color across all rings**; rows of the same name stay separate slices and share one legend entry. With a date column the slices carry the payload text, sorted by time; rows without a readable date drop out. Without an X column the slices read "Row n".
 
-### X derivation rules (table/columns)
+### X derivation rules (table / columns)
 
 The axis kind derives from the types of the non-`null` values in the X column. A single date value in an otherwise text column already makes it a date column; any other mix is a category:
 

@@ -16,15 +16,15 @@ The widget-specific and value-specific settings override the more general settin
 
 The fields are in the **Radio group** group.
 
-| Field Name                                          | Type                              | Default      | Description                                                                                                               | Condition                                |
-| --------------------------------------------------- | --------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Object ID `oid`                                     | id                                | -            | OID whose value decides the selection and which is written to; accepts the types boolean, number, string and mixed        | -                                        |
-| Unit `unit`                                         | text                              | ''           | Unit (taken from the object, can be overridden here, clearing removes it); appears on labels without an alias             | Only when an OID is selected             |
-| Orientation `radioOrientation`                      | select (`horizontal`, `vertical`) | `horizontal` | Orientation of the radio group, see [Orientation](#orientation)                                                           | -                                        |
-| Hide labels `hideLabels`                            | checkbox                          | false        | Hides the labels, see [Hide Labels](#hide-labels)                                                                         | -                                        |
-| Label placement `labelPlacement`                    | select (`start`, `end`)           | `end`        | Position of the label relative to the radio button                                                                        | Hidden with active `hideLabels`          |
-| Unchecked icon color `radioGroupUncheckedIconColor` | color                             | -            | Solid colors only. Color of the unselected radio buttons. Without a value the secondary text color of the theme           | -                                        |
-| Only display `onlyDisplay`                          | checkbox                          | false        | Locks the radio buttons, nothing is written. Every OID pick sets the field anew: true with `write=false`, otherwise false | Hidden when the object has `write=false` |
+| Field Name                                          | Type                              | Default      | Description                                                                                                                | Condition                                 |
+| --------------------------------------------------- | --------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Object ID `oid`                                     | id                                | -            | OID whose value decides the selection and which is written to; accepts the types boolean, number, string and mixed         | -                                         |
+| Unit `unit`                                         | text                              | ''           | Unit (taken from the object, can be overridden here, clearing removes it); appears on labels without an alias              | Only when an OID is selected              |
+| Orientation `radioOrientation`                      | select (`horizontal`, `vertical`) | `horizontal` | Orientation of the radio group, see [Orientation](#orientation)                                                            | -                                         |
+| Hide labels `hideLabels`                            | checkbox                          | false        | Hides the labels, see [Hide Labels](#hide-labels)                                                                          | -                                         |
+| Label placement `labelPlacement`                    | select (`start`, `end`)           | `end`        | Position of the label relative to the radio button                                                                         | Hidden with active `hideLabels`           |
+| Unchecked icon color `radioGroupUncheckedIconColor` | color                             | -            | Solid colors only. Color of the unselected radio buttons. Without a value the secondary text color of the theme            | -                                         |
+| Only display `onlyDisplay`                          | checkbox                          | false        | Locks the radio buttons, nothing is written. Every OID pick sets the field anew: true with `write: false`, otherwise false | Hidden when the object has `write: false` |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 
@@ -33,7 +33,7 @@ The fields are in the **Radio group** group.
 - **Selecting**: Writes the value of the row with the **Write Value** settings, converted to the type of the OID (see [Data Types](#data-types)). The selection jumps to the radio button at once.
 - **Repeated click**: A click on a radio button that is already selected writes nothing.
 - **Selection**: Every radio button whose value matches the current value of the OID is selected, also after a change from outside. Several rows with the same value are all selected. If no row matches, none is selected.
-- **Lock**: With active `onlyDisplay` or `write=false` on the object, all radio buttons are disabled and nothing is written. The selection keeps following the value.
+- **Lock**: With active `onlyDisplay` or `write: false` on the object, all radio buttons are disabled and nothing is written. The selection keeps following the value.
 
 ## Orientation
 
