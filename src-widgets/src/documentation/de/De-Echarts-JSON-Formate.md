@@ -236,13 +236,13 @@ Im Diagrammtyp **Torte** wird jede Y-Spalte ein Ring (hier `ist` und `soll`). Di
 
 Die Art der X-Achse leitet sich aus dem **dominanten Typ** der X-Spalte ab:
 
-| X-Spalte    | X-Art         | Verhalten                                                                                                                                              |
-| ----------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Datumswerte | **Zeitachse** | Punkte `[ms, wert]`; Zeilen mit unparsebarem X **fallen** (keine Position); aufsteigend sortiert, gleiche Zeitstempel behalten die Payload-Reihenfolge |
+| X-Spalte                   | X-Art              | Verhalten                                                                                                                                              |
+| -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Datumswerte                | **Zeitachse**      | Punkte `[ms, wert]`; Zeilen mit unparsebarem X **fallen** (keine Position); aufsteigend sortiert, gleiche Zeitstempel behalten die Payload-Reihenfolge |
+| Beliebige andere Werte     | **Kategorieachse** | Labels sind der Zell-Text (`String(wert)`), Payload-Reihenfolge, **Duplikate bleiben**; Objekt-/Array-Zellen fallen auf „Zeile n" zurück               |
+| Ohne X-Spalte / nur Leeren | **Zeilenindex**    | Labels `1..n`; Torten-Segmente „Zeile n"                                                                                                               |
 
 **Erkannte Datumsformen:** ISO 8601 (inkl. Zeit/Offset), `JJJJ-MM-TT`, `TT.MM.JJJJ` (optional `HH:mm[:ss]`), `MM/TT/JJJJ` (optional Zeit) sowie Epoch-Zahlen — Millisekunden (≥ 10¹¹) und Sekunden (≥ 10⁹). Tagesdaten ohne Zeitangabe gelten als **lokale Mitternacht**; volle ISO-Strings mit `Z`/Offset nach ISO-Regeln. Als Text geschriebene Epoch-Werte (`"1767225600000"`) sind **keine** Zahlen und werden nicht als Datum gelesen.
-| Beliebige andere Werte | **Kategorieachse** | Labels sind der Zell-Text (`String(wert)`), Payload-Reihenfolge, **Duplikate bleiben**; Objekt-/Array-Zellen fallen auf „Zeile n" zurück |
-| Ohne X-Spalte / nur Leeren | **Zeilenindex** | Labels `1..n`; Torten-Segmente „Zeile n" |
 
 ## Werte-Interpretation (beide Familien)
 
