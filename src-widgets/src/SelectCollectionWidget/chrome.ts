@@ -20,7 +20,6 @@
 
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { Theme } from '@mui/material';
-import type { MenuProps } from '@mui/material/Menu';
 
 import { alphaOf } from '../lib/helper/colorDerivation';
 import { isGradientColor } from '../lib/helper/colorValidation';
@@ -110,15 +109,13 @@ export interface MenuChromeInput {
 }
 
 /**
- * The popup chrome as data: the paper surface, the backdrop and the popup root.
- * `PaperProps` keeps its MUI 6 name — the tests pin the chrome by it — but MUI 9
- * dropped that prop: {@link menuPropsOf} hands it to the menu's `paper` slot.
+ * The popup chrome in MenuProps form: the paper surface, the backdrop and the popup root, each
+ * under its menu slot.
  */
 export interface MenuChrome {
-    /** The props of the popup paper. */
-    PaperProps: { sx: SxObject };
-    /** The props of the popup's backdrop and root slots. */
+    /** The props of the popup's paper, backdrop and root slots. */
     slotProps: {
+        paper: { sx: SxObject };
         backdrop: { style: SxObject };
         root: { sx: SxObject };
     };
@@ -134,29 +131,29 @@ export interface MenuChrome {
  * width, offset below the field, list unpadded.
  *
  * @param input - Measured width, the explicit noCard flag, frame background and border styles.
- * @returns The popup's chrome; pass it as `<Select MenuProps={menuPropsOf(…)}>`.
+ * @returns The popup's chrome; pass it as `<Select MenuProps={…}>`.
  */
 export function buildMenuChrome(input: MenuChromeInput): MenuChrome {
     const { width, noCard, frameBackground, borderStyles } = input;
 
     return {
-        PaperProps: {
-            sx: {
-                overflow: 'hidden',
-                '& .MuiMenu-list': {
-                    maxHeight: '100vh',
-                    overflowY: 'auto',
-                },
-                ...(noCard && {
-                    '--Paper-overlay': 'none !important',
-                    '--Paper-shadow': 'none !important',
-                    boxShadow: 'none !important',
-                }),
-                background: frameBackground || (noCard ? 'transparent' : undefined),
-                ...cleanSx(borderStyles),
-            },
-        },
         slotProps: {
+            paper: {
+                sx: {
+                    overflow: 'hidden',
+                    '& .MuiMenu-list': {
+                        maxHeight: '100vh',
+                        overflowY: 'auto',
+                    },
+                    ...(noCard && {
+                        '--Paper-overlay': 'none !important',
+                        '--Paper-shadow': 'none !important',
+                        boxShadow: 'none !important',
+                    }),
+                    background: frameBackground || (noCard ? 'transparent' : undefined),
+                    ...cleanSx(borderStyles),
+                },
+            },
             backdrop: {
                 style: { backgroundColor: 'transparent !important' },
             },
@@ -170,22 +167,6 @@ export function buildMenuChrome(input: MenuChromeInput): MenuChrome {
                     },
                 },
             },
-        },
-    };
-}
-
-/**
- * Hands the popup chrome to MUI: the paper props go to the menu's `paper` slot,
- * next to the backdrop and root slots.
- *
- * @param chrome - The popup chrome from {@link buildMenuChrome}.
- * @returns The popup's MenuProps; pass them as `<Select MenuProps={…}>`.
- */
-export function menuPropsOf(chrome: MenuChrome): Partial<MenuProps> {
-    return {
-        slotProps: {
-            ...chrome.slotProps,
-            paper: chrome.PaperProps,
         },
     };
 }

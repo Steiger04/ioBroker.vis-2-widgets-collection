@@ -14,7 +14,7 @@ const menuChrome = (overrides: Partial<MenuChromeInput> = {}): ReturnType<typeof
     });
 
 const paper = (overrides: Partial<MenuChromeInput> = {}): Record<string, any> =>
-    menuChrome(overrides).PaperProps?.sx as Record<string, any>;
+    menuChrome(overrides).slotProps.paper.sx as Record<string, any>;
 
 describe('buildMenuChrome — the popup surface', () => {
     it('flattens the noCard popup — no shadow, no overlay — and keeps it opaque in the paper-coloured frame background', () => {
@@ -84,15 +84,14 @@ describe('buildMenuChrome — the popup surface', () => {
     });
 
     it('keeps the backdrop transparent', () => {
-        expect(menuChrome().slotProps?.backdrop).toEqual({
+        expect(menuChrome().slotProps.backdrop).toEqual({
             style: { backgroundColor: 'transparent !important' },
         });
     });
 });
 
 describe('buildMenuChrome — the popup width bound', () => {
-    const popupRoot = (width: number | undefined): unknown =>
-        (menuChrome({ width }).slotProps?.root as { sx: unknown } | undefined)?.sx;
+    const popupRoot = (width: number | undefined): unknown => menuChrome({ width }).slotProps.root.sx;
 
     it('bounds the popup by the measured content box, offset below the field, list unpadded', () => {
         expect(popupRoot(480)).toEqual({
