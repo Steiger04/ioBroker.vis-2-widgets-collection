@@ -138,7 +138,7 @@ describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
             textColor2: '#ff0000',
             ...data,
         });
-        return { ...zones, context: { ...zones.context, wrappedContent } } as PreviewScene;
+        return { ...zones, context: { ...zones.context, wrappedContent } };
     };
 
     /** The background the frame (BASE-PAPER-0) paints, shorthand first. */

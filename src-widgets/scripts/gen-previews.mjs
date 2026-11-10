@@ -67,7 +67,7 @@ async function startServer() {
 }
 
 // --- core ----------------------------------------------------------------
-// First run triggers Vite dependency pre-bundling (MUI, adapter-react-v5,
+// First run triggers Vite dependency pre-bundling (MUI, gui-components,
 // rxjs, …) which can take well over 30s cold; cached in node_modules/.vite
 // thereafter. So don't gate on `load`/`networkidle` — gate on the in-page
 // readiness signals with a generous timeout.

@@ -12,7 +12,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { act, type FC } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { CustomPaletteProperties } from '@iobroker/types-vis-2';
 
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';

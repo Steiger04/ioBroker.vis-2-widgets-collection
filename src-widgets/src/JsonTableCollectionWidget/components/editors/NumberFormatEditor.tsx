@@ -43,7 +43,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_number_format')}
@@ -51,14 +51,14 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
             <Box>
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     gutterBottom
                 >
                     {Generic.t('json_table_number_decimals')}: {format.numberDecimals ?? 2}
                 </Typography>
                 <Slider
                     value={format.numberDecimals ?? 2}
-                    onChange={(_e, val) => onChange({ type: 'number', numberDecimals: val as number })}
+                    onChange={(_e, val) => onChange({ type: 'number', numberDecimals: val })}
                     min={0}
                     max={10}
                     marks
@@ -103,7 +103,7 @@ function NumberFormatEditor({ format, onChange, discoveredColumn }: NumberFormat
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

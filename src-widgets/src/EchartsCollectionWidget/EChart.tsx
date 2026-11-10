@@ -27,7 +27,7 @@
  * The earlier `%`-marker + `+ maxOffset` machinery double-booked the offset space echarts already
  * reserves → a dead margin ≈ the side's max axis offset.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useInsertionEffect, useRef } from 'react';
 import type React from 'react';
 import { Box } from '@mui/material';
 import { init, type ECharts } from 'echarts/core';
@@ -81,14 +81,20 @@ export default function EChart({
     // Keep the latest option so a renderer-triggered re-init can seed the fresh instance without
     // adding `option` to the init effect's deps (which would dispose/recreate on every data tick).
     const optionRef = useRef(option);
-    optionRef.current = option;
+    useInsertionEffect(() => {
+        optionRef.current = option;
+    });
     // Same idiom for the idle-reset config: read at event time, no re-init on a config change.
     const zoomSecRef = useRef(zoomIdleResetSec);
-    zoomSecRef.current = zoomIdleResetSec;
+    useInsertionEffect(() => {
+        zoomSecRef.current = zoomIdleResetSec;
+    });
     // And for the legend-selection callback (ADR-0074): read at event time, identity churn on
     // the host (an inline setState binder) never re-inits the chart.
     const onSelectRef = useRef(onLegendSelect);
-    onSelectRef.current = onLegendSelect;
+    useInsertionEffect(() => {
+        onSelectRef.current = onLegendSelect;
+    });
 
     // init + ResizeObserver → resize() + dispose on unmount OR renderer change.
     useEffect(() => {

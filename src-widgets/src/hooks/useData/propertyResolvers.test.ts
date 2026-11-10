@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import type { Theme } from '@mui/material';
-import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
 import { createPropertyResolvers, resolveStyleEntry, type PropertyResolvers } from './propertyResolvers';
 import type { MarkerLayer, StyleData } from './types';
@@ -43,9 +42,9 @@ function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
                 background: { paper: THEME_PAPER, default: THEME_PAPER },
             },
         } as unknown as Theme,
-        fontStyles: opts.fontStyles as WidgetStyleState | undefined,
-        textStyles: opts.textStyles as WidgetStyleState | undefined,
-        backgroundStyles: opts.backgroundStyles as WidgetStyleState | undefined,
+        fontStyles: opts.fontStyles,
+        textStyles: opts.textStyles,
+        backgroundStyles: opts.backgroundStyles,
         formatSize: (n: number | string | undefined): string | undefined => (n == null ? undefined : `${n}%`),
         getDataValue,
         markerLayer: opts.markerLayer ?? {},

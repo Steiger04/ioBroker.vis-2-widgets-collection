@@ -18,7 +18,7 @@
 
 import type { SchemaNode, UnknownKeyPolicy } from './themeSchema';
 import { THEME_OPTIONS_SCHEMA } from './themeSchema';
-import type { ThemeValidationIssue, ThemeValidationResult, UserTheme } from './themeTypes';
+import type { ThemeValidationIssue, ThemeValidationResult } from './themeTypes';
 import { isPlainObject } from './themeUtils';
 import { supportsCssColor } from '../helper/colorValidation';
 
@@ -47,7 +47,7 @@ export function validateThemeOptions(value: unknown): ThemeValidationResult {
     validateNode(value, THEME_OPTIONS_SCHEMA, '', issues);
 
     const isValid = !issues.some(issue => issue.severity === 'error');
-    return { isValid, theme: isValid ? (value as UserTheme) : undefined, issues };
+    return { isValid, theme: isValid ? value : undefined, issues };
 }
 
 /**

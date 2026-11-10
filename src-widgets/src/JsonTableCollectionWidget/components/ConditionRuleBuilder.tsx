@@ -25,7 +25,7 @@ import {
     Typography,
 } from '@mui/material';
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
@@ -81,10 +81,12 @@ function DateInputField({ label, value, onChange, inputType }: DateInputFieldPro
     // Local state for date input to avoid auto-completion issues
     const [localValue, setLocalValue] = useState(value);
 
-    // Sync local state when prop value changes (e.g., switching rules)
-    useEffect(() => {
+    // Sync local state when prop value changes (e.g., switching rules), while rendering
+    const [localFrom, setLocalFrom] = useState(value);
+    if (localFrom !== value) {
+        setLocalFrom(value);
         setLocalValue(value);
-    }, [value]);
+    }
 
     const handleBlur = useCallback(() => {
         // Only propagate to parent on blur
@@ -113,13 +115,12 @@ function DateInputField({ label, value, onChange, inputType }: DateInputFieldPro
                     },
                 }),
             }}
-            // FIX: Force label shrink for date/number inputs (MUI limitation)
-            InputLabelProps={inputType === 'date' || inputType === 'number' ? { shrink: true } : undefined}
             slotProps={
+                // FIX: Force label shrink for date/number inputs (MUI limitation)
                 inputType === 'number'
-                    ? { htmlInput: { step: 'any' } }
+                    ? { htmlInput: { step: 'any' }, inputLabel: { shrink: true } }
                     : inputType === 'date'
-                      ? { htmlInput: { placeholder: 'YYYY-MM-DD' } }
+                      ? { htmlInput: { placeholder: 'YYYY-MM-DD' }, inputLabel: { shrink: true } }
                       : undefined
             }
         />
@@ -142,10 +143,12 @@ interface ConditionRuleBuilderProps {
 function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuilderProps): React.JSX.Element {
     const [state, setState] = useState<BuilderState>(() => parseBuilderState(logic));
 
-    // Sync state when logic prop changes (e.g., switching between style rules)
-    useEffect(() => {
+    // Sync state when logic prop changes (e.g., switching between style rules), while rendering
+    const [stateFrom, setStateFrom] = useState(logic);
+    if (stateFrom !== logic) {
+        setStateFrom(logic);
         setState(parseBuilderState(logic));
-    }, [logic]);
+    }
 
     const availableOperators = OPERATORS_BY_TYPE[columnType] ?? DEFAULT_OPERATORS;
 
@@ -228,7 +231,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                     </ToggleButtonGroup>
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {state.mode === 'and'
                             ? Generic.t('json_table_condition_mode_hint_and')
@@ -258,7 +261,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                                 label={Generic.t('json_table_condition_operator')}
                                 value={cond.operator}
                                 onChange={e => {
-                                    const newOp = e.target.value as ConditionOperator;
+                                    const newOp = e.target.value;
                                     // Clear operand when switching to/from no-operand ops
                                     const operand = NO_OPERAND_OPERATORS.has(newOp) ? '' : cond.operand;
                                     updateCondition(idx, { operator: newOp, operand });

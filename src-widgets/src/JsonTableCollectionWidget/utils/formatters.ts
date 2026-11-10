@@ -67,13 +67,21 @@ function sanitizeDecimals(decimals: unknown): number {
 
 /** Options for formatting a numeric value. */
 export interface NumberFormatOptions {
-    /** Number of decimal places (0-20, will be clamped if out of range). @default 2 */
+    /**
+     * Number of decimal places (0-20, will be clamped if out of range).
+     *
+     * @default 2
+     */
     decimals?: number;
     /** Prefix prepended to formatted value, e.g. "$" */
     prefix?: string;
     /** Suffix appended to formatted value, e.g. "%" */
     suffix?: string;
-    /** Insert thousands separator (comma). @default false */
+    /**
+     * Insert thousands separator (comma).
+     *
+     * @default false
+     */
     thousands?: boolean;
 }
 
@@ -143,7 +151,7 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
  * midnight its displayed day may differ from the local day those compare.
  *
  * @param value - Raw value.
- * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
+ * @param formatString - Format string with tokens. Defaults to "yyyy-MM-dd".
  * @param read - The Column's Datums-Leser.
  * @returns Formatted date string, or the Raw value as text when it is no date.
  */
@@ -198,8 +206,8 @@ export function formatDateValue(value: unknown, formatString: string | undefined
  * Format a boolean value using custom labels.
  *
  * @param value - Raw cell value.
- * @param trueLabel - Label for true values. @default "true"
- * @param falseLabel - Label for false values. @default "false"
+ * @param trueLabel - Label for true values. Defaults to "true".
+ * @param falseLabel - Label for false values. Defaults to "false".
  * @returns Formatted string.
  */
 export function formatBooleanValue(value: unknown, trueLabel = 'true', falseLabel = 'false'): string {

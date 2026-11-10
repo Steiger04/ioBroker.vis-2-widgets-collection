@@ -9,6 +9,8 @@ const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles } = require('@
 
 const SRC = 'src-widgets/';
 const src = `${__dirname}/${SRC}`;
+// build-tools installs with --force unless told otherwise; the widget package resolves without it
+const npmOptions = { force: false };
 
 function clean() {
     deleteFoldersRecursive(`${src}build`);
@@ -27,14 +29,14 @@ function copyAllFiles() {
 if (process.argv.includes('--0-clean')) {
     clean();
 } else if (process.argv.includes('--1-npm')) {
-    npmInstall(src).catch(e => console.error(`Cannot install npm modules: ${e}`));
+    npmInstall(src, npmOptions).catch(e => console.error(`Cannot install npm modules: ${e}`));
 } else if (process.argv.includes('--2-build')) {
     buildReact(src, { rootDir: __dirname, vite: true }).catch(e => console.error(`Cannot build: ${e}`));
 } else if (process.argv.includes('--3-copy')) {
     copyAllFiles();
 } else {
     clean();
-    npmInstall(src)
+    npmInstall(src, npmOptions)
         .then(() => buildReact(src, { rootDir: __dirname, vite: true }))
         .then(() => copyAllFiles())
         .catch(e => console.error(`Cannot build: ${e}`));

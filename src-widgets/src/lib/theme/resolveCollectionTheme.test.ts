@@ -250,19 +250,17 @@ describe('resolveCollectionTheme — CSS variables prefix (spec B17)', () => {
             ?.palette.primary.main;
 
     it.each<[string, UserTheme]>([
-        ['cssVariables: true', { cssVariables: true } as UserTheme],
-        ['an object without prefix', { cssVariables: {} } as UserTheme],
-        ['an empty prefix', { cssVariables: { cssVarPrefix: '' } } as UserTheme],
-        ['the reserved prefix mui', { cssVariables: { cssVarPrefix: 'mui' } } as UserTheme],
+        ['cssVariables: true', { cssVariables: true }],
+        ['an object without prefix', { cssVariables: {} }],
+        ['an empty prefix', { cssVariables: { cssVarPrefix: '' } }],
+        ['the reserved prefix mui', { cssVariables: { cssVarPrefix: 'mui' } }],
     ])('names the variables --vis2c-* for %s', (_label, userTheme) => {
         // MUI appends the resolved value as fallback: `var(--vis2c-palette-primary-main, #…)`.
         expect(primaryVar(userTheme)).toMatch(/^var\(--vis2c-palette-primary-main[,)]/);
     });
 
     it('keeps an own prefix', () => {
-        expect(primaryVar({ cssVariables: { cssVarPrefix: 'my' } } as UserTheme)).toMatch(
-            /^var\(--my-palette-primary-main[,)]/,
-        );
+        expect(primaryVar({ cssVariables: { cssVarPrefix: 'my' } })).toMatch(/^var\(--my-palette-primary-main[,)]/);
     });
 
     it('creates no variables while they are off', () => {

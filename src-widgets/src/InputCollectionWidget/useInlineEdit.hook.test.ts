@@ -8,7 +8,7 @@
  * The session rules themselves are pinned in the node-project suite (inlineEditSession.test.ts).
  */
 import { act } from 'react';
-import { createElement, type FC } from 'react';
+import { createElement, useLayoutEffect, type FC } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CollectionContext } from '../components/CollectionProvider';
@@ -56,7 +56,10 @@ const makeContext = (box: ContextBox): AllCollectionContextProps =>
 
 interface Mounted {
     captured: { current: UseInlineEditReturn };
-    /** `field.error` of every render, in order: what the field could have painted. */
+    /**
+     * `field.error` of every committed render, in order: what the field could have painted. A
+     * render React restarts on a state adjustment during rendering is never committed.
+     */
     errors: boolean[];
     rerender: () => void;
     unmount: () => void;
@@ -67,8 +70,11 @@ const mount = (box: ContextBox, options: UseInlineEditOptions): Mounted => {
     const errors: boolean[] = [];
 
     const Inner: FC = () => {
-        captured.current = useInlineEdit('oid', options);
-        errors.push(captured.current.field.error);
+        const edit = useInlineEdit('oid', options);
+        captured.current = edit;
+        useLayoutEffect(() => {
+            errors.push(edit.field.error);
+        });
         return null;
     };
 

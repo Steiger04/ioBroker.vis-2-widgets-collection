@@ -27,7 +27,7 @@ const GOOGLE_CSS2_URL = 'https://fonts.googleapis.com/css2';
  *
  * @param name - Google Font family name (e.g. `"Roboto"`, `"Open Sans"`).
  * @returns The latin faces (typically weights 400 + 700) as `{ weight, data }`.
- * @throws When the font cannot be fetched, is not found, or has no latin face.
+ * @throws {Error} When the font cannot be fetched, is not found, or has no latin face.
  */
 export async function loadGoogleFont(name: string): Promise<GoogleFontFace[]> {
     const family = name.trim().replace(/\s+/g, '+');

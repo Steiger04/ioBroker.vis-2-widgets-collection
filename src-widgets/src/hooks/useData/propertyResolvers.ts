@@ -414,7 +414,5 @@ export function resolveStyleEntry(
     ext: string | number,
     includeActive: boolean,
 ): StyleData {
-    return Object.fromEntries(
-        Object.entries(resolvers).map(([key, resolve]) => [key, resolve(ext, includeActive)]),
-    ) as StyleData;
+    return Object.fromEntries(Object.entries(resolvers).map(([key, resolve]) => [key, resolve(ext, includeActive)]));
 }

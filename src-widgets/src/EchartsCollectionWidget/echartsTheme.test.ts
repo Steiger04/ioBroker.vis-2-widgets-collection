@@ -170,8 +170,10 @@ describe('tooltip floor of the theme base (ADR-0027 addendum 2026-11-04)', () =>
 });
 
 describe('chartThemeSignature (the theme-base memo key of the live body)', () => {
-    const withPalette = (over: Record<string, unknown>): Theme =>
-        ({ ...lightTheme, palette: { ...lightTheme.palette, ...over } }) as unknown as Theme;
+    const withPalette = (over: Record<string, unknown>): Theme => ({
+        ...lightTheme,
+        palette: { ...lightTheme.palette, ...over },
+    });
 
     it('changes when only the paper colour changes — the tooltip floor must rebuild', () => {
         expect(chartThemeSignature(withPalette({ background: { paper: '#other' } }))).not.toBe(

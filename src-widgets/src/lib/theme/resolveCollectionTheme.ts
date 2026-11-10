@@ -53,7 +53,8 @@ const TYPOGRAPHY_VARIANT_KEYS = [
  * every Paper/Card surface read the HOST's CSS variables instead of the merged
  * palette — the user theme then recolors accents/text but never the surfaces.
  * Only plain-theme DNA passes this allowlist; everything else (skin, cssVars
- * machinery, functions) is dropped and MUI 6 regenerates it from the merge.
+ * machinery, functions) is dropped and the host's MUI 9 (ADR-0112) regenerates
+ * it from the merge.
  */
 const HOST_THEME_ALLOWLIST = [
     'breakpoints',
@@ -137,7 +138,7 @@ export function sanitizeHostTheme(host: Theme): ThemeOptions {
         }
         sanitized.palette = cleaned;
     }
-    return sanitized as ThemeOptions;
+    return sanitized;
 }
 
 /**
@@ -181,7 +182,7 @@ function withCollectionCssVariables(options: ThemeOptions): ThemeOptions {
     return {
         ...options,
         cssVariables: { disableCssColorScheme: true, ...own, cssVarPrefix },
-    } as ThemeOptions;
+    };
 }
 
 /**
@@ -238,7 +239,7 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
         return theme;
     }
     const cleaned = withoutUnusableLeaves(palette, 'palette');
-    return cleaned === palette ? theme : { ...theme, palette: cleaned as ThemeOptions['palette'] };
+    return cleaned === palette ? theme : { ...theme, palette: cleaned };
 }
 
 /**

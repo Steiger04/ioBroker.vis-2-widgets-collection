@@ -96,6 +96,15 @@ function writeStoredView(widgetId: string, written: StoredView): void {
     }
 }
 
+/** The stored view as last read or written, and the baselines still to write to the storage. */
+interface ViewSnapshot {
+    /** What the view was read for: the widget id and the parked parts. */
+    readKey: string;
+    stored: StoredView;
+    /** Baselines recorded while rendering, written to the storage after the commit. */
+    recorded?: { widgetId: string; view: StoredView };
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export interface UseViewStateOptions {
@@ -185,22 +194,29 @@ export function useViewState(options: UseViewStateOptions): ViewState {
     // widget id, or a part parked or returning, reads anew (adjusting state while
     // rendering, React's pattern for state derived from changed props).
     const readKey = JSON.stringify([widgetId, VIEW_PARTS.filter(part => isParked(part, capabilities, config))]);
-    const [snapshot, setSnapshot] = useState(() => ({ readKey, stored: readStoredView(widgetId) }));
+    const [snapshot, setSnapshot] = useState<ViewSnapshot>(() => ({ readKey, stored: readStoredView(widgetId) }));
     let { stored } = snapshot;
-    if (snapshot.readKey !== readKey) {
+    const reread = snapshot.readKey !== readKey;
+    if (reread) {
         stored = readStoredView(widgetId);
-        setSnapshot({ readKey, stored });
     }
 
     // Choices stored without baseline count as made against the configuration they are
     // first read under — record it, or later edits of the configuration could never win.
+    // Recorded while rendering; the write to the storage follows once the render is committed.
+    const recorded = recordBaselines(stored, capabilities, config);
+    const records = Object.keys(recorded).length > 0;
+    if (records) {
+        stored = { ...stored, ...recorded };
+    }
+    if (reread || records) {
+        setSnapshot({ readKey, stored, recorded: records ? { widgetId, view: recorded } : undefined });
+    }
     useEffect(() => {
-        const recorded = recordBaselines(stored, capabilities, config);
-        if (Object.keys(recorded).length > 0) {
-            writeStoredView(widgetId, recorded);
-            setSnapshot({ readKey, stored: { ...stored, ...recorded } });
+        if (snapshot.recorded) {
+            writeStoredView(snapshot.recorded.widgetId, snapshot.recorded.view);
         }
-    }, [widgetId, readKey, stored, capabilities, config]);
+    }, [snapshot.recorded]);
 
     // The rows to page through, as the table last counted them (after filtering): the page
     // shown is clamped to them, the stored page stays.

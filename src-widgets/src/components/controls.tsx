@@ -36,7 +36,7 @@
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
  * All labels are translated at the call site.
  */
-import { useEffect, useId, useState, type FC, type ReactNode } from 'react';
+import { useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';
 import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
@@ -63,7 +63,7 @@ export const noSpinnerSx = {
 export const FieldLabel: FC<{ children: React.ReactNode }> = ({ children }) => (
     <Typography
         variant="caption"
-        color="text.secondary"
+        color="textSecondary"
         noWrap
         title={typeof children === 'string' ? children : undefined}
         sx={{ display: 'block', mb: 0.5 }}
@@ -77,14 +77,14 @@ export const SectionLabel: FC<{ children: React.ReactNode; hint?: string }> = ({
     <Box>
         <Typography
             variant="subtitle2"
-            fontWeight={600}
+            sx={{ fontWeight: 600 }}
         >
             {children}
         </Typography>
         {hint && (
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
             >
                 {hint}
             </Typography>
@@ -144,7 +144,7 @@ export const NumberField: FC<{
             size="small"
             type="number"
             value={value}
-            inputProps={{ step }}
+            slotProps={{ htmlInput: { step } }}
             onChange={e => onChange(Number(e.target.value) || 0)}
             error={error}
             helperText={helperText}
@@ -184,10 +184,12 @@ export const OptionalNumberField: FC<{
                 size="small"
                 type="number"
                 value={value ?? ''}
-                inputProps={{
-                    step,
-                    ...(titled && empty ? { title: placeholderTitle } : {}),
-                    ...(titled ? { 'aria-label': empty ? `${label}, ${placeholderTitle}` : label } : {}),
+                slotProps={{
+                    htmlInput: {
+                        step,
+                        ...(titled && empty ? { title: placeholderTitle } : {}),
+                        ...(titled ? { 'aria-label': empty ? `${label}, ${placeholderTitle}` : label } : {}),
+                    },
                 }}
                 error={error}
                 helperText={helperText}
@@ -336,7 +338,7 @@ export const SubGroup: FC<{ title: string; hint?: string; children: ReactNode; s
             {hint && (
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     noWrap
                 >
                     {hint}
@@ -435,7 +437,7 @@ export const SliderField: FC<{
                     max={max}
                     step={step}
                     disabled={disabled}
-                    onChange={(_, v) => onChange(v as number)}
+                    onChange={(_, v) => onChange(v)}
                     aria-label={label}
                     sx={{ flex: 1, minWidth: 0 }}
                 />
@@ -444,7 +446,7 @@ export const SliderField: FC<{
                     type="number"
                     disabled={disabled}
                     value={draft ?? String(value)}
-                    inputProps={{ min, max, step, 'aria-label': label }}
+                    slotProps={{ htmlInput: { min, max, step, 'aria-label': label } }}
                     onFocus={() => setDraft(String(value))}
                     onChange={e => {
                         setDraft(e.target.value);
@@ -496,7 +498,7 @@ export const OptionalSliderField: FC<{
                     min={min}
                     max={max}
                     step={step}
-                    onChange={(_, v) => onChange(v as number)} // a drag commits a concrete value
+                    onChange={(_, v) => onChange(v)} // a drag commits a concrete value
                     aria-label={label}
                     sx={{ flex: 1, minWidth: 0 }}
                 />
@@ -504,7 +506,7 @@ export const OptionalSliderField: FC<{
                     size="small"
                     type="number"
                     value={draft ?? (unset ? '' : String(value))}
-                    inputProps={{ min, max, step, 'aria-label': label }}
+                    slotProps={{ htmlInput: { min, max, step, 'aria-label': label } }}
                     placeholder={unset ? String(fallback) : undefined}
                     onFocus={() => setDraft(unset ? '' : String(value))}
                     onChange={e => {
@@ -652,7 +654,7 @@ export const InfoBox: FC<{
     >
         <Typography
             variant="caption"
-            color="text.secondary"
+            color="textSecondary"
         >
             {children ?? text}
         </Typography>
@@ -710,11 +712,13 @@ export const SectionTabs: FC<{
     // back after a manual tab switch). A fresh token selects the tab once.
     const focusKey = focus?.key;
     const focusToken = focus?.token;
-    useEffect(() => {
+    const [jumpSeen, setJumpSeen] = useState<{ key?: string; token?: number }>({});
+    if (jumpSeen.key !== focusKey || jumpSeen.token !== focusToken) {
+        setJumpSeen({ key: focusKey, token: focusToken });
         if (focusKey !== undefined) {
             setActive(focusKey);
         }
-    }, [focusKey, focusToken]);
+    }
     const items = Array.isArray(children) ? children : [children];
     // The children↔tabs contract is POSITIONAL — a diverging count silently hides content (an
     // extra child never renders). Dev-only guard: section/card authors see the mismatch

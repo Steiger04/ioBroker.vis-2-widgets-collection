@@ -20,13 +20,7 @@ import { defineCatalog } from './catalog';
 
 /** Legend-template grouping (rendered as menu section headers; order = {@link LEGEND_CATEGORY_ORDER}). */
 export type LegendTemplateCategory =
-    | 'textStyle'
-    | 'itemStyle'
-    | 'lineStyle'
-    | 'selector'
-    | 'pageButtons'
-    | 'frame'
-    | 'behavior';
+    'textStyle' | 'itemStyle' | 'lineStyle' | 'selector' | 'pageButtons' | 'frame' | 'behavior';
 
 export const LEGEND_CATEGORY_ORDER: LegendTemplateCategory[] = [
     'textStyle',

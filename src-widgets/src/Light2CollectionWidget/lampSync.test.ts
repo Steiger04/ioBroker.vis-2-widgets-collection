@@ -354,7 +354,7 @@ describe('syncStep: Verlassen der CCT-Ansicht', () => {
         const values = { colorLightRedOid: 10, colorLightGreenOid: 20, colorLightBlueOid: '' };
         const step = syncStep(state('r/g/b/cct', true, {}, values), state('r/g/b/cct', false, {}, values), BOTH, {
             widgetData: withoutGreenObject as unknown as Light2WidgetData,
-            getPropertyValue: name => values[name as keyof typeof values] as ioBroker.StateValue,
+            getPropertyValue: name => values[name as keyof typeof values],
         });
 
         expect(step.writes).toEqual([{ field: 'colorLightRedOid', value: 10 }]);

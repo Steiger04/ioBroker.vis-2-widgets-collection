@@ -3,59 +3,52 @@
     "private": true,
     "version": "2.6.0",
     "type": "module",
-    "exports": {
-        ".": "./src/index.js",
-        "./types": "./src/types/index.d.ts"
-    },
-    "typesVersions": {
-        "*": {
-            "types": [
-                "src/types/index.d.ts"
-            ]
-        }
-    },
     "devDependencies": {
-        "@iobroker/adapter-dev": "^1.5.0",
-        "@iobroker/adapter-react-v5": "^8.0.16",
-        "@iobroker/types-vis-2": "^2.20.1",
-        "@module-federation/vite": "^1.22.1",
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@iobroker/types-vis-2": "~2.20.8",
+        "@module-federation/vite": "^1.23.11",
+        "@mui/icons-material": "^9.5.0",
+        "@mui/material": "^9.5.0",
+        "@mui/system": "^9.5.0",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
-        "@vitejs/plugin-react": "^5.1.2",
-        "happy-dom": "^20.11.0",
-        "playwright": "^1.49.0",
-        "vite": "^7.1.12",
+        "@vitejs/plugin-react": "^6.3.0",
+        "esbuild": "^0.28.2",
+        "happy-dom": "20.13.0",
+        "moment": "^2.31.0",
+        "playwright": "^1.65.0",
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1",
+        "typescript": "~6.0.3",
+        "vite": "^8.3.6",
         "vite-plugin-commonjs": "^0.10.4",
-        "vite-plugin-svgr": "^4.5.0",
-        "vite-tsconfig-paths": "^6.0.3",
-        "vitest": "^4.1.10"
+        "vite-plugin-svgr": "^5.2.0",
+        "vitest": "^5.1.0"
     },
     "dependencies": {
-        "@fontsource/inter": "^5.2.8",
-        "@fontsource/jetbrains-mono": "^5.2.8",
-        "@fontsource/merriweather": "^5.2.11",
-        "@fontsource/montserrat": "^5.2.8",
-        "@fontsource/nunito": "^5.2.7",
-        "@fontsource/open-sans": "^5.2.7",
-        "@fontsource/oswald": "^5.2.8",
-        "@fontsource/playfair-display": "^5.2.8",
-        "@fontsource/roboto": "^5.2.10",
-        "@fontsource/roboto-slab": "^5.2.8",
+        "@fontsource/inter": "^5.3.0",
+        "@fontsource/jetbrains-mono": "^5.3.0",
+        "@fontsource/merriweather": "^5.3.0",
+        "@fontsource/montserrat": "^5.3.0",
+        "@fontsource/nunito": "^5.3.0",
+        "@fontsource/open-sans": "^5.3.0",
+        "@fontsource/oswald": "^5.3.0",
+        "@fontsource/playfair-display": "^5.3.0",
+        "@fontsource/roboto": "^5.3.0",
+        "@fontsource/roboto-slab": "^5.3.0",
+        "@iobroker/gui-components": "^10.4.6",
         "@jaames/iro": "^5.5.2",
-        "@mui/x-date-pickers": "^7.29.4",
+        "@mui/x-date-pickers": "^9.17.0",
         "@tanstack/react-table": "^8.21.3",
-        "@tanstack/react-virtual": "^3.13.0",
-        "@uiw/react-textarea-code-editor": "^3.1.1",
+        "@tanstack/react-virtual": "^3.14.26",
+        "@uiw/react-textarea-code-editor": "^3.1.3",
         "canvas-gauges": "^2.1.7",
         "date-fns": "^4.4.0",
         "echarts": "^6.1.0",
         "expr-eval": "^2.0.2",
-        "iobroker.vis-2-widgets-collection": "file:..",
-        "json-logic-engine": "^5.0.6",
-        "moment": "^2.30.1",
-        "react": "^19.3.0",
+        "json-logic-engine": "^5.0.7",
         "react-best-gradient-color-picker": "^3.0.14",
-        "react-dom": "^19.3.0",
         "rxjs": "^7.8.2"
     },
     "scripts": {
@@ -68,8 +61,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "i18n": "node node_modules/@iobroker/vis-2-widgets-react-dev/searchI18n vis-2-widgets-collection",
-        "update-browsers": "npx browserslist@latest --update-db",
-        "translate": "translate-adapter -a ../src-widgets -p ../io-package.json"
+        "update-browsers": "npx browserslist@latest --update-db"
     },
     "eslintConfig": {
         "extends": "react-app"

@@ -211,7 +211,7 @@ function EchartsCollection(): React.ReactElement {
                     enabled: data.frameEnabled,
                     width: data.frameWidth,
                     color: data.frameColor,
-                    style: data.frameStyle as string | undefined,
+                    style: data.frameStyle,
                     padding: data.framePadding,
                 },
                 frameInheritColor(theme),

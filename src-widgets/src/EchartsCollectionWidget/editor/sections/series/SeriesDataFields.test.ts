@@ -71,12 +71,12 @@ import { renderComponent, type RenderComponentHandle } from '../../../../lib/tes
 import { SeriesDataFields, xOffsetMode } from './tabs/DatenTab';
 
 // The card module's heavy leaves, stubbed to keep this a card-logic test: `shared` pulls
-// @iobroker/adapter-react-v5's SelectID, and the @mui/icons-material barrel costs minutes of
+// @iobroker/gui-components' SelectID, and the @mui/icons-material barrel costs minutes of
 // Node module resolution in vitest (its ~11k-re-export index — probed at 219 s for ONE icon).
 // The icons named below are every one the unmocked render path (card + controls) touches.
 vi.mock('@mui/icons-material', () => ({
     ContentCopy: () => null,
-    DeleteOutline: () => null,
+    DeleteOutlineOutlined: () => null,
     KeyboardArrowDown: () => null,
     KeyboardArrowUp: () => null,
     ExpandMore: () => null,
@@ -96,7 +96,7 @@ const mount = (over: Partial<DataProps> = {}): RenderComponentHandle<DataProps> 
     renderComponent(SeriesDataFields, {
         meta: {},
         onPatch: () => undefined,
-        chartAggregate: 'average' as DataProps['chartAggregate'],
+        chartAggregate: 'average',
         isBarChart: false,
         ...over,
     });

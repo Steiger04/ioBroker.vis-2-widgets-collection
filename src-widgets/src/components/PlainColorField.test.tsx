@@ -70,7 +70,7 @@ afterEach(() => {
 });
 
 const mount = (
-    data: WidgetData = {} as WidgetData,
+    data: WidgetData = {},
     fieldExtra: Partial<ExtendedField> = {},
 ): { container: HTMLElement; input: HTMLInputElement; onDataChange: ReturnType<typeof vi.fn> } => {
     const onDataChange = vi.fn();
@@ -119,7 +119,7 @@ describe('PlainColorField shows the stored value — no cascade', () => {
     });
 
     it('the swatch shows the stored value, a colour name included', () => {
-        const { container, input } = mount({ gaugeColorBar: 'red' } as WidgetData);
+        const { container, input } = mount({ gaugeColorBar: 'red' });
         expect(input.value).toBe('red');
         expect(swatchBackground(container)).toMatch(/^red$|rgb\(255, 0, 0\)/);
     });
@@ -128,10 +128,7 @@ describe('PlainColorField shows the stored value — no cascade', () => {
         ['a missing key', {}],
         ['an empty value', { gaugeColorBar: '' }],
     ])('with %s the swatch and the Farbwähler show the schema default, nothing is stored', (_case, data) => {
-        const { container, input, onDataChange } = mount(
-            data as WidgetData,
-            { default: '#cccccc' } as Partial<ExtendedField>,
-        );
+        const { container, input, onDataChange } = mount(data, { default: '#cccccc' });
         expect(input.value).toBe('');
         expect(swatchBackground(container)).toMatch(/^#cccccc$|rgb\(204, 204, 204\)/);
         open(container);
@@ -140,7 +137,7 @@ describe('PlainColorField shows the stored value — no cascade', () => {
     });
 
     it('does not read the Collection theme while the Farbwähler is closed', () => {
-        mount({ gaugeColorBar: '#123456' } as WidgetData);
+        mount({ gaugeColorBar: '#123456' });
         expect(readCollectionTheme).not.toHaveBeenCalled();
     });
 });
@@ -160,7 +157,7 @@ describe('PlainColorField writes the field', () => {
     });
 
     it('the trash clears the field: null, the widget falls back to its own default', () => {
-        const { container, onDataChange } = mount({ gaugeColorBar: '#123456' } as WidgetData);
+        const { container, onDataChange } = mount({ gaugeColorBar: '#123456' });
         act(() => container.querySelector<HTMLElement>('button[title="t:clear_color"]')?.click());
         expect(onDataChange).toHaveBeenCalledExactlyOnceWith({ gaugeColorBar: null });
     });

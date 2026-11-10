@@ -73,7 +73,7 @@ const XFormatCombo: FC<{
         <Autocomplete<TimeFormatPreset, false, false, true>
             freeSolo
             size="small"
-            options={TIME_FORMAT_PRESETS as TimeFormatPreset[]}
+            options={TIME_FORMAT_PRESETS}
             groupBy={o => Generic.t(FORMAT_GROUP_I18N[o.group])}
             inputValue={value ?? ''}
             // Typing ('input') and the clear button ('clear') write straight through; picking an

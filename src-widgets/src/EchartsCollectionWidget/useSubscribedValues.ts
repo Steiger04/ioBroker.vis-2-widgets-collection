@@ -14,7 +14,7 @@
  * re-exports it for the editor modules (ADR-0103 K4).
  */
 import { useEffect, useState } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 export type SubscribedValues = Record<string, ioBroker.StateValue | undefined>;
 
@@ -29,17 +29,24 @@ export function useSubscribedValues(oids: string[], socket: Connection): Subscri
         .sort()
         .join('\n');
 
-    useEffect(() => {
-        const list = key ? key.split('\n') : [];
-        // Drop values for OIDs no longer in the list, so the map stays in sync with `list` even
-        // if the getState seed below rejects (the `.catch` would otherwise leave stale entries).
+    // Drop values for OIDs no longer in the list while rendering, so the map stays in sync with
+    // the list even if the getState seed below rejects (the `.catch` would otherwise leave stale
+    // entries). Unset on mount: the first render lists every OID, still without a value.
+    const [prunedFor, setPrunedFor] = useState<string | undefined>(undefined);
+    if (prunedFor !== key) {
+        setPrunedFor(key);
+        const kept = key ? key.split('\n') : [];
         setValues(prev => {
             const next: SubscribedValues = {};
-            for (const id of list) {
+            for (const id of kept) {
                 next[id] = prev[id];
             }
             return next;
         });
+    }
+
+    useEffect(() => {
+        const list = key ? key.split('\n') : [];
         if (!list.length) {
             return;
         }
@@ -54,7 +61,7 @@ export function useSubscribedValues(oids: string[], socket: Connection): Subscri
         Promise.all(list.map(id => socket.getState(id).then(st => [id, st?.val] as const)))
             .then(init => {
                 if (active) {
-                    setValues(Object.fromEntries(init) as SubscribedValues);
+                    setValues(Object.fromEntries<ioBroker.StateValue | undefined>(init));
                 }
             })
             .catch(() => {

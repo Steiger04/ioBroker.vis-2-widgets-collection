@@ -24,7 +24,7 @@ import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
 
 /**

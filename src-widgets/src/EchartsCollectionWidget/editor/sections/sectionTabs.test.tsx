@@ -11,11 +11,11 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
+vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutlineOutlined: () => null }));
 // The pie options' Erweitert tab mounts a SeriesRawOverride — the shared series block pulls
 // adapter-react (SelectID) whose FileBrowser wants icons the barrel mock above withholds, and
 // the JsonEditor below it is a heavy leaf the label-only inventory never opens.
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 vi.mock('../JsonEditor', () => ({ default: () => null }));
 vi.mock('../colorFields', () => ({
     default: () => null,

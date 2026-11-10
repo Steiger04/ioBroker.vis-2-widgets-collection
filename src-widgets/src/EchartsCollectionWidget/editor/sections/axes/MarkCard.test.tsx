@@ -12,12 +12,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@mui/icons-material', () => ({
-    DeleteOutline: () => null,
+    DeleteOutlineOutlined: () => null,
     Search: () => null,
     ExpandMore: () => null,
 }));
 vi.mock('../../colorFields', () => ({ default: () => null, ColorListField: () => null }));
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';

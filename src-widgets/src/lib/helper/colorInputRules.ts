@@ -34,9 +34,7 @@ export type ColorInputInvalidReason = 'gradientNotAllowed' | 'notAColor';
 
 /** What a colour field stores for a text. */
 export type ColorInputResult =
-    | { kind: 'value'; value: string }
-    | { kind: 'empty' }
-    | { kind: 'invalid'; reason: ColorInputInvalidReason };
+    { kind: 'value'; value: string } | { kind: 'empty' } | { kind: 'invalid'; reason: ColorInputInvalidReason };
 
 /** Options of {@link applyColorInputRules}. */
 export interface ColorInputOptions {

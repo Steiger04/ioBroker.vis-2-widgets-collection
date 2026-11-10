@@ -26,8 +26,8 @@ describe('ErweitertSection CSS variables', () => {
     it.each<[string, StudioSectionProps['theme']]>([
         ['off', {}],
         // cssVariables is a ThemeOptions key outside the UserTheme type (the studio writes it by path).
-        ['on', { cssVariables: true } as StudioSectionProps['theme']],
-        ['on with a prefix', { cssVariables: { cssVarPrefix: 'my' } } as StudioSectionProps['theme']],
+        ['on', { cssVariables: true }],
+        ['on with a prefix', { cssVariables: { cssVarPrefix: 'my' } }],
     ])('explains them once, as an info box (%s)', (_state, theme) => {
         handle = renderComponent<StudioSectionProps>(ErweitertSection, { theme, onChange: () => {}, expanded: true });
         const { container } = handle;
@@ -39,7 +39,7 @@ describe('ErweitertSection CSS variables', () => {
 
     it('shows the default prefix vis2c in the empty prefix field', () => {
         handle = renderComponent<StudioSectionProps>(ErweitertSection, {
-            theme: { cssVariables: true } as StudioSectionProps['theme'],
+            theme: { cssVariables: true },
             onChange: () => {},
             expanded: true,
         });
@@ -49,7 +49,7 @@ describe('ErweitertSection CSS variables', () => {
 
     it('shows a prefix error at the prefix field', () => {
         handle = renderComponent<StudioSectionProps>(ErweitertSection, {
-            theme: { cssVariables: { cssVarPrefix: 'mui' } } as StudioSectionProps['theme'],
+            theme: { cssVariables: { cssVarPrefix: 'mui' } },
             onChange: () => {},
             expanded: true,
             errorFor: path => (path === 'cssVariables.cssVarPrefix' ? 'reserved prefix' : undefined),

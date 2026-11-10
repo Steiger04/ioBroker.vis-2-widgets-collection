@@ -11,7 +11,7 @@
  * {@link module:widgets/DialogCollectionWidget/dialogSession}; this hook only wires it.
  * A running timer keeps the duration it was started with; the timer is cleared on unmount.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useInsertionEffect, useRef, useState } from 'react';
 
 import {
     canWriteSessionOid,
@@ -95,7 +95,9 @@ export default function useDialogSession(inputs: DialogSessionInputs): DialogSes
         }
     };
 
-    dispatchRef.current = dispatch;
+    useInsertionEffect(() => {
+        dispatchRef.current = dispatch;
+    });
 
     useEffect(() => {
         dispatchRef.current({ type: 'observe', value: oidValue });

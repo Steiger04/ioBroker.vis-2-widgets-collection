@@ -231,5 +231,5 @@ export const buildGeneratedOption = (input: GeneratedInput): EChartsOption => {
     // orchestrator seam rather than duplicated into each family builder. Sparse: absent when the
     // master switch is off, so the replaceMerge rebuild removes the component.
     const toolbox = buildToolbox(input.p.toolbox, input.family, input.p.themeDark);
-    return (toolbox ? { ...base, toolbox } : base) as EChartsOption;
+    return toolbox ? { ...base, toolbox } : base;
 };

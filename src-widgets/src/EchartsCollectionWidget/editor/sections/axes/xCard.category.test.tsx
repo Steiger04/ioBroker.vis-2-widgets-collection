@@ -18,7 +18,6 @@ vi.mock('../../colorFields', () => ({
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import XCard from './XCard';
-import type { EchartsXAxisConfig } from '../../../../types/field-definitions/echarts-fields';
 
 /** Mount any component; returns the live container. */
 const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => {
@@ -32,7 +31,7 @@ const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => 
 };
 
 const props = (isCategory?: boolean): Record<string, unknown> => ({
-    x: {} as EchartsXAxisConfig,
+    x: {},
     open: true,
     onToggle: () => undefined,
     onChange: () => undefined,

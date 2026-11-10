@@ -77,7 +77,7 @@ function PaletteSection({
                 {modeValue === 'auto' ? (
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                         sx={{ display: 'block', mt: 0.5 }}
                     >
                         {Generic.t('theme_studio_mode_follows')}:{' '}

@@ -20,7 +20,6 @@
 
 import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { Theme } from '@mui/material';
-import type { MenuProps } from '@mui/material/Menu';
 
 import { alphaOf } from '../lib/helper/colorDerivation';
 import { isGradientColor } from '../lib/helper/colorValidation';
@@ -110,7 +109,20 @@ export interface MenuChromeInput {
 }
 
 /**
- * Builds the MenuProps of the popup: the paper surface (noCard flattens it —
+ * The popup chrome in MenuProps form: the paper surface, the backdrop and the popup root, each
+ * under its menu slot.
+ */
+export interface MenuChrome {
+    /** The props of the popup's paper, backdrop and root slots. */
+    slotProps: {
+        paper: { sx: SxObject };
+        backdrop: { style: SxObject };
+        root: { sx: SxObject };
+    };
+}
+
+/**
+ * Builds the chrome of the popup: the paper surface (noCard flattens it —
  * no shadow, no overlay; a frame background always paints it, and since an
  * unset one resolves to the theme paper, a noCard popup stays opaque — it is
  * transparent only for an empty resolved value, a defensive branch; the
@@ -119,29 +131,29 @@ export interface MenuChromeInput {
  * width, offset below the field, list unpadded.
  *
  * @param input - Measured width, the explicit noCard flag, frame background and border styles.
- * @returns The popup's MenuProps; pass them as `<Select MenuProps={…}>`.
+ * @returns The popup's chrome; pass it as `<Select MenuProps={…}>`.
  */
-export function buildMenuChrome(input: MenuChromeInput): Partial<MenuProps> {
+export function buildMenuChrome(input: MenuChromeInput): MenuChrome {
     const { width, noCard, frameBackground, borderStyles } = input;
 
     return {
-        PaperProps: {
-            sx: {
-                overflow: 'hidden',
-                '& .MuiMenu-list': {
-                    maxHeight: '100vh',
-                    overflowY: 'auto',
-                },
-                ...(noCard && {
-                    '--Paper-overlay': 'none !important',
-                    '--Paper-shadow': 'none !important',
-                    boxShadow: 'none !important',
-                }),
-                background: frameBackground || (noCard ? 'transparent' : undefined),
-                ...cleanSx(borderStyles),
-            },
-        },
         slotProps: {
+            paper: {
+                sx: {
+                    overflow: 'hidden',
+                    '& .MuiMenu-list': {
+                        maxHeight: '100vh',
+                        overflowY: 'auto',
+                    },
+                    ...(noCard && {
+                        '--Paper-overlay': 'none !important',
+                        '--Paper-shadow': 'none !important',
+                        boxShadow: 'none !important',
+                    }),
+                    background: frameBackground || (noCard ? 'transparent' : undefined),
+                    ...cleanSx(borderStyles),
+                },
+            },
             backdrop: {
                 style: { backgroundColor: 'transparent !important' },
             },

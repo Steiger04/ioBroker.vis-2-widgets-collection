@@ -30,7 +30,7 @@
  * bound field is rendered as a plain text field through the same `Editor`.
  */
 import { Box } from '@mui/material';
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
@@ -64,9 +64,6 @@ export type Vis2Editor = (props: Vis2EditorProps) => React.ReactNode;
 export const vis2EditorOf = (props: RxWidgetInfoCustomComponentProperties): Vis2Editor | undefined =>
     (props as RxWidgetInfoCustomComponentProperties & { Editor?: Vis2Editor }).Editor;
 
-/** Per-state predicate as `commonFields` declares it (`index` = Feldnummer). */
-type IndexedPredicate = (data: Record<string, unknown>, index?: number) => boolean;
-
 /**
  * The per-state field definition under the indexed name of a row, as vis-2's indexed group
  * cloned it (`visWidgetsCatalog.tsx` parseAttributes: `name{n}`, everything else carried over).
@@ -77,7 +74,7 @@ type IndexedPredicate = (data: Record<string, unknown>, index?: number) => boole
  */
 export const stateRowField = (definition: StateFieldDefinition, n: number): RxWidgetInfoAttributesField => {
     const { hidden: _hidden, ...rest } = definition;
-    return { ...rest, name: `${definition.name}${n}` } as RxWidgetInfoAttributesField;
+    return { ...rest, name: `${definition.name}${n}` };
 };
 
 /**
@@ -152,23 +149,11 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     // `commonValues` under multi-selection, where differing keys (two URL icons) are `null`.
     const stored = selectedWidgetDatas({ data, props });
     const locked =
-        field !== null &&
-        typeof rule === 'function' &&
-        stored.every(widgetData => (rule as IndexedPredicate)(widgetData, selected));
+        field !== null && typeof rule === 'function' && stored.every(widgetData => rule(widgetData, selected));
     const differs = field !== null && stateRowKeyDiffers(stored, field.name as string);
     const anchor = useRef<HTMLDivElement>(null);
-    const labelCell = useLabelCell(anchor);
-    // A locked row looks like a disabled vis-2 row (`fieldTitleDisabled`: opacity 0.8); vis-2
-    // cannot grey the label itself — its `disabled` rule knows no selected row.
-    useLayoutEffect(() => {
-        if (!labelCell || !locked) {
-            return undefined;
-        }
-        labelCell.style.opacity = '0.8';
-        return () => {
-            labelCell.style.opacity = '';
-        };
-    }, [labelCell, locked]);
+    // A locked row looks like a disabled vis-2 row; vis-2's `disabled` rule knows no selected row.
+    const labelCell = useLabelCell(anchor, locked);
     const binding = useStateFieldBinding(fieldProps, definition, field ? (field.name as string) : null);
     // The field data on purpose: vis-2 draws the preview from the first widget unless the values
     // differ (`!isDifferent`), and the merged `commonValues` hold exactly that (`null` if they differ).

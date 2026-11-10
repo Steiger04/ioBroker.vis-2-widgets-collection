@@ -1,5 +1,5 @@
 /**
- * Module augmentation and extensions for @iobroker/types-vis-2.
+ * Module augmentation and extensions for `@iobroker/types-vis-2`.
  * Adds Collection-specific types and interfaces to the vis-2 type system.
  *
  * @module vis-2-extensions
@@ -19,7 +19,7 @@
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 /**
- * Module augmentation for @iobroker/types-vis-2
+ * Module augmentation for `@iobroker/types-vis-2`
  * Extends VisRxWidgetStateValues interface with Collection-specific state values.
  *
  * @remarks
@@ -83,7 +83,7 @@ declare module '@iobroker/types-vis-2' {
          *
          * Includes `collection_${string}` pattern:
          * - `collection_${string}`: any (new collection states)
-         * (`${string}.ack` moved into @iobroker/types-vis-2 itself — declaring it
+         * (`${string}.ack` moved into `@iobroker/types-vis-2` itself — declaring it
          * here again would collide with the upstream interface)
          * @see {@link context-types.d.ts} for widget-specific context types
          */

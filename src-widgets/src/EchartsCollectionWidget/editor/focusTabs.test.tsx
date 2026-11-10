@@ -8,7 +8,7 @@
  * Heavy leaves are marker-mocked (the established pattern — icons barrel, pickers, raw
  * sections, axis cards); the identity-t stub surfaces label keys verbatim.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // The full section stack pulls many icons — every named import the stack touches, nulled.
 vi.mock('@mui/icons-material', () => ({
@@ -17,7 +17,7 @@ vi.mock('@mui/icons-material', () => ({
     ArrowDownward: () => null,
     ArrowUpward: () => null,
     Search: () => null,
-    DeleteOutline: () => null,
+    DeleteOutlineOutlined: () => null,
     KeyboardArrowDown: () => null,
     KeyboardArrowUp: () => null,
     ContentCopy: () => null,
@@ -44,7 +44,7 @@ vi.mock('./sections/series/shared', () => ({
 }));
 // The adapter-react barrel (FileBrowser → icons → minutes of resolution): the ONE live
 // importer in the chain gets a stub instead of the 10k-module library.
-vi.mock('@iobroker/adapter-react-v5', () => ({
+vi.mock('@iobroker/gui-components', () => ({
     SelectID: () => null,
     I18n: { t: (k: string) => k },
 }));
@@ -78,6 +78,16 @@ import EchartsEditorSections, { type FocusSectionRequest } from './EchartsEditor
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
 import { firstIssueTabOf, validateEditor, type SectionIssues } from './validation';
 
+// Every mounted stack goes down after its test: a root left mounted keeps React work scheduled
+// past the environment teardown, which then throws "window is not defined" into the run.
+const mounted: { root: Root; container: HTMLElement }[] = [];
+afterEach(() => {
+    for (const { root, container } of mounted.splice(0)) {
+        act(() => root.unmount());
+        container.remove();
+    }
+});
+
 /** Mount the full section stack; returns the live container + a rerender for the focus prop. */
 const mountSections = (
     issues: SectionIssues,
@@ -87,6 +97,7 @@ const mountSections = (
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root: Root = createRoot(container);
+    mounted.push({ root, container });
     const props = {
         state,
         set: () => undefined,

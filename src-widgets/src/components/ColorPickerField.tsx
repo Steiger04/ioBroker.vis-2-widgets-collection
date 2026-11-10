@@ -21,10 +21,10 @@
  * to the swatch (theme studio; off by default).
  */
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, InputBase, Typography, useTheme } from '@mui/material';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import type React from 'react';
 import { translate } from '../lib/translate';
 import CollectionColorPicker from './colorPicker/CollectionColorPicker';
@@ -101,22 +101,25 @@ function ColorPickerField({
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     // Local cached value: shows a pick or typed value at once, before the caller's value follows.
+    // A changed external value replaces it.
     const [cachedValue, setCachedValue] = useState<string>(value);
+    const [cachedFrom, setCachedFrom] = useState<string>(value);
+    if (cachedFrom !== value) {
+        setCachedFrom(value);
+        setCachedValue(value);
+    }
 
     // Hex input text while editing; follows the displayed value (picker drags included).
     const [hexText, setHexText] = useState<string>(value);
-    useEffect(() => {
+    const [hexFrom, setHexFrom] = useState<string>(value);
+    if (hexFrom !== cachedValue) {
+        setHexFrom(cachedValue);
         setHexText(cachedValue);
-    }, [cachedValue]);
+    }
 
     // The swatch follows a local edit at once (picker drag, typed hex); otherwise it shows
     // the caller's swatch colour, if any.
     const swatchColor = swatchValue !== undefined && cachedValue === value ? swatchValue : cachedValue;
-
-    // Sync cachedValue when the external value prop changes
-    useEffect(() => {
-        setCachedValue(value);
-    }, [value]);
 
     // The Farbwähler commits debounced and normalized already.
     const handlePickerCommit = useCallback(
@@ -184,7 +187,7 @@ function ColorPickerField({
             >
                 <Typography
                     variant="body2"
-                    color={error ? 'error' : 'text.secondary'}
+                    color={error ? 'error' : 'textSecondary'}
                     sx={{ userSelect: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                     {label}

@@ -17,7 +17,7 @@
  * narrow dependency arrays below are the actual clobber protection.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
 import { syncSlotMemory, dispatchStructureEvent, type StructureAdvisory } from './structureEvents';
@@ -51,6 +51,26 @@ export interface EchartsEditorLifecycle {
     redo: () => void;
 }
 
+/** The last load: its inputs, its count, and the baseline `hasChanges`, Apply and Reset use. */
+interface LoadedBaseline {
+    open: boolean;
+    data: WidgetData | undefined;
+    token: number;
+    state: EditorState;
+    snapshot: string;
+    oidCount: number;
+}
+
+/** Before the first open: closed, nothing loaded. */
+const NOTHING_LOADED: LoadedBaseline = {
+    open: false,
+    data: undefined,
+    token: 0,
+    state: DEFAULT_EDITOR_STATE,
+    snapshot: '',
+    oidCount: 0,
+};
+
 /**
  * Manages the echarts configurator's working copy: load/rebase, the guard effects, the write
  * path, apply/reset and the undo/redo keyboard binding.
@@ -68,12 +88,10 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
     const state = history.present;
     // The stable commit callback, destructured so the memoized helpers below can depend on it
     // (the history result object itself has a new identity every render).
-    const { set: commit } = history;
-    const loadedCountRef = useRef(0);
+    const { set: commit, rebase } = history;
     // The loaded baseline: the string snapshot drives `hasChanges`, the object drives Reset.
-    const loadedSnapshotRef = useRef('');
-    const loadedStateRef = useRef<EditorState>(DEFAULT_EDITOR_STATE);
-    const [loadToken, setLoadToken] = useState(0);
+    const [loaded, setLoaded] = useState<LoadedBaseline>(NOTHING_LOADED);
+    const loadToken = loaded.token;
 
     // Patches coalesce by their key set: consecutive edits touching the same keys within the
     // window replace the present snapshot (typing a field / dragging a slider = one undo step).
@@ -95,26 +113,29 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
         [commit],
     );
 
-    // (Re)load the editor state from widget data each time the dialog opens.
-    useEffect(() => {
-        if (!open) {
-            return;
+    // (Re)load the editor state from widget data each time the dialog opens, and on new widget
+    // data while it is open — while rendering, so the first open render already shows the load.
+    // While closed only the inputs are recorded: the working copy stays as it is.
+    if (loaded.open !== open || loaded.data !== data) {
+        if (open) {
+            // First-open onboarding is the empty-state CTA, not an injected skeleton (ADR-0013
+            // reversed the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays
+            // disabled until the user adds a real series.
+            const next = loadEditorState(data);
+            rebase(next);
+            setLoaded({
+                open,
+                data,
+                token: loaded.token + 1,
+                state: next,
+                snapshot: JSON.stringify(next),
+                // The number of indexed `oidN` fields to clear on save.
+                oidCount: loadedOidCount(next),
+            });
+        } else {
+            setLoaded({ ...loaded, open, data });
         }
-        // First-open onboarding is the empty-state CTA, not an injected skeleton (ADR-0013 reversed
-        // the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays disabled until the
-        // user adds a real series.
-        const loaded = loadEditorState(data as Record<string, unknown>);
-        // The number of indexed `oidN` fields to clear on save.
-        loadedCountRef.current = loadedOidCount(loaded);
-        loadedSnapshotRef.current = JSON.stringify(loaded);
-        loadedStateRef.current = loaded;
-        history.rebase(loaded);
-        setLoadToken(token => token + 1);
-        // history is NOT a dependency: the hook's result object has a new identity every render
-        // (only its callbacks are stable), so listing it would re-run this effect after every
-        // edit and rebase the working copy back to the loaded state — wiping each edit.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, data]);
+    }
 
     // Self-heal stable ids (the HMR guard) — the policy lives in the pure step; this effect owns
     // only the firing condition: after every state change, guarded by the step's own no-op
@@ -126,7 +147,8 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
             // back-to-back heals ONE undo step — a patch key would re-key on the healed fields.
             history.set(s => ({ ...s, ...patch }), 'self-heal');
         }
-        // history.set is a stable callback — see the load effect above for why the object is not.
+        // history.set is a stable callback; the history result object itself has a new identity
+        // every render, so listing it would re-run this effect after every edit.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state]);
 
@@ -137,15 +159,15 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
     // each deletes the whole data path in its toggle handler — one explicit, undoable patch, never
     // an effect-side prune.
 
-    const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
+    const hasChanges = useMemo(() => JSON.stringify(state) !== loaded.snapshot, [state, loaded.snapshot]);
 
-    const apply = useCallback(() => saveEditorState(state, loadedCountRef.current) as WidgetData, [state]);
+    const apply = useCallback(() => saveEditorState(state, loaded.oidCount) as WidgetData, [state, loaded.oidCount]);
 
     const reset = useCallback((): void => {
         // One undoable step back to the loaded baseline — section expansion and scroll
         // position survive (the editor state is swapped, the rail is not reloaded).
-        commit(loadedStateRef.current);
-    }, [commit]);
+        commit(loaded.state);
+    }, [commit, loaded.state]);
 
     // The shared configurator undo/redo binding (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, ADR-0038) —
     // native undo wins inside inputs. One holder of the stack: the keyboard lives here too.

@@ -6,7 +6,7 @@
  */
 import type { FC } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
-import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { DeleteOutlineOutlined as DeleteIcon } from '@mui/icons-material';
 import Generic from '../../../../../Generic';
 import type { EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
 import { FieldGrid, FieldLabel, OptionalNumberField, TextField2 } from '../../../../../components/controls';

@@ -65,9 +65,17 @@ const useElementDimensions = (element: HTMLElement | RefObject<HTMLElement> | nu
         return element;
     }, [element]);
 
-    useEffect(() => {
+    // Losing the element drops its dimensions, while rendering.
+    const [observedElement, setObservedElement] = useState(targetElement);
+    if (observedElement !== targetElement) {
+        setObservedElement(targetElement);
         if (!targetElement) {
             setDimensions({ width: undefined, height: undefined });
+        }
+    }
+
+    useEffect(() => {
+        if (!targetElement) {
             return;
         }
 

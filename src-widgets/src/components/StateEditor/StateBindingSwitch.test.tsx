@@ -126,7 +126,7 @@ afterEach(() => {
 
 const mount = (widgets: Record<string, WidgetData> | WidgetData): { container: HTMLElement; patches: WidgetData[] } => {
     const patches: WidgetData[] = [];
-    const stored = 'oid' in widgets ? { w1: widgets as WidgetData } : (widgets as Record<string, WidgetData>);
+    const stored = 'oid' in widgets ? { w1: widgets } : (widgets as Record<string, WidgetData>);
     handle = renderComponent<HostProps>(Host, {
         widgets: stored,
         onPatch: patch => {

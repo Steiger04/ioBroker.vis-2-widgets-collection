@@ -1295,5 +1295,5 @@ export const buildCartesianOption = (
         option.visualMap = colorScales;
     }
 
-    return option as unknown as EChartsOption;
+    return option;
 };

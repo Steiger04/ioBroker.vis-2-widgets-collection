@@ -27,6 +27,7 @@
 import {
     useCallback,
     useEffect,
+    useInsertionEffect,
     useRef,
     useState,
     type MouseEvent as ReactMouseEvent,
@@ -79,7 +80,9 @@ export function useStateTrigger(options: StateTriggerOptions): StateTrigger {
     const pressStateRef = useRef(NO_OPEN_PRESS);
     // The latest render: the cleanup on unmount must not write with the setter and the Wert[2] of the mount.
     const optionsRef = useRef(options);
-    optionsRef.current = options;
+    useInsertionEffect(() => {
+        optionsRef.current = options;
+    });
 
     const fire = useCallback((event: TriggerEvent): void => {
         const current = optionsRef.current;

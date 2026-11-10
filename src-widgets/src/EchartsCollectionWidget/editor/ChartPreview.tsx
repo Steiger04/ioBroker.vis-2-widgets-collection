@@ -12,7 +12,7 @@ import { useEffect, useState, type FC } from 'react';
 import type React from 'react';
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import Generic from '../../Generic';
 import EChart from '../EChart';
@@ -74,7 +74,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
         <>
             <Typography
                 variant="body2"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ textAlign: 'center' }}
             >
                 {loading ? Generic.t('echarts_preview_loading') : placeholder}

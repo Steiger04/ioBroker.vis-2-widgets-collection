@@ -15,7 +15,7 @@
  * the quiet truncation (the chart itself resolves authored paths at ANY depth).
  */
 import { useMemo } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import { analyzeJsonTable, type JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import { resolveRows } from '../jsonTableParse';

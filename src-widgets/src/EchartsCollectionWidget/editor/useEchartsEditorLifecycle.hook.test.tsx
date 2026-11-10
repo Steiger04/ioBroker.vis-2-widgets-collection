@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // editorState's load heal reaches the family profiles' section modules, which pull the
 // adapter-react barrel (the editorState.test precedent).
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { act } from 'react';
 import type { WidgetData } from '@iobroker/types-vis-2';
@@ -37,7 +37,7 @@ const storedWidget = (patch: Partial<EditorState>): WidgetData =>
             ...patch,
         },
         0,
-    ) as WidgetData;
+    );
 
 /** Mount the modal's composition: lifecycle, then the reconcile over the given payload names. */
 const mountEditor = (
@@ -121,5 +121,62 @@ describe('useEchartsEditorLifecycle — opening a stored serien-förmig JSON ove
         expect(state.jsonSeriesStyle.A).toMatchObject({ color: '#f00', yAxisIndex: 0 });
         expect(state.jsonSeriesStyle.B?.yAxisIndex).toBe(1);
         expect(hasChanges).toBe(true);
+    });
+});
+
+describe('useEchartsEditorLifecycle — the load on open', () => {
+    /** A plain stored line chart titled `title`. */
+    const titled = (title: string): WidgetData =>
+        saveEditorState({ ...DEFAULT_EDITOR_STATE, chartType: 'line', titleText: title }, 0);
+    // Built once: the widget data keeps its identity across renders, as the vis-2 host hands it.
+    const chartA = titled('A');
+    const chartB = titled('B');
+
+    const mountLifecycle = (open: boolean, data: WidgetData): RenderHookHandle<EchartsEditorLifecycle> => {
+        const handle = renderHook(() => useEchartsEditorLifecycle(open, data));
+        mounted = handle;
+        return handle;
+    };
+
+    it('loads the widget data clean when it opens, and counts the load', () => {
+        const handle = mountLifecycle(false, chartA);
+        const before = handle.result.current.loadToken;
+        act(() => handle.rerender(() => useEchartsEditorLifecycle(true, chartA)));
+        const { state, hasChanges, loadToken } = handle.result.current;
+        expect(state.titleText).toBe('A');
+        expect(hasChanges).toBe(false);
+        expect(loadToken).toBe(before + 1);
+    });
+
+    it('drops an abandoned edit when it opens again', () => {
+        const data = chartA;
+        const handle = mountLifecycle(true, data);
+        act(() => handle.result.current.set({ titleText: 'edited' }));
+        expect(handle.result.current.hasChanges).toBe(true);
+
+        act(() => handle.rerender(() => useEchartsEditorLifecycle(false, data)));
+        act(() => handle.rerender(() => useEchartsEditorLifecycle(true, data)));
+        expect(handle.result.current.state.titleText).toBe('A');
+        expect(handle.result.current.hasChanges).toBe(false);
+    });
+
+    it('reloads new widget data while open; Reset returns to that load', () => {
+        const handle = mountLifecycle(true, chartA);
+        const next = chartB;
+        act(() => handle.rerender(() => useEchartsEditorLifecycle(true, next)));
+        expect(handle.result.current.state.titleText).toBe('B');
+
+        act(() => handle.result.current.set({ titleText: 'edited' }));
+        act(() => handle.result.current.reset());
+        expect(handle.result.current.state.titleText).toBe('B');
+        expect(handle.result.current.hasChanges).toBe(false);
+    });
+
+    it('leaves the working copy alone while closed', () => {
+        const handle = mountLifecycle(true, chartA);
+        const token = handle.result.current.loadToken;
+        act(() => handle.rerender(() => useEchartsEditorLifecycle(false, chartB)));
+        expect(handle.result.current.state.titleText).toBe('A');
+        expect(handle.result.current.loadToken).toBe(token);
     });
 });

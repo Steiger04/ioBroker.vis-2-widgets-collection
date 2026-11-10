@@ -32,7 +32,7 @@ import type React from 'react';
 import { useCallback } from 'react';
 
 import Generic from '../../../Generic';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import ColorPickerField from '../../../components/ColorPickerField';
 import { gradientColor } from '../../../lib/helper/gradientColor';
 import { gradientTextSx } from '../../../lib/helper/gradientTextSx';
@@ -166,7 +166,7 @@ function ConditionalStyleEditor({
                     </ToggleButtonGroup>
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {(cellStyleMode ?? 'first-match') === 'first-match'
                             ? Generic.t('json_table_cell_style_mode_hint_first')
@@ -279,7 +279,7 @@ function ConditionalStyleEditor({
                             <Stack
                                 direction="row"
                                 spacing={1}
-                                alignItems="flex-start"
+                                sx={{ alignItems: 'flex-start' }}
                             >
                                 <ColorPickerField
                                     label={Generic.t('json_table_bg_color')}
@@ -385,7 +385,7 @@ function ConditionalStyleEditor({
             {(cellStyle?.length ?? 0) >= 2 && (
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                     sx={{ px: 0.5 }}
                 >
                     {(cellStyleMode ?? 'first-match') === 'first-match'

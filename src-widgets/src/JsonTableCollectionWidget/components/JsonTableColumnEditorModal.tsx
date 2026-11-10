@@ -25,7 +25,7 @@ import {
     ThemeProvider,
     Typography,
 } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -115,15 +115,22 @@ function JsonTableColumnEditorModal({
         [editedColumns, originalColumnsJson],
     );
 
-    // Reset state when dialog opens with fresh data
-    useEffect(() => {
+    // Reset state when dialog opens with fresh data — the state while rendering, the refs after
+    // the commit (before the auto-discovery below reads them)
+    const [resetFor, setResetFor] = useState<{ open?: boolean; columns?: ColumnConfigEntry[] }>({});
+    if (resetFor.open !== open || resetFor.columns !== columns) {
+        setResetFor({ open, columns });
         if (open) {
             setEditedColumns(columns);
-            editedColumnsRef.current = columns;
             setSelectedPath(columns.length > 0 ? columns[0].path : null);
-            initialDiscoveryDone.current = false;
             setDiscoveryError(null);
             setDiscoveryWarning(null);
+        }
+    }
+    useEffect(() => {
+        if (open) {
+            editedColumnsRef.current = columns;
+            initialDiscoveryDone.current = false;
         }
     }, [open, columns]);
 
@@ -357,7 +364,7 @@ function JsonTableColumnEditorModal({
                                 >
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                     >
                                         {editedColumns.length > 0
                                             ? Generic.t('json_table_select_column')

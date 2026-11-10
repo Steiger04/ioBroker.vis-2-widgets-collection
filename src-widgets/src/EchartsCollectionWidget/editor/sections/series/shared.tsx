@@ -15,7 +15,7 @@
 import { useState, type FC, type ReactNode } from 'react';
 import { Box, Button, Collapse, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
+import { SelectID } from '@iobroker/gui-components';
 
 import Generic from '../../../../Generic';
 import JsonEditor from '../../JsonEditor';
@@ -65,7 +65,7 @@ export const EmptyState: FC<{ text: string; children: ReactNode }> = ({ text, ch
     >
         <Typography
             variant="caption"
-            color="text.secondary"
+            color="textSecondary"
             sx={{ display: 'block', mb: 1 }}
         >
             {text}
@@ -111,8 +111,8 @@ export const AddSeriesViaOid: FC<{
             )}
             {open && (
                 <SelectID
-                    socket={pickerCtx.socket as unknown as Connection}
-                    theme={pickerCtx.theme as unknown as IobTheme}
+                    socket={pickerCtx.socket}
+                    theme={pickerCtx.theme}
                     themeType={pickerCtx.themeType}
                     selected=""
                     title={Generic.t('oid')}
@@ -144,7 +144,7 @@ export const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
             <Typography
                 key={i}
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 component="div"
             >
                 • {issue.args?.length ? `${issue.args[0]}: ` : ''}

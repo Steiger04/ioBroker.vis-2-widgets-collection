@@ -32,7 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, TextField, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { VisTheme } from '@iobroker/types-vis-2';
 import { translate } from '../lib/translate';
 import { applyColorInputRules, type ColorInputInvalidReason } from '../lib/helper/colorInputRules';

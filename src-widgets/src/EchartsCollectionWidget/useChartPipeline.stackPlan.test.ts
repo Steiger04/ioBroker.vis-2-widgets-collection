@@ -57,7 +57,7 @@ const percentJson = (opts: {
             }),
             ...coreOf('cartesian').presentationFragment({ src, chartConfig, markLines: [], yAxes: opts.yAxes }),
         },
-        themeBase: {} as EChartsOption,
+        themeBase: {},
         companions: {
             chartConfig,
             yAxes: opts.yAxes ?? [],

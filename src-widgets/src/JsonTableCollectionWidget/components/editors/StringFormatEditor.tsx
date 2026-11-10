@@ -23,7 +23,7 @@ import {
 import type React from 'react';
 
 import Generic from '../../../Generic';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import ColorPickerField from '../../../components/ColorPickerField';
 import type { ColumnFormatConfig } from '../../types';
 import { formatStringValue } from '../../utils/formatters';
@@ -50,7 +50,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_string_format')}
@@ -68,7 +68,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
                     onChange={e =>
                         onChange({
                             type: 'string',
-                            stringCase: e.target.value as 'none' | 'upper' | 'lower' | 'title',
+                            stringCase: e.target.value,
                         })
                     }
                 >
@@ -185,7 +185,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
             <Stack
                 direction="row"
                 spacing={1}
-                flexWrap="wrap"
+                sx={{ flexWrap: 'wrap' }}
             >
                 <FormControlLabel
                     control={
@@ -203,7 +203,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
                     label={
                         <Typography
                             variant="body2"
-                            fontWeight="bold"
+                            sx={{ fontWeight: 'bold' }}
                         >
                             {Generic.t('json_table_string_font_weight')}
                         </Typography>
@@ -225,7 +225,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
                     label={
                         <Typography
                             variant="body2"
-                            fontStyle="italic"
+                            sx={{ fontStyle: 'italic' }}
                         >
                             {Generic.t('json_table_string_font_style')}
                         </Typography>
@@ -269,7 +269,7 @@ function StringFormatEditor({ format, onChange, socket, inheritance }: StringFor
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

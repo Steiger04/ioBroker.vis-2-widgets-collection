@@ -36,7 +36,7 @@ const SafeImg: React.FC<SafeImgProps> = ({ src, style = {}, alt = '' }) => {
             style={style}
             onError={e => {
                 console.log('ERROR LOADING IMAGE, FALLING BACK TO TRANSPARENT PIXEL');
-                const target = e.currentTarget as HTMLImageElement;
+                const target = e.currentTarget;
                 target.onerror = null; // prevent infinite onError loops
                 target.src = fallback;
             }}

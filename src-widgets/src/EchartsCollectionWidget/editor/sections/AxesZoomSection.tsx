@@ -272,7 +272,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                         >
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                color="textSecondary"
                             >
                                 {Generic.t('echarts_axes_empty')}
                             </Typography>

@@ -9,7 +9,7 @@
  */
 import type { FC } from 'react';
 import { Box, Button, IconButton, TextField } from '@mui/material';
-import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { DeleteOutlineOutlined as DeleteIcon } from '@mui/icons-material';
 import Generic from '../../../../../Generic';
 import type {
     EchartsAggregate,
@@ -135,7 +135,7 @@ export const SeriesValueMapField: FC<{
                             size="small"
                             type="number"
                             value={target === null ? '' : String(target)}
-                            inputProps={{ step: 'any' }}
+                            slotProps={{ htmlInput: { step: 'any' } }}
                             onChange={e => {
                                 // Empty = the deliberate gap (null); the native control only
                                 // ever delivers a number or empty here.

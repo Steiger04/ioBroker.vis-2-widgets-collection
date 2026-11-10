@@ -35,11 +35,11 @@ export interface CollectionMarkSlotProps {
 
 // MUI's extension point for extra slot props: lets the slider hand the mark-label slot its
 // props (`slotProps.markLabel`) typed, without a styled wrapper's prop types or a cast.
-// The augmentation is GLOBAL: it applies to every slot of every MUI Slider in the bundle, so
-// no name may reuse a Slider prop with another meaning — `showMarkLabels`, not `marks` (the
-// mark list); `orientation` carries the very value the Slider's own prop gets.
+// The augmentation is GLOBAL: it applies to the mark-label slot of every MUI Slider in the
+// bundle, so no name may reuse a Slider prop with another meaning — `showMarkLabels`, not
+// `marks` (the mark list); `orientation` carries the very value the Slider's own prop gets.
 declare module '@mui/material/Slider' {
-    interface SliderComponentsPropsOverrides {
+    interface SliderMarkLabelSlotPropsOverrides {
         showMarkLabels?: CollectionMarkSlotProps['showMarkLabels'];
         orientation?: CollectionMarkSlotProps['orientation'];
     }

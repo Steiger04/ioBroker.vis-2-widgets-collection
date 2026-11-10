@@ -358,7 +358,7 @@ function TypographySection({
                     {fontFamily ? (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="textSecondary"
                             sx={{ fontFamily }}
                         >
                             {Generic.t('theme_wizard_typography_font_family_sample')}

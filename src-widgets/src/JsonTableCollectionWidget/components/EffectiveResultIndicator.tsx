@@ -97,7 +97,7 @@ function EffectiveResultIndicator({
                 />
                 <Typography
                     variant="caption"
-                    color={isOverride ? 'warning.main' : 'text.secondary'}
+                    color={isOverride ? 'warning' : 'textSecondary'}
                     sx={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: 0.25 }}
                 >
                     {Generic.t(sourceKey)}

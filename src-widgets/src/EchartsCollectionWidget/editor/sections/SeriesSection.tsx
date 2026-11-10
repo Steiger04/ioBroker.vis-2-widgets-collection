@@ -20,7 +20,7 @@
  * by side effect (series-delete, rebind, JSON hide) reports as an advisory to the modal's notice
  * host — the ADR-0069 snackbar with undo (the triggering `set` IS the undoable step).
  */
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useInsertionEffect, useRef, useState, type FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
@@ -165,7 +165,9 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // seen-set already consumed the key) — instead the optimistic `seriesRef` update lets
     // same-tick resolutions stack, and a set() after unmount is a React-18 no-op.
     const seriesRef = useRef(series);
-    seriesRef.current = series;
+    useInsertionEffect(() => {
+        seriesRef.current = series;
+    });
     const oidFactsSeen = useRef<Set<string>>(new Set());
     useEffect(() => {
         for (const s of series) {
@@ -270,7 +272,9 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const focusToken = focusTab?.token;
     const cardMetas = seriesCardMetas(state, jsonSeriesNames);
     const cardMetasRef = useRef(cardMetas);
-    cardMetasRef.current = cardMetas;
+    useInsertionEffect(() => {
+        cardMetasRef.current = cardMetas;
+    });
     useEffect(() => {
         if (focusKey === undefined || focusToken === undefined) {
             return;

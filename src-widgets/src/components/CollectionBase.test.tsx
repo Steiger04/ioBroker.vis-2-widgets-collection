@@ -329,10 +329,7 @@ describe('CollectionBase Content-Box (ADR-0098)', () => {
                 }
 
                 observe(target: Element): void {
-                    this.callback(
-                        [{ target, contentRect: sizeOf(target) } as unknown as ResizeObserverEntry],
-                        this as unknown as ResizeObserver,
-                    );
+                    this.callback([{ target, contentRect: sizeOf(target) } as unknown as ResizeObserverEntry], this);
                 }
 
                 /* eslint-disable class-methods-use-this -- nothing to release */
@@ -374,7 +371,7 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
             return createElement(CollectionBase, { data: styleData }, createElement(PaperProbe));
         };
         const scene = frameScene(data);
-        return mountBody(Frame, { ...scene, context: { ...scene.context, wrappedContent } } as PreviewScene);
+        return mountBody(Frame, { ...scene, context: { ...scene.context, wrappedContent } });
     };
 
     /** The background the content slot (BASE-PAPER-1) paints. */

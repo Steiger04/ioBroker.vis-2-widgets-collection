@@ -17,7 +17,7 @@ import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 import type { Light2FieldsRxData } from '../types/field-definitions/light2-fields';
 import type { Light2ChannelField } from './light2Channels';

@@ -11,7 +11,7 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 vi.mock('../colorFields', () => ({ default: () => null, ColorListField: () => null }));
 vi.mock('../useEditorTheme', () => ({
     useEditorTheme: () => ({

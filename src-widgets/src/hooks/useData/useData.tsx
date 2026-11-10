@@ -57,7 +57,7 @@ function useData(_oid: string, options?: UseDataOptions): UseDataResult {
 
     const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 
-    const formatSize = useCallback(formatSizeRem, []);
+    const formatSize = formatSizeRem;
 
     /**
      * Safe accessor for dynamic rxData properties.

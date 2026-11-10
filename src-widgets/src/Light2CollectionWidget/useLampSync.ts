@@ -21,7 +21,7 @@
  * drag step until the next microtask) never dropped an input — measured on real iro pickers over
  * every Lichttyp, UI component, drag, view switch and foreign change.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useInsertionEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import type iro from '@jaames/iro';
 import type { Light2ChannelField } from '../lib/light2Channels';
@@ -69,7 +69,9 @@ export function useLampSync(options: LampSyncOptions): LampSync {
     const mainPickerRef = useRef<iro.ColorPicker | null>(null);
     const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
     const optionsRef = useRef(options);
-    optionsRef.current = options;
+    useInsertionEffect(() => {
+        optionsRef.current = options;
+    });
     const prevStateRef = useRef<LampSyncState | undefined>(undefined);
     // Wraps the sync's own picker updates (iro's lingering `inputActive`, see the module remarks).
     const isSyncingRef = useRef(false);

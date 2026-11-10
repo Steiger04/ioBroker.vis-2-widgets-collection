@@ -91,7 +91,7 @@ export function setNestedValue(obj: UserTheme, path: string, value: unknown): Us
     } else {
         setPath(root, path.split('.'), value);
     }
-    return root as UserTheme;
+    return root;
 }
 
 /** Sets a value at a list of segments, cloning each object node along the way. */

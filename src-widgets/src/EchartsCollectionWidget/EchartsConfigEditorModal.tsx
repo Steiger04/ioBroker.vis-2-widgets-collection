@@ -24,7 +24,7 @@
  * no longer a near-duplicate of Cancel). First-open onboarding is the empty-state CTA
  * (ADR-0013 reversed the ADR-0010 skeleton). Wraps in a ThemeProvider for detached render.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import {
     Box,
@@ -58,7 +58,7 @@ import { PreviewExtentsContext, sameExtents, type PreviewExtents } from './edito
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
 import { issueCountLabel, previewHeaderMeta } from './editor/summaries';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
 interface EchartsConfigEditorModalProps {
@@ -81,7 +81,7 @@ function EchartsConfigEditorModal({
     const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
     // Window-style maximize toggle (fullScreen, edge-to-edge). Session-only by user decision:
     // the component instance survives close/open, so the flag resets on every fresh load (the
-    // loadToken effect below) — every fresh open starts at normal size.
+    // loadToken reset below) — every fresh open starts at normal size.
     const [maximized, setMaximized] = useState(false);
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
@@ -136,12 +136,15 @@ function EchartsConfigEditorModal({
         tableSchema.columns.find(c => c.path === state.jsonXPath)?.type !== 'date';
 
     // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
-    // the chrome (focus steering + maximize) belongs to this modal.
-    useEffect(() => {
+    // the chrome (focus steering + maximize) belongs to this modal. Reset while rendering, in the
+    // same pass the lifecycle loads in.
+    const [chromeLoad, setChromeLoad] = useState(loadToken);
+    if (chromeLoad !== loadToken) {
+        setChromeLoad(loadToken);
         setFocusSection(null);
         setMaximized(false);
         clearNotice();
-    }, [loadToken, clearNotice]);
+    }
     const shownNotice = notice ? noticeOf(notice.advisory, translate) : null;
 
     const handleApply = useCallback(() => {
@@ -242,7 +245,7 @@ function EchartsConfigEditorModal({
                             </Typography>
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                color="textSecondary"
                                 noWrap
                                 sx={{ display: { xs: 'none', sm: 'block' } }}
                             >
@@ -392,7 +395,7 @@ function EchartsConfigEditorModal({
                             >
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    color="textSecondary"
                                     noWrap
                                     sx={{ flexShrink: 0 }}
                                 >
@@ -400,7 +403,7 @@ function EchartsConfigEditorModal({
                                 </Typography>
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    color="textSecondary"
                                     noWrap
                                     title={previewMeta}
                                     sx={{ minWidth: 0 }}

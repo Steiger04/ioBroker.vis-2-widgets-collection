@@ -131,7 +131,7 @@ export function useLongPress<T = Element>({
             onPointerUp: stop,
             onPointerLeave: stop,
             onPointerCancel: stop,
-            style: { touchAction: 'manipulation' } as CSSProperties,
+            style: { touchAction: 'manipulation' },
         }),
         [start, stop],
     );

@@ -112,7 +112,6 @@ export function useHistory<T = unknown>(
     opts: UseHistoryOptions<T>,
 ): UseHistoryResult<T> {
     const [series, setSeries] = useState<FetchedSeries[]>([]);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extras, setExtras] = useState<T | undefined>(undefined);
     const [tick, setTick] = useState(0); // bump to force refresh
@@ -135,13 +134,26 @@ export function useHistory<T = unknown>(
         opts.maxPoints,
     ]);
 
+    // The request: the fetch effect's inputs — ONE list for its dependency array and for the
+    // loading start below, so both always see the same request.
+    const request = [getHistory, entriesKey, optsKey, opts.enabled, tick, opts.planFetch] as const;
+    // Every new request starts loading while rendering — already in the commit that asks for it;
+    // the fetch ends it. A disabled hook starts no request.
+    const [requested, setRequested] = useState(request);
+    const [loading, setLoading] = useState(opts.enabled !== false);
+    if (request.some((input, i) => input !== requested[i])) {
+        setRequested(request);
+        if (opts.enabled !== false) {
+            setLoading(true);
+        }
+    }
+
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
     useEffect(() => {
         if (opts.enabled === false) {
             return;
         }
         let active = true;
-        setLoading(true);
 
         const run = (): void => {
             /** One fetch with the given request options (shared by both paths below). */
@@ -183,7 +195,7 @@ export function useHistory<T = unknown>(
             clearTimeout(debounceRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getHistory, entriesKey, optsKey, opts.enabled, tick, opts.planFetch]);
+    }, request);
 
     // Periodic refresh (polling) — the only live-refresh path (no push, per 02).
     useEffect(() => {

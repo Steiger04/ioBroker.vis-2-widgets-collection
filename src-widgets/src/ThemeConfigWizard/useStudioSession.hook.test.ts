@@ -12,7 +12,7 @@
  */
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type * as DraftThemeStore from '../lib/theme/draftThemeStore';
 
 vi.mock('../lib/theme/draftThemeStore', async importOriginal => {

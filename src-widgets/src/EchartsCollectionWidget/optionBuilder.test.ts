@@ -17,7 +17,7 @@ import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
 import { FAMILY_CORES } from './families/cores';
 import { SAMPLE_TS } from './timeFormat';
 import type { CartesianFragment, ChartSeries, PieFragment, PresentationBase } from './optionBuilders/types';
-import type { EchartsChartType, EchartsMarkLine, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
+import type { EchartsMarkLine, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
 /** Minimal chart-wide presentation base for tests (ADR-0083: base + family fragment). */
 const BASE: PresentationBase = {
@@ -407,8 +407,8 @@ describe('familyOf', () => {
     it('tolerates the legacy family-only "cartesian" and removed "area" values without migration', () => {
         // r2 stored the family-only value 'cartesian'; r3 stores the concrete chart type again;
         // r4 removed 'area' as a type — both old values still render as the cartesian family (line).
-        expect(familyOf('cartesian' as EchartsChartType)).toBe('cartesian');
-        expect(familyOf('area' as EchartsChartType)).toBe('cartesian');
+        expect(familyOf('cartesian')).toBe('cartesian');
+        expect(familyOf('area')).toBe('cartesian');
     });
     it('maps the exotic types to their own family', () => {
         expect(familyOf('pie')).toBe('pie');
@@ -3117,7 +3117,7 @@ describe('buildGeneratedOption — Plotkanten: native min/max gridlines + Achsen
                     series: [{ name: 'A', data: [[1, 2]] }],
                     meta: [{ name: 'A' }],
                     p: { ...P, xAxis: { splitLine: true, ...xAxis } },
-                }) as unknown as Record<string, unknown>,
+                }),
             );
         expect(at({})).toMatchObject({ left: 1, right: 1 }); // echarts default width 1 → half a px, rounded up
         expect(at({ gridWidth: 5 })).toMatchObject({ left: 3, right: 3 }); // the user's report case
@@ -3405,7 +3405,7 @@ describe('buildGeneratedOption — Balken-Stapelmodus (ADR-0084: Auflösung, Kop
                 barCategories: [WED, WED + 3_600_000, WED + 7_200_000],
                 ...over,
             },
-        }) as Record<string, unknown>;
+        });
 
     const stackOf = (option: Record<string, unknown>, i: number): string | undefined =>
         (option.series as Record<string, unknown>[])[i].stack as string | undefined;

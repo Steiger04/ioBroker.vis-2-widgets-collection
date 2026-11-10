@@ -185,6 +185,11 @@
         ]
       }
     },
+    "dependencies": [
+      {
+        "vis-2": ">=2.20.0"
+      }
+    ],
     "restartAdapters": [
       "vis-2"
     ]

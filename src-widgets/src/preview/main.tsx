@@ -12,7 +12,7 @@
 
 import { useEffect, useState, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Theme } from '@iobroker/adapter-react-v5';
+import { Theme } from '@iobroker/gui-components';
 
 import CollectionProvider from '../components/CollectionProvider';
 import { buildPreviewContext } from './mockContext';
@@ -105,12 +105,14 @@ function App(): JSX.Element {
         };
     }, []);
 
-    win.__scaffoldSlug = scaffold ? slugFor(scaffold) : undefined;
-    win.__scaffoldSource = scaffoldSource ?? undefined;
-
     const scene = sceneSlug ? scenes[sceneSlug] : undefined;
 
-    win.__previewReady = ready && Boolean(scene);
+    // The handshake gen-previews waits for, published once the render is committed.
+    useEffect(() => {
+        win.__scaffoldSlug = scaffold ? slugFor(scaffold) : undefined;
+        win.__scaffoldSource = scaffoldSource ?? undefined;
+        win.__previewReady = ready && Boolean(scene);
+    });
 
     if (scaffold) {
         return (

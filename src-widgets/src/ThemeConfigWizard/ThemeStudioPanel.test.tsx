@@ -26,7 +26,7 @@ vi.hoisted(() => {
 });
 import { act, createElement, useState, type FC } from 'react';
 import { createTheme } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import type * as GoogleFonts from '../lib/theme/googleFonts';
 
@@ -449,11 +449,11 @@ describe('ThemeStudioPanel field errors', () => {
         await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
         await expandColorSections();
         expect(fieldsWithError()).toEqual(['theme_wizard_palette_primary']);
-        expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
     });
 
     it('reports the CSS variables prefix mui, reserved by the vis-2 editor, at the prefix field', async () => {
-        await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } } as UserTheme);
+        await mountPanel({ cssVariables: { cssVarPrefix: 'mui' } });
         expect(document.body.querySelector('button.MuiButton-colorError')?.textContent).toBe(
             'theme_studio_problems_one',
         );
@@ -461,7 +461,7 @@ describe('ThemeStudioPanel field errors', () => {
         expect(document.body.querySelector('[data-theme-error] .MuiFormHelperText-root')?.textContent).toBe(
             'theme_studio_valid_css_var_prefix',
         );
-        expect(document.body.querySelector('.MuiAlert-standardError')).toBeNull();
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
     });
 });
 
@@ -657,7 +657,7 @@ describe('ThemeStudioPanel problem counter', () => {
 
     it('names the allowed range of an out-of-range value', async () => {
         await mountPanel({ corners: { topLeft: -1 } });
-        const alertText = document.body.querySelector('.MuiAlert-standardError')?.textContent;
+        const alertText = document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')?.textContent;
         expect(alertText).toBe('corners.topLeft: theme_studio_valid_range(0,96)');
     });
 });

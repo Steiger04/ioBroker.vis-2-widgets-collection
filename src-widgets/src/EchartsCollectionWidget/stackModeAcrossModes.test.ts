@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 // DOM pool: editorState's heal dispatch loads the family profiles' section modules — they
 // pull the adapter-react barrel.
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { decodeBlob } from '../lib/encoding';
 import { DEFAULT_EDITOR_STATE, saveEditorState, type EditorState } from './editor/editorState';

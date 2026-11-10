@@ -13,12 +13,12 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
+vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutlineOutlined: () => null }));
 vi.mock('../OidPicker', () => ({ default: () => null }));
 // Since ADR-0083 the editorState chain (DEFAULT_EDITOR_STATE → family profiles → Axes &
 // Zoom → MarkCard) reaches the adapter-react barrel (FileBrowser → icons): stubbed, the
 // focusTabs precedent.
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 /** The scenario schema — swapped per test; the hook reads `current`. */
 type Scenario = {
@@ -27,14 +27,16 @@ type Scenario = {
     /** Set when a discovery walk hit the depth cap — the Zuordnung's honest sight hint. */
     depthCapped?: boolean;
 };
-const { schema } = vi.hoisted(() => ({
-    schema: {
-        current: {
-            arrayPaths: [],
-            columns: [],
-        } as unknown as { arrayPaths: { path: string; length: number }[]; columns: unknown[] },
-    },
-}));
+const { schema } = vi.hoisted(
+    (): { schema: { current: { arrayPaths: { path: string; length: number }[]; columns: unknown[] } } } => ({
+        schema: {
+            current: {
+                arrayPaths: [],
+                columns: [],
+            },
+        },
+    }),
+);
 vi.mock('../useJsonTableSchema', async importOriginal => ({
     // The pure helpers (suggestedRowPath above all) stay REAL — only the subscription hook
     // is pinned to the scenario.

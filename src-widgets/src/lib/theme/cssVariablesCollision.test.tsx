@@ -67,9 +67,9 @@ afterEach(() => {
 });
 
 describe.each<[string, UserTheme]>([
-    ['cssVariables: true', { cssVariables: true } as UserTheme],
-    ['an object without prefix', { cssVariables: {} } as UserTheme],
-    ['the reserved prefix mui', { cssVariables: { cssVarPrefix: 'mui' } } as UserTheme],
+    ['cssVariables: true', { cssVariables: true }],
+    ['an object without prefix', { cssVariables: {} }],
+    ['the reserved prefix mui', { cssVariables: { cssVarPrefix: 'mui' } }],
 ])('collection CSS variables with %s', (_label, userTheme) => {
     it('leave the host --mui-palette-* variables as the only ones', () => {
         mountWithHostVariables(userTheme);
@@ -89,7 +89,7 @@ describe.each<[string, UserTheme]>([
 
 describe('collection CSS variables with an own prefix', () => {
     it('use that prefix', () => {
-        mountWithHostVariables({ cssVariables: { cssVarPrefix: 'my' } } as UserTheme);
+        mountWithHostVariables({ cssVariables: { cssVarPrefix: 'my' } });
         expect(declarations('--my-palette-primary-main')).toEqual([[':root', USER_PRIMARY]]);
     });
 });

@@ -22,7 +22,7 @@
  */
 
 import { createRoot, type Root } from 'react-dom/client';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 import ThemeStudioPanel from './ThemeStudioPanel';
 
@@ -45,7 +45,7 @@ type StudioContainer = HTMLElement & { [ROOT_KEY]?: Root };
 
 /** The container of the open studio, or `null` when no studio is open. */
 function openContainer(): StudioContainer | null {
-    const container = document.getElementById(STUDIO_CONTAINER_ID) as StudioContainer | null;
+    const container: StudioContainer | null = document.getElementById(STUDIO_CONTAINER_ID);
     return container?.[ROOT_KEY] ? container : null;
 }
 
@@ -74,8 +74,7 @@ export function openStudio(props: StudioHostProps): void {
         }
     } else {
         // Reuse a leftover container (e.g. after a module reload) instead of adding another.
-        container =
-            (document.getElementById(STUDIO_CONTAINER_ID) as StudioContainer | null) ?? document.createElement('div');
+        container = document.getElementById(STUDIO_CONTAINER_ID) ?? document.createElement('div');
         container.id = STUDIO_CONTAINER_ID;
         container.replaceChildren();
         document.body.appendChild(container);
@@ -99,7 +98,7 @@ export function updateStudio(props: StudioHostProps): void {
 
 /** Closes the studio: unmounts its root and removes the container. */
 export function closeStudio(): void {
-    const container = document.getElementById(STUDIO_CONTAINER_ID) as StudioContainer | null;
+    const container: StudioContainer | null = document.getElementById(STUDIO_CONTAINER_ID);
     if (!container) {
         return;
     }

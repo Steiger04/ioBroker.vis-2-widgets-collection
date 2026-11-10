@@ -14,14 +14,7 @@ import type { EditorState } from './editorState';
 
 /** The rail's family-agnostic base section keys — hand-written, every family carries them. */
 export type BaseSectionKey =
-    | 'series'
-    | 'dataSource'
-    | 'title'
-    | 'legend'
-    | 'tooltip'
-    | 'colors'
-    | 'behavior'
-    | 'toolbox';
+    'series' | 'dataSource' | 'title' | 'legend' | 'tooltip' | 'colors' | 'behavior' | 'toolbox';
 
 /**
  * The family share of the section keys — DERIVED from the editorial record (ADR-0083): each

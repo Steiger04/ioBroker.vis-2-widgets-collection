@@ -73,7 +73,7 @@ afterEach(() => {
 
 const mount = (
     field: Partial<ExtendedField>,
-    data: WidgetData = {} as WidgetData,
+    data: WidgetData = {},
     props: RxWidgetInfoCustomComponentProperties = editorProps(),
 ): { container: HTMLElement; input: HTMLInputElement; onDataChange: ReturnType<typeof vi.fn> } => {
     const onDataChange = vi.fn();
@@ -129,44 +129,46 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         };
 
         it('shows the checkerboard and "erbt" under noCard', () => {
-            const { container, input } = mount(surface, { noCard: true } as WidgetData);
+            const { container, input } = mount(surface, { noCard: true });
             expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
             expect(input.value).toBe('');
             expect(input.placeholder).toBe('t:color_inherit');
         });
 
         it('shows the paper in the card', () => {
-            const { container } = mount(surface, { noCard: false } as WidgetData);
+            const { container } = mount(surface, { noCard: false });
             expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
         });
 
         it('shows the set colour under noCard', () => {
-            const { container } = mount(surface, { noCard: true, frameBackground: '#336699' } as WidgetData);
+            const { container } = mount(surface, { noCard: true, frameBackground: '#336699' });
             expect(getComputedSwatch(container).toLowerCase()).toMatch(/#336699|rgb\(51, 102, 153\)/);
         });
     });
 
     it('shows a fallback field before the terminal', () => {
-        const { container } = mount({ terminal: 'primary', fallbackFields: ['textColor'] }, {
-            textColor: '#00ff00',
-        } as WidgetData);
+        const { container } = mount(
+            { terminal: 'primary', fallbackFields: ['textColor'] },
+            {
+                textColor: '#00ff00',
+            },
+        );
         expect(getComputedSwatch(container).toLowerCase()).toMatch(/#00ff00|rgb\(0, 255, 0\)/);
     });
 
     it('shows the vis-2 widget CSS colour where the field inherits it', () => {
-        const { container } = mount(
-            { terminal: 'text', inheritTextStyle: true },
-            {} as WidgetData,
-            editorProps('#0000aa'),
-        );
+        const { container } = mount({ terminal: 'text', inheritTextStyle: true }, {}, editorProps('#0000aa'));
         expect(getComputedSwatch(container).toLowerCase()).toMatch(/#0000aa|rgb\(0, 0, 170\)/);
     });
 
     it('shows a typed CSS colour as override — not the fallback', () => {
-        const { container, input } = mount({ terminal: 'primary', fallbackFields: ['textColor'] }, {
-            iconColor: 'red',
-            textColor: '#00ff00',
-        } as WidgetData);
+        const { container, input } = mount(
+            { terminal: 'primary', fallbackFields: ['textColor'] },
+            {
+                iconColor: 'red',
+                textColor: '#00ff00',
+            },
+        );
         expect(input.value).toBe('red');
         expect(getComputedSwatch(container)).toMatch(/^red$|rgb\(255, 0, 0\)/);
     });
@@ -180,7 +182,7 @@ describe('ContractColorField writes the field', () => {
     });
 
     it('the trash removes the override: null, the field inherits again', () => {
-        const { container, onDataChange } = mount({ terminal: 'primary' }, { iconColor: '#123456' } as WidgetData);
+        const { container, onDataChange } = mount({ terminal: 'primary' }, { iconColor: '#123456' });
         act(() => container.querySelector<HTMLElement>('button[title="t:clear_color"]')?.click());
         expect(onDataChange).toHaveBeenCalledExactlyOnceWith({ iconColor: null });
     });

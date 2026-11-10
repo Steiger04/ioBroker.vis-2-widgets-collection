@@ -69,15 +69,15 @@ describe('isBlankStateValue', () => {
 
 describe('filledStateRowCount', () => {
     it('counts only the rows the Zustandsmenge walks, like useData', () => {
-        expect(filledStateRowCount({ ...STRING_OID, values_count: 2, value1: 'a', value3: 'c' } as WidgetData)).toBe(1);
+        expect(filledStateRowCount({ ...STRING_OID, values_count: 2, value1: 'a', value3: 'c' })).toBe(1);
     });
 
     it('takes the row count of a legacy widget from its common states', () => {
-        expect(filledStateRowCount({ ...LEGACY_COMMON_STATES, value1: 0, value2: 1 } as unknown as WidgetData)).toBe(2);
+        expect(filledStateRowCount({ ...LEGACY_COMMON_STATES, value1: 0, value2: 1 })).toBe(2);
     });
 
     it('reads nothing while the bound object is missing', () => {
-        expect(filledStateRowCount({ values_count: 2, value1: 'a', value2: 'b' } as WidgetData)).toBe(0);
+        expect(filledStateRowCount({ values_count: 2, value1: 'a', value2: 'b' })).toBe(0);
     });
 });
 

@@ -55,6 +55,21 @@ describe('useHistory — fetch debounce (200 ms)', () => {
         h.unmount();
     });
 
+    it('loads from a request until its fetch answers, and again for the next request', async () => {
+        const getHistory = vi.fn().mockResolvedValue([]);
+        const h = renderHook(() => useHistory(getHistory, [entry('a.0')], { window: STATIC_WIN, count: 100 }));
+        expect(h.result.current.loading).toBe(true);
+        await actAdvance(200);
+        await actAdvance(0);
+        expect(h.result.current.loading).toBe(false);
+
+        act(() => {
+            h.rerender(() => useHistory(getHistory, [entry('a.0')], { window: STATIC_WIN, count: 200 }));
+        });
+        expect(h.result.current.loading).toBe(true);
+        h.unmount();
+    });
+
     it('enabled: false never fetches', async () => {
         const getHistory = vi.fn().mockResolvedValue([]);
         const h = renderHook(() => useHistory(getHistory, [entry('a.0')], { window: STATIC_WIN, enabled: false }));

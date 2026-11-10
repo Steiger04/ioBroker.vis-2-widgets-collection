@@ -62,7 +62,7 @@ const stateEditorComponent = (
  * @param noRows Hides while there is no row to show.
  * @param hidden The definition's own rule (vis-2 calls it without an index here).
  * @returns The combined predicate.
- * @throws When the rule is a vis-2 string condition — it cannot be combined without `eval`;
+ * @throws {Error} When the rule is a vis-2 string condition — it cannot be combined without `eval`;
  *   `commonFields` declares predicates.
  */
 const unlessRows = (noRows: (data: WidgetData) => boolean, hidden: unknown): HiddenPredicate => {
@@ -91,7 +91,7 @@ const stateDetailFields = (
         const { hidden, label, tooltip } = definition;
         if (!definition.name) {
             // A section divider: unchanged, only gone without a row.
-            return { ...definition, hidden: unlessRows(noRows, hidden) } as RxWidgetInfoAttributesField;
+            return { ...definition, hidden: unlessRows(noRows, hidden) };
         }
         // A rule reading the Feldnummer locks the field instead (StateDetailField); only rules on
         // widget level hide the row — vis-2 passes no index outside an indexed group, so for
@@ -109,7 +109,7 @@ const stateDetailFields = (
                     definition={definition}
                 />
             )),
-        } as RxWidgetInfoAttributesField;
+        };
     });
 
 /**

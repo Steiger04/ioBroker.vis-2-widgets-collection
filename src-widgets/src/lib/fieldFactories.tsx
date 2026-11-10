@@ -159,16 +159,14 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         label,
         default: defaultValue,
         type: 'custom',
-        component: guardWidgetData(
-            (field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
-                <ContractColorField
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        ),
+        component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+            <ContractColorField
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        )),
     };
 
     // Only add optional properties if they have values
@@ -255,16 +253,14 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
         type: 'custom',
         plainColor: true,
         noGradient: true,
-        component: guardWidgetData(
-            (field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
-                <PlainColorField
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        ),
+        component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+            <PlainColorField
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        )),
     };
 
     if (defaultValue !== undefined) {

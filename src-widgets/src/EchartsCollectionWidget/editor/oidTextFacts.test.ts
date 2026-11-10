@@ -39,16 +39,16 @@ describe('oidTextPrefill — kind detection (adapter onIdChanged rules)', () => 
     });
 
     it('string-form / array states are not a mapping (adapter excludes them); empty values drop', () => {
-        expect(oidTextPrefill({ common: { type: 'number', states: '0:AUS;1:EIN' } } as never)).toEqual({});
-        expect(oidTextPrefill({ common: { type: 'number', states: ['a', 'b'] } } as never)).toEqual({});
-        expect(oidTextPrefill({ common: { type: 'number', states: { 0: '', 1: 'AN', 2: null } } } as never)).toEqual({
+        expect(oidTextPrefill({ common: { type: 'number', states: '0:AUS;1:EIN' } })).toEqual({});
+        expect(oidTextPrefill({ common: { type: 'number', states: ['a', 'b'] } })).toEqual({});
+        expect(oidTextPrefill({ common: { type: 'number', states: { 0: '', 1: 'AN', 2: null } } })).toEqual({
             kind: 'enum',
             states: { 1: 'AN' },
         });
     });
 
     it("boolean-ish keys normalize to '1'/'0' (the adapter's _readOneLine remap — the data is numeric by then)", () => {
-        expect(oidTextPrefill({ common: { type: 'number', states: { false: 'AUS', true: 'EIN' } } } as never)).toEqual({
+        expect(oidTextPrefill({ common: { type: 'number', states: { false: 'AUS', true: 'EIN' } } })).toEqual({
             kind: 'enum',
             states: { 0: 'AUS', 1: 'EIN' },
         });
@@ -62,28 +62,22 @@ describe('oidTextPrefill — kind detection (adapter onIdChanged rules)', () => 
 
 describe('applyOidTextFacts — prefill, override survival, cleanup', () => {
     it('enum: common.states prefill MERGED UNDER the user-authored keys (adapter Object.assign order)', () => {
-        const out = applyOidTextFacts({ states: { 1: 'RUN' } } as EchartsSeriesMeta, oidTextPrefill(enumObj));
+        const out = applyOidTextFacts<EchartsSeriesMeta>({ states: { 1: 'RUN' } }, oidTextPrefill(enumObj));
         expect(out.oidType).toBe('enum');
         expect(out.states).toEqual({ 0: 'AUS', 1: 'RUN', 2: 'AN' }); // RUN wins, siblings add
     });
 
     it('enum: stale bool texts are cleaned up', () => {
-        const out = applyOidTextFacts(
-            { trueText: 'AN', falseText: 'AUS' } as EchartsSeriesMeta,
-            oidTextPrefill(enumObj),
-        );
+        const out = applyOidTextFacts<EchartsSeriesMeta>({ trueText: 'AN', falseText: 'AUS' }, oidTextPrefill(enumObj));
         expect(out.trueText).toBeUndefined();
         expect(out.falseText).toBeUndefined();
     });
 
     it('boolean: prefill fills only EMPTY text fields — an authored override survives', () => {
-        const prefilled = applyOidTextFacts({} as EchartsSeriesMeta, oidTextPrefill(boolObjWithStates));
+        const prefilled = applyOidTextFacts<EchartsSeriesMeta>({}, oidTextPrefill(boolObjWithStates));
         expect(prefilled).toEqual({ oidType: 'boolean', trueText: 'EIN', falseText: 'AUS' });
 
-        const overridden = applyOidTextFacts(
-            { trueText: 'ON' } as EchartsSeriesMeta,
-            oidTextPrefill(boolObjWithStates),
-        );
+        const overridden = applyOidTextFacts<EchartsSeriesMeta>({ trueText: 'ON' }, oidTextPrefill(boolObjWithStates));
         expect(overridden.trueText).toBe('ON');
         expect(overridden.falseText).toBe('AUS'); // still prefilled (empty field)
         expect(overridden.states).toBeUndefined(); // stale enum mapping cleaned
@@ -101,10 +95,13 @@ describe('applyOidTextFacts — prefill, override survival, cleanup', () => {
     });
 
     it('foreign meta fields pass through untouched', () => {
-        const out = applyOidTextFacts({ unit: '°C', decimals: 1, name: 'T' } as EchartsSeriesMeta, {
-            kind: 'enum',
-            states: { 0: 'AUS' },
-        });
+        const out = applyOidTextFacts<EchartsSeriesMeta>(
+            { unit: '°C', decimals: 1, name: 'T' },
+            {
+                kind: 'enum',
+                states: { 0: 'AUS' },
+            },
+        );
         expect(out.unit).toBe('°C');
         expect(out.decimals).toBe(1);
         expect(out.name).toBe('T');

@@ -526,9 +526,11 @@ const JsonTableCollection: FC = () => {
                                                                             <Typography
                                                                                 variant="body2"
                                                                                 component="span"
-                                                                                fontWeight="medium"
                                                                                 noWrap
-                                                                                sx={chrome.headerTextSx}
+                                                                                sx={{
+                                                                                    fontWeight: 'medium',
+                                                                                    ...chrome.headerTextSx,
+                                                                                }}
                                                                             >
                                                                                 {flexRender(
                                                                                     header.column.columnDef.header,
@@ -540,9 +542,11 @@ const JsonTableCollection: FC = () => {
                                                                         <Typography
                                                                             variant="body2"
                                                                             component="span"
-                                                                            fontWeight="medium"
                                                                             noWrap
-                                                                            sx={chrome.headerTextSx}
+                                                                            sx={{
+                                                                                fontWeight: 'medium',
+                                                                                ...chrome.headerTextSx,
+                                                                            }}
                                                                         >
                                                                             {flexRender(
                                                                                 header.column.columnDef.header,
@@ -724,7 +728,7 @@ const JsonTableCollection: FC = () => {
                 >
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        color="textSecondary"
                     >
                         {Generic.t(emptyText)}
                     </Typography>

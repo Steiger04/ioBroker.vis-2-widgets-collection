@@ -54,7 +54,7 @@ const inputOf = (c: Case, legendShowValues: boolean): AssemblePipelineInput => {
             ...toPresentationBase({ src, palette: ['#111'], family: c.family, themeTokens: tokens, themeDark: false }),
             ...coreOf(c.family).presentationFragment({ src, chartConfig, markLines: [] }),
         },
-        themeBase: {} as EChartsOption,
+        themeBase: {},
         companions: { chartConfig, yAxes: [], markLines: [], jsonSeriesStyle: {}, jsonHidden: [], series: [] },
         now: 1_000_000,
         ...c.over,

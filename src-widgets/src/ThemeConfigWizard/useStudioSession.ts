@@ -23,8 +23,8 @@
  * put it into a dependency array (same contract as `useEditorHistory`).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import { useCallback, useEffect, useInsertionEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import type { Connection } from '@iobroker/gui-components';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
@@ -99,7 +99,9 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
     const draft = history.present;
     // Latest draft for imperative readers (load guard, trailing push).
     const draftRef = useRef(draft);
-    draftRef.current = draft;
+    useInsertionEffect(() => {
+        draftRef.current = draft;
+    });
     // The value the draft was last (re)based on — the load replaces only a draft still equal to it.
     const baseRef = useRef<UserTheme | null>(seed);
     const [snapshot, setSnapshot] = useState<UserTheme>(seed ?? {});

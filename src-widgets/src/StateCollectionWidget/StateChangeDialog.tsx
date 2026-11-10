@@ -38,7 +38,7 @@ import {
     Slider,
     Stack,
 } from '@mui/material';
-import { useEffect, useState, type FC, type MouseEvent } from 'react';
+import { useState, type FC, type MouseEvent } from 'react';
 import type { StateStyleData } from '../hooks/useData/types';
 import { solidOf } from '../lib/helper/colorDerivation';
 import { isGradientColor } from '../lib/helper/colorValidation';
@@ -131,13 +131,20 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
     const [sliderValue, setSliderValue] = useState<number>(() => sliderPosition(currentValue) ?? 0);
 
     // A Fremdänderung (any size) wins over the local position; the own write and its
-    // echo never raise the flag, so a drag does not hang on the echo.
-    useEffect(() => {
+    // echo never raise the flag, so a drag does not hang on the echo. Applied while rendering
+    // whenever the flag or the value changed (on the first render too).
+    const [followed, setFollowed] = useState<{ hasForeignChange?: boolean; currentValue?: unknown }>({});
+    if (
+        !('currentValue' in followed) ||
+        followed.hasForeignChange !== hasForeignChange ||
+        !Object.is(followed.currentValue, currentValue)
+    ) {
+        setFollowed({ hasForeignChange, currentValue });
         const position = sliderPosition(currentValue);
         if (hasForeignChange && position !== undefined) {
             setSliderValue(position);
         }
-    }, [hasForeignChange, currentValue]);
+    }
 
     const hasStates = states.length > 0;
 
@@ -172,11 +179,13 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
             onClose={closeHandler}
             maxWidth="xs"
             fullWidth
-            PaperProps={{
-                sx: {
-                    // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
-                    background: backgroundColor || undefined,
-                    color: bodyTextColor,
+            slotProps={{
+                paper: {
+                    sx: {
+                        // The shorthand takes a gradient and replaces the dark theme's elevation overlay.
+                        background: backgroundColor || undefined,
+                        color: bodyTextColor,
+                    },
                 },
             }}
         >
@@ -256,7 +265,7 @@ const StateChangeDialog: FC<StateChangeDialogProps> = ({
                                         onClick={locked ? undefined : createListItemClickHandler(state.value)}
                                     >
                                         <ListItemText
-                                            primaryTypographyProps={{ variant: 'body2' }}
+                                            slotProps={{ primary: { variant: 'body2' } }}
                                             primary={<span dangerouslySetInnerHTML={{ __html: state.label ?? '' }} />}
                                         />
                                     </ListItemButton>

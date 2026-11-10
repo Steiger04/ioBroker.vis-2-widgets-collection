@@ -26,9 +26,9 @@ import { BrokenImage as BrokenImageIcon } from '@mui/icons-material';
 import type React from 'react';
 
 import Generic from '../../../Generic';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import ColorPickerField from '../../../components/ColorPickerField';
-import type { CellImageContent, ColumnFormatConfig, ImageObjectFit, ImageVariant } from '../../types';
+import type { CellImageContent, ColumnFormatConfig } from '../../types';
 import { ImageGraphic } from '../TableCellRenderer';
 import { buildImageContent } from '../../utils/cellFormatters';
 import { IMAGE_FORMAT_DEFAULTS } from '../../utils/columnConfig';
@@ -75,7 +75,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
         <>
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_image_format')}
@@ -110,7 +110,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
                         onChange={e =>
                             onChange({
                                 type: 'image',
-                                imageObjectFit: e.target.value as ImageObjectFit,
+                                imageObjectFit: e.target.value,
                             })
                         }
                     >
@@ -130,7 +130,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
                 <Select
                     label={Generic.t('json_table_image_variant')}
                     value={format.imageVariant ?? 'square'}
-                    onChange={e => onChange({ type: 'image', imageVariant: e.target.value as ImageVariant })}
+                    onChange={e => onChange({ type: 'image', imageVariant: e.target.value })}
                 >
                     <MenuItem value="square">{Generic.t('json_table_image_variant_square')}</MenuItem>
                     <MenuItem value="circular">{Generic.t('json_table_image_variant_circular')}</MenuItem>
@@ -183,7 +183,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             />
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
             >
                 {Generic.t('json_table_image_tint_hint')}
             </Typography>
@@ -215,7 +215,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             {/* Per-side padding around the avatar */}
             <Typography
                 variant="caption"
-                color="text.secondary"
+                color="textSecondary"
                 sx={{ fontWeight: 500 }}
             >
                 {Generic.t('json_table_image_padding')}
@@ -273,7 +273,7 @@ function ImageFormatEditor({ format, onChange, socket }: ImageFormatEditorProps)
             >
                 <Typography
                     variant="caption"
-                    color="text.secondary"
+                    color="textSecondary"
                 >
                     {Generic.t('json_table_preview')}
                 </Typography>

@@ -155,13 +155,19 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});
     const toggle = (key: SectionKey): void => setOpen(o => ({ ...o, [key]: !o[key] }));
 
-    // External steering: expand the target section and scroll it into view.
+    // External steering: expand the target section while rendering, then scroll it into view.
+    const [expandedFor, setExpandedFor] = useState<FocusSectionRequest | null | undefined>(null);
+    if (expandedFor !== focusSection) {
+        setExpandedFor(focusSection);
+        if (focusSection) {
+            setOpen(o => ({ ...o, [focusSection.key]: true }));
+        }
+    }
     const sectionRefs = useRef<Partial<Record<SectionKey, HTMLDivElement | null>>>({});
     useEffect(() => {
         if (!focusSection) {
             return;
         }
-        setOpen(o => ({ ...o, [focusSection.key]: true }));
         sectionRefs.current[focusSection.key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, [focusSection]);
 

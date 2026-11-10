@@ -26,7 +26,7 @@ import {
     Chip,
 } from '@mui/material';
 import type React from 'react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import Generic from '../../Generic';
 import type { EffectiveType } from '../capabilities';
@@ -115,8 +115,10 @@ function FilterDialog({
         return currentValue !== undefined && currentValue !== null;
     }, [currentValue]);
 
-    // Reset state when dialog opens with new values
-    useEffect(() => {
+    // Reset state when dialog opens with new values, while rendering
+    const [resetFor, setResetFor] = useState({ open, parsed: parsedCurrentValue });
+    if (resetFor.open !== open || resetFor.parsed !== parsedCurrentValue) {
+        setResetFor({ open, parsed: parsedCurrentValue });
         if (open) {
             setOperator(parsedCurrentValue.operator);
             setValue(
@@ -125,7 +127,7 @@ function FilterDialog({
                     : parsedCurrentValue.value,
             );
         }
-    }, [parsedCurrentValue, open]);
+    }
 
     // Check if operator needs a value input
     const needsValue = operatorNeedsValue(operator);
@@ -159,19 +161,16 @@ function FilterDialog({
     );
 
     // Handle operator change - reset value when switching to/from no-value operators
-    const handleOperatorChange = useCallback(
-        (newOperator: FilterOperator): void => {
-            setOperator(newOperator);
-            // Reset value when switching to a no-value operator
-            if (!operatorNeedsValue(newOperator)) {
-                setValue('');
-            } else if (inputKind !== 'boolean' && (value === 'true' || value === 'false')) {
-                // Reset boolean string value when switching away from boolean type
-                setValue('');
-            }
-        },
-        [value, inputKind],
-    );
+    const handleOperatorChange = (newOperator: FilterOperator): void => {
+        setOperator(newOperator);
+        // Reset value when switching to a no-value operator
+        if (!operatorNeedsValue(newOperator)) {
+            setValue('');
+        } else if (inputKind !== 'boolean' && (value === 'true' || value === 'false')) {
+            // Reset boolean string value when switching away from boolean type
+            setValue('');
+        }
+    };
 
     // Format column ID for display
     const displayColumnId = headerNameOf(columnId);
@@ -207,7 +206,7 @@ function FilterDialog({
                 <Typography
                     id={dialogDescriptionId}
                     variant="body2"
-                    color="text.secondary"
+                    color="textSecondary"
                     sx={{ mb: 2, mt: 1 }}
                 >
                     {Generic.t('json_table_filter_dialog_description')}
@@ -224,7 +223,7 @@ function FilterDialog({
                             value={operator}
                             label={Generic.t('json_table_filter_operator')}
                             labelId={`filter-operator-label-${columnId}`}
-                            onChange={e => handleOperatorChange(e.target.value as FilterOperator)}
+                            onChange={e => handleOperatorChange(e.target.value)}
                         >
                             {operators.map(op => (
                                 <MenuItem
@@ -268,8 +267,10 @@ function FilterDialog({
                             type="date"
                             fullWidth
                             autoFocus
-                            InputLabelProps={{
-                                shrink: true,
+                            slotProps={{
+                                inputLabel: {
+                                    shrink: true,
+                                },
                             }}
                         />
                     )}
@@ -299,7 +300,7 @@ function FilterDialog({
                     {!needsValue && (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="textSecondary"
                             sx={{ fontStyle: 'italic' }}
                         >
                             {Generic.t('json_table_filter_no_value_needed')}

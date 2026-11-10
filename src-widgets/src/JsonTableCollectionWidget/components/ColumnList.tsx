@@ -346,7 +346,7 @@ function ColumnList({
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            color="textSecondary"
                         >
                             {columns.length === 0
                                 ? Generic.t('json_table_no_columns')
@@ -412,8 +412,10 @@ function ColumnList({
                                         onClick={e => handleToggleVisibility(e, col.path)}
                                         size="small"
                                         sx={{ p: 0.5 }}
-                                        inputProps={{
-                                            'aria-label': `${Generic.t('json_table_visible')}: ${col.headerName || col.path}`,
+                                        slotProps={{
+                                            input: {
+                                                'aria-label': `${Generic.t('json_table_visible')}: ${col.headerName || col.path}`,
+                                            },
                                         }}
                                     />
                                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -433,7 +435,7 @@ function ColumnList({
                                         {col.headerName && col.headerName !== col.path && (
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                                 sx={{
                                                     fontFamily: 'monospace',
                                                     fontSize: '0.65rem',
@@ -471,7 +473,7 @@ function ColumnList({
                 >
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        color="textSecondary"
                         aria-live="polite"
                         aria-atomic="true"
                     >

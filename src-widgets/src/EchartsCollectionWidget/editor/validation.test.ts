@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 // DOM pool since ADR-0083: this suite transitively loads the family profiles' section
 // modules — they pull the adapter-react barrel (FileBrowser → icons — the focusTabs stub).
-vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { DEFAULT_EDITOR_STATE, loadEditorState, type EditorState } from './editorState';
 import { firstIssueTabOf, issueCountsByTab, tabOfIssue, validateEditor } from './validation';

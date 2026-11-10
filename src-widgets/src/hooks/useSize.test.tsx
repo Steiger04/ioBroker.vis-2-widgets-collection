@@ -10,7 +10,7 @@
  * test; anything else keeps the frame at `100%`.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createElement, useState, type FC } from 'react';
+import { createElement, useEffect, useState, type FC } from 'react';
 
 import useSize from './useSize';
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
@@ -21,13 +21,16 @@ const OID = 'demo.0.size';
 
 const mountBody = testScopedMount();
 
-/** The size the probe last computed. */
+/** The size of the probe's last committed render. */
 let seen: { width: string; height: string } | undefined;
 
 /** Measures its own element like CollectionBase measures BASE-BOX-1. */
 const Probe: FC = () => {
     const [element, setElement] = useState<HTMLDivElement | null>(null);
-    seen = useSize(element);
+    const size = useSize(element);
+    useEffect(() => {
+        seen = size;
+    });
     return createElement('div', { ref: setElement });
 };
 
@@ -43,10 +46,7 @@ const measureContentRect = (contentRect: { width: number; height: number }): voi
             }
 
             observe(target: Element): void {
-                this.callback(
-                    [{ target, contentRect } as unknown as ResizeObserverEntry],
-                    this as unknown as ResizeObserver,
-                );
+                this.callback([{ target, contentRect } as unknown as ResizeObserverEntry], this);
             }
 
             /* eslint-disable class-methods-use-this -- nothing to release */

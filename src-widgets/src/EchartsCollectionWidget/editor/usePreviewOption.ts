@@ -14,7 +14,7 @@
  * preview shows what the canvas does.
  */
 import { useMemo } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { Theme } from '@mui/material/styles';
 
 import { buildEchartsTheme, effectiveDarkMode } from '../echartsTheme';

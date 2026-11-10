@@ -27,7 +27,7 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import { ExpandMore as ExpandMoreIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
@@ -127,7 +127,7 @@ function ColumnDetailEditor({
 
     const resetFormatting = useCallback(() => {
         const { format: _, ...rest } = column;
-        onChange(rest as ColumnConfigEntry);
+        onChange(rest);
     }, [column, onChange]);
 
     const isStylingDirty = useMemo(
@@ -137,7 +137,7 @@ function ColumnDetailEditor({
 
     const resetStyling = useCallback(() => {
         const { cellStyle: _cs, cellStyleMode: _csm, ...rest } = column;
-        onChange(rest as ColumnConfigEntry);
+        onChange(rest);
     }, [column, onChange]);
 
     const isAdvancedDirty = useMemo(
@@ -150,7 +150,7 @@ function ColumnDetailEditor({
 
     const resetAdvanced = useCallback(() => {
         const { sortable: _s, filterable: _f, enableHiding: _h, ...rest } = column;
-        onChange({ ...rest, sortable: 'auto', filterable: 'auto', enableHiding: 'auto' } as ColumnConfigEntry);
+        onChange({ ...rest, sortable: 'auto', filterable: 'auto', enableHiding: 'auto' });
     }, [column, onChange]);
 
     // ── Format update helper ──────────────────────────────────────
@@ -340,7 +340,7 @@ function ColumnDetailEditor({
                                     onChange={e =>
                                         onChange({
                                             ...column,
-                                            align: e.target.value as 'left' | 'center' | 'right',
+                                            align: e.target.value,
                                         })
                                     }
                                 >
@@ -424,7 +424,7 @@ function ColumnDetailEditor({
                                                 format: undefined,
                                             });
                                         } else {
-                                            updateFormat({ type: selectedType as ColumnFormatConfig['type'] });
+                                            updateFormat({ type: selectedType });
                                         }
                                     }}
                                 >
@@ -494,7 +494,7 @@ function ColumnDetailEditor({
                                 !column.format && (
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                     >
                                         {Generic.t('json_table_no_format_options')}
                                     </Typography>
@@ -647,7 +647,7 @@ function ColumnDetailEditor({
                                 >
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        color="textSecondary"
                                         sx={{ fontWeight: 500, display: 'block', mb: 1 }}
                                     >
                                         {Generic.t('json_table_analysis_info')}
@@ -656,7 +656,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_type_label')}
                                             </Typography>
@@ -674,7 +674,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_confidence')}
                                             </Typography>
@@ -685,7 +685,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_nulls')}
                                             </Typography>
@@ -698,7 +698,7 @@ function ColumnDetailEditor({
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color="textSecondary"
                                             >
                                                 {Generic.t('json_table_distinct')}
                                             </Typography>
@@ -708,7 +708,7 @@ function ColumnDetailEditor({
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
+                                                    color="textSecondary"
                                                 >
                                                     {Generic.t('json_table_range')}
                                                 </Typography>
@@ -721,7 +721,7 @@ function ColumnDetailEditor({
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
+                                                    color="textSecondary"
                                                 >
                                                     {Generic.t('json_table_date_input_format')}
                                                 </Typography>

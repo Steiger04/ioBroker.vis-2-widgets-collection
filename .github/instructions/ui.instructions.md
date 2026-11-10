@@ -1,13 +1,13 @@
 ---
-name: 'UI/UX Design Standards - MUI v6.5'
-description: 'Material-UI v6.5 component selection, styling, accessibility, and React patterns for vis-2 widgets'
+name: 'UI/UX Design Standards - MUI v9'
+description: 'Material-UI v9 component selection, styling, accessibility, and React patterns for vis-2 widgets'
 ---
 
 # UI/UX Design Standards for ioBroker vis-2 Widgets
 
 ## Overview
 
-This document defines UI/UX standards for developing modern, accessible, and performant vis-2 widgets using **Material-UI (MUI) v6.5** and React best practices. All widgets must follow these guidelines to ensure consistency, maintainability, and excellent user experience.
+This document defines UI/UX standards for developing modern, accessible, and performant vis-2 widgets using **Material-UI (MUI) v9** and React best practices. All widgets must follow these guidelines to ensure consistency, maintainability, and excellent user experience.
 
 **Target Audience:** Senior developers familiar with React, TypeScript, and Material-UI ecosystem.
 
@@ -17,19 +17,18 @@ This document defines UI/UX standards for developing modern, accessible, and per
 
 ### Current Version
 
-- **MUI Core:** `@mui/material@^6.5.0`
-- **MUI Data Grid:** `@mui/x-data-grid@^7.29.12`
-- **MUI Icons:** `@mui/icons-material` (version inherited from parent)
+- **MUI Core:** `@mui/material@^9.5.0`, `@mui/system@^9.5.0`
+- **MUI Icons:** `@mui/icons-material@^9.5.0` (bundled with the widget set, not shared)
+- **MUI X:** `@mui/x-date-pickers@^9.17.0`
 
 ### Critical Constraints
 
-⚠️ **MUI is NOT a direct dependency** of the widget package. It's shared via Module Federation from the parent `ioBroker.vis-2` workspace.
+⚠️ **MUI renders from the vis-2 host.** `@mui/material`, `@mui/system` and `@emotion/react` are direct `devDependencies` of `src-widgets/package.json`; `moduleFederationShared(pack)` turns them (plus `@mui/private-theming`) into host-provided singletons, so at runtime the widgets use the host's MUI (ADR-0112, host vis-2 ≥ 2.20.0).
 
 **Implications:**
 
-- Cannot add `@mui/material` to `src-widgets/package.json` dependencies
-- Version MUST match parent (v6.5.0) - no independent upgrades
-- Breaking changes in MUI affect all widgets simultaneously
+- Keep the MUI major in line with the host (vis-2 2.20.x ships MUI 9) - no independent major upgrades
+- Breaking changes in the host's MUI affect all widgets simultaneously, without a rebuild
 - Coordinate with vis-2 team for version upgrades
 
 **Verification:**
@@ -41,7 +40,7 @@ grep "@mui/material" ../ioBroker.vis-2/packages/iobroker.vis-2/src-vis/package.j
 
 ### Documentation Access via MCP
 
-Use the **mui-mcp server** for up-to-date MUI v6.5 documentation:
+Use the **mui-mcp server** for up-to-date MUI v9 documentation:
 
 1. **Call `useMuiDocs` tool** to fetch package documentation relevant to your question
 2. **Call `fetchDocs` tool** for additional docs using ONLY URLs from returned content
@@ -50,8 +49,8 @@ Use the **mui-mcp server** for up-to-date MUI v6.5 documentation:
 
 **Example queries:**
 
-- "How to customize Button in MUI v6.5?"
-- "TextField validation patterns MUI v6.5"
+- "How to customize Button in MUI v9?"
+- "TextField validation patterns MUI v9"
 - "Accessibility features in Dialog component"
 
 **For React/TypeScript questions:** Use Context7 MCP server for library/API documentation.
@@ -66,12 +65,12 @@ Use the **mui-mcp server** for up-to-date MUI v6.5 documentation:
 - **`Paper`** - Elevated surfaces, cards (use for widget frames)
 - **`Stack`** - Directional layouts (vertical/horizontal, replaces manual flex)
 - **`Container`** - Page-level responsive wrapper (use sparingly in widgets)
-- **`Grid2`** (new) - Responsive grid layouts (preferred over deprecated Grid)
+- **`Grid`** - Responsive grid layouts (the former Grid2; `size` prop instead of `xs`/`md`)
 - **`Divider`** - Visual separators
 
-## MUI 5 v6.5 – core rules
+## MUI v9 – core rules
 
-- Use only MUI 5 v6.5 components and APIs (no v4 legacy code, no mixed versions).
+- Use only MUI v9 components and APIs (no v4 legacy code, no mixed versions).
 - Import components from `@mui/material` and `@mui/icons-material`, and styling APIs from `@mui/material/styles`.
 - Prefer:
     - `Box`, `Stack`, `Grid` for layout
@@ -158,7 +157,7 @@ Use the **mui-mcp server** for up-to-date MUI v6.5 documentation:
 - **`makeStyles`** - Deprecated in MUI v5+, removed in v6
 - **`withStyles`** - Deprecated, use `styled()` or `sx` prop
 - **Raw HTML elements** - Use MUI components (`<div>` → `Box`, `<button>` → `Button`)
-- **`Grid` (v1)** - Deprecated, use `Grid2`
+- **`Grid2`** - Removed in MUI 7 (renamed to `Grid`); use `Grid` with the `size` prop
 - **Inline `style` prop** - Use `sx` prop for dynamic styles
 
 ### 🆕 Underused Components (Recommended)
@@ -166,7 +165,7 @@ Use the **mui-mcp server** for up-to-date MUI v6.5 documentation:
 These components are **NOT currently used** but should be adopted:
 
 1. **`Tooltip`** - Critical for accessibility (explain icon buttons, show full text on truncated labels)
-2. **`Grid2`** - Modern responsive layouts (replaces manual flexbox patterns)
+2. **`Grid`** - Modern responsive layouts (replaces manual flexbox patterns)
 3. **`CircularProgress` / `Skeleton`** - Loading states (improves perceived performance)
 4. **`Alert` / `Snackbar`** - User feedback (error messages, success confirmations)
 5. **`useMediaQuery` hook** - Responsive behavior (adapt to small screens)
@@ -442,7 +441,7 @@ const iconStyles = getIconColorStyles(
 
 ### Flexbox (Current Standard)
 
-**All current widgets use flexbox** for layout. This is acceptable but should evolve to Grid2 for complex layouts.
+**All current widgets use flexbox** for layout. This is acceptable but should evolve to Grid for complex layouts.
 
 **Standard Pattern:**
 
@@ -527,35 +526,35 @@ import { Stack } from '@mui/material';
 - Automatic `gap` support
 - Built-in dividers
 
-### Grid2 for Responsive Layouts (Recommended)
+### Grid for Responsive Layouts (Recommended)
 
-**Use Grid2** for complex, responsive layouts:
+**Use Grid** for complex, responsive layouts:
 
 ```tsx
-import { Grid2 } from '@mui/material';
+import { Grid } from '@mui/material';
 
 // Responsive grid
-<Grid2 container spacing={2}>
-  <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+<Grid container spacing={2}>
+  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
     <Card>Content 1</Card>
-  </Grid2>
-  <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+  </Grid>
+  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
     <Card>Content 2</Card>
-  </Grid2>
-  <Grid2 size={{ xs: 12, sm: 12, md: 4 }}>
+  </Grid>
+  <Grid size={{ xs: 12, sm: 12, md: 4 }}>
     <Card>Content 3</Card>
-  </Grid2>
-</Grid2>
+  </Grid>
+</Grid>
 
 // Auto-fit columns
-<Grid2 container spacing={2}>
-  <Grid2 size="grow">
+<Grid container spacing={2}>
+  <Grid size="grow">
     <Box>Flexible width</Box>
-  </Grid2>
-  <Grid2 size="auto">
+  </Grid>
+  <Grid size="auto">
     <Button>Fixed width</Button>
-  </Grid2>
-</Grid2>
+  </Grid>
+</Grid>
 ```
 
 **Breakpoints:**
@@ -1597,15 +1596,7 @@ import CollectionBase from '../components/CollectionBase';
     data={data}
     oidValue={oidValue}
 >
-    <Box
-        sx={
-            {
-                /* main content */
-            }
-        }
-    >
-        {/* Widget-specific UI */}
-    </Box>
+    <Box sx={{/* main content */}}>{/* Widget-specific UI */}</Box>
 
     {data.showFooter && <Typography variant="caption">{footerText}</Typography>}
 </CollectionBase>;
@@ -1750,12 +1741,12 @@ import { DataGrid } from '@mui/x-data-grid';
 **Responsive card grid:**
 
 ```tsx
-<Grid2
+<Grid
     container
     spacing={2}
 >
     {devices.map(device => (
-        <Grid2
+        <Grid
             key={device.id}
             size={{ xs: 12, sm: 6, md: 4 }}
         >
@@ -1769,9 +1760,9 @@ import { DataGrid } from '@mui/x-data-grid';
                     Control
                 </Button>
             </Paper>
-        </Grid2>
+        </Grid>
     ))}
-</Grid2>
+</Grid>
 ```
 
 ---
@@ -1998,14 +1989,14 @@ const MyWidget = () => {
 ### Responsive Grid
 
 ```tsx
-<Grid2
+<Grid
     container
     spacing={{ xs: 1, sm: 2, md: 3 }}
 >
-    <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
         <Card />
-    </Grid2>
-</Grid2>
+    </Grid>
+</Grid>
 ```
 
 ### Container Queries (Future)
@@ -2228,14 +2219,14 @@ import { TextField, FormControlLabel, Checkbox, Button, Stack } from '@mui/mater
 ### Responsive Card Grid
 
 ```tsx
-import { Grid2, Paper, Typography, Button } from '@mui/material';
+import { Grid, Paper, Typography, Button } from '@mui/material';
 
-<Grid2
+<Grid
     container
     spacing={2}
 >
     {devices.map(device => (
-        <Grid2
+        <Grid
             key={device.id}
             size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
         >
@@ -2261,9 +2252,9 @@ import { Grid2, Paper, Typography, Button } from '@mui/material';
                     Control
                 </Button>
             </Paper>
-        </Grid2>
+        </Grid>
     ))}
-</Grid2>;
+</Grid>;
 ```
 
 ### Performance-Optimized List
@@ -2360,14 +2351,14 @@ const [loading, setLoading] = useState(false);
 
 **Key Takeaways:**
 
-1. **Use MUI v6.5 components** consistently - no raw HTML elements
+1. **Use MUI v9 components** consistently - no raw HTML elements
 2. **sx prop first** (90%), styled() for complex components (10%)
 3. **Accessibility is MANDATORY** - aria-label, keyboard navigation, tooltips
 4. **Performance matters** - React.memo, useMemo, useCallback
 5. **Theme integration** - use theme colors, support dark mode
 6. **TypeScript always** - no `any` types
 7. **Test accessibility** - keyboard navigation, screen readers, contrast
-8. **Refer to MCP** - use `useMuiDocs` for latest MUI v6.5 documentation
+8. **Refer to MCP** - use `useMuiDocs` for latest MUI v9 documentation
 
 **Before submitting code, verify:**
 
@@ -2384,6 +2375,6 @@ const [loading, setLoading] = useState(false);
 
 **Questions? Use MCP servers:**
 
-- **Material-UI v6.5:** Call `useMuiDocs` tool
+- **Material-UI v9:** Call `useMuiDocs` tool
 - **React/TypeScript:** Use Context7 MCP
 - **GitHub issues:** Refer to github.instructions.md

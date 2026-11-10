@@ -64,7 +64,7 @@ export const stateEditorSpec = (params: StateEditorParams = {}): StateEditorSpec
     });
 
     return {
-        perStateFields: perStateFields as StateFieldDefinition[],
+        perStateFields: perStateFields,
         config: {
             schema: stateRowSchema(perStateFields),
             oidProperty: resolved.oidProperty,

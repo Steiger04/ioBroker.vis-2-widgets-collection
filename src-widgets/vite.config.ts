@@ -1,14 +1,11 @@
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import commonjs from 'vite-plugin-commonjs';
-import vitetsConfigPaths from 'vite-tsconfig-paths';
 import { federation } from '@module-federation/vite';
 import { moduleFederationShared } from '@iobroker/types-vis-2/modulefederation.vis.config';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { buildExposes } from './src/widgetsRegistry';
 
-const require = createRequire(import.meta.url);
 const pack = JSON.parse(readFileSync('./package.json').toString());
 
 const config = {
@@ -20,16 +17,18 @@ const config = {
         entries: ['src/**/*.{ts,tsx}', '!src/**/*.test.*'],
         include: [
             // Injected by the federation plugin's dev glue — never reached
-            // by crawling the src entries above. Must use forward slashes:
-            // runtime discovery registers this module with a POSIX-style id,
-            // and a backslash id (require.resolve on Windows) creates a
-            // second, duplicate optimizer identity that crashes re-runs with
-            // "Cannot read properties of undefined (reading 'fileHash')".
+            // by crawling the src entries above. Each one must be listed under
+            // the id the dev glue imports it by, or the first request of
+            // customWidgets.js discovers it again and re-runs the optimizer.
+            // Under Vite 8 that id is the bare package specifier (the glue
+            // writes `import … from "@module-federation/dts-plugin/…"`); a
+            // file path — and above all a backslash path from require.resolve
+            // on Windows — is a second, duplicate optimizer identity, which
+            // crashed re-runs with "Cannot read properties of undefined
+            // (reading 'fileHash')".
             '@module-federation/runtime',
             '@module-federation/runtime/helpers',
-            require
-                .resolve('@module-federation/dts-plugin/dist/esm/dynamic-remote-type-hints-plugin.mjs')
-                .replace(/\\/g, '/'),
+            '@module-federation/dts-plugin/dynamic-remote-type-hints-plugin',
         ],
     },
     plugins: [
@@ -45,7 +44,6 @@ const config = {
         svgr({
             include: ['**/*.svg?react'], // Include SVG files for SVGR processing
         }),
-        vitetsConfigPaths(),
         commonjs(),
     ],
     server: {
@@ -66,7 +64,7 @@ const config = {
     build: {
         target: 'chrome89',
         outDir: './build',
-        rollupOptions: {
+        rolldownOptions: {
             onwarn(warning: { code: string }, warn: (warning: { code: string }) => void): void {
                 // Suppress "Module level directives cause errors when bundled" warnings
                 if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {

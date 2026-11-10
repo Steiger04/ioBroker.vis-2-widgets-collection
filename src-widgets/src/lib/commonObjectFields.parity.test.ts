@@ -12,7 +12,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type {
     RxWidgetInfo,
     RxWidgetInfoAttributesField,
@@ -65,7 +65,7 @@ describe('root range of a main-OID pick without a range (per widget)', () => {
             let emitted: WidgetData | undefined;
             await (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange(
                 field as RxWidgetInfoAttributesField,
-                { oid: OID, minValue: 3, maxValue: 9 } as WidgetData,
+                { oid: OID, minValue: 3, maxValue: 9 },
                 newData => {
                     emitted = newData;
                 },

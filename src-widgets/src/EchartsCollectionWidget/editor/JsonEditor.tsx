@@ -17,7 +17,11 @@ import '@uiw/react-textarea-code-editor/dist.css';
 export interface JsonEditorProps {
     value: string;
     onChange: (value: string) => void;
-    /** Approximate minimum height in text rows (→ minHeight px). @default 4 */
+    /**
+     * Approximate minimum height in text rows (→ minHeight px).
+     *
+     * @default 4
+     */
     minRows?: number;
     placeholder?: string;
     /** Disable the onBlur pretty-print (e.g. while the user is mid-typing invalid JSON). */

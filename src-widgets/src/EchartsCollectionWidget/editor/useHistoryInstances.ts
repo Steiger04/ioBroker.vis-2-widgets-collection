@@ -9,7 +9,7 @@
  * server cannot auto-route.
  */
 import { useEffect, useState } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 
 /** The hook's sight — the list plus its load state (an empty list before `loaded` is LOADING, not „none installed"). */
 export interface HistoryInstancesSight {

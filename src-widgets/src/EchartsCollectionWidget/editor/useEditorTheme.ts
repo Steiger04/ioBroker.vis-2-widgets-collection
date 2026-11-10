@@ -17,7 +17,7 @@
  * {@link resolveThemeTokens}; nothing colour-related is recomputed ad-hoc in a section.
  */
 import { useMemo } from 'react';
-import type { Connection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { Theme } from '@mui/material/styles';
 
 import useCollectionTheme from '../../hooks/useCollectionTheme';
