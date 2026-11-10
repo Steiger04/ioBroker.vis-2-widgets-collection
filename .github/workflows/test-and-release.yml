@@ -22,9 +22,29 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+    # Performs quick checks (types, lint, formatting, package files) before the expensive test runs
+    check-and-lint:
+        if: contains(github.event.head_commit.message, '[skip ci]') == false
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: ioBroker/testing-action-check@v2
+              with:
+                  node-version: '24.x'
+                  # the type-aware ESLint config and tsc need the widget package's dependencies
+                  install-command: 'npm ci && cd src-widgets && npm ci'
+                  type-checking: true
+                  type-checking-command: 'cd src-widgets && npx tsc'
+                  lint: true
+                  lint-command: 'npm run lint && npm run format'
+                  # test-command keeps its default: npm run test:package
+
     # Runs adapter tests on all supported node versions and OSes
     adapter-tests:
         if: contains(github.event.head_commit.message, '[skip ci]') == false
+
+        needs: [check-and-lint]
 
         runs-on: ${{ matrix.os }}
         strategy:
@@ -46,7 +66,7 @@ jobs:
             # run: python3 --version
 
             - name: Install Dependencies
-              run: npm i
+              run: npm ci
 
             - name: Build
               run: npm run build
@@ -63,9 +83,9 @@ jobs:
                   path: tmp/screenshots/**/*.png
                   retention-days: 3
 
-    # Deploys the final package to NPM
+    # Deploys the final package to NPM; the deploy action builds widgets/ itself (not tracked in git)
     deploy:
-        needs: [adapter-tests]
+        needs: [check-and-lint, adapter-tests]
 
         # Trigger this step only when a commit on master is tagged with a version number
         if: |
@@ -75,7 +95,7 @@ jobs:
 
         runs-on: ubuntu-latest
 
-        # Write permissions are required to create Github releases
+        # Write permissions are required to create Github releases, id-token for npm trusted publishing
         permissions:
             contents: write
             id-token: write
@@ -83,7 +103,9 @@ jobs:
         steps:
             - uses: ioBroker/testing-action-deploy@v1
               with:
-                  node-version: '22.x'
+                  node-version: '24.x'
+                  # installs with the action's default `npm ci`; tasks.js installs src-widgets
+                  build: true
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
     # Syncs documentation to GitHub Wiki independently (runs on main pushes and tags)
