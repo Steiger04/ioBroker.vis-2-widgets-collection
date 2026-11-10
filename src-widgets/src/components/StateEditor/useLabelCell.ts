@@ -25,35 +25,26 @@ const labelCellOf = (anchor: HTMLElement | null): HTMLElement | null => {
 };
 
 /**
- * Finds the label cell of the attribute row around an element of the value cell.
+ * Finds the label cell of the attribute row around an element of the value cell and, while
+ * `dimmed`, greys it like a disabled vis-2 row (`fieldTitleDisabled`: opacity 0.8) — vis-2 cannot
+ * grey the label itself. One lookup serves both.
  *
  * @param anchorRef An element inside the field's value cell.
+ * @param dimmed Whether the label is greyed (default: not).
  * @returns The label cell, or `null` outside a vis-2 attribute row.
  */
-export const useLabelCell = (anchorRef: React.RefObject<HTMLElement | null>): HTMLElement | null => {
+export const useLabelCell = (anchorRef: React.RefObject<HTMLElement | null>, dimmed = false): HTMLElement | null => {
     const [cell, setCell] = useState<HTMLElement | null>(null);
     useLayoutEffect(() => {
-        setCell(labelCellOf(anchorRef.current));
-    }, [anchorRef]);
-    return cell;
-};
-
-/**
- * Greys the label cell like a disabled vis-2 row (`fieldTitleDisabled`: opacity 0.8) while
- * `dimmed` — vis-2 cannot grey the label itself.
- *
- * @param anchorRef An element inside the field's value cell.
- * @param dimmed Whether the label is greyed.
- */
-export const useDimmedLabelCell = (anchorRef: React.RefObject<HTMLElement | null>, dimmed: boolean): void => {
-    useLayoutEffect(() => {
-        const cell = dimmed ? labelCellOf(anchorRef.current) : null;
-        if (!cell) {
+        const found = labelCellOf(anchorRef.current);
+        setCell(found);
+        if (!found || !dimmed) {
             return undefined;
         }
-        cell.style.opacity = '0.8';
+        found.style.opacity = '0.8';
         return () => {
-            cell.style.opacity = '';
+            found.style.opacity = '';
         };
     }, [anchorRef, dimmed]);
+    return cell;
 };
