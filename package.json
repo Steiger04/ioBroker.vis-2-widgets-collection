@@ -24,6 +24,7 @@
     "@alcalzone/release-script-plugin-manual-review": "^5.2.0",
     "@iobroker/build-tools": "^3.0.3",
     "@iobroker/eslint-config": "^2.3.4",
+    "@iobroker/testing": "^6.3.2",
     "@iobroker/vis-2-widgets-testing": "^2.0.1",
     "@types/node": "^26.6.6",
     "dotenv": "^18.0.10"
@@ -48,6 +49,7 @@
     "release-minor-dry": "release-script minor --dry",
     "release-major-dry": "release-script major --dry",
     "test": "mocha ./test/*.test.js && cd src-widgets && npm test",
+    "test:package": "mocha test/package.test.js --exit",
     "update-packages": "ncu --upgrade && cd src-widgets && ncu --upgrade && cd ..",
     "npm": "npm i && cd src-widgets && npm i",
     "lint": "eslint",
