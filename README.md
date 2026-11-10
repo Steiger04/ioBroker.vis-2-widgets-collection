@@ -85,8 +85,7 @@ reads them from there.
 ---
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 3.0.0 (2026-11-10)
 
 - (steiger04) **BREAKING** vis-2 2.20.0 or newer is required: the widgets now use the MUI 9 shared by the vis-2 host; older hosts are rejected at installation
 - (steiger04) **BREAKING** the collection theme's CSS variables are named `--vis2c-*` instead of `--mui-*`; custom CSS must switch to `--vis2c-palette-*`
