@@ -15,7 +15,8 @@ src-widgets/node_modules
 skills-lock.json
 
 tmp
-# widgets
+# Build output of `npm run build`; the CI deploy job builds it for npm (ADR-0113)
+/widgets
 *.tgz
 
 #ignore .commitinfo created by ioBroker release script
