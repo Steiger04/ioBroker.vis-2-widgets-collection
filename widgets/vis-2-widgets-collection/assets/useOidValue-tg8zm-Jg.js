@@ -1,1 +1,0 @@
-import{j as r,g as _,e as m,m as u}from"./_virtual_mf___mfe_internal__vis2CollectionWidget__mf_owner__242393638373206__loadShare__shared-B9dCQ1YA.js";import{C as n}from"./usePopoverPositioning-B67hhDaJ.js";const c=t=>{const{getPropertyValue:o}=r(n),e=_(()=>o(t),[t,o]),[s,a]=m(e);return u(()=>{a(e)},[e]),_(()=>s,[s])};export{c as u};
