@@ -7,7 +7,9 @@
  * stack over an immutable working copy — the theme studio's `UserTheme` draft and the echarts
  * configurator's `EditorState` both use it. Snapshots are cheap references (callers update
  * immutably), past/present/future live in ONE state object so every transition is a single
- * atomic update (StrictMode-safe: no nested setState calls inside updaters).
+ * atomic update (StrictMode-safe: no nested setState calls inside updaters). The coalescing
+ * bookkeeping rides in the same state (no ref), so `rebase` is a plain state update — safe while
+ * rendering, where a load issues it.
  *
  * Continuous edits (slider drags, text typing) would flood the stack with one entry per
  * intermediate value. Callers therefore pass a `coalesceKey`: consecutive `set` calls with the
@@ -19,7 +21,7 @@
  * useState wrapper around it.
  */
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState, type RefObject } from 'react';
 
 /** Maximum number of undo steps kept. */
 export const HISTORY_LIMIT = 50;
@@ -34,10 +36,17 @@ export interface HistoryState<T> {
     future: T[];
 }
 
-/** Bookkeeping for coalescing — write-only, never rendered. */
+/** Bookkeeping for coalescing — never rendered. */
 export interface LastEdit {
     key: string;
     time: number;
+}
+
+/** The history with its coalescing bookkeeping — one state, so every transition is one update. */
+interface TrackedHistory<T> {
+    history: HistoryState<T>;
+    /** The last coalescable edit; `null` once undo, redo, rebase or an unkeyed edit ended the run. */
+    lastEdit: LastEdit | null;
 }
 
 /** A new value, or an updater computing it from the previous present. */
@@ -114,7 +123,7 @@ export interface EditorHistory<T> {
     canUndo: boolean;
     /** Whether a redo step is available. */
     canRedo: boolean;
-    /** Rebases the history to a fresh value without an entry (load/hydrate). */
+    /** Rebases the history to a fresh value without an entry (load/hydrate; callable while rendering). */
     rebase: (value: T) => void;
 }
 
@@ -197,33 +206,36 @@ export function useEditorHistoryKeys<T>(
  * @returns The history API (see {@link EditorHistory}).
  */
 export function useEditorHistory<T>(initial: T): EditorHistory<T> {
-    const [state, setState] = useState<HistoryState<T>>({ past: [], present: initial, future: [] });
-
-    // Coalescing state lives in a ref — it is write-only bookkeeping, not render data.
-    const lastEdit = useRef<LastEdit | null>(null);
+    const [{ history: state }, setState] = useState<TrackedHistory<T>>({
+        history: { past: [], present: initial, future: [] },
+        lastEdit: null,
+    });
 
     const set = useCallback((next: EditorHistoryInput<T>, coalesceKey?: string): void => {
         const now = Date.now();
-        const coalesce = coalesceKey !== undefined && shouldCoalesce(lastEdit.current, coalesceKey, now);
-        lastEdit.current = coalesceKey !== undefined ? { key: coalesceKey, time: now } : null;
-
-        setState(prev => historyReducer(prev, { type: 'set', next, coalesce }));
+        setState(prev => ({
+            history: historyReducer(prev.history, {
+                type: 'set',
+                next,
+                coalesce: coalesceKey !== undefined && shouldCoalesce(prev.lastEdit, coalesceKey, now),
+            }),
+            lastEdit: coalesceKey !== undefined ? { key: coalesceKey, time: now } : null,
+        }));
     }, []);
 
-    const undo = useCallback((): void => {
-        lastEdit.current = null;
-        setState(prev => historyReducer(prev, { type: 'undo' }));
+    // Undo, redo and rebase end the coalescing run; a no-op transition keeps the state.
+    const endRun = useCallback((action: HistoryAction<T>): void => {
+        setState(prev => {
+            const history = historyReducer(prev.history, action);
+            return history === prev.history && prev.lastEdit === null ? prev : { history, lastEdit: null };
+        });
     }, []);
 
-    const redo = useCallback((): void => {
-        lastEdit.current = null;
-        setState(prev => historyReducer(prev, { type: 'redo' }));
-    }, []);
+    const undo = useCallback((): void => endRun({ type: 'undo' }), [endRun]);
 
-    const rebase = useCallback((value: T): void => {
-        lastEdit.current = null;
-        setState(prev => historyReducer(prev, { type: 'rebase', value }));
-    }, []);
+    const redo = useCallback((): void => endRun({ type: 'redo' }), [endRun]);
+
+    const rebase = useCallback((value: T): void => endRun({ type: 'rebase', value }), [endRun]);
 
     return {
         present: state.present,
