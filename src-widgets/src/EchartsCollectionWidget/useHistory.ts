@@ -134,21 +134,16 @@ export function useHistory<T = unknown>(
         opts.maxPoints,
     ]);
 
-    // Every new request (the fetch effect's inputs) starts loading while rendering — already in
-    // the commit that asks for it; the fetch ends it. A disabled hook starts no request.
-    const request = { getHistory, entriesKey, optsKey, enabled: opts.enabled, tick, planFetch: opts.planFetch };
+    // The request: the fetch effect's inputs — ONE list for its dependency array and for the
+    // loading start below, so both always see the same request.
+    const request = [getHistory, entriesKey, optsKey, opts.enabled, tick, opts.planFetch] as const;
+    // Every new request starts loading while rendering — already in the commit that asks for it;
+    // the fetch ends it. A disabled hook starts no request.
     const [requested, setRequested] = useState(request);
     const [loading, setLoading] = useState(opts.enabled !== false);
-    if (
-        requested.getHistory !== request.getHistory ||
-        requested.entriesKey !== request.entriesKey ||
-        requested.optsKey !== request.optsKey ||
-        requested.enabled !== request.enabled ||
-        requested.tick !== request.tick ||
-        requested.planFetch !== request.planFetch
-    ) {
+    if (request.some((input, i) => input !== requested[i])) {
         setRequested(request);
-        if (request.enabled !== false) {
+        if (opts.enabled !== false) {
             setLoading(true);
         }
     }
@@ -200,7 +195,7 @@ export function useHistory<T = unknown>(
             clearTimeout(debounceRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getHistory, entriesKey, optsKey, opts.enabled, tick, opts.planFetch]);
+    }, request);
 
     // Periodic refresh (polling) — the only live-refresh path (no push, per 02).
     useEffect(() => {

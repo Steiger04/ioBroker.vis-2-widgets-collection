@@ -64,8 +64,9 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
             // Switch track), computed from the mode — no CSS variables (ADR-0078).
             return theme.palette.mode === 'light' ? theme.palette.common.black : theme.palette.common.white;
         case 'switchThumbOff':
-            // MUI 6.5.0 Switch default (SwitchSwitchBase `color`), computed from the mode — the
-            // collection theme carries no CSS variables (ADR-0078). Re-check on a MUI upgrade.
+            // MUI 6.5.0 Switch default (SwitchSwitchBase `color`, unchanged in 9.5.0), computed from
+            // the mode — the collection theme carries no CSS variables (ADR-0078). Re-check on a MUI
+            // upgrade.
             return theme.palette.mode === 'light' ? theme.palette.common.white : theme.palette.grey[300];
         case 'transparent':
         case undefined:

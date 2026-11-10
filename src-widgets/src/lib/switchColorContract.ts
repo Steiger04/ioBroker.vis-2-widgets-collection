@@ -18,8 +18,8 @@
  * both tracks without rewriting user data (ADR-0004).
  *
  * The track alpha is frozen presentation, not contract (pattern Button-Group separator):
- * MUI 6.5.0's fixed track opacity — off 0.38 light / 0.3 dark, on 0.5 — applies to every
- * track colour, an explicit one too; the swatch shows the colour without it.
+ * MUI's fixed track opacity (6.5.0, unchanged in 9.5.0) — off 0.38 light / 0.3 dark, on 0.5 —
+ * applies to every track colour, an explicit one too; the swatch shows the colour without it.
  *
  * `resolveSwitchColors` keeps all of the Switch's colour rules in one place. The explicit
  * value is drawn raw, as stored (ADR-0004 review fix P2: colour names, `transparent`,
@@ -79,7 +79,7 @@ export interface SwitchStateColors {
     thumb: string;
     /** The track: the explicit value (own field, then the legacy `trackColor`) as stored, else the terminal. */
     track: string;
-    /** The track's CSS opacity — frozen presentation (MUI 6.5.0), the Sperre's alpha while locked. */
+    /** The track's CSS opacity — frozen presentation (MUI 6.5.0 = 9.5.0), the Sperre's alpha while locked. */
     trackAlpha: number;
 }
 
@@ -92,8 +92,8 @@ export interface SwitchColors {
 }
 
 /**
- * The thumb colours MUI 6.5.0 paints while the switch is disabled (Switch.js, non-`vars`
- * branch — the collection theme carries no CSS variables, ADR-0078): off `grey[100]` /
+ * The thumb colours MUI 6.5.0 paints while the switch is disabled, unchanged in 9.5.0 (Switch.js,
+ * non-`vars` branch — the collection theme carries no CSS variables, ADR-0078): off `grey[100]` /
  * `grey[600]`, on the `primary` colour variant's `lighten(main, 0.62)` / `darken(main, 0.55)`.
  * Re-check on a MUI upgrade.
  */
@@ -105,10 +105,10 @@ function lockedThumbDefaults(theme: Theme): { on: string; off: string } {
 }
 
 /**
- * MUI 6.5.0's fixed track opacity (Switch.js, non-`vars` branch): `SwitchTrack` off 0.38 light /
- * 0.3 dark, `.Mui-checked + track` 0.5; locked, `.Mui-disabled + track` 0.12 light / 0.2 dark in
- * both states (the later rule of equal specificity wins over the checked one). Re-check on a
- * MUI upgrade.
+ * MUI 6.5.0's fixed track opacity, unchanged in 9.5.0 (Switch.js, non-`vars` branch):
+ * `SwitchTrack` off 0.38 light / 0.3 dark, `.Mui-checked + track` 0.5; locked, `.Mui-disabled +
+ * track` 0.12 light / 0.2 dark in both states (the later rule of equal specificity wins over the
+ * checked one). Re-check on a MUI upgrade.
  */
 function trackAlphas(theme: Theme, locked: boolean): { on: number; off: number } {
     const light = theme.palette.mode === 'light';

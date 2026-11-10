@@ -62,10 +62,10 @@ const useSize = (ref: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | nu
 
     // Re-sized while rendering whenever the measurement or the shape changes; without a usable
     // measurement the last size stays.
-    const sizeKey = [clientWidth, clientHeight, widgetConfig.isSquare, widgetConfig.isCircle].join('|');
-    const [sizedFor, setSizedFor] = useState<string>();
-    if (sizedFor !== sizeKey) {
-        setSizedFor(sizeKey);
+    const sizeInputs = [clientWidth, clientHeight, widgetConfig.isSquare, widgetConfig.isCircle] as const;
+    const [sizedFor, setSizedFor] = useState<typeof sizeInputs>();
+    if (!sizedFor || sizeInputs.some((input, i) => input !== sizedFor[i])) {
+        setSizedFor(sizeInputs);
         if (clientWidth && clientHeight && clientWidth >= 0 && clientHeight >= 0) {
             if (!widgetConfig.isSquare && !widgetConfig.isCircle) {
                 setWidth('100%');
