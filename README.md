@@ -88,17 +88,13 @@ reads them from there.
 
 ### **WORK IN PROGRESS**
 
-- (steiger04) **BREAKING** ECharts: the color scale (color by value) moved from the chart to each line, bar and scatter series (Style tab) — every series gets its own min/max and colors; the chart-level color scale tab is gone and its old settings are not migrated
-- (steiger04) ECharts: without own settings a series color scale runs light → series color → dark, follows color and palette changes, inherits min/max from the bound y-axis or the series data, and honours the stop positions of a chosen gradient; an entered min ≥ max is flagged on the series card; on percent-stacked bars min/max are entered in percent, like the axis shows them
-- (steiger04) ECharts configurator fixed: the preview header counts the series of a table chart (no more "0 series") and the problem counter reads "1 problem"
-- (steiger04) ECharts fixed: the area fill "Gradient" without a chosen gradient now draws a real gradient of the series color (full → half → transparent) instead of a flat fill
-- (steiger04) ECharts fixed: charts with numeric string states now plot — the shared intake reads prefix numbers, comma decimals and bool texts (unreadable becomes a gap, never a faked 0)
-- (steiger04) ECharts: per-series value mapping (raw value → number or deliberate gap), formula context symbols smin/smax/savg/sfirst/slast, smoothing window and running total extend the value chain; legend values now read the same final series the axis shows
-- (steiger04) ECharts configurator: corrected, consistent texts and terms in all languages (misleading hints fixed, one name per concept)
-- (steiger04) ECharts configurator: compact series card tabs (Basics · Data · Style · Format · JSON) that fit the side rail, a series count in the JSON summary and uniform colour fields
-- (steiger04) ECharts configurator: structural changes (switching family, data mode or payload family, deleting an axis, unit mismatch) are reported once in a snackbar with Undo instead of permanent warning chips; switching away from JSON now counts its series correctly
-- (steiger04) ECharts fixed: the bar stack mode is offered in every data mode, and "100 % stacked" now also normalizes JSON and table data (before, JSON stacked absolute values unnoticed)
-- (steiger04) ECharts configurator: history, JSON and table series share one series card — table series can be duplicated, JSON series are hidden via an eye icon ("Hide series"), the type select appears from two series on, and copies keep the visible series name
+- (steiger04) **BREAKING** vis-2 2.20.0 or newer is required: the widgets now use the MUI 9 shared by the vis-2 host; older hosts are rejected at installation
+- (steiger04) **BREAKING** the collection theme's CSS variables are named `--vis2c-*` instead of `--mui-*`; custom CSS must switch to `--vis2c-palette-*`
+- (steiger04) **BREAKING** Dialog: without an own background color the dialog area is now transparent; set the color to keep an opaque surface
+- (steiger04) New ECharts widget: line, bar, scatter and pie/donut charts from history or JSON data, set up in its own configurator
+- (steiger04) New color picker for all color fields (any CSS color, theme presets, inherited colors visible) and a new state editor for the value rows (search, drag-and-drop, several widgets at once)
+- (steiger04) Theme studio reworked: resizable panel, hex input next to each swatch, rounded corners set per corner in a 2×2 layout, presets in their own section
+- (steiger04) Many fixes across all widgets
 
 ### 2.6.0 (2026-07-24)
 
