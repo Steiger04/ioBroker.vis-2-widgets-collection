@@ -52,8 +52,6 @@
         "rxjs": "^7.8.2"
     },
     "scripts": {
-        "### start ###": "set BROWSER=none&& set PORT=4173 && craco start",
-        "### build ###": "craco build",
         "start": "vite --port 4173",
         "build": "tsc && vite build",
         "gen-previews": "node scripts/gen-previews.mjs",
