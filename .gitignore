@@ -1,7 +1,6 @@
 .idea
 # ioBroker dev-server
 .dev-server/
-.github/copilot-instructions.md
 
 node_modules
 
@@ -9,10 +8,6 @@ src-widgets/.__mf__temp
 src-widgets/.mf
 src-widgets/build
 src-widgets/node_modules
-
-# /src-widgets/package-lock.json
-# /package-lock.json
-skills-lock.json
 
 tmp
 # Build output of `npm run build`; the CI deploy job builds it for npm (ADR-0113)
@@ -22,27 +17,4 @@ tmp
 #ignore .commitinfo created by ioBroker release script
 .commitinfo
 
-AGENTS.md
-
 .env
-
-# Claude Code
-.mcp.json
-.claude
-CLAUDE.md
-.agents
-
-#kilocode
-.kilocode
-plans
-scripts
-!scripts/
-!scripts/i18n-sync.js
-.kilocodemodes
-.scratch
-docs
-demos-echarts
-src-widgets/input
-.tokensave
-.zcode
-.playwright-mcp

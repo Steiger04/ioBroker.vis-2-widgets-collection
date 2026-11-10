@@ -16,15 +16,9 @@ export default [
     {
         // specify files to exclude from linting here
         ignores: [
-            '.agents/',
-            '.claude/',
             '.dev-server/',
             '.github/',
-            '.kilocode/',
-            '.scratch/',
             '.vscode/',
-            'demos-echarts/',
-            'docs/',
             'node_modules/',
             'scripts/',
             'src-widgets/.__mf__temp/',
