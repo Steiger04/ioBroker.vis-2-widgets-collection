@@ -70,7 +70,7 @@ function fetchOrigin() {
 }
 
 /** Commit hash of `ref`, or null when the ref does not exist. */
-function resolve(ref) {
+function resolveCommit(ref) {
     const { status, stdout } = git('rev-parse', '--verify', '--quiet', `${ref}^{commit}`);
     return status === 0 ? stdout : null;
 }
@@ -88,8 +88,8 @@ function isAncestor(ancestor, descendant) {
 /** The local branch must point to the same commit as origin/<branch>. */
 function requireEqualToOrigin(branch, aheadNextStep = '`git push`') {
     const remote = `origin/${branch}`;
-    const localHash = resolve(`refs/heads/${branch}`);
-    const remoteHash = resolve(`refs/remotes/${remote}`);
+    const localHash = resolveCommit(`refs/heads/${branch}`);
+    const remoteHash = resolveCommit(`refs/remotes/${remote}`);
     if (!remoteHash) {
         throw new Abort(`${remote} gibt es nicht – erst \`git push -u origin ${branch}\`.`);
     }
@@ -108,7 +108,7 @@ function requireEqualToOrigin(branch, aheadNextStep = '`git push`') {
 }
 
 function requireLocalBranch(branch) {
-    if (!resolve(`refs/heads/${branch}`)) {
+    if (!resolveCommit(`refs/heads/${branch}`)) {
         throw new Abort(`Den lokalen Branch ${branch} gibt es nicht – erst \`git branch ${branch} origin/${branch}\`.`);
     }
 }
@@ -123,7 +123,7 @@ function requireAncestor(ancestor, descendant, nextStep) {
 }
 
 /** Runs a changing git step; its output is shown, a failure ends the run with exit code 1. */
-function step(...args) {
+function runGitStep(...args) {
     console.log(`→ git ${args.join(' ')}`);
     const { status, stdout, stderr } = git(...args);
     const output = [stdout, stderr].filter(Boolean).join('\n');
@@ -142,8 +142,8 @@ function sync() {
     requireEqualToOrigin('dev');
     requireLocalBranch('main');
     requireAncestor('main', 'dev', 'main in dev übernehmen (auf dev `git merge main`, dann `git push`)');
-    step('checkout', '--quiet', 'main');
-    step('merge', '--ff-only', '--quiet', 'dev');
+    runGitStep('checkout', '--quiet', 'main');
+    runGitStep('merge', '--ff-only', '--quiet', 'dev');
     console.log('✓ main steht auf dev. Jetzt README pflegen und das Release-Skript starten.');
 }
 
@@ -159,16 +159,16 @@ function finish() {
         'den Release-Commit ohne Fast-Forward übernehmen (auf dev `git merge main`, dann `git push`)',
     );
     // Otherwise the final push of dev would be rejected after dev was already moved locally.
-    if (resolve('refs/remotes/origin/dev')) {
+    if (resolveCommit('refs/remotes/origin/dev')) {
         requireAncestor(
             'origin/dev',
             'main',
             'auf dev `git pull --ff-only`, dann den Release-Commit übernehmen (`git merge main`) und `git push`',
         );
     }
-    step('checkout', '--quiet', 'dev');
-    step('merge', '--ff-only', '--quiet', 'main');
-    step('push', '--quiet', 'origin', 'dev');
+    runGitStep('checkout', '--quiet', 'dev');
+    runGitStep('merge', '--ff-only', '--quiet', 'main');
+    runGitStep('push', '--quiet', 'origin', 'dev');
     console.log('✓ dev steht auf dem Release-Commit und ist gepusht.');
 }
 
