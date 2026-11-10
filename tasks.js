@@ -26,12 +26,19 @@ function copyAllFiles() {
     copyFiles([`${SRC}build/img/*`], `widgets/${adapterName}/img`);
 }
 
+// report the error and end with a non-zero exit code, so callers (release script, CI,
+// dev-server watch) see the failure; exitCode instead of exit() lets the output flush
+function fail(message) {
+    console.error(message);
+    process.exitCode = 1;
+}
+
 if (process.argv.includes('--0-clean')) {
     clean();
 } else if (process.argv.includes('--1-npm')) {
-    npmInstall(src, npmOptions).catch(e => console.error(`Cannot install npm modules: ${e}`));
+    npmInstall(src, npmOptions).catch(e => fail(`Cannot install npm modules: ${e}`));
 } else if (process.argv.includes('--2-build')) {
-    buildReact(src, { rootDir: __dirname, vite: true }).catch(e => console.error(`Cannot build: ${e}`));
+    buildReact(src, { rootDir: __dirname, vite: true }).catch(e => fail(`Cannot build: ${e}`));
 } else if (process.argv.includes('--3-copy')) {
     copyAllFiles();
 } else {
@@ -39,5 +46,5 @@ if (process.argv.includes('--0-clean')) {
     npmInstall(src, npmOptions)
         .then(() => buildReact(src, { rootDir: __dirname, vite: true }))
         .then(() => copyAllFiles())
-        .catch(e => console.error(`Cannot build: ${e}`));
+        .catch(e => fail(`Cannot build: ${e}`));
 }
