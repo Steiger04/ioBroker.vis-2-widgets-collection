@@ -106,6 +106,17 @@ describe('tasks.js exit code', function () {
         assert.notStrictEqual(result.status, 0, result.stdout + result.stderr);
     });
 
+    it('--3-copy fails when the build output is missing', () => {
+        const result = runTasks(dir, ['--3-copy']);
+        assert.notStrictEqual(result.status, 0, result.stdout + result.stderr);
+    });
+
+    it('the full build fails when vite leaves no build output', () => {
+        write(path.join(dir, 'src-widgets', 'node_modules', 'vite', 'bin', 'vite.js'), '');
+        const result = runTasks(dir, [], { fakeBin: fakeNpm(dir, 0) });
+        assert.notStrictEqual(result.status, 0, result.stdout + result.stderr);
+    });
+
     it('the full build fails when vite fails', () => {
         fakeVite(dir, 1);
         const result = runTasks(dir, [], { fakeBin: fakeNpm(dir, 0) });

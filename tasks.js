@@ -4,6 +4,7 @@
  */
 'use strict';
 
+const { existsSync } = require('node:fs');
 const adapterName = require('./package.json').name.replace('iobroker.', '');
 const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles } = require('@iobroker/build-tools');
 
@@ -18,6 +19,13 @@ function clean() {
 }
 
 function copyAllFiles() {
+    // copyFiles silently copies nothing for a missing source; without the bundle
+    // entry the package would ship without widgets
+    for (const file of ['customWidgets.js', 'mf-manifest.json']) {
+        if (!existsSync(`${src}build/${file}`)) {
+            throw new Error(`Build output "${SRC}build/${file}" is missing`);
+        }
+    }
     copyFiles([`${SRC}build/customWidgets.js`], `widgets/${adapterName}`);
     // vis-2 reads mf-manifest.json next to the remote entry to validate that a
     // widget set shares react and react/jsx-runtime before loading it
@@ -40,7 +48,11 @@ if (process.argv.includes('--0-clean')) {
 } else if (process.argv.includes('--2-build')) {
     buildReact(src, { rootDir: __dirname, vite: true }).catch(e => fail(`Cannot build: ${e}`));
 } else if (process.argv.includes('--3-copy')) {
-    copyAllFiles();
+    try {
+        copyAllFiles();
+    } catch (e) {
+        fail(`Cannot copy files: ${e}`);
+    }
 } else {
     clean();
     npmInstall(src, npmOptions)
