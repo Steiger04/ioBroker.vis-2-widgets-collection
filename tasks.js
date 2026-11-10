@@ -20,18 +20,21 @@ function clean() {
     deleteFoldersRecursive(`${__dirname}/widgets`);
 }
 
+// the remote entry, and mf-manifest.json next to it: vis-2 reads the manifest to validate
+// that a widget set shares react and react/jsx-runtime before loading it
+const BUNDLE_FILES = ['customWidgets.js', 'mf-manifest.json'];
+
 function copyAllFiles() {
     // copyFiles silently copies nothing for a missing source; without the bundle
     // entry the package would ship without widgets
-    for (const file of ['customWidgets.js', 'mf-manifest.json']) {
+    for (const file of BUNDLE_FILES) {
         if (!existsSync(`${src}build/${file}`)) {
             throw new Error(`Build output "${SRC}build/${file}" is missing`);
         }
     }
-    copyFiles([`${SRC}build/customWidgets.js`], `widgets/${adapterName}`);
-    // vis-2 reads mf-manifest.json next to the remote entry to validate that a
-    // widget set shares react and react/jsx-runtime before loading it
-    copyFiles([`${SRC}build/mf-manifest.json`], `widgets/${adapterName}`);
+    for (const file of BUNDLE_FILES) {
+        copyFiles([`${SRC}build/${file}`], `widgets/${adapterName}`);
+    }
     copyFiles([`${SRC}build/assets/*.*`], `widgets/${adapterName}/assets`);
     copyFiles([`${SRC}build/img/*`], `widgets/${adapterName}/img`);
 }
