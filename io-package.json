@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "news": {
+      "3.0.1": {
+        "en": "Same content as 3.0.0, whose release build failed before it reached npm",
+        "de": "Derselbe Inhalt wie 3.0.0, dessen Release-Build vor npm fehlschlug",
+        "ru": "То же содержимое, что и в версии 3.0.0, сборка релиза которой завершилась неудачей до достижения npm",
+        "pt": "Mesmo conteúdo do 3.0.0, cuja versão falhou antes de chegar ao npm",
+        "nl": "Zelfde inhoud als 3.0.0, waarvan de opbouw van de release is mislukt voordat de npm werd bereikt",
+        "fr": "Même contenu que la 3.0.0, dont la version a échoué avant npm",
+        "it": "Stesso contenuto della 3.0.0, la cui build è fallita prima di npm",
+        "es": "El mismo contenido que la 3.0.0, cuya versión falló antes de llegar a npm",
+        "pl": "Ta sama zawartość co 3.0.0, której kompilacja wydania nie powiodła się, zanim osiągnęła wartość npm",
+        "uk": "Той самий вміст, що і 3.0.0, збирання випуску якого не вдалося, перш ніж він досяг npm",
+        "zh-cn": "与 3.0.0 的内容相同，其发布版本在到达 npm 之前就失败了"
+      },
       "3.0.0": {
         "en": "**BREAKING** vis-2 2.20.0 or newer is required: the widgets now use the MUI 9 shared by the vis-2 host; older hosts are rejected at installation\n**BREAKING** the collection theme's CSS variables are named `--vis2c-*` instead of `--mui-*`; custom CSS must switch to `--vis2c-palette-*`\n**BREAKING** Dialog: without an own background color the dialog area is now transparent; set the color to keep an opaque surface\nNew ECharts widget: line, bar, scatter and pie/donut charts from history or JSON data, set up in its own configurator\nNew color picker for all color fields (any CSS color, theme presets, inherited colors visible) and a new state editor for the value rows (search, drag-and-drop, several widgets at once)\nTheme studio reworked: resizable panel, hex input next to each swatch, rounded corners set per corner in a 2×2 layout, presets in their own section\nMany fixes across all widgets",
         "de": "**BREAKING** vis-2 2.20.0 oder neuer ist erforderlich: Die Widgets nutzen nun MUI 9 des Vis-2-Hosts; ältere Hosts werden bei der Installation abgelehnt\n**BREAKING** Die CSS-Variablen des Themes heißen `--vis2c-*` statt `--mui-*`; eigenes CSS muss auf `--vis2c-palette-*` wechseln\n**BREAKING** Dialog: Ohne eigene Hintergrundfarbe ist der Dialogbereich jetzt transparent. Stellen Sie die Farbe opak ein\nNeues eCharts-Widget: Linien-, Balken-, Punkt- und Kreisdiagramme aus Historie oder JSON-Daten, eigener Konfigurator\nNeuer Farbwähler für alle Farbfelder (jede CSS-Farbe, Theme-Presets, vererbte Farben sichtbar) und neuer Status-Editor für Wertezeilen (Suchen, Drag-and-Drop, mehrere Widgets auf einmal)\nTheme Studio überarbeitet: anpassbares Panel, Hex-Eingabe neben jedem Feld, abgerundete Ecken im 2×2-Layout, Presets in eigenem Bereich\nViele Fixes für alle Widgets",
@@ -80,19 +93,6 @@
         "pl": "Tabela JSON: poprawki błędów i ulepszenia (obsługa dat, trwałość stanu tabeli, refaktoryzacja)\nColorPickerField: usuwanie odbić dla zdarzeń przeciągania selektora i refaktoryzacja\nCheckboxCollection: refaktoryzacja (funkcje pomocnicze, zapamiętywanie, bezpieczeństwo typu)",
         "uk": "Таблиця JSON: виправлення помилок та покращення (обробка дати, збереження стану таблиці, рефакторинг)\nColorPickerField: виправлення помилок для подій перетягування засобу вибору та рефакторинг\nCheckboxCollection: рефакторинг (допоміжні функції, мемоізація, безпека типів)",
         "zh-cn": "JSON 表格：错误修复和改进（日期处理、表格状态持久化、重构）\nColorPickerField：针对选择器拖动事件的防抖动和重构\nCheckboxCollection：重构（辅助函数、记忆化、类型安全）"
-      },
-      "2.4.1": {
-        "en": "Add HTML rendering support for table cells of Json Table\nBug fixing",
-        "de": "HTML-Rendering-Unterstützung für Tabellenzellen von Json Table hinzufügen\nFehlerbehebung",
-        "ru": "Добавить поддержку HTML-рендеринга для ячеек таблицы Json Table\nИсправление клопов",
-        "pt": "Adicionar suporte de renderização HTML para as células de tabela do Json Table\nResolução de erros",
-        "nl": "HTML-weergaveondersteuning voor tabelcellen van Json Table toevoegen\nBugfixing",
-        "fr": "Ajouter un support de rendu HTML pour les cellules de table de Json Table\nCorrection des bogues",
-        "it": "Aggiungi supporto di rendering HTML per le celle della tabella Json\nCorrezione di bug",
-        "es": "Add HTML rendering support for table cells of Json Table\nCorrección de errores",
-        "pl": "Dodaj obsługę renderowania HTML dla komórek tabeli Json Table\nNaprawianie błędów",
-        "uk": "Додавання HTML рендерингової підтримки для настільних клітин Json Table\nВиправлення помилок",
-        "zh-cn": "为 Json 表格的表格单元格添加 HTML 渲染支持\n修复错误"
       }
     },
     "titleLang": {
