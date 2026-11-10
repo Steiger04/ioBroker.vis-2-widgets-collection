@@ -3,7 +3,7 @@
  *
  * @module lib/stateRows
  * @remarks
- * A Zustandszeile is the set of keys sharing one Feldnummer `n` (CONTEXT.md): every per-state
+ * A Zustandszeile is the set of keys sharing one Feldnummer `n`: every per-state
  * field name with the suffix `n`, plus the legacy keys {@link LEGACY_STATE_ROW_KEYS}
  * (ADR-0104 §2). React-free on purpose — the Zustandseditor's list, toolbar, detail fields, the
  * OID pick and the multi-selection gate all build on it.

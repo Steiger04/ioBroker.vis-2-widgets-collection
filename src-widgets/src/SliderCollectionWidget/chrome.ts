@@ -1,5 +1,5 @@
 /**
- * Pure presentation chrome for the Slider collection widget — the CONTEXT.md term
+ * Pure presentation chrome for the Slider collection widget — the term
  * "Slider-Chrome".
  *
  * @module widgets/SliderCollectionWidget/chrome
@@ -13,7 +13,7 @@
  * did (emotion merged the wrapper's rules into the root class), so the specificity is
  * unchanged.
  *
- * Colours implement the Chrome-Farbvertrag (CONTEXT.md): the cascade of thumb, track, rail
+ * Colours implement the Chrome-Farbvertrag: the cascade of thumb, track, rail
  * and marks is DECLARED once in the component-free contract module (`lib/sliderColorContract`
  * → `sliderColorContracts`, which the fields spread) and resolved here through
  * `resolveEffectiveColor` — no hand-rolled `a || b || theme.x` chains. Label chains (value

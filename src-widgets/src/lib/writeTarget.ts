@@ -3,7 +3,7 @@
  *
  * @module lib/writeTarget
  * @remarks
- * See CONTEXT.md ("Schreibziel"): the write target is the control ID (`cid`) once its
+ * Schreibziel: the write target is the control ID (`cid`) once its
  * object is resolved, otherwise the main OID. Only the write target is written; the
  * display follows the main OID's status alone. The control is read-only iff
  * `onlyDisplay` is set or the write target's OBJECT carries `write === false` — the

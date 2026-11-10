@@ -1,5 +1,5 @@
 /**
- * Unit tests for the chart-padding resolver (chart padding spec, `.scratch/chart-padding/`).
+ * Unit tests for the chart-padding resolver.
  *
  * @module EchartsCollectionWidget/paddingStyle.test
  * @remarks
@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 
 import { resolvePaddingSx } from './paddingStyle';
 
-describe('resolvePaddingSx (4-side chart padding, .scratch/chart-padding/)', () => {
+describe('resolvePaddingSx (4-side chart padding)', () => {
     it('emits nothing when all sides are unset or 0 — the pixel-identical default', () => {
         expect(resolvePaddingSx({})).toEqual({});
         expect(resolvePaddingSx({ top: 0, right: 0, bottom: 0, left: 0 })).toEqual({});

@@ -3,7 +3,7 @@
  *
  * @module lib/theme/validateTheme.test
  * @remarks
- * Guards the corner-radius ceiling (spec `.scratch/eckradius-96`): the slider
+ * Guards the corner-radius ceiling: the slider
  * and the schema must share one limit, because an out-of-range value is an
  * ERROR and therefore discards the ENTIRE theme at load (`useCollectionTheme`
  * falls back to `{}`). The 96/97 literals come from the spec, not from the

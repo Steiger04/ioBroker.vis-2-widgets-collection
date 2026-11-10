@@ -9,14 +9,14 @@
  * definitions across the widget collection.
  *
  * Color resolution contract (ADR 0004): `fallbackFields`, `inheritTextStyle` and
- * `terminal` declare a field's Auflösungskaskade — layered general → specific
- * (CONTEXT.md), resolved from the most specific stage: override → fallback
+ * `terminal` declare a field's Auflösungskaskade — layered general → specific,
+ * resolved from the most specific stage: override → fallback
  * fields → vis-2 style → terminal. The stages and the values each one skips
  * are documented once, at `cascadeCandidates` (`lib/helper/resolveEffectiveColor`).
  *
  * Who walks that cascade whole, through `resolveEffectiveColor` /
  * `resolveEffectiveSolidColor`: the editor swatch (`ContractColorField`), the Gauge's color options and
- * most chrome contract consumers (CONTEXT.md, Chrome-Farbvertrag). The chrome
+ * most chrome contract consumers (Chrome-Farbvertrag). The chrome
  * slots that paint their stored value raw — the Switch's thumbs and tracks and the
  * Radio's unchecked icon — go through `resolveStoredChromeColor`: the field, then
  * its fallback fields, as stored, else a Sperre default, else the terminal, without

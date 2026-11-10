@@ -2,7 +2,7 @@
  * Predicates for treating a cell value as a graphic (image column rendering).
  *
  * Two predicates with different strictness, both operating on the concept of a
- * visual reference (see `CONTEXT.md`):
+ * visual reference:
  *
  * - {@link isImageFileReference} — STRICT. Used by the analysis engine to *classify*
  *   a column as `image`. Only counts values with a strong image signal, so columns of

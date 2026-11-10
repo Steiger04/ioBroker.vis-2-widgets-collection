@@ -6,7 +6,7 @@
  * Extracted from the inline sx literals in the state loop of RadioGroupCollection.tsx (the
  * Button-Group-Chrome pattern: one function for the group, one for the entry) so the
  * orientation/Content-Box interplay is testable as pure data without mounting the widget —
- * the CONTEXT.md term "Radio-Chrome". Behaviour is frozen: every rule reproduces the legacy
+ * the term "Radio-Chrome". Behaviour is frozen: every rule reproduces the legacy
  * inline computation verbatim; the tests pin the results.
  *
  * The icon over the dot and the label (2-line clamp, HTML) are per-state content, not chrome;

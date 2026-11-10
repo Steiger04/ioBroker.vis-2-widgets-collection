@@ -88,7 +88,7 @@ function validColor(value: unknown): string | undefined {
 
 /**
  * The stages of the Auflösungskaskade as candidates — the one place they are
- * spelled out. The cascade is layered general → specific (CONTEXT.md); the
+ * spelled out. The cascade is layered general → specific; the
  * candidates come most specific first, so the first one a resolver accepts is
  * the most specific set value. Lazy, so a resolver stops there. Both resolvers
  * below walk it:
@@ -160,7 +160,7 @@ export function resolveEffectiveColor(
  *
  * Same Auflösungskaskade as {@link resolveEffectiveColor} ({@link cascadeCandidates}),
  * but each stage counts only with its
- * Repräsentative Vollfarbe (`CONTEXT.md`, Farb- & Theme-Auflösung): a gradient
+ * Repräsentative Vollfarbe: a gradient
  * yields its midpoint color, and a stage without one (a color name, `transparent`,
  * `var(…)`, a gradient without hex/rgb stops) counts as inheriting (the
  * glossary state "Erben") — the cascade continues.

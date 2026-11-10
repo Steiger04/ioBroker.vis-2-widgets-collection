@@ -10,7 +10,7 @@
  * box-shadow separators, the vertical per-button cap, the hover/selected
  * lightening with its gradient escape — is testable as pure data without
  * mounting the widget. Behaviour is frozen: every rule reproduces the legacy
- * inline computation verbatim; the tests pin the results — the CONTEXT.md term
+ * inline computation verbatim; the tests pin the results — the term
  * "Button-Group-Chrome". The separator/border colour is a colour contract
  * (ADR-0004, the Slider's Chrome-Farbvertrag pattern): the `buttonGroupColor`
  * field declares `buttonGroupColorContract` (explicit value → theme text) and

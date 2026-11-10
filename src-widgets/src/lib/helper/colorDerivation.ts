@@ -7,7 +7,7 @@
  * gradient, a color name, `transparent`, a CSS variable ("MUI: Unsupported …
  * color"). Every derivation outside ECharts and the configurator goes through
  * this module instead: the value is first reduced to its Repräsentative
- * Vollfarbe (`CONTEXT.md`, Farb- & Theme-Auflösung) — a solid color a color
+ * Vollfarbe — a solid color a color
  * calculation reads stands for itself, a gradient for its color at the
  * midpoint, anything else for none — and a value without one derives
  * `undefined`, never an exception.

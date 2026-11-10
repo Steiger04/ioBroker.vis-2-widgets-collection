@@ -1,5 +1,5 @@
 /**
- * The ONE Spaltenfilter of the JSON table (CONTEXT.md „Spaltenfilter").
+ * The ONE Spaltenfilter of the JSON table.
  *
  * @module JsonTableCollectionWidget/columnFilter
  * @remarks

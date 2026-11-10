@@ -4,7 +4,7 @@
  * @module hooks/useData/useData.hook.test
  * @remarks
  * Pins the state identity across a blank value row, where a state's Feldnummer and its
- * position in `states` diverge (CONTEXT.md "Feldnummer"). Mounted on the real
+ * position in `states` diverge. Mounted on the real
  * CollectionProvider over a preview scene (the Select/ButtonGroup DOM-test pattern), so
  * the style resolution runs exactly as inside a widget.
  */

@@ -1,5 +1,5 @@
 /**
- * The ONE resolution of the Ansichtszustand (CONTEXT.md, ADR-0092).
+ * The ONE resolution of the Ansichtszustand (ADR-0092).
  *
  * @module JsonTableCollectionWidget/viewState
  * @remarks

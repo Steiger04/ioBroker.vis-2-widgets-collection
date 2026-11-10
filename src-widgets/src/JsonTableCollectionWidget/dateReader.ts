@@ -1,5 +1,5 @@
 /**
- * The ONE Datums-Leser of the JSON table (CONTEXT.md, ADR-0093).
+ * The ONE Datums-Leser of the JSON table (ADR-0093).
  *
  * @module JsonTableCollectionWidget/dateReader
  * @remarks

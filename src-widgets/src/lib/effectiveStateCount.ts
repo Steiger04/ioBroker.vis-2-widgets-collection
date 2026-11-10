@@ -3,7 +3,7 @@
  *
  * @module lib/effectiveStateCount
  * @remarks
- * See CONTEXT.md ("Zustandsmenge"): `ignoreCommonStates === false` → the authored rows
+ * Zustandsmenge: `ignoreCommonStates === false` → the authored rows
  * (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to
  * `values_count` when absent (e.g. boolean OIDs without commonStates).
  */

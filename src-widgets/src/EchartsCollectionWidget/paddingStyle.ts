@@ -1,5 +1,5 @@
 /**
- * The chart-padding resolver (chart padding spec, `.scratch/chart-padding/`) — pure CSS decision
+ * The chart-padding resolver — pure CSS decision
  * for the 4-side inset between the widget edge and everything the diagram renders.
  *
  * @module EchartsCollectionWidget/paddingStyle

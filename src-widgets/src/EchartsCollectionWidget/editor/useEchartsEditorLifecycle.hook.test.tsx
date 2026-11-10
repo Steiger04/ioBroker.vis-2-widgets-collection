@@ -1,6 +1,6 @@
 /**
  * useEchartsEditorLifecycle + useJsonAxisReconcile — the open path over a stored serien-förmig
- * JSON overlay (Bug B, `.scratch/echarts-json-achse-je-serie`).
+ * JSON overlay.
  *
  * @module EchartsCollectionWidget/editor/useEchartsEditorLifecycle.hook.test
  * @remarks

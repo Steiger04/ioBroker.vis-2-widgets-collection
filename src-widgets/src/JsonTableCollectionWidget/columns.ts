@@ -1,5 +1,5 @@
 /**
- * The ONE Spalten-Merge of the JSON table (CONTEXT.md, ADR-0094).
+ * The ONE Spalten-Merge of the JSON table (ADR-0094).
  *
  * @module JsonTableCollectionWidget/columns
  * @remarks

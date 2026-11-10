@@ -1,5 +1,5 @@
 /**
- * The ONE resolution of the Tabellen-Fähigkeiten and the Effektiver Typ (CONTEXT.md).
+ * The ONE resolution of the Tabellen-Fähigkeiten and the Effektiver Typ.
  *
  * @module JsonTableCollectionWidget/capabilities
  * @remarks

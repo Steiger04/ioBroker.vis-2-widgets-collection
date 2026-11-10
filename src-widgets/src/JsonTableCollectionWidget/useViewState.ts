@@ -1,5 +1,5 @@
 /**
- * The Ansichtszustand of one table, kept in the browser (CONTEXT.md, ADR-0092).
+ * The Ansichtszustand of one table, kept in the browser (ADR-0092).
  *
  * @module JsonTableCollectionWidget/useViewState
  * @remarks

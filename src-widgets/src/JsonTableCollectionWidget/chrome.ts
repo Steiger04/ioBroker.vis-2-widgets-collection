@@ -1,5 +1,5 @@
 /**
- * The ONE resolution of the Tabellen-Chrome (CONTEXT.md).
+ * The ONE resolution of the Tabellen-Chrome.
  *
  * @module JsonTableCollectionWidget/chrome
  * @remarks

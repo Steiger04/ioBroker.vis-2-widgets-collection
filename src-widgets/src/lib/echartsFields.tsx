@@ -5,7 +5,7 @@
  * @remarks
  * The modal editor is the sole editor for every chart-specific field (map decision 06); the
  * `chart` group exposes the "Edit chart configuration" trigger plus the four panel-owned chart
- * padding sliders (layout, not chart config — `.scratch/chart-padding/`); all other scalars and
+ * padding sliders (layout, not chart config); all other scalars and
  * the `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
  * widget creation). The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
  * getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
@@ -35,7 +35,7 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: guardWidgetData(EchartsConfigEditor),
     },
 
-    // ── Chart padding (4-side, panel-owned layout — not chart config; .scratch/chart-padding/) ──
+    // ── Chart padding (4-side, panel-owned layout — not chart config) ──
     // MUI spacing units like basePadding; CSS on the chart wrapper OUTSIDE the frame, additive
     // beneath basePadding. Default 0 = pixel-identical (the resolver emits no sx key).
     {

@@ -1,5 +1,5 @@
 /**
- * Pure presentation chrome for the Switch collection widget — the CONTEXT.md term
+ * Pure presentation chrome for the Switch collection widget — the term
  * "Schalter-Chrome".
  *
  * @module widgets/SwitchCollectionWidget/chrome

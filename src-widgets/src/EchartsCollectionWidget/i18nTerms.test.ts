@@ -6,7 +6,7 @@ import en from '../i18n/en.json';
  * Term drift guard for the chart configurator texts (spec echarts-configurator-review,
  * ticket 02 / finding C2). Every thing has exactly one name in the UI; the banned
  * synonyms below must not creep back into any `echarts_*` value. Basis for the JSON
- * terms is the glossary entry **Payload-Familie** in CONTEXT.md: the Datenpunkt is the
+ * terms is the Payload-Familie: the Datenpunkt is the
  * state (OID), the Payload its JSON content — never „Dokument".
  *
  * Add a pattern when a new term is pinned; each entry names the replacement so a red

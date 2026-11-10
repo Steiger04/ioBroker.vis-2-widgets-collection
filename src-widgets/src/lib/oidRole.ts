@@ -3,7 +3,7 @@
  *
  * @module lib/oidRole
  * @remarks
- * See CONTEXT.md ("OID-Rolle", "Haupt-OID", "Hilfs-OID"). The role decides which widget
+ * OID-Rolle (Haupt-OID, Hilfs-OID): the role decides which widget
  * data an OID pick owns: only the main OID owns the root fields; the control ID owns
  * `cidObject` plus the `onlyDisplay` suggestion of the write target (ADR-0090); an
  * auxiliary ID owns nothing but its own `<name>Object`.

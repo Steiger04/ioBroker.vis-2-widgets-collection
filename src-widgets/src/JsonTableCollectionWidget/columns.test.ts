@@ -1,5 +1,5 @@
 /**
- * Decision tables for the Spalten-Merge (CONTEXT.md, ADR-0094): the one intake, the one
+ * Decision tables for the Spalten-Merge (ADR-0094): the one intake, the one
  * merge rule and the effective Columns that runtime and editor share.
  *
  * @module JsonTableCollectionWidget/columns.test

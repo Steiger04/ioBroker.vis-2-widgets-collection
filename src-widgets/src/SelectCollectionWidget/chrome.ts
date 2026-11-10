@@ -7,7 +7,7 @@
  * Button-Group-Chrome pattern) so the shell the renderer draws AROUND the
  * per-state content is testable as pure data without mounting the widget: the
  * popup surface, the per-entry hover/selected treatment, the arrow colour and
- * the width bound from the measured content box — the CONTEXT.md term
+ * the width bound from the measured content box — the term
  * "Select-Chrome". Behaviour is frozen: every rule reproduces the legacy
  * inline computation verbatim, with two exceptions — an invalid arrow colour
  * falls back along the arrow contract instead of to the MUI default, and a

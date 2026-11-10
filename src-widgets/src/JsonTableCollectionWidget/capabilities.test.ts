@@ -1,5 +1,5 @@
 /**
- * Decision tables for the Tabellen-Fähigkeiten and the Effektiver Typ (CONTEXT.md).
+ * Decision tables for the Tabellen-Fähigkeiten and the Effektiver Typ.
  *
  * @module JsonTableCollectionWidget/capabilities.test
  * @remarks
