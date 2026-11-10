@@ -10,8 +10,10 @@ const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles } = require('@
 
 const SRC = 'src-widgets/';
 const src = `${__dirname}/${SRC}`;
-// build-tools installs with --force unless told otherwise; the widget package resolves without it
-const npmOptions = { force: false };
+// build-tools installs with --force unless told otherwise; the widget package resolves without it.
+// CI installs exactly from the lockfile (clean → npm ci); locally npm ci would delete
+// src-widgets/node_modules under the running Vite dev server
+const npmOptions = { force: false, clean: !!process.env.CI };
 
 function clean() {
     deleteFoldersRecursive(`${src}build`);

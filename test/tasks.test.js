@@ -123,6 +123,18 @@ describe('tasks.js exit code', function () {
         assert.notStrictEqual(result.status, 0, result.stdout + result.stderr);
     });
 
+    it('installs the widget package with npm ci when CI is set', () => {
+        const result = runTasks(dir, ['--1-npm'], { fakeBin: fakeNpm(dir, 0), ci: true });
+        assert.strictEqual(result.status, 0, result.stdout + result.stderr);
+        assert.strictEqual(npmArgs(dir), 'ci');
+    });
+
+    it('installs the widget package with npm install without CI', () => {
+        const result = runTasks(dir, ['--1-npm'], { fakeBin: fakeNpm(dir, 0) });
+        assert.strictEqual(result.status, 0, result.stdout + result.stderr);
+        assert.strictEqual(npmArgs(dir), 'install');
+    });
+
     it('an intact full build ends with 0 and copies the build output to widgets/', () => {
         fakeVite(dir, 0);
         const result = runTasks(dir, [], { fakeBin: fakeNpm(dir, 0) });
