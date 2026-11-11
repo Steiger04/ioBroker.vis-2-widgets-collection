@@ -181,11 +181,14 @@ describe('RadioGroupCollection item size (Content-Box)', () => {
 });
 
 describe('RadioGroupCollection label placement', () => {
-    // A stored null is unset (the Rückfall-Regel keeps it, the assistant may write it); MUI's
-    // FormControlLabel takes only a string or undefined.
-    it('reads a label placement stored as null like the unset field', () => {
+    // The Rückfall-Regel keeps null and '' (the assistant may write either; the vis-2 select offers
+    // only start and end): both read like the unset field, MUI's default end.
+    it.each([
+        ['null', null],
+        ['empty', ''],
+    ])('reads a label placement stored as %s like the unset field', (_case, stored) => {
         const unset = mountRadioGroup(scene({ labelPlacement: undefined })).container.innerHTML;
 
-        expect(mountRadioGroup(scene({ labelPlacement: null })).container.innerHTML).toBe(unset);
+        expect(mountRadioGroup(scene({ labelPlacement: stored })).container.innerHTML).toBe(unset);
     });
 });
