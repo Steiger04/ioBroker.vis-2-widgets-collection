@@ -86,7 +86,7 @@ reads them from there.
 
 ## Changelog
 
-### **WORK IN PROGRESS**
+### 3.0.2 (2026-11-11)
 
 - (steiger04) Same content as 3.0.0; the release builds of 3.0.0 and 3.0.1 failed before they reached npm
 

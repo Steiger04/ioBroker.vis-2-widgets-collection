@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "news": {
+      "3.0.2": {
+        "en": "Same content as 3.0.0; the release builds of 3.0.0 and 3.0.1 failed before they reached npm",
+        "de": "Inhalt wie 3.0.0; die Release-Builds von 3.0.0 und 3.0.1 scheiterten vor npm",
+        "ru": "То же содержимое, что и 3.0.0; релизные сборки 3.0.0 и 3.0.1 вышли из строя, не дойдя до npm",
+        "pt": "Mesmo conteúdo da versão 3.0.0; as versões 3.0.0 e 3.0.1 falharam antes de chegarem ao npm",
+        "nl": "Zelfde inhoud als 3.0.0; de versies van de versies van 3.0.0 en 3.0.1 zijn mislukt voordat ze npm bereikten",
+        "fr": "Même contenu que la 3.0.0 ; les versions 3.0.0 et 3.0.1 ont échoué avant d'atteindre npm",
+        "it": "Stesso contenuto della 3.0.0; le versioni 3.0.0 e 3.0.1 sono fallite prima di npm",
+        "es": "El mismo contenido que la 3.0.0; las versiones 3.0.0 y 3.0.1 fallaron antes de llegar a npm",
+        "pl": "Ta sama zawartość co 3.0.0; kompilacje wersji 3.0.0 i 3.0.1 nie powiodły się, zanim osiągnęły wartość npm",
+        "uk": "Той самий вміст, що і 3.0.0; збірки випуску 3.0.0 та 3.0.1 зазнали невдачі, перш ніж вони досягли npm",
+        "zh-cn": "内容与 3.0.0 相同；3.0.0 和 3.0.1 的发行版本在到达 npm 之前就失败了"
+      },
       "3.0.1": {
         "en": "Same content as 3.0.0, whose release build failed before it reached npm",
         "de": "Derselbe Inhalt wie 3.0.0, dessen Release-Build vor npm fehlschlug",
@@ -80,19 +93,6 @@
         "pl": "Kreator motywów z ustawieniami wstępnymi, podglądem na żywo, niestandardowymi czcionkami i zmianą rozmiaru widżetu\nNaprawiono domyślne ustawienia znacznika suwaka i styl etykiety\nNaprawiono błąd min./maks. wskaźnika\nNaprawiono szybkie filtrowanie tabeli JSON",
         "uk": "Майстер тем із пресетами, попереднім переглядом у реальному часі, користувацькими шрифтами та зміною розміру віджетів\nВиправлено налаштування маркера слайдера за замовчуванням та стиль підписів\nВиправлено резервне значення мін/макс датчика\nВиправлено швидку фільтрацію таблиць JSON",
         "zh-cn": "主题向导，包含预设选项、实时预览、自定义字体和组件尺寸调整功能\n滑块标记默认值和标签样式已修复\n仪表最小值/最大值回退值已修复\nJSON 表格快速筛选已修复"
-      },
-      "2.4.2": {
-        "en": "JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)\nColorPickerField: debouncing for picker drag events and refactor\nCheckboxCollection: refactor (helpers, memoization, type safety)",
-        "de": "JSON-Tabelle: Fehlerbehebungen und Verbesserungen (Datumsverarbeitung, Speicherung des Tabellenstatus, Refactoring)\nColorPickerField: Entprellung von Drag-Ereignissen im Auswahlfeld und Refactoring\nCheckboxCollection: Refactoring (Hilfsfunktionen, Memoization, Typsicherheit)",
-        "ru": "JSON Table: исправления ошибок и улучшения (обработка дат, сохранение состояния таблицы, рефакторинг)\nColorPickerField: подавление дребезга при перетаскивании элемента выбора цвета и рефакторинг.\nCheckboxCollection: рефакторинг (вспомогательные функции, мемоизация, типобезопасность)",
-        "pt": "Tabela JSON: correções de bugs e melhorias (manipulação de datas, persistência do estado da tabela, refatoração)\nColorPickerField: eliminação de ruído para eventos de arrastar e arrastar do seletor e refatoração\nCheckboxCollection: refatoração (funções auxiliares, memoização, segurança de tipos)",
-        "nl": "JSON-tabel: bugfixes en verbeteringen (datumverwerking, persistentie van tabelstatus, refactoring)\nColorPickerField: debounce-effect voor sleepgebeurtenissen in de picker en refactoring\nCheckboxCollection: refactoring (helpers, memoization, type safety)",
-        "fr": "Tableau JSON : corrections de bugs et améliorations (gestion des dates, persistance de l’état du tableau, refactorisation)\nColorPickerField : optimisation des événements de glisser-déposer et refactorisation\nCheckboxCollection : refactorisation (fonctions d’assistance, mémoïsation, sécurité des types)",
-        "it": "Tabella JSON: correzioni di bug e miglioramenti (gestione delle date, persistenza dello stato della tabella, refactoring)\nColorPickerField: debouncing per gli eventi di trascinamento del selettore e refactoring\nCheckboxCollection: refactoring (helper, memorizzazione, sicurezza dei tipi)",
-        "es": "Tabla JSON: corrección de errores y mejoras (gestión de fechas, persistencia del estado de la tabla, refactorización)\nColorPickerField: eliminación de rebotes para eventos de arrastre del selector y refactorización.\nColección de casillas de verificación: refactorización (funciones auxiliares, memorización, seguridad de tipos)",
-        "pl": "Tabela JSON: poprawki błędów i ulepszenia (obsługa dat, trwałość stanu tabeli, refaktoryzacja)\nColorPickerField: usuwanie odbić dla zdarzeń przeciągania selektora i refaktoryzacja\nCheckboxCollection: refaktoryzacja (funkcje pomocnicze, zapamiętywanie, bezpieczeństwo typu)",
-        "uk": "Таблиця JSON: виправлення помилок та покращення (обробка дати, збереження стану таблиці, рефакторинг)\nColorPickerField: виправлення помилок для подій перетягування засобу вибору та рефакторинг\nCheckboxCollection: рефакторинг (допоміжні функції, мемоізація, безпека типів)",
-        "zh-cn": "JSON 表格：错误修复和改进（日期处理、表格状态持久化、重构）\nColorPickerField：针对选择器拖动事件的防抖动和重构\nCheckboxCollection：重构（辅助函数、记忆化、类型安全）"
       }
     },
     "titleLang": {
