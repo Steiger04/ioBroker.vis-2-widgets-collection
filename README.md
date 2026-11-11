@@ -69,6 +69,13 @@
 
 ## Notes
 
+### AI assistant
+
+The AI assistant of the vis-2 editor (and external MCP clients such as Claude Desktop) can build views with
+collection widgets; name the set `vis-2-widgets-collection` in your request. The collection itself brings no AI.
+Access, example prompts, templates and limits: [AI assistant in the wiki](https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/wiki/En-AI-Assistant)
+([Deutsch](https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/wiki/De-AI-Assistant)).
+
 ### ECharts: values from strings
 
 Charts with string-valued states now correctly plot: `'23.5'`, `'23.5 °C'`, `'23,5'` and

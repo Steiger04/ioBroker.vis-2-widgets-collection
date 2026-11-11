@@ -359,3 +359,4 @@ The Widget Collection includes the following widgets:
 - [ECharts Widget](En-Echarts-Widget.md) - Charts (line, bar, scatter, pie) with a full configurator — history adapter or JSON data point
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md) - The JSON payload formats of the ECharts widget, with examples
 - [Theme Studio](En-Theme-Studio.md) - Collection-wide theme editor (colors, typography, shape) for all widgets of the collection
+- [AI Assistant](En-AI-Assistant.md) - Build collection widgets with the vis-2 AI assistant or an external MCP client: naming the set, example prompts, templates, limits

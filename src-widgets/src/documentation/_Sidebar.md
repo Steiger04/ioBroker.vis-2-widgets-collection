@@ -22,6 +22,7 @@
 - [ECharts Widget](De-Echarts-Widget.md)
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md)
 - [Theme-Studio](De-Theme-Studio.md)
+- [KI-Assistent](De-AI-Assistant.md)
 
 ---
 
@@ -42,3 +43,4 @@
 - [ECharts Widget](En-Echarts-Widget.md)
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md)
 - [Theme Studio](En-Theme-Studio.md)
+- [AI Assistant](En-AI-Assistant.md)
