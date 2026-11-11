@@ -152,11 +152,14 @@ describe('ButtonGroupCollection wiring', () => {
 });
 
 describe('ButtonGroupCollection orientation', () => {
-    // A stored null is unset (the Rückfall-Regel keeps it, the assistant may write it); MUI's
-    // ToggleButtonGroup applies its default orientation to undefined only.
-    it('reads an orientation stored as null like the unset field', () => {
+    // The Rückfall-Regel keeps null and '' (the assistant may write either; the vis-2 select offers
+    // only horizontal and vertical): both read like the unset field, MUI's default horizontal.
+    it.each([
+        ['null', null],
+        ['empty', ''],
+    ])('reads an orientation stored as %s like the unset field', (_case, stored) => {
         const unset = mountGroup(scene({ buttonGroupOrientation: undefined })).container.innerHTML;
 
-        expect(mountGroup(scene({ buttonGroupOrientation: null })).container.innerHTML).toBe(unset);
+        expect(mountGroup(scene({ buttonGroupOrientation: stored })).container.innerHTML).toBe(unset);
     });
 });
