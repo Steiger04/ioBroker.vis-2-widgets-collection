@@ -150,3 +150,13 @@ describe('ButtonGroupCollection wiring', () => {
         expect(container.querySelector('.MuiToggleButton-root.Mui-disabled')).not.toBeNull();
     });
 });
+
+describe('ButtonGroupCollection orientation', () => {
+    // A stored null is unset (the Rückfall-Regel keeps it, the assistant may write it); MUI's
+    // ToggleButtonGroup applies its default orientation to undefined only.
+    it('reads an orientation stored as null like the unset field', () => {
+        const unset = mountGroup(scene({ buttonGroupOrientation: undefined })).container.innerHTML;
+
+        expect(mountGroup(scene({ buttonGroupOrientation: null })).container.innerHTML).toBe(unset);
+    });
+});
