@@ -10,6 +10,7 @@
  * (`Generic.renderWithProvider`). Per field with a rule (`lib/usableWidgetData`):
  * - a broken value (wrong type, unparsable, wrong shape, outside the options) renders exactly
  *   like the field unset — no crash, no other look;
+ * - a stored `null`, which the rule keeps as unset already, renders like the field unset too;
  * - a usable value renders exactly like the widget's body over the raw data, the reading before
  *   the rule existed: valid stored data is untouched;
  * - the default of a data-bearing custom field renders like the field unset (strukturiert-leer
@@ -457,6 +458,12 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             );
         });
 
+        // The rule keeps null as unset already, and the assistant's flat update may write it:
+        // the widget has to read it like the missing key (MUI applies its defaults to undefined only).
+        it('renders a stored null like the unset field', async () => {
+            expect(await differingUnderTest(() => [null], likeUnset)).toEqual([]);
+        }, 120_000);
+
         it('renders a broken value like the unset field', async () => {
             expect(await differingUnderTest(brokenValuesOf, likeUnset)).toEqual([]);
         }, 120_000);
@@ -492,6 +499,40 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             ).toEqual([]);
         }, 120_000);
     });
+
+    // The vis-2 select offers only the option values, so an empty string in an option field comes
+    // only from raw data. The rule keeps '' everywhere (its meaning stays with the field); in these
+    // widgets' own option fields it means nothing and reads like the unset field.
+    describe.each(['CheckboxCollectionWidget', 'RadioGroupCollectionWidget', 'ButtonGroupCollectionWidget'] as const)(
+        '%s: an empty own option field',
+        name => {
+            it('renders an own option field stored as "" like the unset field', async () => {
+                const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+                const fixture = FIXTURES[name]!;
+                const optionFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                    .filter(
+                        ([key, rule]) =>
+                            !SHARED_FIELD_NAMES.has(key) &&
+                            typeof rule === 'object' &&
+                            'options' in rule &&
+                            !rule.options.includes(''),
+                    )
+                    .map(([key]) => key);
+
+                expect(optionFields.length).toBeGreaterThan(0);
+                expect(
+                    await differingValues(
+                        optionFields,
+                        () => [''],
+                        async assigned => [
+                            await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                            await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                        ],
+                    ),
+                ).toEqual([]);
+            });
+        },
+    );
 
     describe('SwitchCollectionWidget: bound attributes', () => {
         it.each([
