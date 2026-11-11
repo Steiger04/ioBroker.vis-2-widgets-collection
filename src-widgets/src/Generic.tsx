@@ -119,10 +119,12 @@ class Generic<
         extraContext?: Partial<CollectionContextProps<RxData>>,
     ): JSX.Element {
         // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
-        // stored value reads as unset. The stored data itself is never written.
+        // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
+        // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
         const data = usableWidgetData(
             this.state.rxData,
             fieldRulesOfWidget(this.constructor as unknown as WidgetClass),
+            props.widget.data,
         );
 
         if (data.noCard || props.widget.usedInWidget) {

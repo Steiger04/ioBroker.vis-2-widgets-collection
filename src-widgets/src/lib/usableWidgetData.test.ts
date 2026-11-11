@@ -112,3 +112,29 @@ describe('usableWidgetData: usable values stay as stored', () => {
         expect(read(data)).toBe(read(data));
     });
 });
+
+describe('usableWidgetData: a value the host substituted into the stored attribute stays as it is', () => {
+    it.each([
+        ['a bound checkbox resolved to text', 'flag', '{0_userdata.0.lock}', 'true'],
+        ['a bound checkbox resolved to "0"', 'flag', '{0_userdata.0.lock}', '0'],
+        ['a bound select resolved to text outside its options', 'mode', '{0_userdata.0.mode}', 'c'],
+        ['a bound number field resolved to text', 'size', '{0_userdata.0.size;*2}', 'NaN'],
+        ['a binding not resolved yet', 'flag', '{0_userdata.0.lock}', '{0_userdata.0.lock}'],
+        ['a group attribute substituted by the host', 'flag', '%lockAttr%', 'yes'],
+    ])('keeps %s', (_case, name, stored, resolved) => {
+        const data = { [name]: resolved };
+
+        expect(usableWidgetData(data, rules, { [name]: stored })).toEqual(data);
+    });
+
+    it.each([
+        ['JSON braces in quotes (vis-2: no binding)', '{"a":1}'],
+        ['nested braces (vis-2: no binding)', '{{x}}'],
+    ])('still reads text with %s as stored, unbound', (_case, stored) => {
+        expect(usableWidgetData({ flag: stored }, rules, { flag: stored })).toEqual({});
+    });
+
+    it('still drops a broken value the host left as stored', () => {
+        expect(usableWidgetData({ flag: 'true', size: 'abc' }, rules, { flag: 'true', size: 'abc' })).toEqual({});
+    });
+});

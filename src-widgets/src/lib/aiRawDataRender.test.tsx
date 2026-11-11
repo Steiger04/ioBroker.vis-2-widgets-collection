@@ -154,11 +154,20 @@ type WidgetClass = (new (props: unknown) => {
 
 const SLUG = 'ai-raw-data';
 
-/** Renders the widget the way vis-2 does, from `data` as stored; returns the markup of its body. */
+/**
+ * Renders the widget the way vis-2 does; returns the markup of its body.
+ *
+ * @param widget - The widget class.
+ * @param data - The data as vis-2 hands it to the widget (`rxData`: bindings resolved).
+ * @param values - The subscribed state values.
+ * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
+ *   no attribute bound.
+ */
 async function renderWidget(
     widget: WidgetClass,
     data: Record<string, unknown>,
     values: Record<string, unknown>,
+    stored: Record<string, unknown> = data,
 ): Promise<string> {
     const instance = new widget({
         context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
@@ -166,7 +175,7 @@ async function renderWidget(
     instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
     const element = instance.renderWidgetBody({
         id: `preview-${SLUG}`,
-        widget: { data, style: {} },
+        widget: { data: stored, style: {} },
         style: {},
         refService: { current: null },
     });
@@ -291,5 +300,25 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             }
             expect(differing).toEqual([]);
         }, 120_000);
+    });
+
+    describe('SwitchCollectionWidget: bound attributes', () => {
+        it.each([
+            ['locks for a binding resolved to "true"', 'true', true],
+            ['stays unlocked for a binding resolved to "false"', 'false', false],
+        ])('%s (onlyDisplay as text, lib/helper/isOidReadOnly)', async (_case, resolved, disabled) => {
+            const widget = (
+                (await import('../SwitchCollectionWidget/SwitchCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const fixture = FIXTURES.SwitchCollectionWidget!;
+            const html = await renderWidget(widget, { ...fixture.data, onlyDisplay: resolved }, fixture.values, {
+                ...fixture.data,
+                onlyDisplay: '{0_userdata.0.lock}',
+            });
+
+            const body = document.createElement('div');
+            body.innerHTML = html;
+            expect(body.querySelector<HTMLInputElement>('input.MuiSwitch-input')?.disabled).toBe(disabled);
+        });
     });
 });

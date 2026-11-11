@@ -17,7 +17,9 @@
  *
  * `undefined`, `null` and `''` are never unusable: the first two are unset already, and `''`
  * keeps whatever it means for its field today. Every other field — text, html, OID, image,
- * undeclared custom fields, keys without a field — is left alone.
+ * undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
+ * stored value the host substitutes — a binding (vis-2 hands its resolved value as text) or a group
+ * attribute: the widget reads the host's value as before.
  *
  * An unusable value is dropped from what the widget reads, nothing else: the widget then takes
  * exactly the way it takes for an unset field, with its cascades and fallbacks, and the stored
@@ -138,32 +140,68 @@ export const isUsableValue = (rule: FieldRule, value: unknown): boolean => {
     }
 };
 
+/**
+ * Whether a stored attribute is a vis-2 binding — vis-2's own test (`Vis/visUtils.tsx`
+ * `extractBinding`, applied by `getUsedObjectIDsInWidget` to every string attribute): a `{…}`
+ * whose content starts neither with `{` (nested) nor with `"` (JSON).
+ *
+ * @param stored - The attribute as stored in the project.
+ * @returns `true` when vis-2 replaces the attribute with the binding's resolved text.
+ */
+export const isBinding = (stored: unknown): boolean =>
+    typeof stored === 'string' && (stored.match(/{(.+?)}/g) ?? []).some(match => match[1] !== '{' && match[1] !== '"');
+
+/**
+ * Whether the host put the value the widget reads into the attribute itself: a binding, or any
+ * other text substitution of the stored string (group attributes, `_PRJ_NAME`), visible as a value
+ * that differs from the stored string. Such a value is the host's text, not stored data.
+ */
+const isHostSubstituted = (stored: unknown, value: unknown): boolean =>
+    typeof stored === 'string' && (value !== stored || isBinding(stored));
+
+/** A reading already made: for which stored data, with what result. */
+interface Reading {
+    stored: object;
+    usable: object;
+}
+
 /** Readings already made, per rule set and data object: the same data reads as the same object. */
-const readings = new WeakMap<FieldRules, WeakMap<object, object>>();
+const readings = new WeakMap<FieldRules, WeakMap<object, Reading>>();
 
 /**
  * The widget data as the widget reads it: every unusable value dropped.
  *
- * @param data - The stored widget data (vis-2 `rxData`); never changed.
+ * @param data - The widget data as vis-2 hands it to the widget (`rxData`, bindings resolved);
+ *   never changed.
  * @param rules - The widget's field rules ({@link fieldRulesOf}).
+ * @param stored - The data as stored in the project (`props.widget.data`, bindings unresolved);
+ *   defaults to `data`. An attribute the host substituted (a binding, a group attribute) keeps
+ *   the host's value unchecked: vis-2 resolves every binding to text, which the widgets read as
+ *   before (e.g. `lib/helper/isOidReadOnly`).
  * @returns `data` itself when every value is usable, else one copy per data object without the
  *   unusable keys.
  */
-export const usableWidgetData = <T extends object>(data: T, rules: FieldRules): T => {
+export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, stored: object = data): T => {
     let byData = readings.get(rules);
     if (!byData) {
         byData = new WeakMap();
         readings.set(rules, byData);
     }
     const known = byData.get(data);
-    if (known) {
-        return known as T;
+    if (known?.stored === stored) {
+        return known.usable as T;
     }
 
     const values = data as Record<string, unknown>;
-    const unusable = [...rules].filter(([name, rule]) => !isUsableValue(rule, values[name])).map(([name]) => name);
+    const storedValues = stored as Record<string, unknown>;
+    const unusable = [...rules]
+        .filter(
+            ([name, rule]) =>
+                !isUsableValue(rule, values[name]) && !isHostSubstituted(storedValues[name], values[name]),
+        )
+        .map(([name]) => name);
     if (unusable.length === 0) {
-        byData.set(data, data);
+        byData.set(data, { stored, usable: data });
         return data;
     }
 
@@ -171,6 +209,6 @@ export const usableWidgetData = <T extends object>(data: T, rules: FieldRules): 
     for (const name of unusable) {
         delete usable[name];
     }
-    byData.set(data, usable);
+    byData.set(data, { stored, usable });
     return usable as T;
 };
