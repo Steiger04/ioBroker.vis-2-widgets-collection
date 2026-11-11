@@ -553,4 +553,23 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             expect(body.querySelector<HTMLInputElement>('input.MuiSwitch-input')?.disabled).toBe(disabled);
         });
     });
+
+    // vis-2 resolves a binding in any string attribute to text (Vis/visFormatUtils.tsx formatBinding),
+    // also in a checkbox field the assistant wrote one into: the text reads as the boolean it names.
+    describe.each(PLACEABLE_WIDGETS)('%s: a bound checkbox field', name => {
+        it.each([
+            ['false', false],
+            ['0', false],
+            ['true', true],
+        ])('renders noHeader bound and resolved to "%s" like %s', async (resolved, flag) => {
+            const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+            const fixture = FIXTURES[name]!;
+            const bound = await renderWidget(widget, { ...fixture.data, noHeader: resolved }, fixture.values, {
+                ...fixture.data,
+                noHeader: '{0_userdata.0.hideHeader}',
+            });
+
+            expect(bound).toBe(await renderWidget(widget, { ...fixture.data, noHeader: flag }, fixture.values));
+        });
+    });
 });

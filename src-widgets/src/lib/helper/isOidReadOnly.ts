@@ -16,13 +16,15 @@
  * - **Explicit `write === false`** → read-only (sensors/indicators).
  * - **`onlyDisplay === true`** → read-only, regardless of `write` (user forced display-only, or the
  *   OID-change handler set it because `write === false`). A binding on the attribute resolves to
- *   text, so `'false'` and `'0'` read as off.
+ *   text, so `'false'` and `'0'` read as off ({@link module:lib/helper/readsAsOn}).
  *
  * The handler {@link module:lib/commonObjectFields} sets `onlyDisplay = (common.write === false)`
  * on OID change, so `onlyDisplay` already encodes the non-writable case for freshly selected OIDs.
  * The `write === false` fallback keeps the guard correct for widgets whose `onlyDisplay` is not
  * (yet) populated.
  */
+
+import readsAsOn from './readsAsOn';
 
 /** Minimal slice of widget data the guard consumes. */
 interface ReadOnlyData {
@@ -41,8 +43,7 @@ interface ReadOnlyData {
  * ```
  */
 export function isOidReadOnly(data: ReadOnlyData | undefined | null): boolean {
-    const onlyDisplay = data?.onlyDisplay;
-    return (Boolean(onlyDisplay) && onlyDisplay !== 'false' && onlyDisplay !== '0') || data?.write === false;
+    return readsAsOn(data?.onlyDisplay) || data?.write === false;
 }
 
 export default isOidReadOnly;

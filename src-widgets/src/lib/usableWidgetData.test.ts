@@ -115,12 +115,9 @@ describe('usableWidgetData: usable values stay as stored', () => {
 
 describe('usableWidgetData: a value the host substituted into the stored attribute stays as it is', () => {
     it.each([
-        ['a bound checkbox resolved to text', 'flag', '{0_userdata.0.lock}', 'true'],
-        ['a bound checkbox resolved to "0"', 'flag', '{0_userdata.0.lock}', '0'],
         ['a bound select resolved to text outside its options', 'mode', '{0_userdata.0.mode}', 'c'],
         ['a bound number field resolved to text', 'size', '{0_userdata.0.size;*2}', 'NaN'],
-        ['a binding not resolved yet', 'flag', '{0_userdata.0.lock}', '{0_userdata.0.lock}'],
-        ['a group attribute substituted by the host', 'flag', '%lockAttr%', 'yes'],
+        ['a bound text field', 'label', '{0_userdata.0.label}', 'false'],
     ])('keeps %s', (_case, name, stored, resolved) => {
         const data = { [name]: resolved };
 
@@ -132,6 +129,29 @@ describe('usableWidgetData: a value the host substituted into the stored attribu
         ['nested braces (vis-2: no binding)', '{{x}}'],
     ])('still reads text with %s as stored, unbound', (_case, stored) => {
         expect(usableWidgetData({ flag: stored }, rules, { flag: stored })).toEqual({});
+    });
+
+    // vis-2 resolves every binding to text (formatBinding); a checkbox field reads that text the way
+    // the Sperre reads a bound onlyDisplay (lib/helper/readsAsOn).
+    it.each([
+        ['a binding resolved to "true"', '{0_userdata.0.lock}', 'true', true],
+        ['a binding resolved to "false"', '{0_userdata.0.lock}', 'false', false],
+        ['a binding resolved to "0"', '{0_userdata.0.lock}', '0', false],
+        ['a binding resolved to ""', '{0_userdata.0.lock}', '', false],
+        ['a binding resolved to "1"', '{0_userdata.0.lock}', '1', true],
+        ['a binding not resolved yet', '{0_userdata.0.lock}', '{0_userdata.0.lock}', true],
+        ['a group attribute substituted by the host', '%lockAttr%', 'yes', true],
+    ])('reads a checkbox field with %s as the boolean it names', (_case, stored, resolved, flag) => {
+        expect(usableWidgetData({ flag: resolved }, rules, { flag: stored })).toEqual({ flag });
+    });
+
+    it('leaves the stored data and the host data untouched', () => {
+        const data = { flag: 'false' };
+        const stored = { flag: '{0_userdata.0.lock}' };
+
+        usableWidgetData(data, rules, stored);
+        expect(data).toEqual({ flag: 'false' });
+        expect(stored).toEqual({ flag: '{0_userdata.0.lock}' });
     });
 
     it('still drops a broken value the host left as stored', () => {
@@ -174,6 +194,21 @@ describe('usableWidgetData: fields stored per Feldnummer (the Zustandszeilen, na
     it('lets a field of the same name win over the row rule', () => {
         expect(usableWidgetData({ iconSize2: 12 }, rowRules)).toEqual({});
         expect(usableWidgetData({ iconSize2: true }, rowRules)).toEqual({ iconSize2: true });
+    });
+
+    it('reads a bound row value of a checkbox field as the boolean it names', () => {
+        const flagRules = fieldRulesOf([
+            {
+                name: 'values',
+                fields: [
+                    { name: 'stateEditor:mask', type: 'custom', perStateField: { name: 'mask', type: 'checkbox' } },
+                ],
+            },
+        ] as unknown as RxWidgetInfoGroup[]);
+
+        expect(usableWidgetData({ mask1: 'false' }, flagRules, { mask1: '{0_userdata.0.mask}' })).toEqual({
+            mask1: false,
+        });
     });
 
     it('keeps a bound row value as the host resolved it', () => {

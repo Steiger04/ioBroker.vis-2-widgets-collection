@@ -21,7 +21,8 @@
  * keeps whatever it means for its field today. Every other field — text, html, OID, image,
  * undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
  * stored value the host substitutes — a binding (vis-2 hands its resolved value as text) or a group
- * attribute: the widget reads the host's value as before.
+ * attribute: the widget reads the host's value as before, except in a checkbox field, where the
+ * host's text reads as the boolean it names ({@link readsAsOn}: `'false'`, `'0'`, `''` off).
  *
  * An unusable value is dropped from what the widget reads, nothing else: the widget then takes
  * exactly the way it takes for an unset field, with its cascades and fallbacks, and the stored
@@ -30,6 +31,7 @@
  * value (the entries of a list, the keys of an object) stays with the widget's own parse site.
  */
 import { decodeBlob } from './encoding';
+import { readsAsOn } from './helper/readsAsOn';
 
 import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
 
@@ -216,9 +218,9 @@ const readings = new WeakMap<FieldRules, WeakMap<object, Reading>>();
  * @param stored - The data as stored in the project (`props.widget.data`, bindings unresolved);
  *   defaults to `data`. An attribute the host substituted (a binding, a group attribute) keeps
  *   the host's value unchecked: vis-2 resolves every binding to text, which the widgets read as
- *   before (e.g. `lib/helper/isOidReadOnly`).
- * @returns `data` itself when every value is usable, else one copy per data object without the
- *   unusable keys.
+ *   before — a checkbox field as the boolean the text names ({@link readsAsOn}).
+ * @returns `data` itself when every value is usable and no checkbox field is substituted, else
+ *   one copy per data object without the unusable keys and with those checkbox fields as booleans.
  */
 export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, stored: object = data): T => {
     let byData = readings.get(rules);
@@ -233,15 +235,22 @@ export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, s
 
     const values = data as Record<string, unknown>;
     const storedValues = stored as Record<string, unknown>;
-    const unusable = Object.keys(values).filter(name => {
+    const unusable: string[] = [];
+    const boundFlags: string[] = [];
+    for (const name of Object.keys(values)) {
         const rule = ruleOfKey(rules, name);
-        return (
-            rule !== undefined &&
-            !isUsableValue(rule, values[name]) &&
-            !isHostSubstituted(storedValues[name], values[name])
-        );
-    });
-    if (unusable.length === 0) {
+        if (rule === undefined) {
+            continue;
+        }
+        if (isHostSubstituted(storedValues[name], values[name])) {
+            if (rule === 'boolean') {
+                boundFlags.push(name);
+            }
+        } else if (!isUsableValue(rule, values[name])) {
+            unusable.push(name);
+        }
+    }
+    if (unusable.length === 0 && boundFlags.length === 0) {
         byData.set(data, { stored, usable: data });
         return data;
     }
@@ -249,6 +258,9 @@ export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, s
     const usable = { ...values };
     for (const name of unusable) {
         delete usable[name];
+    }
+    for (const name of boundFlags) {
+        usable[name] = readsAsOn(values[name]);
     }
     byData.set(data, { stored, usable });
     return usable as T;
