@@ -23,8 +23,16 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
-import { PLACEABLE_WIDGETS, STILL_OPEN, type WidgetName } from './testing/aiSeams';
+import { decodeBlob } from './encoding';
+import {
+    isUiOnlyCustomField,
+    PLACEABLE_WIDGETS,
+    STILL_OPEN,
+    UI_ONLY_CUSTOM_FIELDS,
+    type WidgetName,
+} from './testing/aiSeams';
 import { I18N_PREFIX } from './translate';
+import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -91,6 +99,61 @@ const listEntry = (type: CatalogType): { tpl: string; label: string; help: strin
     help: type.help ? t(type.help) : undefined,
 });
 
+/** One field of `describe_widget_type`. */
+interface DescribedField {
+    name: string | undefined;
+    type: string;
+    label: string | undefined;
+    options: unknown[] | undefined;
+    default: unknown;
+}
+
+/** The field list of `describe_widget_type`: the groups flattened, nothing else of a field. */
+const describedFields = (info: RxWidgetInfo, i18nPrefix: string): DescribedField[] =>
+    (info.visAttrs ?? []).flatMap(group =>
+        ((group.fields ?? []) as unknown as Record<string, unknown>[]).map(field => ({
+            name: field.name as string | undefined,
+            type: (field.type as string | undefined) || 'text',
+            label: field.label ? t(i18nPrefix + (field.label as string)) : undefined,
+            options: Array.isArray(field.options)
+                ? field.options.map(option =>
+                      typeof option === 'string' ? option : (option as { value: unknown }).value,
+                  )
+                : undefined,
+            default: field.default,
+        })),
+    );
+
+/** Whether a parsed value is empty but shaped: an empty list, or an object whose values are all empty. */
+const isStructurallyEmpty = (value: unknown): boolean => {
+    if (value === '' || value === 0 || value === false || value === null) {
+        return true;
+    }
+    if (Array.isArray(value)) {
+        return value.length === 0;
+    }
+    return typeof value === 'object' && value !== undefined && Object.values(value).every(isStructurallyEmpty);
+};
+
+/**
+ * Whether a data-bearing custom field shows its shape through its default: declared at all
+ * (`storedValue`), with a default; a JSON field with JSON text that is strukturiert-leer (every
+ * JSON default is new, so it carries no example content), a scalar field with any default.
+ */
+const isShapedDefault = (rule: FieldRule | undefined, value: unknown): boolean => {
+    if (rule === undefined || value === undefined) {
+        return false;
+    }
+    if (typeof rule !== 'object' || !('json' in rule)) {
+        return true;
+    }
+    try {
+        return typeof value === 'string' && isStructurallyEmpty(JSON.parse(decodeBlob(value)));
+    } catch {
+        return false;
+    }
+};
+
 /** Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end. */
 const sentencesOf = (text: string): string[] =>
     text
@@ -137,5 +200,40 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(sentencesOf(help!).length).toBeGreaterThanOrEqual(3);
             expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
         });
+
+        it('shows a strukturiert-leerer default for every data-bearing custom field, or lists it as UI only', () => {
+            const info = infos.get(name)!;
+            const rules = fieldRulesOf(info.visAttrs ?? []);
+            const missing = describedFields(info, I18N_PREFIX)
+                .filter(field => field.type === 'custom' && field.name && !isUiOnlyCustomField(field.name))
+                .filter(field => !isShapedDefault(rules.get(field.name!), field.default))
+                .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
+
+            expect(missing).toEqual([]);
+        });
+
+        it('shows only defaults the Rückfall-Regel keeps (a default is a valid start value)', () => {
+            const info = infos.get(name)!;
+            const rules = fieldRulesOf(info.visAttrs ?? []);
+            const dropped = describedFields(info, I18N_PREFIX)
+                .filter(field => field.name && field.default !== undefined && rules.has(field.name))
+                .filter(field => !(field.name! in usableWidgetData({ [field.name!]: field.default }, rules)))
+                .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
+
+            expect(dropped).toEqual([]);
+        });
+    });
+
+    it('lists only UI-only exceptions that some widget still has', () => {
+        const names = [...infos.values()].flatMap(info =>
+            describedFields(info, I18N_PREFIX).flatMap(field =>
+                field.type === 'custom' && field.name ? [field.name] : [],
+            ),
+        );
+        const stale = UI_ONLY_CUSTOM_FIELDS.filter(entry =>
+            entry.name.endsWith(':') ? !names.some(n => n.startsWith(entry.name)) : !names.includes(entry.name),
+        ).map(entry => entry.name);
+
+        expect(stale).toEqual([]);
     });
 });

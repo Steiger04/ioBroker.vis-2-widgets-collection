@@ -33,6 +33,7 @@ import { stateRowCount, stateRowOidObject } from './stateRows';
 import type { StateEditorFieldProps } from '../components/StateEditor/useStateEditor';
 import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 import type React from 'react';
 
@@ -135,8 +136,10 @@ export const stateEditorGroup = (
             label: 'state_editor_rows',
             noBinding: true,
             default: 0,
+            // The number of Zustandszeilen; anything else reads as unset (lib/usableWidgetData).
+            storedValue: 'number',
             component: stateEditorComponent(spec, fieldProps => <StateEditorRowsField {...fieldProps} />),
-        },
+        } as ExtendedField,
         {
             name: 'stateEditor:list',
             type: 'custom',

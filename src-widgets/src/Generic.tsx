@@ -9,6 +9,8 @@
  * - a convenience `getPropertyValue()` wrapper around the widget runtime state
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
+ * - the entry of the widget data into the Collection-Kontext, read through the Rückfall-Regel
+ *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`
  */
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
@@ -17,8 +19,26 @@ import type { VisRxWidgetState, RxRenderWidgetProps, RxWidgetInfo } from '@iobro
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import withCollectionProvider from './components/withCollectionProvider';
 import { I18N_PREFIX } from './lib/translate';
+import { fieldRulesOf, usableWidgetData } from './lib/usableWidgetData';
 
+import type { FieldRules } from './lib/usableWidgetData';
 import type { CollectionContextProps } from './types';
+
+/** A widget class as far as its field rules are concerned: its static declaration. */
+type WidgetClass = { getWidgetInfo(): RxWidgetInfo };
+
+/** The field rules of each widget class, read once from its static `getWidgetInfo()`. */
+const fieldRulesByClass = new WeakMap<WidgetClass, FieldRules>();
+
+/** The field rules of a widget class (lib/usableWidgetData), built on first use. */
+const fieldRulesOfWidget = (widgetClass: WidgetClass): FieldRules => {
+    let rules = fieldRulesByClass.get(widgetClass);
+    if (!rules) {
+        rules = fieldRulesOf(widgetClass.getWidgetInfo().visAttrs ?? []);
+        fieldRulesByClass.set(widgetClass, rules);
+    }
+    return rules;
+};
 
 /**
  * Base class for all Collection widgets.
@@ -98,7 +118,14 @@ class Generic<
         props: RxRenderWidgetProps,
         extraContext?: Partial<CollectionContextProps<RxData>>,
     ): JSX.Element {
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
+        // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
+        // stored value reads as unset. The stored data itself is never written.
+        const data = usableWidgetData(
+            this.state.rxData,
+            fieldRulesOfWidget(this.constructor as unknown as WidgetClass),
+        );
+
+        if (data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
         } else {
             this.wrappedCollectionContent = true;
@@ -109,7 +136,7 @@ class Generic<
             refService: props.refService,
             style: props.style,
             widget: {
-                data: this.state.rxData,
+                data,
                 style: this.state.rxStyle,
             },
             setValue: this.setValue,
