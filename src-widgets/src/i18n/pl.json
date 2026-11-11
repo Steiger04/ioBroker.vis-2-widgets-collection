@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "Wybrane widżety wiążą różne pola. Przenoszenie, dodawanie, klonowanie, usuwanie i odtwarzanie wierszy działa tylko na identycznych wierszach i powiązaniach — edytuj widżety jeden po drugim.",
     "state_editor_rows_differ_count": "Wybrane widżety mają różną liczbę wierszy. Przenoszenie, dodawanie, klonowanie, usuwanie i odtwarzanie wierszy działa tylko na identycznych wierszach — edytuj widżety jeden po drugim.",
     "state_editor_rows_differ_states": "Obiekty wybranych widżetów deklarują różne stany. Ponowne tworzenie wierszy z common.states działa tylko przy identycznych stanach — edytuj widżety pojedynczo.",
-    "echarts_axis_fallback_name": "Oś %s"
+    "echarts_axis_fallback_name": "Oś %s",
+    "switch_collection_widget_help": "Przełącza stan logiczny ioBroker przełącznikiem w karcie, która może pokazywać nagłówek, ikonę, wartość i stopkę. Ustaw \"oid\" na stan logiczny; \"onlyDisplay\" czyni przełącznik tylko do odczytu, \"thumbSize\" (px) i \"trackSize\" (procent wysokości) określają jego rozmiar. Pola kolorów, takie jak \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" czy \"background\", przyjmują kolor CSS; puste używają motywu. Dwa wiersze stanów (\"values_count\": 2) mają własne teksty, ikony i kolory: \"value1\"/\"value2\" zawierają true i false, pozostałe pola wiersza dodają numer wiersza do nazwy, np. \"alias1\" lub \"iconColor2\"."
 }

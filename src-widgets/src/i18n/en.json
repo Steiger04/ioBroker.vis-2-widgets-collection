@@ -1227,6 +1227,7 @@
     "state_editor_selected_row": "Selected row",
     "step": "Step",
     "switch_collection_widget": "Switch (boolean)",
+    "switch_collection_widget_help": "Toggles a boolean ioBroker state with a switch inside a card that can show a header, an icon, the value and a footer. Set \"oid\" to a boolean state; \"onlyDisplay\" makes the switch read-only, \"thumbSize\" (px) and \"trackSize\" (percent of the height) size it. Colour fields such as \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" or \"background\" take a CSS colour string; leave them empty to use the theme. The two state rows (\"values_count\": 2) carry their own texts, icons and colours: \"value1\"/\"value2\" hold true and false, the other row fields add the row number to their name, like \"alias1\" or \"iconColor2\".",
     "table_border_color": "Border color",
     "table_border_radius": "Border radius",
     "table_border_style": "Border style",

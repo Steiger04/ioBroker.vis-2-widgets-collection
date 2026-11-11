@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "De geselecteerde widgets binden verschillende velden. Verplaatsen, toevoegen, klonen, verwijderen en opnieuw aanmaken van rijen werkt alleen bij identieke rijen en bindingen — bewerk de widgets één voor één.",
     "state_editor_rows_differ_count": "De geselecteerde widgets hebben een verschillend aantal rijen. Verplaatsen, toevoegen, klonen, verwijderen en opnieuw aanmaken van rijen werkt alleen bij identieke rijen — bewerk de widgets één voor één.",
     "state_editor_rows_differ_states": "De objecten van de geselecteerde widgets declareren verschillende statussen. Het opnieuw aanmaken van rijen vanuit common.states werkt alleen bij identieke statussen — bewerk de widgets één voor één.",
-    "echarts_axis_fallback_name": "As %s"
+    "echarts_axis_fallback_name": "As %s",
+    "switch_collection_widget_help": "Schakelt een booleaanse ioBroker-status met een schakelaar in een kaart die een kop, een pictogram, de waarde en een voettekst kan tonen. Zet \"oid\" op een booleaanse status; \"onlyDisplay\" maakt de schakelaar alleen-lezen, \"thumbSize\" (px) en \"trackSize\" (procent van de hoogte) bepalen de grootte. Kleurvelden zoals \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" of \"background\" nemen een CSS-kleur; leeg geldt het thema. De twee statusregels (\"values_count\": 2) hebben eigen teksten, pictogrammen en kleuren: \"value1\"/\"value2\" bevatten true en false, de overige regelvelden voegen het regelnummer aan hun naam toe, zoals \"alias1\" of \"iconColor2\"."
 }

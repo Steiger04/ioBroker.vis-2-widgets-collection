@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "Los widgets seleccionados vinculan campos diferentes. Mover, añadir, clonar, eliminar y recrear filas solo funciona con filas y vinculaciones idénticas: edite los widgets uno por uno.",
     "state_editor_rows_differ_count": "Los widgets seleccionados tienen un número diferente de filas. Mover, añadir, clonar, eliminar y recrear filas solo funciona con filas idénticas: edite los widgets uno por uno.",
     "state_editor_rows_differ_states": "Los objetos de los widgets seleccionados declaran estados diferentes. Recrear filas desde common.states solo funciona con estados idénticos; edite los widgets uno por uno.",
-    "echarts_axis_fallback_name": "Eje %s"
+    "echarts_axis_fallback_name": "Eje %s",
+    "switch_collection_widget_help": "Conmuta un estado booleano de ioBroker con un interruptor dentro de una tarjeta que puede mostrar encabezado, icono, valor y pie. Asigne a \"oid\" un estado booleano; \"onlyDisplay\" hace el interruptor de solo lectura, \"thumbSize\" (px) y \"trackSize\" (porcentaje de la altura) definen su tamaño. Los campos de color como \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" o \"background\" aceptan un color CSS; vacíos usan el tema. Las dos filas de estado (\"values_count\": 2) llevan sus propios textos, iconos y colores: \"value1\"/\"value2\" contienen true y false, los demás campos de fila añaden el número de fila a su nombre, como \"alias1\" o \"iconColor2\"."
 }

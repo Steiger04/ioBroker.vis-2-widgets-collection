@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "Os widgets selecionados vinculam campos diferentes. Mover, adicionar, clonar, excluir e recriar linhas funciona apenas em linhas e vinculações idênticas — edite os widgets um a um.",
     "state_editor_rows_differ_count": "Os widgets selecionados têm um número diferente de linhas. Mover, adicionar, clonar, excluir e recriar linhas funciona apenas em linhas idênticas — edite os widgets um a um.",
     "state_editor_rows_differ_states": "Os objetos dos widgets selecionados declaram estados diferentes. Recriar linhas a partir de common.states funciona apenas com estados idênticos — edite os widgets um a um.",
-    "echarts_axis_fallback_name": "Eixo %s"
+    "echarts_axis_fallback_name": "Eixo %s",
+    "switch_collection_widget_help": "Alterna um estado booleano do ioBroker com um interruptor dentro de um cartão que pode mostrar cabeçalho, ícone, valor e rodapé. Defina \"oid\" para um estado booleano; \"onlyDisplay\" torna o interruptor somente leitura, \"thumbSize\" (px) e \"trackSize\" (percentagem da altura) definem o seu tamanho. Campos de cor como \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" ou \"background\" aceitam uma cor CSS; vazios usam o tema. As duas linhas de estado (\"values_count\": 2) têm os seus próprios textos, ícones e cores: \"value1\"/\"value2\" contêm true e false, os outros campos de linha acrescentam o número da linha ao nome, como \"alias1\" ou \"iconColor2\"."
 }

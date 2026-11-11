@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "所选部件绑定了不同的字段。移动、添加、克隆、删除和重新创建行仅适用于相同的行和绑定——请逐个编辑部件。",
     "state_editor_rows_differ_count": "所选部件的行数不同。移动、添加、克隆、删除和重新创建行仅适用于相同的行——请逐个编辑部件。",
     "state_editor_rows_differ_states": "所选小部件的对象声明了不同的状态。从 common.states 重新创建行仅适用于完全相同的状态——请逐个编辑这些小部件。",
-    "echarts_axis_fallback_name": "轴 %s"
+    "echarts_axis_fallback_name": "轴 %s",
+    "switch_collection_widget_help": "用卡片中的开关切换 ioBroker 布尔状态，卡片可显示标题、图标、数值和页脚。将 \"oid\" 设为布尔状态；\"onlyDisplay\" 使开关只读，\"thumbSize\"（px）和 \"trackSize\"（高度百分比）决定其大小。颜色字段如 \"thumbColorTrue\"、\"trackColorFalse\"、\"iconColor\" 或 \"background\" 接受 CSS 颜色值；留空则使用主题颜色。两个状态行（\"values_count\": 2）带有各自的文本、图标和颜色：\"value1\"/\"value2\" 分别为 true 和 false，其余行字段在名称后加上行号，例如 \"alias1\" 或 \"iconColor2\"。"
 }

@@ -24,6 +24,8 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
             visSetLabel: 'widgets_collection',
             visName: 'SwitchCollectionWidget',
             visWidgetLabel: 'switch_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'switch_collection_widget_help',
             visOrder: 3,
             visAttrs: [
                 {

@@ -1380,5 +1380,6 @@
     "state_editor_rows_differ_bindings": "I widget selezionati associano campi diversi. Lo spostamento, l'aggiunta, la clonazione, l'eliminazione e la ricreazione delle righe funzionano solo su righe e associazioni identiche: modifica i widget uno alla volta.",
     "state_editor_rows_differ_count": "I widget selezionati hanno un numero diverso di righe. Lo spostamento, l'aggiunta, la clonazione, l'eliminazione e la ricreazione delle righe funzionano solo su righe identiche: modifica i widget uno alla volta.",
     "state_editor_rows_differ_states": "Gli oggetti dei widget selezionati dichiarano stati diversi. La ricreazione delle righe da common.states funziona solo con stati identici — modificare i widget uno alla volta.",
-    "echarts_axis_fallback_name": "Asse %s"
+    "echarts_axis_fallback_name": "Asse %s",
+    "switch_collection_widget_help": "Commuta uno stato booleano di ioBroker con un interruttore in una scheda che può mostrare intestazione, icona, valore e piè di pagina. Impostare \"oid\" su uno stato booleano; \"onlyDisplay\" rende l’interruttore di sola lettura, \"thumbSize\" (px) e \"trackSize\" (percentuale dell’altezza) ne definiscono la dimensione. I campi colore come \"thumbColorTrue\", \"trackColorFalse\", \"iconColor\" o \"background\" accettano un colore CSS; se vuoti si usa il tema. Le due righe di stato (\"values_count\": 2) hanno testi, icone e colori propri: \"value1\"/\"value2\" contengono true e false, gli altri campi di riga aggiungono il numero di riga al nome, come \"alias1\" o \"iconColor2\"."
 }
