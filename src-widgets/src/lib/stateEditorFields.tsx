@@ -104,6 +104,8 @@ const stateDetailFields = (
             ...(tooltip === undefined ? {} : { tooltip }),
             noBinding: true,
             hidden: unlessRows(noRows, hidden),
+            // The keys it stores, `name{n}`, read with the definition's rule (lib/usableWidgetData).
+            perStateField: definition,
             component: stateEditorComponent(spec, fieldProps => (
                 <StateDetailField
                     {...fieldProps}

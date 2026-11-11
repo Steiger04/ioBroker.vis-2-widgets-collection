@@ -13,7 +13,9 @@
  * - `select` fields with an option list: one of the option values (strictly);
  * - data-bearing `custom` fields: the {@link StoredValue} their definition declares
  *   (`storedValue`) — a string, a number, a boolean, or JSON text (plain or as `b64:` blob) whose
- *   top level is an object or a list.
+ *   top level is an object or a list;
+ * - the keys `name{n}` of a Zustandszeile: the rule of the per-state field `name` the
+ *   Zustandseditor edits there (`perStateField` of its detail field), unless a field is named so.
  *
  * `undefined`, `null` and `''` are never unusable: the first two are unset already, and `''`
  * keeps whatever it means for its field today. Every other field — text, html, OID, image,
@@ -40,8 +42,16 @@ export type StoredValue = 'string' | 'number' | 'boolean' | { json: 'object' | '
 /** The rule of one field: a stored-value kind, or the option values of a select field. */
 export type FieldRule = StoredValue | { options: readonly unknown[] };
 
-/** The rules of a widget's fields by field name. */
-export type FieldRules = ReadonlyMap<string, FieldRule>;
+/** The rules of a widget's fields. */
+export interface FieldRules {
+    /** By field name. */
+    readonly named: ReadonlyMap<string, FieldRule>;
+    /**
+     * By base name, for the fields stored once per Zustandszeile as `name{n}` (`n` ≥ 1): the
+     * per-state fields a Zustandseditor detail field edits (`perStateField`).
+     */
+    readonly perRow: ReadonlyMap<string, FieldRule>;
+}
 
 /** The keys of a field definition the rule reads. */
 interface RuleField {
@@ -50,6 +60,8 @@ interface RuleField {
     options?: unknown;
     multiple?: boolean;
     storedValue?: StoredValue;
+    /** A Zustandseditor detail field: the per-state field it edits as `name{n}` of every row. */
+    perStateField?: RuleField;
 }
 
 /** The value of an option entry: a plain value, or `{ value, label }`. */
@@ -80,23 +92,50 @@ export const fieldRuleOf = (field: RuleField): FieldRule | undefined => {
     }
 };
 
+/** Sets the rule of a named field unless the name has one already (the first definition wins). */
+const addRule = (rules: Map<string, FieldRule>, field: RuleField | undefined): void => {
+    const rule = field?.name ? fieldRuleOf(field) : undefined;
+    if (field?.name && rule !== undefined && !rules.has(field.name)) {
+        rules.set(field.name, rule);
+    }
+};
+
 /**
- * The rules of all named fields of a widget's attribute groups; the first definition of a name wins.
+ * The rules of all named fields of a widget's attribute groups, and of the per-state fields its
+ * Zustandseditor stores per row; the first definition of a name wins.
  *
  * @param groups - The widget's `visAttrs`.
- * @returns The rules by field name.
+ * @returns The rules by field name and by per-row base name.
  */
 export const fieldRulesOf = (groups: readonly RxWidgetInfoGroup[]): FieldRules => {
-    const rules = new Map<string, FieldRule>();
+    const named = new Map<string, FieldRule>();
+    const perRow = new Map<string, FieldRule>();
     for (const group of groups) {
         for (const field of (group.fields ?? []) as RuleField[]) {
-            const rule = field.name ? fieldRuleOf(field) : undefined;
-            if (field.name && rule !== undefined && !rules.has(field.name)) {
-                rules.set(field.name, rule);
-            }
+            addRule(named, field);
+            addRule(perRow, field.perStateField);
         }
     }
-    return rules;
+    return { named, perRow };
+};
+
+/** A key stored per row: a base name and a Feldnummer from 1. */
+const PER_ROW_KEY = /^(.*\D)([1-9]\d*)$/;
+
+/**
+ * The rule of one stored key: its field's, else — for `name{n}` — the per-row rule of `name`.
+ *
+ * @param rules - The widget's field rules.
+ * @param key - A key of the widget data.
+ * @returns The rule, `undefined` for a key the rule leaves alone.
+ */
+export const ruleOfKey = (rules: FieldRules, key: string): FieldRule | undefined => {
+    const rule = rules.named.get(key);
+    if (rule !== undefined || rules.perRow.size === 0) {
+        return rule;
+    }
+    const base = PER_ROW_KEY.exec(key)?.[1];
+    return base === undefined ? undefined : rules.perRow.get(base);
 };
 
 /** Whether JSON text (plain or blob) parses to the given top level. */
@@ -194,12 +233,14 @@ export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, s
 
     const values = data as Record<string, unknown>;
     const storedValues = stored as Record<string, unknown>;
-    const unusable = [...rules]
-        .filter(
-            ([name, rule]) =>
-                !isUsableValue(rule, values[name]) && !isHostSubstituted(storedValues[name], values[name]),
-        )
-        .map(([name]) => name);
+    const unusable = Object.keys(values).filter(name => {
+        const rule = ruleOfKey(rules, name);
+        return (
+            rule !== undefined &&
+            !isUsableValue(rule, values[name]) &&
+            !isHostSubstituted(storedValues[name], values[name])
+        );
+    });
     if (unusable.length === 0) {
         byData.set(data, { stored, usable: data });
         return data;

@@ -27,6 +27,7 @@ import { decodeBlob } from './encoding';
 import {
     isUiOnlyCustomField,
     PLACEABLE_WIDGETS,
+    SHARED_FIELD_NAMES,
     STILL_OPEN,
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
@@ -206,7 +207,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             const rules = fieldRulesOf(info.visAttrs ?? []);
             const missing = describedFields(info, I18N_PREFIX)
                 .filter(field => field.type === 'custom' && field.name && !isUiOnlyCustomField(field.name))
-                .filter(field => !isShapedDefault(rules.get(field.name!), field.default))
+                .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
 
             expect(missing).toEqual([]);
@@ -216,10 +217,39 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             const info = infos.get(name)!;
             const rules = fieldRulesOf(info.visAttrs ?? []);
             const dropped = describedFields(info, I18N_PREFIX)
-                .filter(field => field.name && field.default !== undefined && rules.has(field.name))
+                .filter(field => field.name && field.default !== undefined && rules.named.has(field.name))
                 .filter(field => !(field.name! in usableWidgetData({ [field.name!]: field.default }, rules)))
                 .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
 
+            expect(dropped).toEqual([]);
+        });
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('%s: the fields of the shared modules', name => {
+        /** The described fields this widget takes from the shared modules. */
+        const sharedFields = (): DescribedField[] =>
+            describedFields(infos.get(name)!, I18N_PREFIX).filter(
+                field => field.name !== undefined && SHARED_FIELD_NAMES.has(field.name),
+            );
+
+        it('shows a strukturiert-leerer default for every data-bearing custom field, or lists it as UI only', () => {
+            const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
+            const missing = sharedFields()
+                .filter(field => field.type === 'custom' && !isUiOnlyCustomField(field.name!))
+                .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
+                .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
+
+            expect(missing).toEqual([]);
+        });
+
+        it('shows only defaults the Rückfall-Regel keeps (a default is a valid start value)', () => {
+            const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
+            const dropped = sharedFields()
+                .filter(field => field.default !== undefined && rules.named.has(field.name!))
+                .filter(field => !(field.name! in usableWidgetData({ [field.name!]: field.default }, rules)))
+                .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
+
+            expect(sharedFields().length).toBeGreaterThan(0);
             expect(dropped).toEqual([]);
         });
     });

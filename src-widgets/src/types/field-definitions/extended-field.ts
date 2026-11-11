@@ -145,6 +145,13 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * custom field that stores nothing under its name declares none.
      */
     storedValue?: StoredValue;
+
+    /**
+     * A Zustandseditor detail field (`lib/stateEditorFields`): the per-state field definition it
+     * edits as `name{n}` of every Zustandszeile. The Rückfall-Regel reads each `name{n}` with that
+     * field's rule (`lib/usableWidgetData`); vis-2 ignores the key.
+     */
+    perStateField?: RxWidgetInfoAttributesField;
 };
 
 /**

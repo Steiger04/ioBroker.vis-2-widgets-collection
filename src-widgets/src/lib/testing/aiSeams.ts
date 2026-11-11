@@ -10,11 +10,16 @@
  *
  * How a follow-up ticket uses this module:
  * - a widget it finishes leaves {@link STILL_OPEN} (Naht 1 and the widget's own fields in Naht 2);
- * - the shared field modules leave {@link SHARED_FIELDS_STILL_OPEN} per widget (Naht 2);
+ * - the shared field modules ({@link SHARED_FIELD_NAMES}) are checked at every widget (ticket 02);
  * - a named `custom` field that stores nothing under its name goes on
  *   {@link UI_ONLY_CUSTOM_FIELDS}, with the reason.
  */
 
+import commonFields from '../commonFields';
+import commonObjectFields from '../commonObjectFields';
+import delayFields from '../delayFields';
+import { createOnlyDisplayField } from '../fieldFactories';
+import { stateEditorGroup } from '../stateEditorFields';
 import { widgets } from '../../widgetsRegistry';
 
 /** A module of the widget roster. */
@@ -53,24 +58,21 @@ export const STILL_OPEN: readonly WidgetName[] = [
 ];
 
 /**
- * Widgets whose fields from the shared field modules (`commonFields`, `commonObjectFields`,
- * `delayFields`, the Zustandseditor group, the shared factories) Naht 2 does not render from
- * broken data yet. Emptied by the ticket of the shared fields.
+ * The names of the fields the shared field modules declare: the common block, its Active variant,
+ * the OID block, the delay block, the Zustandseditor group and `onlyDisplay`. The per-state keys
+ * `name{n}` of the Zustandszeilen come from `commonFields({ perState: true })` as well.
  */
-export const SHARED_FIELDS_STILL_OPEN: readonly WidgetName[] = [
-    'StateCollectionWidget',
-    'SliderCollectionWidget',
-    'InputCollectionWidget',
-    'ButtonGroupCollectionWidget',
-    'CheckboxCollectionWidget',
-    'DialogCollectionWidget',
-    'SelectCollectionWidget',
-    'RadioGroupCollectionWidget',
-    'GaugeCollectionWidget',
-    'Light2CollectionWidget',
-    'JsonTableCollectionWidget',
-    'EchartsCollectionWidget',
-];
+export const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(
+    [
+        ...commonFields(),
+        ...commonFields({ allFields: false }),
+        ...commonFields({ groupName: 'Active', allFields: false }),
+        ...commonObjectFields(['mixed']),
+        ...delayFields(),
+        ...stateEditorGroup().fields,
+        createOnlyDisplayField(),
+    ].flatMap(field => (field.name ? [field.name] : [])),
+);
 
 /** An exception from the default rule: a named `custom` field that stores no value under its name. */
 export interface UiOnlyCustomField {

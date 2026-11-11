@@ -138,3 +138,47 @@ describe('usableWidgetData: a value the host substituted into the stored attribu
         expect(usableWidgetData({ flag: 'true', size: 'abc' }, rules, { flag: 'true', size: 'abc' })).toEqual({});
     });
 });
+
+describe('usableWidgetData: fields stored per Feldnummer (the Zustandszeilen, name{n})', () => {
+    const rowGroups = [
+        {
+            name: 'values',
+            fields: [
+                { name: 'values_count', type: 'custom', storedValue: 'number' },
+                // A Zustandseditor detail field: it edits `iconSize{n}` / `iconColor{n}` / `value{n}` of every row.
+                { name: 'stateEditor:iconSize', type: 'custom', perStateField: { name: 'iconSize', type: 'slider' } },
+                {
+                    name: 'stateEditor:iconColor',
+                    type: 'custom',
+                    perStateField: { name: 'iconColor', type: 'custom', storedValue: 'string' },
+                },
+                { name: 'stateEditor:value', type: 'custom', perStateField: { name: 'value', type: 'text' } },
+            ],
+        },
+        { name: 'own', fields: [{ name: 'iconSize2', type: 'checkbox' }] },
+    ] as unknown as RxWidgetInfoGroup[];
+    const rowRules = fieldRulesOf(rowGroups);
+
+    it('reads an unusable value of any row as unset', () => {
+        expect(usableWidgetData({ iconSize1: 'abc', iconSize12: true, iconColor3: 5, value1: 1 }, rowRules)).toEqual({
+            value1: 1,
+        });
+    });
+
+    it('keeps usable row values, the base name itself and keys without a Feldnummer', () => {
+        const data = { iconSize1: '12', iconColor3: '#fff', iconSize: 'abc', iconSizeX: 'abc', iconSize0: 'abc' };
+
+        expect(usableWidgetData(data, rowRules)).toBe(data);
+    });
+
+    it('lets a field of the same name win over the row rule', () => {
+        expect(usableWidgetData({ iconSize2: 12 }, rowRules)).toEqual({});
+        expect(usableWidgetData({ iconSize2: true }, rowRules)).toEqual({ iconSize2: true });
+    });
+
+    it('keeps a bound row value as the host resolved it', () => {
+        expect(usableWidgetData({ iconSize1: 'big' }, rowRules, { iconSize1: '{0_userdata.0.size}' })).toEqual({
+            iconSize1: 'big',
+        });
+    });
+});

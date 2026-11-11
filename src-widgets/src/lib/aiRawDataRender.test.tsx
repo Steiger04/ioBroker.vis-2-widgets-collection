@@ -16,10 +16,14 @@
  *   wie leer);
  * and the widget renders with no data at all and with only an OID.
  *
- * The broken and usable values come from the field definitions, not from per-widget lists.
- * What a follow-up ticket adds: a {@link FIXTURES} entry (body, data, values) when its widget
- * leaves `STILL_OPEN` or `SHARED_FIELDS_STILL_OPEN` (`lib/testing/aiSeams`), and widget-specific
- * cases below the generic ones where a field needs them (inner JSON structure, `''`).
+ * The broken and usable values come from the field definitions, not from per-widget lists. The
+ * fields of the shared modules (`SHARED_FIELD_NAMES`) and the per-state keys `name{n}` of the
+ * Zustandszeilen (tried on row 1) are checked at every widget; a widget's own fields once it has
+ * left `STILL_OPEN` (`lib/testing/aiSeams`). The values of all fields go in together, one round
+ * per value; only a round that differs is retried field by field to name the culprit. A field the
+ * fixture itself sets (the rows' `values_count`) is tried alone, so the others' rounds keep it.
+ * What a follow-up ticket adds: widget-specific cases below the generic ones where a field needs
+ * them (inner JSON structure, `''`, bindings).
  */
 import { act, type FC } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -27,15 +31,22 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { Theme } from '@iobroker/gui-components';
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
-import commonFields from './commonFields';
-import commonObjectFields from './commonObjectFields';
-import delayFields from './delayFields';
-import { createOnlyDisplayField } from './fieldFactories';
-import { stateEditorGroup } from './stateEditorFields';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
-import { PLACEABLE_WIDGETS, SHARED_FIELDS_STILL_OPEN, STILL_OPEN, type WidgetName } from './testing/aiSeams';
+import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, STILL_OPEN, type WidgetName } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
+import ButtonGroupCollection from '../ButtonGroupCollectionWidget/ButtonGroupCollection';
+import CheckboxCollection from '../CheckboxCollectionWidget/CheckboxCollection';
+import DialogCollection from '../DialogCollectionWidget/DialogCollection';
+import EchartsCollection from '../EchartsCollectionWidget/EchartsCollection';
+import GaugeCollection from '../GaugeCollectionWidget/GaugeCollection';
+import InputCollection from '../InputCollectionWidget/InputCollection';
+import JsonTableCollection from '../JsonTableCollectionWidget/JsonTableCollection';
+import Light2Collection from '../Light2CollectionWidget/Light2Collection';
+import RadioGroupCollection from '../RadioGroupCollectionWidget/RadioGroupCollection';
+import SelectCollection from '../SelectCollectionWidget/SelectCollection';
+import SliderCollection from '../SliderCollectionWidget/SliderCollection';
+import StateCollection from '../StateCollectionWidget/StateCollection';
 import SwitchCollection from '../SwitchCollectionWidget/SwitchCollection';
 
 // The host base class with what renderWidgetBody reaches: props, state, the signal check. Its `t`
@@ -71,8 +82,19 @@ vi.hoisted(() => {
 
         // eslint-disable-next-line class-methods-use-this
         setState(): void {}
+
+        // The Dialog's view renderer: no view is opened here.
+        // eslint-disable-next-line class-methods-use-this
+        getWidgetView(): null {
+            return null;
+        }
     };
 });
+
+// canvas-gauges needs a real canvas: the gauge shows the option set it is handed instead.
+vi.mock('../GaugeCollectionWidget/Gauge', () => ({
+    default: ({ options }: { options: unknown }) => <pre data-gauge-options="">{JSON.stringify(options)}</pre>,
+}));
 
 installInertResizeObserver();
 
@@ -84,30 +106,116 @@ interface WidgetFixture {
     data: Record<string, unknown>;
     /** The state values the widget subscribes to. */
     values: Record<string, unknown>;
+    /** Context entries the widget class adds in `renderWithProvider` (the Dialog's view renderer). */
+    extraContext?: Record<string, unknown>;
 }
 
-const SWITCH_OID = 'demo.0.power';
+/** What every fixture shows of the common block: a header and a footer the size fields act on. */
+const CHROME = { header: 'Head', footer: 'Foot' };
 
-/** One entry per widget the seam checks (not on both open lists). */
+/**
+ * Two authored Zustandszeilen of a number OID, the first active; the OID declares a third state,
+ * whose row is filled but beyond `values_count` — it shows only while the states govern.
+ */
+const numberRows = (oid: string): Record<string, unknown> => ({
+    oid,
+    oidObject: { _id: oid, type: 'number', write: true, commonStates: { 0: 'OFF', 1: 'ON', 2: 'AUTO' } },
+    ignoreCommonStates: false,
+    values_count: 2,
+    value1: '1',
+    alias1: 'ON',
+    value2: '0',
+    alias2: 'OFF',
+    value3: '2',
+    alias3: 'AUTO',
+});
+
+/** The two fixed Zustandszeilen of a boolean OID, the first active. */
+const booleanRows = (property: string, oid: string): Record<string, unknown> => ({
+    [property]: oid,
+    [`${property}Object`]: { _id: oid, type: 'boolean', write: true },
+    ignoreCommonStates: false,
+    values_count: 2,
+    value1: true,
+    alias1: 'ON',
+    value2: false,
+    alias2: 'OFF',
+});
+
+const NUMBER_OID = 'demo.0.level';
+const SWITCH_OID = 'demo.0.power';
+const DIALOG_OID = 'demo.0.dialog';
+const TABLE_OID = 'demo.0.table';
+
+/** One entry per placeable widget. */
 const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
+    StateCollectionWidget: {
+        body: StateCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    SliderCollectionWidget: {
+        body: SliderCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID), minValue: 0, maxValue: 2, marks: true },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    InputCollectionWidget: {
+        body: InputCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    ButtonGroupCollectionWidget: {
+        body: ButtonGroupCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
     SwitchCollectionWidget: {
         body: SwitchCollection,
-        data: { oid: SWITCH_OID, oidObject: { _id: SWITCH_OID, type: 'boolean' } },
+        data: { ...CHROME, ...booleanRows('oid', SWITCH_OID) },
         values: { [`${SWITCH_OID}.val`]: true },
     },
+    CheckboxCollectionWidget: {
+        body: CheckboxCollection,
+        data: { ...CHROME, ...booleanRows('oid', SWITCH_OID) },
+        values: { [`${SWITCH_OID}.val`]: true },
+    },
+    DialogCollectionWidget: {
+        body: DialogCollection,
+        data: { ...CHROME, dialogId: DIALOG_OID, dialogIdObject: { _id: DIALOG_OID, type: 'boolean', write: true } },
+        values: { [`${DIALOG_OID}.val`]: false },
+        extraContext: { getWidgetView: (): null => null },
+    },
+    SelectCollectionWidget: {
+        body: SelectCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    RadioGroupCollectionWidget: {
+        body: RadioGroupCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    GaugeCollectionWidget: {
+        body: GaugeCollection,
+        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        values: { [`${NUMBER_OID}.val`]: 1 },
+    },
+    Light2CollectionWidget: {
+        body: Light2Collection,
+        data: { ...CHROME, ...booleanRows('colorLightSwitchOid', SWITCH_OID), colorLightType: 'rgb' },
+        values: { [`${SWITCH_OID}.val`]: true },
+    },
+    JsonTableCollectionWidget: {
+        body: JsonTableCollection,
+        data: { ...CHROME, oid: TABLE_OID, oidObject: { _id: TABLE_OID, type: 'string' } },
+        values: { [`${TABLE_OID}.val`]: '[{"name":"a","value":1}]' },
+    },
+    EchartsCollectionWidget: {
+        body: EchartsCollection,
+        data: { ...CHROME },
+        values: {},
+    },
 };
-
-/** The names of the fields the shared field modules declare. */
-const SHARED_FIELD_NAMES: ReadonlySet<string> = new Set(
-    [
-        ...commonFields(),
-        ...commonFields({ allFields: false }),
-        ...commonObjectFields(['mixed']),
-        ...delayFields(),
-        ...stateEditorGroup().fields,
-        createOnlyDisplayField(),
-    ].flatMap(field => (field.name ? [field.name] : [])),
-);
 
 /** Values the assistant may write that the rule must read as unset. */
 const brokenValuesOf = (rule: FieldRule): unknown[] => {
@@ -155,6 +263,28 @@ type WidgetClass = (new (props: unknown) => {
 const SLUG = 'ai-raw-data';
 
 /**
+ * The markup without React's mount ids (`useId`: `_r_1a_`), which count up with every mount and
+ * would set two renderings of the same data apart.
+ */
+const withoutMountIds = (html: string): string => html.replace(/_r_[0-9a-z]+_/g, '_r_');
+
+/** Reads the markup of a mounted tree, then unmounts it (the test roots would only at the test's end). */
+async function markupOf(element: React.JSX.Element, read: (container: HTMLElement) => string): Promise<string> {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createTestRoot(container);
+    // Async act: the theme hook's socket read resolves before the markup is read.
+    await act(() => {
+        root.render(element);
+        return Promise.resolve();
+    });
+    const html = withoutMountIds(read(container));
+    act(() => root.unmount());
+    container.remove();
+    return html;
+}
+
+/**
  * Renders the widget the way vis-2 does; returns the markup of its body.
  *
  * @param widget - The widget class.
@@ -163,7 +293,7 @@ const SLUG = 'ai-raw-data';
  * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
  *   no attribute bound.
  */
-async function renderWidget(
+function renderWidget(
     widget: WidgetClass,
     data: Record<string, unknown>,
     values: Record<string, unknown>,
@@ -179,50 +309,81 @@ async function renderWidget(
         style: {},
         refService: { current: null },
     });
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createTestRoot(container);
-    // Async act: the theme hook's socket read resolves before the markup is read.
-    await act(() => {
-        root.render(element);
-        return Promise.resolve();
-    });
-    return container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`;
+    return markupOf(
+        element,
+        container => container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`,
+    );
 }
 
 /** Renders the body directly over the raw data (no rule): the reading of stored data before it. */
 async function renderBodyRaw(fixture: WidgetFixture, data: Record<string, unknown>): Promise<string> {
     const scene = collectionScene(SLUG, data, undefined);
-    const mounted = mountCollectionBody(fixture.body, {
-        ...scene,
-        context: { ...scene.context, values: fixture.values, wrappedContent: !data.noCard },
-    });
+    const mounted = mountCollectionBody(
+        fixture.body,
+        { ...scene, context: { ...scene.context, values: fixture.values, wrappedContent: !data.noCard } },
+        fixture.extraContext,
+    );
     // Flush the theme hook's socket read, as renderWidget does inside its act.
     await act(() => Promise.resolve());
-    const html = mounted.container.innerHTML;
+    const html = withoutMountIds(mounted.container.innerHTML);
     mounted.unmount();
     return html;
 }
 
-/** The data without one key. */
-const without = (data: Record<string, unknown>, name: string): Record<string, unknown> => {
+/** The data without some keys. */
+const without = (data: Record<string, unknown>, names: readonly string[]): Record<string, unknown> => {
     const rest = { ...data };
-    delete rest[name];
+    for (const name of names) {
+        delete rest[name];
+    }
     return rest;
 };
 
-const checked = PLACEABLE_WIDGETS.filter(
-    name => !STILL_OPEN.includes(name) || !SHARED_FIELDS_STILL_OPEN.includes(name),
-);
+/** Renders the markup a check compares for some assigned values: what it gets, what it expects. */
+type RenderPair = (assigned: Record<string, unknown>) => Promise<[actual: string, expected: string]>;
+
+/**
+ * The values whose two renderings differ: per round every key gets its value of that round at
+ * once; a round that differs is retried key by key.
+ *
+ * @param keys - The keys under test.
+ * @param valuesOf - The values a key is tried with, one per round.
+ * @param pair - The two renderings to compare.
+ * @returns `key = value` per differing value, or the round as a whole when only the combination differs.
+ */
+async function differingValues(
+    keys: readonly string[],
+    valuesOf: (key: string) => readonly unknown[],
+    pair: RenderPair,
+): Promise<string[]> {
+    const found: string[] = [];
+    const rounds = Math.max(0, ...keys.map(key => valuesOf(key).length));
+    for (let round = 0; round < rounds; round++) {
+        const assigned = Object.fromEntries(
+            keys.flatMap(key => (round < valuesOf(key).length ? [[key, valuesOf(key)[round]]] : [])),
+        );
+        const [actual, expected] = await pair(assigned);
+        if (actual === expected) {
+            continue;
+        }
+        const single: string[] = [];
+        for (const [key, value] of Object.entries(assigned)) {
+            const [one, oneExpected] = await pair({ [key]: value });
+            if (one !== oneExpected) {
+                single.push(`${key} = ${JSON.stringify(value)}`);
+            }
+        }
+        found.push(...(single.length ? single : [`together: ${JSON.stringify(assigned)}`]));
+    }
+    return found;
+}
 
 describe('Naht 2: widgets rendered from raw assistant data', () => {
-    it('checks at least the Switch, and every checked widget has a fixture', () => {
-        expect(checked).toContain('SwitchCollectionWidget');
-        expect(checked.filter(name => !FIXTURES[name])).toEqual([]);
+    it('has a fixture for every placeable widget', () => {
+        expect(PLACEABLE_WIDGETS.filter(name => !FIXTURES[name])).toEqual([]);
     });
 
-    describe.each(checked)('%s', name => {
+    describe.each(PLACEABLE_WIDGETS)('%s', name => {
         const fixture = FIXTURES[name]!;
         let widget: WidgetClass;
         let rules: FieldRules;
@@ -232,12 +393,41 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             rules = fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []);
         }, 60_000);
 
-        /** The fields with a rule this widget is checked on: own and/or shared, per the open lists. */
-        const fieldsUnderTest = (): [string, FieldRule][] =>
-            [...rules].filter(([field]) =>
-                SHARED_FIELD_NAMES.has(field) ? !SHARED_FIELDS_STILL_OPEN.includes(name) : !STILL_OPEN.includes(name),
-            );
+        /**
+         * The keys with a rule this widget is checked on: the shared fields, the per-state keys of
+         * row 1 (from `commonFields({ perState: true })`, shared too) and, once the widget has left
+         * `STILL_OPEN`, its own fields.
+         */
+        const keysUnderTest = (): Map<string, FieldRule> =>
+            new Map([
+                ...[...rules.named].filter(([field]) => SHARED_FIELD_NAMES.has(field) || !STILL_OPEN.includes(name)),
+                ...[...rules.perRow].map(([base, rule]): [string, FieldRule] => [`${base}1`, rule]),
+            ]);
 
+        /** Runs a check over the keys under test: together, and alone for the keys the fixture sets. */
+        const differingUnderTest = async (
+            valuesOf: (rule: FieldRule, key: string) => readonly unknown[],
+            pair: RenderPair,
+        ): Promise<string[]> => {
+            const keys = keysUnderTest();
+            const values = (key: string): readonly unknown[] => valuesOf(keys.get(key)!, key);
+            const set = [...keys.keys()].filter(key => key in fixture.data);
+            const found = await differingValues(
+                [...keys.keys()].filter(key => !set.includes(key)),
+                values,
+                pair,
+            );
+            for (const key of set) {
+                found.push(...(await differingValues([key], values, pair)));
+            }
+            return found;
+        };
+
+        /** Assigned values against the same data with those keys unset. */
+        const likeUnset: RenderPair = async assigned => [
+            await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+            await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+        ];
         it('renders without any data and with only an OID', async () => {
             expect(await renderWidget(widget, {}, {})).not.toContain('<no widget body');
             expect(await renderWidget(widget, { oid: fixture.data.oid }, fixture.values)).not.toContain(
@@ -245,60 +435,61 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             );
         });
 
-        it('renders a broken value like the unset field', async () => {
-            const differing: string[] = [];
-            for (const [field, rule] of fieldsUnderTest()) {
-                const unset = await renderWidget(widget, without(fixture.data, field), fixture.values);
-                for (const value of brokenValuesOf(rule)) {
-                    const html = await renderWidget(widget, { ...fixture.data, [field]: value }, fixture.values);
-                    if (html !== unset) {
-                        differing.push(`${field} = ${JSON.stringify(value)}`);
-                    }
-                }
+        it('checks the shared fields, and the per-state keys where the widget has Zustandszeilen', () => {
+            const keys = [...keysUnderTest().keys()];
+            expect(keys).toContain('noCard');
+            if ('values_count' in fixture.data) {
+                expect(keys).toEqual(expect.arrayContaining(['values_count', 'iconSize1', 'iconColor1']));
             }
-            expect(differing).toEqual([]);
+        });
+
+        it('reads an ignoreCommonStates that is no false like unset (no field, only false counts)', async () => {
+            if (!('ignoreCommonStates' in fixture.data)) {
+                return;
+            }
+            // The fixture's OID declares a third state: unset, the states govern instead of the two rows.
+            if (['RadioGroupCollectionWidget', 'ButtonGroupCollectionWidget'].includes(name)) {
+                const [authored, unset] = await likeUnset({ ignoreCommonStates: false });
+                expect(authored, 'the rows show whether the states govern').not.toBe(unset);
+            }
+            expect(await differingValues(['ignoreCommonStates'], () => ['false', 0, null, true], likeUnset)).toEqual(
+                [],
+            );
+        });
+
+        it('renders a broken value like the unset field', async () => {
+            expect(await differingUnderTest(brokenValuesOf, likeUnset)).toEqual([]);
         }, 120_000);
 
         it('renders usable stored values exactly as the body reads them raw', async () => {
-            const differing: string[] = [];
-            for (const [field, rule] of fieldsUnderTest()) {
-                for (const value of usableValuesOf(rule)) {
-                    const data = { ...fixture.data, [field]: value };
-                    if ((await renderWidget(widget, data, fixture.values)) !== (await renderBodyRaw(fixture, data))) {
-                        differing.push(`${field} = ${JSON.stringify(value)}`);
-                    }
-                }
-            }
-            expect(differing).toEqual([]);
+            expect(
+                await differingUnderTest(usableValuesOf, async assigned => {
+                    const data = { ...fixture.data, ...assigned };
+                    return [await renderWidget(widget, data, fixture.values), await renderBodyRaw(fixture, data)];
+                }),
+            ).toEqual([]);
         }, 120_000);
 
         it('renders the default of a data-bearing custom field like the unset field', async () => {
-            const differing: string[] = [];
-            const fields = (widget.getWidgetInfo().visAttrs ?? []).flatMap(group => group.fields ?? []) as {
-                name?: string;
-                type?: string;
-                default?: unknown;
-            }[];
-            for (const field of fields) {
-                if (
-                    field.type !== 'custom' ||
-                    !field.name ||
-                    field.default === undefined ||
-                    !fieldsUnderTest().some(([n]) => n === field.name)
-                ) {
-                    continue;
-                }
-                const unset = await renderWidget(widget, without(fixture.data, field.name), fixture.values);
-                const html = await renderWidget(
-                    widget,
-                    { ...fixture.data, [field.name]: field.default },
-                    fixture.values,
-                );
-                if (html !== unset) {
-                    differing.push(`${field.name} = ${JSON.stringify(field.default)}`);
-                }
-            }
-            expect(differing).toEqual([]);
+            const defaults = new Map(
+                (widget.getWidgetInfo().visAttrs ?? [])
+                    .flatMap(group => group.fields ?? [])
+                    .flatMap(field => {
+                        const {
+                            name: key,
+                            type,
+                            default: value,
+                        } = field as {
+                            name?: string;
+                            type?: string;
+                            default?: unknown;
+                        };
+                        return type === 'custom' && key && value !== undefined ? [[key, value] as const] : [];
+                    }),
+            );
+            expect(
+                await differingUnderTest((_rule, key) => (defaults.has(key) ? [defaults.get(key)] : []), likeUnset),
+            ).toEqual([]);
         }, 120_000);
     });
 
