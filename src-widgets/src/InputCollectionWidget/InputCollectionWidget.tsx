@@ -28,6 +28,8 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
             visSetColor: '#0C0A43',
             visName: 'InputCollectionWidget',
             visWidgetLabel: 'input_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'input_collection_widget_help',
             visOrder: 1,
             visAttrs: [
                 {

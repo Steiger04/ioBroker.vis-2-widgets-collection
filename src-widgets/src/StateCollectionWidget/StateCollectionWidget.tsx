@@ -27,6 +27,8 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
             visSetColor: '#0C0A43',
             visName: 'StateCollectionWidget',
             visWidgetLabel: 'state_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'state_collection_widget_help',
             visOrder: 4,
             visAttrs: [
                 {
