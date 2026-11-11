@@ -237,11 +237,14 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
 });
 
 describe('CheckboxCollection label placement', () => {
-    // A stored null is unset (the Rückfall-Regel keeps it, the assistant may write it); MUI's
-    // FormControlLabel takes only a string or undefined.
-    it('reads a label placement stored as null like the unset field', () => {
+    // The Rückfall-Regel keeps null and '' (the assistant may write either; the vis-2 select offers
+    // only the four placements): both read like the unset field, MUI's default end.
+    it.each([
+        ['null', null],
+        ['empty', ''],
+    ])('reads a label placement stored as %s like the unset field', (_case, stored) => {
         const unset = mountCheckbox({ [`${OID}.val`]: true }, { checkboxLabelPlacement: undefined }).innerHTML;
 
-        expect(mountCheckbox({ [`${OID}.val`]: true }, { checkboxLabelPlacement: null }).innerHTML).toBe(unset);
+        expect(mountCheckbox({ [`${OID}.val`]: true }, { checkboxLabelPlacement: stored }).innerHTML).toBe(unset);
     });
 });

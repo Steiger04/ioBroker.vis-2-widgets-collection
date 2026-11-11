@@ -105,8 +105,8 @@ function CheckboxCollection(): React.JSX.Element {
                         // of the root's flex row. disableTypography keeps the
                         // label element as the direct flex child, as it always was.
                         disableTypography
-                        // A stored null is unset: MUI takes a string or undefined only.
-                        labelPlacement={widget.data.checkboxLabelPlacement ?? undefined}
+                        // A stored null or '' is unset: MUI applies its default end to undefined only.
+                        labelPlacement={widget.data.checkboxLabelPlacement || undefined}
                         sx={{
                             width: '100%',
                             height: '100%',
