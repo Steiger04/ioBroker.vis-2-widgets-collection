@@ -106,6 +106,13 @@ describe('buildSwitchChrome — anchor and invisible input', () => {
     it('degrades the checked input to the thumb size at width zero', () => {
         expect(checked(chrome({ width: 0, data: { thumbSize: 62 } }))['& .MuiSwitch-input'].left).toBe('62px');
     });
+
+    it('reads a thumb size stored as a numeric string (binding, assistant) as that number', () => {
+        // The rule keeps a numeric string as usable (lib/usableWidgetData); it must not concatenate.
+        const sx = chrome({ data: { thumbSize: '62' as unknown as number } });
+        expect(checked(sx)['& .MuiSwitch-input']).toEqual({ left: '-138px', width: '200px' });
+        expect(travelOf(sx)).toEqual(travel('27px', '-27px'));
+    });
 });
 
 describe('buildSwitchChrome — thumb size and height budget', () => {

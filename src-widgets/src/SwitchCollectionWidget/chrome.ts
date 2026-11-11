@@ -130,8 +130,10 @@ function checkedInputLeft(width: number | undefined, thumbSize: number): number 
 export function buildSwitchChrome(input: SwitchChromeInput): CSSObject {
     const { data, icon, width, contentBoxHeight, locked, theme } = input;
 
-    // Single source: the schema default in lib/switchFields.tsx
-    const thumbSize = data.thumbSize ?? THUMB_SIZE_DEFAULT;
+    // Single source: the schema default in lib/switchFields.tsx. A numeric string (binding,
+    // assistant) is a usable stored value (lib/usableWidgetData) and reads as its number.
+    const stored: unknown = data.thumbSize ?? THUMB_SIZE_DEFAULT;
+    const thumbSize = (typeof stored === 'string' && stored !== '' ? Number(stored) : stored) as number;
     const colors = resolveSwitchColors(data, theme, locked);
     const travel = thumbTravel(thumbSize, contentBoxHeight);
     const inputWidth = px(width || 0);
