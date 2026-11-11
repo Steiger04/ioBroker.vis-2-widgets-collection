@@ -53,7 +53,7 @@ const runtimeIsPushButton = (data: Record<string, unknown>): boolean =>
     ).action.type === 'write';
 
 describe('isBlankStateValue', () => {
-    it.each<[string, string | number | boolean | undefined, boolean]>([
+    it.each<[string, unknown, boolean]>([
         ['a missing value', undefined, true],
         ['an empty string', '', true],
         ['spaces', '   ', true],
@@ -62,6 +62,10 @@ describe('isBlankStateValue', () => {
         ['text inside spaces', ' a ', false],
         ['the number 0', 0, false],
         ['false', false, false],
+        // Only raw data stores these (the vis-2 assistant, a flat update): they name no state value.
+        ['null', null, true],
+        ['an object', { value: 'a' }, true],
+        ['a list', ['a'], true],
     ])('%s → %s', (_label, value, blank) => {
         expect(isBlankStateValue(value)).toBe(blank);
     });
