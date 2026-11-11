@@ -18,7 +18,7 @@ require('dotenv').config({ quiet: true });
  * Options:
  *   --todos              Add missing keys with [TODO] placeholder prefix
  *   --fix                Auto-translate ALL [TODO] entries via z.ai (per-language)
- *   --model <model>      LLM model for translation (default: glm-5.2)
+ *   --model <model>      LLM model for translation (default: glm-5.3)
  *   --sync               Reconcile keys, then translate all TODO entries
  *   --dry-run            Show what would happen without making changes
  *   --verbose            Show detailed logs during execution
@@ -43,7 +43,7 @@ const PLACEHOLDER_PREFIX = '[TODO] ';
 // Constants
 // ============================================
 const API_TIMEOUT_MS = 600_000;
-const VALID_MODELS = ['glm-5.2', 'glm-4.7-flash', 'glm-4.7-flashx', 'glm-4.6', 'glm-4.5'];
+const VALID_MODELS = ['glm-5.3', 'glm-5.2', 'glm-4.7-flash', 'glm-4.7-flashx', 'glm-4.6', 'glm-4.5'];
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 const PROGRESS_FEEDBACK_INTERVAL_MS = 30000; // Show progress every 30 seconds
@@ -54,7 +54,7 @@ const PROGRESS_FEEDBACK_INTERVAL_MS = 30000; // Show progress every 30 seconds
 const ZAI_CONFIG = {
     apiKey: process.env.ZAI_API_KEY || '',
     baseUrl: 'https://api.z.ai/api/coding/paas/v4',
-    model: 'glm-5.2',
+    model: 'glm-5.3',
 };
 // ============================================
 
@@ -200,7 +200,7 @@ Options:
   --todos              Add missing keys with [TODO] placeholder prefix
   --fix                Auto-translate ALL [TODO] entries via z.ai (per-language)
   --dedupe             Remove duplicate keys from all language files
-    --model <model>      LLM model for translation (default: glm-5.2)
+    --model <model>      LLM model for translation (default: glm-5.3)
     --sync               Reconcile language keys, then translate all TODO entries
   --dry-run            Show what would happen without making changes
   --verbose            Show detailed logs during execution
@@ -208,7 +208,8 @@ Options:
   --help               Show this help message
 
 Available Models:
-    glm-5.2             Best quality (default)
+    glm-5.3             Best quality (default)
+    glm-5.2             Previous generation
   glm-4.7-flash       Free tier (1 concurrent request)
   glm-4.7-flashx      Fast + cheap ($0.07/$0.40)
   glm-4.6             Balanced performance
@@ -221,7 +222,7 @@ Examples:
   node scripts/i18n-sync.js                                # Check for sync issues
   node scripts/i18n-sync.js --todos                        # Mark missing keys
   node scripts/i18n-sync.js --todos --dry-run              # Preview TODO additions
-    node scripts/i18n-sync.js --fix                          # Auto-translate (glm-5.2)
+    node scripts/i18n-sync.js --fix                          # Auto-translate (glm-5.3)
   ZAI_API_KEY=xxx node scripts/i18n-sync.js --fix          # With API key
   node scripts/i18n-sync.js --fix --model glm-4.7-flash    # Translate with free model
   node scripts/i18n-sync.js --fix --dry-run                # Preview translations
