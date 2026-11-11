@@ -76,6 +76,13 @@ describe('SwitchCollection height budget (Content-Box)', () => {
 
         expect(getComputedStyle(thumb(container)).height).toBe('62px');
     });
+
+    it('draws the switch with the schema thumb size when the stored size was emptied', () => {
+        // The number box beside the vis-2 slider stores '' when cleared; the track size reads it as unset too.
+        const { container } = mountBody(SwitchCollection, scene({ thumbSize: '' }));
+
+        expect(getComputedStyle(thumb(container)).height).toBe('62px');
+    });
 });
 
 describe('SwitchCollection Sperre', () => {

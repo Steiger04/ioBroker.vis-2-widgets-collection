@@ -130,10 +130,11 @@ function checkedInputLeft(width: number | undefined, thumbSize: number): number 
 export function buildSwitchChrome(input: SwitchChromeInput): CSSObject {
     const { data, icon, width, contentBoxHeight, locked, theme } = input;
 
-    // Single source: the schema default in lib/switchFields.tsx. A numeric string (binding,
-    // assistant) is a usable stored value (lib/usableWidgetData) and reads as its number.
-    const stored: unknown = data.thumbSize ?? THUMB_SIZE_DEFAULT;
-    const thumbSize = (typeof stored === 'string' && stored !== '' ? Number(stored) : stored) as number;
+    // Single source: the schema default in lib/switchFields.tsx, also for '' (the cleared number
+    // box of the vis-2 slider), as the track size reads it. A numeric string (binding, assistant)
+    // is a usable stored value (lib/usableWidgetData) and reads as its number.
+    const stored: unknown = data.thumbSize;
+    const thumbSize = stored === undefined || stored === null || stored === '' ? THUMB_SIZE_DEFAULT : Number(stored);
     const colors = resolveSwitchColors(data, theme, locked);
     const travel = thumbTravel(thumbSize, contentBoxHeight);
     const inputWidth = px(width || 0);
