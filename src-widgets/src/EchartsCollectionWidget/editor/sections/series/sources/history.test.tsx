@@ -37,7 +37,7 @@ vi.mock('../shared', () => ({
 }));
 
 import { act, createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../../../../lib/testing/testRoots';
 import { HistorySeriesList } from './history';
 import { DEFAULT_EDITOR_STATE, type EditorSeries } from '../../../editorState';
 
@@ -45,7 +45,7 @@ const mount = (props: Record<string, unknown>): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        createRoot(container).render(createElement(HistorySeriesList as never, props as never));
+        createTestRoot(container).render(createElement(HistorySeriesList as never, props as never));
     });
     return container;
 };

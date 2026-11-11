@@ -16,7 +16,7 @@ vi.mock('../shared', () => ({
 }));
 
 import { act, createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../../../../lib/testing/testRoots';
 import { JsonSeriesList } from './json';
 import { DEFAULT_EDITOR_STATE } from '../../../editorState';
 
@@ -24,7 +24,7 @@ const mount = (props: Record<string, unknown>): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        createRoot(container).render(createElement(JsonSeriesList as never, props as never));
+        createTestRoot(container).render(createElement(JsonSeriesList as never, props as never));
     });
     return container;
 };

@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { act, createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../lib/testing/testRoots';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import type { CellImageContent } from '../types';
@@ -43,7 +43,9 @@ const mountGraphic = (descriptor: CellImageContent): HTMLElement => {
     cell.style.color = CELL_TEXT;
     document.body.appendChild(cell);
     act(() => {
-        createRoot(cell).render(createElement(ThemeProvider, { theme }, createElement(ImageGraphic, { descriptor })));
+        createTestRoot(cell).render(
+            createElement(ThemeProvider, { theme }, createElement(ImageGraphic, { descriptor })),
+        );
     });
     const avatar = cell.querySelector<HTMLElement>('.MuiAvatar-root');
     expect(avatar).not.toBeNull();

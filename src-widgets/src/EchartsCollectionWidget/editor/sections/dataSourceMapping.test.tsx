@@ -45,7 +45,8 @@ vi.mock('../useJsonTableSchema', async importOriginal => ({
 }));
 
 import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import type { Root } from 'react-dom/client';
+import { createTestRoot } from '../../../lib/testing/testRoots';
 import DataSourceSection from './DataSourceSection';
 import { DEFAULT_EDITOR_STATE } from '../editorState';
 
@@ -85,7 +86,7 @@ const mount = (
     const set = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const root: Root = createRoot(container);
+    const root: Root = createTestRoot(container);
     act(() => {
         root.render(createElement(DataSourceSection as never, { state: state(over), set, pickerCtx: {} } as never));
     });
@@ -252,7 +253,7 @@ describe('Datenabruf preset hint (ADR-0082 ticket 03 — the pie variant names t
         const set = vi.fn();
         const container = document.createElement('div');
         document.body.appendChild(container);
-        const root: Root = createRoot(container);
+        const root: Root = createTestRoot(container);
         act(() => {
             root.render(
                 createElement(

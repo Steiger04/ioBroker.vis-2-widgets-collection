@@ -8,7 +8,7 @@
  * Heavy leaves are marker-mocked (the established pattern — icons barrel, pickers, raw
  * sections, axis cards); the identity-t stub surfaces label keys verbatim.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 // The full section stack pulls many icons — every named import the stack touches, nulled.
 vi.mock('@mui/icons-material', () => ({
@@ -73,20 +73,11 @@ vi.mock('../../hooks/useCollectionTheme', () => {
 });
 
 import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import type { Root } from 'react-dom/client';
+import { createTestRoot } from '../../lib/testing/testRoots';
 import EchartsEditorSections, { type FocusSectionRequest } from './EchartsEditorSections';
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
 import { firstIssueTabOf, validateEditor, type SectionIssues } from './validation';
-
-// Every mounted stack goes down after its test: a root left mounted keeps React work scheduled
-// past the environment teardown, which then throws "window is not defined" into the run.
-const mounted: { root: Root; container: HTMLElement }[] = [];
-afterEach(() => {
-    for (const { root, container } of mounted.splice(0)) {
-        act(() => root.unmount());
-        container.remove();
-    }
-});
 
 /** Mount the full section stack; returns the live container + a rerender for the focus prop. */
 const mountSections = (
@@ -96,8 +87,7 @@ const mountSections = (
 ): { container: HTMLElement; rerender: (next: FocusSectionRequest | null) => void } => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const root: Root = createRoot(container);
-    mounted.push({ root, container });
+    const root: Root = createTestRoot(container);
     const props = {
         state,
         set: () => undefined,

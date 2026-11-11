@@ -12,7 +12,8 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, ErrorOutlineOutlined: () => null }));
 
 import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import type { Root } from 'react-dom/client';
+import { createTestRoot } from '../../lib/testing/testRoots';
 import ColumnAutocomplete from './ColumnAutocomplete';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 
@@ -20,7 +21,7 @@ import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 const mount = (props: Record<string, unknown>): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const root: Root = createRoot(container);
+    const root: Root = createTestRoot(container);
     act(() => {
         root.render(createElement(ColumnAutocomplete as never, props as never));
     });

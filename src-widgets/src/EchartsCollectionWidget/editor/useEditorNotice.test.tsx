@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { act, createElement, useState } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../lib/testing/testRoots';
 
 import { useEditorNotice, type EditorNoticeHost } from './useEditorNotice';
 
@@ -31,7 +31,7 @@ const mount = (): Probe => {
     };
     const container = document.createElement('div');
     act(() => {
-        createRoot(container).render(createElement(Harness));
+        createTestRoot(container).render(createElement(Harness));
     });
     return probe;
 };

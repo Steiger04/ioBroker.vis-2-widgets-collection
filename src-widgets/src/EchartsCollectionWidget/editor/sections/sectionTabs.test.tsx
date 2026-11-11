@@ -37,7 +37,8 @@ vi.mock('../useEditorTheme', () => ({
 }));
 
 import { act, createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import type { Root } from 'react-dom/client';
+import { createTestRoot } from '../../../lib/testing/testRoots';
 import DataSourceSection from './DataSourceSection';
 import TitleSection from './TitleSection';
 import AxesZoomSection from './AxesZoomSection';
@@ -52,7 +53,7 @@ import { DEFAULT_EDITOR_STATE } from '../editorState';
 const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const root: Root = createRoot(container);
+    const root: Root = createTestRoot(container);
     act(() => {
         root.render(createElement(type as never, props as never));
     });

@@ -30,7 +30,7 @@ vi.mock('../../../colorFields', () => ({
 }));
 
 import { act, createElement, useState } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../../../../lib/testing/testRoots';
 import { StilTab } from './StilTab';
 import type { EchartsAxisConfig, EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
 import type { ValueExtent } from '../../../../seriesColorScale';
@@ -47,7 +47,7 @@ const mountStil = (
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        createRoot(container).render(
+        createTestRoot(container).render(
             createElement(StilTab, {
                 meta,
                 defaultType: 'line',
@@ -221,7 +221,7 @@ describe('StilTab — the Farbskala SubGroup (ADR-0101)', () => {
         };
         const container = document.createElement('div');
         document.body.appendChild(container);
-        act(() => createRoot(container).render(createElement(Harness)));
+        act(() => createTestRoot(container).render(createElement(Harness)));
         const max = numberInputs(group(container)!)[1];
         expect(max.getAttribute('aria-invalid')).toBe('true');
         act(() => {

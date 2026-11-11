@@ -47,7 +47,7 @@ vi.mock('./shared', () => ({
 }));
 
 import { act, createElement, useState, type ReactElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../../../lib/testing/testRoots';
 import { HistorySeriesList } from './sources/history';
 import { JsonSeriesList } from './sources/json';
 import { TableSeriesList } from './sources/table';
@@ -59,7 +59,7 @@ const render = (node: ReactElement): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        createRoot(container).render(node);
+        createTestRoot(container).render(node);
     });
     return container;
 };

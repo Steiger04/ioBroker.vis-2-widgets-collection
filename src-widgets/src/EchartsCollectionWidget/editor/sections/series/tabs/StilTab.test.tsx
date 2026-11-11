@@ -9,7 +9,7 @@
  * headless mount cannot provide — the sectionTabs precedent); the marker exposes the props the
  * field hands it.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../../colorFields', () => ({
     default: (props: { value?: string; fallback?: string; title?: string }) => (
@@ -23,39 +23,15 @@ vi.mock('../../../colorFields', () => ({
 }));
 
 import { act, createElement, useState } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { createTestRoot } from '../../../../../lib/testing/testRoots';
 import { StilTab } from './StilTab';
 import type { EchartsSeriesMeta } from '../../../../../types/field-definitions/echarts-fields';
-
-/**
- * Every root a test mounts, unmounted after each test: a still-mounted tree (e.g. the closing
- * MUI Select menu's exit transition) can commit after the file's happy-dom teardown, and React's
- * passive-effect flush then throws `window is not defined` outside any test.
- */
-const mounted: { root: Root; container: HTMLElement }[] = [];
-
-const newRoot = (container: HTMLElement): Root => {
-    const root = createRoot(container);
-    mounted.push({ root, container });
-    return root;
-};
-
-afterEach(() => {
-    act(() => {
-        for (const { root } of mounted) {
-            root.unmount();
-        }
-    });
-    for (const { container } of mounted.splice(0)) {
-        container.remove();
-    }
-});
 
 const mountStil = (meta: EchartsSeriesMeta, seriesColor = '#5470c6', chartCanvas = 'transparent'): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        newRoot(container).render(
+        createTestRoot(container).render(
             createElement(StilTab, {
                 meta,
                 defaultType: 'line',
@@ -113,7 +89,7 @@ describe('StilTab — the symbol switch is honest while a line label is on (ADR-
         const el = document.createElement('div');
         document.body.appendChild(el);
         act(() => {
-            newRoot(el).render(
+            createTestRoot(el).render(
                 createElement(StilTab, {
                     meta,
                     defaultType: 'line',
@@ -209,7 +185,7 @@ describe('StilTab — the bar label position select follows the runtime (ADR-005
         const el = document.createElement('div');
         document.body.appendChild(el);
         act(() => {
-            newRoot(el).render(createElement(Harness));
+            createTestRoot(el).render(createElement(Harness));
         });
         return { el, patches };
     };

@@ -21,7 +21,7 @@ vi.hoisted(() => {
 });
 
 import { act, createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createTestRoot } from '../../lib/testing/testRoots';
 
 import TypeBadgeChip from './TypeBadgeChip';
 import { typeBadgeOf } from './typeBadge';
@@ -31,7 +31,7 @@ const mount = (badge: ReturnType<typeof typeBadgeOf>): HTMLElement => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-        createRoot(container).render(createElement(TypeBadgeChip, { badge }));
+        createTestRoot(container).render(createElement(TypeBadgeChip, { badge }));
     });
     return container;
 };
