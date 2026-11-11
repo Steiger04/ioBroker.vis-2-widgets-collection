@@ -65,7 +65,8 @@ const dropFieldObject = (data: WidgetData, oid: string): void => {
 const removeMainOidRows = (data: WidgetData): void => {
     // Every row the widget may still carry: the authored rows or the states, whichever reach further.
     const rowCount = Math.max(
-        typeof data.values_count === 'number' ? data.values_count : 0,
+        // A numeric string counts too: the Rückfall-Regel lets it through (lib/usableWidgetData).
+        Number(data.values_count) || 0,
         Object.keys(data.oidObject?.commonStates || {}).length,
     );
 

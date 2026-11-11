@@ -67,4 +67,12 @@ describe('effectiveStateCount', () => {
         );
         expect(effectiveStateCount({ valuesCount: null, commonStatesCount: null, ignoreCommonStates: true })).toBe(0);
     });
+
+    it.each([
+        ['authored rows', { valuesCount: '2', commonStatesCount: 3, ignoreCommonStates: false }, 2],
+        ['the fallback without commonStates', { valuesCount: '0', commonStatesCount: 0 }, 0],
+    ])('counts a row number stored as a numeric string as its number (%s)', (_case, inputs, count) => {
+        // A usable value for the Rückfall-Regel (lib/usableWidgetData): the assistant may write it.
+        expect(effectiveStateCount(inputs as unknown as Parameters<typeof effectiveStateCount>[0])).toBe(count);
+    });
 });

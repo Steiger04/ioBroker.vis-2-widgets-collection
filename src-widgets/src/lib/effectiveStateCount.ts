@@ -8,8 +8,11 @@
  * `values_count` when absent (e.g. boolean OIDs without commonStates).
  */
 export type EffectiveStateCountInputs = {
-    /** Number of authored value rows (widget field `values_count`). */
-    valuesCount: number | null | undefined;
+    /**
+     * Number of authored value rows (widget field `values_count`); a numeric string counts as its
+     * number, as the Rückfall-Regel lets it through (`lib/usableWidgetData`).
+     */
+    valuesCount: number | string | null | undefined;
     /** Number of entries in the OID's `common.states`. */
     commonStatesCount: number | null | undefined;
     /** Whether the editor ignores the OID's common states (default `true`). */
@@ -30,7 +33,7 @@ const effectiveStateCount = ({
     commonStatesCount,
     ignoreCommonStates,
 }: EffectiveStateCountInputs): number => {
-    const rows = valuesCount ?? 0;
+    const rows = Number(valuesCount ?? 0) || 0;
     if (ignoreCommonStates === false) {
         return rows;
     }

@@ -462,6 +462,14 @@ describe('oidChangeHandlerAsync — main OID cleared', () => {
         expect(cleared).not.toHaveProperty('enableIconColorMask1');
     });
 
+    it('removes the rows of a row count stored as a numeric string', async () => {
+        const rows = { oid: STATUS, ignoreCommonStates: false, values_count: '4', value4: 3, iconColor4: 'red' };
+
+        const cleared = await pick('oid', { ...rows, oid: '' });
+
+        expect(Object.keys(cleared).filter(key => /\d$/.test(key))).toEqual([]);
+    });
+
     it('drops the bindings of the removed row keys and keeps every other binding', async () => {
         const picked = await pick('oid', { oid: STATUS });
         const bound = { ...picked, header1: '{a}', iconColor3: '{b}', title: '{c}' };
