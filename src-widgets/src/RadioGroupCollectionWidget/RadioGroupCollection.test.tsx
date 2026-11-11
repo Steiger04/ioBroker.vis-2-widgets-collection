@@ -179,3 +179,13 @@ describe('RadioGroupCollection item size (Content-Box)', () => {
         expect(radioSizes(container, 'maxHeight').every(cap => cap === '' || cap === 'none')).toBe(true);
     });
 });
+
+describe('RadioGroupCollection label placement', () => {
+    // A stored null is unset (the Rückfall-Regel keeps it, the assistant may write it); MUI's
+    // FormControlLabel takes only a string or undefined.
+    it('reads a label placement stored as null like the unset field', () => {
+        const unset = mountRadioGroup(scene({ labelPlacement: undefined })).container.innerHTML;
+
+        expect(mountRadioGroup(scene({ labelPlacement: null })).container.innerHTML).toBe(unset);
+    });
+});

@@ -123,7 +123,8 @@ function RadioStack({ states, onChange, disabled }: RadioStackProps): React.Reac
                 return (
                     <FormControlLabel
                         key={`${String(state.value)}-${index}`}
-                        labelPlacement={labelPlacement}
+                        // A stored null is unset: MUI takes a string or undefined only.
+                        labelPlacement={labelPlacement ?? undefined}
                         sx={itemChrome.label}
                         control={
                             <Radio
