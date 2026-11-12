@@ -15,13 +15,21 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
+import light2Fields from '../lib/light2Fields';
 import Light2Collection from './Light2Collection';
+import type { PickerGeometry } from './pickerGeometry';
 import type { PreviewScene } from '../preview/types';
+
+/** The props each render of the stubbed picker received, latest last. */
+const pickerRenders = vi.hoisted(() => [] as Array<Record<string, unknown>>);
 
 vi.mock('./Light2Picker', async () => {
     const { createElement, forwardRef } = await import('react');
     return {
-        default: forwardRef((_props, _ref) => createElement('div', { 'data-testid': 'light2-picker' })),
+        default: forwardRef((props: Record<string, unknown>, _ref) => {
+            pickerRenders.push(props);
+            return createElement('div', { 'data-testid': 'light2-picker' });
+        }),
     };
 });
 
@@ -224,5 +232,45 @@ describe('Light2Collection Lampen-Bedienelement', () => {
         expect(container.textContent).toContain('collection_base_select_oid');
         expect(powerIcon(container)).toBeNull();
         expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+});
+
+describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {
+    /** The default of a Light2 field, from its definition. */
+    const defaultOf = (name: string): unknown => light2Fields().find(field => field.name === name)?.default;
+
+    /** The Kelvin range the Kelvin-Picker was last drawn with. */
+    const drawnRange = (): { minTemperature: unknown; maxTemperature: unknown } => {
+        const main = pickerRenders.filter(props => props.picker === 'main').at(-1);
+        const options = (main?.geometry as PickerGeometry | undefined)?.layouts.main[0]?.options ?? {};
+        return { minTemperature: options.minTemperature, maxTemperature: options.maxTemperature };
+    };
+
+    const drawWith = (range: Record<string, unknown>): ReturnType<typeof drawnRange> => {
+        measureContentRect({ width: 300, height: 200 });
+        pickerRenders.length = 0;
+        mountBody(Light2Collection, scene({ colorLightType: 'cct', ...range }));
+        return drawnRange();
+    };
+
+    // The OID pick stores the schema defaults, so an unset range comes only from raw data: iro took
+    // the missing bound as NaN and drew no Kelvin gradient.
+    it.each([
+        ['unset', {}],
+        ['stored as null', { colorLightCtMin: null, colorLightCtMax: null }],
+        ['emptied', { colorLightCtMin: '', colorLightCtMax: '' }],
+    ])('draws a range %s over the defaults the panel shows', (_case, range) => {
+        expect(drawWith(range)).toEqual({
+            minTemperature: defaultOf('colorLightCtMin'),
+            maxTemperature: defaultOf('colorLightCtMax'),
+        });
+    });
+
+    // A string bound made iro concatenate: the Kelvin stops ran '2500' + 500 = '2500500'.
+    it('draws a range stored as numeric strings over their numbers', () => {
+        expect(drawWith({ colorLightCtMin: '2500', colorLightCtMax: '5000' })).toEqual({
+            minTemperature: 2500,
+            maxTemperature: 5000,
+        });
     });
 });

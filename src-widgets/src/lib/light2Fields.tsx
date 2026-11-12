@@ -87,6 +87,10 @@ const RGB_ROLES: Record<string, Light2ChannelField> = {
 /** The JS types a Light2 OID may have — the switch and every channel state. */
 const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
 
+/** The Kelvin range of the CCT-Ansicht while its fields are unset: the defaults the panel shows. */
+export const COLOR_LIGHT_CT_MIN_DEFAULT = 2000;
+export const COLOR_LIGHT_CT_MAX_DEFAULT = 6500;
+
 /** A channel field may be filled by the detection only while it holds no pick of the user. */
 const isUnset = (value: unknown): boolean => !value || value === 'nothing_selected';
 
@@ -310,7 +314,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'number',
         min: 500,
         max: 10000,
-        default: 2000,
+        default: COLOR_LIGHT_CT_MIN_DEFAULT,
         label: 'color_light_ct_min',
         hidden: (data: WidgetData) =>
             !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
@@ -321,7 +325,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'number',
         min: 500,
         max: 10000,
-        default: 6500,
+        default: COLOR_LIGHT_CT_MAX_DEFAULT,
         label: 'color_light_ct_max',
         hidden: (data: WidgetData) =>
             !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
