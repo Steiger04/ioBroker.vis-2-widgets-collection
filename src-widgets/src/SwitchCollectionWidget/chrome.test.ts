@@ -13,6 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import { createTheme } from '@mui/material/styles';
 
+import switchFields from '../lib/switchFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import { buildSwitchChrome } from './chrome';
 import type { SwitchChromeInput } from './chrome';
 
@@ -78,9 +80,12 @@ describe('buildSwitchChrome — thumb travel (sign off/on, frozen 4px inset)', (
         );
     });
 
-    it('falls back to the schema thumb size (62) when none is stored', () => {
-        expect(travelOf(chrome({ data: {} }))).toEqual(travel('27px', '-27px'));
-        expect(travelOf(chrome({ data: { thumbSize: null as unknown as number } }))).toEqual(travel('27px', '-27px'));
+    // The widget reads an unset, null or emptied thumb size as its default (lib/switchFields).
+    it('draws the schema thumb size (62) when none is stored, as the widget reads it', () => {
+        for (const thumbSize of [undefined, null, '']) {
+            const data = readWidgetData(switchFields(), { thumbSize }) as SwitchChromeInput['data'];
+            expect(travelOf(chrome({ data }))).toEqual(travel('27px', '-27px'));
+        }
     });
 });
 
