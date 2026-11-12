@@ -38,6 +38,7 @@ import type { CSSObject, Theme } from '@mui/material/styles';
 
 import type { StyleData } from '../hooks/useData';
 import { alphaOf } from '../lib/helper/colorDerivation';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { resolveEffectiveColor, resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
 import { sliderColorContracts, type SliderColorField } from '../lib/sliderColorContract';
 import type { SliderFieldsRxData } from '../types';
@@ -83,16 +84,17 @@ export interface SliderChrome {
 const px = (length: number | string | undefined): string => `${Number(length)}px`;
 
 /**
- * A mark length as a px string: `''` (vis-2's emptied number field) and `null` take the length the
- * mark has in that orientation without the field — the mark fields swap with the orientation, so an
- * emptied one keeps that reading instead of the field's default (no `emptiedReadsUnset`).
+ * A mark length as a px string, read through the one number reading: `''` (vis-2's emptied number
+ * field), `null` and text that names no number take the length the mark has in that orientation
+ * without the field — the mark fields swap with the orientation, so an emptied one keeps that
+ * reading instead of the field's default (no `emptiedReadsUnset`).
  *
  * @param stored - The field value as the widget reads it.
  * @param emptied - The length in px of the emptied field in this orientation.
  * @returns The CSS length.
  */
 const markPx = (stored: number | string | null | undefined, emptied: number): string =>
-    `${stored === undefined || stored === null || stored === '' ? emptied : Number(stored)}px`;
+    `${optionalNumber(stored) ?? emptied}px`;
 
 /** The chrome colours of one render: backgrounds may carry a gradient, the other slots are solid. */
 interface ChromeColors {

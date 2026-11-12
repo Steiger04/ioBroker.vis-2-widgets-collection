@@ -15,6 +15,7 @@ import { buildSliderChrome } from './chrome';
 import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import optionalNumber from '../lib/helper/optionalNumber';
 
 import type { SliderCollectionContextProps } from '../types';
 import SafeImg from '../components/SafeImg';
@@ -126,7 +127,7 @@ const SliderCollection: FC = () => {
         >
             <Box
                 sx={{
-                    gap: Number(widget.data.sliderGap) || 0,
+                    gap: optionalNumber(widget.data.sliderGap) ?? 0,
                     display: 'flex',
                     flexDirection: isHorizontal ? 'row' : 'column',
                     justifyContent: 'center',
