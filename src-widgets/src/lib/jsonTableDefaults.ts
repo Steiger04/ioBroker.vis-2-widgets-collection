@@ -10,3 +10,6 @@
 
 /** The header bar's elevation (`tableHeaderElevation`), a step of the theme's shadow ladder. */
 export const TABLE_HEADER_ELEVATION_DEFAULT = 6;
+
+/** The width of the row borders (`horizontalCellBorderWidth`) and the cell borders (`verticalCellBorderWidth`), in px. */
+export const TABLE_CELL_BORDER_WIDTH_DEFAULT = 1;

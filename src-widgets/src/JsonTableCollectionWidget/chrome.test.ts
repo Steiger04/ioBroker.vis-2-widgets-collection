@@ -257,6 +257,21 @@ describe('buildTableChrome — table layout and borders', () => {
         });
     });
 
+    it.each([
+        ['emptied', ''],
+        ['null', null],
+    ])('reads an %s row or cell border width like the unset one (1 px)', (_case, width) => {
+        const settings = {
+            tableShowCellBorders: true,
+            horizontalCellBorderWidth: width,
+            verticalCellBorderWidth: width,
+        } as unknown as TableChromeSettings;
+        const sx = chrome(settings).tableSx;
+
+        expect(cells(sx)).toEqual({ borderBottom: '1px solid', borderBottomColor: DIVIDER });
+        expect(innerCells(sx)).toEqual({ borderRight: '1px solid', borderRightColor: DIVIDER });
+    });
+
     it('removes the row borders when switched off', () => {
         expect(cells(chrome({ tableShowRowBorders: false, horizontalCellBorderWidth: 3 }).tableSx)).toEqual({
             borderBottom: 'none',

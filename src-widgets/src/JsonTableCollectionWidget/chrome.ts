@@ -30,7 +30,7 @@ import {
     type ColorFieldContract,
 } from '../lib/helper/resolveEffectiveColor';
 import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
-import { TABLE_HEADER_ELEVATION_DEFAULT } from '../lib/jsonTableDefaults';
+import { TABLE_CELL_BORDER_WIDTH_DEFAULT, TABLE_HEADER_ELEVATION_DEFAULT } from '../lib/jsonTableDefaults';
 import type { JsonTableFieldsRxData } from '../types';
 
 /** Row height (px) per density. */
@@ -185,7 +185,8 @@ function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     if (settings.tableShowRowBorders === false) {
         sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
     } else {
-        const hBorderWidth = settings.horizontalCellBorderWidth ?? 1;
+        // An emptied slider ('') reads like the unset one, never as the invalid `px solid`
+        const hBorderWidth = optionalNumber(settings.horizontalCellBorderWidth) ?? TABLE_CELL_BORDER_WIDTH_DEFAULT;
         sx['& .MuiTableCell-root'] = {
             borderBottom: `${hBorderWidth}px solid`,
             borderBottomColor: lineColor(jsonTableColorContracts.horizontalCellBorderColor, settings, theme),
@@ -193,7 +194,7 @@ function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     }
 
     if (settings.tableShowCellBorders === true) {
-        const vBorderWidth = settings.verticalCellBorderWidth ?? 1;
+        const vBorderWidth = optionalNumber(settings.verticalCellBorderWidth) ?? TABLE_CELL_BORDER_WIDTH_DEFAULT;
         sx['& .MuiTableCell-root:not(:last-child)'] = {
             borderRight: `${vBorderWidth}px solid`,
             borderRightColor: lineColor(jsonTableColorContracts.verticalCellBorderColor, settings, theme),

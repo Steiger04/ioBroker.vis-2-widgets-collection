@@ -19,7 +19,7 @@ import {
 import { COLUMN_CONFIG_VALUE } from '../JsonTableCollectionWidget/utils/columnConfig';
 import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
-import { TABLE_HEADER_ELEVATION_DEFAULT } from './jsonTableDefaults';
+import { TABLE_CELL_BORDER_WIDTH_DEFAULT, TABLE_HEADER_ELEVATION_DEFAULT } from './jsonTableDefaults';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -356,7 +356,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10,
         step: 1,
-        default: 1,
+        default: TABLE_CELL_BORDER_WIDTH_DEFAULT,
         hidden: '!data.tableShowCellBorders',
     },
     // Vertical cell border color (noGradient, hidden condition); contract: explicit → theme divider
@@ -384,7 +384,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10,
         step: 1,
-        default: 1,
+        default: TABLE_CELL_BORDER_WIDTH_DEFAULT,
         // Default-on toggle, raw data: only an explicit false switches the row borders off
         hidden: 'data.tableShowRowBorders === false',
     },
