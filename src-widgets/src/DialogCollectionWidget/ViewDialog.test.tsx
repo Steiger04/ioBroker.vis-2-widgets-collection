@@ -22,6 +22,7 @@ import {
     testScopedMount,
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
+import dialogFields from '../lib/dialogFields';
 import ViewDialog from './ViewDialog';
 import { DIALOG_OID, getWidgetView, sessionOidData } from './dialogTestFixture';
 import type { DialogCollectionContextProps } from '../types';
@@ -154,4 +155,45 @@ describe('ViewDialog frame background', () => {
             expect(titleLine()?.textContent).toBe('Küche');
         },
     );
+});
+
+describe('ViewDialog size', () => {
+    /** The default of a dialog field, from its definition. */
+    const defaultOf = (name: string): unknown =>
+        (dialogFields().find(field => field.name === name) as { default?: unknown } | undefined)?.default;
+
+    /** The size of the box that holds the dialog frame. */
+    const dialogSize = (): { width: string; height: string } => {
+        const box = dialogFrame()?.parentElement;
+        expect(box).toBeTruthy();
+        const style = getComputedStyle(box!);
+        return { width: style.width, height: style.height };
+    };
+
+    it('opens at the configured size, in percent or in pixels', () => {
+        mountDialog({ dialogWidth: 80, dialogHeight: '60' });
+        expect(dialogSize()).toEqual({ width: '80%', height: '60%' });
+    });
+
+    // The palette stores the defaults, so an unset size comes only from raw data; emptied, the
+    // number field keeps ''. Each read 'undefined%', 'null%' or '%' — no size at all.
+    it.each([
+        ['unset', {}],
+        ['stored as null', { dialogWidth: null, dialogHeight: null }],
+        ['emptied', { dialogWidth: '', dialogHeight: '' }],
+    ])('opens at the default size the panel shows for a size %s', (_case, size) => {
+        mountDialog(size);
+        expect(dialogSize()).toEqual({
+            width: `${String(defaultOf('dialogWidth'))}%`,
+            height: `${String(defaultOf('dialogHeight'))}%`,
+        });
+    });
+
+    it('opens at the default size in pixels for an unset size in pixels', () => {
+        mountDialog({ dialogInPixel: true });
+        expect(dialogSize()).toEqual({
+            width: `${String(defaultOf('dialogWidth'))}px`,
+            height: `${String(defaultOf('dialogHeight'))}px`,
+        });
+    });
 });
