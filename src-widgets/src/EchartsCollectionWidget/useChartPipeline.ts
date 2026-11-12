@@ -42,6 +42,7 @@ import {
     buildTitleOption,
     makeRoomForTitle,
     markBoundOids,
+    num,
     resolveMarkLines,
     toPresentationBase,
     type ChartConfigBlob,
@@ -516,19 +517,16 @@ export function useChartPipeline(
         () => ({
             aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
             // The point ceiling bounds the count path (K3; preview 200, body/default 5000).
-            count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
+            count: Math.min(num(src.count) ?? DEFAULT_HISTORY_COUNT, maxPoints),
             // Zeitschrittweite (ADR-0064): seconds at the author level → ms here; a set step
             // replaces count (windowToOptions omits the dead key). The DEFAULT plan raises it
             // to span/maxPoints (sanitizeStep, K3) — the bar plan ignores it (the grid is the
             // resolution there, ADR-0065).
-            step: (src.resolutionStep as number) > 0 ? (src.resolutionStep as number) * 1000 : undefined,
+            step: (num(src.resolutionStep) ?? 0) > 0 ? num(src.resolutionStep)! * 1000 : undefined,
             // Aggregate params (ADR-0064) — windowToOptions emits them only under their aggregate.
             // percentile 0 is a VALID level (the 0th = min) — an explicit check, no `|| undefined`.
-            percentile:
-                typeof src.percentileValue === 'number' && Number.isFinite(src.percentileValue)
-                    ? src.percentileValue
-                    : undefined,
-            integralUnit: (src.integralUnit as number) || undefined,
+            percentile: num(src.percentileValue),
+            integralUnit: num(src.integralUnit) || undefined,
             integralInterpolation:
                 src.integralInterpolation === 'linear'
                     ? 'linear'
@@ -556,7 +554,7 @@ export function useChartPipeline(
         ...baseRequest,
         planFetch: barPlan,
         maxPoints,
-        refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
+        refreshMs: isStaticWindow ? undefined : num(src.refreshMs) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: mode === 'history' && entries.length > 0,
     });

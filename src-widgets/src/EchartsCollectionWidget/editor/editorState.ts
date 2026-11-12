@@ -30,6 +30,7 @@ import {
     decodeXAxisWithLegacy,
     legacyAxis,
     normalizeLegendPos,
+    num,
 } from '../presentation';
 import { withStableIds } from './stableId';
 import { boundJsonView, type AxisSlotMemory } from './axisSight';
@@ -341,7 +342,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     jsonHidden: [],
 };
 
-const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
+const numOr = (v: unknown, dft: number): number => num(v) ?? dft;
 const strOr = (v: unknown, dft = ''): string => (typeof v === 'string' ? v : dft);
 const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
@@ -509,10 +510,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // 0 is a VALID percentile level (the 0th = min) — unlike resolutionStep/integralUnit
         // (0 = unset there), the load must not coerce an authored 0 away (review catch: the
         // round-trip forgot a saved 0 and fell back to the 50 default).
-        percentileValue:
-            typeof data.percentileValue === 'number' && Number.isFinite(data.percentileValue)
-                ? data.percentileValue
-                : undefined,
+        percentileValue: num(data.percentileValue),
         integralUnit: numOr(data.integralUnit, 0) || undefined,
         integralInterpolation:
             data.integralInterpolation === 'linear'

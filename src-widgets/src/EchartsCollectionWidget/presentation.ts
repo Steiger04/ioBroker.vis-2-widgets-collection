@@ -32,6 +32,7 @@ import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
 import { withoutBroken } from '../lib/usableJson';
+import { isUsableValue } from '../lib/usableWidgetData';
 import {
     AXIS_KINDS,
     CHART_CONFIG_KINDS,
@@ -257,8 +258,13 @@ export const PALETTE_PRESETS: Record<string, string[]> = {
     ...THEME_PALETTES,
 };
 
-/** Field-map coercion: a finite number or undefined. Shared with the family profiles (ADR-0083). */
-export const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+/**
+ * Field-map coercion: a finite number, or a numeric text as its number (the Rückfall-Regel keeps one
+ * in a number field: a binding delivers text, `lib/usableWidgetData`); else undefined — `''` too.
+ * Shared with the family profiles (ADR-0083), the pipeline and the editor load.
+ */
+export const num = (v: unknown): number | undefined =>
+    (typeof v === 'number' || typeof v === 'string') && v !== '' && isUsableValue('number', v) ? Number(v) : undefined;
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
 /** Field-map coercion: a boolean or the default. Shared with the family profiles (ADR-0083). */
 export const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);

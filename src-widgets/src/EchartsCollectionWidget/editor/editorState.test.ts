@@ -944,3 +944,27 @@ describe('editorState — a broken configuration blob loads like the blob unset'
         }
     });
 });
+
+// The rule lets a numeric string through in a number field (lib/usableWidgetData), and vis-2 reads a
+// series count as text with parseInt: the editor loads it as its number instead of its default,
+// which a save would write back over the stored scalars.
+describe('editorState — a number scalar stored as a numeric string loads as its number', () => {
+    it('loads the series of a series count as text', () => {
+        const data = { chartType: 'line', series_count: '2', oid1: 'demo.0.a', oid2: 'demo.0.b' };
+
+        expect(loadEditorState(data).series.map(s => s.oid)).toEqual(['demo.0.a', 'demo.0.b']);
+    });
+
+    it('loads the other number scalars as their numbers', () => {
+        const state = loadEditorState({
+            frameWidth: '3',
+            count: '200',
+            tooltipDecimals: '2',
+            animationDuration: '900',
+        });
+
+        expect([state.frame.width, state.count, state.tooltipDecimals, state.animationDuration]).toEqual([
+            3, 200, 2, 900,
+        ]);
+    });
+});

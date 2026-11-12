@@ -32,7 +32,7 @@ import { frameInheritColor, resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
 import { useSubscribedValues } from './useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, resolvePalette } from './presentation';
+import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, num, resolvePalette } from './presentation';
 import { isUsableOid, useChartPipeline, type ChartPipelineSeries, type ChartPipelineTheme } from './useChartPipeline';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
 import { parseZoomIdleSeconds } from './zoomIdleReset';
@@ -153,7 +153,8 @@ function EchartsCollection(): React.ReactElement {
     // auto-subscribed by vis-2) joined with the seriesConfig meta — the per-series pinned
     // history instance (ADR-0039) rides along in the meta.
     const pipelineSeries = useMemo<ChartPipelineSeries[]>(() => {
-        const count = typeof data.series_count === 'number' ? data.series_count : 0;
+        // vis-2 expands the series group over parseInt(series_count): a numeric text counts too.
+        const count = num(data.series_count) ?? 0;
         const out: ChartPipelineSeries[] = [];
         for (let i = 1; i <= count; i++) {
             const oid = data[`oid${i}`];
