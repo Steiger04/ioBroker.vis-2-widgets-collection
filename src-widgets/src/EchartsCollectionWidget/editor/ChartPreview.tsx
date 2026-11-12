@@ -18,6 +18,7 @@ import Generic from '../../Generic';
 import EChart from '../EChart';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
 import { frameInheritColor, resolveFrameCss } from '../frameStyle';
+import { isUsableOid } from '../useChartPipeline';
 import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
 import { useEditorTheme } from './useEditorTheme';
@@ -62,6 +63,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
         state.series.some(s => s.yPath),
         !!state.jsonOid && state.jsonOid !== 'nothing_selected',
         hasData,
+        state.series.some(s => isUsableOid(s.oid)),
     );
     const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[placeholderReason]);
 
