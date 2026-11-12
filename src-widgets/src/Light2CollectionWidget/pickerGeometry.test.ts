@@ -205,9 +205,7 @@ describe('modalSizeOf (Button-Modus modal size)', () => {
         const asStored = (value: string | null): number => value as unknown as number;
 
         for (const empty of ['', null]) {
-            expect(modalSizeOf({ modalWidth: asStored(empty), modalHeight: asStored(empty) })).toEqual(
-                modalSizeOf({}),
-            );
+            expect(modalSizeOf({ modalWidth: asStored(empty), modalHeight: asStored(empty) })).toEqual(modalSizeOf({}));
         }
     });
 });

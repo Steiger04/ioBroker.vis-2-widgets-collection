@@ -75,9 +75,7 @@ export default function ViewDialog({
                 background: widget.data.dialogBackgroundColor || 'transparent',
             }}
         >
-            <Box
-                sx={{ width, height }}
-            >
+            <Box sx={{ width, height }}>
                 <CollectionBase
                     data={data}
                     hideHeader={headerAsTitle}
