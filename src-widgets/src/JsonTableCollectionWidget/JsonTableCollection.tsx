@@ -52,6 +52,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import Generic from '../Generic';
 import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { TABLE_PAGE_SIZE_DEFAULT } from '../lib/jsonTableDefaults';
 
 import { parseColumnConfig } from './utils/columnConfig';
@@ -258,7 +259,7 @@ const JsonTableCollection: FC = () => {
     const view = useViewState({
         widgetId,
         capabilities,
-        pageSize: Number(widget.data.tablePageSize) || TABLE_PAGE_SIZE_DEFAULT,
+        pageSize: optionalNumber(widget.data.tablePageSize) || TABLE_PAGE_SIZE_DEFAULT,
         pageSizeOptions: widget.data.tablePageSizeOptions,
         autoSize: isAutoSize,
         columnConfig,

@@ -23,6 +23,7 @@
 import type { Theme } from '@mui/material/styles';
 
 import { gradientColor } from '../lib/helper/gradientColor';
+import optionalNumber from '../lib/helper/optionalNumber';
 import {
     resolveEffectiveSolidColor,
     terminalColor,
@@ -253,8 +254,8 @@ function rowBackgroundSx(colorValue: string | null): SxObject | undefined {
  */
 export function buildTableChrome(settings: TableChromeSettings, theme: Theme): TableChrome {
     const density = String(settings.tableDensity);
-    const rowHeight = Number(settings.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
-    const headerHeight = Number(settings.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
+    const rowHeight = optionalNumber(settings.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
+    const headerHeight = optionalNumber(settings.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
 
     // The header text contract (vis-2 CSS colour → theme text) drives only the editor
     // swatch: at runtime an unset colour sets no `color`, so the header inherits it.
@@ -278,7 +279,7 @@ export function buildTableChrome(settings: TableChromeSettings, theme: Theme): T
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            p: Number(settings.jsonTablePadding) || 0,
+            p: optionalNumber(settings.jsonTablePadding) ?? 0,
         },
         frameSx: frameSx(settings, theme),
         scrollSx: { flex: 1, overflow: 'auto' },
