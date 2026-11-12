@@ -51,7 +51,7 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
             ],
             visDefaultStyle: {
                 width: '100%',
-                height: '80px',
+                height: '100px',
                 position: 'relative',
             },
             visPrev: 'widgets/vis-2-widgets-collection/img/prev-collection-input.png',
