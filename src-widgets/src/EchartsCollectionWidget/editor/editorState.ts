@@ -13,10 +13,12 @@
  * mirrored by `series_count`.
  */
 
-import { decodeBlob, encodeBlob } from '../../lib/encoding';
+import { encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
 import { normalizeStackMode } from '../stackMode';
 import { parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from '../optionBuilder';
+import { readUsableJson } from '../../lib/usableJson';
+import { OBJECT_BLOB } from '../storedConfig';
 import { familyOf } from '../families/kernel';
 import { editorialOf } from '../families/editorial';
 import {
@@ -345,23 +347,20 @@ const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? 
 
 /**
  * Decode the Platz-Gedächtnis blob (ADR-0079 place-memory addendum): each side's value list
- * must be finite numbers — anything else drops that side; an empty/absent/malformed blob is no
- * memory at all (legacy widgets render with the plain raster until their first gesture).
+ * must be finite numbers — anything else drops that side; an empty/absent/unusable blob is no
+ * memory at all (legacy widgets render with the plain raster until their first gesture). The blob
+ * has no field; its top level is judged by the stored-configuration rule (`storedConfig`).
  */
-const decodeSlotMemory = (raw: string): AxisSlotMemory | undefined => {
-    if (!raw) {
+const decodeSlotMemory = (raw: unknown): AxisSlotMemory | undefined => {
+    const parsed = readUsableJson(OBJECT_BLOB, raw);
+    if (!parsed) {
         return undefined;
     }
-    try {
-        const parsed = JSON.parse(raw) as { left?: unknown; right?: unknown };
-        const side = (v: unknown): number[] | undefined =>
-            Array.isArray(v) && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? (v as number[]) : undefined;
-        const left = side(parsed.left);
-        const right = side(parsed.right);
-        return left || right ? { ...(left ? { left } : {}), ...(right ? { right } : {}) } : undefined;
-    } catch {
-        return undefined;
-    }
+    const side = (v: unknown): number[] | undefined =>
+        Array.isArray(v) && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? (v as number[]) : undefined;
+    const left = side(parsed.left);
+    const right = side(parsed.right);
+    return left || right ? { ...(left ? { left } : {}), ...(right ? { right } : {}) } : undefined;
 };
 
 /**
@@ -573,7 +572,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // on legacy widgets (no memory, the plain raster). Validated loosely: a side's value
         // list must be finite numbers, anything else drops that side (defensive, hand-edited
         // rxData).
-        axisSlotMemory: decodeSlotMemory(decodeBlob(data.axisSlotMemory as string)),
+        axisSlotMemory: decodeSlotMemory(data.axisSlotMemory),
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
         // synthesised into `splitLine` (shared resolver — same rule as the live body). The
         // activations heal in the registry's load pass (ADR-0047).

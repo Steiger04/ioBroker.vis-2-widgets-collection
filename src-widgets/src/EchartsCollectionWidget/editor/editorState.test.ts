@@ -910,3 +910,37 @@ describe('editorState — payload family round-trip (ADR-0075)', () => {
         expect(reloaded.yAxes).toHaveLength(0); // the overlay sight sees no binder → the axis drops
     });
 });
+
+// The configuration editor gets the raw widget data vis-2 hands it (KI-Integration, ADR-0114):
+// a blob the assistant wrote broken loads like the blob unset, the same rule the live body reads by.
+describe('editorState — a broken configuration blob loads like the blob unset', () => {
+    const base = {
+        chartType: 'line',
+        series_count: 1,
+        oid1: 'demo.0.level',
+        seriesConfig: encodeBlob(JSON.stringify([{ name: 'A' }])),
+    };
+    const BLOBS = [
+        'seriesConfig',
+        'chartConfig',
+        'yAxes',
+        'xAxis',
+        'markLines',
+        'toolboxConfig',
+        'legendConfig',
+        'jsonSeriesStyle',
+        'jsonHidden',
+        'axisSlotMemory',
+    ];
+
+    /** The loaded state without the ids the load invents per call. */
+    const load = (data: Record<string, unknown>): unknown =>
+        JSON.parse(JSON.stringify(loadEditorState(data), (k, v: unknown) => (k === 'id' ? undefined : v)));
+
+    it.each(BLOBS)('%s', key => {
+        const unset = load(Object.fromEntries(Object.entries(base).filter(([k]) => k !== key)));
+        for (const broken of [5, true, { a: 1 }, ['x'], '{"oops', 'name,value', 'b64:!!!']) {
+            expect(load({ ...base, [key]: broken }), JSON.stringify(broken)).toEqual(unset);
+        }
+    });
+});
