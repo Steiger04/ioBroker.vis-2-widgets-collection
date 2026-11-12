@@ -81,11 +81,11 @@ describe('pickerGeometry: iro layout per picker', () => {
 });
 
 describe('pickerGeometry: slider size', () => {
-    it('is the slider width in 28px units, an unset width counting as one unit', () => {
+    // An unset or emptied width reads its default before the geometry (lib/light2Fields).
+    it('is the slider width in 28px units, a width of 0 counting as one unit', () => {
         expect(pickerGeometry(config({ sliderWidth: 1 }), box()).sliderSize).toBe(28);
         expect(pickerGeometry(config({ sliderWidth: 2 }), box()).sliderSize).toBe(56);
         expect(pickerGeometry(config({ sliderWidth: 0 }), box()).sliderSize).toBe(28);
-        expect(pickerGeometry(config({ sliderWidth: undefined }), box()).sliderSize).toBe(28);
     });
 });
 
@@ -182,10 +182,10 @@ describe('modalSizeOf (Button-Modus modal size)', () => {
         expect(modalSizeOf({ modalWidth: 0, modalHeight: 300, sliderWidth: 1 }).width).toBe(380);
     });
 
-    it('opens the modal at the configured height, 300px while unset', () => {
+    // An unset or emptied height reads its default before the geometry (lib/light2Fields).
+    it('opens the modal at the configured height, 300px for a height of 0', () => {
         expect(modalSizeOf({ modalHeight: 400 }).height).toBe(400);
         expect(modalSizeOf({ modalWidth: 640, modalHeight: 400 }).height).toBe(400);
-        expect(modalSizeOf({}).height).toBe(300);
         expect(modalSizeOf({ modalHeight: 0 }).height).toBe(300);
     });
 
@@ -199,13 +199,5 @@ describe('modalSizeOf (Button-Modus modal size)', () => {
             width: 640,
             height: 400,
         });
-    });
-
-    it('reads an emptied or null modal width and height like the unset ones', () => {
-        const asStored = (value: string | null): number => value as unknown as number;
-
-        for (const empty of ['', null]) {
-            expect(modalSizeOf({ modalWidth: asStored(empty), modalHeight: asStored(empty) })).toEqual(modalSizeOf({}));
-        }
     });
 });

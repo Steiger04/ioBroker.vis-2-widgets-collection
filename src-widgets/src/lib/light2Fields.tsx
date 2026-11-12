@@ -13,19 +13,14 @@ import CollectionDivider from '../components/CollectionDivider';
 import { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
 import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
-import {
-    COLOR_LIGHT_CT_MAX_DEFAULT,
-    COLOR_LIGHT_CT_MIN_DEFAULT,
-    COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT,
-    COLOR_LIGHT_MODAL_HEIGHT_DEFAULT,
-    COLOR_LIGHT_SLIDER_WIDTH_DEFAULT,
-} from './light2Defaults';
+import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from './light2Defaults';
 import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
 
 import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { Light2FieldsRxData } from '../types/field-definitions/light2-fields';
 import type { Light2ChannelField } from './light2Channels';
 
@@ -169,7 +164,7 @@ const loadStatesAsync = async (
     changeData(data);
 };
 
-const light2Fields = (): RxWidgetInfoAttributesField[] => [
+const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -184,7 +179,9 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         name: 'colorLightDelayLongPress',
         label: 'color_light_delay_long_press',
         type: 'number',
-        default: COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT,
+        default: 500,
+        // An emptied delay is no long press on every touch (0 ms).
+        emptiedReadsUnset: true,
         min: 0,
         max: 10000,
         step: 1,
@@ -317,7 +314,9 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'number',
         min: 500,
         max: 10000,
-        default: COLOR_LIGHT_CT_MIN_DEFAULT,
+        default: 2000,
+        // An emptied bound draws the Kelvin slider over the default range, not over 0.
+        emptiedReadsUnset: true,
         label: 'color_light_ct_min',
         hidden: (data: WidgetData) =>
             !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
@@ -328,7 +327,8 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'number',
         min: 500,
         max: 10000,
-        default: COLOR_LIGHT_CT_MAX_DEFAULT,
+        default: 6500,
+        emptiedReadsUnset: true,
         label: 'color_light_ct_max',
         hidden: (data: WidgetData) =>
             !isChannelFieldVisible(lightTypeOf(data), 'colorLightTemperatureOid') ||
