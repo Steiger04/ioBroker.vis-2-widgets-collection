@@ -13,6 +13,7 @@ import useData from '../hooks/useData';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { displayText } from '../lib/displayText';
 import { solidOf } from '../lib/helper/colorDerivation';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
 
@@ -61,7 +62,7 @@ const InputCollection: FC = () => {
     const fieldColor = solidOf(data.textColor);
     // Unset, null or '' (raw data only, or a binding: the vis-2 select offers the options), the variant
     // reads its default (lib/inputFields: emptiedReadsUnset). An unset padding reads its default too;
-    // an emptied padding ('') keeps its reading as 0.
+    // an emptied padding ('') keeps its reading as 0, and so does a bound text that names no number.
     const { inputVariant, inputPadding } = widget.data;
 
     return (
@@ -77,7 +78,7 @@ const InputCollection: FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        px: Number(inputPadding),
+                        px: optionalNumber(inputPadding) ?? 0,
                     }}
                 >
                     <TextField

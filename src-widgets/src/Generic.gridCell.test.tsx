@@ -89,7 +89,7 @@ const host = vi.hoisted(() => {
 
 import Generic from './Generic';
 
-/** What the Collection-Kontext reads from the host's socket while the widget mounts. */
+/** What the `CollectionContext` reads from the host's socket while the widget mounts. */
 const stubSocket = {
     getState: (): Promise<null> => Promise.resolve(null),
     subscribeState: (): Promise<void> => Promise.resolve(),

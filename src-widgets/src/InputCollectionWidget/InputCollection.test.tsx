@@ -64,8 +64,16 @@ const BASE_DATA = {
 const OK_MODE = { showOkButton: true };
 
 /** The scene over the data as the widget reads it (`readWidgetData`). */
-const sceneOf = (data: Record<string, unknown>, values: Values): ReturnType<typeof collectionScene> => {
-    const scene = collectionScene('input-test', readWidgetData(inputFields(), { ...BASE_DATA, ...data }), undefined);
+const sceneOf = (
+    data: Record<string, unknown>,
+    values: Values,
+    stored: Record<string, unknown> = data,
+): ReturnType<typeof collectionScene> => {
+    const scene = collectionScene(
+        'input-test',
+        readWidgetData(inputFields(), { ...BASE_DATA, ...data }, { ...BASE_DATA, ...stored }),
+        undefined,
+    );
     // The scene alone carries only `<oid>.val`; the `.lc` decides what counts as a change.
     scene.context.values = values;
     return scene;
@@ -358,6 +366,23 @@ describe('InputCollection field attributes', () => {
 
         expect(shown).toBeTypeOf('number');
         expect(paddingOf({ inputPadding })).toBe(paddingOf({ inputPadding: shown }));
+    });
+
+    // vis-2 hands a binding's resolved value as text, which the Rückfall-Regel leaves to the widget
+    // (lib/usableWidgetData): a text that names no number pads like 0, never with `NaN`.
+    it('pads the field of a bound padding that names no number like a padding of 0', () => {
+        const paddingOf = (data: Record<string, unknown>, stored: Record<string, unknown> = data): string => {
+            const values: Values = { [`${OID}.val`]: 40, [`${OID}.lc`]: 1000 };
+            const { container, unmount } = mount(InputCollection, sceneOf(data, values, stored));
+            const box = start(container).closest('.MuiTextField-root')?.parentElement;
+            const style = box ? getComputedStyle(box).paddingLeft : 'no box';
+            unmount();
+            return style;
+        };
+
+        expect(paddingOf({ inputPadding: 'abc' }, { inputPadding: '{0_userdata.0.padding}' })).toBe(
+            paddingOf({ inputPadding: 0 }),
+        );
     });
 
     it('sets no attribute for emptied number fields (06)', () => {

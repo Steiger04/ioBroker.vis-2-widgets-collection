@@ -164,8 +164,8 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     const isHorizontal = orientation === 'horizontal';
     const marks = !!data.marks;
 
-    // An emptied width ('') reads like 0: no border.
-    const thumbBorderWidth = Number(data.thumbBorderWidth);
+    // An emptied width ('') reads like 0: no border; a bound text that names no number as well.
+    const thumbBorderWidth = optionalNumber(data.thumbBorderWidth) ?? 0;
     // Hover/active halo; none when the thumb cascade has no Repräsentative Vollfarbe.
     const thumbShadow = alphaOf(colors.thumbShadowBase, 0.32);
 

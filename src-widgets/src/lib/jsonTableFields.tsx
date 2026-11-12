@@ -227,7 +227,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 24,
         step: 1,
         default: 6,
-        emptiedReadsUnset: true,
+        // Emptied ('') like 0: the header bar draws no shadow.
         tooltip: 'json_table_header_elevation_tooltip',
         hidden: 'data.tableShowHeader === false',
     },

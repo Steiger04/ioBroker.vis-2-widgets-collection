@@ -180,8 +180,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'color_light_delay_long_press',
         type: 'number',
         default: 500,
-        // An emptied delay is no long press on every touch (0 ms).
-        emptiedReadsUnset: true,
+        // Emptied ('') like 0: every press counts as long, as stored lamps always read it.
         min: 0,
         max: 10000,
         step: 1,
