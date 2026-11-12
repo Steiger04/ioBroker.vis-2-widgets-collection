@@ -17,6 +17,7 @@ import { describe, expect, it } from 'vitest';
 import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
+import sliderFields from '../lib/sliderFields';
 import SliderCollection from './SliderCollection';
 
 installInertResizeObserver();
@@ -1056,5 +1057,41 @@ describe('SliderCollection option fields stored as null or empty', () => {
     it.each([null, ''])('shows no value label for a value label display stored as %j, like unset', valueLabelDisplay => {
         expect(sliderOf({}).valueLabel).toBe(false);
         expect(sliderOf({ valueLabelDisplay }).valueLabel).toBe(false);
+    });
+});
+
+// vis-2's panel shows the field default for a padding that is not stored (WidgetField: a value
+// `== null` shows `field.default`); only raw data leaves it out (the vis-2 assistant, ADR-0114).
+describe('SliderCollection padding', () => {
+    const paperOf = (data: Record<string, unknown>): string => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-padding-test',
+                { oid: OID, oidObject: { _id: OID, type: 'number' }, minValue: 0, maxValue: 100, ...data },
+                50,
+            ),
+        );
+        const paper = container.querySelector('.BASE-PAPER-1');
+        if (!paper) {
+            throw new Error('the slider rendered no content paper');
+        }
+        return paper.className;
+    };
+
+    it.each([
+        ['unset', undefined],
+        ['null', null],
+    ])('pads the slider of a %s padding with the default the panel shows', (_case, sliderPadding) => {
+        const shown = (sliderFields() as { name?: string; default?: unknown }[]).find(
+            field => field.name === 'sliderPadding',
+        )?.default;
+
+        expect(shown).toBeTypeOf('number');
+        expect(paperOf({ sliderPadding })).toBe(paperOf({ sliderPadding: shown }));
+    });
+
+    it('keeps no padding for an emptied padding', () => {
+        expect(paperOf({ sliderPadding: '' })).toBe(paperOf({ sliderPadding: 0 }));
     });
 });

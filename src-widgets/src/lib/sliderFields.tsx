@@ -23,6 +23,9 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
  */
 const hasNoStates = (data: WidgetData): boolean => stateRowCount(data, MAIN_OID_ROWS) === 0;
 
+/** Default slider padding (spacing units): the single source; the renderer reads it for an unset field. */
+export const SLIDER_PADDING_DEFAULT = 1;
+
 const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -83,7 +86,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'sliderPadding',
         label: 'slider_padding',
         type: 'number',
-        default: 1,
+        default: SLIDER_PADDING_DEFAULT,
         min: 0,
         step: 0.5,
     } as const,
