@@ -361,7 +361,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 10,
         step: 1,
         default: 1,
-        emptiedReadsUnset: true,
+        // Emptied ('') like 0: no line between the cells.
         hidden: '!data.tableShowCellBorders',
     },
     // Vertical cell border color (noGradient, hidden condition); contract: explicit → theme divider

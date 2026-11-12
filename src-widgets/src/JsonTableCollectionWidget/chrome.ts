@@ -199,7 +199,9 @@ function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     }
 
     if (settings.tableShowCellBorders === true) {
-        const vBorderWidth = Number(settings.verticalCellBorderWidth);
+        // An emptied slider ('') reads like 0, no line, as stored tables always drew it; a bound
+        // text that names no number like 0 as well.
+        const vBorderWidth = optionalNumber(settings.verticalCellBorderWidth) ?? 0;
         sx['& .MuiTableCell-root:not(:last-child)'] = {
             borderRight: `${vBorderWidth}px solid`,
             borderRightColor: lineColor(jsonTableColorContracts.verticalCellBorderColor, settings, theme),

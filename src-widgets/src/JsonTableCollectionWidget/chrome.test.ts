@@ -267,16 +267,28 @@ describe('buildTableChrome — table layout and borders', () => {
     it.each([
         ['emptied', ''],
         ['null', null],
-    ])('reads an %s row or cell border width like the unset one (1 px)', (_case, width) => {
+    ])('reads an %s row border width like the unset one (1 px)', (_case, width) => {
+        const settings = { horizontalCellBorderWidth: width } as unknown as TableChromeSettings;
+
+        expect(cells(chrome(settings).tableSx)).toEqual({ borderBottom: '1px solid', borderBottomColor: DIVIDER });
+    });
+
+    // A null cell border width reads like the unset one (lib/fieldDefaults)
+    it('reads a null cell border width like the unset one (1 px)', () => {
         const settings = {
             tableShowCellBorders: true,
-            horizontalCellBorderWidth: width,
-            verticalCellBorderWidth: width,
+            verticalCellBorderWidth: null,
         } as unknown as TableChromeSettings;
-        const sx = chrome(settings).tableSx;
 
-        expect(cells(sx)).toEqual({ borderBottom: '1px solid', borderBottomColor: DIVIDER });
-        expect(innerCells(sx)).toEqual({ borderRight: '1px solid', borderRightColor: DIVIDER });
+        expect(innerCells(chrome(settings).tableSx)).toEqual({ borderRight: '1px solid', borderRightColor: DIVIDER });
+    });
+
+    // vis-2's slider keeps '' once emptied: a stored table shows no line between its cells there, as
+    // it always did (no emptiedReadsUnset).
+    it('draws no cell border for an emptied width, like 0', () => {
+        const settings = { tableShowCellBorders: true, verticalCellBorderWidth: '' } as unknown as TableChromeSettings;
+
+        expect(innerCells(chrome(settings).tableSx)).toEqual({ borderRight: '0px solid', borderRightColor: DIVIDER });
     });
 
     it('removes the row borders when switched off', () => {
