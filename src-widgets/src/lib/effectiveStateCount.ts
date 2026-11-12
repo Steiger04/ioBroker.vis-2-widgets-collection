@@ -7,6 +7,8 @@
  * (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to
  * `values_count` when absent (e.g. boolean OIDs without commonStates).
  */
+import { isUsableValue } from './usableWidgetData';
+
 export type EffectiveStateCountInputs = {
     /**
      * Number of authored value rows (widget field `values_count`); a numeric string counts as its
@@ -33,7 +35,10 @@ const effectiveStateCount = ({
     commonStatesCount,
     ignoreCommonStates,
 }: EffectiveStateCountInputs): number => {
-    const rows = Number(valuesCount ?? 0) || 0;
+    // `values_count` declares the stored value 'number' (lib/stateEditorFields). The runtime gets it
+    // through the Rückfall-Regel already; the Zustandseditor reads the raw data, so a value the rule
+    // drops counts no rows here too, and both count the same rows.
+    const rows = isUsableValue('number', valuesCount) ? Number(valuesCount ?? 0) || 0 : 0;
     if (ignoreCommonStates === false) {
         return rows;
     }
