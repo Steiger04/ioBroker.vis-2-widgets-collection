@@ -7,9 +7,14 @@
  * (`values_count`) govern; otherwise the OID's `commonStates` count, falling back to
  * `values_count` when absent (e.g. boolean OIDs without commonStates).
  */
+import optionalNumber from './helper/optionalNumber';
+
 export type EffectiveStateCountInputs = {
-    /** Number of authored value rows (widget field `values_count`). */
-    valuesCount: number | null | undefined;
+    /**
+     * Number of authored value rows (widget field `values_count`); a numeric string counts as its
+     * number ({@link module:lib/helper/optionalNumber}), as the Rückfall-Regel lets it through.
+     */
+    valuesCount: number | string | null | undefined;
     /** Number of entries in the OID's `common.states`. */
     commonStatesCount: number | null | undefined;
     /** Whether the editor ignores the OID's common states (default `true`). */
@@ -30,7 +35,10 @@ const effectiveStateCount = ({
     commonStatesCount,
     ignoreCommonStates,
 }: EffectiveStateCountInputs): number => {
-    const rows = valuesCount ?? 0;
+    // `values_count` declares the stored value 'number' (lib/stateEditorFields). The runtime gets it
+    // through the Rückfall-Regel already; the Zustandseditor reads the raw data through the same
+    // number reading, so a value the rule drops counts no rows here too, and both count the same rows.
+    const rows = optionalNumber(valuesCount) ?? 0;
     if (ignoreCommonStates === false) {
         return rows;
     }

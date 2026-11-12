@@ -17,6 +17,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
+import optionalNumber from '../lib/helper/optionalNumber';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
 import { modalSizeOf } from './pickerGeometry';
@@ -54,7 +55,9 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
     const longPressProps = useLongPress({
         onClick: onToggle,
         onLongPress: () => setOpen(true),
-        ms: rxData.colorLightDelayLongPress ?? 500,
+        // An emptied delay ('') reads like 0, a long press on every touch, as stored lamps read it; a
+        // numeric string as its number, a bound text that names none like 0 as well.
+        ms: optionalNumber(rxData.colorLightDelayLongPress) ?? 0,
     });
 
     // Height, and explicit width or the auto width from the picker geometry (height + slider + gap).

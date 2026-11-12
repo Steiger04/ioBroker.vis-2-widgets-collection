@@ -13,6 +13,7 @@ import type { TableChromeSettings } from './chrome';
 vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
 
 import jsonTableFields from '../lib/jsonTableFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 
 const DIVIDER = 'rgba(0, 0, 0, 0.12)';
 const PAPER = '#fafafa';
@@ -23,8 +24,9 @@ const theme = {
     palette: { divider: DIVIDER, background: { paper: PAPER }, text: { primary: '#2f3e51' } },
 } as unknown as Theme;
 
+/** The chrome of stored settings as the widget reads them (`readWidgetData`: defaults, emptied fields). */
 const chrome = (settings: TableChromeSettings = {}): ReturnType<typeof buildTableChrome> =>
-    buildTableChrome(settings, theme);
+    buildTableChrome(readWidgetData(jsonTableFields(), settings), theme);
 
 describe('buildTableChrome — density heights', () => {
     it.each([
@@ -89,6 +91,21 @@ describe('buildTableChrome — header bar', () => {
         [24, 'shadow-24'],
     ])('elevation %i → shadow %s', (tableHeaderElevation, boxShadow) => {
         expect(chrome({ tableHeaderElevation }).headerBarSx.boxShadow).toBe(boxShadow);
+    });
+
+    // A null elevation reads like the unset one (lib/fieldDefaults)
+    it('reads a null elevation like the unset one (shadow 6)', () => {
+        const settings = { tableHeaderElevation: null } as unknown as TableChromeSettings;
+
+        expect(chrome(settings).headerBarSx.boxShadow).toBe('shadow-6');
+    });
+
+    // vis-2's slider keeps '' once emptied: a stored table draws that header without a shadow, as
+    // it always did (no emptiedReadsUnset).
+    it('draws an emptied elevation without a shadow, like 0', () => {
+        const settings = { tableHeaderElevation: '' } as unknown as TableChromeSettings;
+
+        expect(chrome(settings).headerBarSx.boxShadow).toBe('none');
     });
 
     it('drops card surface and shadow with noCard, whatever the elevation', () => {
@@ -247,6 +264,21 @@ describe('buildTableChrome — table layout and borders', () => {
         });
     });
 
+    it.each([
+        ['emptied', ''],
+        ['null', null],
+    ])('reads an %s row or cell border width like the unset one (1 px)', (_case, width) => {
+        const settings = {
+            tableShowCellBorders: true,
+            horizontalCellBorderWidth: width,
+            verticalCellBorderWidth: width,
+        } as unknown as TableChromeSettings;
+        const sx = chrome(settings).tableSx;
+
+        expect(cells(sx)).toEqual({ borderBottom: '1px solid', borderBottomColor: DIVIDER });
+        expect(innerCells(sx)).toEqual({ borderRight: '1px solid', borderRightColor: DIVIDER });
+    });
+
     it('removes the row borders when switched off', () => {
         expect(cells(chrome({ tableShowRowBorders: false, horizontalCellBorderWidth: 3 }).tableSx)).toEqual({
             borderBottom: 'none',
@@ -350,15 +382,17 @@ describe('buildTableChrome — outer frame and padding', () => {
         expect(chrome().scrollSx).toEqual({ flex: 1, overflow: 'auto' });
     });
 
-    it('pads the whole widget body by jsonTablePadding (MUI spacing units), 0 when unset', () => {
+    // Unset, the padding reads its default 1; emptied (''), no padding — stored tables keep that reading.
+    it('pads the whole widget body by jsonTablePadding (MUI spacing units), 0 when emptied', () => {
         expect(chrome().bodySx).toEqual({
             width: '100%',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            p: 0,
+            p: 1,
         });
+        expect(chrome({ jsonTablePadding: '' as unknown as number }).bodySx.p).toBe(0);
         expect(chrome({ jsonTablePadding: 2 }).bodySx.p).toBe(2);
         expect(chrome({ jsonTablePadding: '3' as unknown as number }).bodySx.p).toBe(3);
     });

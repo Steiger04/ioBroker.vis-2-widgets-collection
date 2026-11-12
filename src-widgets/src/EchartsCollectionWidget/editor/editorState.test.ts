@@ -16,6 +16,9 @@ vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
+import echartsFields from '../../lib/echartsFields';
+import { fieldDefaultsOf } from '../../lib/fieldDefaults';
+import { fullDataPathReset } from '../families/dataPath';
 import { composeActiveSnippets } from './snippetComposition';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
@@ -908,5 +911,182 @@ describe('editorState — payload family round-trip (ADR-0075)', () => {
         };
         const reloaded = loadEditorState(saveEditorState(seriesShaped, 0));
         expect(reloaded.yAxes).toHaveLength(0); // the overlay sight sees no binder → the axis drops
+    });
+});
+
+// The configuration editor gets the raw widget data vis-2 hands it (KI-Integration, ADR-0114):
+// a blob the assistant wrote broken loads like the blob unset, the same rule the live body reads by.
+describe('editorState — a broken configuration blob loads like the blob unset', () => {
+    const base = {
+        chartType: 'line',
+        series_count: 1,
+        oid1: 'demo.0.level',
+        seriesConfig: encodeBlob(JSON.stringify([{ name: 'A' }])),
+    };
+    const BLOBS = [
+        'seriesConfig',
+        'chartConfig',
+        'yAxes',
+        'xAxis',
+        'markLines',
+        'toolboxConfig',
+        'legendConfig',
+        'jsonSeriesStyle',
+        'jsonHidden',
+        'axisSlotMemory',
+    ];
+
+    /** The loaded state without the ids the load invents per call. */
+    const load = (data: Record<string, unknown>): unknown =>
+        JSON.parse(JSON.stringify(loadEditorState(data), (k, v: unknown) => (k === 'id' ? undefined : v)));
+
+    it.each(BLOBS)('%s', key => {
+        const unset = load(Object.fromEntries(Object.entries(base).filter(([k]) => k !== key)));
+        for (const broken of [5, true, { a: 1 }, ['x'], '{"oops', 'name,value', 'b64:!!!']) {
+            expect(load({ ...base, [key]: broken }), JSON.stringify(broken)).toEqual(unset);
+        }
+    });
+});
+
+// The rule lets a numeric string through in a number field (lib/usableWidgetData), and vis-2 reads a
+// series count as text with parseInt: the editor loads it as its number instead of its default,
+// which a save would write back over the stored scalars.
+describe('editorState — a number scalar stored as a numeric string loads as its number', () => {
+    it('loads the series of a series count as text', () => {
+        const data = { chartType: 'line', series_count: '2', oid1: 'demo.0.a', oid2: 'demo.0.b' };
+
+        expect(loadEditorState(data).series.map(s => s.oid)).toEqual(['demo.0.a', 'demo.0.b']);
+    });
+
+    it('loads the other number scalars as their numbers', () => {
+        const state = loadEditorState({
+            frameWidth: '3',
+            count: '200',
+            tooltipDecimals: '2',
+            animationDuration: '900',
+        });
+
+        expect([state.frame.width, state.count, state.tooltipDecimals, state.animationDuration]).toEqual([
+            3, 200, 2, 900,
+        ]);
+    });
+});
+
+// The text scalars the editor owns (mode, chart type, positions, time window …) carry no rule; the
+// editor opens over whatever the assistant wrote there.
+describe('editorState — a text scalar of another JSON type', () => {
+    it.each([5, true, { a: 1 }, ['x'], 'zzz'])('loads without a throw: %j', value => {
+        const fields = echartsFields() as { name?: string; type?: string; storedValue?: unknown }[];
+        const texts = fields.filter(f => f.name && f.type === 'text' && f.storedValue === undefined).map(f => f.name!);
+        const data = { series_count: 1, oid1: 'demo.0.a', ...Object.fromEntries(texts.map(key => [key, value])) };
+
+        expect(texts).toEqual(expect.arrayContaining(['mode', 'chartType', 'legendPos']));
+        expect(() => saveEditorState(loadEditorState(data))).not.toThrow();
+    });
+});
+
+// The assistant learns a stored key only from its field (describe_widget_type lists every field,
+// hidden ones too), and the rule in Generic reads only declared keys: every key the editor saves
+// is a field, hidden like the other modal-owned scalars (KI-Integration, ADR-0114).
+describe('editorState — every key the editor saves is a declared field', () => {
+    /** Saved keys without a field, each with its reason. */
+    const UNDECLARED: Readonly<Record<string, string>> = {
+        // The editor's own place memory (ADR-0079 addendum): it only steers where the editor puts
+        // an axis back, the chart never reads it, and the assistant has nothing to set there.
+        axisSlotMemory: 'editor-internal place memory',
+    };
+    const fields = (): { name?: string; default?: unknown; hidden?: unknown }[] => echartsFields();
+    const saved = (): string[] =>
+        Object.keys(
+            saveEditorState({ ...baseState(), series: [{ oid: 'demo.0.a', id: 's0', name: 'A', yAxisIndex: 0 }] }),
+        );
+
+    it('declares each saved key but the excepted ones (the series OIDs are the indexed group)', () => {
+        const declared = new Set(fields().map(f => f.name));
+        const missing = saved().filter(key => !declared.has(key) && !/^oid\d+$/.test(key) && !(key in UNDECLARED));
+
+        expect(missing).toEqual([]);
+        expect(Object.keys(UNDECLARED).filter(key => declared.has(key) || !saved().includes(key))).toEqual([]);
+    });
+
+    it('hides the legend and title fields like the other modal-owned scalars', () => {
+        const keys = [
+            'legendConfig',
+            'titleDx',
+            'titleDy',
+            'titleColor',
+            'titleFontSize',
+            'titleWeight',
+            'titleFontStyle',
+        ];
+        const declared = fields().filter(f => f.name && keys.includes(f.name));
+
+        expect(declared.map(f => f.name).sort()).toEqual([...keys].sort());
+        expect(declared.filter(f => typeof f.hidden !== 'function' || (f.hidden as () => unknown)() !== true)).toEqual(
+            [],
+        );
+    });
+
+    it('loads the defaults of the declared fields like the keys missing', () => {
+        const base = { chartType: 'line', series_count: 1, oid1: 'demo.0.a', titleText: 'Title' };
+        const defaults = Object.fromEntries(
+            fields().flatMap(f => (f.name && f.default !== undefined ? [[f.name, f.default]] : [])),
+        );
+        const load = (data: Record<string, unknown>): unknown =>
+            JSON.parse(JSON.stringify(loadEditorState(data), (k, v: unknown) => (k === 'id' ? undefined : v)));
+
+        expect(Object.keys(defaults)).toEqual(expect.arrayContaining(['legendConfig', 'titleDx', 'titleDy']));
+        for (const [key, value] of Object.entries(defaults)) {
+            const unset = Object.fromEntries(Object.entries(base).filter(([k]) => k !== key));
+            if (key in base) {
+                continue;
+            }
+            expect(load({ ...unset, [key]: value }), key).toEqual(load(unset));
+        }
+    });
+});
+
+// The title offsets and size are number fields: a numeric string loads as its number, as in the
+// other number scalars, instead of the default a save would write back.
+describe('editorState — a title number stored as a numeric string loads as its number', () => {
+    it('loads the offsets and the font size', () => {
+        const state = loadEditorState({ titleDx: '12', titleDy: '8', titleFontSize: '24' });
+
+        expect([state.titleDx, state.titleDy, state.titleFontSize]).toEqual([12, 8, 24]);
+    });
+});
+
+// Spec-Leitplanke 2 (KI-Integration, ADR-0114): the field definition is the one source of a
+// default. The configurator reads the raw widget data, so its start state is what a fresh widget —
+// palette-dropped (every default stored) or assistant-inserted (nothing stored) — opens as. The
+// start state, the load fallbacks and the data-path reset are copies of the field defaults: this
+// pins them to the definition.
+describe('editorState — the start state reads like the field defaults', () => {
+    const defaults = fieldDefaultsOf([{ name: 'echarts', fields: echartsFields() }]);
+    const plain = (value: unknown): unknown =>
+        JSON.parse(JSON.stringify(value, (k, v: unknown) => (k === 'id' ? undefined : v)));
+    const startState = plain(DEFAULT_EDITOR_STATE);
+
+    it('opens a widget without data in the start state', () => {
+        expect(plain(loadEditorState({}))).toEqual(startState);
+    });
+
+    it('opens a palette-dropped widget in the start state', () => {
+        expect(defaults.size).toBeGreaterThan(40);
+        expect(plain(loadEditorState(Object.fromEntries(defaults)))).toEqual(startState);
+    });
+
+    it.each([...defaults.keys()])('loads the default of %s like the key missing', key => {
+        expect(plain(loadEditorState({ [key]: defaults.get(key) }))).toEqual(startState);
+    });
+
+    it('resets the data path to the start state', () => {
+        const reset = fullDataPathReset() as unknown as Record<string, unknown>;
+        const start = DEFAULT_EDITOR_STATE as unknown as Record<string, unknown>;
+
+        expect(Object.keys(reset)).toEqual(expect.arrayContaining(['jsonOid', 'jsonKind']));
+        for (const key of Object.keys(reset)) {
+            expect(reset[key], key).toEqual(start[key]);
+        }
     });
 });

@@ -19,6 +19,7 @@ import type {
 
 import type { EffectiveType, TableCapabilities } from './capabilities';
 import { filterFits } from './columnFilter';
+import { TABLE_PAGE_SIZE_OPTIONS_DEFAULT } from '../lib/jsonTableDefaults';
 
 /** The persisted parts of a table's view, in TanStack's state shapes. */
 export type TableView = {
@@ -58,8 +59,17 @@ export type ViewConfig = Readonly<{
     columns: Readonly<Record<string, ViewColumn>>;
 }>;
 
-/** The page sizes offered when `tablePageSizeOptions` is empty or unreadable. */
-const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+/** The distinct positive page sizes of a comma-separated list, ascending. */
+const pageSizesOf = (raw: string): number[] => {
+    const sizes = raw
+        .split(',')
+        .map(s => parseInt(s.trim(), 10))
+        .filter(n => !isNaN(n) && n > 0);
+    return [...new Set(sizes)].sort((a, b) => a - b);
+};
+
+/** The page sizes offered when `tablePageSizeOptions` is empty or unreadable: the field's default. */
+const DEFAULT_PAGE_SIZE_OPTIONS = pageSizesOf(TABLE_PAGE_SIZE_OPTIONS_DEFAULT);
 
 /**
  * Parse `tablePageSizeOptions`.
@@ -68,11 +78,8 @@ const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
  * @returns The distinct positive sizes, ascending; the defaults when none is readable.
  */
 export function parsePageSizeOptions(raw: string | undefined): number[] {
-    const sizes = (raw ?? '')
-        .split(',')
-        .map(s => parseInt(s.trim(), 10))
-        .filter(n => !isNaN(n) && n > 0);
-    return sizes.length > 0 ? [...new Set(sizes)].sort((a, b) => a - b) : DEFAULT_PAGE_SIZE_OPTIONS;
+    const sizes = pageSizesOf(raw ?? '');
+    return sizes.length > 0 ? sizes : DEFAULT_PAGE_SIZE_OPTIONS;
 }
 
 // ── Stored forms ─────────────────────────────────────────────────────────────

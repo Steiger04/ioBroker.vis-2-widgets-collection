@@ -55,6 +55,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                     value={String(oidValue)}
                     disabled={locked}
                     fullWidth
+                    // Unset, null or '' reads its default (lib/buttonGroupFields: emptiedReadsUnset).
                     orientation={buttonGroupOrientation}
                     sx={buildGroupChrome({
                         variant: buttonGroupVariant,

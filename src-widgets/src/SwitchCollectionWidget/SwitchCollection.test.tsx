@@ -21,6 +21,8 @@ import {
     withContentBox,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import switchFields from '../lib/switchFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import SwitchCollection from './SwitchCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -30,10 +32,11 @@ const OID = 'demo.0.power';
 
 const mountBody = testScopedMount();
 
+/** A Switch scene over the data as the widget reads it (`readWidgetData`). */
 const scene = (data: Record<string, unknown> = {}, status: unknown = true): PreviewScene =>
     collectionScene(
         'switch-collection-test',
-        {
+        readWidgetData(switchFields(), {
             oid: OID,
             oidObject: { _id: OID, type: 'boolean' },
             thumbSize: 40,
@@ -41,7 +44,7 @@ const scene = (data: Record<string, unknown> = {}, status: unknown = true): Prev
             noFooter: true,
             noHeaderIcon: true,
             ...data,
-        },
+        }),
         status,
     );
 
@@ -73,6 +76,14 @@ describe('SwitchCollection height budget (Content-Box)', () => {
 
     it('draws the switch with the schema thumb size when none is stored', () => {
         const { container } = mountBody(SwitchCollection, scene({ thumbSize: undefined }));
+
+        expect(getComputedStyle(thumb(container)).height).toBe('62px');
+    });
+
+    it('draws the switch with the schema thumb size when the stored size was emptied', () => {
+        // The number box beside the vis-2 slider stores '' when cleared: it reads as unset
+        // (lib/switchFields: emptiedReadsUnset), the track size's too.
+        const { container } = mountBody(SwitchCollection, scene({ thumbSize: '' }));
 
         expect(getComputedStyle(thumb(container)).height).toBe('62px');
     });

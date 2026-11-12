@@ -13,10 +13,11 @@
  * mirrored by `series_count`.
  */
 
-import { decodeBlob, encodeBlob } from '../../lib/encoding';
+import { encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
 import { normalizeStackMode } from '../stackMode';
-import { parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
+import { parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from '../optionBuilder';
+import { OBJECT_BLOB, readUsableJson } from '../../lib/usableJson';
 import { familyOf } from '../families/kernel';
 import { editorialOf } from '../families/editorial';
 import {
@@ -28,6 +29,7 @@ import {
     decodeXAxisWithLegacy,
     legacyAxis,
     normalizeLegendPos,
+    num,
 } from '../presentation';
 import { withStableIds } from './stableId';
 import { boundJsonView, type AxisSlotMemory } from './axisSight';
@@ -339,29 +341,26 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     jsonHidden: [],
 };
 
-const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
+const numOr = (v: unknown, dft: number): number => num(v) ?? dft;
 const strOr = (v: unknown, dft = ''): string => (typeof v === 'string' ? v : dft);
 const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
 /**
  * Decode the Platz-Gedächtnis blob (ADR-0079 place-memory addendum): each side's value list
- * must be finite numbers — anything else drops that side; an empty/absent/malformed blob is no
- * memory at all (legacy widgets render with the plain raster until their first gesture).
+ * must be finite numbers — anything else drops that side; an empty/absent/unusable blob is no
+ * memory at all (legacy widgets render with the plain raster until their first gesture). The blob
+ * has no field; its top level is judged by the shared blob reading (`lib/usableJson`).
  */
-const decodeSlotMemory = (raw: string): AxisSlotMemory | undefined => {
-    if (!raw) {
+const decodeSlotMemory = (raw: unknown): AxisSlotMemory | undefined => {
+    const parsed = readUsableJson(OBJECT_BLOB, raw);
+    if (!parsed) {
         return undefined;
     }
-    try {
-        const parsed = JSON.parse(raw) as { left?: unknown; right?: unknown };
-        const side = (v: unknown): number[] | undefined =>
-            Array.isArray(v) && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? (v as number[]) : undefined;
-        const left = side(parsed.left);
-        const right = side(parsed.right);
-        return left || right ? { ...(left ? { left } : {}), ...(right ? { right } : {}) } : undefined;
-    } catch {
-        return undefined;
-    }
+    const side = (v: unknown): number[] | undefined =>
+        Array.isArray(v) && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? (v as number[]) : undefined;
+    const left = side(parsed.left);
+    const right = side(parsed.right);
+    return left || right ? { ...(left ? { left } : {}), ...(right ? { right } : {}) } : undefined;
 };
 
 /**
@@ -393,14 +392,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     const chartTypeRaw = (data.chartType as LegacyChartType) ?? 'line';
     const seriesCount = numOr(data.series_count, 0);
 
-    // seriesConfig → per-index meta (name/colour/type/...)
-    let meta: SeriesMeta[] = [];
-    try {
-        const metaRaw = data.seriesConfig ? JSON.parse(decodeBlob(data.seriesConfig as string)) : [];
-        meta = Array.isArray(metaRaw) ? (metaRaw as SeriesMeta[]) : [];
-    } catch {
-        meta = [];
-    }
+    // seriesConfig → per-index meta (name/colour/type/...), read like the live body reads it
+    const meta: SeriesMeta[] = parseSeriesConfig(data.seriesConfig);
 
     // Normalize legacy chartType values (ADR-0008 r4 + ADR-0071): the heal is the family
     // profile's (ADR-0083) — cartesian derives the family-only 'cartesian' from the first
@@ -416,7 +409,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         editorialOf(chartTypeRaw).healChartType?.(chartTypeRaw, firstSeriesType) ?? (chartTypeRaw as EchartsChartType);
     const family = familyOf(chartType);
 
-    const chartConfig = decodeChartConfig(data.chartConfig as string);
+    const chartConfig = decodeChartConfig(data.chartConfig);
     const oidAt = (i: number): string => {
         const v = data[`oid${i + 1}`];
         return typeof v === 'string' && v !== 'nothing_selected' ? v : '';
@@ -473,7 +466,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // offsets/positions survive verbatim.
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
-    const yAxesDecoded = decodeAxes(data.yAxes as string);
+    const yAxesDecoded = decodeAxes(data.yAxes);
     const yAxes = withStableIds(
         yAxesDecoded.length ? yAxesDecoded : family === 'cartesian' && seriesCount > 0 ? [legacyAxis(data)] : [],
         'ax-',
@@ -500,7 +493,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // family loss). The chart-level activations died with the chart-U retirement (ADR-0045 —
     // no migration, stored chartSnippets are simply no longer read).
     const pie = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
-    const jsonSeriesStyle = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
+    const jsonSeriesStyle = parseJsonSeriesStyle(data.jsonSeriesStyle);
 
     const state: EditorState = {
         ...DEFAULT_EDITOR_STATE,
@@ -516,10 +509,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // 0 is a VALID percentile level (the 0th = min) — unlike resolutionStep/integralUnit
         // (0 = unset there), the load must not coerce an authored 0 away (review catch: the
         // round-trip forgot a saved 0 and fell back to the 50 default).
-        percentileValue:
-            typeof data.percentileValue === 'number' && Number.isFinite(data.percentileValue)
-                ? data.percentileValue
-                : undefined,
+        percentileValue: num(data.percentileValue),
         integralUnit: numOr(data.integralUnit, 0) || undefined,
         integralInterpolation:
             data.integralInterpolation === 'linear'
@@ -553,7 +543,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titleDx: numOr(data.titleDx, DEFAULT_EDITOR_STATE.titleDx),
         titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
         titleColor: typeof data.titleColor === 'string' && data.titleColor ? data.titleColor : null,
-        titleFontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
+        titleFontSize: num(data.titleFontSize),
         titleWeight: parseFontWeight(data.titleWeight),
         titleFontStyle: parseFontStyle(data.titleFontStyle),
         series,
@@ -561,7 +551,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         legendShow: boolOr(data.legendShow, true),
         legendPos: normalizeLegendPos(data.legendPos),
         legendShowValues: boolOr(data.legendShowValues, false),
-        legend: decodeLegendConfig(data.legendConfig as string),
+        legend: decodeLegendConfig(data.legendConfig),
         tooltipTrigger: (data.tooltipTrigger as EchartsTooltipTrigger) ?? (family === 'cartesian' ? 'axis' : 'item'),
         tooltipTemplate: strOr(data.tooltipTemplate, ''),
         tooltipUnits: strOr(data.tooltipUnits, ''),
@@ -579,11 +569,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // on legacy widgets (no memory, the plain raster). Validated loosely: a side's value
         // list must be finite numbers, anything else drops that side (defensive, hand-edited
         // rxData).
-        axisSlotMemory: decodeSlotMemory(decodeBlob(data.axisSlotMemory as string)),
+        axisSlotMemory: decodeSlotMemory(data.axisSlotMemory),
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
         // synthesised into `splitLine` (shared resolver — same rule as the live body). The
         // activations heal in the registry's load pass (ADR-0047).
-        xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
+        xAxis: decodeXAxisWithLegacy(data.xAxis, boolOr(data.xSplit, false)),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         zoomResetAfterIdle: (strOr(data.zoomResetAfterIdle, '') || '') as EchartsZoomResetIdle,
@@ -594,7 +584,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         frame,
-        toolbox: decodeToolboxConfig(data.toolboxConfig as string),
+        toolbox: decodeToolboxConfig(data.toolboxConfig),
         titleRaw: chartConfig.titleRaw ?? '',
         titleSnippets: chartConfig.titleSnippets ?? [],
         legendRaw: chartConfig.legendRaw ?? '',
@@ -602,7 +592,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         tooltipRaw: chartConfig.tooltipRaw ?? '',
         tooltipSnippets: chartConfig.tooltipSnippets ?? [],
         jsonSeriesStyle,
-        jsonHidden: parseJsonHidden(data.jsonHidden as string),
+        jsonHidden: parseJsonHidden(data.jsonHidden),
     };
     // ADR-0047: the single load-side heal pass — every scalar level's prune + keep-only heal
     // in one in-place sweep over the freshly constructed (still unhealed) state.

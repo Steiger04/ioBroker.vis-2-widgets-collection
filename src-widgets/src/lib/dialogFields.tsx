@@ -67,6 +67,8 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 1,
         max: 100,
         default: 100,
+        // An emptied size opens the dialog at the default, not at 0.
+        emptiedReadsUnset: true,
         step: 1,
     },
     {
@@ -76,6 +78,7 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 1,
         max: 100,
         default: 100,
+        emptiedReadsUnset: true,
         step: 1,
     },
     {
@@ -127,6 +130,7 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     createPlainColorField({
         name: 'dialogCloseButtonColor',
         label: 'dialog_close_button_color',
+        default: '',
     }),
     {
         label: '',

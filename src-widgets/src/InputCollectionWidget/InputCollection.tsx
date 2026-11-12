@@ -13,6 +13,7 @@ import useData from '../hooks/useData';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { displayText } from '../lib/displayText';
 import { solidOf } from '../lib/helper/colorDerivation';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
 
@@ -59,7 +60,10 @@ const InputCollection: FC = () => {
     // A field cannot clip a gradient through its text without losing the caret, so it paints the
     // Repräsentative Vollfarbe. Without one the rule stays out and the theme text colour remains.
     const fieldColor = solidOf(data.textColor);
-    const inputVariant = widget.data.inputVariant ?? 'standard';
+    // Unset, null or '' (raw data only, or a binding: the vis-2 select offers the options), the variant
+    // reads its default (lib/inputFields: emptiedReadsUnset). An unset padding reads its default too;
+    // an emptied padding ('') keeps its reading as 0, and so does a bound text that names no number.
+    const { inputVariant, inputPadding } = widget.data;
 
     return (
         <CollectionBase
@@ -74,7 +78,7 @@ const InputCollection: FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        px: Number(widget.data.inputPadding),
+                        px: optionalNumber(inputPadding) ?? 0,
                     }}
                 >
                     <TextField

@@ -33,6 +33,7 @@ import { stateRowCount, stateRowOidObject } from './stateRows';
 import type { StateEditorFieldProps } from '../components/StateEditor/useStateEditor';
 import type { StateEditorParams, StateEditorSpec } from './stateEditorConfig';
 import type { HiddenPredicate } from './fieldFactories';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 import type React from 'react';
 
@@ -103,6 +104,8 @@ const stateDetailFields = (
             ...(tooltip === undefined ? {} : { tooltip }),
             noBinding: true,
             hidden: unlessRows(noRows, hidden),
+            // The keys it stores, `name{n}`, read with the definition's rule (lib/usableWidgetData).
+            perStateField: definition,
             component: stateEditorComponent(spec, fieldProps => (
                 <StateDetailField
                     {...fieldProps}
@@ -135,8 +138,10 @@ export const stateEditorGroup = (
             label: 'state_editor_rows',
             noBinding: true,
             default: 0,
+            // The number of Zustandszeilen; anything else reads as unset (lib/usableWidgetData).
+            storedValue: 'number',
             component: stateEditorComponent(spec, fieldProps => <StateEditorRowsField {...fieldProps} />),
-        },
+        } as ExtendedField,
         {
             name: 'stateEditor:list',
             type: 'custom',

@@ -26,18 +26,14 @@ import { useContext, useEffect, useInsertionEffect, useMemo, useRef } from 'reac
 import { Subject, debounceTime, tap, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
 import { DEFAULT_SAMPLE_INTERVAL_MS, DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
-import isNumber from '../lib/helper/isNumber';
+import optionalNumber from '../lib/helper/optionalNumber';
 import type { DelayFieldsRxData, OidObject } from '../types';
 
 /**
  * A configured interval in ms, or the field default when the value is missing, blank or not a
  * finite number. An explicit `0` is kept.
  */
-const intervalOr = (value: unknown, fieldDefault: number): number => {
-    const ms = Number(value);
-
-    return isNumber(value) && Number.isFinite(ms) ? ms : fieldDefault;
-};
+const intervalOr = (value: unknown, fieldDefault: number): number => optionalNumber(value) ?? fieldDefault;
 
 /**
  * Parameters for {@link module:hooks/useDebounce.default}.

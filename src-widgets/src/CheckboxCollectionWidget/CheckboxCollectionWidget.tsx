@@ -24,6 +24,8 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'CheckboxCollectionWidget', // Name of widget
             visWidgetLabel: 'checkbox_collection_widget', // Label for widget
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'checkbox_collection_widget_help',
             visOrder: 2,
             visAttrs: [
                 {

@@ -68,6 +68,7 @@
  */
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { StoredValue } from '../../lib/usableWidgetData';
 
 /**
  * Extended field definition with the color resolution contract
@@ -137,6 +138,41 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * fields (e.g. `iconColor`, `background`). See ADR 0004.
      */
     inheritTextStyle?: boolean;
+
+    /**
+     * What a data-bearing `custom` field stores under its name (KI-Integration, ADR-0114), or a
+     * `text` field that holds a configuration blob (JSON text). The Rückfall-Regel
+     * (`lib/usableWidgetData`) reads a stored value of another kind as unset; a custom field that
+     * stores nothing under its name declares none.
+     */
+    storedValue?: StoredValue;
+
+    /**
+     * A Zustandseditor detail field (`lib/stateEditorFields`): the per-state field definition it
+     * edits as `name{n}` of every Zustandszeile. The Rückfall-Regel reads each `name{n}` with that
+     * field's rule (`lib/usableWidgetData`); vis-2 ignores the key.
+     */
+    perStateField?: RxWidgetInfoAttributesField;
+
+    /**
+     * Why this field's key, when missing, keeps the widget's own unset reading instead of the
+     * field's `default` (KI-Integration, ADR-0114): a missing key reads as the palette would have
+     * stored it (`lib/fieldDefaults`), except for a field declared here — one added after its widget
+     * was released, so that stored widgets of earlier releases lack the key and their look must not
+     * change, or a field whose unset reading is a deliberate cascade. vis-2 ignores the key.
+     */
+    keepUnset?: string;
+
+    /**
+     * Whether this field's emptied value — the `''` vis-2's number field stores once the user
+     * empties it — reads as unset (KI-Integration, ADR-0114): the Rückfall-Regel
+     * (`lib/usableWidgetData`) reads its `''` and `null` as unset, stored or bound, and a bound
+     * text its rule rejects too; the field then reads its `default` (`lib/fieldDefaults`), or the
+     * widget's unset reading without one. Declared where the widget read `''` like the unset field
+     * already; without it, `''` is a stored value with the meaning its reader gives it (e.g. a
+     * padding of 0). Its `default` is never `''`. vis-2 ignores the key.
+     */
+    emptiedReadsUnset?: true;
 };
 
 /**

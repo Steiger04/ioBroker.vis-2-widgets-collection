@@ -26,12 +26,22 @@ import type {
     EchartsTooltipTrigger,
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
-import { decodeBlob } from '../lib/encoding';
 import { asNullableIntake, intakeValue } from './historyLogic';
 import { applyRawOverride } from './utils/mergeOption';
 import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
+import { readListBlob, readObjectBlob, withoutBroken } from '../lib/usableJson';
+import optionalNumber from '../lib/helper/optionalNumber';
+import {
+    AXIS_KINDS,
+    CHART_CONFIG_KINDS,
+    LEGEND_KINDS,
+    MARK_LINE_KINDS,
+    PIE_KINDS,
+    TOOLBOX_KINDS,
+    X_AXIS_KINDS,
+} from './storedConfig';
 import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -246,8 +256,13 @@ export const PALETTE_PRESETS: Record<string, string[]> = {
     ...THEME_PALETTES,
 };
 
-/** Field-map coercion: a finite number or undefined. Shared with the family profiles (ADR-0083). */
-export const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+/**
+ * Field-map coercion: the one number reading of a field (`lib/helper/optionalNumber`) — a finite
+ * number, or a numeric text as its number (the Rückfall-Regel keeps one in a number field: a binding
+ * delivers text); else undefined, `''` too. Shared with the family profiles (ADR-0083), the
+ * pipeline and the editor load under this name.
+ */
+export const num = (v: unknown): number | undefined => optionalNumber(v);
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
 /** Field-map coercion: a boolean or the default. Shared with the family profiles (ADR-0083). */
 export const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
@@ -275,20 +290,18 @@ export interface ChartConfigBlob {
     stackSum?: boolean;
 }
 
-/** Decode the base64 family-config blob into its pie part (+ section raws). */
-export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBlob => {
-    if (!raw) {
+/**
+ * Decode the base64 family-config blob into its pie part (+ section raws). Empty/unusable → `{}`; a
+ * key not of its JSON type reads as left out, one level down in the pie settings too (the
+ * stored-configuration rule, {@link module:EchartsCollectionWidget/storedConfig}).
+ */
+export const decodeChartConfig = (raw: unknown): ChartConfigBlob => {
+    const config = readObjectBlob(raw, CHART_CONFIG_KINDS);
+    if (!config) {
         return {};
     }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            return parsed as ChartConfigBlob;
-        }
-    } catch {
-        /* ignore — fall back to empty */
-    }
-    return {};
+    const pie = config.pie && withoutBroken(config.pie, PIE_KINDS);
+    return pie === config.pie ? config : { ...config, pie };
 };
 
 /**
@@ -455,73 +468,41 @@ const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
     return out;
 };
 
-/** Decode the base64 mark-lines blob (legacy `dashed`/`value` migrated away, ADR-0061/0062). */
-export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? parsed.map(migrateMarkLine) : [];
-    } catch {
-        return [];
-    }
-};
-
-/** Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/invalid → `[]`. */
-export const decodeAxes = (raw: string | undefined | null): EchartsAxisConfig[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as EchartsAxisConfig[]) : [];
-    } catch {
-        return [];
-    }
-};
+/**
+ * Decode the base64 mark-lines blob (legacy `dashed`/`value` migrated away, ADR-0061/0062).
+ * Empty/unusable → `[]`; a marking that is no object is left out, a key not of its JSON type reads
+ * as left out (the stored-configuration rule) before the migration reads the marking.
+ */
+export const decodeMarkLines = (raw: unknown): EchartsMarkLine[] =>
+    readListBlob(raw, MARK_LINE_KINDS, false).map(migrateMarkLine);
 
 /**
- * Decode a base64 blob that must hold a JSON OBJECT; `fallback` for absent/invalid/non-object
- * payloads (the shared shape of the object-blob decoders below — legend styling, toolbox config).
+ * Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/unusable → `[]`;
+ * an axis that is no object reads as an empty axis (`yAxisIndex` points by place), a key not of its
+ * JSON type as left out (the stored-configuration rule, {@link module:EchartsCollectionWidget/storedConfig}).
  */
-const decodeObjectBlob = <T extends object>(raw: string | undefined | null, fallback: T): T => {
-    if (!raw) {
-        return fallback;
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as T) : fallback;
-    } catch {
-        return fallback;
-    }
-};
+export const decodeAxes = (raw: unknown): EchartsAxisConfig[] => readListBlob(raw, AXIS_KINDS, true);
 
-/** Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/invalid → `{}`. */
-export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig =>
-    decodeObjectBlob<EchartsLegendConfig>(raw, {});
+/**
+ * Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/unusable →
+ * `{}`; a key not of its JSON type reads as left out (the stored-configuration rule).
+ */
+export const decodeLegendConfig = (raw: unknown): EchartsLegendConfig => readObjectBlob(raw, LEGEND_KINDS) ?? {};
 
-/** Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/invalid → `{}`. */
-export const decodeToolboxConfig = (raw: string | undefined | null): EchartsToolboxConfig =>
-    decodeObjectBlob<EchartsToolboxConfig>(raw, {});
+/**
+ * Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/unusable → `{}`; a
+ * key not of its JSON type reads as left out (the stored-configuration rule).
+ */
+export const decodeToolboxConfig = (raw: unknown): EchartsToolboxConfig => readObjectBlob(raw, TOOLBOX_KINDS) ?? {};
 
 /**
  * Decode the base64 `xAxis` blob into the single X-axis config (ADR-0035). `null` when there is
- * no blob / it is invalid — the caller's legacy `xSplit` fallback applies exactly then. A saved
+ * no blob / it is unusable — the caller's legacy `xSplit` fallback applies exactly then. A saved
  * but empty `{}` blob decodes to `{}` (an explicit "all defaults" choice — the legacy fallback
- * must NOT re-apply over it).
+ * must NOT re-apply over it). A key not of its JSON type reads as left out (the stored-configuration
+ * rule).
  */
-export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig | null => {
-    if (!raw) {
-        return null;
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as EchartsXAxisConfig) : null;
-    } catch {
-        return null;
-    }
-};
+export const decodeXAxis = (raw: unknown): EchartsXAxisConfig | null => readObjectBlob(raw, X_AXIS_KINDS) ?? null;
 
 /**
  * Resolve the X-axis config with the legacy `xSplit` fallback (ADR-0035): the decoded blob wins;
@@ -529,7 +510,7 @@ export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig 
  * config at all. Shared by the live body (`toPresentationBase` + the family fragment) and the editor
  * (`loadEditorState`) so the two cannot drift.
  */
-export const decodeXAxisWithLegacy = (raw: string | undefined | null, legacyXSplit: boolean): EchartsXAxisConfig =>
+export const decodeXAxisWithLegacy = (raw: unknown, legacyXSplit: boolean): EchartsXAxisConfig =>
     decodeXAxis(raw) ?? (legacyXSplit ? { splitLine: true } : {});
 
 /**
@@ -611,7 +592,7 @@ export const toPresentationBase = (opts: {
         legend:
             s.legend && typeof s.legend === 'object' && !Array.isArray(s.legend)
                 ? s.legend
-                : decodeLegendConfig(s.legendConfig as string),
+                : decodeLegendConfig(s.legendConfig),
         tooltipTrigger:
             // 'axis' is meaningless off-cartesian (ADR-0012 WS2): a non-cartesian that still stores
             // it (e.g. switched from cartesian) coerces to 'item' at runtime.
@@ -637,7 +618,7 @@ export const toPresentationBase = (opts: {
         toolbox:
             s.toolbox && typeof s.toolbox === 'object' && !Array.isArray(s.toolbox)
                 ? s.toolbox
-                : decodeToolboxConfig(s.toolboxConfig as string),
+                : decodeToolboxConfig(s.toolboxConfig),
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,

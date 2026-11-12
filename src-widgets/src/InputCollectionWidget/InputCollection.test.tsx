@@ -24,6 +24,8 @@ import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 import commonObjectFields from '../lib/commonObjectFields';
+import inputFields from '../lib/inputFields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import { DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
 import {
     collectionScene,
@@ -61,8 +63,17 @@ const BASE_DATA = {
 
 const OK_MODE = { showOkButton: true };
 
-const sceneOf = (data: Record<string, unknown>, values: Values): ReturnType<typeof collectionScene> => {
-    const scene = collectionScene('input-test', { ...BASE_DATA, ...data }, undefined);
+/** The scene over the data as the widget reads it (`readWidgetData`). */
+const sceneOf = (
+    data: Record<string, unknown>,
+    values: Values,
+    stored: Record<string, unknown> = data,
+): ReturnType<typeof collectionScene> => {
+    const scene = collectionScene(
+        'input-test',
+        readWidgetData(inputFields(), { ...BASE_DATA, ...data }, { ...BASE_DATA, ...stored }),
+        undefined,
+    );
     // The scene alone carries only `<oid>.val`; the `.lc` decides what counts as a change.
     scene.context.values = values;
     return scene;
@@ -307,8 +318,9 @@ describe('InputCollection field attributes', () => {
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual(['0.5', '10', '90']);
     });
 
-    it('puts none of them on a number field without configured values', () => {
-        const { container } = mountInput();
+    // An unset step reads its default 1; an emptied one ('') keeps its reading: no step.
+    it('puts none of them on a number field with an emptied step and no range', () => {
+        const { container } = mountInput({ step: '' });
         const field = start(container);
 
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
@@ -319,6 +331,58 @@ describe('InputCollection field attributes', () => {
         const field = start(container);
 
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
+    });
+
+    // The vis-2 select offers only the option values; '' and null come only from raw data (the vis-2
+    // assistant, ADR-0114) and read like the unset field (lib/inputFields: emptiedReadsUnset).
+    it.each([
+        ['empty', ''],
+        ['null', null],
+    ])('draws a field variant stored as %s like the unset one', (_case, inputVariant) => {
+        const variantOf = (data: Record<string, unknown>): string | undefined => {
+            const { container, unmount } = mountInput(data);
+            start(container);
+            const className = container.querySelector('.MuiInputBase-root')?.className;
+            unmount();
+            return className;
+        };
+
+        expect(variantOf({ inputVariant })).toBe(variantOf({}));
+    });
+
+    // vis-2's panel shows the field default for a padding that is not stored (WidgetField: a value
+    // `== null` shows `field.default`); only raw data leaves it out (the vis-2 assistant, ADR-0114).
+    it.each([
+        ['unset', undefined],
+        ['null', null],
+    ])('pads the field of a %s padding with the default the panel shows', (_case, inputPadding) => {
+        const shown = fieldDefaultOf(inputFields(), 'inputPadding');
+        const paddingOf = (data: Record<string, unknown>): string | undefined => {
+            const { container, unmount } = mountInput(data);
+            const className = start(container).closest('.MuiTextField-root')?.parentElement?.className;
+            unmount();
+            return className;
+        };
+
+        expect(shown).toBeTypeOf('number');
+        expect(paddingOf({ inputPadding })).toBe(paddingOf({ inputPadding: shown }));
+    });
+
+    // vis-2 hands a binding's resolved value as text, which the Rückfall-Regel leaves to the widget
+    // (lib/usableWidgetData): a text that names no number pads like 0, never with `NaN`.
+    it('pads the field of a bound padding that names no number like a padding of 0', () => {
+        const paddingOf = (data: Record<string, unknown>, stored: Record<string, unknown> = data): string => {
+            const values: Values = { [`${OID}.val`]: 40, [`${OID}.lc`]: 1000 };
+            const { container, unmount } = mount(InputCollection, sceneOf(data, values, stored));
+            const box = start(container).closest('.MuiTextField-root')?.parentElement;
+            const style = box ? getComputedStyle(box).paddingLeft : 'no box';
+            unmount();
+            return style;
+        };
+
+        expect(paddingOf({ inputPadding: 'abc' }, { inputPadding: '{0_userdata.0.padding}' })).toBe(
+            paddingOf({ inputPadding: 0 }),
+        );
     });
 
     it('sets no attribute for emptied number fields (06)', () => {

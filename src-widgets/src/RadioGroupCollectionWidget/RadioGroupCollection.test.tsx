@@ -23,6 +23,8 @@ import {
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import radioGroupFields from '../lib/radioGroupFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import RadioGroupCollection from './RadioGroupCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -177,5 +179,26 @@ describe('RadioGroupCollection item size (Content-Box)', () => {
         expect(radioSizes(container, 'height')).toEqual(['auto', 'auto']);
         // No cap rule at all ('' or the initial 'none', whichever happy-dom reports).
         expect(radioSizes(container, 'maxHeight').every(cap => cap === '' || cap === 'none')).toBe(true);
+    });
+});
+
+describe('RadioGroupCollection label placement', () => {
+    // The vis-2 select offers only start and end: null and '' come from raw data (the assistant) or
+    // a binding. The widget reads both like the missing key (lib/radioGroupFields: emptiedReadsUnset;
+    // keepUnset leaves it unset), MUI's default end; the body is mounted over the data as read.
+    it.each([
+        ['stored as null', null, undefined],
+        ['stored empty', '', undefined],
+        ['bound to an empty text', '', '{0_userdata.0.placement}'],
+    ])('reads a label placement %s like the unset field', (_case, value, binding) => {
+        const read = (labelPlacement: unknown, stored?: unknown): Record<string, unknown> =>
+            readWidgetData(
+                radioGroupFields(),
+                { labelPlacement },
+                stored === undefined ? undefined : { labelPlacement: stored },
+            );
+        const unset = mountRadioGroup(scene(read(undefined))).container.innerHTML;
+
+        expect(mountRadioGroup(scene(read(value, binding))).container.innerHTML).toBe(unset);
     });
 });

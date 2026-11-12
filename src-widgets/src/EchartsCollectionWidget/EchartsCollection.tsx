@@ -32,7 +32,7 @@ import { frameInheritColor, resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
 import { useSubscribedValues } from './useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, resolvePalette } from './presentation';
+import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, num, resolvePalette } from './presentation';
 import { isUsableOid, useChartPipeline, type ChartPipelineSeries, type ChartPipelineTheme } from './useChartPipeline';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
 import { parseZoomIdleSeconds } from './zoomIdleReset';
@@ -60,8 +60,8 @@ function EchartsCollection(): React.ReactElement {
     const values = useMemo(() => context.values, [valuesKey]);
     const { data: styleData } = useData('oid');
 
-    const chartType = data.chartType ?? 'line';
-    const family = familyOf(chartType);
+    // The kernel reads a missing chart type as the default 'line' (cartesian), as in the pipeline.
+    const family = familyOf(data.chartType);
     const mode = data.mode ?? 'history';
 
     const meta = useMemo(() => parseSeriesConfig(data.seriesConfig), [data.seriesConfig]);
@@ -153,7 +153,8 @@ function EchartsCollection(): React.ReactElement {
     // auto-subscribed by vis-2) joined with the seriesConfig meta — the per-series pinned
     // history instance (ADR-0039) rides along in the meta.
     const pipelineSeries = useMemo<ChartPipelineSeries[]>(() => {
-        const count = typeof data.series_count === 'number' ? data.series_count : 0;
+        // vis-2 expands the series group over parseInt(series_count): a numeric text counts too.
+        const count = num(data.series_count) ?? 0;
         const out: ChartPipelineSeries[] = [];
         for (let i = 1; i <= count; i++) {
             const oid = data[`oid${i}`];
@@ -188,7 +189,8 @@ function EchartsCollection(): React.ReactElement {
     // The placeholder text is STATIC in the body (only the editor preview makes it a CTA);
     // the table Leerfall names the Zuordnung as the thing to configure (ADR-0075 decision 6),
     // a SET OID with no plottable output says so honestly (format/family — the toter-Regler
-    // sibling fix; it never begs for an OID that is already chosen).
+    // sibling fix; it never begs for an OID that is already chosen), and a BOUND Verlauf series
+    // with an empty window names the missing data, not the series setup (ADR-0031).
     const placeholder = Generic.t(
         PLACEHOLDER_I18N_KEY[
             emptyPlaceholderReason(
@@ -197,6 +199,7 @@ function EchartsCollection(): React.ReactElement {
                 pipelineSeries.some(s => s.yPath),
                 isUsableOid(typeof data.jsonOid === 'string' ? data.jsonOid : undefined),
                 hasData,
+                pipelineSeries.some(s => isUsableOid(s.oid)),
             )
         ],
     );

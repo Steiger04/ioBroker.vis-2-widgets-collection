@@ -28,6 +28,8 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
             visSetColor: '#0C0A43',
             visName: 'InputCollectionWidget',
             visWidgetLabel: 'input_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'input_collection_widget_help',
             visOrder: 1,
             visAttrs: [
                 {
@@ -49,7 +51,7 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
             ],
             visDefaultStyle: {
                 width: '100%',
-                height: '80px',
+                height: '100px',
                 position: 'relative',
             },
             visPrev: 'widgets/vis-2-widgets-collection/img/prev-collection-input.png',

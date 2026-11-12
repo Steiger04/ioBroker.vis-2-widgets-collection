@@ -16,8 +16,10 @@ import {
     type CapabilitySetting,
     type TableCapabilities,
 } from '../JsonTableCollectionWidget/capabilities';
+import { LIST_BLOB } from './usableJson';
 import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
+import { TABLE_MAX_DEPTH_DEFAULT, TABLE_PAGE_SIZE_DEFAULT, TABLE_PAGE_SIZE_OPTIONS_DEFAULT } from './jsonTableDefaults';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -51,6 +53,10 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_column_config_label',
         type: 'custom',
         component: guardWidgetData(JsonTableColumnEditor),
+        // A JSON list of Column entries: the column editor stores a `b64:` blob, plain JSON reads
+        // the same. The empty list shows the assistant the shape; it reads like no configuration.
+        storedValue: LIST_BLOB,
+        default: '[]',
     },
 
     // ── Features ──────────────────────────────────────────────────────
@@ -120,20 +126,21 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'tablePageSize',
         type: 'number',
         label: 'json_table_page_size',
-        default: 25,
+        default: TABLE_PAGE_SIZE_DEFAULT,
         min: 1,
     },
     {
         name: 'tablePageSizeOptions',
         type: 'text',
         label: 'json_table_page_size_options',
-        default: '10,25,50,100',
+        default: TABLE_PAGE_SIZE_OPTIONS_DEFAULT,
         tooltip: 'json_table_page_size_options_tooltip',
     },
     {
         name: 'tableVirtualizeThreshold',
         type: 'number',
         label: 'json_table_virtualize_threshold',
+        // Emptied ('') like 0: the table never renders only the rows in view.
         default: 50,
         min: 0,
         tooltip: 'json_table_virtualize_threshold_tooltip',
@@ -162,7 +169,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'tableMaxDepth',
         type: 'number',
         label: 'json_table_max_depth',
-        default: 10,
+        default: TABLE_MAX_DEPTH_DEFAULT,
         min: 1,
         max: 50,
         tooltip: 'json_table_max_depth_tooltip',
@@ -188,6 +195,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'comfortable', label: 'comfortable' },
         ],
         default: 'standard',
+        emptiedReadsUnset: true,
         noTranslation: true,
     },
     {
@@ -219,6 +227,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 24,
         step: 1,
         default: 6,
+        // Emptied ('') like 0: the header bar draws no shadow.
         tooltip: 'json_table_header_elevation_tooltip',
         hidden: 'data.tableShowHeader === false',
     },
@@ -269,6 +278,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'hidden', label: 'hidden' },
         ],
         default: 'solid',
+        emptiedReadsUnset: true,
         noTranslation: true,
     },
     // Border color with noGradient; Tabellen-Chrome contract: explicit → theme divider (ADR-0004)
@@ -351,6 +361,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 10,
         step: 1,
         default: 1,
+        emptiedReadsUnset: true,
         hidden: '!data.tableShowCellBorders',
     },
     // Vertical cell border color (noGradient, hidden condition); contract: explicit → theme divider
@@ -379,6 +390,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 10,
         step: 1,
         default: 1,
+        emptiedReadsUnset: true,
         // Default-on toggle, raw data: only an explicit false switches the row borders off
         hidden: 'data.tableShowRowBorders === false',
     },

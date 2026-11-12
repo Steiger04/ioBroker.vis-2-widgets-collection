@@ -29,6 +29,8 @@ class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollection
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'DialogCollectionWidget', // Name of widget
             visWidgetLabel: 'dialog_collection_widget', // Label for widget
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'dialog_collection_widget_help',
             visOrder: 9,
             visAttrs: [
                 {

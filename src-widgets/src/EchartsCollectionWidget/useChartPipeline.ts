@@ -42,6 +42,7 @@ import {
     buildTitleOption,
     makeRoomForTitle,
     markBoundOids,
+    num,
     resolveMarkLines,
     toPresentationBase,
     type ChartConfigBlob,
@@ -173,8 +174,8 @@ const jsonText = (raw: unknown): string => {
 /** A table row without a usable X value, in the host language (axis fallback and pie slice). */
 const tableRowLabel = (row: number): string => translate('echarts_mapping_row_label', String(row));
 
-const numOr = (raw: unknown, fallback: number): number =>
-    typeof raw === 'number' && Number.isFinite(raw) ? raw : fallback;
+/** A number field's value (a numeric string as its number, the rule lets it through), else the fallback. */
+const numOr = (raw: unknown, fallback: number): number => num(raw) ?? fallback;
 
 /** A usable bound OID — non-empty and not vis-2's unset marker (single predicate, ADR-0046). */
 export const isUsableOid = (oid: string | undefined): oid is string => !!oid && oid !== 'nothing_selected';
@@ -404,7 +405,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             dx: numOr(src.titleDx, 0),
             dy: titleDy,
             color: typeof src.titleColor === 'string' && src.titleColor ? src.titleColor : null,
-            fontSize: typeof src.titleFontSize === 'number' ? src.titleFontSize : undefined,
+            fontSize: num(src.titleFontSize),
             fontWeight: (src.titleWeight as EchartsFontWeight) ?? null,
             fontStyle: (src.titleFontStyle as EchartsFontStyle) ?? null,
             raw: companions.chartConfig.titleRaw,
@@ -516,19 +517,16 @@ export function useChartPipeline(
         () => ({
             aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
             // The point ceiling bounds the count path (K3; preview 200, body/default 5000).
-            count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
+            count: Math.min(num(src.count) ?? DEFAULT_HISTORY_COUNT, maxPoints),
             // Zeitschrittweite (ADR-0064): seconds at the author level → ms here; a set step
             // replaces count (windowToOptions omits the dead key). The DEFAULT plan raises it
             // to span/maxPoints (sanitizeStep, K3) — the bar plan ignores it (the grid is the
             // resolution there, ADR-0065).
-            step: (src.resolutionStep as number) > 0 ? (src.resolutionStep as number) * 1000 : undefined,
+            step: (num(src.resolutionStep) ?? 0) > 0 ? num(src.resolutionStep)! * 1000 : undefined,
             // Aggregate params (ADR-0064) — windowToOptions emits them only under their aggregate.
             // percentile 0 is a VALID level (the 0th = min) — an explicit check, no `|| undefined`.
-            percentile:
-                typeof src.percentileValue === 'number' && Number.isFinite(src.percentileValue)
-                    ? src.percentileValue
-                    : undefined,
-            integralUnit: (src.integralUnit as number) || undefined,
+            percentile: num(src.percentileValue),
+            integralUnit: num(src.integralUnit) || undefined,
             integralInterpolation:
                 src.integralInterpolation === 'linear'
                     ? 'linear'
@@ -556,7 +554,7 @@ export function useChartPipeline(
         ...baseRequest,
         planFetch: barPlan,
         maxPoints,
-        refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
+        refreshMs: isStaticWindow ? undefined : num(src.refreshMs) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: mode === 'history' && entries.length > 0,
     });

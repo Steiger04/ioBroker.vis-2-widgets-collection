@@ -52,6 +52,8 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import Generic from '../Generic';
 import { JSON_TABLE_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
+import optionalNumber from '../lib/helper/optionalNumber';
+import { TABLE_PAGE_SIZE_DEFAULT } from '../lib/jsonTableDefaults';
 
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
@@ -161,10 +163,7 @@ const JsonTableCollection: FC = () => {
     const oidType = oidObject?.type as string | undefined;
     const isValidType = isAllowedOidType(JSON_TABLE_TYPES, oidType);
 
-    const columnConfig = useMemo(
-        () => parseColumnConfig(widget.data.columnConfig as string),
-        [widget.data.columnConfig],
-    );
+    const columnConfig = useMemo(() => parseColumnConfig(widget.data.columnConfig), [widget.data.columnConfig]);
 
     // The Spalten-Merge: rows, Columns and depth warning — the same reading the column editor uses
     const {
@@ -260,7 +259,7 @@ const JsonTableCollection: FC = () => {
     const view = useViewState({
         widgetId,
         capabilities,
-        pageSize: Number(widget.data.tablePageSize) || 25,
+        pageSize: optionalNumber(widget.data.tablePageSize) || TABLE_PAGE_SIZE_DEFAULT,
         pageSizeOptions: widget.data.tablePageSizeOptions,
         autoSize: isAutoSize,
         columnConfig,

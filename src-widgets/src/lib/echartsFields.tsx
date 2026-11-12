@@ -6,14 +6,18 @@
  * The modal editor is the sole editor for every chart-specific field (map decision 06); the
  * `chart` group exposes the "Edit chart configuration" trigger plus the four panel-owned chart
  * padding sliders (layout, not chart config); all other scalars and
- * the `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
- * widget creation). The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
- * getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
+ * the `seriesConfig` / `toolboxConfig` / `legendConfig` blobs are hidden rxData fields (defaults still seed on
+ * widget creation). Each configuration blob declares its JSON top level (`storedValue`) and seeds
+ * the empty one ('[]' / '{}', strukturiert-leer: it reads like no blob) — the shape the vis-2
+ * assistant sees; every decoder reads it with the shared blob readers (`lib/usableJson`) and the
+ * kind tables of `EchartsCollectionWidget/storedConfig`. The indexed `series` group (auto-subscribed
+ * `oid1..oidN`) is declared in getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/echarts-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import EchartsConfigEditor from '../EchartsCollectionWidget/EchartsConfigEditor';
+import { LIST_BLOB, OBJECT_BLOB } from './usableJson';
 import { guardWidgetData } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -29,9 +33,12 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider dividerText="group_echarts" />,
     },
     {
+        // The trigger also names the family/section blob the editor stores under `chartConfig`.
         name: 'chartConfig',
         label: 'echarts_editor_edit_config',
         type: 'custom',
+        storedValue: OBJECT_BLOB,
+        default: '{}',
         component: guardWidgetData(EchartsConfigEditor),
     },
 
@@ -234,22 +241,25 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         name: 'seriesConfig',
         type: 'text',
-        default: '',
+        storedValue: LIST_BLOB,
+        default: '[]',
         hidden: alwaysHidden,
     },
     {
-        // Toolbox GUI config (ADR-0045, legendConfig precedent). No default — an empty/absent
-        // blob decodes to {} (= master off, no toolbox block).
+        // Toolbox GUI config (ADR-0045, legendConfig precedent). The empty default, like an
+        // absent blob, decodes to {} (= master off, no toolbox block).
         name: 'toolboxConfig',
         type: 'text',
-        default: '',
+        storedValue: OBJECT_BLOB,
+        default: '{}',
         hidden: alwaysHidden,
     },
     {
         // JSON-mode deny-list of hidden payload series names (Problem-2). Hidden blob, modal-owned.
         name: 'jsonHidden',
         type: 'text',
-        default: '',
+        storedValue: LIST_BLOB,
+        default: '[]',
         hidden: alwaysHidden,
     },
     {
@@ -258,7 +268,8 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         // (ADR-0075 ticket 02 opportunity cleanup).
         name: 'jsonSeriesStyle',
         type: 'text',
-        default: '',
+        storedValue: OBJECT_BLOB,
+        default: '{}',
         hidden: alwaysHidden,
     },
 
@@ -267,9 +278,25 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // is first opened. yMin/yMax are intentionally NOT declared: `undefined` = auto-axis.
     { name: 'chartType', type: 'text', default: 'line', hidden: alwaysHidden },
     { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
+    // Title styling, flat scalars (ADR-0021/0029). Each default reads like the key missing, in the
+    // body and in the editor: offsets 0, colour '' (the theme's), no font size (the theme's).
+    // titleWeight/titleFontStyle carry no default: the body reads the missing key as the theme's
+    // (echarts' bold title), the editor as 'normal' — ADR-0029 keeps that asymmetry, so only the
+    // missing key reads alike in both. Text fields, as the weight is a name or a number.
+    { name: 'titleDx', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'titleDy', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'titleColor', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'titleFontSize', type: 'number', hidden: alwaysHidden },
+    { name: 'titleWeight', type: 'text', hidden: alwaysHidden },
+    { name: 'titleFontStyle', type: 'text', hidden: alwaysHidden },
     { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
     // A 9-grid key (ADR-0021) — the legacy 'top' only rendered topCenter by prefix accident.
     { name: 'legendPos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
+    // Legend styling blob beside the flat show/pos (ADR-0021); the empty default, like an absent
+    // blob, decodes to {} (every key inherits the theme).
+    { name: 'legendConfig', type: 'text', storedValue: OBJECT_BLOB, default: '{}', hidden: alwaysHidden },
+    // `axisSlotMemory` (saved by the editor too) has no field on purpose: the editor's own place
+    // memory (ADR-0079 addendum) — the chart never reads it and there is nothing to set there.
     // Parity Build E option cluster (ADR-0054): the adapter options-tab scalars.
     { name: 'legendShowValues', type: 'checkbox', default: false, hidden: alwaysHidden },
     // tooltipTrigger: no field default — `undefined` lets the runtime default per family
@@ -291,8 +318,8 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // Cartesian axes + zoom. Y-axes config lives in the `yAxes` base64 blob (ADR-0012); the single
     // X-axis (time, flat config) lives in the `xAxis` base64 blob (ADR-0035; legacy `xSplit` is
     // synthesised into `splitLine` at load).
-    { name: 'yAxes', type: 'text', default: '', hidden: alwaysHidden },
-    { name: 'xAxis', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'yAxes', type: 'text', storedValue: LIST_BLOB, default: '[]', hidden: alwaysHidden },
+    { name: 'xAxis', type: 'text', storedValue: OBJECT_BLOB, default: '{}', hidden: alwaysHidden },
     { name: 'dataZoomSlider', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'dataZoomInside', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'zoomResetAfterIdle', type: 'text', default: '', hidden: alwaysHidden },
@@ -302,7 +329,7 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'paletteCustom', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'darkMode', type: 'text', default: 'auto', hidden: alwaysHidden },
     // Cartesian extras: threshold blob.
-    { name: 'markLines', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'markLines', type: 'text', storedValue: LIST_BLOB, default: '[]', hidden: alwaysHidden },
     // Chart frame (parity Build D, ADR-0056): flat scalars. Container CSS
     // around the chart area (frameStyle.ts), never an echarts option.
     { name: 'frameEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },

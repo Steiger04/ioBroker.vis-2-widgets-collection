@@ -159,6 +159,8 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         label,
         default: defaultValue,
         type: 'custom',
+        // A CSS colour string; anything else reads as unset (lib/usableWidgetData).
+        storedValue: 'string',
         component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
             <ContractColorField
                 field={field}
@@ -251,6 +253,8 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
         name,
         label,
         type: 'custom',
+        // A CSS colour string; anything else reads as unset (lib/usableWidgetData).
+        storedValue: 'string',
         plainColor: true,
         noGradient: true,
         component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (

@@ -359,3 +359,4 @@ Die Widget Collection umfasst folgende Widgets:
 - [ECharts Widget](De-Echarts-Widget.md) - Diagramme (Linie, Balken, Punktwolke, Torte) mit vollem Konfigurator — History-Adapter oder JSON-Datenpunkt
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md) - Die JSON-Payload-Formate des ECharts-Widgets mit Beispielen
 - [Theme-Studio](De-Theme-Studio.md) - Collection-weiter Theme-Editor (Farben, Schrift, Form) für alle Widgets der Sammlung
+- [KI-Assistent](De-AI-Assistant.md) - Collection-Widgets mit dem KI-Assistenten von vis-2 oder einem externen MCP-Client bauen: Set nennen, Beispiel-Prompts, Vorlagen, Grenzen

@@ -38,6 +38,7 @@ import type { CSSObject, Theme } from '@mui/material/styles';
 
 import type { StyleData } from '../hooks/useData';
 import { alphaOf } from '../lib/helper/colorDerivation';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { resolveEffectiveColor, resolveEffectiveSolidColor } from '../lib/helper/resolveEffectiveColor';
 import { sliderColorContracts, type SliderColorField } from '../lib/sliderColorContract';
 import type { SliderFieldsRxData } from '../types';
@@ -71,6 +72,29 @@ export interface SliderChrome {
     /** CSS transform of both end symbols (the rail offset along the cross axis). */
     endSymbolTransform: string;
 }
+
+/**
+ * A length as the widget reads it, as a px string: a number or a numeric string its number. An
+ * unset or emptied thumb, track or rail length reads its default before the chrome
+ * (lib/sliderFields: emptiedReadsUnset).
+ *
+ * @param length - The field value as the widget reads it.
+ * @returns The CSS length.
+ */
+const px = (length: number | string | undefined): string => `${Number(length)}px`;
+
+/**
+ * A mark length as a px string, read through the one number reading: `''` (vis-2's emptied number
+ * field), `null` and text that names no number take the length the mark has in that orientation
+ * without the field — the mark fields swap with the orientation, so an emptied one keeps that
+ * reading instead of the field's default (no `emptiedReadsUnset`).
+ *
+ * @param stored - The field value as the widget reads it.
+ * @param emptied - The length in px of the emptied field in this orientation.
+ * @returns The CSS length.
+ */
+const markPx = (stored: number | string | null | undefined, emptied: number): string =>
+    `${optionalNumber(stored) ?? emptied}px`;
 
 /** The chrome colours of one render: backgrounds may carry a gradient, the other slots are solid. */
 interface ChromeColors {
@@ -140,19 +164,20 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     const isHorizontal = orientation === 'horizontal';
     const marks = !!data.marks;
 
-    const thumbBorderWidth = data.thumbBorderWidth ?? 0;
+    // An emptied width ('') reads like 0: no border; a bound text that names no number as well.
+    const thumbBorderWidth = optionalNumber(data.thumbBorderWidth) ?? 0;
     // Hover/active halo; none when the thumb cascade has no Repräsentative Vollfarbe.
     const thumbShadow = alphaOf(colors.thumbShadowBase, 0.32);
 
-    const markWidth = isHorizontal ? `${data.markWidth ?? 2}px` : `${data.markHeight ?? 16}px`;
-    const markHeight = isHorizontal ? `${data.markHeight ?? 2}px` : `${data.markWidth ?? 3}px`;
+    const markWidth = isHorizontal ? markPx(data.markWidth, 2) : markPx(data.markHeight, 16);
+    const markHeight = isHorizontal ? markPx(data.markHeight, 2) : markPx(data.markWidth, 3);
 
     const offset = railOffset(marks, orientation);
 
     const sx: CSSObject = {
         '& .MuiSlider-thumb': {
-            width: `${data.thumbWidth ?? 20}px`,
-            height: `${data.thumbHeight ?? 20}px`,
+            width: px(data.thumbWidth),
+            height: px(data.thumbHeight),
             background: colors.thumbBackground,
             // A border only for a positive width; without a solid border colour it draws in
             // currentColor, the CSS default of the shorthand.
@@ -167,8 +192,8 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
             },
         },
         '& .MuiSlider-track': {
-            height: isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
-            width: !isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
+            height: isHorizontal ? px(data.trackLength) : 'auto',
+            width: !isHorizontal ? px(data.trackLength) : 'auto',
             borderColor: colors.trackBorder,
             background: colors.trackBackground,
 
@@ -176,8 +201,8 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
             borderStyle: 'solid',
         },
         '& .MuiSlider-rail': {
-            height: isHorizontal ? `${data.railLength ?? 4}px` : '100%',
-            width: !isHorizontal ? `${data.railLength ?? 4}px` : '100%',
+            height: isHorizontal ? px(data.railLength) : '100%',
+            width: !isHorizontal ? px(data.railLength) : '100%',
             background: colors.railBackground,
 
             borderWidth: data.railBorderWidth ? `${data.railBorderWidth}px` : '0px',

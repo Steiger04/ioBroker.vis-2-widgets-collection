@@ -29,6 +29,7 @@ import { type SxProps, type Theme } from '@mui/material/styles';
 import { displayText } from '../lib/displayText';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
@@ -198,6 +199,11 @@ function CollectionBase({
         [footerValue, widget.data.noFooter],
     );
 
+    // Header and footer sit half the padding into it. The padding reads its default when unset
+    // (lib/fieldDefaults); an emptied one ('') reads as 0, as the padding itself does, and a numeric
+    // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
+    const halfPadding = (optionalNumber(widget.data.basePadding) ?? 0) / 2;
+
     return (
         <Paper
             className="BASE-PAPER-0"
@@ -212,8 +218,8 @@ function CollectionBase({
                         sx={{
                             width: !headerHidden ? '100%' : '0%',
                             height: headerHidden ? '0%' : 'auto',
-                            mt: (widget.data.basePadding ?? 8) / 2,
-                            mb: -(widget.data.basePadding ?? 8) / 2,
+                            mt: halfPadding,
+                            mb: -halfPadding,
                         }}
                     >
                         <Typography
@@ -243,7 +249,7 @@ function CollectionBase({
                         <Paper
                             className="BASE-PAPER-1"
                             ref={setContentPaper}
-                            elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
+                            elevation={widget.data.outlined ? 0 : (optionalNumber(widget.data.baseElevation) ?? 0)}
                             square={!widget.data.basePadding || widget.data.squaredCorner}
                             variant={widget.data.outlined ? 'outlined' : 'elevation'}
                             sx={paper1Sx}
@@ -259,8 +265,8 @@ function CollectionBase({
                         sx={{
                             width: !widget.data.noFooter ? '100%' : '0%',
                             height: widget.data.noFooter ? '0%' : 'auto',
-                            mt: -(widget.data.basePadding ?? 8) / 2,
-                            mb: (widget.data.basePadding ?? 8) / 2,
+                            mt: -halfPadding,
+                            mb: halfPadding,
                         }}
                     >
                         <Typography

@@ -17,11 +17,17 @@ import type { WidgetData } from '@iobroker/types-vis-2';
 /**
  * The ONE blank rule: a row without a value, or with nothing but whitespace, is no state.
  *
+ * Raw data (the vis-2 assistant, a flat update) may also store `null`, which reads as unset
+ * (`lib/usableWidgetData`), or an object or a list, which names no state value: such a row is no
+ * state either, so nothing is shown or written from it (ADR-0114).
+ *
  * @param value The row's `value{n}`.
  * @returns `true` for a blank row. `false` and `0` are values.
  */
-export const isBlankStateValue = (value: string | number | boolean | undefined): boolean =>
-    value === undefined || !/\S/.test(String(value));
+export const isBlankStateValue = (value: unknown): boolean =>
+    typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+        ? !/\S/.test(String(value))
+        : true;
 
 /**
  * The number of resolved states the runtime gets out of the widget's raw data.

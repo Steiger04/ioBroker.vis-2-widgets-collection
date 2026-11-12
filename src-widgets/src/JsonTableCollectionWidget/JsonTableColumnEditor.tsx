@@ -21,7 +21,8 @@ import Generic from '../Generic';
 import { readWidgetStyleColor } from '../components/ContractColorField';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import JsonTableColumnEditorModal from './components/JsonTableColumnEditorModal';
-import { parseColumnConfig, utf8ToBase64 } from './utils/columnConfig';
+import { encodeBlob } from '../lib/encoding';
+import { parseColumnConfig } from './utils/columnConfig';
 import type { ColumnConfigEntry } from './types';
 import type { CellColorInheritance } from './utils/cellColors';
 
@@ -64,7 +65,7 @@ function JsonTableColumnEditor(
     const [modalOpen, setModalOpen] = useState(false);
 
     // Parse current column config from widget data
-    const columns = useMemo(() => parseColumnConfig(data[fieldName] as string), [data, fieldName]);
+    const columns = useMemo(() => parseColumnConfig(data[fieldName]), [data, fieldName]);
 
     // Summary counts
     const visibleCount = columns.filter(c => c.visible).length;
@@ -72,14 +73,11 @@ function JsonTableColumnEditor(
     const hasFormatting = columns.some(c => c.format);
     const hasStyling = columns.some(c => c.cellStyle && c.cellStyle.length > 0);
 
-    // Persist updated columns to widget data
-    // Use Base64 encoding to avoid vis-2's extractBinding regex matching curly braces
-    // UTF-8 safe encoding using TextEncoder to handle non-ASCII characters
+    // Persist updated columns to widget data as the shared `b64:` blob (UTF-8 safe), which
+    // vis-2's extractBinding cannot mistake for a binding
     const handleSave = useCallback(
         (updatedColumns: ColumnConfigEntry[]) => {
-            const jsonStr = JSON.stringify(updatedColumns);
-            const encoded = `b64:${utf8ToBase64(jsonStr)}`;
-            onDataChange({ [fieldName]: encoded });
+            onDataChange({ [fieldName]: encodeBlob(JSON.stringify(updatedColumns)) });
         },
         [fieldName, onDataChange],
     );

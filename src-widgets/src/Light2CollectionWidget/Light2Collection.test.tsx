@@ -15,13 +15,22 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
+import light2Fields from '../lib/light2Fields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import Light2Collection from './Light2Collection';
+import type { PickerGeometry } from './pickerGeometry';
 import type { PreviewScene } from '../preview/types';
+
+/** The props each render of the stubbed picker received, latest last. */
+const pickerRenders = vi.hoisted(() => [] as Array<Record<string, unknown>>);
 
 vi.mock('./Light2Picker', async () => {
     const { createElement, forwardRef } = await import('react');
     return {
-        default: forwardRef((_props, _ref) => createElement('div', { 'data-testid': 'light2-picker' })),
+        default: forwardRef((props: Record<string, unknown>, _ref) => {
+            pickerRenders.push(props);
+            return createElement('div', { 'data-testid': 'light2-picker' });
+        }),
     };
 });
 
@@ -31,11 +40,14 @@ const SWITCH = 'demo.0.lamp.on';
 
 const mountBody = testScopedMount();
 
-/** A Light2 scene on a boolean Schalter-OID (rgb lamp), the switch holding `status`. */
+/**
+ * A Light2 scene on a boolean Schalter-OID (rgb lamp), the switch holding `status`; the data as the
+ * widget reads it (`readWidgetData`).
+ */
 const scene = (data: Record<string, unknown> = {}, status: unknown = false): PreviewScene =>
     collectionScene(
         'light2-collection-test',
-        {
+        readWidgetData(light2Fields(), {
             colorLightSwitchOid: SWITCH,
             colorLightSwitchOidObject: { _id: SWITCH, type: 'boolean' },
             colorLightType: 'rgb',
@@ -44,7 +56,7 @@ const scene = (data: Record<string, unknown> = {}, status: unknown = false): Pre
             noFooter: true,
             noHeaderIcon: true,
             ...data,
-        },
+        }),
         status,
         SWITCH,
     );
@@ -139,6 +151,74 @@ describe('Light2Collection Button-Modus', () => {
     });
 });
 
+describe('Light2Collection Button-Modus long-press delay', () => {
+    // A delay stored as null reads like the unset one (the field default, lib/fieldDefaults).
+    it('toggles on a short press for a delay stored as null, like the unset delay', async () => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: null }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(100);
+        });
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(modal()).toBeNull();
+        expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
+    });
+
+    // vis-2's number field keeps '' once the user empties it: stored lamps read it as a 0 ms delay,
+    // like a stored 0, so every press opens the modal (no emptiedReadsUnset).
+    it('opens the modal on every press for an emptied delay, like a delay of 0', async () => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: '' }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(1);
+        });
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(modal()).not.toBeNull();
+        expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it('opens the modal after a delay stored as a numeric string, at its number', () => {
+        const { container } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: '800' }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(799);
+        });
+        expect(modal()).toBeNull();
+        act(() => {
+            vi.advanceTimersByTime(1);
+        });
+        pointer(face, 'pointerup');
+
+        expect(modal()).not.toBeNull();
+    });
+});
+
 describe('Light2Collection Button-Modus face (Wert-Anzeige without value text)', () => {
     /** The two fixed Zustandszeilen of the Schalter-OID, each with its own icon at the given size. */
     const switchRows = (iconSize: number): Record<string, unknown> => ({
@@ -224,5 +304,46 @@ describe('Light2Collection Lampen-Bedienelement', () => {
         expect(container.textContent).toContain('collection_base_select_oid');
         expect(powerIcon(container)).toBeNull();
         expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+});
+
+describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {
+    /** The default of a Light2 field, from its definition. */
+    const defaultOf = (name: string): unknown => fieldDefaultOf(light2Fields(), name);
+
+    /** The Kelvin range the Kelvin-Picker was last drawn with. */
+    const drawnRange = (): { minTemperature: unknown; maxTemperature: unknown } => {
+        const main = pickerRenders.filter(props => props.picker === 'main').at(-1);
+        const options = (main?.geometry as PickerGeometry | undefined)?.layouts.main[0]?.options ?? {};
+        return { minTemperature: options.minTemperature, maxTemperature: options.maxTemperature };
+    };
+
+    const drawWith = (range: Record<string, unknown>): ReturnType<typeof drawnRange> => {
+        measureContentRect({ width: 300, height: 200 });
+        pickerRenders.length = 0;
+        mountBody(Light2Collection, scene({ colorLightType: 'cct', ...range }));
+        return drawnRange();
+    };
+
+    // The OID pick stores the schema defaults, so an unset range comes only from raw data: iro took
+    // the missing bound as NaN and drew no Kelvin gradient. Unset, null or emptied, the widget reads
+    // the default (lib/light2Fields: emptiedReadsUnset).
+    it.each([
+        ['unset', {}],
+        ['stored as null', { colorLightCtMin: null, colorLightCtMax: null }],
+        ['emptied', { colorLightCtMin: '', colorLightCtMax: '' }],
+    ])('draws a range %s over the defaults the panel shows', (_case, range) => {
+        expect(drawWith(range)).toEqual({
+            minTemperature: defaultOf('colorLightCtMin'),
+            maxTemperature: defaultOf('colorLightCtMax'),
+        });
+    });
+
+    // A string bound made iro concatenate: the Kelvin stops ran '2500' + 500 = '2500500'.
+    it('draws a range stored as numeric strings over their numbers', () => {
+        expect(drawWith({ colorLightCtMin: '2500', colorLightCtMax: '5000' })).toEqual({
+            minTemperature: 2500,
+            maxTemperature: 5000,
+        });
     });
 });

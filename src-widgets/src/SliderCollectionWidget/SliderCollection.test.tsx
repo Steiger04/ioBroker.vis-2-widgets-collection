@@ -16,12 +16,22 @@ import { describe, expect, it } from 'vitest';
 
 import { act } from 'react';
 
-import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
+import {
+    collectionScene as rawScene,
+    installInertResizeObserver,
+    testScopedMount,
+} from '../lib/testing/collectionScene';
+import sliderFields from '../lib/sliderFields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import SliderCollection from './SliderCollection';
 
 installInertResizeObserver();
 
 const mount = testScopedMount();
+
+/** The preview scene over the data as the widget reads it (`readWidgetData`: defaults, emptied fields). */
+const collectionScene = (...[slug, data, ...rest]: Parameters<typeof rawScene>): ReturnType<typeof rawScene> =>
+    rawScene(slug, readWidgetData(sliderFields(), data), ...rest);
 
 const OID = 'demo.0.dimmer';
 const MARKER_TEXT_COLOR = '#aa0000';
@@ -860,7 +870,9 @@ describe('SliderCollection chrome geometry and colours', () => {
         it.each<[string, Record<string, unknown>, [string, string]]>([
             ['horizontal, unset', { sliderOrientation: 'horizontal' }, ['2px', '2px']],
             ['horizontal, set', { sliderOrientation: 'horizontal', markWidth: 5, markHeight: 7 }, ['5px', '7px']],
-            ['vertical, unset', { sliderOrientation: 'vertical' }, ['16px', '3px']],
+            // Unset, the mark fields read their defaults (2 × 2); emptied, the lengths of the orientation.
+            ['vertical, unset', { sliderOrientation: 'vertical' }, ['2px', '2px']],
+            ['vertical, emptied', { sliderOrientation: 'vertical', markWidth: '', markHeight: '' }, ['16px', '3px']],
             ['vertical, set', { sliderOrientation: 'vertical', markWidth: 5, markHeight: 7 }, ['7px', '5px']],
         ])('sizes the inactive and the active mark alike (%s)', (_case, data, expected) => {
             const container = mountChrome(data);
@@ -1014,5 +1026,84 @@ describe('SliderCollection with emptied range fields', () => {
 
     it('takes the State-Spanne with state rows', () => {
         expect(attributesOf({ values_count: 2, value1: '10', value2: '30' })).toEqual(['10', '30', '1']);
+    });
+});
+
+// The vis-2 select offers only the option values and stores one; null (an assistant's flat
+// update) and '' come only from raw data and mean nothing here, so they read like the unset
+// field — MUI applies its own default to undefined only.
+describe('SliderCollection option fields stored as null or empty', () => {
+    const sliderOf = (data: Record<string, unknown>): { className: string; valueLabel: boolean } => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-option-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const slider = container.querySelector('.MuiSlider-root');
+        if (!slider) {
+            throw new Error('the slider rendered no MUI slider');
+        }
+        return { className: slider.className, valueLabel: !!container.querySelector('.MuiSlider-valueLabel') };
+    };
+
+    it.each([null, ''])('sizes a slider whose size is stored as %j like the unset one', sliderSize => {
+        const unset = sliderOf({}).className;
+
+        expect(unset).toContain('MuiSlider-sizeMedium');
+        expect(sliderOf({ sliderSize }).className).toBe(unset);
+    });
+
+    it.each([null, ''])(
+        'shows no value label for a value label display stored as %j, like unset',
+        valueLabelDisplay => {
+            expect(sliderOf({}).valueLabel).toBe(false);
+            expect(sliderOf({ valueLabelDisplay }).valueLabel).toBe(false);
+        },
+    );
+});
+
+// vis-2's panel shows the field default for a padding that is not stored (WidgetField: a value
+// `== null` shows `field.default`); only raw data leaves it out (the vis-2 assistant, ADR-0114).
+describe('SliderCollection padding', () => {
+    const paperOf = (data: Record<string, unknown>): string => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-padding-test',
+                { oid: OID, oidObject: { _id: OID, type: 'number' }, minValue: 0, maxValue: 100, ...data },
+                50,
+            ),
+        );
+        const paper = container.querySelector('.BASE-PAPER-1');
+        if (!paper) {
+            throw new Error('the slider rendered no content paper');
+        }
+        return paper.className;
+    };
+
+    it.each([
+        ['unset', undefined],
+        ['null', null],
+    ])('pads the slider of a %s padding with the default the panel shows', (_case, sliderPadding) => {
+        const shown = fieldDefaultOf(sliderFields(), 'sliderPadding');
+
+        expect(shown).toBeTypeOf('number');
+        expect(paperOf({ sliderPadding })).toBe(paperOf({ sliderPadding: shown }));
+    });
+
+    it('keeps no padding for an emptied padding', () => {
+        expect(paperOf({ sliderPadding: '' })).toBe(paperOf({ sliderPadding: 0 }));
     });
 });

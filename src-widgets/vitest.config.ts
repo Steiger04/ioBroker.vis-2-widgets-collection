@@ -43,6 +43,8 @@ const DOM_TS_TESTS = [
     'src/lib/stateEditorFields.parity.test.ts',
     // Same introspection for the delay block of the widgets using delayFields.
     'src/lib/delayFields.parity.test.ts',
+    // Same introspection: what the vis-2 assistant reads from each getWidgetInfo() (KI-Integration Naht 1).
+    'src/lib/aiCatalogView.parity.test.ts',
     // Since ADR-0083 these load the editorial record (rail slots/summaries/heal read the
     // family profiles, which import the section modules) — DOM territory now. The chain
     // reaches them via editorState's heal dispatch and summaries' slot dispatch.

@@ -238,13 +238,19 @@ describe('useData — the label of a state — ticket 12', () => {
         expect(labelledRow('  ').alias).toBe('  ');
     });
 
-    it.each<[string, unknown]>([
-        ['an object', { a: 1 }],
-        ['NaN', NaN],
-    ])('has no text for a row value that gives none: %s', (_label, value1) => {
-        const { states } = resolve({ values_count: 1, value1 }, 'x');
+    it('has no text for a row value that gives none: NaN', () => {
+        const { states } = resolve({ values_count: 1, value1: NaN }, 'x');
 
         expect(states[0].label).toBe('');
+    });
+
+    // Only raw data stores them (the vis-2 assistant): an object names no state value (ADR-0114).
+    it.each<[string, unknown]>([
+        ['an object', { a: 1 }],
+        ['a list', ['a']],
+        ['null', null],
+    ])('makes no state of a row whose value is %s', (_label, value1) => {
+        expect(resolve({ values_count: 2, value1, value2: 'b' }, 'x').states.map(state => state.value)).toEqual(['b']);
     });
 });
 

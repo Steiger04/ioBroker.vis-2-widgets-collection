@@ -105,6 +105,7 @@ function CheckboxCollection(): React.JSX.Element {
                         // of the root's flex row. disableTypography keeps the
                         // label element as the direct flex child, as it always was.
                         disableTypography
+                        // Unset, null or '' reads its default end (lib/checkboxFields: emptiedReadsUnset).
                         labelPlacement={widget.data.checkboxLabelPlacement}
                         sx={{
                             width: '100%',

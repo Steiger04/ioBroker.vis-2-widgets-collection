@@ -25,6 +25,8 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'ButtonGroupCollectionWidget', // Name of widget
             visWidgetLabel: 'button_group_collection_widget', // Label for widget
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'button_group_collection_widget_help',
             visOrder: 7,
             visAttrs: [
                 {

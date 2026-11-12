@@ -110,14 +110,14 @@ const PLAIN_COLOR_FIELDS: Characteristic[] = [
         list: 'dialog',
         name: 'dialogCloseButtonColor',
         label: 'dialog_close_button_color',
-        default: undefined,
+        default: '',
         hidden: 'none',
     },
     {
         list: 'slider',
         name: 'markerIconColor',
         label: 'marker_icon_color',
-        default: undefined,
+        default: '',
         hidden: { expression: '!data.marks' },
     },
 ];

@@ -40,7 +40,8 @@ describe('emptyPlaceholderReason — the table Leerfall-CTA (ADR-0075 decision 6
     it('every reason carries its i18n key — the mapping is total', () => {
         expect(PLACEHOLDER_I18N_KEY.configureTableMapping).toBe('echarts_preview_configure_table');
         expect(PLACEHOLDER_I18N_KEY.jsonNoSeries).toBe('echarts_preview_json_no_series');
-        expect(Object.keys(PLACEHOLDER_I18N_KEY)).toHaveLength(4);
+        expect(PLACEHOLDER_I18N_KEY.historyNoData).toBe('echarts_preview_history_no_data');
+        expect(Object.keys(PLACEHOLDER_I18N_KEY)).toHaveLength(5);
     });
 });
 
@@ -76,5 +77,22 @@ describe('emptyPlaceholderReason — null-only payloads own the placeholder (ADR
         } as never);
         expect(hasData).toBe(false);
         expect(emptyPlaceholderReason('json', 'table', true, true, hasData)).toBe('jsonNoSeries');
+    });
+});
+
+describe('emptyPlaceholderReason — a BOUND Verlauf series with no data in the window (ADR-0031 honest empty-state)', () => {
+    it('history with a usable series OID and no plottable data says the window is empty — never begs for series', () => {
+        expect(emptyPlaceholderReason('history', undefined, false, false, false, true)).toBe('historyNoData');
+    });
+
+    it('history without a bound series keeps asking to configure series', () => {
+        expect(emptyPlaceholderReason('history', undefined, false, false, false, false)).toBe('configureSeries');
+        expect(emptyPlaceholderReason('history', undefined, false, false, false)).toBe('configureSeries');
+    });
+
+    it('the json branches ignore the series flag', () => {
+        expect(emptyPlaceholderReason('json', 'series', false, true, false, true)).toBe('jsonNoSeries');
+        expect(emptyPlaceholderReason('json', 'series', false, false, false, true)).toBe('selectJsonOid');
+        expect(emptyPlaceholderReason('json', 'table', false, true, false, true)).toBe('configureTableMapping');
     });
 });

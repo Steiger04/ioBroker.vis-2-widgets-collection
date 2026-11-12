@@ -72,6 +72,8 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
             visSetColor: '#0C0A43',
             visName: 'EchartsCollectionWidget',
             visWidgetLabel: 'echarts_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'echarts_collection_widget_help',
             visOrder: 13,
             visAttrs: [
                 {

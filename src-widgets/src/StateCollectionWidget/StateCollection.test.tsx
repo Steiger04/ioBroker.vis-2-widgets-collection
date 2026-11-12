@@ -817,6 +817,22 @@ describe('StateCollection click up to the socket', () => {
         expect(dialogOf()).not.toBeNull();
         expect(writes(state)).toEqual({ sent: [], optimistic: [] });
     });
+
+    // The vis-2 assistant writes rows without the Zustandseditor and its flat update can store
+    // null (KI-Integration, ADR-0114): a row whose value is unset or gives no state value is no
+    // state, so nothing is written from it.
+    it.each([
+        ['null', null],
+        ['an object', { value: 'ON' }],
+        ['a list', ['ON']],
+    ])('two rows, the second value stored as %s: a click sends the one row left', (_case, broken) => {
+        const state = mountState({ oidObject: object('string'), value1: 'OFF', value2: broken }, 'OFF');
+
+        click(state);
+        settle();
+
+        expect(writes(state).sent).toEqual(['OFF']);
+    });
 });
 
 describe('StateCollection open press (ticket 04)', () => {

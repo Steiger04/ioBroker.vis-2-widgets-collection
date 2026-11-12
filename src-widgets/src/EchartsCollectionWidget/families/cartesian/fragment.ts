@@ -38,7 +38,7 @@ export const cartesianPresentationFragment = (companions: PresentationCompanions
     const xAxis =
         s.xAxis && typeof s.xAxis === 'object' && !Array.isArray(s.xAxis)
             ? (s.xAxis as CartesianFragment['xAxis'])
-            : decodeXAxisWithLegacy(s.xAxis as string | undefined, bool(s.xSplit, false));
+            : decodeXAxisWithLegacy(s.xAxis, bool(s.xSplit, false));
 
     return {
         cartesianType,

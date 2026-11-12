@@ -25,6 +25,8 @@ import {
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import checkboxFields from '../lib/checkboxFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import CheckboxCollection from './CheckboxCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -233,5 +235,26 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
         const container = mountCheckbox({ [`${OID}.val`]: false }, { values_count: 0 });
 
         expect(container.querySelector('.MuiFormControlLabel-root > div')?.textContent).toBe('');
+    });
+});
+
+describe('CheckboxCollection label placement', () => {
+    // The vis-2 select offers only the four placements: null and '' come from raw data (the
+    // assistant) or a binding. The widget reads both like the unset field, its default end
+    // (lib/checkboxFields: emptiedReadsUnset); the body is mounted over the data as the widget reads it.
+    it.each([
+        ['stored as null', null, undefined],
+        ['stored empty', '', undefined],
+        ['bound to an empty text', '', '{0_userdata.0.placement}'],
+    ])('reads a label placement %s like the unset field', (_case, value, binding) => {
+        const read = (checkboxLabelPlacement: unknown, stored?: unknown): Record<string, unknown> =>
+            readWidgetData(
+                checkboxFields(),
+                { checkboxLabelPlacement },
+                stored === undefined ? undefined : { checkboxLabelPlacement: stored },
+            );
+        const unset = mountCheckbox({ [`${OID}.val`]: true }, read(undefined)).innerHTML;
+
+        expect(mountCheckbox({ [`${OID}.val`]: true }, read(value, binding)).innerHTML).toBe(unset);
     });
 });

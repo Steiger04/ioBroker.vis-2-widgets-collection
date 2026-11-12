@@ -67,4 +67,34 @@ describe('effectiveStateCount', () => {
         );
         expect(effectiveStateCount({ valuesCount: null, commonStatesCount: null, ignoreCommonStates: true })).toBe(0);
     });
+
+    it.each([
+        ['authored rows', { valuesCount: '2', commonStatesCount: 3, ignoreCommonStates: false }, 2],
+        ['the fallback without commonStates', { valuesCount: '0', commonStatesCount: 0 }, 0],
+    ])('counts a row number stored as a numeric string as its number (%s)', (_case, inputs, count) => {
+        // A usable value for the Rückfall-Regel (lib/usableWidgetData): the assistant may write it.
+        expect(effectiveStateCount(inputs as unknown as Parameters<typeof effectiveStateCount>[0])).toBe(count);
+    });
+});
+
+describe('effectiveStateCount — a row number the Rückfall-Regel drops', () => {
+    // The runtime reads values_count through the rule (lib/usableWidgetData); the Zustandseditor and the
+    // editor's hidden predicates read the raw data. Both must count the same rows: a value the rule
+    // reads as unset counts no rows, so the editor neither lists rows the runtime does not show nor
+    // builds a list of endless length ('1e400' is Infinity).
+    it.each<[string, unknown]>([
+        ['true', true],
+        ['a list', [3]],
+        ['an object', { count: 3 }],
+        ['text', 'three'],
+        ['a numeric string beyond every number', '1e400'],
+    ])('counts no rows for a row number stored as %s', (_case, valuesCount) => {
+        expect(
+            effectiveStateCount({
+                valuesCount: valuesCount as number,
+                commonStatesCount: 0,
+                ignoreCommonStates: false,
+            }),
+        ).toBe(0);
+    });
 });

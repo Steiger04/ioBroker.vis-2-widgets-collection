@@ -9,6 +9,7 @@
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 import type { DetectedType } from '../hooks/useJsonTableAnalysis/types';
+import optionalNumber from '../lib/helper/optionalNumber';
 import type { ColumnConfigEntry, ColumnFormatType } from './types';
 
 /**
@@ -109,11 +110,12 @@ export function tableCapabilities(data: CapabilitySettings | WidgetData): TableC
  *
  * @param table The Tabellen-Fähigkeiten.
  * @param rowCount The rows after filtering.
- * @param threshold `tableVirtualizeThreshold` (unset ⇒ 50, 0 ⇒ never).
+ * @param threshold `tableVirtualizeThreshold` as the widget reads it (unset ⇒ its default); 0, an
+ *   emptied field (`''`) and a bound text that names no number ⇒ never.
  * @returns `true` when the rows are virtualized.
  */
-export function virtualizesRows(table: TableCapabilities, rowCount: number, threshold?: number | null): boolean {
-    const limit = threshold ?? 50;
+export function virtualizesRows(table: TableCapabilities, rowCount: number, threshold?: number | string): boolean {
+    const limit = optionalNumber(threshold) ?? 0;
     return !table.pagination && limit > 0 && rowCount > limit;
 }
 

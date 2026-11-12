@@ -38,6 +38,11 @@ export default function ViewDialog({
     getWidgetView,
 }: ViewDialogProps): React.ReactElement {
     const headerAsTitle = !!widget.data.dialogHeaderAsTitle;
+    // An unset or emptied size reads as its default (lib/dialogFields: emptiedReadsUnset); a numeric
+    // string sizes as its number.
+    const unit = widget.data.dialogInPixel ? 'px' : '%';
+    const width = `${Number(widget.data.dialogWidth)}${unit}`;
+    const height = `${Number(widget.data.dialogHeight)}${unit}`;
 
     const iconButton = (
         <IconButton
@@ -69,14 +74,7 @@ export default function ViewDialog({
                 background: widget.data.dialogBackgroundColor || 'transparent',
             }}
         >
-            <Box
-                sx={{
-                    width: widget.data.dialogInPixel ? `${widget.data.dialogWidth}px` : `${widget.data.dialogWidth}%`,
-                    height: widget.data.dialogInPixel
-                        ? `${widget.data.dialogHeight}px`
-                        : `${widget.data.dialogHeight}%`,
-                }}
-            >
+            <Box sx={{ width, height }}>
                 <CollectionBase
                     data={data}
                     hideHeader={headerAsTitle}

@@ -83,6 +83,8 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
             visSetLabel: 'widgets_collection',
             visName: 'JsonTableCollectionWidget',
             visWidgetLabel: 'json_table_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'json_table_collection_widget_help',
             visOrder: 12,
             visAttrs: [
                 {

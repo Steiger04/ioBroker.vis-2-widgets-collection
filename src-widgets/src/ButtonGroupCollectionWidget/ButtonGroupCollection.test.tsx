@@ -16,6 +16,8 @@ import { act } from 'react';
 
 import { collectionScene, mountCollectionBody, type MountedCollectionBody } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import buttonGroupFields from '../lib/buttonGroupFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import ButtonGroupCollection from './ButtonGroupCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -148,5 +150,26 @@ describe('ButtonGroupCollection wiring', () => {
 
         // MUI disables the toggle buttons via context; the group root div carries no class.
         expect(container.querySelector('.MuiToggleButton-root.Mui-disabled')).not.toBeNull();
+    });
+});
+
+describe('ButtonGroupCollection orientation', () => {
+    // The vis-2 select offers only horizontal and vertical: null and '' come from raw data (the
+    // assistant) or a binding. The widget reads both like the unset field, its default horizontal
+    // (lib/buttonGroupFields: emptiedReadsUnset); the body is mounted over the data as read.
+    it.each([
+        ['stored as null', null, undefined],
+        ['stored empty', '', undefined],
+        ['bound to an empty text', '', '{0_userdata.0.orientation}'],
+    ])('reads an orientation %s like the unset field', (_case, value, binding) => {
+        const read = (buttonGroupOrientation: unknown, stored?: unknown): Record<string, unknown> =>
+            readWidgetData(
+                buttonGroupFields(),
+                { buttonGroupOrientation },
+                stored === undefined ? undefined : { buttonGroupOrientation: stored },
+            );
+        const unset = mountGroup(scene(read(undefined))).container.innerHTML;
+
+        expect(mountGroup(scene(read(value, binding))).container.innerHTML).toBe(unset);
     });
 });

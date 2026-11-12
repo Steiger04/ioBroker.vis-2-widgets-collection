@@ -34,6 +34,8 @@ const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'select',
         label: 'input_variant',
         default: 'standard',
+        // '' (raw data, a binding) draws the default variant.
+        emptiedReadsUnset: true,
         options: [
             { value: 'standard', label: 'variant_standard' },
             { value: 'outlined', label: 'variant_outlined' },

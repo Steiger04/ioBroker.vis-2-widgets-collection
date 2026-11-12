@@ -16,6 +16,7 @@ import {
     fontWeightOptions,
     sideOptions,
 } from './fieldFactories';
+import { fieldRulesOf, usableWidgetData } from './usableWidgetData';
 
 // The hidden-predicate family is the deepest new module: a single bug silently
 // mis-hides ~30 fields. Truth tables pin the contract.
@@ -141,6 +142,17 @@ describe('createPlainColorField', () => {
         expect(
             (createPlainColorField({ name: 'a', label: 'a', hidden: predicate }) as { hidden?: unknown }).hidden,
         ).toBe(predicate);
+    });
+
+    it.each([
+        ['the Schlichtes Farbfeld', createPlainColorField({ name: 'c', label: 'c', default: '#ccc' })],
+        ['the contract colour field', createColorField({ name: 'c', label: 'c' })],
+    ])('reads a stored value that is no text as unset, and keeps a colour text (%s)', (_case, field) => {
+        // The Rückfall-Regel (lib/usableWidgetData, ADR-0114) reads the field's declaration.
+        const rules = fieldRulesOf([{ name: 'g', fields: [field] }]);
+        expect(usableWidgetData({ c: 5 }, rules)).toEqual({});
+        expect(usableWidgetData({ c: { color: '#f00' } }, rules)).toEqual({});
+        expect(usableWidgetData({ c: '#f00' }, rules)).toEqual({ c: '#f00' });
     });
 
     it('guards the data map like every data-reading custom field', () => {
