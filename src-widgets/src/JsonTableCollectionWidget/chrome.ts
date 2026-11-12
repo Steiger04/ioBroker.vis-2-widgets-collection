@@ -313,6 +313,9 @@ export function buildTableChrome(settings: TableChromeSettings, theme: Theme): T
             // Unpadded: TableCellRenderer pads inside, so its background covers the whole cell
             padding: 0,
             verticalAlign: 'middle',
+            // The height of one row for the cell content's first band (TableCellRenderer): a row an
+            // object cell makes tall keeps the other cells at its top, not in its middle.
+            '--json-table-row-height': `${rowHeight}px`,
         },
     };
 }

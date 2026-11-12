@@ -39,6 +39,16 @@ export interface TableCellRendererProps {
 // ── Component ───────────────────────────────────────────────────────
 
 /**
+ * The cell content's band: as high as one row (`--json-table-row-height`, set on the cell by the
+ * chrome; without it the whole cell, as before), at most the whole cell, its content centred in
+ * it. A single-line row is one band, so its content sits centred as ever; a row one wrapping cell
+ * (an object's JSON text) makes tall keeps the other cells in its first band instead of its
+ * middle. The surface around it keeps covering the whole cell, so a conditional background still
+ * fills it.
+ */
+const ROW_BAND_MIN_HEIGHT = 'min(100%, var(--json-table-row-height, 100%))';
+
+/**
  * Renders a table cell with formatting and conditional styling.
  *
  * @param props - Component props
@@ -74,13 +84,23 @@ export function TableCellRenderer({ value, column, valueSize }: TableCellRendere
                     width: '100%',
                     height: '100%',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent,
+                    alignItems: 'flex-start',
                     padding,
                     ...bgSx,
                 }}
             >
-                <ImageGraphic descriptor={image} />
+                <Box
+                    sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent,
+                        minHeight: ROW_BAND_MIN_HEIGHT,
+                    }}
+                >
+                    <ImageGraphic descriptor={image} />
+                </Box>
             </Box>
         );
     }
@@ -91,40 +111,50 @@ export function TableCellRenderer({ value, column, valueSize }: TableCellRendere
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
+                alignItems: 'flex-start',
                 padding: '0 8px', // Padding here ensures background color covers the full cell area
                 ...bgSx,
             }}
         >
-            <Typography
-                variant="body2"
-                component={Box}
-                title={displayValue}
+            <Box
                 sx={{
                     flex: 1,
                     minWidth: 0,
-                    lineHeight: 'inherit',
-                    ...(valueSize && { fontSize: valueSize }),
-                    ...textSx,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    minHeight: ROW_BAND_MIN_HEIGHT,
                 }}
-                dangerouslySetInnerHTML={{
-                    __html: displayValue ?? '',
-                }}
-            />
-            {/* FIX-P3: Show truncated badge for object/array values */}
-            {isTruncated && (
-                <Chip
-                    label="JSON"
-                    size="small"
+            >
+                <Typography
+                    variant="body2"
+                    component={Box}
+                    title={displayValue}
                     sx={{
-                        height: 18,
-                        fontSize: '0.65rem',
-                        flexShrink: 0,
-                        opacity: 0.7,
+                        flex: 1,
+                        minWidth: 0,
+                        lineHeight: 'inherit',
+                        ...(valueSize && { fontSize: valueSize }),
+                        ...textSx,
+                    }}
+                    dangerouslySetInnerHTML={{
+                        __html: displayValue ?? '',
                     }}
                 />
-            )}
+                {/* FIX-P3: Show truncated badge for object/array values */}
+                {isTruncated && (
+                    <Chip
+                        label="JSON"
+                        size="small"
+                        sx={{
+                            height: 18,
+                            fontSize: '0.65rem',
+                            flexShrink: 0,
+                            opacity: 0.7,
+                        }}
+                    />
+                )}
+            </Box>
         </Box>
     );
 }

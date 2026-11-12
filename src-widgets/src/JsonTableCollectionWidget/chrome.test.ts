@@ -423,6 +423,7 @@ describe('buildTableChrome — body rows and cells', () => {
             maxHeight: 36,
             padding: 0,
             verticalAlign: 'middle',
+            '--json-table-row-height': '36px',
         });
     });
 
