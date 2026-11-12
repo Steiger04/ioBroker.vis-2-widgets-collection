@@ -40,8 +40,7 @@ export const IMAGE_FORMAT_DEFAULTS: { size: number; objectFit: ImageObjectFit } 
 // The encoding helpers live in the shared `lib/encoding` module (single source, also used by
 // the Echarts widget). Re-exported here so existing JsonTable import sites keep working.
 export { utf8ToBase64, base64ToUtf8 } from '../../lib/encoding';
-import { decodeBlob } from '../../lib/encoding';
-import { isUsableValue, type StoredValue } from '../../lib/usableWidgetData';
+import { isRecord, isText, oneOf, readUsableJson, withoutBroken, type KeyKinds } from '../../lib/usableJson';
 
 // ── Helper: parse persisted config ──────────────────────────────
 
@@ -51,23 +50,10 @@ import { isUsableValue, type StoredValue } from '../../lib/usableWidgetData';
  * Declared on the field (`storedValue`) and read here: the one rule of the KI-Integration
  * (`lib/usableWidgetData`, ADR-0114) decides the top level.
  */
-export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
-
-/** A plain object (no list, no `null`). */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null && !Array.isArray(value);
+export const COLUMN_CONFIG_VALUE: { json: 'array' } = { json: 'array' };
 
 /** An entry that names a Column: an object with a text `path`. */
 const isColumnEntry = (entry: unknown): entry is ColumnConfigEntry => isRecord(entry) && typeof entry.path === 'string';
-
-/** One of the given values. */
-const oneOf =
-    (...values: readonly unknown[]) =>
-    (value: unknown): boolean =>
-        values.includes(value);
-
-/** A text. */
-const isText = (value: unknown): boolean => typeof value === 'string';
 
 /** The Format types, all of them (the record makes a new one a type error here). */
 const FORMAT_TYPES: Readonly<Record<ColumnFormatType, true>> = {
@@ -80,9 +66,6 @@ const FORMAT_TYPES: Readonly<Record<ColumnFormatType, true>> = {
 
 /** A per-column capability override: on, off or the type default. */
 const isOverride = oneOf(true, false, 'auto');
-
-/** The kind of each key of an object: whether a value is usable there. */
-type KeyKinds<T> = Readonly<Record<keyof T, (value: unknown) => boolean>>;
 
 /**
  * The kind of each key of a Column entry the table reads ({@link ColumnConfigEntry}). The inner
@@ -113,20 +96,6 @@ const RULE_KEYS: KeyKinds<ColumnStyleRule> = {
     fontStyle: oneOf('normal', 'italic'),
 };
 
-/** The object without the keys whose value is not of their kind; the object itself when all are. */
-function withoutBroken<T extends object>(object: T, kinds: Readonly<Record<string, (value: unknown) => boolean>>): T {
-    const record = object as Record<string, unknown>;
-    const broken = Object.entries(kinds).filter(([key, isUsable]) => key in record && !isUsable(record[key]));
-    if (broken.length === 0) {
-        return object;
-    }
-    const usable = { ...record };
-    for (const [key] of broken) {
-        delete usable[key];
-    }
-    return usable as T;
-}
-
 /** The entry with its rules that are objects, each without its broken keys. */
 function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
     const rules = entry.cellStyle as unknown[];
@@ -155,11 +124,7 @@ function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
  * @returns The Column entries; empty for an unset or unusable configuration.
  */
 export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
-    if (typeof raw !== 'string' || raw === '' || !isUsableValue(COLUMN_CONFIG_VALUE, raw)) {
-        return [];
-    }
-    const entries = JSON.parse(decodeBlob(raw)) as unknown[];
-    return entries.filter(isColumnEntry).map(entry => {
+    return (readUsableJson(COLUMN_CONFIG_VALUE, raw) ?? []).filter(isColumnEntry).map(entry => {
         const usable = withoutBroken(entry, ENTRY_KEYS);
         return Array.isArray(usable.cellStyle) ? withUsableRules(usable) : usable;
     });
