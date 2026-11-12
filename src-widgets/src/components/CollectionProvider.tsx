@@ -5,8 +5,8 @@
  * @remarks
  * This module provides:
  * - `CollectionContext`: the shared runtime context for all collection widgets
- * - the widget data with the editor's OID pick read in for an id field without its object
- *   ({@link module:hooks/usePickedWidgetData}, KI-Integration)
+ * - the widget data with the editor's OID pick read in for an id field without its object, and the
+ *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration)
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
  *   overrides + user theme). The shared theme-building/subscribe logic lives in
  *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
@@ -20,7 +20,7 @@ import useCollectionTheme from '../hooks/useCollectionTheme';
 import usePickedWidgetData from '../hooks/usePickedWidgetData';
 
 import type { AllCollectionContextProps } from '../types';
-import type { OidPickField } from '../lib/pickedWidgetData';
+import type { WidgetDataReading } from '../lib/pickedWidgetData';
 import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';
 
@@ -38,10 +38,11 @@ interface CollectionProviderProps {
     /** The fully-typed collection context provided by vis-2. */
     context: AllCollectionContextProps;
     /**
-     * The widget's id fields with the shared OID pick (`Generic`, from its `getWidgetInfo()`): an id
-     * without its object reads the object and the keys of the pick. Absent: the data as it is.
+     * What the widget data's reading takes from the widget's fields (`Generic`, from its
+     * `getWidgetInfo()`): an id without its object reads the object and the keys of the pick, an
+     * unset key the palette's default. Absent: the data as it is.
      */
-    oidPickFields?: readonly OidPickField[];
+    reading?: WidgetDataReading;
 }
 
 /**
@@ -50,20 +51,21 @@ interface CollectionProviderProps {
  * @param props - Provider props.
  * @param props.children - Child element(s) to render inside the provider.
  * @param props.context - The fully-typed collection context provided by vis-2.
- * @param props.oidPickFields - The widget's id fields with the shared OID pick.
+ * @param props.reading - What the widget data's reading takes from the widget's fields.
  * @returns Provider subtree.
  */
 function CollectionProvider({
     children,
     context,
-    oidPickFields,
+    reading,
 }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {
     const theme = context.theme;
     const socket = context.socket;
 
-    // An id set without the field's onChange (the vis-2 assistant) reads its object and what the
-    // pick would have written; the stored data stays as it is. Unchanged data keeps its identity.
-    const data = usePickedWidgetData(context.widget.data, oidPickFields, socket);
+    // A widget the vis-2 assistant inserted reads like the palette's: an id set without the field's
+    // onChange reads its object and what the pick would have written, an unset key its default; the
+    // stored data stays as it is. Unchanged data keeps its identity.
+    const data = usePickedWidgetData(context.widget.data, reading, socket);
     const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
 
     const { fontStyles, textStyles } = useStyles(widget.style || {});

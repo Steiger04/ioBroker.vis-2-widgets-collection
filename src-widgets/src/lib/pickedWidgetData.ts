@@ -14,13 +14,19 @@
  * - every key the pick writes counts only where the data leaves it unset (`undefined`, `null`):
  *   what is set wins.
  *
+ * The same merge reads the palette's defaults (`lib/fieldDefaults`) for the unset keys: the
+ * reference of an assistant-inserted widget is the palette's widget with the same data whose id the
+ * user picked after the drop, so the picks run over the defaults and win over them.
+ *
  * The stored data is never written. A field whose object matches its id is not touched, and data
- * without such a field comes back as the same object.
+ * without such a field and without an unset key that has a default comes back as the same object.
  */
 import { applyObjectPick } from './commonObjectFields';
+import { NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
 import type { PickedObject } from './commonObjectFields';
+import type { FieldDefaults } from './fieldDefaults';
 import type { RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
 /** An id field whose pick runs the shared derivation: its name and the options of its pick. */
@@ -31,6 +37,17 @@ export interface OidPickField {
     readonly allowedTypes: readonly AllowedType[];
     /** Whether a main-OID pick seeds a missing bound of the root range. */
     readonly inventRange: boolean;
+}
+
+/**
+ * What a widget's data reading takes from its fields, read once per widget class from its
+ * `getWidgetInfo()` (`Generic`): the id fields with the shared pick and the palette's defaults.
+ */
+export interface WidgetDataReading {
+    /** The id fields whose pick runs the shared derivation ({@link oidPickFieldsOf}). */
+    readonly oidPickFields: readonly OidPickField[];
+    /** The defaults the unset keys read as (`lib/fieldDefaults`). */
+    readonly defaults: FieldDefaults;
 }
 
 /** The keys of a field definition this module reads: the mirrors `createIdField` sets. */
@@ -91,19 +108,24 @@ export const awaitedObjectsOf = (data: WidgetData, fields: readonly OidPickField
 const isUnset = (value: unknown): boolean => value === undefined || value === null;
 
 /**
- * The widget data with the picks of its awaited objects read in.
+ * The widget data with the picks of its awaited objects read in, over the palette's defaults.
  *
  * @param data - The widget data as the widget reads it.
  * @param awaited - Its {@link awaitedObjectsOf}.
  * @param pickedOf - The loaded pick of an awaited object: `undefined` while it loads, `null` for an
  *   id without a usable object.
+ * @param defaults - The widget's field defaults (`lib/fieldDefaults`); none: no key reads a default.
  * @returns `data` itself when nothing changes; otherwise a copy where every awaited field's
- *   foreign object is gone and the keys the loaded picks write fill the unset ones.
+ *   foreign object is gone and the unset keys read what the palette's widget with the same data
+ *   would hold after the picks in the panel: the picks run over the defaults (in the panel the user
+ *   picks after the drop), so a key a pick writes reads the pick's value, a key it removes reads as
+ *   unset, every other key its default.
  */
 export function pickedWidgetData<T extends WidgetData>(
     data: T,
     awaited: readonly AwaitedObject[],
     pickedOf: (awaitedObject: AwaitedObject) => PickedObject | null | undefined,
+    defaults: FieldDefaults = NO_FIELD_DEFAULTS,
 ): T {
     const read: WidgetData = { ...data };
     let changed = false;
@@ -115,24 +137,22 @@ export function pickedWidgetData<T extends WidgetData>(
         }
     }
 
-    // The picks in field order over the data, as successive picks in the panel would run.
-    const derived: WidgetData = { ...read };
+    // The palette's widget: the defaults, then the picks in field order, as successive picks in the
+    // panel would run.
+    const derived: WidgetData = { ...withFieldDefaults(read, defaults) };
     for (const awaitedObject of awaited) {
         const picked = pickedOf(awaitedObject);
         if (picked) {
             applyObjectPick(derived, awaitedObject.field.name, picked, awaitedObject.field);
-            changed = true;
         }
-    }
-    if (!changed) {
-        return data;
     }
 
     // What is set wins: a derived value fills only a key the data leaves unset.
     for (const [key, value] of Object.entries(derived)) {
-        if (isUnset(read[key])) {
+        if (isUnset(read[key]) && value !== read[key]) {
             read[key] = value;
+            changed = true;
         }
     }
-    return read as T;
+    return changed ? (read as T) : data;
 }

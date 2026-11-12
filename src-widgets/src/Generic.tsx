@@ -11,7 +11,8 @@
  * - a common wrapper layout via `wrapContent()`
  * - the entry of the widget data into the Collection-Kontext, read through the Rückfall-Regel
  *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
- *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`)
+ *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`), an unset
+ *   key the palette's default (`lib/fieldDefaults`)
  */
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
@@ -22,9 +23,10 @@ import withCollectionProvider from './components/withCollectionProvider';
 import { I18N_PREFIX } from './lib/translate';
 import { fieldRulesOf, usableWidgetData } from './lib/usableWidgetData';
 import { oidPickFieldsOf } from './lib/pickedWidgetData';
+import { fieldDefaultsOf } from './lib/fieldDefaults';
 
 import type { FieldRules } from './lib/usableWidgetData';
-import type { OidPickField } from './lib/pickedWidgetData';
+import type { WidgetDataReading } from './lib/pickedWidgetData';
 import type { CollectionContextProps } from './types';
 
 /** A widget class as far as its field rules are concerned: its static declaration. */
@@ -34,8 +36,8 @@ type WidgetClass = { getWidgetInfo(): RxWidgetInfo };
 interface FieldReading {
     /** The field rules of the Rückfall-Regel (lib/usableWidgetData). */
     rules: FieldRules;
-    /** The id fields whose pick runs the shared derivation (lib/pickedWidgetData). */
-    oidPickFields: readonly OidPickField[];
+    /** The id fields with the shared pick and the defaults of the unset keys (lib/pickedWidgetData). */
+    dataReading: WidgetDataReading;
 }
 
 /** The field reading of each widget class, read once from its static `getWidgetInfo()`. */
@@ -46,7 +48,10 @@ const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
     let reading = fieldReadingByClass.get(widgetClass);
     if (!reading) {
         const visAttrs = widgetClass.getWidgetInfo().visAttrs ?? [];
-        reading = { rules: fieldRulesOf(visAttrs), oidPickFields: oidPickFieldsOf(visAttrs) };
+        reading = {
+            rules: fieldRulesOf(visAttrs),
+            dataReading: { oidPickFields: oidPickFieldsOf(visAttrs), defaults: fieldDefaultsOf(visAttrs) },
+        };
         fieldReadingByClass.set(widgetClass, reading);
     }
     return reading;
@@ -133,7 +138,7 @@ class Generic<
         // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
         // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
-        const { rules, oidPickFields } = fieldReadingOf(this.constructor as unknown as WidgetClass);
+        const { rules, dataReading } = fieldReadingOf(this.constructor as unknown as WidgetClass);
         const data = usableWidgetData(this.state.rxData, rules, props.widget.data);
 
         if (data.noCard || props.widget.usedInWidget) {
@@ -163,8 +168,9 @@ class Generic<
             ...extraContext,
         } as CollectionContextProps<RxData>;
 
-        // An id without its object reads the editor's pick inside the provider (lib/pickedWidgetData).
-        return withCollectionProvider(this.wrapContent(component), collectionContext, oidPickFields);
+        // Inside the provider an id without its object reads the editor's pick, an unset key the
+        // palette's default (lib/pickedWidgetData): an assistant-inserted widget reads like the palette's.
+        return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading);
     }
 
     /**

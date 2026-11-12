@@ -19,8 +19,9 @@
  *   likewise the keys `name{n}` of a vis-2 indexed group (`indexFrom`/`indexTo`), which stores each
  *   of its fields once per index and never under the bare name.
  *
- * `undefined`, `null` and `''` are never unusable: the first two are unset already, and `''`
- * keeps whatever it means for its field today. Every other field — text without a declared
+ * `undefined` and `null` are never unusable: they are unset already. Neither is `''`, which keeps
+ * whatever it means for its field today — except in a select field that does not offer it: vis-2's
+ * select stores only its options, so `''` there comes from raw data and means nothing. Every other field — text without a declared
  * `storedValue`, html, OID, image, undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
  * stored value the host substitutes — a binding (vis-2 hands its resolved value as text) or a group
  * attribute: the widget reads the host's value as before, except in a checkbox field, where the
@@ -171,8 +172,12 @@ const isJsonOf = (value: unknown, topLevel: 'object' | 'array'): boolean => {
  * @returns `false` only for a value the widget must read as unset.
  */
 export const isUsableValue = (rule: FieldRule, value: unknown): boolean => {
-    if (value === undefined || value === null || value === '') {
+    if (value === undefined || value === null) {
         return true;
+    }
+    if (value === '') {
+        // vis-2's select stores only its options: '' outside them comes from raw data and means nothing.
+        return !(typeof rule === 'object' && 'options' in rule) || rule.options.includes('');
     }
     if (typeof rule === 'object') {
         return 'options' in rule ? rule.options.includes(value) : isJsonOf(value, rule.json);
