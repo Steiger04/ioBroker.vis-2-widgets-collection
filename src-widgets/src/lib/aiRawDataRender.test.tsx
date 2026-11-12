@@ -505,36 +505,68 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
     // The vis-2 select offers only the option values, so an empty string in an option field comes
     // only from raw data. The rule keeps '' everywhere (its meaning stays with the field); in these
     // widgets' own option fields it means nothing and reads like the unset field.
-    describe.each(['CheckboxCollectionWidget', 'RadioGroupCollectionWidget', 'ButtonGroupCollectionWidget'] as const)(
-        '%s: an empty own option field',
-        name => {
-            it('renders an own option field stored as "" like the unset field', async () => {
-                const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
-                const fixture = FIXTURES[name]!;
-                const optionFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
-                    .filter(
-                        ([key, rule]) =>
-                            !SHARED_FIELD_NAMES.has(key) &&
-                            typeof rule === 'object' &&
-                            'options' in rule &&
-                            !rule.options.includes(''),
-                    )
-                    .map(([key]) => key);
+    describe.each([
+        'CheckboxCollectionWidget',
+        'RadioGroupCollectionWidget',
+        'ButtonGroupCollectionWidget',
+        'SliderCollectionWidget',
+        'GaugeCollectionWidget',
+    ] as const)('%s: an empty own option field', name => {
+        it('renders an own option field stored as "" like the unset field', async () => {
+            const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+            const fixture = FIXTURES[name]!;
+            const optionFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                .filter(
+                    ([key, rule]) =>
+                        !SHARED_FIELD_NAMES.has(key) &&
+                        typeof rule === 'object' &&
+                        'options' in rule &&
+                        !rule.options.includes(''),
+                )
+                .map(([key]) => key);
 
-                expect(optionFields.length).toBeGreaterThan(0);
-                expect(
-                    await differingValues(
-                        optionFields,
-                        () => [''],
-                        async assigned => [
-                            await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
-                            await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
-                        ],
-                    ),
-                ).toEqual([]);
-            });
-        },
-    );
+            expect(optionFields.length).toBeGreaterThan(0);
+            expect(
+                await differingValues(
+                    optionFields,
+                    () => [''],
+                    async assigned => [
+                        await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                        await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                    ],
+                ),
+            ).toEqual([]);
+        });
+    });
+
+    // vis-2's number field stores '' once the user empties it, and the assistant may write it: in
+    // the Slider's geometry and the Gauge-Optionen it reads like the unset field (the Gauge through
+    // the Options-Builder's schema-default coercion, ADR-0107). A field where '' keeps a meaning of
+    // its own is listed with it.
+    describe.each([
+        ['SliderCollectionWidget', { sliderPadding: "'' is no padding (0), unset the field default" }],
+        ['GaugeCollectionWidget', {}],
+    ] as const)('%s: an emptied own number field', (name, ownMeaning: Readonly<Record<string, string>>) => {
+        it('renders an own number field stored as "" like the unset field', async () => {
+            const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+            const fixture = FIXTURES[name]!;
+            const numberFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                .filter(([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number' && !(key in ownMeaning))
+                .map(([key]) => key);
+
+            expect(numberFields.length).toBeGreaterThan(0);
+            expect(
+                await differingValues(
+                    numberFields,
+                    () => [''],
+                    async assigned => [
+                        await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                        await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                    ],
+                ),
+            ).toEqual([]);
+        });
+    });
 
     // The Input's own fields shape the edit field, which shows only once a click starts the
     // Inline-Edit-Sitzung (ADR-0109): read there, each broken, null or (in an option field) empty

@@ -1054,10 +1054,13 @@ describe('SliderCollection option fields stored as null or empty', () => {
         expect(sliderOf({ sliderSize }).className).toBe(unset);
     });
 
-    it.each([null, ''])('shows no value label for a value label display stored as %j, like unset', valueLabelDisplay => {
-        expect(sliderOf({}).valueLabel).toBe(false);
-        expect(sliderOf({ valueLabelDisplay }).valueLabel).toBe(false);
-    });
+    it.each([null, ''])(
+        'shows no value label for a value label display stored as %j, like unset',
+        valueLabelDisplay => {
+            expect(sliderOf({}).valueLabel).toBe(false);
+            expect(sliderOf({ valueLabelDisplay }).valueLabel).toBe(false);
+        },
+    );
 });
 
 // vis-2's panel shows the field default for a padding that is not stored (WidgetField: a value
