@@ -3,7 +3,8 @@
  *
  * @module widgets/SliderCollectionWidget/chrome.test
  * @remarks
- * Mock-free: the chrome imports only the component-free contract module. The colour cases
+ * Mock-free: the chrome imports only the component-free contract module; the tests hand it the
+ * data as the widget reads it (`readWidgetData`: defaults, emptied fields). The colour cases
  * read each slot's cascade through the sx; the geometry cases pin the former styled
  * callback's values per orientation with their fallbacks. The DOM characterisation in
  * SliderCollection.test.tsx pins the same rules as rendered.
@@ -12,6 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import { buildSliderChrome, type SliderChromeInput } from './chrome';
 import { sliderColorContracts } from '../lib/sliderColorContract';
+import sliderFields from '../lib/sliderFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 
 import type { SliderFieldsRxData } from '../types';
 import type { Theme } from '@mui/material';
@@ -22,7 +25,8 @@ const theme = { palette: { primary: { main: PRIMARY } } } as unknown as Theme;
 const chrome = (
     data: SliderFieldsRxData,
     overrides: Partial<SliderChromeInput> = {},
-): ReturnType<typeof buildSliderChrome> => buildSliderChrome({ data, label: {}, theme, ...overrides });
+): ReturnType<typeof buildSliderChrome> =>
+    buildSliderChrome({ data: readWidgetData(sliderFields(), data), label: {}, theme, ...overrides });
 
 /** The sx rule for one slider part. */
 const part = (
@@ -277,10 +281,16 @@ describe('buildSliderChrome — track and rail geometry', () => {
 });
 
 describe('buildSliderChrome — marks', () => {
+    /** Both mark fields emptied: vis-2's number field stores ''. */
+    const EMPTIED_MARKS = { markWidth: '', markHeight: '' } as unknown as SliderFieldsRxData;
+
     it.each<[string, SliderFieldsRxData, [string, string]]>([
         ['horizontal, unset', { sliderOrientation: 'horizontal' }, ['2px', '2px']],
         ['horizontal, set', { sliderOrientation: 'horizontal', markWidth: 5, markHeight: 7 }, ['5px', '7px']],
-        ['vertical, unset', { sliderOrientation: 'vertical' }, ['16px', '3px']],
+        // Unset, the mark fields read their defaults (2 × 2); emptied, the lengths of the orientation.
+        ['vertical, unset', { sliderOrientation: 'vertical' }, ['2px', '2px']],
+        ['vertical, emptied', { sliderOrientation: 'vertical', ...EMPTIED_MARKS }, ['16px', '3px']],
+        ['horizontal, emptied', { sliderOrientation: 'horizontal', ...EMPTIED_MARKS }, ['2px', '2px']],
         ['vertical, set', { sliderOrientation: 'vertical', markWidth: 5, markHeight: 7 }, ['7px', '5px']],
         ['orientation unset (the horizontal fallbacks)', {}, ['2px', '2px']],
     ])('sizes the inactive and the active mark alike (%s)', (_case, data, expected) => {
@@ -389,10 +399,11 @@ describe('buildSliderChrome — label containers', () => {
     });
 });
 
-// vis-2's number field stores '' once the user empties it (and an assistant may write it):
-// the length reads like the unset field — its fallback — instead of the invalid CSS `px`.
+// vis-2's number field stores '' once the user empties it (and an assistant may write it): a
+// thumb, track or rail length reads like the unset field (lib/sliderFields: emptiedReadsUnset)
+// instead of the invalid CSS `px`. The mark lengths keep their own reading (see the marks above).
 describe('buildSliderChrome — emptied lengths', () => {
-    const LENGTHS = ['thumbWidth', 'thumbHeight', 'trackLength', 'railLength', 'markWidth', 'markHeight'] as const;
+    const LENGTHS = ['thumbWidth', 'thumbHeight', 'trackLength', 'railLength'] as const;
 
     it.each(['horizontal', 'vertical'] as const)('draws every emptied length like the unset one (%s)', orientation => {
         const emptied = Object.fromEntries(LENGTHS.map(name => [name, ''])) as SliderFieldsRxData;
