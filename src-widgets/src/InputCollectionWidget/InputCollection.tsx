@@ -12,7 +12,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { displayText } from '../lib/displayText';
-import { INPUT_VARIANT_DEFAULT } from '../lib/inputFields';
+import { INPUT_PADDING_DEFAULT, INPUT_VARIANT_DEFAULT } from '../lib/inputFields';
 import { solidOf } from '../lib/helper/colorDerivation';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
@@ -62,6 +62,9 @@ const InputCollection: FC = () => {
     const fieldColor = solidOf(data.textColor);
     // '' and null come only from raw data (the vis-2 select offers the options): unset like a missing key.
     const inputVariant = widget.data.inputVariant || INPUT_VARIANT_DEFAULT;
+    // An unset padding is drawn with the default vis-2's panel shows for it; an emptied field ('')
+    // keeps its reading as 0.
+    const inputPadding = widget.data.inputPadding ?? INPUT_PADDING_DEFAULT;
 
     return (
         <CollectionBase
@@ -76,7 +79,7 @@ const InputCollection: FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        px: Number(widget.data.inputPadding),
+                        px: Number(inputPadding),
                     }}
                 >
                     <TextField

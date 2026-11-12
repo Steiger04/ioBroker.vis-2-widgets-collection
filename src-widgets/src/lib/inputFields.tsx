@@ -20,6 +20,9 @@ const hiddenUnlessNumber = (data: Record<string, unknown>): boolean =>
 /** Default field variant: the single source; the renderer reads it for an unset or empty field. */
 export const INPUT_VARIANT_DEFAULT = 'standard';
 
+/** Default field padding (spacing units): the single source; the renderer reads it for an unset field. */
+export const INPUT_PADDING_DEFAULT = 1;
+
 const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -47,7 +50,7 @@ const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'inputPadding',
         type: 'number',
         label: 'input_padding',
-        default: 1,
+        default: INPUT_PADDING_DEFAULT,
         min: 0,
         step: 0.5,
     } as const,

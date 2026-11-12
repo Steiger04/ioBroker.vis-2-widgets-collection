@@ -24,6 +24,7 @@ import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 import commonObjectFields from '../lib/commonObjectFields';
+import inputFields from '../lib/inputFields';
 import { DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
 import {
     collectionScene,
@@ -336,6 +337,26 @@ describe('InputCollection field attributes', () => {
         };
 
         expect(variantOf({ inputVariant })).toBe(variantOf({}));
+    });
+
+    // vis-2's panel shows the field default for a padding that is not stored (WidgetField: a value
+    // `== null` shows `field.default`); only raw data leaves it out (the vis-2 assistant, ADR-0114).
+    it.each([
+        ['unset', undefined],
+        ['null', null],
+    ])('pads the field of a %s padding with the default the panel shows', (_case, inputPadding) => {
+        const shown = (inputFields() as { name?: string; default?: unknown }[]).find(
+            field => field.name === 'inputPadding',
+        )?.default;
+        const paddingOf = (data: Record<string, unknown>): string | undefined => {
+            const { container, unmount } = mountInput(data);
+            const className = start(container).closest('.MuiTextField-root')?.parentElement?.className;
+            unmount();
+            return className;
+        };
+
+        expect(shown).toBeTypeOf('number');
+        expect(paddingOf({ inputPadding })).toBe(paddingOf({ inputPadding: shown }));
     });
 
     it('sets no attribute for emptied number fields (06)', () => {
