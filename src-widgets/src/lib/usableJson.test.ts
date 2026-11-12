@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from './encoding';
-import { anyOf, isFlag, isNumber, isText, isTextList, readUsableJson, withoutBroken } from './usableJson';
+import { anyOf, isFlag, isJsonNumber, isText, isTextList, readUsableJson, withoutBroken } from './usableJson';
 
 describe('readUsableJson', () => {
     it('reads JSON text, plain or as blob, of the declared top level', () => {
@@ -27,7 +27,7 @@ describe('readUsableJson', () => {
 });
 
 describe('withoutBroken', () => {
-    const kinds = { name: isText, size: isNumber, on: isFlag, tags: isTextList, at: anyOf(isNumber, isText) };
+    const kinds = { name: isText, size: isJsonNumber, on: isFlag, tags: isTextList, at: anyOf(isJsonNumber, isText) };
 
     it('returns the object itself when every key is of its kind', () => {
         const object = { name: 'a', size: 2, on: true, tags: ['x'], at: '1m', other: { any: 1 } };

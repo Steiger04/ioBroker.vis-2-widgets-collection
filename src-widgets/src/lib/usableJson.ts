@@ -47,8 +47,8 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 /** A text. */
 export const isText: Kind = value => typeof value === 'string';
 
-/** A finite number. */
-export const isNumber: Kind = value => typeof value === 'number' && Number.isFinite(value);
+/** A finite JSON number; unlike `lib/helper/isNumber`, no numeric text. */
+export const isJsonNumber: Kind = value => typeof value === 'number' && Number.isFinite(value);
 
 /** A boolean. */
 export const isFlag: Kind = value => typeof value === 'boolean';
