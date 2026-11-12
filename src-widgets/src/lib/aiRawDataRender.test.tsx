@@ -198,7 +198,8 @@ const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
     },
     GaugeCollectionWidget: {
         body: GaugeCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
+        // The object range the OID picker stores: an unset gaugeMinValue/gaugeMaxValue falls back to it.
+        data: { ...CHROME, ...numberRows(NUMBER_OID), minValue: -10, maxValue: 50 },
         values: { [`${NUMBER_OID}.val`]: 1 },
     },
     Light2CollectionWidget: {
