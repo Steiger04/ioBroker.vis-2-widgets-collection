@@ -30,6 +30,8 @@ class GaugeCollectionWidget extends Generic<WidgetRegistry['tplGaugeCollectionWi
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'GaugeCollectionWidget', // Name of widget
             visWidgetLabel: 'gauge_collection_widget', // Label for widget
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'gauge_collection_widget_help',
             visOrder: 10,
             visAttrs: [
                 {

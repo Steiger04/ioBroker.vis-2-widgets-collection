@@ -25,6 +25,8 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
             visSetLabel: 'widgets_collection',
             visName: 'SliderCollectionWidget',
             visWidgetLabel: 'slider_collection_widget',
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'slider_collection_widget_help',
             visOrder: 5,
             visAttrs: [
                 {
