@@ -117,7 +117,7 @@ const PLAIN_COLOR_FIELDS: Characteristic[] = [
         list: 'slider',
         name: 'markerIconColor',
         label: 'marker_icon_color',
-        default: undefined,
+        default: '',
         hidden: { expression: '!data.marks' },
     },
 ];
