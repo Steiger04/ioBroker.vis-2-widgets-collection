@@ -29,6 +29,7 @@ import { type SxProps, type Theme } from '@mui/material/styles';
 import { displayText } from '../lib/displayText';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
@@ -201,7 +202,7 @@ function CollectionBase({
     // Header and footer sit half the padding into it. The padding reads its default when unset
     // (lib/fieldDefaults); an emptied one ('') reads as 0, as the padding itself does, and a numeric
     // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
-    const halfPadding = (Number(widget.data.basePadding) || 0) / 2;
+    const halfPadding = (optionalNumber(widget.data.basePadding) ?? 0) / 2;
 
     return (
         <Paper
@@ -248,7 +249,7 @@ function CollectionBase({
                         <Paper
                             className="BASE-PAPER-1"
                             ref={setContentPaper}
-                            elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
+                            elevation={widget.data.outlined ? 0 : (optionalNumber(widget.data.baseElevation) ?? 0)}
                             square={!widget.data.basePadding || widget.data.squaredCorner}
                             variant={widget.data.outlined ? 'outlined' : 'elevation'}
                             sx={paper1Sx}

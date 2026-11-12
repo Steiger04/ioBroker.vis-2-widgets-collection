@@ -18,6 +18,7 @@
  */
 import { useCallback } from 'react';
 
+import optionalNumber from '../../lib/helper/optionalNumber';
 import { applyStateRowOperation, stateRowOperationAllowed } from '../../lib/stateRows';
 import {
     selectedWidgetDatas,
@@ -58,7 +59,7 @@ export type StateRowActions = StateEditorState & {
  *   Feldnummer names a different state now; clear and supplement: unchanged.
  */
 export const stateRowSelectionAfter = (op: StateRowOperation, selected: number, patch: StateRowPatch): number => {
-    const count = Number(patch.values_count) || 0;
+    const count = optionalNumber(patch.values_count) ?? 0;
     switch (op.kind) {
         case 'add':
             return count;
