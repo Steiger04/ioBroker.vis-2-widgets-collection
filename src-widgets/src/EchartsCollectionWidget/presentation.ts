@@ -32,6 +32,7 @@ import { applyRawOverride } from './utils/mergeOption';
 import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
+import { AXIS_KINDS, readListBlob, readObjectBlob, X_AXIS_KINDS } from './storedConfig';
 import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -468,18 +469,12 @@ export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine
     }
 };
 
-/** Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/invalid → `[]`. */
-export const decodeAxes = (raw: string | undefined | null): EchartsAxisConfig[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as EchartsAxisConfig[]) : [];
-    } catch {
-        return [];
-    }
-};
+/**
+ * Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/unusable → `[]`;
+ * an axis that is no object reads as an empty axis (`yAxisIndex` points by place), a key not of its
+ * JSON type as left out (the stored-configuration rule, {@link module:EchartsCollectionWidget/storedConfig}).
+ */
+export const decodeAxes = (raw: unknown): EchartsAxisConfig[] => readListBlob(raw, AXIS_KINDS, true);
 
 /**
  * Decode a base64 blob that must hold a JSON OBJECT; `fallback` for absent/invalid/non-object
@@ -507,21 +502,12 @@ export const decodeToolboxConfig = (raw: string | undefined | null): EchartsTool
 
 /**
  * Decode the base64 `xAxis` blob into the single X-axis config (ADR-0035). `null` when there is
- * no blob / it is invalid — the caller's legacy `xSplit` fallback applies exactly then. A saved
+ * no blob / it is unusable — the caller's legacy `xSplit` fallback applies exactly then. A saved
  * but empty `{}` blob decodes to `{}` (an explicit "all defaults" choice — the legacy fallback
- * must NOT re-apply over it).
+ * must NOT re-apply over it). A key not of its JSON type reads as left out (the stored-configuration
+ * rule).
  */
-export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig | null => {
-    if (!raw) {
-        return null;
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as EchartsXAxisConfig) : null;
-    } catch {
-        return null;
-    }
-};
+export const decodeXAxis = (raw: unknown): EchartsXAxisConfig | null => readObjectBlob(raw, X_AXIS_KINDS) ?? null;
 
 /**
  * Resolve the X-axis config with the legacy `xSplit` fallback (ADR-0035): the decoded blob wins;
@@ -529,7 +515,7 @@ export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig 
  * config at all. Shared by the live body (`toPresentationBase` + the family fragment) and the editor
  * (`loadEditorState`) so the two cannot drift.
  */
-export const decodeXAxisWithLegacy = (raw: string | undefined | null, legacyXSplit: boolean): EchartsXAxisConfig =>
+export const decodeXAxisWithLegacy = (raw: unknown, legacyXSplit: boolean): EchartsXAxisConfig =>
     decodeXAxis(raw) ?? (legacyXSplit ? { splitLine: true } : {});
 
 /**

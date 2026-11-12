@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
 import { parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
+import { decodeAxes, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
 
 const blob = (value: unknown): string => encodeBlob(JSON.stringify(value));
 
@@ -38,5 +39,24 @@ describe('the series settings (seriesConfig, jsonSeriesStyle)', () => {
 
     it('reads a style by name that is no object like the name left out', () => {
         expect(parseJsonSeriesStyle('{"A":null,"B":5,"C":{"color":"#f00"}}')).toEqual({ C: { color: '#f00' } });
+    });
+});
+
+describe('the axes (yAxes, xAxis)', () => {
+    it('reads a key not of its JSON type like the key left out', () => {
+        const broken = { name: 5, raw: { a: 1 }, splitNumber: '5', splitLine: 'true', snippets: [1] };
+
+        expect(decodeAxes(JSON.stringify([{ ...broken, max: 10 }]))).toEqual([{ max: 10 }]);
+        expect(decodeXAxis(blob({ ...broken, labelRotate: 30 }))).toEqual({ labelRotate: 30 });
+    });
+
+    it('reads an axis entry that is no object as an empty axis, keeping the places of yAxisIndex', () => {
+        expect(decodeAxes('[null, 5, {"name":"W"}]')).toEqual([{}, {}, { name: 'W' }]);
+    });
+
+    it('reads an X axis of another shape as none, so the legacy fallback applies', () => {
+        expect(decodeXAxis('[{"name":"Zeit"}]')).toBeNull();
+        expect(decodeXAxisWithLegacy('{"oops', true)).toEqual({ splitLine: true });
+        expect(decodeXAxisWithLegacy('{}', true)).toEqual({});
     });
 });
