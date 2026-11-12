@@ -53,35 +53,6 @@ import { isUsableValue, type StoredValue } from '../../lib/usableWidgetData';
  */
 export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
 
-/**
- * Parse the stored column configuration.
- *
- * The runtime reads it from the widget data the Rückfall-Regel has checked, the column editor
- * from the raw data vis-2 hands it, so the top level is judged here by the same rule: a value
- * that is no JSON list (plain or `b64:` blob) reads as no configuration — the Spalten-Merge over
- * an empty configuration, i.e. the automatically found Columns.
- *
- * Inside the list, what the table cannot use reads as not written: an entry that is no Column
- * (no object, or without a text `path`) is left out, a key of an entry whose value is not of the
- * key's kind ({@link ENTRY_KEYS}) is left out of the entry — the table then reads the key as it
- * reads it unset. The same holds one level down for the conditional styles: a rule that is no
- * object is left out, a key of a rule not of its kind ({@link RULE_KEYS}) is left out of the rule.
- * Keys it does not know stay as written.
- *
- * @param raw - The stored `columnConfig`.
- * @returns The Column entries; empty for an unset or unusable configuration.
- */
-export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
-    if (typeof raw !== 'string' || raw === '' || !isUsableValue(COLUMN_CONFIG_VALUE, raw)) {
-        return [];
-    }
-    const entries = JSON.parse(decodeBlob(raw)) as unknown[];
-    return entries.filter(isColumnEntry).map(entry => {
-        const usable = withoutBroken(entry, ENTRY_KEYS);
-        return Array.isArray(usable.cellStyle) ? withUsableRules(usable) : usable;
-    });
-}
-
 /** A plain object (no list, no `null`). */
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -163,4 +134,33 @@ function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
     return usable.length === rules.length && usable.every((rule, index) => rule === rules[index])
         ? entry
         : { ...entry, cellStyle: usable };
+}
+
+/**
+ * Parse the stored column configuration.
+ *
+ * The runtime reads it from the widget data the Rückfall-Regel has checked, the column editor
+ * from the raw data vis-2 hands it, so the top level is judged here by the same rule: a value
+ * that is no JSON list (plain or `b64:` blob) reads as no configuration — the Spalten-Merge over
+ * an empty configuration, i.e. the automatically found Columns.
+ *
+ * Inside the list, what the table cannot use reads as not written: an entry that is no Column
+ * (no object, or without a text `path`) is left out, a key of an entry whose value is not of the
+ * key's kind ({@link ENTRY_KEYS}) is left out of the entry — the table then reads the key as it
+ * reads it unset. The same holds one level down for the conditional styles: a rule that is no
+ * object is left out, a key of a rule not of its kind ({@link RULE_KEYS}) is left out of the rule.
+ * Keys it does not know stay as written.
+ *
+ * @param raw - The stored `columnConfig`.
+ * @returns The Column entries; empty for an unset or unusable configuration.
+ */
+export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
+    if (typeof raw !== 'string' || raw === '' || !isUsableValue(COLUMN_CONFIG_VALUE, raw)) {
+        return [];
+    }
+    const entries = JSON.parse(decodeBlob(raw)) as unknown[];
+    return entries.filter(isColumnEntry).map(entry => {
+        const usable = withoutBroken(entry, ENTRY_KEYS);
+        return Array.isArray(usable.cellStyle) ? withUsableRules(usable) : usable;
+    });
 }
