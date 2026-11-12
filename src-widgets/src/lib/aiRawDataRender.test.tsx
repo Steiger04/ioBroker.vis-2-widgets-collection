@@ -554,6 +554,49 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         });
     });
 
+    // The assistant writes Zustandszeilen without the Zustandseditor, so their shape is not the
+    // editor's: a row value that names no state, a row count beyond the authored rows, row keys
+    // without a row count. The row derivation (`stateRowSchema`, `effectiveStateCount`, the blank
+    // rule) stays the one reading; these cases pin that it reads them like the rows unset.
+    describe.each(PLACEABLE_WIDGETS.filter(name => 'values_count' in FIXTURES[name]!.data))(
+        '%s: malformed Zustandszeilen',
+        name => {
+            const fixture = FIXTURES[name]!;
+            const load = async (): Promise<WidgetClass> =>
+                ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+
+            it.each([
+                ['an object', { value: 0 }],
+                ['a list', [0]],
+            ])('renders a row value stored as %s like the row value unset', async (_case, broken) => {
+                const widget = await load();
+
+                expect(await renderWidget(widget, { ...fixture.data, value2: broken }, fixture.values)).toBe(
+                    await renderWidget(widget, without(fixture.data, ['value2']), fixture.values),
+                );
+            });
+
+            it('renders a row count beyond the authored rows like the count of those rows', async () => {
+                const widget = await load();
+                const authored = Object.keys(fixture.data).filter(key => /^value\d+$/.test(key)).length;
+
+                expect(await renderWidget(widget, { ...fixture.data, values_count: 50 }, fixture.values)).toBe(
+                    await renderWidget(widget, { ...fixture.data, values_count: authored }, fixture.values),
+                );
+            });
+
+            it('renders row keys without a row count like no rows', async () => {
+                const widget = await load();
+                const rowless = without(fixture.data, ['values_count']);
+                const rowKeys = { header2: 'Row head', iconColor2: '#ff0000', alias4: 'FOUR', value4: '4' };
+
+                expect(await renderWidget(widget, { ...rowless, ...rowKeys }, fixture.values)).toBe(
+                    await renderWidget(widget, rowless, fixture.values),
+                );
+            });
+        },
+    );
+
     // vis-2 resolves a binding in any string attribute to text (Vis/visFormatUtils.tsx formatBinding),
     // also in a checkbox field the assistant wrote one into: the text reads as the boolean it names.
     describe.each(PLACEABLE_WIDGETS)('%s: a bound checkbox field', name => {
