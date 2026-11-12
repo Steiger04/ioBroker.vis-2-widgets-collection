@@ -25,7 +25,8 @@ import { AXIS_TEMPLATES } from './axisTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import type { EditorSeries, EditorState } from './editorState';
-import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
+import type { EchartsFontWeight, EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
+import { buildTitleOption } from '../presentation';
 
 const baseState = (): EditorState => ({
     ...DEFAULT_EDITOR_STATE,
@@ -1043,6 +1044,47 @@ describe('editorState — every key the editor saves is a declared field', () =>
             }
             expect(load({ ...unset, [key]: value }), key).toEqual(load(unset));
         }
+    });
+});
+
+// ADR-0029 addendum (2026-11-12): a title without a stored weight draws in echarts' bold title
+// default (the body emits no weight). The editor loads that missing weight as the bold it draws, so
+// an apply without a change keeps the title as it was instead of thinning it to 'normal'; a stored
+// weight loads unchanged.
+describe('editorState — a missing title weight loads as the bold title it draws', () => {
+    /** The weight a title option draws: its own, else echarts' title default bold. */
+    const drawnWeight = (fontWeight: EchartsFontWeight | null): unknown => {
+        const merged: Record<string, unknown> = {};
+        buildTitleOption(merged, { text: 'Title', titlePos: 'topCenter', dx: 0, dy: 0, fontWeight });
+        return (merged.title as { textStyle?: { fontWeight?: unknown } }).textStyle?.fontWeight ?? 'bold';
+    };
+
+    it.each([
+        ['missing', {}],
+        ['null', { titleWeight: null }],
+        ['empty', { titleWeight: '' }],
+    ])('loads a %s weight as bold', (_case, weight) => {
+        expect(loadEditorState({ titleText: 'Title', ...weight }).titleWeight).toBe('bold');
+    });
+
+    it.each([
+        ['normal', 'normal'],
+        ['bold', 'bold'],
+        [600, 600],
+        ['600', 600],
+    ])('loads a stored %s unchanged', (stored, loaded) => {
+        expect(loadEditorState({ titleText: 'Title', titleWeight: stored }).titleWeight).toBe(loaded);
+    });
+
+    it('saves a weight that draws like the missing one on an apply without a change', () => {
+        const data = { chartType: 'line', series_count: 1, oid1: 'demo.0.a', titleText: 'Title' };
+        const saved = saveEditorState(loadEditorState(data));
+
+        expect(drawnWeight((saved.titleWeight as EchartsFontWeight | undefined) ?? null)).toBe(drawnWeight(null));
+    });
+
+    it('starts a fresh editor with the weight a missing key loads', () => {
+        expect(DEFAULT_EDITOR_STATE.titleWeight).toBe(loadEditorState({}).titleWeight);
     });
 });
 

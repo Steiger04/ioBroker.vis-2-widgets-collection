@@ -35,6 +35,21 @@ export const parseFontWeight = (v: unknown): EchartsFontWeight => {
     return 'normal';
 };
 
+/**
+ * The weight a title draws without a stored one: echarts' title default `bold` (echarts
+ * `component/title/install.ts`), as the body emits no weight for a missing key (ADR-0029 addendum
+ * 2026-11-12).
+ */
+export const TITLE_DRAWN_WEIGHT: EchartsFontWeight = 'bold';
+
+/**
+ * The editor's title weight for a stored value: a missing, null or blank weight (the body emits
+ * none — echarts draws its bold title) loads as {@link TITLE_DRAWN_WEIGHT}, so an apply without a
+ * change keeps the title as it was; every other value as {@link parseFontWeight} reads it.
+ */
+export const loadTitleWeight = (v: unknown): EchartsFontWeight =>
+    v == null || (typeof v === 'string' && v.trim() === '') ? TITLE_DRAWN_WEIGHT : parseFontWeight(v);
+
 /** Coerce a stored or selected value into a valid {@link EchartsFontStyle}; unknown → `'normal'`. */
 export const parseFontStyle = (v: unknown): EchartsFontStyle =>
     typeof v === 'string' && STYLES.has(v) ? (v as EchartsFontStyle) : 'normal';

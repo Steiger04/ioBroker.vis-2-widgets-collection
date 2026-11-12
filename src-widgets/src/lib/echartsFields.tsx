@@ -281,8 +281,9 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // Title styling, flat scalars (ADR-0021/0029). Each default reads like the key missing, in the
     // body and in the editor: offsets 0, colour '' (the theme's), no font size (the theme's).
     // titleWeight/titleFontStyle carry no default: the body reads the missing key as the theme's
-    // (echarts' bold title), the editor as 'normal' — ADR-0029 keeps that asymmetry, so only the
-    // missing key reads alike in both. Text fields, as the weight is a name or a number.
+    // (echarts' bold title, normal style), and the editor loads it as what it draws ('bold',
+    // 'normal' — ADR-0029 addendum), so an apply without a change keeps the title. Text fields, as
+    // the weight is a name or a number.
     { name: 'titleDx', type: 'number', default: 0, hidden: alwaysHidden },
     { name: 'titleDy', type: 'number', default: 0, hidden: alwaysHidden },
     { name: 'titleColor', type: 'text', default: '', hidden: alwaysHidden },

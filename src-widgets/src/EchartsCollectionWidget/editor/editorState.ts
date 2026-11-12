@@ -34,7 +34,7 @@ import {
 import { withStableIds } from './stableId';
 import { boundJsonView, type AxisSlotMemory } from './axisSight';
 import { dropUnboundAxes, reindexJsonOverlay } from './structureEvents';
-import { parseFontStyle, parseFontWeight } from './fontOptions';
+import { loadTitleWeight, parseFontStyle, TITLE_DRAWN_WEIGHT } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
 import { FRAME_STYLES } from '../frameStyle';
 import type { SeriesMeta } from '../optionBuilder';
@@ -291,7 +291,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     titleDy: 0,
     titleColor: null,
     titleFontSize: undefined,
-    titleWeight: 'normal',
+    // A missing weight draws echarts' bold title; the fresh editor starts on it (ADR-0029 addendum).
+    titleWeight: TITLE_DRAWN_WEIGHT,
     titleFontStyle: 'normal',
     series: [],
     pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' },
@@ -544,7 +545,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
         titleColor: typeof data.titleColor === 'string' && data.titleColor ? data.titleColor : null,
         titleFontSize: num(data.titleFontSize),
-        titleWeight: parseFontWeight(data.titleWeight),
+        titleWeight: loadTitleWeight(data.titleWeight),
         titleFontStyle: parseFontStyle(data.titleFontStyle),
         series,
         pie,
