@@ -147,6 +147,55 @@ describe('Light2Collection Button-Modus', () => {
     });
 });
 
+describe('Light2Collection Button-Modus long-press delay', () => {
+    // vis-2's number field keeps '' once the user empties it, and the assistant may write it: the
+    // delay reads like the unset one (the field default), not as a 0 ms long press on every touch.
+    it.each([
+        ['emptied', ''],
+        ['stored as null', null],
+    ])('toggles on a short press for a delay %s, like the unset delay', async (_case, delay) => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: delay }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(100);
+        });
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(modal()).toBeNull();
+        expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
+    });
+
+    it('opens the modal after a delay stored as a numeric string, at its number', () => {
+        const { container } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: '800' }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(799);
+        });
+        expect(modal()).toBeNull();
+        act(() => {
+            vi.advanceTimersByTime(1);
+        });
+        pointer(face, 'pointerup');
+
+        expect(modal()).not.toBeNull();
+    });
+});
+
 describe('Light2Collection Button-Modus face (Wert-Anzeige without value text)', () => {
     /** The two fixed Zustandszeilen of the Schalter-OID, each with its own icon at the given size. */
     const switchRows = (iconSize: number): Record<string, unknown> => ({
@@ -237,7 +286,8 @@ describe('Light2Collection Lampen-Bedienelement', () => {
 
 describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {
     /** The default of a Light2 field, from its definition. */
-    const defaultOf = (name: string): unknown => light2Fields().find(field => field.name === name)?.default;
+    const defaultOf = (name: string): unknown =>
+        (light2Fields().find(field => field.name === name) as { default?: unknown } | undefined)?.default;
 
     /** The Kelvin range the Kelvin-Picker was last drawn with. */
     const drawnRange = (): { minTemperature: unknown; maxTemperature: unknown } => {

@@ -87,6 +87,9 @@ const RGB_ROLES: Record<string, Light2ChannelField> = {
 /** The JS types a Light2 OID may have — the switch and every channel state. */
 const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
 
+/** The long-press delay of the Button-Modus while its field is unset or emptied, in ms. */
+export const COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT = 500;
+
 /** The Kelvin range of the CCT-Ansicht while its fields are unset: the defaults the panel shows. */
 export const COLOR_LIGHT_CT_MIN_DEFAULT = 2000;
 export const COLOR_LIGHT_CT_MAX_DEFAULT = 6500;
@@ -181,7 +184,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         name: 'colorLightDelayLongPress',
         label: 'color_light_delay_long_press',
         type: 'number',
-        default: 500,
+        default: COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT,
         min: 0,
         max: 10000,
         step: 1,
