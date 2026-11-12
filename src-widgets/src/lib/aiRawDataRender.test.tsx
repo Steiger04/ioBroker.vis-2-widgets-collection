@@ -19,8 +19,7 @@
  *
  * The broken and usable values come from the field definitions, not from per-widget lists. The
  * fields of the shared modules (`SHARED_FIELD_NAMES`) and the per-state keys `name{n}` of the
- * Zustandszeilen (tried on row 1) are checked at every widget; a widget's own fields once it has
- * left `STILL_OPEN` (`lib/testing/aiSeams`). The values of all fields go in together, one round
+ * Zustandszeilen (tried on row 1) are checked at every widget, and so are its own fields. The values of all fields go in together, one round
  * per value; only a round that differs is retried field by field to name the culprit. A field the
  * fixture itself sets (the rows' `values_count`) is tried alone, so the others' rounds keep it.
  * What a follow-up ticket adds: widget-specific cases below the generic ones where a field needs
@@ -43,7 +42,7 @@ import { encodeBlob, utf8ToBase64 } from './encoding';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import type { Kind } from './usableJson';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
-import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, STILL_OPEN, type WidgetName } from './testing/aiSeams';
+import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, type WidgetName } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
 import ButtonGroupCollection from '../ButtonGroupCollectionWidget/ButtonGroupCollection';
 import CheckboxCollection from '../CheckboxCollectionWidget/CheckboxCollection';
@@ -505,13 +504,12 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         }, 60_000);
 
         /**
-         * The keys with a rule this widget is checked on: the shared fields, the per-state keys of
-         * row 1 (from `commonFields({ perState: true })`, shared too) and, once the widget has left
-         * `STILL_OPEN`, its own fields.
+         * The keys with a rule this widget is checked on: its named fields (shared and own) and the
+         * per-state keys of row 1 (from `commonFields({ perState: true })`, shared too).
          */
         const keysUnderTest = (): Map<string, FieldRule> =>
             new Map([
-                ...[...rules.named].filter(([field]) => SHARED_FIELD_NAMES.has(field) || !STILL_OPEN.includes(name)),
+                ...rules.named,
                 ...[...rules.perRow].map(([base, rule]): [string, FieldRule] => [`${base}1`, rule]),
             ]);
 

@@ -4,14 +4,12 @@
  * @module lib/testing/aiSeams
  * @remarks
  * Naht 1 (`lib/aiCatalogView.parity.test.ts`) projects every placeable widget's `getWidgetInfo()`
- * the way the vis-2 host hands it to the Bauzeit-KI; Naht 2 (`aiRawData.render.test.tsx`)
- * renders the widgets from raw data an assistant may write. Both read their roster and their
- * open lists from here, so a widget group leaves both seams with one edit.
+ * the way the vis-2 host hands it to the Bauzeit-KI; Naht 2 (`lib/aiRawDataRender.test.tsx`)
+ * renders the widgets from raw data an assistant may write. Both check every placeable widget,
+ * so a new widget without `visHelp` or without a structured-empty default fails them.
  *
- * How a follow-up ticket uses this module:
- * - a widget it finishes leaves {@link STILL_OPEN} (Naht 1 and the widget's own fields in Naht 2);
- * - the shared field modules ({@link SHARED_FIELD_NAMES}) are checked at every widget (ticket 02);
- * - a named `custom` field that stores nothing under its name goes on
+ * - The shared field modules ({@link SHARED_FIELD_NAMES}) are told apart from a widget's own fields.
+ * - A named `custom` field that stores nothing under its name goes on
  *   {@link UI_ONLY_CUSTOM_FIELDS}, with the reason.
  */
 
@@ -36,13 +34,6 @@ export const NOT_PLACEABLE: Readonly<Partial<Record<WidgetName, string>>> = {
 
 /** The widgets the Bauzeit-KI can place: the registry roster without {@link NOT_PLACEABLE}. */
 export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !(name in NOT_PLACEABLE));
-
-/**
- * Widgets not yet checked by the seams: no `visHelp` and no default rule asserted (Naht 1), their
- * own fields not rendered from broken data (Naht 2). Emptied by the widget tickets; ticket 10
- * removes the list.
- */
-export const STILL_OPEN: readonly WidgetName[] = [];
 
 /**
  * The names of the fields the shared field modules declare: the common block, its Active variant,

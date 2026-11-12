@@ -28,7 +28,6 @@ import {
     isUiOnlyCustomField,
     PLACEABLE_WIDGETS,
     SHARED_FIELD_NAMES,
-    STILL_OPEN,
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
 } from './testing/aiSeams';
@@ -175,18 +174,16 @@ beforeAll(async () => {
     // The first run pays the cold Vite transform of every field module.
 }, 60_000);
 
-const checked = PLACEABLE_WIDGETS.filter(name => !STILL_OPEN.includes(name));
-
 describe('Naht 1: the assistant’s view of the widget catalog', () => {
     it('reads the prefix the translations module registers', () => {
         expect(REGISTERED_PREFIX).toBe(I18N_PREFIX);
     });
 
-    it('checks at least the Switch', () => {
-        expect(checked).toContain('SwitchCollectionWidget');
+    it('checks every placeable widget of the registry', () => {
+        expect(PLACEABLE_WIDGETS).toHaveLength(13);
     });
 
-    describe.each(checked)('%s', name => {
+    describe.each(PLACEABLE_WIDGETS)('%s', name => {
         const entry = (): ReturnType<typeof listEntry> => listEntry(catalogType(infos.get(name)!, I18N_PREFIX));
 
         it('lists a translated label (the resolution visHelp has to follow)', () => {
