@@ -27,7 +27,7 @@
  * them (inner JSON structure, `''`, bindings).
  */
 import { act, type FC } from 'react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Theme, type Connection } from '@iobroker/gui-components';
 import type {
@@ -327,6 +327,34 @@ async function markupOf(element: React.JSX.Element, read: (container: HTMLElemen
 }
 
 /**
+ * The element vis-2 renders for the widget: an instance of its class, `renderWidgetBody` with the
+ * data as `rxData`.
+ *
+ * @param widget - The widget class.
+ * @param data - The data as vis-2 hands it to the widget (`rxData`: bindings resolved).
+ * @param values - The subscribed state values.
+ * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
+ *   no attribute bound.
+ */
+function widgetElement(
+    widget: WidgetClass,
+    data: Record<string, unknown>,
+    values: Record<string, unknown>,
+    stored: Record<string, unknown> = data,
+): React.JSX.Element {
+    const instance = new widget({
+        context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
+    });
+    instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
+    return instance.renderWidgetBody({
+        id: `preview-${SLUG}`,
+        widget: { data: stored, style: {} },
+        style: {},
+        refService: { current: null },
+    });
+}
+
+/**
  * Renders the widget the way vis-2 does; returns the markup of its body.
  *
  * @param widget - The widget class.
@@ -343,17 +371,7 @@ function renderWidget(
     stored: Record<string, unknown> = data,
     interact?: (container: HTMLElement) => void,
 ): Promise<string> {
-    const instance = new widget({
-        context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
-    });
-    instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
-    const element = instance.renderWidgetBody({
-        id: `preview-${SLUG}`,
-        widget: { data: stored, style: {} },
-        style: {},
-        refService: { current: null },
-    });
-    return markupOf(element, container => {
+    return markupOf(widgetElement(widget, data, values, stored), container => {
         interact?.(container);
         return container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`;
     });
@@ -418,6 +436,19 @@ async function differingValues(
             }
         }
         found.push(...(single.length ? single : [`together: ${JSON.stringify(assigned)}`]));
+    }
+    return found;
+}
+
+/** The values whose two renderings differ, key by key: no key's value can hide another's. */
+async function differingPerKey(
+    keys: readonly string[],
+    valuesOf: (key: string) => readonly unknown[],
+    pair: RenderPair,
+): Promise<string[]> {
+    const found: string[] = [];
+    for (const key of keys) {
+        found.push(...(await differingValues([key], valuesOf, pair)));
     }
     return found;
 }
@@ -661,6 +692,254 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 ),
             ).toEqual([]);
         });
+    });
+
+    /**
+     * The own fields of a widget with what the assistant may write wrongly into them: the broken
+     * values of their rule, `null`, and `''` in a number field, a text-valued custom field (its
+     * strukturiert-leerer default) or an option field without that option.
+     */
+    const ownFieldValues = (widget: WidgetClass): Map<string, unknown[]> =>
+        new Map(
+            [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                .filter(([key]) => !SHARED_FIELD_NAMES.has(key))
+                .map(([key, rule]) => [
+                    key,
+                    [
+                        ...brokenValuesOf(rule),
+                        null,
+                        ...(rule === 'number' ||
+                        rule === 'string' ||
+                        (typeof rule === 'object' && 'options' in rule && !rule.options.includes(''))
+                            ? ['']
+                            : []),
+                    ],
+                ]),
+        );
+
+    // The Lampen-Bedienelement draws its pickers only into a measured box, and its geometry, Kelvin
+    // range and border fields act only there (ADR-0108 Nr. 5). Measured and with real iro pickers,
+    // each own field broken, null or emptied draws like the unset one; and none of them adds a write
+    // to the lamp — on mount, on the view switch (which writes the stored temperature, then the stored
+    // colour, ADR-0108 addendum) and on the power button. Field by field, so that no field's broken
+    // value (an unset UI component draws nothing) hides another's.
+    describe('Light2CollectionWidget: the measured Lampen-Bedienelement', () => {
+        const HEX_OID = 'demo.0.lamp.hex';
+        const CT_OID = 'demo.0.lamp.ct';
+        const DIM_OID = 'demo.0.lamp.dim';
+        const channel = (property: string, oid: string, type: string): Record<string, unknown> => ({
+            [property]: oid,
+            [`${property}Object`]: { _id: oid, type, write: true },
+        });
+        const fixture = FIXTURES.Light2CollectionWidget!;
+        /** An rgb & cct lamp with its three channels, without delay so that a write lands at once. */
+        const data: Record<string, unknown> = {
+            ...fixture.data,
+            colorLightType: 'rgbcct',
+            colorLightUIComponent: 'wheel',
+            delay: 0,
+            ...channel('colorLightRgbHexOid', HEX_OID, 'string'),
+            ...channel('colorLightTemperatureOid', CT_OID, 'number'),
+            ...channel('colorLightBrightnessOid', DIM_OID, 'number'),
+        };
+        const values = {
+            ...fixture.values,
+            [`${HEX_OID}.val`]: '#ff8800',
+            [`${CT_OID}.val`]: 3000,
+            [`${DIM_OID}.val`]: 80,
+        };
+        let widget: WidgetClass;
+
+        beforeAll(async () => {
+            widget = ((await import('../Light2CollectionWidget/Light2CollectionWidget')) as { default: WidgetClass })
+                .default;
+        });
+
+        beforeEach(() => {
+            // iro names its gradients after a random id: fixed, two renderings compare.
+            vi.spyOn(Math, 'random').mockReturnValue(0.5);
+            vi.stubGlobal(
+                'ResizeObserver',
+                class {
+                    private readonly callback: ResizeObserverCallback;
+
+                    constructor(callback: ResizeObserverCallback) {
+                        this.callback = callback;
+                    }
+
+                    observe(target: Element): void {
+                        const contentRect = { width: 300, height: 200 };
+                        this.callback([{ target, contentRect } as unknown as ResizeObserverEntry], this);
+                    }
+
+                    /* eslint-disable class-methods-use-this -- nothing to release */
+                    unobserve(): void {}
+                    disconnect(): void {}
+                    /* eslint-enable class-methods-use-this */
+                },
+            );
+        });
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+            vi.unstubAllGlobals();
+        });
+
+        /**
+         * Mounts the widget over the lamp data with some keys assigned or unset, runs the user's
+         * steps — the CCT-Ansicht and back, then the power button — and returns the writes in order.
+         */
+        const writesOf = async (assigned: Record<string, unknown>, unset: readonly string[]): Promise<string> => {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            const root = createTestRoot(container);
+            stubSocket.setState.mockClear();
+            // Without delay the write debounces for 0 ms (hooks/useDebounce).
+            const settle = (): Promise<void> => act(() => new Promise<void>(resolve => setTimeout(resolve, 30)));
+            const press = async (button: Element | null | undefined): Promise<void> => {
+                if (button instanceof HTMLElement) {
+                    act(() => button.click());
+                    await settle();
+                }
+            };
+
+            await act(() => {
+                root.render(widgetElement(widget, { ...without(data, unset), ...assigned }, values));
+                return Promise.resolve();
+            });
+            await settle();
+            // The view switch shows for an „& cct“ Lichttyp: the colour icon, then the CCT icon.
+            const viewButtons = [...container.querySelectorAll('button')].filter(
+                button => button.querySelector('[data-testid="PowerSettingsNewIcon"]') === null,
+            );
+            await press(viewButtons[1]);
+            await press(viewButtons[0]);
+            await press(container.querySelector('[data-testid="PowerSettingsNewIcon"]')?.closest('button'));
+            const writes = JSON.stringify(stubSocket.setState.mock.calls);
+            act(() => root.unmount());
+            container.remove();
+            return writes;
+        };
+
+        it('draws its pickers in the measured box (the check has something to compare)', async () => {
+            const html = await renderWidget(widget, data, values);
+            expect(html).toContain('IroColorPicker');
+            expect(html).toContain('IroWheel');
+        });
+
+        // The switch pick's own steps (Zustandszeilen, Kanalerkennung, CT range, lib/light2Fields
+        // loadStatesAsync) are not derived at runtime (ticket 12): a lamp the assistant writes has
+        // only what it sets. Unset, they read like unset — no rows, no channel, the default range.
+        it.each([
+            ['the colour view', 'rgb'],
+            ['the CCT-Ansicht', 'cct'],
+        ])('draws a lamp written without the switch pick’s extras in %s', async (_case, colorLightType) => {
+            const written = { colorLightSwitchOid: SWITCH_OID, colorLightType };
+
+            const defaults = Object.fromEntries(
+                (widget.getWidgetInfo().visAttrs ?? [])
+                    .flatMap(group => group.fields ?? [])
+                    .flatMap(field => {
+                        const { name: key, default: value } = field as { name?: string; default?: unknown };
+                        return key === 'colorLightCtMin' || key === 'colorLightCtMax' ? [[key, value]] : [];
+                    }),
+            );
+
+            const html = await renderWidget(widget, written, values);
+            expect(html).toContain('IroColorPicker');
+            expect(html).not.toContain('collection_base_select_oid');
+            // The Kelvin range the pick would not bring: drawn over the defaults the panel shows.
+            expect(Object.keys(defaults)).toHaveLength(2);
+            expect(html).toBe(await renderWidget(widget, { ...written, ...defaults }, values));
+            expect(await renderWidget(widget, { ...written, colorLightButton: true }, values)).not.toContain(
+                '<no widget body',
+            );
+        });
+
+        it.each([
+            ['the colour view', {}],
+            ['the CCT-Ansicht', { colorLightType: 'cct' }],
+        ])(
+            'draws each own field broken, null or emptied like the unset one in %s',
+            async (_case, view) => {
+                const valuesOf = ownFieldValues(widget);
+                const base = { ...data, ...view };
+                const keys = [...valuesOf.keys()].filter(key => !(key in view));
+
+                expect(keys).toEqual(
+                    expect.arrayContaining(['colorLightCtMin', 'colorLightSliderWidth', 'colorLightUIComponent']),
+                );
+                expect(
+                    await differingPerKey(
+                        keys,
+                        key => valuesOf.get(key)!,
+                        async assigned => [
+                            await renderWidget(widget, { ...base, ...assigned }, values),
+                            await renderWidget(widget, without(base, Object.keys(assigned)), values),
+                        ],
+                    ),
+                ).toEqual([]);
+            },
+            120_000,
+        );
+
+        it('writes to the lamp what it writes with the field unset, for each own field broken', async () => {
+            const valuesOf = ownFieldValues(widget);
+            const unsetWrites = await writesOf({}, []);
+
+            // The steps write: the stored temperature, the stored colour, the switch.
+            expect(unsetWrites).toContain(CT_OID);
+            expect(unsetWrites).toContain(HEX_OID);
+            expect(unsetWrites).toContain(SWITCH_OID);
+            expect(
+                await differingPerKey(
+                    [...valuesOf.keys()],
+                    key => valuesOf.get(key)!,
+                    async assigned => [await writesOf(assigned, []), await writesOf({}, Object.keys(assigned))],
+                ),
+            ).toEqual([]);
+        }, 300_000);
+    });
+
+    // The Dialog's own fields shape the open dialog, which the Modal portals into the document body:
+    // opened by its Sitzungs-OID (true opens, ADR-0095 Nr. 5) with both close buttons, each own field
+    // broken, null or emptied draws the button and the dialog like the unset one. Field by field, so
+    // that a close button another field's broken value hides cannot hide its colour.
+    describe('DialogCollectionWidget: the open dialog', () => {
+        const fixture = FIXTURES.DialogCollectionWidget!;
+        const data = { ...fixture.data, view: 'detail', dialogCloseButtonTop: true, dialogCloseButtonBottom: true };
+        const values = { [`${DIALOG_OID}.val`]: true };
+
+        /** The widget's body and the open dialog in the document body. */
+        const renderOpen = (widget: WidgetClass, rendered: Record<string, unknown>): Promise<string> =>
+            markupOf(
+                widgetElement(widget, rendered, values),
+                container =>
+                    `${container.querySelector('.GENERIC-1')?.innerHTML ?? '<no widget body>'}` +
+                    `${document.body.querySelector('.MuiModal-root')?.outerHTML ?? '<no dialog>'}`,
+            );
+
+        it('draws its own fields broken, null or emptied like the unset ones', async () => {
+            const widget = (
+                (await import('../DialogCollectionWidget/DialogCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const valuesOf = ownFieldValues(widget);
+
+            expect(await renderOpen(widget, data)).toContain('MuiModal-root');
+            expect([...valuesOf.keys()]).toEqual(
+                expect.arrayContaining(['dialogWidth', 'dialogCloseButtonColor', 'dialogAutoClose']),
+            );
+            expect(
+                await differingPerKey(
+                    [...valuesOf.keys()],
+                    key => valuesOf.get(key)!,
+                    async assigned => [
+                        await renderOpen(widget, { ...data, ...assigned }),
+                        await renderOpen(widget, without(data, Object.keys(assigned))),
+                    ],
+                ),
+            ).toEqual([]);
+        }, 120_000);
     });
 
     describe('SwitchCollectionWidget: bound attributes', () => {
