@@ -15,7 +15,6 @@
 import type { EChartsOption } from 'echarts';
 
 import type { EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
-import { decodeBlob } from '../lib/encoding';
 import {
     intakeValue,
     nullFillOf,
@@ -26,7 +25,7 @@ import {
 } from './historyLogic';
 
 import { buildToolbox } from './optionBuilders/toolbox';
-import { readListBlob, readNamedBlob, SERIES_META_KINDS } from './storedConfig';
+import { readListBlob, readNamedBlob, readTextListBlob, SERIES_META_KINDS } from './storedConfig';
 import { FAMILY_CORES } from './families/cores';
 import type {
     CartesianFragment,
@@ -194,18 +193,11 @@ export const parseJsonState = (
 export const parseJsonSeriesStyle = (raw: unknown): Record<string, EchartsSeriesMeta> =>
     readNamedBlob(raw, SERIES_META_KINDS);
 
-/** Decode + parse the `jsonHidden` blob into the deny-list of hidden JSON series names. Empty/invalid → `[]`. */
-export const parseJsonHidden = (raw: string | undefined | null): string[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? parsed.filter((n): n is string => typeof n === 'string') : [];
-    } catch {
-        return [];
-    }
-};
+/**
+ * Decode + parse the `jsonHidden` blob into the deny-list of hidden JSON series names.
+ * Empty/unusable → `[]`; an entry that is no name is left out (the stored-configuration rule).
+ */
+export const parseJsonHidden = (raw: unknown): string[] => readTextListBlob(raw);
 
 /**
  * G — build the generated option by dispatching to the active family core (ADR-0083: the

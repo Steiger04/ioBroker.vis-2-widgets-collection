@@ -595,7 +595,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         tooltipRaw: chartConfig.tooltipRaw ?? '',
         tooltipSnippets: chartConfig.tooltipSnippets ?? [],
         jsonSeriesStyle,
-        jsonHidden: parseJsonHidden(data.jsonHidden as string),
+        jsonHidden: parseJsonHidden(data.jsonHidden),
     };
     // ADR-0047: the single load-side heal pass — every scalar level's prune + keep-only heal
     // in one in-place sweep over the freshly constructed (still unhealed) state.
