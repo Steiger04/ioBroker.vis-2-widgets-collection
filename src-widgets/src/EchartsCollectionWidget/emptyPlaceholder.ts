@@ -15,6 +15,7 @@ import type { EchartsJsonKind, EchartsMode } from '../types/field-definitions/ec
 export type EmptyPlaceholderReason =
     | 'selectJsonOid' // json: no jsonOid bound
     | 'configureSeries' // history: no series bound yet
+    | 'historyNoData' // history: a series bound, but the window yields no plottable data
     | 'configureTableMapping' // json-table (ADR-0075 decision 6): no yPath series bound yet
     | 'jsonNoSeries'; // json: OID bound, but the parse yields no plottable series (format/family)
 
@@ -25,6 +26,7 @@ export type EmptyPlaceholderReason =
 export const PLACEHOLDER_I18N_KEY: Record<EmptyPlaceholderReason, string> = {
     selectJsonOid: 'echarts_preview_select_json_oid',
     configureSeries: 'echarts_preview_configure_series',
+    historyNoData: 'echarts_preview_history_no_data',
     configureTableMapping: 'echarts_preview_configure_table',
     jsonNoSeries: 'echarts_preview_json_no_series',
 };
@@ -33,8 +35,8 @@ export const PLACEHOLDER_I18N_KEY: Record<EmptyPlaceholderReason, string> = {
  * The table family's Leerfall-CTA (ADR-0075 decision 6): an UNCONFIGURED tabellarisch widget
  * renders the empty placeholder pointing at the Zuordnung — never an auto-mapping, never a
  * silent second truth. The optional inputs are the json kind, whether any series carries a
- * yPath binding, whether a json OID is bound and whether the pipeline produced data (absent
- * = the legacy call sites' byte-stable defaults).
+ * yPath binding, whether a json OID is bound, whether the pipeline produced data and whether a
+ * Verlauf series is bound (absent = the legacy call sites' byte-stable defaults).
  *
  * @param mode - Data mode.
  * @param jsonKind - The payload family (json mode only; absent = series-shaped).
@@ -43,6 +45,9 @@ export const PLACEHOLDER_I18N_KEY: Record<EmptyPlaceholderReason, string> = {
  *   with no plottable output is a format/family matter — NOT another "select the OID" plea).
  * @param hasData - The pipeline's merged-data verdict; `true` (the default) never forces the
  *   empty-state branch — the caller renders the chart instead.
+ * @param historySeriesBound - True when at least one Verlauf series carries a usable OID (the
+ *   Verlauf honest-empty gate: a BOUND series whose window holds no plottable data is a data
+ *   matter — NOT another "configure series" plea).
  */
 export const emptyPlaceholderReason = (
     mode: EchartsMode,
@@ -50,6 +55,7 @@ export const emptyPlaceholderReason = (
     hasTableSeries = false,
     jsonOidSet = false,
     hasData = true,
+    historySeriesBound = false,
 ): EmptyPlaceholderReason => {
     if (mode === 'json') {
         if (jsonKind === 'table' && !hasTableSeries) {
@@ -59,6 +65,9 @@ export const emptyPlaceholderReason = (
             return 'jsonNoSeries';
         }
         return 'selectJsonOid';
+    }
+    if (historySeriesBound && !hasData) {
+        return 'historyNoData';
     }
     return 'configureSeries';
 };

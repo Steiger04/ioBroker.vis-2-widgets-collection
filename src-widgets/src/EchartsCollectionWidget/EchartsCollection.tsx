@@ -189,7 +189,8 @@ function EchartsCollection(): React.ReactElement {
     // The placeholder text is STATIC in the body (only the editor preview makes it a CTA);
     // the table Leerfall names the Zuordnung as the thing to configure (ADR-0075 decision 6),
     // a SET OID with no plottable output says so honestly (format/family — the toter-Regler
-    // sibling fix; it never begs for an OID that is already chosen).
+    // sibling fix; it never begs for an OID that is already chosen), and a BOUND Verlauf series
+    // with an empty window names the missing data, not the series setup (ADR-0031).
     const placeholder = Generic.t(
         PLACEHOLDER_I18N_KEY[
             emptyPlaceholderReason(
@@ -198,6 +199,7 @@ function EchartsCollection(): React.ReactElement {
                 pipelineSeries.some(s => s.yPath),
                 isUsableOid(typeof data.jsonOid === 'string' ? data.jsonOid : undefined),
                 hasData,
+                pipelineSeries.some(s => isUsableOid(s.oid)),
             )
         ],
     );
