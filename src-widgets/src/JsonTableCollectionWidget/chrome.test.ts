@@ -93,15 +93,19 @@ describe('buildTableChrome — header bar', () => {
         expect(chrome({ tableHeaderElevation }).headerBarSx.boxShadow).toBe(boxShadow);
     });
 
-    // vis-2's slider keeps '' once emptied, and the assistant may write it: read like the unset field
-    // (lib/jsonTableFields: emptiedReadsUnset)
-    it.each([
-        ['emptied', ''],
-        ['null', null],
-    ])('reads an %s elevation like the unset one (shadow 6)', (_case, tableHeaderElevation) => {
-        const settings = { tableHeaderElevation } as unknown as TableChromeSettings;
+    // A null elevation reads like the unset one (lib/fieldDefaults)
+    it('reads a null elevation like the unset one (shadow 6)', () => {
+        const settings = { tableHeaderElevation: null } as unknown as TableChromeSettings;
 
         expect(chrome(settings).headerBarSx.boxShadow).toBe('shadow-6');
+    });
+
+    // vis-2's slider keeps '' once emptied: a stored table draws that header without a shadow, as
+    // it always did (no emptiedReadsUnset).
+    it('draws an emptied elevation without a shadow, like 0', () => {
+        const settings = { tableHeaderElevation: '' } as unknown as TableChromeSettings;
+
+        expect(chrome(settings).headerBarSx.boxShadow).toBe('none');
     });
 
     it('drops card surface and shadow with noCard, whatever the elevation', () => {
