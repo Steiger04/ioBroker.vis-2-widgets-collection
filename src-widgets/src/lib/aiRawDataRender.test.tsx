@@ -39,6 +39,7 @@ import type {
 
 import type { AllowedType } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
+import { encodeBlob, utf8ToBase64 } from './encoding';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
 import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, STILL_OPEN, type WidgetName } from './testing/aiSeams';
@@ -936,6 +937,166 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     async assigned => [
                         await renderOpen(widget, { ...data, ...assigned }),
                         await renderOpen(widget, without(data, Object.keys(assigned))),
+                    ],
+                ),
+            ).toEqual([]);
+        }, 120_000);
+    });
+
+    // The JSON table's own fields shape the Tabellen-Chrome and the table's capabilities: each
+    // broken, null or emptied draws the table like the unset one. Field by field, so that a field
+    // that hides the header cannot hide the header's own fields.
+    describe('JsonTableCollectionWidget: its own fields', () => {
+        it('draws its own fields broken, null or emptied like the unset ones', async () => {
+            const widget = (
+                (await import('../JsonTableCollectionWidget/JsonTableCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const fixture = FIXTURES.JsonTableCollectionWidget!;
+            const valuesOf = ownFieldValues(widget);
+
+            expect([...valuesOf.keys()]).toEqual(
+                expect.arrayContaining(['columnConfig', 'tablePageSize', 'tableDensity', 'tableHeaderElevation']),
+            );
+            expect(
+                await differingPerKey(
+                    [...valuesOf.keys()],
+                    key => valuesOf.get(key)!,
+                    async assigned => [
+                        await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                        await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                    ],
+                ),
+            ).toEqual([]);
+        }, 240_000);
+    });
+
+    // The column configuration (`columnConfig`) is a JSON list of Column entries, stored by the
+    // column editor as a `b64:` blob; the assistant writes it as plain JSON. The rule reads a value
+    // that is no JSON list as unset (automatically found Columns, the Spalten-Merge over an empty
+    // configuration); the parse site reads an entry that is no Column as left out and a broken key
+    // of an entry like the key left out.
+    describe('JsonTableCollectionWidget: the column configuration', () => {
+        const fixture = FIXTURES.JsonTableCollectionWidget!;
+        const values = {
+            [`${TABLE_OID}.val`]: JSON.stringify([
+                { name: 'a', value: 1.25 },
+                { name: 'b', value: -2 },
+            ]),
+        };
+        const valueColumn: Record<string, unknown> = {
+            path: 'value',
+            visible: true,
+            headerName: 'Weight',
+            width: 120,
+            align: 'right',
+            format: { type: 'number', numberDecimals: 1, numberSuffix: ' kg' },
+            cellStyle: [{ logic: { '<': [{ var: 'value' }, 0] }, backgroundColor: '#ff0000' }],
+            cellStyleMode: 'all-match',
+            sortable: false,
+            filterable: false,
+            enableHiding: false,
+        };
+        const nameColumn = { path: 'name', visible: false, headerName: 'Label' };
+        const CONFIG = [valueColumn, nameColumn];
+        const blob = (config: unknown): string => encodeBlob(JSON.stringify(config));
+        let widget: WidgetClass;
+
+        beforeAll(async () => {
+            widget = (
+                (await import('../JsonTableCollectionWidget/JsonTableCollectionWidget')) as { default: WidgetClass }
+            ).default;
+        });
+
+        /** The table under a stored column configuration; without one when `undefined`. */
+        const table = (columnConfig?: unknown): Promise<string> =>
+            renderWidget(widget, columnConfig === undefined ? fixture.data : { ...fixture.data, columnConfig }, values);
+
+        it('reads a configuration written as plain JSON like the same configuration as blob', async () => {
+            const configured = await table(blob(CONFIG));
+
+            expect(configured).toContain('Weight');
+            expect(configured).toContain('1.3 kg');
+            expect(configured, 'the configuration shows').not.toBe(await table());
+            expect(await table(JSON.stringify(CONFIG))).toBe(configured);
+        });
+
+        it.each([
+            ['unparsable JSON', '{"oops'],
+            ['a JSON object', '{"path":"value"}'],
+            ['JSON null', 'null'],
+            ['a JSON text', '"value"'],
+            ['plain text instead of a blob', 'name,value'],
+            ['a broken blob', 'b64:!!!'],
+            ['a blob of unparsable JSON', `b64:${utf8ToBase64('[{"path"')}`],
+            ['a blob of a JSON object', blob({ path: 'value' })],
+            ['a number', 5],
+            ['a list instead of its JSON text', CONFIG],
+            ['an object', { path: 'value' }],
+        ])('reads %s like the unset configuration', async (_case, columnConfig) => {
+            expect(await table(columnConfig)).toBe(await table());
+        });
+
+        it('reads an entry that is no Column like the entry left out', async () => {
+            const junk = [null, 5, 'value', [], {}, { path: 5 }, { headerName: 'Weight' }];
+
+            expect(await table(JSON.stringify([...junk, ...CONFIG]))).toBe(await table(JSON.stringify(CONFIG)));
+            expect(await table(blob(junk))).toBe(await table());
+        });
+
+        it('reads a broken key of an entry like the key left out', async () => {
+            const broken: Record<string, unknown[]> = {
+                visible: ['true', 1, null],
+                headerName: [5, { text: 'Weight' }, null],
+                width: ['abc', '120', -5, { px: 120 }, null],
+                align: ['middle', 5, null],
+                format: ['number', 5, [], {}, { type: 'nope' }, null],
+                cellStyle: [{}, 'red', 5, null],
+                cellStyleMode: ['any', 5, null],
+                sortable: ['yes', 1, null],
+                filterable: ['yes', 1, null],
+                enableHiding: ['yes', 1, null],
+            };
+            const withColumn = (column: Record<string, unknown>): string => JSON.stringify([column, nameColumn]);
+
+            expect(
+                await differingPerKey(
+                    Object.keys(broken),
+                    key => broken[key],
+                    async assigned => [
+                        await table(withColumn({ ...valueColumn, ...assigned })),
+                        await table(withColumn(without(valueColumn, Object.keys(assigned)))),
+                    ],
+                ),
+            ).toEqual([]);
+        }, 120_000);
+
+        it('reads a conditional style that is no rule like the rule left out, a broken key like the key left out', async () => {
+            const rule: Record<string, unknown> = {
+                logic: { '<': [{ var: 'value' }, 0] },
+                backgroundColor: '#ff0000',
+                textColor: '#ffffff',
+                fontWeight: 'bold',
+                fontStyle: 'italic',
+            };
+            const broken: Record<string, unknown[]> = {
+                logic: ['x < 0', 5, null],
+                backgroundColor: [5, { color: 'red' }, null],
+                textColor: [5, { color: 'red' }, null],
+                fontWeight: ['heavy', 700, null],
+                fontStyle: ['oblique', 1, null],
+            };
+            const styled = (cellStyle: unknown[]): string =>
+                JSON.stringify([{ ...valueColumn, cellStyle }, nameColumn]);
+
+            expect(await table(styled([rule])), 'the rule paints').not.toBe(await table(styled([])));
+            expect(await table(styled([null, 5, 'red', [], rule]))).toBe(await table(styled([rule])));
+            expect(
+                await differingPerKey(
+                    Object.keys(broken),
+                    key => broken[key],
+                    async assigned => [
+                        await table(styled([{ ...rule, ...assigned }])),
+                        await table(styled([without(rule, Object.keys(assigned))])),
                     ],
                 ),
             ).toEqual([]);
