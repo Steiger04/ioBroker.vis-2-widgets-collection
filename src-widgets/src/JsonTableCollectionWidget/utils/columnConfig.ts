@@ -41,29 +41,32 @@ export const IMAGE_FORMAT_DEFAULTS: { size: number; objectFit: ImageObjectFit } 
 // the Echarts widget). Re-exported here so existing JsonTable import sites keep working.
 export { utf8ToBase64, base64ToUtf8 } from '../../lib/encoding';
 import { decodeBlob } from '../../lib/encoding';
+import { isUsableValue, type StoredValue } from '../../lib/usableWidgetData';
 
 // ── Helper: parse persisted config ──────────────────────────────
 
 /**
- * Parse stored column config JSON string from widget data.
- * Returns empty array for invalid/missing input (backward compatible).
- *
- * Supports Base64-encoded values (prefixed with 'b64:') to avoid vis-2's extractBinding
- * regex matching curly braces in JSON arrays. Plain JSON strings are still supported
- * for backward compatibility with existing configs.
- *
- * @param raw - Raw column config string (JSON or Base64-encoded JSON)
- * @returns Array of column configurations, or empty array if parsing fails
+ * What `columnConfig` stores: a JSON list of Column entries, as `b64:` blob (the column
+ * editor's form, which vis-2's `extractBinding` cannot mistake for a binding) or as plain JSON.
+ * Declared on the field (`storedValue`) and read here: the one rule of the KI-Integration
+ * (`lib/usableWidgetData`, ADR-0114) decides the top level.
  */
-export function parseColumnConfig(raw: string | undefined | null): ColumnConfigEntry[] {
-    if (!raw) {
+export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
+
+/**
+ * Parse the stored column configuration.
+ *
+ * The runtime reads it from the widget data the Rückfall-Regel has checked, the column editor
+ * from the raw data vis-2 hands it, so the top level is judged here by the same rule: a value
+ * that is no JSON list (plain or `b64:` blob) reads as no configuration — the Spalten-Merge over
+ * an empty configuration, i.e. the automatically found Columns.
+ *
+ * @param raw - The stored `columnConfig`.
+ * @returns The Column entries; empty for an unset or unusable configuration.
+ */
+export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
+    if (typeof raw !== 'string' || raw === '' || !isUsableValue(COLUMN_CONFIG_VALUE, raw)) {
         return [];
     }
-    try {
-        // decodeBlob strips the `b64:` prefix and decodes when present (avoids extractBinding).
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as ColumnConfigEntry[]) : [];
-    } catch {
-        return [];
-    }
+    return JSON.parse(decodeBlob(raw)) as ColumnConfigEntry[];
 }

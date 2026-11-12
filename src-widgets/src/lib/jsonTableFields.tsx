@@ -16,6 +16,7 @@ import {
     type CapabilitySetting,
     type TableCapabilities,
 } from '../JsonTableCollectionWidget/capabilities';
+import { COLUMN_CONFIG_VALUE } from '../JsonTableCollectionWidget/utils/columnConfig';
 import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
@@ -51,6 +52,10 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_column_config_label',
         type: 'custom',
         component: guardWidgetData(JsonTableColumnEditor),
+        // A JSON list of Column entries: the column editor stores a `b64:` blob, plain JSON reads
+        // the same. The empty list shows the assistant the shape; it reads like no configuration.
+        storedValue: COLUMN_CONFIG_VALUE,
+        default: '[]',
     },
 
     // ── Features ──────────────────────────────────────────────────────

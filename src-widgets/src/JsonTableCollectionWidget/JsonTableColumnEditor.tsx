@@ -64,7 +64,7 @@ function JsonTableColumnEditor(
     const [modalOpen, setModalOpen] = useState(false);
 
     // Parse current column config from widget data
-    const columns = useMemo(() => parseColumnConfig(data[fieldName] as string), [data, fieldName]);
+    const columns = useMemo(() => parseColumnConfig(data[fieldName]), [data, fieldName]);
 
     // Summary counts
     const visibleCount = columns.filter(c => c.visible).length;

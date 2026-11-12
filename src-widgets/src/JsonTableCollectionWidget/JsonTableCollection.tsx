@@ -162,7 +162,7 @@ const JsonTableCollection: FC = () => {
     const isValidType = isAllowedOidType(JSON_TABLE_TYPES, oidType);
 
     const columnConfig = useMemo(
-        () => parseColumnConfig(widget.data.columnConfig as string),
+        () => parseColumnConfig(widget.data.columnConfig),
         [widget.data.columnConfig],
     );
 
