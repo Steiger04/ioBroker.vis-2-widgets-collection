@@ -13,6 +13,7 @@ import type { TableChromeSettings } from './chrome';
 vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
 
 import jsonTableFields from '../lib/jsonTableFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 
 const DIVIDER = 'rgba(0, 0, 0, 0.12)';
 const PAPER = '#fafafa';
@@ -23,8 +24,9 @@ const theme = {
     palette: { divider: DIVIDER, background: { paper: PAPER }, text: { primary: '#2f3e51' } },
 } as unknown as Theme;
 
+/** The chrome of stored settings as the widget reads them (`readWidgetData`: defaults, emptied fields). */
 const chrome = (settings: TableChromeSettings = {}): ReturnType<typeof buildTableChrome> =>
-    buildTableChrome(settings, theme);
+    buildTableChrome(readWidgetData(jsonTableFields(), settings), theme);
 
 describe('buildTableChrome — density heights', () => {
     it.each([
@@ -91,7 +93,8 @@ describe('buildTableChrome — header bar', () => {
         expect(chrome({ tableHeaderElevation }).headerBarSx.boxShadow).toBe(boxShadow);
     });
 
-    // vis-2's slider keeps '' once emptied, and the assistant may write it: like the unset field
+    // vis-2's slider keeps '' once emptied, and the assistant may write it: read like the unset field
+    // (lib/jsonTableFields: emptiedReadsUnset)
     it.each([
         ['emptied', ''],
         ['null', null],
@@ -375,15 +378,17 @@ describe('buildTableChrome — outer frame and padding', () => {
         expect(chrome().scrollSx).toEqual({ flex: 1, overflow: 'auto' });
     });
 
-    it('pads the whole widget body by jsonTablePadding (MUI spacing units), 0 when unset', () => {
+    // Unset, the padding reads its default 1; emptied (''), no padding — stored tables keep that reading.
+    it('pads the whole widget body by jsonTablePadding (MUI spacing units), 0 when emptied', () => {
         expect(chrome().bodySx).toEqual({
             width: '100%',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            p: 0,
+            p: 1,
         });
+        expect(chrome({ jsonTablePadding: '' as unknown as number }).bodySx.p).toBe(0);
         expect(chrome({ jsonTablePadding: 2 }).bodySx.p).toBe(2);
         expect(chrome({ jsonTablePadding: '3' as unknown as number }).bodySx.p).toBe(3);
     });
