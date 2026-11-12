@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
 import { parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
+import { decodeAxes, decodeChartConfig, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
 
 const blob = (value: unknown): string => encodeBlob(JSON.stringify(value));
 
@@ -58,5 +58,26 @@ describe('the axes (yAxes, xAxis)', () => {
         expect(decodeXAxis('[{"name":"Zeit"}]')).toBeNull();
         expect(decodeXAxisWithLegacy('{"oops', true)).toEqual({ splitLine: true });
         expect(decodeXAxisWithLegacy('{}', true)).toEqual({});
+    });
+});
+
+describe('the family and section settings (chartConfig)', () => {
+    it('reads a key not of its JSON type like the key left out, in the pie settings too', () => {
+        expect(
+            decodeChartConfig(
+                JSON.stringify({
+                    titleRaw: 5,
+                    legendSnippets: 'x',
+                    stackSum: 'true',
+                    stackMode: 'stack',
+                    pie: { raw: { a: 1 }, innerRadius: '40', label: 'percent' },
+                }),
+            ),
+        ).toEqual({ stackMode: 'stack', pie: { label: 'percent' } });
+        expect(decodeChartConfig(blob({ pie: 'x', tooltipRaw: '{}' }))).toEqual({ tooltipRaw: '{}' });
+    });
+
+    it('reads a blob of another shape as none', () => {
+        expect(decodeChartConfig('[{"stackMode":"stack"}]')).toEqual({});
     });
 });

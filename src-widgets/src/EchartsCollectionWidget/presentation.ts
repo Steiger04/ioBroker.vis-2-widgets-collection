@@ -32,7 +32,8 @@ import { applyRawOverride } from './utils/mergeOption';
 import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
-import { AXIS_KINDS, readListBlob, readObjectBlob, X_AXIS_KINDS } from './storedConfig';
+import { withoutBroken } from '../lib/usableJson';
+import { AXIS_KINDS, CHART_CONFIG_KINDS, PIE_KINDS, readListBlob, readObjectBlob, X_AXIS_KINDS } from './storedConfig';
 import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -276,20 +277,18 @@ export interface ChartConfigBlob {
     stackSum?: boolean;
 }
 
-/** Decode the base64 family-config blob into its pie part (+ section raws). */
-export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBlob => {
-    if (!raw) {
+/**
+ * Decode the base64 family-config blob into its pie part (+ section raws). Empty/unusable → `{}`; a
+ * key not of its JSON type reads as left out, one level down in the pie settings too (the
+ * stored-configuration rule, {@link module:EchartsCollectionWidget/storedConfig}).
+ */
+export const decodeChartConfig = (raw: unknown): ChartConfigBlob => {
+    const config = readObjectBlob(raw, CHART_CONFIG_KINDS);
+    if (!config) {
         return {};
     }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            return parsed as ChartConfigBlob;
-        }
-    } catch {
-        /* ignore — fall back to empty */
-    }
-    return {};
+    const pie = config.pie && withoutBroken(config.pie, PIE_KINDS);
+    return pie === config.pie ? config : { ...config, pie };
 };
 
 /**
