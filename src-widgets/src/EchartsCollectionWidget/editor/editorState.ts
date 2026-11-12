@@ -16,7 +16,7 @@
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
 import { normalizeStackMode } from '../stackMode';
-import { parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
+import { parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from '../optionBuilder';
 import { familyOf } from '../families/kernel';
 import { editorialOf } from '../families/editorial';
 import {
@@ -393,14 +393,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     const chartTypeRaw = (data.chartType as LegacyChartType) ?? 'line';
     const seriesCount = numOr(data.series_count, 0);
 
-    // seriesConfig → per-index meta (name/colour/type/...)
-    let meta: SeriesMeta[] = [];
-    try {
-        const metaRaw = data.seriesConfig ? JSON.parse(decodeBlob(data.seriesConfig as string)) : [];
-        meta = Array.isArray(metaRaw) ? (metaRaw as SeriesMeta[]) : [];
-    } catch {
-        meta = [];
-    }
+    // seriesConfig → per-index meta (name/colour/type/...), read like the live body reads it
+    const meta: SeriesMeta[] = parseSeriesConfig(data.seriesConfig);
 
     // Normalize legacy chartType values (ADR-0008 r4 + ADR-0071): the heal is the family
     // profile's (ADR-0083) — cartesian derives the family-only 'cartesian' from the first
@@ -500,7 +494,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // family loss). The chart-level activations died with the chart-U retirement (ADR-0045 —
     // no migration, stored chartSnippets are simply no longer read).
     const pie = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
-    const jsonSeriesStyle = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
+    const jsonSeriesStyle = parseJsonSeriesStyle(data.jsonSeriesStyle);
 
     const state: EditorState = {
         ...DEFAULT_EDITOR_STATE,

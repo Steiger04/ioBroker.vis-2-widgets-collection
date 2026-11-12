@@ -26,6 +26,7 @@ import {
 } from './historyLogic';
 
 import { buildToolbox } from './optionBuilders/toolbox';
+import { readListBlob, readNamedBlob, SERIES_META_KINDS } from './storedConfig';
 import { FAMILY_CORES } from './families/cores';
 import type {
     CartesianFragment,
@@ -51,18 +52,13 @@ export type { EchartsChartFamily, EchartsChartType } from '../types/field-defini
  */
 export { familyOf } from './families/kernel';
 
-/** Decode + parse the `seriesConfig` blob into per-series metadata. Empty/invalid → `[]`. */
-export const parseSeriesConfig = (raw: string | undefined | null): EchartsSeriesMeta[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as EchartsSeriesMeta[]) : [];
-    } catch {
-        return [];
-    }
-};
+/**
+ * Decode + parse the `seriesConfig` blob into per-series metadata (the stored-configuration rule,
+ * {@link module:EchartsCollectionWidget/storedConfig}). Empty/unusable → `[]`; an entry that is no
+ * object reads as an empty entry (the list pairs with `oid1..oidN` by place), a key not of its JSON
+ * type as left out.
+ */
+export const parseSeriesConfig = (raw: unknown): EchartsSeriesMeta[] => readListBlob(raw, SERIES_META_KINDS, true);
 
 /**
  * Normalize a heterogeneous array of points into echarts `[ts, val]` pairs. Values flow through
@@ -190,20 +186,13 @@ export const parseJsonState = (
     return { series: [] };
 };
 
-/** Decode + parse the `jsonSeriesStyle` blob into the name-keyed overlay (ADR-0011). Empty/invalid → `{}`. */
-export const parseJsonSeriesStyle = (raw: string | undefined | null): Record<string, EchartsSeriesMeta> => {
-    if (!raw) {
-        return {};
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-            ? (parsed as Record<string, EchartsSeriesMeta>)
-            : {};
-    } catch {
-        return {};
-    }
-};
+/**
+ * Decode + parse the `jsonSeriesStyle` blob into the name-keyed overlay (ADR-0011). Empty/unusable →
+ * `{}`; a style that is no object reads as the name left out, a key not of its JSON type as left
+ * out (the stored-configuration rule).
+ */
+export const parseJsonSeriesStyle = (raw: unknown): Record<string, EchartsSeriesMeta> =>
+    readNamedBlob(raw, SERIES_META_KINDS);
 
 /** Decode + parse the `jsonHidden` blob into the deny-list of hidden JSON series names. Empty/invalid → `[]`. */
 export const parseJsonHidden = (raw: string | undefined | null): string[] => {
