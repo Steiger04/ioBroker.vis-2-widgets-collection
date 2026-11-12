@@ -12,6 +12,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { INPUT_ENTRY_TYPES, isAllowedOidType } from '../lib/allowedOidTypes';
 import { displayText } from '../lib/displayText';
+import { INPUT_VARIANT_DEFAULT } from '../lib/inputFields';
 import { solidOf } from '../lib/helper/colorDerivation';
 import { buildEntryFieldAttributes } from './entryFieldAttributes';
 import useInlineEdit from './useInlineEdit';
@@ -59,7 +60,8 @@ const InputCollection: FC = () => {
     // A field cannot clip a gradient through its text without losing the caret, so it paints the
     // Repräsentative Vollfarbe. Without one the rule stays out and the theme text colour remains.
     const fieldColor = solidOf(data.textColor);
-    const inputVariant = widget.data.inputVariant ?? 'standard';
+    // '' and null come only from raw data (the vis-2 select offers the options): unset like a missing key.
+    const inputVariant = widget.data.inputVariant || INPUT_VARIANT_DEFAULT;
 
     return (
         <CollectionBase

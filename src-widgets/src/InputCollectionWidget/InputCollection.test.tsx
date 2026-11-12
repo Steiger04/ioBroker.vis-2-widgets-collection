@@ -321,6 +321,23 @@ describe('InputCollection field attributes', () => {
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
     });
 
+    // The vis-2 select offers only the option values; '' and null come only from raw data (the vis-2
+    // assistant, ADR-0114) and read like the unset field.
+    it.each([
+        ['empty', ''],
+        ['null', null],
+    ])('draws a field variant stored as %s like the unset one', (_case, inputVariant) => {
+        const variantOf = (data: Record<string, unknown>): string | undefined => {
+            const { container, unmount } = mountInput(data);
+            start(container);
+            const className = container.querySelector('.MuiInputBase-root')?.className;
+            unmount();
+            return className;
+        };
+
+        expect(variantOf({ inputVariant })).toBe(variantOf({}));
+    });
+
     it('sets no attribute for emptied number fields (06)', () => {
         const { container } = mountInput({ step: '', minValue: '', maxValue: '' });
         const field = start(container);

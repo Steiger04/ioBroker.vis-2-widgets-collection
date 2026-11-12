@@ -17,6 +17,9 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 const hiddenUnlessNumber = (data: Record<string, unknown>): boolean =>
     (data.oidObject as { type?: string } | undefined)?.type !== 'number';
 
+/** Default field variant: the single source; the renderer reads it for an unset or empty field. */
+export const INPUT_VARIANT_DEFAULT = 'standard';
+
 const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -33,7 +36,7 @@ const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'inputVariant',
         type: 'select',
         label: 'input_variant',
-        default: 'standard',
+        default: INPUT_VARIANT_DEFAULT,
         options: [
             { value: 'standard', label: 'variant_standard' },
             { value: 'outlined', label: 'variant_outlined' },
