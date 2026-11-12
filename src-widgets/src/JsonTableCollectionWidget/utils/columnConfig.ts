@@ -7,7 +7,7 @@
  * to avoid vis-2's extractBinding regex matching curly braces in JSON arrays.
  */
 
-import type { ColumnConfigEntry, ImageObjectFit } from '../types';
+import type { ColumnConfigEntry, ColumnFormatType, ImageObjectFit } from '../types';
 
 // ── Type badge colors ───────────────────────────────────────────
 
@@ -62,7 +62,9 @@ export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
  * an empty configuration, i.e. the automatically found Columns.
  *
  * Inside the list, what the table cannot use reads as not written: an entry that is no Column
- * (no object, or without a text `path`) is left out.
+ * (no object, or without a text `path`) is left out, a key of an entry whose value is not of the
+ * key's kind ({@link ENTRY_KEYS}) is left out of the entry — the table then reads the key as it
+ * reads it unset. Keys it does not know stay as written.
  *
  * @param raw - The stored `columnConfig`.
  * @returns The Column entries; empty for an unset or unusable configuration.
@@ -72,7 +74,7 @@ export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
         return [];
     }
     const entries = JSON.parse(decodeBlob(raw)) as unknown[];
-    return entries.filter(isColumnEntry);
+    return entries.filter(isColumnEntry).map(usableEntry);
 }
 
 /** A plain object (no list, no `null`). */
@@ -81,3 +83,53 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 /** An entry that names a Column: an object with a text `path`. */
 const isColumnEntry = (entry: unknown): entry is ColumnConfigEntry => isRecord(entry) && typeof entry.path === 'string';
+
+/** One of the given values. */
+const oneOf =
+    (...values: readonly unknown[]) =>
+    (value: unknown): boolean =>
+        values.includes(value);
+
+/** The Format types, all of them (the record makes a new one a type error here). */
+const FORMAT_TYPES: Readonly<Record<ColumnFormatType, true>> = {
+    number: true,
+    date: true,
+    boolean: true,
+    string: true,
+    image: true,
+};
+
+/** A per-column capability override: on, off or the type default. */
+const isOverride = oneOf(true, false, 'auto');
+
+/**
+ * The kind of each key of a Column entry the table reads ({@link ColumnConfigEntry}). The inner
+ * keys of `format` stay with the formatters, which read every value defensively.
+ */
+const ENTRY_KEYS: Readonly<Record<Exclude<keyof ColumnConfigEntry, 'path'>, (value: unknown) => boolean>> = {
+    visible: value => typeof value === 'boolean',
+    headerName: value => typeof value === 'string',
+    // A width as the view state reads one: a positive finite number of pixels.
+    width: value => typeof value === 'number' && Number.isFinite(value) && value > 0,
+    align: oneOf('left', 'center', 'right'),
+    format: value => isRecord(value) && typeof value.type === 'string' && Object.hasOwn(FORMAT_TYPES, value.type),
+    cellStyle: Array.isArray,
+    cellStyleMode: oneOf('first-match', 'all-match'),
+    sortable: isOverride,
+    filterable: isOverride,
+    enableHiding: isOverride,
+};
+
+/** The entry without the keys whose value is not of their kind; the entry itself when all are. */
+function usableEntry(entry: ColumnConfigEntry): ColumnConfigEntry {
+    const record = entry as unknown as Record<string, unknown>;
+    const broken = Object.entries(ENTRY_KEYS).filter(([key, isUsable]) => key in record && !isUsable(record[key]));
+    if (broken.length === 0) {
+        return entry;
+    }
+    const usable = { ...record };
+    for (const [key] of broken) {
+        delete usable[key];
+    }
+    return usable as unknown as ColumnConfigEntry;
+}

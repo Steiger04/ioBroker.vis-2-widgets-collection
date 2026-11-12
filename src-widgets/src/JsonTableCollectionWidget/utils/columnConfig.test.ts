@@ -34,4 +34,45 @@ describe('parseColumnConfig — the entries', () => {
 
         expect(parseColumnConfig(JSON.stringify([...junk, COLUMN]))).toEqual([COLUMN]);
     });
+
+    /** A Column entry with every key the table reads, each set. */
+    const FULL: Record<string, unknown> = {
+        path: 'value',
+        visible: true,
+        headerName: 'Weight',
+        width: 120,
+        align: 'right',
+        format: { type: 'number', numberDecimals: 1 },
+        cellStyle: [{ logic: { '<': [{ var: 'value' }, 0] }, backgroundColor: '#ff0000' }],
+        cellStyleMode: 'all-match',
+        sortable: 'auto',
+        filterable: false,
+        enableHiding: true,
+    };
+
+    it('keeps every key of a well-formed entry, and keys it does not know', () => {
+        const entry = { ...FULL, note: 'kept' };
+
+        expect(parseColumnConfig(JSON.stringify([entry]))).toEqual([entry]);
+    });
+
+    it.each([
+        ['visible', ['true', 1]],
+        ['headerName', [5, { text: 'Weight' }]],
+        ['width', ['abc', '120', -5, 0, { px: 120 }]],
+        ['align', ['middle', 5]],
+        ['format', ['number', 5, [], {}, { type: 'nope' }]],
+        ['cellStyle', [{}, 'red', 5]],
+        ['cellStyleMode', ['any', 5]],
+        ['sortable', ['yes', 1]],
+        ['filterable', ['yes', 1]],
+        ['enableHiding', ['yes', 1]],
+    ])('reads a broken %s like the key left out', (key, values) => {
+        const { [key]: _left, ...without } = FULL;
+        for (const value of values) {
+            expect(parseColumnConfig(JSON.stringify([{ ...FULL, [key]: value }])), JSON.stringify(value)).toEqual([
+                without,
+            ]);
+        }
+    });
 });
