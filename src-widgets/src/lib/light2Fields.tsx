@@ -13,6 +13,13 @@ import CollectionDivider from '../components/CollectionDivider';
 import { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
 import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
+import {
+    COLOR_LIGHT_CT_MAX_DEFAULT,
+    COLOR_LIGHT_CT_MIN_DEFAULT,
+    COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT,
+    COLOR_LIGHT_MODAL_HEIGHT_DEFAULT,
+    COLOR_LIGHT_SLIDER_WIDTH_DEFAULT,
+} from './light2Defaults';
 import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, stateRowCount } from './stateRows';
@@ -86,13 +93,6 @@ const RGB_ROLES: Record<string, Light2ChannelField> = {
 
 /** The JS types a Light2 OID may have — the switch and every channel state. */
 const LIGHT2_OID_TYPES = ['boolean', 'number', 'string', 'mixed'] as const;
-
-/** The long-press delay of the Button-Modus while its field is unset or emptied, in ms. */
-export const COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT = 500;
-
-/** The Kelvin range of the CCT-Ansicht while its fields are unset: the defaults the panel shows. */
-export const COLOR_LIGHT_CT_MIN_DEFAULT = 2000;
-export const COLOR_LIGHT_CT_MAX_DEFAULT = 6500;
 
 /** A channel field may be filled by the detection only while it holds no pick of the user. */
 const isUnset = (value: unknown): boolean => !value || value === 'nothing_selected';
@@ -204,7 +204,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         name: 'colorLightModalHeight',
         label: 'color_light_modal_height',
         type: 'number',
-        default: 300,
+        default: COLOR_LIGHT_MODAL_HEIGHT_DEFAULT,
         min: 0,
         max: 5000,
         step: 1,
@@ -220,7 +220,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'slider',
         min: 0,
         max: 10,
-        default: 1,
+        default: COLOR_LIGHT_SLIDER_WIDTH_DEFAULT,
         step: 0.1,
     },
     {

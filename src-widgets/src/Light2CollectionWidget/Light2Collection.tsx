@@ -21,7 +21,7 @@ import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
 import optionalNumber from '../lib/helper/optionalNumber';
 import { LIGHT2_CHANNEL_FIELDS, offersViewSwitch } from '../lib/light2Channels';
-import { COLOR_LIGHT_CT_MAX_DEFAULT, COLOR_LIGHT_CT_MIN_DEFAULT } from '../lib/light2Fields';
+import { COLOR_LIGHT_CT_MAX_DEFAULT, COLOR_LIGHT_CT_MIN_DEFAULT } from '../lib/light2Defaults';
 import type { Light2ChannelField } from '../lib/light2Channels';
 import type { SyncChannel } from './backendSyncKey';
 import { isCctViewActive } from './lampSync';

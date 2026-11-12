@@ -18,7 +18,7 @@ import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import optionalNumber from '../lib/helper/optionalNumber';
-import { COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT } from '../lib/light2Fields';
+import { COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT } from '../lib/light2Defaults';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
 import { modalSizeOf } from './pickerGeometry';

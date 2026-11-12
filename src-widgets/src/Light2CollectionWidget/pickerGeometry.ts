@@ -6,14 +6,16 @@
  * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range)
  * and the measured picker box one result — slider size, main picker bound, resize width, gap,
  * offset of the second picker and iro layout per picker. Beside it {@link modalSizeOf} gives the
- * size of the Button-Modus modal. The 28px slider unit, the 12px gap and the 300px default modal
- * height live only here.
+ * size of the Button-Modus modal. The 28px slider unit and the 12px gap live only here; the
+ * defaults of the slider width and the modal height come from `lib/light2Defaults`, the one source
+ * of the field definitions too.
  *
  * Pure: the body measures its picker box itself (callback ref + useElementDimensions, no
  * Content-Box — ADR-0098 Nr. 3/4) and hands the box in; `Light2Picker` draws the result.
  */
 import iro from '@jaames/iro';
 import optionalNumber from '../lib/helper/optionalNumber';
+import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 import type { Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
@@ -23,9 +25,6 @@ const SLIDER_UNIT_PX = 28;
 
 /** Gap kept between the main picker and the value slider, in px. */
 const PICKER_GAP_PX = 12;
-
-/** Modal height while `colorLightModalHeight` is unset, in px. */
-const DEFAULT_MODAL_HEIGHT_PX = 300;
 
 /** Fixed extra width of the modal auto width beside picker, gap and slider, in px. */
 const MODAL_EXTRA_WIDTH_PX = 40;
@@ -85,7 +84,8 @@ export interface PickerGeometry {
     layouts: Readonly<Record<LampPicker, IroLayout>>;
 }
 
-const sliderSizeOf = (sliderWidth: PickerGeometryConfig['sliderWidth']): number => (sliderWidth || 1) * SLIDER_UNIT_PX;
+const sliderSizeOf = (sliderWidth: PickerGeometryConfig['sliderWidth']): number =>
+    (sliderWidth || COLOR_LIGHT_SLIDER_WIDTH_DEFAULT) * SLIDER_UNIT_PX;
 
 /**
  * The main picker's width bound: while the width cannot hold a height-sized picker plus the
@@ -215,7 +215,7 @@ const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule 
  */
 export function modalSizeOf(config: ModalSizeConfig): ModalSize {
     // A numeric string (vis-2's number field while typing, the assistant) sizes like its number.
-    const height = optionalNumber(config.modalHeight) || DEFAULT_MODAL_HEIGHT_PX;
+    const height = optionalNumber(config.modalHeight) || COLOR_LIGHT_MODAL_HEIGHT_DEFAULT;
     const width = optionalNumber(config.modalWidth);
     if (width !== undefined && width > 0) {
         return { width, height };
