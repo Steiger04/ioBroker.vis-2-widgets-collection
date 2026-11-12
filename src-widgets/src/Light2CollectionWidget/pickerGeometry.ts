@@ -13,6 +13,7 @@
  * Content-Box — ADR-0098 Nr. 3/4) and hands the box in; `Light2Picker` draws the result.
  */
 import iro from '@jaames/iro';
+import optionalNumber from '../lib/helper/optionalNumber';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 import type { Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
@@ -205,7 +206,7 @@ const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule 
 
 /**
  * The Button-Modus modal size. Height: `colorLightModalHeight`, 300px while unset. Width: an
- * explicit positive `colorLightModalWidth` as is, otherwise the auto width — the picker draws its
+ * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the auto width — the picker draws its
  * main element from the modal HEIGHT (square-ish), so the optimum width derives from height +
  * slider + gap (see color_light_modal_width_tooltip).
  *
@@ -213,9 +214,11 @@ const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule 
  * @returns The modal width and height in px.
  */
 export function modalSizeOf(config: ModalSizeConfig): ModalSize {
-    const height = config.modalHeight || DEFAULT_MODAL_HEIGHT_PX;
-    if (typeof config.modalWidth === 'number' && config.modalWidth > 0) {
-        return { width: config.modalWidth, height };
+    // A numeric string (vis-2's number field while typing, the assistant) sizes like its number.
+    const height = optionalNumber(config.modalHeight) || DEFAULT_MODAL_HEIGHT_PX;
+    const width = optionalNumber(config.modalWidth);
+    if (width !== undefined && width > 0) {
+        return { width, height };
     }
     return { width: height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSizeOf(config.sliderWidth), height };
 }
