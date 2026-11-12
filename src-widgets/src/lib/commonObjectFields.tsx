@@ -90,6 +90,14 @@ const removeMainOidRows = (data: WidgetData): void => {
 };
 
 /**
+ * The keys of a main-OID pick that count the Zustandszeilen ({@link convertToAuthoredRows} and the
+ * supplement): the pick computes them from the stored rows and count, so its value carries the
+ * stored one instead of replacing a choice — the runtime pick (`lib/pickedWidgetData`) takes them
+ * with the rows it supplements, also where the data sets them.
+ */
+export const PICK_ROW_COUNT_KEYS: readonly string[] = ['values_count', 'ignoreCommonStates'];
+
+/**
  * Writes the rows the widget carries now, counted against the previous OID object: a widget saved
  * with ignoreCommonStates on (values_count 0) shows its states' rows. From here on its authored
  * rows govern (ADR-0104 §5, Nachtrag Ticket 01).
