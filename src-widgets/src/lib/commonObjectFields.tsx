@@ -137,6 +137,124 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
     }
 };
 
+/** What a pick reads from the object database: the usable object and the icon it carries. */
+export interface PickedObject {
+    /** The picked state object; its `common.type` is one of the field's allowed types. */
+    object: ioBroker.StateObject;
+    /** The icon of the object or of its nearest parent with one. */
+    icon: string | null;
+}
+
+/**
+ * Reads what a pick of `id` takes from the object database.
+ *
+ * @param socket - The vis-2 connection.
+ * @param id - The picked object id.
+ * @param allowedTypes - Allowed JS types for the picked state.
+ * @returns The object and its icon; `undefined` for an id that does not resolve or a type outside
+ *   `allowedTypes`. A socket error rejects.
+ */
+export const loadPickedObjectAsync = async (
+    socket: Connection,
+    id: string,
+    allowedTypes: readonly AllowedType[],
+): Promise<PickedObject | undefined> => {
+    const object = (await socket.getObject(id)) as ioBroker.StateObject | undefined;
+    if (!object || !allowedTypes.includes(object.common.type as AllowedType)) {
+        return undefined;
+    }
+    return { object, icon: await getObjectIconAsync(socket, object) };
+};
+
+/**
+ * Writes into `data` what a pick of the field `oid` with a usable object writes: the one
+ * derivation of a pick, run by the editor ({@link oidChangeHandlerAsync}) and read at runtime for
+ * an id without its object (`lib/pickedWidgetData`, KI-Integration).
+ *
+ * @param data - The widget data, changed in place (top-level keys only).
+ * @param oid - The name of the data property that stores the picked id.
+ * @param picked - What {@link loadPickedObjectAsync} read.
+ * @param options - See {@link OidPickOptions}.
+ * @param options.inventRange - See {@link OidPickOptions.inventRange}.
+ */
+export const applyObjectPick = (
+    data: WidgetData,
+    oid: string,
+    { object, icon }: PickedObject,
+    { inventRange = true }: OidPickOptions = {},
+): void => {
+    const role = oidRole(oid);
+    const oidType = object.common.type as AllowedType;
+
+    if (role === 'main') {
+        convertToAuthoredRows(data);
+    }
+
+    // Set object metadata
+    const objectData = {
+        _id: object._id,
+        name: object.common.name || '',
+        type: oidType,
+        icon,
+        write: object.common.write,
+        onlyDisplay: object.common.write === false,
+        unit: object.common.unit || '',
+        // `??`: a real bound of 0 is a range, only a missing one gets seeded.
+        minValue: object.common.min ?? 0,
+        maxValue: object.common.max ?? 100,
+        // Copy only: no root field, and no key for an object without a step (ADR-0110 Nr. 12).
+        ...(typeof object.common.step === 'number' ? { step: object.common.step } : {}),
+    };
+
+    data[`${oid}Object`] = objectData;
+
+    if (role === 'main') {
+        // Root level properties belong to the main OID alone (required for compatibility).
+        data.icon = objectData.icon;
+        data.write = objectData.write;
+        data.unit = objectData.unit;
+        // The main OID's suggestion yields to a resolved control ID (the write target).
+        data.onlyDisplay = writeTargetDeniesWrite(data);
+        if (inventRange) {
+            data.minValue = objectData.minValue;
+            data.maxValue = objectData.maxValue;
+        } else {
+            setRealBound(data, 'minValue', object.common.min);
+            setRealBound(data, 'maxValue', object.common.max);
+        }
+    } else if (role === 'control') {
+        // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
+        // suggestion — the root fields belong to the main OID.
+        data.onlyDisplay = writeTargetDeniesWrite(data);
+    }
+    // An auxiliary ID (Dialog's dialogId, Light2's channel IDs) owns nothing but its
+    // own `${oid}Object` (ADR-0096).
+
+    // Handle states configuration
+    if (object.common.states) {
+        let states = object.common.states;
+
+        // Convert array states to object format
+        if (Array.isArray(states)) {
+            const statesObj: Record<string, string> = {};
+            states.forEach(state => {
+                statesObj[state] = state;
+            });
+            states = statesObj;
+        }
+
+        data[`${oid}Object`].commonStates = states;
+    } else if (oidType === 'boolean' && role === 'main') {
+        data[`${oid}Object`].commonStates = { true: 'TRUE', false: 'FALSE' };
+    }
+
+    if (role === 'main') {
+        // Supplement, never overwrite: existing rows keep order, alias and styles; the
+        // states no row carries yet are appended (ADR-0104 §6).
+        assignStateRowPatch(data, applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS));
+    }
+};
+
 /**
  * Creates an async `onChange` handler for an OID/id editor field.
  *
@@ -146,7 +264,7 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
  * @param options.inventRange See {@link OidPickOptions.inventRange}.
  * @remarks
  * Every pick stores the object's metadata in `${oid}Object`. Beyond that the field's role
- * ({@link module:lib/oidRole}) decides what the pick owns:
+ * ({@link module:lib/oidRole}) decides what the pick owns ({@link applyObjectPick}):
  * - `main` (Haupt-OID `oid`): root `icon`/`write`/`unit`/`minValue`/`maxValue`, the Zustandszeilen,
  *   and the `onlyDisplay` suggestion of the write target ({@link module:lib/writeTarget}) — a
  *   resolved control ID keeps its suggestion, whatever the picking order. The pick supplements the
@@ -165,17 +283,15 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
  * every path.
  */
 export const oidChangeHandlerAsync =
-    (allowedTypes: readonly AllowedType[], oid = 'oid', { inventRange = true }: OidPickOptions = {}) =>
+    (allowedTypes: readonly AllowedType[], oid = 'oid', options: OidPickOptions = {}) =>
     async (
         _field: RxWidgetInfoAttributesField,
         data: WidgetData,
         changeData: (newData: WidgetData) => void,
         socket: Connection,
     ): Promise<void> => {
-        const role = oidRole(oid);
-
         if (!data[oid]) {
-            if (role === 'main') {
+            if (oidRole(oid) === 'main') {
                 removeMainOidRows(data);
             }
             dropFieldObject(data, oid);
@@ -184,81 +300,14 @@ export const oidChangeHandlerAsync =
         }
 
         try {
-            const object = (await socket.getObject(data[oid])) as ioBroker.StateObject | undefined;
-            const oidType = object?.common.type as AllowedType;
-            if (!object || !allowedTypes.includes(oidType)) {
+            const picked = await loadPickedObjectAsync(socket, data[oid], allowedTypes);
+            if (!picked) {
                 dropUnusableObject(data, oid);
                 setTimeout(() => changeData(data), 100);
                 return;
             }
 
-            if (role === 'main') {
-                convertToAuthoredRows(data);
-            }
-
-            // Set object metadata
-            const objectData = {
-                _id: object._id,
-                name: object.common.name || '',
-                type: oidType,
-                icon: await getObjectIconAsync(socket, object),
-                write: object.common.write,
-                onlyDisplay: object.common.write === false,
-                unit: object.common.unit || '',
-                // `??`: a real bound of 0 is a range, only a missing one gets seeded.
-                minValue: object.common.min ?? 0,
-                maxValue: object.common.max ?? 100,
-                // Copy only: no root field, and no key for an object without a step (ADR-0110 Nr. 12).
-                ...(typeof object.common.step === 'number' ? { step: object.common.step } : {}),
-            };
-
-            data[`${oid}Object`] = objectData;
-
-            if (role === 'main') {
-                // Root level properties belong to the main OID alone (required for compatibility).
-                data.icon = objectData.icon;
-                data.write = objectData.write;
-                data.unit = objectData.unit;
-                // The main OID's suggestion yields to a resolved control ID (the write target).
-                data.onlyDisplay = writeTargetDeniesWrite(data);
-                if (inventRange) {
-                    data.minValue = objectData.minValue;
-                    data.maxValue = objectData.maxValue;
-                } else {
-                    setRealBound(data, 'minValue', object.common.min);
-                    setRealBound(data, 'maxValue', object.common.max);
-                }
-            } else if (role === 'control') {
-                // Control ID (Schreibziel, ADR-0090): owns only cidObject and the onlyDisplay
-                // suggestion — the root fields belong to the main OID.
-                data.onlyDisplay = writeTargetDeniesWrite(data);
-            }
-            // An auxiliary ID (Dialog's dialogId, Light2's channel IDs) owns nothing but its
-            // own `${oid}Object` (ADR-0096).
-
-            // Handle states configuration
-            if (object.common.states) {
-                let states = object.common.states;
-
-                // Convert array states to object format
-                if (Array.isArray(states)) {
-                    const statesObj: Record<string, string> = {};
-                    states.forEach(state => {
-                        statesObj[state] = state;
-                    });
-                    states = statesObj;
-                }
-
-                data[`${oid}Object`].commonStates = states;
-            } else if (oidType === 'boolean' && role === 'main') {
-                data[`${oid}Object`].commonStates = { true: 'TRUE', false: 'FALSE' };
-            }
-
-            if (role === 'main') {
-                // Supplement, never overwrite: existing rows keep order, alias and styles; the
-                // states no row carries yet are appended (ADR-0104 §6).
-                assignStateRowPatch(data, applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS));
-            }
+            applyObjectPick(data, oid, picked, options);
 
             setTimeout(() => changeData(data), 100);
         } catch (error) {
