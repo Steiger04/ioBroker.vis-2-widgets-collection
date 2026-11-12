@@ -12,7 +12,9 @@
  * - an object whose `_id` is not the id reads as missing (also while it loads, and for an id
  *   without a usable object: the widget shows its OID hint as without an object);
  * - every key the pick writes counts only where the data leaves it unset (`undefined`, `null`):
- *   what is set wins.
+ *   what is set wins — except the row count (`values_count`, `ignoreCommonStates`), which the pick
+ *   counts from the stored rows and count together with the rows it supplements, so the stored
+ *   value is its input and the pick's own result counts.
  *
  * The same merge reads the palette's defaults (`lib/fieldDefaults`) for the unset keys: the
  * reference of an assistant-inserted widget is the palette's widget with the same data whose id the
@@ -21,7 +23,7 @@
  * The stored data is never written. A field whose object matches its id is not touched, and data
  * without such a field and without an unset key that has a default comes back as the same object.
  */
-import { applyObjectPick } from './commonObjectFields';
+import { applyObjectPick, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
 import { NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
@@ -147,9 +149,10 @@ export function pickedWidgetData<T extends WidgetData>(
         }
     }
 
-    // What is set wins: a derived value fills only a key the data leaves unset.
+    // What is set wins: a derived value fills only a key the data leaves unset — except the row
+    // count, which the pick counted from the stored one together with the rows it supplemented.
     for (const [key, value] of Object.entries(derived)) {
-        if (isUnset(read[key]) && value !== read[key]) {
+        if ((isUnset(read[key]) || PICK_ROW_COUNT_KEYS.includes(key)) && value !== read[key]) {
             read[key] = value;
             changed = true;
         }

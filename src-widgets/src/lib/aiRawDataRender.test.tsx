@@ -1978,6 +1978,31 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 );
             });
 
+            // The assistant's flat update sets the id of a widget the palette inserted (as does vis-2's
+            // visAddWidget with the defaults): no pick runs, and the palette's `values_count: 0` is stored.
+            // The pick counts its rows from the stored ones and supplements the states (`values_count`,
+            // `ignoreCommonStates` with the rows), so the Zustandszeilen read like the editor pick over
+            // the same data. A root field the pick would overwrite keeps its stored value (what is set
+            // wins, ticket 12): the palette's icon, unit, onlyDisplay and range stay.
+            it.each(ID_FIELDS)(
+                '%s renders the Zustandszeilen of a palette widget whose id is set without the pick like the editor pick',
+                async (name, idName) => {
+                    const widget = await load(name);
+                    const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], requiredData(name));
+                    const picked = await pickedInEditor(widget, idName, stored);
+                    const setWins = Object.fromEntries(
+                        ['icon', 'unit', 'onlyDisplay', 'minValue', 'maxValue'].flatMap(key =>
+                            key in stored ? [[key, stored[key]]] : [],
+                        ),
+                    );
+                    const { values } = FIXTURES[name]!;
+
+                    expect(await renderWidget(widget, stored, values)).toBe(
+                        await renderWidget(widget, { ...picked, ...setWins }, values),
+                    );
+                },
+            );
+
             // Stored widgets of a release before the field carry no key for it: they keep today's reading,
             // which differs from the default (else the field would need no exception).
             it.each(Object.entries(KEPT_UNSET) as [WidgetName, readonly string[]][])(
