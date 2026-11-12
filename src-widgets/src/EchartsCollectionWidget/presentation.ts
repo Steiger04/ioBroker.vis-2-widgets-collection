@@ -36,6 +36,7 @@ import { withoutBroken } from '../lib/usableJson';
 import {
     AXIS_KINDS,
     CHART_CONFIG_KINDS,
+    LEGEND_KINDS,
     PIE_KINDS,
     readListBlob,
     readObjectBlob,
@@ -484,24 +485,11 @@ export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine
 export const decodeAxes = (raw: unknown): EchartsAxisConfig[] => readListBlob(raw, AXIS_KINDS, true);
 
 /**
- * Decode a base64 blob that must hold a JSON OBJECT; `fallback` for absent/invalid/non-object
- * payloads (the shared shape of the object-blob decoders below — legend styling, toolbox config).
+ * Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/unusable →
+ * `{}`; a key not of its JSON type reads as left out (the stored-configuration rule). The key has no
+ * field, so the rule in `Generic` does not see it: this decoder judges the top level alone.
  */
-const decodeObjectBlob = <T extends object>(raw: string | undefined | null, fallback: T): T => {
-    if (!raw) {
-        return fallback;
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as T) : fallback;
-    } catch {
-        return fallback;
-    }
-};
-
-/** Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/invalid → `{}`. */
-export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig =>
-    decodeObjectBlob<EchartsLegendConfig>(raw, {});
+export const decodeLegendConfig = (raw: unknown): EchartsLegendConfig => readObjectBlob(raw, LEGEND_KINDS) ?? {};
 
 /**
  * Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/unusable → `{}`; a
@@ -606,7 +594,7 @@ export const toPresentationBase = (opts: {
         legend:
             s.legend && typeof s.legend === 'object' && !Array.isArray(s.legend)
                 ? s.legend
-                : decodeLegendConfig(s.legendConfig as string),
+                : decodeLegendConfig(s.legendConfig),
         tooltipTrigger:
             // 'axis' is meaningless off-cartesian (ADR-0012 WS2): a non-cartesian that still stores
             // it (e.g. switched from cartesian) coerces to 'item' at runtime.
@@ -632,7 +620,7 @@ export const toPresentationBase = (opts: {
         toolbox:
             s.toolbox && typeof s.toolbox === 'object' && !Array.isArray(s.toolbox)
                 ? s.toolbox
-                : decodeToolboxConfig(s.toolboxConfig as string),
+                : decodeToolboxConfig(s.toolboxConfig),
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,

@@ -7,7 +7,14 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
 import { parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeToolboxConfig, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
+import {
+    decodeAxes,
+    decodeChartConfig,
+    decodeLegendConfig,
+    decodeToolboxConfig,
+    decodeXAxis,
+    decodeXAxisWithLegacy,
+} from './presentation';
 
 const blob = (value: unknown): string => encodeBlob(JSON.stringify(value));
 
@@ -93,5 +100,18 @@ describe('the toolbox (toolboxConfig)', () => {
 
     it('reads a blob of another shape as none', () => {
         expect(decodeToolboxConfig('[{"show":true}]')).toEqual({});
+    });
+});
+
+describe('the legend styling (legendConfig)', () => {
+    it('reads a key not of its JSON type like the key left out', () => {
+        expect(
+            decodeLegendConfig(blob({ color: 5, fontSize: '20', fontWeight: true, padding: null, icon: 'rect' })),
+        ).toEqual({ icon: 'rect' });
+        expect(decodeLegendConfig('{"fontWeight":600}')).toEqual({ fontWeight: 600 });
+    });
+
+    it('reads a blob of another shape as none', () => {
+        expect(decodeLegendConfig('[{"fontSize":20}]')).toEqual({});
     });
 });
