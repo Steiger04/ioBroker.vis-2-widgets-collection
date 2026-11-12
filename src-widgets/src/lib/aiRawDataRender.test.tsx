@@ -41,6 +41,7 @@ import type { AllowedType } from './allowedOidTypes';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 import { encodeBlob, utf8ToBase64 } from './encoding';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
+import type { Kind } from './usableJson';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
 import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, STILL_OPEN, type WidgetName } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
@@ -48,6 +49,16 @@ import ButtonGroupCollection from '../ButtonGroupCollectionWidget/ButtonGroupCol
 import CheckboxCollection from '../CheckboxCollectionWidget/CheckboxCollection';
 import DialogCollection from '../DialogCollectionWidget/DialogCollection';
 import EchartsCollection from '../EchartsCollectionWidget/EchartsCollection';
+import {
+    AXIS_KINDS,
+    CHART_CONFIG_KINDS,
+    LEGEND_KINDS,
+    MARK_LINE_KINDS,
+    PIE_KINDS,
+    SERIES_META_KINDS,
+    TOOLBOX_KINDS,
+    X_AXIS_KINDS,
+} from '../EchartsCollectionWidget/storedConfig';
 import GaugeCollection from '../GaugeCollectionWidget/GaugeCollection';
 import InputCollection from '../InputCollectionWidget/InputCollection';
 import JsonTableCollection from '../JsonTableCollectionWidget/JsonTableCollection';
@@ -105,6 +116,15 @@ vi.mock('../GaugeCollectionWidget/Gauge', () => ({
     default: ({ options }: { options: unknown }) => <pre data-gauge-options="">{JSON.stringify(options)}</pre>,
 }));
 
+// echarts needs a real canvas: the chart shows what it is handed instead (option, renderer, idle reset).
+vi.mock('../EchartsCollectionWidget/EChart', () => ({
+    default: (props: { option: unknown; renderer?: string; zoomIdleResetSec?: number }) => (
+        <pre data-echart="">
+            {JSON.stringify({ option: props.option, renderer: props.renderer, idle: props.zoomIdleResetSec })}
+        </pre>
+    ),
+}));
+
 installInertResizeObserver();
 
 /** What a widget needs to show its content: the reference body and minimal valid data. */
@@ -155,6 +175,7 @@ const NUMBER_OID = 'demo.0.level';
 const SWITCH_OID = 'demo.0.power';
 const DIALOG_OID = 'demo.0.dialog';
 const TABLE_OID = 'demo.0.table';
+const CHART_OID = 'demo.0.chart';
 
 /** One entry per placeable widget. */
 const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
@@ -222,8 +243,22 @@ const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
     },
     EchartsCollectionWidget: {
         body: EchartsCollection,
-        data: { ...CHROME },
-        values: {},
+        // The JSON table family: rows from the payload state, one series bound by the series configuration.
+        data: {
+            ...CHROME,
+            mode: 'json',
+            jsonKind: 'table',
+            jsonOid: CHART_OID,
+            jsonXPath: 'x',
+            series_count: 1,
+            seriesConfig: encodeBlob(JSON.stringify([{ name: 'A', yPath: 'a' }])),
+        },
+        values: {
+            [`${CHART_OID}.val`]: JSON.stringify([
+                { x: 1, a: 2 },
+                { x: 2, a: 3 },
+            ]),
+        },
     },
 };
 
@@ -613,12 +648,13 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
     });
 
     // vis-2's number field stores '' once the user empties it, and the assistant may write it: in
-    // the Slider's geometry and the Gauge-Optionen it reads like the unset field (the Gauge through
-    // the Options-Builder's schema-default coercion, ADR-0107). A field where '' keeps a meaning of
-    // its own is listed with it.
+    // the Slider's geometry, the Gauge-Optionen and the ECharts scalars it reads like the unset field
+    // (the Gauge through the Options-Builder's schema-default coercion, ADR-0107; ECharts through its
+    // field-map number coercion). A field where '' keeps a meaning of its own is listed with it.
     describe.each([
         ['SliderCollectionWidget', { sliderPadding: "'' is no padding (0), unset the field default" }],
         ['GaugeCollectionWidget', {}],
+        ['EchartsCollectionWidget', {}],
     ] as const)('%s: an emptied own number field', (name, ownMeaning: Readonly<Record<string, string>>) => {
         it('renders an own number field stored as "" like the unset field', async () => {
             const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
@@ -1101,6 +1137,451 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 ),
             ).toEqual([]);
         }, 120_000);
+    });
+
+    // The ECharts configuration editor stores the chart's structured settings as JSON blobs
+    // (`b64:`); the assistant writes them as plain JSON, possibly broken or reduced to a few keys by
+    // a flat update. A blob that is no JSON of its top level reads as no blob; inside, a list entry
+    // that is no object reads as an unset entry (empty where the list is positional, left out
+    // otherwise) and a key whose value is not of its JSON type like the key left out.
+    describe('EchartsCollectionWidget: the chart configuration', () => {
+        const fixture = FIXTURES.EchartsCollectionWidget!;
+        /** The series-shaped JSON family: two named series, styled by name and hidden by name. */
+        const seriesShaped = { ...CHROME, mode: 'json', jsonOid: CHART_OID };
+        const seriesValues = {
+            [`${CHART_OID}.val`]: JSON.stringify({
+                series: [
+                    {
+                        name: 'A',
+                        data: [
+                            [1, 2],
+                            [2, 3],
+                        ],
+                    },
+                    {
+                        name: 'B',
+                        data: [
+                            [1, 1],
+                            [2, 4],
+                        ],
+                    },
+                ],
+            }),
+        };
+        const blob = (value: unknown): string => encodeBlob(JSON.stringify(value));
+        let widget: WidgetClass;
+
+        beforeAll(async () => {
+            widget = ((await import('../EchartsCollectionWidget/EchartsCollectionWidget')) as { default: WidgetClass })
+                .default;
+        });
+
+        /** One stored configuration: where it acts, a sample of its content and how it is built. */
+        interface ConfigCase {
+            /** The stored key. */
+            key: string;
+            /** The widget data it acts in (the key itself left out). */
+            base: Record<string, unknown>;
+            values: Record<string, unknown>;
+            /** An object of the configuration: the blob itself, a list entry or a value by name. */
+            sample: Record<string, unknown>;
+            /** A flat overwrite: a few keys of the sample only. */
+            partial: Record<string, unknown>;
+            /** The kind of each key of the sample object the parse site reads. */
+            kinds: Readonly<Record<string, Kind>>;
+            /** The stored configuration around an object. */
+            wrap: (object: unknown) => unknown;
+            /** For a list: whether an entry's place carries meaning. */
+            positional?: boolean;
+        }
+
+        const tableBase = without(fixture.data, ['seriesConfig']);
+        const CASES: ConfigCase[] = [
+            {
+                key: 'seriesConfig',
+                base: tableBase,
+                values: fixture.values,
+                sample: { name: 'Power', yPath: 'a', color: '#ff0000', lineWidth: 4, smooth: true },
+                partial: { yPath: 'a' },
+                kinds: SERIES_META_KINDS,
+                wrap: object => [object],
+                positional: true,
+            },
+            {
+                key: 'yAxes',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { name: 'Watt', min: 0, max: 10, splitLine: false },
+                partial: { name: 'Watt' },
+                kinds: AXIS_KINDS,
+                wrap: object => [object],
+                positional: true,
+            },
+            {
+                key: 'markLines',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { upper: 2.5, color: '#00ff00', width: 3, labelUpper: 'Max' },
+                partial: { upper: 2.5 },
+                kinds: MARK_LINE_KINDS,
+                wrap: object => [object],
+                positional: false,
+            },
+            {
+                key: 'xAxis',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { name: 'Zeit', labelRotate: 30, axisTick: false },
+                partial: { name: 'Zeit' },
+                kinds: X_AXIS_KINDS,
+                wrap: object => object,
+            },
+            {
+                key: 'chartConfig',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { titleRaw: '{"subtext":"Sub"}', stackMode: 'percent', titleSnippets: [] },
+                partial: { titleRaw: '{"subtext":"Sub"}' },
+                kinds: CHART_CONFIG_KINDS,
+                wrap: object => object,
+            },
+            {
+                key: 'chartConfig',
+                base: { ...fixture.data, chartType: 'pie' },
+                values: fixture.values,
+                sample: { innerRadius: 40, label: 'percent', labelColor: '#123456' },
+                partial: { innerRadius: 40 },
+                kinds: PIE_KINDS,
+                wrap: object => ({ pie: object }),
+            },
+            {
+                key: 'toolboxConfig',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { show: true, itemSize: 22, iconColor: '#123456', features: { saveAsImage: { show: true } } },
+                partial: { show: true },
+                kinds: TOOLBOX_KINDS,
+                wrap: object => object,
+            },
+            {
+                key: 'legendConfig',
+                base: fixture.data,
+                values: fixture.values,
+                sample: { fontSize: 20, color: '#123456', icon: 'rect' },
+                partial: { fontSize: 20 },
+                kinds: LEGEND_KINDS,
+                wrap: object => object,
+            },
+            {
+                key: 'jsonSeriesStyle',
+                base: seriesShaped,
+                values: seriesValues,
+                sample: { color: '#ff0000', lineWidth: 4, type: 'bar' },
+                partial: { color: '#ff0000' },
+                kinds: SERIES_META_KINDS,
+                wrap: object => ({ A: object }),
+            },
+        ];
+        const caseName = (c: ConfigCase): string => (c.base.chartType === 'pie' ? `${c.key} (pie)` : c.key);
+        const CASE_TABLE = CASES.map(c => [caseName(c), c] as const);
+
+        /** The chart under a stored configuration; without it when `undefined`. */
+        const chart = (c: ConfigCase, stored?: unknown): Promise<string> =>
+            renderWidget(widget, stored === undefined ? c.base : { ...c.base, [c.key]: stored }, c.values);
+
+        it('draws the chart of its fixtures (the checks have something to compare)', async () => {
+            expect(await renderWidget(widget, fixture.data, fixture.values)).toContain('data-echart');
+            expect(await renderWidget(widget, seriesShaped, seriesValues)).toContain('data-echart');
+        });
+
+        it.each(CASE_TABLE)('reads %s written as plain JSON like the same blob, and in effect', async (_name, c) => {
+            const configured = await chart(c, blob(c.wrap(c.sample)));
+
+            expect(configured, 'the configuration shows').not.toBe(await chart(c));
+            expect(await chart(c, JSON.stringify(c.wrap(c.sample)))).toBe(configured);
+        });
+
+        it.each(CASE_TABLE)('reads an unusable %s like the unset one', async (_name, c) => {
+            const config = c.wrap(c.sample);
+            const otherTop = Array.isArray(config) ? { 0: c.sample } : [c.sample];
+            const unset = await chart(c);
+            const forms: Record<string, unknown> = {
+                'unparsable JSON': '{"oops',
+                'the other top level': JSON.stringify(otherTop),
+                'JSON null': 'null',
+                'a JSON text': '"value"',
+                'plain text instead of a blob': 'name,value',
+                'a broken blob': 'b64:!!!',
+                'a blob of unparsable JSON': `b64:${utf8ToBase64('[{"name"')}`,
+                'a blob of the other top level': blob(otherTop),
+                'a number': 5,
+                'the configuration instead of its JSON text': config,
+            };
+            const differing: string[] = [];
+            for (const [form, stored] of Object.entries(forms)) {
+                if ((await chart(c, stored)) !== unset) {
+                    differing.push(form);
+                }
+            }
+
+            expect(differing).toEqual([]);
+        });
+
+        it.each(CASE_TABLE)(
+            'reads %s after a flat overwrite with a few keys, those keys in effect',
+            async (_name, c) => {
+                const partial = await chart(c, JSON.stringify(c.wrap(c.partial)));
+
+                expect(partial).toContain('data-echart');
+                expect(partial, 'the written keys show').not.toBe(await chart(c));
+                expect(partial).toBe(await chart(c, blob(c.wrap(c.partial))));
+            },
+        );
+
+        it.each(CASE_TABLE)(
+            'reads a broken key of %s like the key left out',
+            async (_name, c) => {
+                const candidates: unknown[] = [5, 'x', true, {}, ['x'], null];
+                const brokenOf = (key: string): unknown[] => candidates.filter(value => !c.kinds[key](value));
+
+                expect(
+                    await differingValues(Object.keys(c.kinds), brokenOf, async assigned => [
+                        await chart(c, JSON.stringify(c.wrap({ ...c.sample, ...assigned }))),
+                        await chart(c, JSON.stringify(c.wrap(without(c.sample, Object.keys(assigned))))),
+                    ]),
+                ).toEqual([]);
+            },
+            120_000,
+        );
+
+        it.each(CASE_TABLE.filter(([, c]) => c.positional !== undefined))(
+            'reads an entry of %s that is no object like an unset entry',
+            async (_name, c) => {
+                const expected = await chart(c, JSON.stringify(c.positional ? [{}, c.sample] : [c.sample]));
+                const differing: string[] = [];
+                for (const entry of [null, 5, 'x', ['x']]) {
+                    if ((await chart(c, JSON.stringify([entry, c.sample]))) !== expected) {
+                        differing.push(JSON.stringify(entry));
+                    }
+                }
+
+                expect(differing).toEqual([]);
+            },
+        );
+
+        it('reads a value of jsonSeriesStyle that is no object like the name left out', async () => {
+            const c = CASES.find(entry => entry.key === 'jsonSeriesStyle')!;
+            const styled = { B: c.sample };
+
+            expect(await chart(c, JSON.stringify({ A: 5, ...styled }))).toBe(await chart(c, JSON.stringify(styled)));
+            expect(await chart(c, JSON.stringify({ A: null, C: 'x', ...styled }))).toBe(
+                await chart(c, JSON.stringify(styled)),
+            );
+        });
+
+        describe('jsonHidden', () => {
+            const hidden = (stored?: unknown): Promise<string> =>
+                renderWidget(
+                    widget,
+                    stored === undefined ? seriesShaped : { ...seriesShaped, jsonHidden: stored },
+                    seriesValues,
+                );
+
+            it('reads the hidden names written as plain JSON like the same blob, and in effect', async () => {
+                const configured = await hidden(blob(['B']));
+
+                expect(configured).not.toBe(await hidden());
+                expect(await hidden('["B"]')).toBe(configured);
+            });
+
+            it('reads an unusable list like none, and an entry that is no name like the entry left out', async () => {
+                const none = await hidden();
+                const differing: string[] = [];
+                for (const stored of ['{"oops', '{"B":true}', 'B', 'b64:!!!', 5, ['B']]) {
+                    if ((await hidden(stored)) !== none) {
+                        differing.push(JSON.stringify(stored));
+                    }
+                }
+
+                expect(differing).toEqual([]);
+                expect(await hidden('[5, null, {"B":1}, "B"]')).toBe(await hidden('["B"]'));
+            });
+        });
+
+        it('draws the chart with the configuration defaults of a fresh widget like with none (strukturiert-leer)', async () => {
+            const defaults = Object.fromEntries(
+                (widget.getWidgetInfo().visAttrs ?? [])
+                    .flatMap(group => group.fields ?? [])
+                    .flatMap(field => {
+                        const {
+                            name: key,
+                            storedValue,
+                            default: value,
+                        } = field as {
+                            name?: string;
+                            storedValue?: unknown;
+                            default?: unknown;
+                        };
+                        return key && typeof storedValue === 'object' ? [[key, value]] : [];
+                    }),
+            );
+
+            expect(Object.keys(defaults)).toEqual(
+                expect.arrayContaining([
+                    'seriesConfig',
+                    'chartConfig',
+                    'yAxes',
+                    'xAxis',
+                    'markLines',
+                    'toolboxConfig',
+                    'jsonSeriesStyle',
+                    'jsonHidden',
+                ]),
+            );
+            for (const [base, values] of [
+                [fixture.data, fixture.values],
+                [seriesShaped, seriesValues],
+            ] as const) {
+                const unset = without(base, Object.keys(defaults));
+                expect(await renderWidget(widget, { ...unset, ...defaults }, values)).toBe(
+                    await renderWidget(widget, unset, values),
+                );
+            }
+        });
+    });
+
+    // The rule lets a numeric string through in a number field (a binding delivers text, and so may
+    // the assistant): the chart reads it as its number. vis-2 itself expands the series group over
+    // `parseInt(series_count)`, so a series count as text subscribes the OIDs the chart has to draw.
+    describe('EchartsCollectionWidget: a number field stored as a numeric string', () => {
+        it('draws the chart like the number', async () => {
+            const widget = (
+                (await import('../EchartsCollectionWidget/EchartsCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const fixture = FIXTURES.EchartsCollectionWidget!;
+            const numberFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                .filter(([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number')
+                .map(([key]) => key);
+            // A value each field acts with in the fixture (the series count keeps its one series).
+            const numberOf = (key: string): number => (key === 'series_count' ? 1 : 3);
+
+            expect(numberFields).toEqual(expect.arrayContaining(['series_count', 'tooltipDecimals', 'paddingTop']));
+            expect(
+                await differingPerKey(
+                    numberFields,
+                    key => [String(numberOf(key))],
+                    async assigned => {
+                        const [key] = Object.keys(assigned);
+                        return [
+                            await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                            await renderWidget(widget, { ...fixture.data, [key]: numberOf(key) }, fixture.values),
+                        ];
+                    },
+                ),
+            ).toEqual([]);
+        }, 120_000);
+    });
+
+    // The ECharts scalars the configuration editor writes as text (mode, chart type, positions,
+    // colours, time window …) are text fields: the rule leaves them alone, each reader tolerates an
+    // unknown value its own way (ADR-0071 decode-and-tolerate). Whatever the assistant writes there,
+    // in both JSON families and the Verlauf, the widget draws without a crash.
+    describe('EchartsCollectionWidget: its text fields', () => {
+        it('draws for any value the assistant may write into one', async () => {
+            const widget = (
+                (await import('../EchartsCollectionWidget/EchartsCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const fixture = FIXTURES.EchartsCollectionWidget!;
+            const textFields = (widget.getWidgetInfo().visAttrs ?? [])
+                .filter(group => group.name === 'chart')
+                .flatMap(group => (group.fields ?? []) as { name?: string; type?: string; storedValue?: unknown }[])
+                .filter(field => field.name && field.type === 'text' && field.storedValue === undefined)
+                .map(field => field.name!);
+            const values: unknown[] = [5, true, { a: 1 }, ['x'], 'zzz'];
+            const bases = [
+                fixture.data,
+                { ...fixture.data, jsonKind: undefined },
+                { ...fixture.data, mode: 'history' },
+            ];
+
+            expect(textFields).toEqual(expect.arrayContaining(['mode', 'chartType', 'timeRange', 'legendPos']));
+            const crashed: string[] = [];
+            for (const base of bases) {
+                for (const value of values) {
+                    const data = { ...base, ...Object.fromEntries(textFields.map(key => [key, value])) };
+                    let html: string;
+                    try {
+                        html = await renderWidget(widget, data, fixture.values);
+                    } catch (error) {
+                        html = `<no widget body: ${String(error)}>`;
+                    }
+                    if (html.includes('<no widget body')) {
+                        crashed.push(
+                            `${JSON.stringify(value)} in ${String(base.mode)}/${String(base.jsonKind)}: ${html.slice(0, 120)}`,
+                        );
+                    }
+                }
+            }
+
+            expect(crashed).toEqual([]);
+        }, 120_000);
+    });
+
+    // The assistant sets the series OIDs (`oid1..oidN`, the indexed group) and the series count
+    // without the configuration editor's OID pick. The chart reads no object of them: the pick's
+    // only follow-up are the text facts of a boolean or enum OID in the series settings (ADR-0058),
+    // which the editor heals on its next load, as for every widget saved before them. So a series
+    // set without the pick draws its Verlauf as the picked one draws it before that heal.
+    describe('EchartsCollectionWidget: series OIDs set without the editor pick', () => {
+        const HISTORY = [
+            { ts: 1_000, val: 1 },
+            { ts: 2_000, val: 3 },
+        ];
+
+        /** The Verlauf chart: mounted, its debounced history fetch (200 ms) landed. */
+        async function verlauf(widget: WidgetClass, data: Record<string, unknown>): Promise<string> {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            const root = createTestRoot(container);
+            await act(() => {
+                root.render(widgetElement(widget, data, {}));
+                return Promise.resolve();
+            });
+            await act(() => new Promise<void>(resolve => setTimeout(resolve, 300)));
+            const html = withoutMountIds(container.querySelector('.GENERIC-1')?.innerHTML ?? '');
+            act(() => root.unmount());
+            container.remove();
+            return html;
+        }
+
+        const getHistory = vi.fn(() => Promise.resolve(HISTORY));
+
+        beforeEach(() => {
+            Object.assign(stubSocket, { getHistory });
+            stubSocket.setState.mockClear();
+            stubSocket.setObject.mockClear();
+        });
+        afterEach(() => {
+            delete (stubSocket as Partial<{ getHistory: unknown }>).getHistory;
+        });
+
+        it('draws the Verlauf of each series, with or without series settings, and reads no object for the chart', async () => {
+            const widget = (
+                (await import('../EchartsCollectionWidget/EchartsCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const data = { ...CHROME, mode: 'history', timeRange: '1d', series_count: 1, oid1: NUMBER_OID };
+
+            const bare = await verlauf(widget, data);
+            const named = await verlauf(widget, { ...data, seriesConfig: '[{"name":"Level"}]' });
+
+            expect(bare).toContain('data-echart');
+            expect(bare).toContain('[1000,1]');
+            expect(named).toContain('"name":"Level"');
+            expect(getHistory).toHaveBeenCalledWith(NUMBER_OID, expect.anything());
+            // Only the history's Auto instance reads the datapoint (historyFetcher), nothing derives from it.
+            expect(stubSocket.setState).not.toHaveBeenCalled();
+            expect(stubSocket.setObject).not.toHaveBeenCalled();
+        });
     });
 
     describe('SwitchCollectionWidget: bound attributes', () => {
