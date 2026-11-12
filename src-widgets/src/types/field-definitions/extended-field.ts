@@ -140,9 +140,10 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
     inheritTextStyle?: boolean;
 
     /**
-     * What a data-bearing `custom` field stores under its name (KI-Integration, ADR-0114). The
-     * Rückfall-Regel (`lib/usableWidgetData`) reads a stored value of another kind as unset; a
-     * custom field that stores nothing under its name declares none.
+     * What a data-bearing `custom` field stores under its name (KI-Integration, ADR-0114), or a
+     * `text` field that holds a configuration blob (JSON text). The Rückfall-Regel
+     * (`lib/usableWidgetData`) reads a stored value of another kind as unset; a custom field that
+     * stores nothing under its name declares none.
      */
     storedValue?: StoredValue;
 

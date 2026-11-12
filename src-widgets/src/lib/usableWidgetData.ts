@@ -11,15 +11,17 @@
  *   input stores strings while typing, bindings deliver strings);
  * - `checkbox` fields: a boolean;
  * - `select` fields with an option list: one of the option values (strictly);
- * - data-bearing `custom` fields: the {@link StoredValue} their definition declares
- *   (`storedValue`) — a string, a number, a boolean, or JSON text (plain or as `b64:` blob) whose
- *   top level is an object or a list;
+ * - data-bearing `custom` fields, and `text` fields that hold a configuration blob: the
+ *   {@link StoredValue} their definition declares (`storedValue`) — a string, a number, a boolean,
+ *   or JSON text (plain or as `b64:` blob) whose top level is an object or a list;
  * - the keys `name{n}` of a Zustandszeile: the rule of the per-state field `name` the
- *   Zustandseditor edits there (`perStateField` of its detail field), unless a field is named so.
+ *   Zustandseditor edits there (`perStateField` of its detail field), unless a field is named so;
+ *   likewise the keys `name{n}` of a vis-2 indexed group (`indexFrom`/`indexTo`), which stores each
+ *   of its fields once per index and never under the bare name.
  *
  * `undefined`, `null` and `''` are never unusable: the first two are unset already, and `''`
- * keeps whatever it means for its field today. Every other field — text, html, OID, image,
- * undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
+ * keeps whatever it means for its field today. Every other field — text without a declared
+ * `storedValue`, html, OID, image, undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
  * stored value the host substitutes — a binding (vis-2 hands its resolved value as text) or a group
  * attribute: the widget reads the host's value as before, except in a checkbox field, where the
  * host's text reads as the boolean it names ({@link readsAsOn}: `'false'`, `'0'`, `''` off).
@@ -49,8 +51,9 @@ export interface FieldRules {
     /** By field name. */
     readonly named: ReadonlyMap<string, FieldRule>;
     /**
-     * By base name, for the fields stored once per Zustandszeile as `name{n}` (`n` ≥ 1): the
-     * per-state fields a Zustandseditor detail field edits (`perStateField`).
+     * By base name, for the fields stored once per row as `name{n}` (`n` ≥ 1): the per-state
+     * fields a Zustandseditor detail field edits (`perStateField`), and the fields of a vis-2
+     * indexed group.
      */
     readonly perRow: ReadonlyMap<string, FieldRule>;
 }
@@ -87,7 +90,9 @@ export const fieldRuleOf = (field: RuleField): FieldRule | undefined => {
             return Array.isArray(field.options) && !field.multiple
                 ? { options: field.options.map(optionValue) }
                 : undefined;
+        // A text field declares one only for a configuration blob (hidden, written by a modal editor).
         case 'custom':
+        case 'text':
             return field.storedValue;
         default:
             return undefined;
@@ -103,8 +108,10 @@ const addRule = (rules: Map<string, FieldRule>, field: RuleField | undefined): v
 };
 
 /**
- * The rules of all named fields of a widget's attribute groups, and of the per-state fields its
- * Zustandseditor stores per row; the first definition of a name wins.
+ * The rules of all named fields of a widget's attribute groups, and of the fields stored per row:
+ * the per-state fields its Zustandseditor stores per Zustandszeile and the fields of an indexed
+ * group (vis-2 stores them as `name{indexFrom}`…`name{indexTo}`, never under the bare name); the
+ * first definition of a name wins.
  *
  * @param groups - The widget's `visAttrs`.
  * @returns The rules by field name and by per-row base name.
@@ -113,8 +120,9 @@ export const fieldRulesOf = (groups: readonly RxWidgetInfoGroup[]): FieldRules =
     const named = new Map<string, FieldRule>();
     const perRow = new Map<string, FieldRule>();
     for (const group of groups) {
+        const indexed = group.indexFrom !== undefined;
         for (const field of (group.fields ?? []) as RuleField[]) {
-            addRule(named, field);
+            addRule(indexed ? perRow : named, field);
             addRule(perRow, field.perStateField);
         }
     }

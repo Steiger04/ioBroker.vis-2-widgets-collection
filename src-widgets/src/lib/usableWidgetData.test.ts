@@ -217,3 +217,56 @@ describe('usableWidgetData: fields stored per Feldnummer (the Zustandszeilen, na
         });
     });
 });
+
+describe('usableWidgetData: fields of a vis-2 indexed group (stored as name{n})', () => {
+    const indexedRules = fieldRulesOf([
+        {
+            name: 'series',
+            indexFrom: 1,
+            indexTo: 'series_count',
+            fields: [
+                { name: 'width', type: 'number' },
+                { name: 'oid', type: 'id' },
+            ],
+        },
+    ] as unknown as RxWidgetInfoGroup[]);
+
+    it('reads an unusable value of any index as unset, the way of the Zustandszeilen', () => {
+        expect(usableWidgetData({ width1: 'abc', width2: 3, width3: '4', oid1: 5 }, indexedRules)).toEqual({
+            width2: 3,
+            width3: '4',
+            oid1: 5,
+        });
+    });
+
+    it('stores no field under the bare name', () => {
+        const data = { width: 'abc' };
+
+        expect(usableWidgetData(data, indexedRules)).toBe(data);
+    });
+});
+
+describe('usableWidgetData: a text field that declares the JSON it stores (a hidden configuration blob)', () => {
+    const blobRules = fieldRulesOf([
+        {
+            name: 'chart',
+            fields: [
+                { name: 'axes', type: 'text', storedValue: { json: 'array' } },
+                { name: 'title', type: 'text' },
+            ],
+        },
+    ] as unknown as RxWidgetInfoGroup[]);
+
+    it('reads JSON of another top level, unparsable text or no text as unset', () => {
+        for (const axes of ['{}', '{"oops', 'a,b', 5, [1]]) {
+            expect(usableWidgetData({ axes, title: 5 }, blobRules), JSON.stringify(axes)).toEqual({ title: 5 });
+        }
+    });
+
+    it('keeps its JSON, plain or as blob, and its empty text', () => {
+        for (const axes of ['[]', encodeBlob('[{"name":"a"}]'), '', null]) {
+            const data = { axes };
+            expect(usableWidgetData(data, blobRules)).toBe(data);
+        }
+    });
+});
