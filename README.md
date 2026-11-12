@@ -99,7 +99,7 @@ reads them from there.
 - (steiger04) Widgets added by the assistant, over MCP or by a script now look like widgets from the palette, even without the usual default settings; a stored setting a field cannot use is read as unset instead of breaking the widget
 - (steiger04) Grid layout: a widget keeps the height of its grid rows instead of growing with its content (e.g. a long JSON table); a new input widget starts 100 px high, so its field fits
 - (steiger04) JSON Table: when one long cell makes a row tall, the other cells stay at the top of the row
-- (steiger04) ECharts: a history chart without data in its time range now says so instead of asking to set up series
+- (steiger04) ECharts: a history chart without data in its time range now says so instead of asking to set up series; a new title starts bold (the chart default), and saving the configurator no longer makes a title without a set weight thin
 - (steiger04) Many fixes across all widgets
 
 ### 3.0.2 (2026-11-11)
