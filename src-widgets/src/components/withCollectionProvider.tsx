@@ -8,6 +8,7 @@ import type { JSX } from 'react';
 import CollectionProvider from './CollectionProvider';
 
 import type { CollectionContextProps, AllCollectionContextProps } from '../types';
+import type { OidPickField } from '../lib/pickedWidgetData';
 
 /**
  * Wraps a widget element in a {@link module:components/CollectionProvider.default}.
@@ -15,6 +16,7 @@ import type { CollectionContextProps, AllCollectionContextProps } from '../types
  * @template T - Widget data type from WidgetRegistry
  * @param component - Rendered element(s) to wrap.
  * @param context - Typed collection context.
+ * @param oidPickFields - The widget's id fields with the shared OID pick (see CollectionProvider).
  * @returns The same element(s) wrapped in a provider.
  * @example
  * ```tsx
@@ -27,8 +29,16 @@ import type { CollectionContextProps, AllCollectionContextProps } from '../types
 function withCollectionProvider<T extends object = object>(
     component: JSX.Element | JSX.Element[] | null,
     context: CollectionContextProps<T>,
+    oidPickFields?: readonly OidPickField[],
 ): JSX.Element {
-    return <CollectionProvider context={context as AllCollectionContextProps}>{component}</CollectionProvider>;
+    return (
+        <CollectionProvider
+            context={context as AllCollectionContextProps}
+            oidPickFields={oidPickFields}
+        >
+            {component}
+        </CollectionProvider>
+    );
 }
 
 export default withCollectionProvider;

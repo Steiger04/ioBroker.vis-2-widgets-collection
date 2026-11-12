@@ -10,7 +10,8 @@
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
  * - the entry of the widget data into the Collection-Kontext, read through the Rückfall-Regel
- *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`
+ *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
+ *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`)
  */
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
@@ -20,24 +21,35 @@ import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import withCollectionProvider from './components/withCollectionProvider';
 import { I18N_PREFIX } from './lib/translate';
 import { fieldRulesOf, usableWidgetData } from './lib/usableWidgetData';
+import { oidPickFieldsOf } from './lib/pickedWidgetData';
 
 import type { FieldRules } from './lib/usableWidgetData';
+import type { OidPickField } from './lib/pickedWidgetData';
 import type { CollectionContextProps } from './types';
 
 /** A widget class as far as its field rules are concerned: its static declaration. */
 type WidgetClass = { getWidgetInfo(): RxWidgetInfo };
 
-/** The field rules of each widget class, read once from its static `getWidgetInfo()`. */
-const fieldRulesByClass = new WeakMap<WidgetClass, FieldRules>();
+/** What the widget data's entry reads from a widget class's fields. */
+interface FieldReading {
+    /** The field rules of the Rückfall-Regel (lib/usableWidgetData). */
+    rules: FieldRules;
+    /** The id fields whose pick runs the shared derivation (lib/pickedWidgetData). */
+    oidPickFields: readonly OidPickField[];
+}
 
-/** The field rules of a widget class (lib/usableWidgetData), built on first use. */
-const fieldRulesOfWidget = (widgetClass: WidgetClass): FieldRules => {
-    let rules = fieldRulesByClass.get(widgetClass);
-    if (!rules) {
-        rules = fieldRulesOf(widgetClass.getWidgetInfo().visAttrs ?? []);
-        fieldRulesByClass.set(widgetClass, rules);
+/** The field reading of each widget class, read once from its static `getWidgetInfo()`. */
+const fieldReadingByClass = new WeakMap<WidgetClass, FieldReading>();
+
+/** The field reading of a widget class, built on first use. */
+const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
+    let reading = fieldReadingByClass.get(widgetClass);
+    if (!reading) {
+        const visAttrs = widgetClass.getWidgetInfo().visAttrs ?? [];
+        reading = { rules: fieldRulesOf(visAttrs), oidPickFields: oidPickFieldsOf(visAttrs) };
+        fieldReadingByClass.set(widgetClass, reading);
     }
-    return rules;
+    return reading;
 };
 
 /**
@@ -121,11 +133,8 @@ class Generic<
         // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
         // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
-        const data = usableWidgetData(
-            this.state.rxData,
-            fieldRulesOfWidget(this.constructor as unknown as WidgetClass),
-            props.widget.data,
-        );
+        const { rules, oidPickFields } = fieldReadingOf(this.constructor as unknown as WidgetClass);
+        const data = usableWidgetData(this.state.rxData, rules, props.widget.data);
 
         if (data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
@@ -154,7 +163,8 @@ class Generic<
             ...extraContext,
         } as CollectionContextProps<RxData>;
 
-        return withCollectionProvider(this.wrapContent(component), collectionContext);
+        // An id without its object reads the editor's pick inside the provider (lib/pickedWidgetData).
+        return withCollectionProvider(this.wrapContent(component), collectionContext, oidPickFields);
     }
 
     wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {

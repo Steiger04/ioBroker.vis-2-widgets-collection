@@ -29,9 +29,16 @@
 import { act, type FC } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { Theme } from '@iobroker/gui-components';
-import type { RxWidgetInfo } from '@iobroker/types-vis-2';
+import { Theme, type Connection } from '@iobroker/gui-components';
+import type {
+    RxWidgetInfo,
+    RxWidgetInfoAttributesField,
+    RxWidgetInfoFieldChangeHandler,
+    WidgetData,
+} from '@iobroker/types-vis-2';
 
+import type { AllowedType } from './allowedOidTypes';
+import { oidChangeHandlerAsync } from './commonObjectFields';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
 import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, STILL_OPEN, type WidgetName } from './testing/aiSeams';
@@ -251,10 +258,41 @@ const usableValuesOf = (rule: FieldRule): unknown[] => {
     }
 };
 
+/** A state object of the fake object database. */
+const stateObject = (id: string, common: Record<string, unknown>): Record<string, unknown> => ({
+    _id: id,
+    type: 'state',
+    common: { name: id, role: 'state', read: true, write: true, ...common },
+});
+
+/** Ids the object database does not know, or whose type no widget accepts. */
+const MISSING_OID = 'demo.0.missing';
+const LIST_OID = 'demo.0.list';
+const OTHER_OID = 'demo.0.other';
+
+/** The objects the fixtures' OIDs name, as the OID picker reads them; the instance carries the icon. */
+const OBJECTS: Record<string, unknown> = {
+    'demo.0': { _id: 'demo.0', type: 'instance', common: { name: 'Demo', icon: 'demo.png' } },
+    'demo.0.level': stateObject('demo.0.level', {
+        type: 'number',
+        min: -10,
+        max: 50,
+        states: { 0: 'OFF', 1: 'ON', 2: 'AUTO' },
+    }),
+    'demo.0.power': stateObject('demo.0.power', { type: 'boolean' }),
+    'demo.0.dialog': stateObject('demo.0.dialog', { type: 'boolean' }),
+    'demo.0.table': stateObject('demo.0.table', { type: 'string' }),
+    [LIST_OID]: stateObject(LIST_OID, { type: 'array' }),
+};
+
 const stubSocket = {
     getState: (): Promise<null> => Promise.resolve(null),
     subscribeState: (): Promise<void> => Promise.resolve(),
     unsubscribeState: (): void => undefined,
+    getObject: vi.fn((id: string): Promise<unknown> => Promise.resolve(OBJECTS[id])),
+    // Writes: none of these may run while a widget renders.
+    setState: vi.fn((): Promise<void> => Promise.resolve()),
+    setObject: vi.fn((): Promise<void> => Promise.resolve()),
 };
 
 type WidgetClass = (new (props: unknown) => {
@@ -280,6 +318,8 @@ async function markupOf(element: React.JSX.Element, read: (container: HTMLElemen
         root.render(element);
         return Promise.resolve();
     });
+    // A macrotask: the object reads of an OID without its object resolve, and their rendering lands.
+    await act(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
     const html = withoutMountIds(read(container));
     act(() => root.unmount());
     container.remove();
@@ -702,6 +742,180 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             });
 
             expect(bound).toBe(await renderWidget(widget, { ...fixture.data, noHeader: flag }, fixture.values));
+        });
+    });
+
+    // The assistant sets an OID without running the field's onChange, so the object the editor pick
+    // stores (`<id>Object`) and the pick's other keys are missing — or an older object stays with a
+    // foreign `_id` after a flat update. The widget reads the object itself and derives with the
+    // pick's own derivation what the pick would have written, for keys the data leaves unset.
+    describe('an OID without its object (the editor pick read at runtime)', () => {
+        /** Per widget with an OID: the id field the fixture binds. */
+        const ID_FIELDS = PLACEABLE_WIDGETS.flatMap(name => {
+            const data = FIXTURES[name]!.data;
+            const idName = Object.keys(data).find(key => `${key}Object` in data);
+            return idName ? [[name, idName] as const] : [];
+        });
+
+        /** The widgets that show the frame's OID hint; the Dialog's Sitzungs-OID is optional (ADR-0111). */
+        const HINTING = ID_FIELDS.filter(([name]) => name !== 'DialogCollectionWidget');
+
+        const HINT = 'collection_base_select_oid';
+
+        const load = async (name: WidgetName): Promise<WidgetClass> =>
+            ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+
+        /** What the assistant writes: the frame texts and the OID, nothing the pick adds. */
+        const assistantData = (
+            name: WidgetName,
+            idName: string,
+            id = FIXTURES[name]!.data[idName],
+        ): Record<string, unknown> => {
+            const { colorLightType } = FIXTURES[name]!.data;
+            return { ...CHROME, [idName]: id, ...(colorLightType ? { colorLightType } : {}) };
+        };
+
+        /**
+         * The data the editor stores when the user picks the id in the panel: the id field's own
+         * onChange. Light2's switch field adds its own steps around the shared pick (switch rows,
+         * channel detection, ADR-0096) — for it the shared pick alone, which is what it runs.
+         */
+        const pickedInEditor = async (
+            widget: WidgetClass,
+            idName: string,
+            data: Record<string, unknown>,
+        ): Promise<Record<string, unknown>> => {
+            const field = (widget.getWidgetInfo().visAttrs ?? [])
+                .flatMap(group => group.fields ?? [])
+                .find(candidate => candidate.name === idName) as RxWidgetInfoAttributesField & {
+                onChange?: RxWidgetInfoFieldChangeHandler;
+                allowedTypes: readonly AllowedType[];
+            };
+            const onChange =
+                idName === 'colorLightSwitchOid' ? oidChangeHandlerAsync(field.allowedTypes, idName) : field.onChange!;
+            let stored: Record<string, unknown> | undefined;
+            await onChange(
+                field,
+                structuredClone(data),
+                (changed: WidgetData) => {
+                    stored = changed;
+                },
+                stubSocket as unknown as Connection,
+            );
+            // The handler hands its result to vis-2 after 100 ms.
+            await new Promise(resolve => setTimeout(resolve, 150));
+            return stored!;
+        };
+
+        /** Freezes the data deeply: a write into the widget data throws. */
+        const frozen = <T,>(value: T): T => {
+            if (value && typeof value === 'object') {
+                Object.values(value).forEach(frozen);
+                Object.freeze(value);
+            }
+            return value;
+        };
+
+        it.each(ID_FIELDS)(
+            '%s renders an OID without its object like the editor pick, once the object is loaded',
+            async (name, idName) => {
+                const widget = await load(name);
+                const data = assistantData(name, idName);
+                const picked = await pickedInEditor(widget, idName, data);
+
+                const html = await renderWidget(widget, data, FIXTURES[name]!.values);
+
+                expect(picked[`${idName}Object`]).toMatchObject({ _id: data[idName] });
+                expect(html).not.toContain(HINT);
+                expect(html).toBe(await renderWidget(widget, picked, FIXTURES[name]!.values));
+            },
+        );
+
+        it.each(ID_FIELDS)('%s reads an object with a foreign _id like a missing one', async (name, idName) => {
+            const widget = await load(name);
+            const data = assistantData(name, idName);
+            const stale = { ...(FIXTURES[name]!.data[`${idName}Object`] as object), _id: OTHER_OID };
+
+            expect(await renderWidget(widget, { ...data, [`${idName}Object`]: stale }, FIXTURES[name]!.values)).toBe(
+                await renderWidget(widget, data, FIXTURES[name]!.values),
+            );
+        });
+
+        it.each(HINTING)(
+            '%s keeps the OID hint for an object that does not exist or whose type it does not take',
+            async (name, idName) => {
+                const widget = await load(name);
+                const stale = { ...(FIXTURES[name]!.data[`${idName}Object`] as object), _id: OTHER_OID };
+
+                for (const id of [MISSING_OID, LIST_OID]) {
+                    expect(await renderWidget(widget, assistantData(name, idName, id), {})).toContain(HINT);
+                    expect(
+                        await renderWidget(
+                            widget,
+                            { ...assistantData(name, idName, id), [`${idName}Object`]: stale },
+                            {},
+                        ),
+                    ).toContain(HINT);
+                }
+            },
+        );
+
+        it.each(ID_FIELDS)(
+            '%s writes neither the widget data nor a state, and reads each object once',
+            async (name, idName) => {
+                const widget = await load(name);
+                const data = frozen(assistantData(name, idName));
+                stubSocket.getObject.mockClear();
+                stubSocket.setState.mockClear();
+                stubSocket.setObject.mockClear();
+
+                await renderWidget(widget, data, frozen({ ...FIXTURES[name]!.values }));
+
+                // The object, then the icon walk up to the instance that carries one.
+                expect(stubSocket.getObject.mock.calls.map(([id]) => id)).toEqual([
+                    data[idName],
+                    data[idName],
+                    'demo.0',
+                ]);
+                expect(stubSocket.setState).not.toHaveBeenCalled();
+                expect(stubSocket.setObject).not.toHaveBeenCalled();
+            },
+        );
+
+        it.each(ID_FIELDS)('%s with its object reads no object and renders as before', async (name, idName) => {
+            const widget = await load(name);
+            const fixture = FIXTURES[name]!;
+            stubSocket.getObject.mockClear();
+
+            const html = await renderWidget(widget, fixture.data, fixture.values);
+
+            expect(stubSocket.getObject).not.toHaveBeenCalled();
+            expect(fixture.data[`${idName}Object`]).toBeDefined();
+            expect(html).toBe(await renderBodyRaw(fixture, fixture.data));
+        });
+
+        describe('GaugeCollectionWidget: the object range', () => {
+            const gaugeRange = (html: string): { minValue: number; maxValue: number } => {
+                const body = document.createElement('div');
+                body.innerHTML = html;
+                const options = JSON.parse(body.querySelector('[data-gauge-options]')!.textContent) as {
+                    minValue: number;
+                    maxValue: number;
+                };
+                return { minValue: options.minValue, maxValue: options.maxValue };
+            };
+
+            it('draws its scale over the object range, and a bound the data sets wins', async () => {
+                const widget = await load('GaugeCollectionWidget');
+                const data = assistantData('GaugeCollectionWidget', 'oid');
+                const { values } = FIXTURES.GaugeCollectionWidget!;
+
+                expect(gaugeRange(await renderWidget(widget, data, values))).toEqual({ minValue: -10, maxValue: 50 });
+                expect(gaugeRange(await renderWidget(widget, { ...data, minValue: 5 }, values))).toEqual({
+                    minValue: 5,
+                    maxValue: 50,
+                });
+            });
         });
     });
 });

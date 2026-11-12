@@ -174,6 +174,8 @@ export const loadPickedObjectAsync = async (
  * @param data - The widget data, changed in place (top-level keys only).
  * @param oid - The name of the data property that stores the picked id.
  * @param picked - What {@link loadPickedObjectAsync} read.
+ * @param picked.object - The picked state object.
+ * @param picked.icon - Its icon, or its nearest parent's.
  * @param options - See {@link OidPickOptions}.
  * @param options.inventRange - See {@link OidPickOptions.inventRange}.
  */
@@ -330,6 +332,8 @@ export const oidChangeHandlerAsync =
  * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
  * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys) — and as
  * `filter` for the object dialog, which then offers only those types (ADR-0111 Nr. 4).
+ * `allowedTypes` and `inventRange` are the mirror the runtime reads for an id without its object
+ * (`lib/pickedWidgetData`): the same pick, without the editor.
  * @example createIdField('oid', ANY_VALUE_TYPES)
  */
 export const createIdField = (
@@ -343,6 +347,7 @@ export const createIdField = (
         label: name,
         onChange: oidChangeHandlerAsync(allowedTypes, name, options),
         allowedTypes,
+        inventRange: options?.inventRange !== false,
         filter: oidTypeFilter(allowedTypes),
     }) as RxWidgetInfoAttributesField;
 
