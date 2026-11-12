@@ -61,6 +61,9 @@ export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
  * that is no JSON list (plain or `b64:` blob) reads as no configuration — the Spalten-Merge over
  * an empty configuration, i.e. the automatically found Columns.
  *
+ * Inside the list, what the table cannot use reads as not written: an entry that is no Column
+ * (no object, or without a text `path`) is left out.
+ *
  * @param raw - The stored `columnConfig`.
  * @returns The Column entries; empty for an unset or unusable configuration.
  */
@@ -68,5 +71,13 @@ export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
     if (typeof raw !== 'string' || raw === '' || !isUsableValue(COLUMN_CONFIG_VALUE, raw)) {
         return [];
     }
-    return JSON.parse(decodeBlob(raw)) as ColumnConfigEntry[];
+    const entries = JSON.parse(decodeBlob(raw)) as unknown[];
+    return entries.filter(isColumnEntry);
 }
+
+/** A plain object (no list, no `null`). */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** An entry that names a Column: an object with a text `path`. */
+const isColumnEntry = (entry: unknown): entry is ColumnConfigEntry => isRecord(entry) && typeof entry.path === 'string';
