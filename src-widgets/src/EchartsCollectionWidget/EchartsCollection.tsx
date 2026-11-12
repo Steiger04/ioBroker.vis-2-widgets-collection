@@ -60,8 +60,8 @@ function EchartsCollection(): React.ReactElement {
     const values = useMemo(() => context.values, [valuesKey]);
     const { data: styleData } = useData('oid');
 
-    const chartType = data.chartType ?? 'line';
-    const family = familyOf(chartType);
+    // The kernel reads a missing chart type as the default 'line' (cartesian), as in the pipeline.
+    const family = familyOf(data.chartType);
     const mode = data.mode ?? 'history';
 
     const meta = useMemo(() => parseSeriesConfig(data.seriesConfig), [data.seriesConfig]);
