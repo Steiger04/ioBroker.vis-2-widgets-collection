@@ -25,7 +25,9 @@ import type { WidgetData } from '@iobroker/types-vis-2';
  * @returns `true` for a blank row. `false` and `0` are values.
  */
 export const isBlankStateValue = (value: unknown): boolean =>
-    value === undefined || value === null || typeof value === 'object' || !/\S/.test(String(value));
+    typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+        ? !/\S/.test(String(value))
+        : true;
 
 /**
  * The number of resolved states the runtime gets out of the widget's raw data.
