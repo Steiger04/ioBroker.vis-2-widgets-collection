@@ -91,6 +91,16 @@ describe('buildTableChrome — header bar', () => {
         expect(chrome({ tableHeaderElevation }).headerBarSx.boxShadow).toBe(boxShadow);
     });
 
+    // vis-2's slider keeps '' once emptied, and the assistant may write it: like the unset field
+    it.each([
+        ['emptied', ''],
+        ['null', null],
+    ])('reads an %s elevation like the unset one (shadow 6)', (_case, tableHeaderElevation) => {
+        const settings = { tableHeaderElevation } as unknown as TableChromeSettings;
+
+        expect(chrome(settings).headerBarSx.boxShadow).toBe('shadow-6');
+    });
+
     it('drops card surface and shadow with noCard, whatever the elevation', () => {
         const bar = chrome({ noCard: true, tableHeaderElevation: 12 }).headerBarSx;
 

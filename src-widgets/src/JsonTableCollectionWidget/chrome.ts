@@ -23,12 +23,14 @@
 import type { Theme } from '@mui/material/styles';
 
 import { gradientColor } from '../lib/helper/gradientColor';
+import optionalNumber from '../lib/helper/optionalNumber';
 import {
     resolveEffectiveSolidColor,
     terminalColor,
     type ColorFieldContract,
 } from '../lib/helper/resolveEffectiveColor';
 import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
+import { TABLE_HEADER_ELEVATION_DEFAULT } from '../lib/jsonTableDefaults';
 import type { JsonTableFieldsRxData } from '../types';
 
 /** Row height (px) per density. */
@@ -121,7 +123,8 @@ function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, 
  * `backgroundColor` as stored; an unset one leaves the base.
  */
 function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject {
-    const headerElevation = settings.tableHeaderElevation ?? 6;
+    // An emptied slider ('') reads like the unset one
+    const headerElevation = optionalNumber(settings.tableHeaderElevation) ?? TABLE_HEADER_ELEVATION_DEFAULT;
     const headerBorderWidth = settings.headerBorderWidth ?? 0;
 
     // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside

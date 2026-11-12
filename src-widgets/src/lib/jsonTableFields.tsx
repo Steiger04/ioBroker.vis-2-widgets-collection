@@ -19,6 +19,7 @@ import {
 import { COLUMN_CONFIG_VALUE } from '../JsonTableCollectionWidget/utils/columnConfig';
 import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
+import { TABLE_HEADER_ELEVATION_DEFAULT } from './jsonTableDefaults';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -223,7 +224,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 24,
         step: 1,
-        default: 6,
+        default: TABLE_HEADER_ELEVATION_DEFAULT,
         tooltip: 'json_table_header_elevation_tooltip',
         hidden: 'data.tableShowHeader === false',
     },
