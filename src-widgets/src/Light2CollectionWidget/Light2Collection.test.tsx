@@ -152,16 +152,11 @@ describe('Light2Collection Button-Modus', () => {
 });
 
 describe('Light2Collection Button-Modus long-press delay', () => {
-    // vis-2's number field keeps '' once the user empties it, and the assistant may write it: the
-    // widget reads the delay like the unset one (the field default, emptiedReadsUnset), not as a 0 ms
-    // long press on every touch.
-    it.each([
-        ['emptied', ''],
-        ['stored as null', null],
-    ])('toggles on a short press for a delay %s, like the unset delay', async (_case, delay) => {
+    // A delay stored as null reads like the unset one (the field default, lib/fieldDefaults).
+    it('toggles on a short press for a delay stored as null, like the unset delay', async () => {
         const { container, setValue } = mountBody(
             Light2Collection,
-            scene({ colorLightButton: true, colorLightDelayLongPress: delay }),
+            scene({ colorLightButton: true, colorLightDelayLongPress: null }),
         );
         vi.useFakeTimers();
 
@@ -177,6 +172,29 @@ describe('Light2Collection Button-Modus long-press delay', () => {
 
         expect(modal()).toBeNull();
         expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
+    });
+
+    // vis-2's number field keeps '' once the user empties it: stored lamps read it as a 0 ms delay,
+    // like a stored 0, so every press opens the modal (no emptiedReadsUnset).
+    it('opens the modal on every press for an emptied delay, like a delay of 0', async () => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightButton: true, colorLightDelayLongPress: '' }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(1);
+        });
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(modal()).not.toBeNull();
+        expect(setValue).not.toHaveBeenCalled();
     });
 
     it('opens the modal after a delay stored as a numeric string, at its number', () => {
