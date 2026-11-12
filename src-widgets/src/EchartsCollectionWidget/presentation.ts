@@ -31,7 +31,7 @@ import { applyRawOverride } from './utils/mergeOption';
 import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
-import { withoutBroken } from '../lib/usableJson';
+import { readListBlob, readObjectBlob, withoutBroken } from '../lib/usableJson';
 import optionalNumber from '../lib/helper/optionalNumber';
 import {
     AXIS_KINDS,
@@ -39,8 +39,6 @@ import {
     LEGEND_KINDS,
     MARK_LINE_KINDS,
     PIE_KINDS,
-    readListBlob,
-    readObjectBlob,
     TOOLBOX_KINDS,
     X_AXIS_KINDS,
 } from './storedConfig';

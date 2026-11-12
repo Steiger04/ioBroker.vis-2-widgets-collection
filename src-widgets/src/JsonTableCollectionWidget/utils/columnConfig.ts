@@ -40,17 +40,9 @@ export const IMAGE_FORMAT_DEFAULTS: { size: number; objectFit: ImageObjectFit } 
 // The encoding helpers live in the shared `lib/encoding` module (single source, also used by
 // the Echarts widget). Re-exported here so existing JsonTable import sites keep working.
 export { utf8ToBase64, base64ToUtf8 } from '../../lib/encoding';
-import { isRecord, isText, oneOf, readUsableJson, withoutBroken, type KeyKinds } from '../../lib/usableJson';
+import { isRecord, isText, oneOf, readEntries, readListBlob, type KeyKinds } from '../../lib/usableJson';
 
 // ── Helper: parse persisted config ──────────────────────────────
-
-/**
- * What `columnConfig` stores: a JSON list of Column entries, as `b64:` blob (the column
- * editor's form, which vis-2's `extractBinding` cannot mistake for a binding) or as plain JSON.
- * Declared on the field (`storedValue`) and read here: the one rule of the KI-Integration
- * (`lib/usableWidgetData`, ADR-0114) decides the top level.
- */
-export const COLUMN_CONFIG_VALUE: { json: 'array' } = { json: 'array' };
 
 /** An entry that names a Column: an object with a text `path`. */
 const isColumnEntry = (entry: unknown): entry is ColumnConfigEntry => isRecord(entry) && typeof entry.path === 'string';
@@ -71,7 +63,9 @@ const isOverride = oneOf(true, false, 'auto');
  * The kind of each key of a Column entry the table reads ({@link ColumnConfigEntry}). The inner
  * keys of `format` stay with the formatters, which read every value defensively.
  */
-const ENTRY_KEYS: KeyKinds<Omit<ColumnConfigEntry, 'path'>> = {
+const ENTRY_KEYS: KeyKinds<ColumnConfigEntry> = {
+    // Already demanded of every entry ({@link isColumnEntry}).
+    path: isText,
     visible: value => typeof value === 'boolean',
     headerName: isText,
     // A width as the view state reads one: a positive finite number of pixels.
@@ -99,14 +93,17 @@ const RULE_KEYS: KeyKinds<ColumnStyleRule> = {
 /** The entry with its rules that are objects, each without its broken keys. */
 function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
     const rules = entry.cellStyle as unknown[];
-    const usable = rules.filter(isRecord).map(rule => withoutBroken(rule as ColumnStyleRule, RULE_KEYS));
+    const usable = readEntries(rules, RULE_KEYS, false);
     return usable.length === rules.length && usable.every((rule, index) => rule === rules[index])
         ? entry
         : { ...entry, cellStyle: usable };
 }
 
 /**
- * Parse the stored column configuration.
+ * Parse the stored column configuration: a JSON list of Column entries, as `b64:` blob (the column
+ * editor's form, which vis-2's `extractBinding` cannot mistake for a binding) or as plain JSON
+ * (the field declares `storedValue: LIST_BLOB`, the one rule of the KI-Integration decides the top
+ * level, `lib/usableWidgetData`, ADR-0114).
  *
  * The runtime reads it from the widget data the Rückfall-Regel has checked, the column editor
  * from the raw data vis-2 hands it, so the top level is judged here by the same rule: a value
@@ -124,8 +121,7 @@ function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
  * @returns The Column entries; empty for an unset or unusable configuration.
  */
 export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
-    return (readUsableJson(COLUMN_CONFIG_VALUE, raw) ?? []).filter(isColumnEntry).map(entry => {
-        const usable = withoutBroken(entry, ENTRY_KEYS);
-        return Array.isArray(usable.cellStyle) ? withUsableRules(usable) : usable;
-    });
+    return readListBlob(raw, ENTRY_KEYS, false, isColumnEntry).map(entry =>
+        Array.isArray(entry.cellStyle) ? withUsableRules(entry) : entry,
+    );
 }

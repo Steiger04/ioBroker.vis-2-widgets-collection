@@ -37,9 +37,9 @@
  * enters the Collection-Kontext, so no widget reads the raw values. Inner structure of a JSON
  * value (the entries of a list, the keys of an object) stays with the widget's own parse site.
  */
-import { decodeBlob } from './encoding';
 import optionalNumber from './helper/optionalNumber';
 import { readsAsOn } from './helper/readsAsOn';
+import { readUsableJson, type BlobShape } from './usableJson';
 
 import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
 
@@ -47,7 +47,7 @@ import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
  * What a data-bearing `custom` field stores under its name, declared on its definition as
  * `storedValue` (vis-2 ignores the key). JSON is stored as text, plain or as `b64:` blob.
  */
-export type StoredValue = 'string' | 'number' | 'boolean' | { json: 'object' | 'array' };
+export type StoredValue = 'string' | 'number' | 'boolean' | BlobShape;
 
 /** The rule of one field: a stored-value kind, or the option values of a select field. */
 export type FieldRule = StoredValue | { options: readonly unknown[] };
@@ -166,21 +166,6 @@ export const ruleOfKey = (rules: FieldRules, key: string): FieldRule | undefined
     return base === undefined ? undefined : rules.perRow.get(base);
 };
 
-/** Whether JSON text (plain or blob) parses to the given top level. */
-const isJsonOf = (value: unknown, topLevel: 'object' | 'array'): boolean => {
-    if (typeof value !== 'string') {
-        return false;
-    }
-    try {
-        const parsed: unknown = JSON.parse(decodeBlob(value));
-        return topLevel === 'array'
-            ? Array.isArray(parsed)
-            : parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed);
-    } catch {
-        return false;
-    }
-};
-
 /**
  * Whether a stored value is usable under a field's rule.
  *
@@ -197,7 +182,8 @@ export const isUsableValue = (rule: FieldRule, value: unknown): boolean => {
         return !(typeof rule === 'object' && 'options' in rule) || rule.options.includes('');
     }
     if (typeof rule === 'object') {
-        return 'options' in rule ? rule.options.includes(value) : isJsonOf(value, rule.json);
+        // The one parse of a blob, shared with the parse sites (`lib/usableJson`).
+        return 'options' in rule ? rule.options.includes(value) : readUsableJson(rule, value) !== undefined;
     }
     switch (rule) {
         case 'number':

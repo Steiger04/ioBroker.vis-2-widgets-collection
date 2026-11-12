@@ -9,14 +9,15 @@
  * the `seriesConfig` / `toolboxConfig` / `legendConfig` blobs are hidden rxData fields (defaults still seed on
  * widget creation). Each configuration blob declares its JSON top level (`storedValue`) and seeds
  * the empty one ('[]' / '{}', strukturiert-leer: it reads like no blob) — the shape the vis-2
- * assistant sees; every decoder reads it through `EchartsCollectionWidget/storedConfig`. The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
- * getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
+ * assistant sees; every decoder reads it with the shared blob readers (`lib/usableJson`) and the
+ * kind tables of `EchartsCollectionWidget/storedConfig`. The indexed `series` group (auto-subscribed
+ * `oid1..oidN`) is declared in getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/echarts-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import EchartsConfigEditor from '../EchartsCollectionWidget/EchartsConfigEditor';
-import { LIST_BLOB, OBJECT_BLOB } from '../EchartsCollectionWidget/storedConfig';
+import { LIST_BLOB, OBJECT_BLOB } from './usableJson';
 import { guardWidgetData } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';

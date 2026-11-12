@@ -1,23 +1,38 @@
 /**
- * The parse sites' half of the Rückfall-Regel (ADR-0114): reading a stored JSON value and the
- * inner structure the widget cannot use as unset.
+ * Reading stored JSON blobs — the top level and the inner structure the widget cannot use as
+ * unset (Rückfall-Regel, ADR-0114).
  *
  * @module lib/usableJson
  * @remarks
- * The rule itself (`lib/usableWidgetData`) judges a stored JSON value by its top level only — JSON
- * text, plain or as `b64:` blob, whose top level is an object or a list. What lies inside belongs
- * to the widget that reads it, and every widget's parse site reads it by the same rule:
- * - the top level is judged again with {@link isUsableValue} — a configurator gets the raw data
- *   vis-2 hands it, and an attribute the host substituted skips the rule in `Generic`;
+ * A blob is JSON text, plain or as `b64:` blob, whose top level is an object or a list
+ * ({@link BlobShape}; {@link OBJECT_BLOB}, {@link LIST_BLOB}). The rule (`lib/usableWidgetData`)
+ * judges a stored blob by its top level only, and it does so with {@link readUsableJson}, the one
+ * parse of a blob. What lies inside belongs to the widget that reads it, and every widget's parse
+ * site reads it by the same rule through the readers here:
+ * - the top level is judged again at the parse site — a configurator gets the raw data vis-2
+ *   hands it, and an attribute the host substituted skips the rule in `Generic`;
+ * - a list entry that is not the list's kind of entry reads as an unset entry: left out, or an
+ *   empty entry where the entry's place carries meaning;
  * - a key whose value is not of the key's kind ({@link KeyKinds}) reads as not written, so the
  *   widget reads it the way it reads the key unset; keys a kind table does not name stay as written.
  *
- * Kinds are judged by the JSON type, strictly (a number is a finite number, not a numeric text: the
- * vis-2 text input and bindings, which justify numeric texts in number fields, do not write inside
- * JSON). `null` is no value of any kind.
+ * The kind tables stay with the widgets. Kinds are judged by the JSON type, strictly (a number is a
+ * finite number, not a numeric text: the vis-2 text input and bindings, which justify numeric texts
+ * in number fields, do not write inside JSON). `null` is no value of any kind.
  */
 import { decodeBlob } from './encoding';
-import { isUsableValue, type StoredValue } from './usableWidgetData';
+
+/** The top level of a stored JSON blob: an object or a list. */
+export interface BlobShape {
+    /** `'object'` or `'array'`. */
+    readonly json: 'object' | 'array';
+}
+
+/** A blob that holds a JSON object. */
+export const OBJECT_BLOB: { json: 'object' } = { json: 'object' };
+
+/** A blob that holds a JSON list. */
+export const LIST_BLOB: { json: 'array' } = { json: 'array' };
 
 /** A JSON value kind: whether a value is usable at a place. */
 export type Kind = (value: unknown) => boolean;
@@ -54,7 +69,8 @@ export const anyOf =
         kinds.some(kind => kind(value));
 
 /**
- * The stored JSON value parsed, when it is usable under the field's rule.
+ * The stored blob parsed, when its top level is the declared one — the one parse of a blob, shared
+ * by the rule's top-level judgement and the parse sites.
  *
  * @param rule - What the field stores: JSON text whose top level is an object or a list.
  * @param rule.json - The top level: `'object'` or `'array'`.
@@ -64,11 +80,21 @@ export const anyOf =
  */
 export function readUsableJson(rule: { json: 'object' }, raw: unknown): Record<string, unknown> | undefined;
 export function readUsableJson(rule: { json: 'array' }, raw: unknown): unknown[] | undefined;
-export function readUsableJson(rule: Extract<StoredValue, object>, raw: unknown): unknown {
-    if (typeof raw !== 'string' || raw === '' || !isUsableValue(rule, raw)) {
+export function readUsableJson(rule: BlobShape, raw: unknown): Record<string, unknown> | unknown[] | undefined;
+export function readUsableJson(rule: BlobShape, raw: unknown): Record<string, unknown> | unknown[] | undefined {
+    if (typeof raw !== 'string' || raw === '') {
         return undefined;
     }
-    return JSON.parse(decodeBlob(raw)) as unknown;
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(decodeBlob(raw));
+    } catch {
+        return undefined;
+    }
+    if (rule.json === 'array') {
+        return Array.isArray(parsed) ? parsed : undefined;
+    }
+    return isRecord(parsed) ? parsed : undefined;
 }
 
 /**
@@ -90,3 +116,72 @@ export function withoutBroken<T extends object>(object: T, kinds: Readonly<Recor
     }
     return usable as T;
 }
+
+/**
+ * The entries of a list, each without its broken keys.
+ *
+ * @param list - A list of a stored JSON value.
+ * @param kinds - The kind of each key of an entry.
+ * @param positional - Whether an entry's place carries meaning (an entry that is not of the list's
+ *   kind then reads as an empty entry instead of being left out).
+ * @param isEntry - Whether a value is the list's kind of entry; an object unless the widget says more.
+ * @returns The entries of the list's kind without their broken keys.
+ */
+export const readEntries = <T extends object>(
+    list: readonly unknown[],
+    kinds: KeyKinds<T>,
+    positional: boolean,
+    isEntry: (entry: unknown) => boolean = isRecord,
+): T[] => list.flatMap(entry => (isEntry(entry) ? [withoutBroken(entry as T, kinds)] : positional ? [{} as T] : []));
+
+/**
+ * Read an object blob.
+ *
+ * @param raw - The stored blob.
+ * @param kinds - The kind of each key the widget reads.
+ * @returns The object without its broken keys; `undefined` for no usable blob.
+ */
+export const readObjectBlob = <T extends object>(raw: unknown, kinds: KeyKinds<T>): T | undefined => {
+    const parsed = readUsableJson(OBJECT_BLOB, raw);
+    return parsed === undefined ? undefined : withoutBroken(parsed as T, kinds);
+};
+
+/**
+ * Read a list blob of objects.
+ *
+ * @param raw - The stored blob.
+ * @param kinds - The kind of each key of an entry.
+ * @param positional - Whether an entry's place carries meaning (an entry that is not of the list's
+ *   kind then reads as an empty entry instead of being left out).
+ * @param isEntry - Whether a value is the list's kind of entry; an object unless the widget says more.
+ * @returns The entries without their broken keys; empty for no usable blob.
+ */
+export const readListBlob = <T extends object>(
+    raw: unknown,
+    kinds: KeyKinds<T>,
+    positional: boolean,
+    isEntry: (entry: unknown) => boolean = isRecord,
+): T[] => readEntries(readUsableJson(LIST_BLOB, raw) ?? [], kinds, positional, isEntry);
+
+/**
+ * Read a blob of objects by name.
+ *
+ * @param raw - The stored blob.
+ * @param kinds - The kind of each key of a value.
+ * @returns The values that are objects, without their broken keys; empty for no usable blob.
+ */
+export const readNamedBlob = <T extends object>(raw: unknown, kinds: KeyKinds<T>): Record<string, T> =>
+    Object.fromEntries(
+        Object.entries(readUsableJson(OBJECT_BLOB, raw) ?? {}).flatMap(([name, value]) =>
+            isRecord(value) ? [[name, withoutBroken(value as T, kinds)]] : [],
+        ),
+    );
+
+/**
+ * Read a list blob of texts.
+ *
+ * @param raw - The stored blob.
+ * @returns The entries that are texts; empty for no usable blob.
+ */
+export const readTextListBlob = (raw: unknown): string[] =>
+    (readUsableJson(LIST_BLOB, raw) ?? []).filter((entry): entry is string => typeof entry === 'string');

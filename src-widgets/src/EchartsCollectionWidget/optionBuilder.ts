@@ -25,7 +25,8 @@ import {
 } from './historyLogic';
 
 import { buildToolbox } from './optionBuilders/toolbox';
-import { readListBlob, readNamedBlob, readTextListBlob, SERIES_META_KINDS } from './storedConfig';
+import { readListBlob, readNamedBlob, readTextListBlob } from '../lib/usableJson';
+import { SERIES_META_KINDS } from './storedConfig';
 import { FAMILY_CORES } from './families/cores';
 import type {
     CartesianFragment,
