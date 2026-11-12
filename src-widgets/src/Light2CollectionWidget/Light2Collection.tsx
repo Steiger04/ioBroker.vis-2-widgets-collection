@@ -19,6 +19,7 @@ import { pickerGeometry } from './pickerGeometry';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { LIGHT2_CHANNEL_FIELDS, offersViewSwitch } from '../lib/light2Channels';
 import type { Light2ChannelField } from '../lib/light2Channels';
 import type { SyncChannel } from './backendSyncKey';
@@ -238,7 +239,7 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    p: Number(rxData.colorLightPadding) || 0,
+                    p: optionalNumber(rxData.colorLightPadding) ?? 0,
                 }}
             >
                 {Object.keys(values).length !== 0 &&

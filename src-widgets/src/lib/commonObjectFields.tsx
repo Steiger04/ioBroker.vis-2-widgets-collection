@@ -14,6 +14,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidTypeFilter } from './allowedOidTypes';
+import optionalNumber from './helper/optionalNumber';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
 import { applyStateRowOperation, assignStateRowPatch, isStateRowKey, stateRowCount } from './stateRows';
@@ -65,8 +66,9 @@ const dropFieldObject = (data: WidgetData, oid: string): void => {
 const removeMainOidRows = (data: WidgetData): void => {
     // Every row the widget may still carry: the authored rows or the states, whichever reach further.
     const rowCount = Math.max(
-        // A numeric string counts too: the Rückfall-Regel lets it through (lib/usableWidgetData).
-        Number(data.values_count) || 0,
+        // The one number reading: a numeric string counts, a value the Rückfall-Regel drops counts
+        // no rows, as in the Zustandseditor (lib/effectiveStateCount).
+        optionalNumber(data.values_count) ?? 0,
         Object.keys(data.oidObject?.commonStates || {}).length,
     );
 

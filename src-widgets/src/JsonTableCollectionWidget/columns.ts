@@ -10,6 +10,7 @@
  */
 
 import { analyzeJsonTable, type FlatRow, type JsonTableColumn } from '../hooks/useJsonTableAnalysis';
+import optionalNumber from '../lib/helper/optionalNumber';
 import { TABLE_MAX_DEPTH_DEFAULT } from '../lib/jsonTableDefaults';
 import { effectiveType, type EffectiveType } from './capabilities';
 import { dateReader, type DateReader } from './dateReader';
@@ -145,11 +146,13 @@ function merge(saved: readonly ColumnConfigEntry[], found: readonly JsonTableCol
  *
  * @param value The state value (a JSON string or an already parsed value).
  * @param saved The saved column configuration (empty when none is saved).
- * @param maxDepth The flattening depth (`tableMaxDepth`; unset ⇒ 10).
+ * @param maxDepth The flattening depth (`tableMaxDepth`; unset, 0 or not a number ⇒ 10). The column
+ *   editor hands the raw stored value, the table the one the widget reads: one number reading
+ *   ({@link module:lib/helper/optionalNumber}) keeps both at the same depth.
  * @returns The rows, the merged Columns and the depth warning.
  */
 export function readJsonTable(value: unknown, saved: readonly ColumnConfigEntry[], maxDepth?: unknown): JsonTable {
-    const configured = Number(maxDepth) || TABLE_MAX_DEPTH_DEFAULT;
+    const configured = optionalNumber(maxDepth) || TABLE_MAX_DEPTH_DEFAULT;
     const analysis = analyzeJsonTable(intake(value), { maxDepth: configured });
     const actual = analysis.meta.maxDepth;
     return {

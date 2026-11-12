@@ -1,5 +1,5 @@
 /**
- * The empty rule of stored number fields: what is not a number counts as not set.
+ * The one number reading of a field: which number a field holds, else unset (ADR-0109 Nr. 7).
  *
  * @module lib/helper/optionalNumber
  * @remarks
@@ -7,6 +7,12 @@
  * `Number(value)` would read an emptied field as the limit 0 (ADR-0109 Nr. 7). The numeric rule stays
  * {@link module:lib/helper/isNumber}; on top of it only numbers and strings count, and only finite
  * results: a stored `Infinity` is no usable limit either, the marks of the Skala would never reach it.
+ *
+ * Every reader of a field's number reads through it — runtime and configurator alike, so a
+ * configurator that reads the raw data reads what the widget reads — and the Rückfall-Regel's
+ * `number` rule (`lib/usableWidgetData`) is this reading: a value it reads as a number is usable.
+ * A reader that gives `0` or `''` its own meaning keeps that meaning on top (`|| D` for "0 is
+ * unset", `?? D` for "0 is a value").
  * @param value Stored value of a number field.
  * @returns The number, including `0` and `'0'`; `undefined` for `''`, blanks, `null`, `undefined`,
  * `NaN`, `Infinity` and every other non-number.

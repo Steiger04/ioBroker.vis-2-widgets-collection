@@ -8,8 +8,14 @@
  * parsed value) plus the saved column configuration. Expected values come from the ticket's
  * tables, not from re-deriving the rule.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+// The field list renders the column editor, which pulls Generic (extends window.visRxWidget,
+// absent outside vis-2). The depth test reads only the field data.
+vi.mock('./JsonTableColumnEditor', () => ({ default: () => null }));
+
+import jsonTableFields from '../lib/jsonTableFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import {
     depthWarningText,
     emptyState,
@@ -186,6 +192,25 @@ describe('readJsonTable — the depth warning', () => {
         [10, undefined, null],
     ])('depth %s with tableMaxDepth %s ⇒ %j', (depth, maxDepth, warning) => {
         expect(readJsonTable(nested(depth), [], maxDepth).depthWarning).toEqual(warning);
+    });
+
+    // The column editor hands readJsonTable the raw tableMaxDepth, the table the one the widget
+    // reads (Rückfall-Regel, defaults): both flatten to the same depth.
+    // stored tableMaxDepth ⇒ the depth both read
+    it.each([
+        [true, 10],
+        [[3], 10],
+        ['abc', 10],
+        ['', 10],
+        [0, 10],
+        ['4', 4],
+        [4, 4],
+    ])('the column editor reads tableMaxDepth %j like the table: depth %s', (stored, depth) => {
+        const data = { tableMaxDepth: stored };
+        const editor = readJsonTable(nested(11), [], data.tableMaxDepth).depthWarning?.configured;
+        const table = readJsonTable(nested(11), [], readWidgetData(jsonTableFields(), data).tableMaxDepth).depthWarning
+            ?.configured;
+        expect({ editor, table }).toEqual({ editor: depth, table: depth });
     });
 
     it('no data, no warning', () => {

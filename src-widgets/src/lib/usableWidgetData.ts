@@ -38,6 +38,7 @@
  * value (the entries of a list, the keys of an object) stays with the widget's own parse site.
  */
 import { decodeBlob } from './encoding';
+import optionalNumber from './helper/optionalNumber';
 import { readsAsOn } from './helper/readsAsOn';
 
 import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
@@ -200,9 +201,8 @@ export const isUsableValue = (rule: FieldRule, value: unknown): boolean => {
     }
     switch (rule) {
         case 'number':
-            return typeof value === 'number'
-                ? Number.isFinite(value)
-                : typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
+            // The one number reading (ADR-0109 Nr. 7): what reads as a number there is usable here.
+            return optionalNumber(value) !== undefined;
         case 'boolean':
             return typeof value === 'boolean';
         default:

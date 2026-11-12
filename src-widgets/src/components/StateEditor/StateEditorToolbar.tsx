@@ -38,6 +38,7 @@ import RecreateIcon from '@mui/icons-material/RestartAlt';
 import { useRef, useState } from 'react';
 import type React from 'react';
 
+import optionalNumber from '../../lib/helper/optionalNumber';
 import { translate } from '../../lib/translate';
 import { mergeStateRowPatch } from '../../lib/stateRows';
 import { filterStateRows, focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
@@ -153,7 +154,7 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
             (op.kind === 'add' || op.kind === 'clone' || op.kind === 'delete')
         ) {
             const next = mergeStateRowPatch(selectedWidgetDatas(fieldProps)[0], patch);
-            const shown = filterStateRows(stateRowSummaries(next, Number(patch.values_count) || 0), search);
+            const shown = filterStateRows(stateRowSummaries(next, optionalNumber(patch.values_count) ?? 0), search);
             if (op.kind === 'delete') {
                 const visible = shown.find(row => row.n >= op.row) ?? shown.findLast(row => row.n < op.row);
                 if (visible) {
