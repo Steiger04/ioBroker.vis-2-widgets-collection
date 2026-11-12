@@ -129,7 +129,8 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject 
     // An emptied slider ('') reads like 0, no shadow, as stored tables always drew it; a numeric
     // string as its number, a bound text that names none like 0 as well.
     const headerElevation = optionalNumber(settings.tableHeaderElevation) ?? 0;
-    const headerBorderWidth = Number(settings.headerBorderWidth);
+    // An emptied width ('') reads like 0, no line; a bound text that names no number as well.
+    const headerBorderWidth = optionalNumber(settings.headerBorderWidth) ?? 0;
 
     // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside
     // another widget the sticky bar keeps its paper and shadow, so it stays opaque and the
