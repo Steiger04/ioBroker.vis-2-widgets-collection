@@ -76,3 +76,39 @@ describe('parseColumnConfig — the entries', () => {
         }
     });
 });
+
+describe('parseColumnConfig — the conditional styles', () => {
+    const RULE: Record<string, unknown> = {
+        id: 'r1',
+        logic: { '<': [{ var: 'value' }, 0] },
+        backgroundColor: '#ff0000',
+        textColor: '#ffffff',
+        fontWeight: 'bold',
+        fontStyle: 'italic',
+    };
+    const styled = (cellStyle: unknown[]): string => JSON.stringify([{ path: 'value', cellStyle }]);
+
+    it('keeps a well-formed rule', () => {
+        expect(parseColumnConfig(styled([RULE]))).toEqual([{ path: 'value', cellStyle: [RULE] }]);
+    });
+
+    it('leaves out a rule that is no object', () => {
+        expect(parseColumnConfig(styled([null, 5, 'red', [], RULE]))).toEqual([{ path: 'value', cellStyle: [RULE] }]);
+    });
+
+    it.each([
+        ['id', [5]],
+        ['logic', ['x < 0', 5, [], null]],
+        ['backgroundColor', [5, { color: 'red' }, null]],
+        ['textColor', [5, { color: 'red' }, null]],
+        ['fontWeight', ['heavy', 700, null]],
+        ['fontStyle', ['oblique', 1, null]],
+    ])('reads a broken %s of a rule like the key left out', (key, values) => {
+        const { [key]: _left, ...without } = RULE;
+        for (const value of values) {
+            expect(parseColumnConfig(styled([{ ...RULE, [key]: value }])), JSON.stringify(value)).toEqual([
+                { path: 'value', cellStyle: [without] },
+            ]);
+        }
+    });
+});

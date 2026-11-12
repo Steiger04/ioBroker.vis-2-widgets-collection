@@ -7,7 +7,7 @@
  * to avoid vis-2's extractBinding regex matching curly braces in JSON arrays.
  */
 
-import type { ColumnConfigEntry, ColumnFormatType, ImageObjectFit } from '../types';
+import type { ColumnConfigEntry, ColumnFormatType, ColumnStyleRule, ImageObjectFit } from '../types';
 
 // ── Type badge colors ───────────────────────────────────────────
 
@@ -64,7 +64,9 @@ export const COLUMN_CONFIG_VALUE: StoredValue = { json: 'array' };
  * Inside the list, what the table cannot use reads as not written: an entry that is no Column
  * (no object, or without a text `path`) is left out, a key of an entry whose value is not of the
  * key's kind ({@link ENTRY_KEYS}) is left out of the entry — the table then reads the key as it
- * reads it unset. Keys it does not know stay as written.
+ * reads it unset. The same holds one level down for the conditional styles: a rule that is no
+ * object is left out, a key of a rule not of its kind ({@link RULE_KEYS}) is left out of the rule.
+ * Keys it does not know stay as written.
  *
  * @param raw - The stored `columnConfig`.
  * @returns The Column entries; empty for an unset or unusable configuration.
@@ -74,7 +76,10 @@ export function parseColumnConfig(raw: unknown): ColumnConfigEntry[] {
         return [];
     }
     const entries = JSON.parse(decodeBlob(raw)) as unknown[];
-    return entries.filter(isColumnEntry).map(usableEntry);
+    return entries.filter(isColumnEntry).map(entry => {
+        const usable = withoutBroken(entry, ENTRY_KEYS);
+        return Array.isArray(usable.cellStyle) ? withUsableRules(usable) : usable;
+    });
 }
 
 /** A plain object (no list, no `null`). */
@@ -90,6 +95,9 @@ const oneOf =
     (value: unknown): boolean =>
         values.includes(value);
 
+/** A text. */
+const isText = (value: unknown): boolean => typeof value === 'string';
+
 /** The Format types, all of them (the record makes a new one a type error here). */
 const FORMAT_TYPES: Readonly<Record<ColumnFormatType, true>> = {
     number: true,
@@ -102,13 +110,16 @@ const FORMAT_TYPES: Readonly<Record<ColumnFormatType, true>> = {
 /** A per-column capability override: on, off or the type default. */
 const isOverride = oneOf(true, false, 'auto');
 
+/** The kind of each key of an object: whether a value is usable there. */
+type KeyKinds<T> = Readonly<Record<keyof T, (value: unknown) => boolean>>;
+
 /**
  * The kind of each key of a Column entry the table reads ({@link ColumnConfigEntry}). The inner
  * keys of `format` stay with the formatters, which read every value defensively.
  */
-const ENTRY_KEYS: Readonly<Record<Exclude<keyof ColumnConfigEntry, 'path'>, (value: unknown) => boolean>> = {
+const ENTRY_KEYS: KeyKinds<Omit<ColumnConfigEntry, 'path'>> = {
     visible: value => typeof value === 'boolean',
-    headerName: value => typeof value === 'string',
+    headerName: isText,
     // A width as the view state reads one: a positive finite number of pixels.
     width: value => typeof value === 'number' && Number.isFinite(value) && value > 0,
     align: oneOf('left', 'center', 'right'),
@@ -120,16 +131,36 @@ const ENTRY_KEYS: Readonly<Record<Exclude<keyof ColumnConfigEntry, 'path'>, (val
     enableHiding: isOverride,
 };
 
-/** The entry without the keys whose value is not of their kind; the entry itself when all are. */
-function usableEntry(entry: ColumnConfigEntry): ColumnConfigEntry {
-    const record = entry as unknown as Record<string, unknown>;
-    const broken = Object.entries(ENTRY_KEYS).filter(([key, isUsable]) => key in record && !isUsable(record[key]));
+/** The kind of each key of a conditional style rule ({@link ColumnStyleRule}). */
+const RULE_KEYS: KeyKinds<ColumnStyleRule> = {
+    id: isText,
+    // A json-logic rule object; what it says is the engine's to judge (it never throws).
+    logic: isRecord,
+    backgroundColor: isText,
+    textColor: isText,
+    fontWeight: oneOf('normal', 'bold'),
+    fontStyle: oneOf('normal', 'italic'),
+};
+
+/** The object without the keys whose value is not of their kind; the object itself when all are. */
+function withoutBroken<T extends object>(object: T, kinds: Readonly<Record<string, (value: unknown) => boolean>>): T {
+    const record = object as Record<string, unknown>;
+    const broken = Object.entries(kinds).filter(([key, isUsable]) => key in record && !isUsable(record[key]));
     if (broken.length === 0) {
-        return entry;
+        return object;
     }
     const usable = { ...record };
     for (const [key] of broken) {
         delete usable[key];
     }
-    return usable as unknown as ColumnConfigEntry;
+    return usable as T;
+}
+
+/** The entry with its rules that are objects, each without its broken keys. */
+function withUsableRules(entry: ColumnConfigEntry): ColumnConfigEntry {
+    const rules = entry.cellStyle as unknown[];
+    const usable = rules.filter(isRecord).map(rule => withoutBroken(rule as ColumnStyleRule, RULE_KEYS));
+    return usable.length === rules.length && usable.every((rule, index) => rule === rules[index])
+        ? entry
+        : { ...entry, cellStyle: usable };
 }
