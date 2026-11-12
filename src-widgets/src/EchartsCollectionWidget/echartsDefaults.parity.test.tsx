@@ -23,7 +23,7 @@ import { fieldDefaultsOf } from '../lib/fieldDefaults';
 import { installInertResizeObserver, mountCollectionBody } from '../lib/testing/collectionScene';
 import { buildPreviewContext } from '../preview/mockContext';
 import EchartsCollection from './EchartsCollection';
-import { fetchMultiSeries, toSeriesData, windowToOptions } from './historyLogic';
+import { entryRequestOptions, fetchMultiSeries, toSeriesData, windowToOptions } from './historyLogic';
 import { toPresentationBase } from './presentation';
 import type { ThemeTokens } from './echartsTheme';
 import type { PreviewScene } from '../preview/types';
@@ -251,6 +251,14 @@ describe('the history request — its fallbacks read like the field defaults', (
                 aggregate: defaults.get('aggregate') as never,
             }),
         );
+    });
+
+    it('gates the aggregate parameters by the default aggregate when none is given', () => {
+        const { aggregate: _aggregate, ...unset } = { ...windowToOptions(win), percentile: 5, integralUnit: 60 };
+        const set = { ...unset, aggregate: defaults.get('aggregate') as never };
+        const { aggregate: _gated, ...gated } = entryRequestOptions(set, { oid: OID });
+
+        expect(entryRequestOptions(unset, { oid: OID })).toEqual(gated);
     });
 
     it('handles the gaps by the default null mode when none is given', async () => {
