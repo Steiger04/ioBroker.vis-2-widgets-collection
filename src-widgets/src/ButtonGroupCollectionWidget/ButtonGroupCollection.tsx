@@ -55,8 +55,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                     value={String(oidValue)}
                     disabled={locked}
                     fullWidth
-                    // A stored null or '' is unset: MUI applies its default to undefined only.
-                    orientation={buttonGroupOrientation || undefined}
+                    // Unset, null or '' reads its default (lib/buttonGroupFields: emptiedReadsUnset).
+                    orientation={buttonGroupOrientation}
                     sx={buildGroupChrome({
                         variant: buttonGroupVariant,
                         orientation: buttonGroupOrientation,

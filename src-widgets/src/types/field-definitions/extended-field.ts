@@ -162,6 +162,17 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * change, or a field whose unset reading is a deliberate cascade. vis-2 ignores the key.
      */
     keepUnset?: string;
+
+    /**
+     * Whether this field's emptied value — the `''` vis-2's number field stores once the user
+     * empties it — reads as unset (KI-Integration, ADR-0114): the Rückfall-Regel
+     * (`lib/usableWidgetData`) reads its `''` and `null` as unset, stored or bound, and a bound
+     * text its rule rejects too; the field then reads its `default` (`lib/fieldDefaults`), or the
+     * widget's unset reading without one. Declared where the widget read `''` like the unset field
+     * already; without it, `''` is a stored value with the meaning its reader gives it (e.g. a
+     * padding of 0). Its `default` is never `''`. vis-2 ignores the key.
+     */
+    emptiedReadsUnset?: true;
 };
 
 /**

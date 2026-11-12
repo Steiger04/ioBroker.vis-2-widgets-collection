@@ -17,12 +17,6 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 const hiddenUnlessNumber = (data: Record<string, unknown>): boolean =>
     (data.oidObject as { type?: string } | undefined)?.type !== 'number';
 
-/** Default field variant: the single source; the renderer reads it for an unset or empty field. */
-export const INPUT_VARIANT_DEFAULT = 'standard';
-
-/** Default field padding (spacing units): the single source; the renderer reads it for an unset field. */
-export const INPUT_PADDING_DEFAULT = 1;
-
 const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -39,7 +33,9 @@ const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'inputVariant',
         type: 'select',
         label: 'input_variant',
-        default: INPUT_VARIANT_DEFAULT,
+        default: 'standard',
+        // '' (raw data, a binding) draws the default variant.
+        emptiedReadsUnset: true,
         options: [
             { value: 'standard', label: 'variant_standard' },
             { value: 'outlined', label: 'variant_outlined' },
@@ -50,7 +46,7 @@ const inputFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'inputPadding',
         type: 'number',
         label: 'input_padding',
-        default: INPUT_PADDING_DEFAULT,
+        default: 1,
         min: 0,
         step: 0.5,
     } as const,

@@ -25,6 +25,8 @@ import {
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import checkboxFields from '../lib/checkboxFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import CheckboxCollection from './CheckboxCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -237,14 +239,22 @@ describe('CheckboxCollection value text (Ticket 12)', () => {
 });
 
 describe('CheckboxCollection label placement', () => {
-    // The Rückfall-Regel keeps null and '' (the assistant may write either; the vis-2 select offers
-    // only the four placements): both read like the unset field, MUI's default end.
+    // The vis-2 select offers only the four placements: null and '' come from raw data (the
+    // assistant) or a binding. The widget reads both like the unset field, its default end
+    // (lib/checkboxFields: emptiedReadsUnset); the body is mounted over the data as the widget reads it.
     it.each([
-        ['null', null],
-        ['empty', ''],
-    ])('reads a label placement stored as %s like the unset field', (_case, stored) => {
-        const unset = mountCheckbox({ [`${OID}.val`]: true }, { checkboxLabelPlacement: undefined }).innerHTML;
+        ['stored as null', null, undefined],
+        ['stored empty', '', undefined],
+        ['bound to an empty text', '', '{0_userdata.0.placement}'],
+    ])('reads a label placement %s like the unset field', (_case, value, binding) => {
+        const read = (checkboxLabelPlacement: unknown, stored?: unknown): Record<string, unknown> =>
+            readWidgetData(
+                checkboxFields(),
+                { checkboxLabelPlacement },
+                stored === undefined ? undefined : { checkboxLabelPlacement: stored },
+            );
+        const unset = mountCheckbox({ [`${OID}.val`]: true }, read(undefined)).innerHTML;
 
-        expect(mountCheckbox({ [`${OID}.val`]: true }, { checkboxLabelPlacement: stored }).innerHTML).toBe(unset);
+        expect(mountCheckbox({ [`${OID}.val`]: true }, read(value, binding)).innerHTML).toBe(unset);
     });
 });

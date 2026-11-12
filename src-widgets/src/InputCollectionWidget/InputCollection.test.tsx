@@ -25,6 +25,7 @@ import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, Widge
 
 import commonObjectFields from '../lib/commonObjectFields';
 import inputFields from '../lib/inputFields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import { DEFAULT_WRITE_DELAY_MS } from '../lib/constants';
 import {
     collectionScene,
@@ -62,8 +63,9 @@ const BASE_DATA = {
 
 const OK_MODE = { showOkButton: true };
 
+/** The scene over the data as the widget reads it (`readWidgetData`). */
 const sceneOf = (data: Record<string, unknown>, values: Values): ReturnType<typeof collectionScene> => {
-    const scene = collectionScene('input-test', { ...BASE_DATA, ...data }, undefined);
+    const scene = collectionScene('input-test', readWidgetData(inputFields(), { ...BASE_DATA, ...data }), undefined);
     // The scene alone carries only `<oid>.val`; the `.lc` decides what counts as a change.
     scene.context.values = values;
     return scene;
@@ -308,8 +310,9 @@ describe('InputCollection field attributes', () => {
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual(['0.5', '10', '90']);
     });
 
-    it('puts none of them on a number field without configured values', () => {
-        const { container } = mountInput();
+    // An unset step reads its default 1; an emptied one ('') keeps its reading: no step.
+    it('puts none of them on a number field with an emptied step and no range', () => {
+        const { container } = mountInput({ step: '' });
         const field = start(container);
 
         expect(['step', 'min', 'max'].map(name => field.getAttribute(name))).toEqual([null, null, null]);
@@ -323,7 +326,7 @@ describe('InputCollection field attributes', () => {
     });
 
     // The vis-2 select offers only the option values; '' and null come only from raw data (the vis-2
-    // assistant, ADR-0114) and read like the unset field.
+    // assistant, ADR-0114) and read like the unset field (lib/inputFields: emptiedReadsUnset).
     it.each([
         ['empty', ''],
         ['null', null],
@@ -345,9 +348,7 @@ describe('InputCollection field attributes', () => {
         ['unset', undefined],
         ['null', null],
     ])('pads the field of a %s padding with the default the panel shows', (_case, inputPadding) => {
-        const shown = (inputFields() as { name?: string; default?: unknown }[]).find(
-            field => field.name === 'inputPadding',
-        )?.default;
+        const shown = fieldDefaultOf(inputFields(), 'inputPadding');
         const paddingOf = (data: Record<string, unknown>): string | undefined => {
             const { container, unmount } = mountInput(data);
             const className = start(container).closest('.MuiTextField-root')?.parentElement?.className;

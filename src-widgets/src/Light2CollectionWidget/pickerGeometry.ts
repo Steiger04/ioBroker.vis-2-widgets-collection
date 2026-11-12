@@ -6,9 +6,10 @@
  * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range)
  * and the measured picker box one result — slider size, main picker bound, resize width, gap,
  * offset of the second picker and iro layout per picker. Beside it {@link modalSizeOf} gives the
- * size of the Button-Modus modal. The 28px slider unit and the 12px gap live only here; the
- * defaults of the slider width and the modal height come from `lib/light2Defaults`, the one source
- * of the field definitions too.
+ * size of the Button-Modus modal. The 28px slider unit and the 12px gap live only here. The widget
+ * hands the configuration as it reads it: an unset or emptied field already reads its default
+ * (`lib/fieldDefaults`, `emptiedReadsUnset`); a slider width or modal height of 0 reads the default
+ * from `lib/light2Defaults`, the one source of the field definitions too.
  *
  * Pure: the body measures its picker box itself (callback ref + useElementDimensions, no
  * Content-Box — ADR-0098 Nr. 3/4) and hands the box in; `Light2Picker` draws the result.
@@ -84,6 +85,7 @@ export interface PickerGeometry {
     layouts: Readonly<Record<LampPicker, IroLayout>>;
 }
 
+/** The slider size; a width of 0 draws the default width. */
 const sliderSizeOf = (sliderWidth: PickerGeometryConfig['sliderWidth']): number =>
     (sliderWidth || COLOR_LIGHT_SLIDER_WIDTH_DEFAULT) * SLIDER_UNIT_PX;
 
@@ -205,7 +207,7 @@ const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule 
 };
 
 /**
- * The Button-Modus modal size. Height: `colorLightModalHeight`, 300px while unset. Width: an
+ * The Button-Modus modal size. Height: `colorLightModalHeight`, the default 300px for 0. Width: an
  * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the auto width — the picker draws its
  * main element from the modal HEIGHT (square-ish), so the optimum width derives from height +
  * slider + gap (see color_light_modal_width_tooltip).

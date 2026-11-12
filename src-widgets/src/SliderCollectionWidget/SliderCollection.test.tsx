@@ -16,13 +16,22 @@ import { describe, expect, it } from 'vitest';
 
 import { act } from 'react';
 
-import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
+import {
+    collectionScene as rawScene,
+    installInertResizeObserver,
+    testScopedMount,
+} from '../lib/testing/collectionScene';
 import sliderFields from '../lib/sliderFields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import SliderCollection from './SliderCollection';
 
 installInertResizeObserver();
 
 const mount = testScopedMount();
+
+/** The preview scene over the data as the widget reads it (`readWidgetData`: defaults, emptied fields). */
+const collectionScene = (...[slug, data, ...rest]: Parameters<typeof rawScene>): ReturnType<typeof rawScene> =>
+    rawScene(slug, readWidgetData(sliderFields(), data), ...rest);
 
 const OID = 'demo.0.dimmer';
 const MARKER_TEXT_COLOR = '#aa0000';
@@ -861,7 +870,9 @@ describe('SliderCollection chrome geometry and colours', () => {
         it.each<[string, Record<string, unknown>, [string, string]]>([
             ['horizontal, unset', { sliderOrientation: 'horizontal' }, ['2px', '2px']],
             ['horizontal, set', { sliderOrientation: 'horizontal', markWidth: 5, markHeight: 7 }, ['5px', '7px']],
-            ['vertical, unset', { sliderOrientation: 'vertical' }, ['16px', '3px']],
+            // Unset, the mark fields read their defaults (2 × 2); emptied, the lengths of the orientation.
+            ['vertical, unset', { sliderOrientation: 'vertical' }, ['2px', '2px']],
+            ['vertical, emptied', { sliderOrientation: 'vertical', markWidth: '', markHeight: '' }, ['16px', '3px']],
             ['vertical, set', { sliderOrientation: 'vertical', markWidth: 5, markHeight: 7 }, ['7px', '5px']],
         ])('sizes the inactive and the active mark alike (%s)', (_case, data, expected) => {
             const container = mountChrome(data);
@@ -1086,9 +1097,7 @@ describe('SliderCollection padding', () => {
         ['unset', undefined],
         ['null', null],
     ])('pads the slider of a %s padding with the default the panel shows', (_case, sliderPadding) => {
-        const shown = (sliderFields() as { name?: string; default?: unknown }[]).find(
-            field => field.name === 'sliderPadding',
-        )?.default;
+        const shown = fieldDefaultOf(sliderFields(), 'sliderPadding');
 
         expect(shown).toBeTypeOf('number');
         expect(paperOf({ sliderPadding })).toBe(paperOf({ sliderPadding: shown }));

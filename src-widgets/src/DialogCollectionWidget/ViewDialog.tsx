@@ -8,9 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import React from 'react';
 import CollectionBase from '../components/CollectionBase';
-import { DIALOG_HEIGHT_DEFAULT, DIALOG_WIDTH_DEFAULT } from '../lib/dialogFields';
 import { alphaOf } from '../lib/helper/colorDerivation';
-import optionalNumber from '../lib/helper/optionalNumber';
 import { gradientTextSx } from '../lib/helper/gradientTextSx';
 
 import type { StyleData } from '../hooks/useData/types';
@@ -40,10 +38,11 @@ export default function ViewDialog({
     getWidgetView,
 }: ViewDialogProps): React.ReactElement {
     const headerAsTitle = !!widget.data.dialogHeaderAsTitle;
-    // An unset or emptied size reads as the default the panel shows (else 'undefined%' sized nothing).
+    // An unset or emptied size reads as its default (lib/dialogFields: emptiedReadsUnset); a numeric
+    // string sizes as its number.
     const unit = widget.data.dialogInPixel ? 'px' : '%';
-    const width = `${optionalNumber(widget.data.dialogWidth) ?? DIALOG_WIDTH_DEFAULT}${unit}`;
-    const height = `${optionalNumber(widget.data.dialogHeight) ?? DIALOG_HEIGHT_DEFAULT}${unit}`;
+    const width = `${Number(widget.data.dialogWidth)}${unit}`;
+    const height = `${Number(widget.data.dialogHeight)}${unit}`;
 
     const iconButton = (
         <IconButton

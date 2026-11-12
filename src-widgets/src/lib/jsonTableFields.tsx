@@ -19,17 +19,7 @@ import {
 import { COLUMN_CONFIG_VALUE } from '../JsonTableCollectionWidget/utils/columnConfig';
 import { createColorField, guardWidgetData } from './fieldFactories';
 import { jsonTableColorContracts } from './jsonTableColorContracts';
-import {
-    TABLE_BORDER_STYLE_DEFAULT,
-    TABLE_CELL_BORDER_WIDTH_DEFAULT,
-    TABLE_DENSITY_DEFAULT,
-    TABLE_HEADER_BORDER_WIDTH_DEFAULT,
-    TABLE_HEADER_ELEVATION_DEFAULT,
-    TABLE_MAX_DEPTH_DEFAULT,
-    TABLE_PAGE_SIZE_DEFAULT,
-    TABLE_PAGE_SIZE_OPTIONS_DEFAULT,
-    TABLE_VIRTUALIZE_THRESHOLD_DEFAULT,
-} from './jsonTableDefaults';
+import { TABLE_MAX_DEPTH_DEFAULT, TABLE_PAGE_SIZE_DEFAULT, TABLE_PAGE_SIZE_OPTIONS_DEFAULT } from './jsonTableDefaults';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
@@ -150,7 +140,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'tableVirtualizeThreshold',
         type: 'number',
         label: 'json_table_virtualize_threshold',
-        default: TABLE_VIRTUALIZE_THRESHOLD_DEFAULT,
+        // Emptied ('') like 0: the table never renders only the rows in view.
+        default: 50,
         min: 0,
         tooltip: 'json_table_virtualize_threshold_tooltip',
     },
@@ -203,7 +194,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'standard', label: 'standard' },
             { value: 'comfortable', label: 'comfortable' },
         ],
-        default: TABLE_DENSITY_DEFAULT,
+        default: 'standard',
+        emptiedReadsUnset: true,
         noTranslation: true,
     },
     {
@@ -234,7 +226,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 24,
         step: 1,
-        default: TABLE_HEADER_ELEVATION_DEFAULT,
+        default: 6,
+        emptiedReadsUnset: true,
         tooltip: 'json_table_header_elevation_tooltip',
         hidden: 'data.tableShowHeader === false',
     },
@@ -284,7 +277,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'outset', label: 'outset' },
             { value: 'hidden', label: 'hidden' },
         ],
-        default: TABLE_BORDER_STYLE_DEFAULT,
+        default: 'solid',
+        emptiedReadsUnset: true,
         noTranslation: true,
     },
     // Border color with noGradient; Tabellen-Chrome contract: explicit → theme divider (ADR-0004)
@@ -336,7 +330,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10,
         step: 1,
-        default: TABLE_HEADER_BORDER_WIDTH_DEFAULT,
+        default: 0,
         hidden: 'data.tableShowHeader === false',
     },
     // Header border color (noGradient for borders); contract: explicit → theme divider
@@ -366,7 +360,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10,
         step: 1,
-        default: TABLE_CELL_BORDER_WIDTH_DEFAULT,
+        default: 1,
+        emptiedReadsUnset: true,
         hidden: '!data.tableShowCellBorders',
     },
     // Vertical cell border color (noGradient, hidden condition); contract: explicit → theme divider
@@ -394,7 +389,8 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10,
         step: 1,
-        default: TABLE_CELL_BORDER_WIDTH_DEFAULT,
+        default: 1,
+        emptiedReadsUnset: true,
         // Default-on toggle, raw data: only an explicit false switches the row borders off
         hidden: 'data.tableShowRowBorders === false',
     },

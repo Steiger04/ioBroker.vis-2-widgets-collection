@@ -35,7 +35,6 @@ import type { StyleData } from '../hooks/useData';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { resolveSwitchColors } from '../lib/switchColorContract';
 import type { SwitchColorData, SwitchStateColors } from '../lib/switchColorContract';
-import { THUMB_SIZE_DEFAULT } from '../lib/switchFields';
 import type { SwitchFieldsRxData } from '../types';
 
 /**
@@ -130,11 +129,10 @@ function checkedInputLeft(width: number | undefined, thumbSize: number): number 
 export function buildSwitchChrome(input: SwitchChromeInput): CSSObject {
     const { data, icon, width, contentBoxHeight, locked, theme } = input;
 
-    // Single source: the schema default in lib/switchFields.tsx, also for '' (the cleared number
-    // box of the vis-2 slider), as the track size reads it. A numeric string (binding, assistant)
-    // is a usable stored value (lib/usableWidgetData) and reads as its number.
-    const stored: unknown = data.thumbSize;
-    const thumbSize = stored === undefined || stored === null || stored === '' ? THUMB_SIZE_DEFAULT : Number(stored);
+    // Unset or emptied ('', the cleared number box of the vis-2 slider), the thumb size reads its
+    // default (lib/switchFields: emptiedReadsUnset). A numeric string (binding, assistant) is a
+    // usable stored value (lib/usableWidgetData) and reads as its number.
+    const thumbSize = Number(data.thumbSize);
     const colors = resolveSwitchColors(data, theme, locked);
     const travel = thumbTravel(thumbSize, contentBoxHeight);
     const inputWidth = px(width || 0);

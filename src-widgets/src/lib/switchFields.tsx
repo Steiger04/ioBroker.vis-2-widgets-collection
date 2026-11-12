@@ -13,10 +13,10 @@ import { switchColorContracts } from './switchColorContract';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-/** Default thumb size (px) — the single source; the renderer fallback reads it. */
-export const THUMB_SIZE_DEFAULT = 62;
-
-/** Default track row height (%) — the single source; the renderer fallback reads it. */
+/**
+ * Default track row height (%) — the single source; the renderer reads it for 0 and for an emptied
+ * size (''), which it reads like 0 (an unset size reads the default before the renderer).
+ */
 export const TRACK_SIZE_DEFAULT = 10;
 
 const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
@@ -31,7 +31,9 @@ const switchFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'slider',
         min: 0,
         max: 500,
-        default: THUMB_SIZE_DEFAULT,
+        default: 62,
+        // The cleared number box of the vis-2 slider draws the default thumb.
+        emptiedReadsUnset: true,
         step: 1,
     },
     // Thumb colours: each field spreads the contract its thumb resolves at runtime

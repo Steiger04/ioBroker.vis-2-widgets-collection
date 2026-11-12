@@ -17,8 +17,6 @@ import { CollectionContext } from '../components/CollectionProvider';
 import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
-import optionalNumber from '../lib/helper/optionalNumber';
-import { COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT } from '../lib/light2Defaults';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
 import { modalSizeOf } from './pickerGeometry';
@@ -56,8 +54,9 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
     const longPressProps = useLongPress({
         onClick: onToggle,
         onLongPress: () => setOpen(true),
-        // An emptied delay reads like the unset one, not as a long press on every touch (0 ms).
-        ms: optionalNumber(rxData.colorLightDelayLongPress) ?? COLOR_LIGHT_DELAY_LONG_PRESS_DEFAULT,
+        // An emptied delay reads its default (lib/light2Fields: emptiedReadsUnset), not a long press
+        // on every touch (0 ms); a numeric string as its number.
+        ms: Number(rxData.colorLightDelayLongPress),
     });
 
     // Height, and explicit width or the auto width from the picker geometry (height + slider + gap).

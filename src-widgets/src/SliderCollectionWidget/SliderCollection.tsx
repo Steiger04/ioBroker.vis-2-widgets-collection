@@ -15,7 +15,6 @@ import { buildSliderChrome } from './chrome';
 import { resolveEndSymbols, type EndSymbol } from './endSymbols';
 import useOptimisticNumber from './useOptimisticNumber';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { SLIDER_PADDING_DEFAULT } from '../lib/sliderFields';
 
 import type { SliderCollectionContextProps } from '../types';
 import SafeImg from '../components/SafeImg';
@@ -121,8 +120,8 @@ const SliderCollection: FC = () => {
             data={data}
             oidValue={oidValue}
             sx={{
-                // Unset (raw data only, the panel shows the default) → the field default; '' stays 0.
-                p: Number(widget.data.sliderPadding ?? SLIDER_PADDING_DEFAULT),
+                // An unset padding reads its default; an emptied one ('') stays 0.
+                p: Number(widget.data.sliderPadding),
             }}
         >
             <Box
@@ -165,13 +164,13 @@ const SliderCollection: FC = () => {
                                 },
                             }}
                             disabled={locked}
-                            valueLabelDisplay={widget.data.valueLabelDisplay || undefined}
+                            valueLabelDisplay={widget.data.valueLabelDisplay}
                             orientation={orientation}
                             min={scale.min ?? undefined}
                             max={scale.max ?? undefined}
                             marks={scale.marks}
                             step={scale.step}
-                            size={widget.data.sliderSize || undefined}
+                            size={widget.data.sliderSize}
                             value={sliderValue}
                             onChange={(_, newValue: number | number[]) => {
                                 if (typeof newValue === 'number') {

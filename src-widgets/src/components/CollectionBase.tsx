@@ -198,6 +198,11 @@ function CollectionBase({
         [footerValue, widget.data.noFooter],
     );
 
+    // Header and footer sit half the padding into it. The padding reads its default when unset
+    // (lib/fieldDefaults); an emptied one ('') reads as 0, as the padding itself does, and a numeric
+    // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
+    const halfPadding = (Number(widget.data.basePadding) || 0) / 2;
+
     return (
         <Paper
             className="BASE-PAPER-0"
@@ -212,8 +217,8 @@ function CollectionBase({
                         sx={{
                             width: !headerHidden ? '100%' : '0%',
                             height: headerHidden ? '0%' : 'auto',
-                            mt: (widget.data.basePadding ?? 8) / 2,
-                            mb: -(widget.data.basePadding ?? 8) / 2,
+                            mt: halfPadding,
+                            mb: -halfPadding,
                         }}
                     >
                         <Typography
@@ -259,8 +264,8 @@ function CollectionBase({
                         sx={{
                             width: !widget.data.noFooter ? '100%' : '0%',
                             height: widget.data.noFooter ? '0%' : 'auto',
-                            mt: -(widget.data.basePadding ?? 8) / 2,
-                            mb: (widget.data.basePadding ?? 8) / 2,
+                            mt: -halfPadding,
+                            mb: halfPadding,
                         }}
                     >
                         <Typography

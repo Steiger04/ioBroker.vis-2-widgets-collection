@@ -51,6 +51,8 @@ const buttonGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] =>
             { value: 'vertical', label: 'vertical' },
         ],
         default: 'horizontal',
+        // '' (raw data, a binding) lays the group out in the default orientation.
+        emptiedReadsUnset: true,
     },
     // Separator/border colour, solid-only. Its cascade is the one contract the
     // Button-Group-Chrome resolves at runtime (ADR-0004): explicit value → theme text.

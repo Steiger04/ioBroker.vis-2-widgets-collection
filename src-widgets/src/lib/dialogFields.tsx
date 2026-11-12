@@ -14,10 +14,6 @@ import { createColorField, createPlainColorField } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-/** The dialog size while its fields are unset or emptied: the defaults the panel shows. */
-export const DIALOG_WIDTH_DEFAULT = 100;
-export const DIALOG_HEIGHT_DEFAULT = 100;
-
 const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         name: 'view',
@@ -70,7 +66,9 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'slider',
         min: 1,
         max: 100,
-        default: DIALOG_WIDTH_DEFAULT,
+        default: 100,
+        // An emptied size opens the dialog at the default, not at 0.
+        emptiedReadsUnset: true,
         step: 1,
     },
     {
@@ -79,7 +77,8 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'slider',
         min: 1,
         max: 100,
-        default: DIALOG_HEIGHT_DEFAULT,
+        default: 100,
+        emptiedReadsUnset: true,
         step: 1,
     },
     {
