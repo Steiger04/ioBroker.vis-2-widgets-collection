@@ -19,9 +19,7 @@ import { pickerGeometry } from './pickerGeometry';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
-import optionalNumber from '../lib/helper/optionalNumber';
 import { LIGHT2_CHANNEL_FIELDS, offersViewSwitch } from '../lib/light2Channels';
-import { COLOR_LIGHT_CT_MAX_DEFAULT, COLOR_LIGHT_CT_MIN_DEFAULT } from '../lib/light2Defaults';
 import type { Light2ChannelField } from '../lib/light2Channels';
 import type { SyncChannel } from './backendSyncKey';
 import { isCctViewActive } from './lampSync';
@@ -129,10 +127,10 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
                     uiComponent: rxData.colorLightUIComponent,
                     cctView,
                     sliderWidth: rxData.colorLightSliderWidth,
-                    // iro computes with the bounds: a numeric string as its number, an unset or
-                    // emptied bound as the default the panel shows (a missing one drew no gradient).
-                    ctMin: optionalNumber(rxData.colorLightCtMin) ?? COLOR_LIGHT_CT_MIN_DEFAULT,
-                    ctMax: optionalNumber(rxData.colorLightCtMax) ?? COLOR_LIGHT_CT_MAX_DEFAULT,
+                    // iro computes with the bounds: a numeric string as its number. An unset or
+                    // emptied bound reads its default (lib/light2Fields: emptiedReadsUnset).
+                    ctMin: Number(rxData.colorLightCtMin),
+                    ctMax: Number(rxData.colorLightCtMax),
                 },
                 measuredBox,
             ),

@@ -33,6 +33,7 @@ import {
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
 } from './testing/aiSeams';
+import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
 
@@ -220,11 +221,17 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(missing).toEqual([]);
         });
 
+        // An emptied field that reads as unset (`emptiedReadsUnset`) is checked too: its default is no ''.
         it('shows only defaults the Rückfall-Regel keeps (a default is a valid start value)', () => {
             const info = infos.get(name)!;
             const rules = fieldRulesOf(info.visAttrs ?? []);
             const dropped = describedFields(info, I18N_PREFIX)
-                .filter(field => field.name && field.default !== undefined && rules.named.has(field.name))
+                .filter(
+                    field =>
+                        field.name &&
+                        field.default !== undefined &&
+                        (rules.named.has(field.name) || rules.emptiedReadsUnset.has(field.name)),
+                )
                 .filter(field => !(field.name! in usableWidgetData({ [field.name!]: field.default }, rules)))
                 .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
 
@@ -252,7 +259,11 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         it('shows only defaults the Rückfall-Regel keeps (a default is a valid start value)', () => {
             const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
             const dropped = sharedFields()
-                .filter(field => field.default !== undefined && rules.named.has(field.name!))
+                .filter(
+                    field =>
+                        field.default !== undefined &&
+                        (rules.named.has(field.name!) || rules.emptiedReadsUnset.has(field.name!)),
+                )
                 .filter(field => !(field.name! in usableWidgetData({ [field.name!]: field.default }, rules)))
                 .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
 
@@ -320,12 +331,6 @@ const rowsOfPaletteDrop = (info: RxWidgetInfo): number | 'auto' => {
 /** The height of `n` grid rows: n cells and the gaps between them. */
 const heightOfRows = (rows: number): number => rows * GRID_ROW_HEIGHT + (rows - 1) * GRID_GAP;
 
-/** The default of a field of a widget, read from its definition. */
-const defaultOf = (info: RxWidgetInfo, name: string): unknown =>
-    (info.visAttrs ?? [])
-        .flatMap(group => (group.fields ?? []) as unknown as Record<string, unknown>[])
-        .find(field => field.name === name)?.default;
-
 /** One line of MUI `body2` (0.875rem × 1.43): the header and the footer line of the frame. */
 const BODY2_LINE = 20;
 
@@ -337,10 +342,10 @@ const BODY2_LINE = 20;
  * (MUI spacing: 8 px per unit).
  */
 const frameHeightOf = (info: RxWidgetInfo): number =>
-    (defaultOf(info, 'noCard') ? 0 : 8) +
-    (defaultOf(info, 'noHeader') ? 0 : BODY2_LINE) +
-    (defaultOf(info, 'noFooter') ? 0 : BODY2_LINE) +
-    2 * 8 * Number(defaultOf(info, 'basePadding') ?? 0);
+    (fieldDefaultOf(info, 'noCard') ? 0 : 8) +
+    (fieldDefaultOf(info, 'noHeader') ? 0 : BODY2_LINE) +
+    (fieldDefaultOf(info, 'noFooter') ? 0 : BODY2_LINE) +
+    2 * 8 * Number(fieldDefaultOf(info, 'basePadding') ?? 0);
 
 /**
  * The least height the control of each widget needs in its standard configuration, in px, with

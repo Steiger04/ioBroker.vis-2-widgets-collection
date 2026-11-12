@@ -23,6 +23,7 @@ import {
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import dialogFields from '../lib/dialogFields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import ViewDialog from './ViewDialog';
 import { DIALOG_OID, getWidgetView, sessionOidData } from './dialogTestFixture';
 import type { DialogCollectionContextProps } from '../types';
@@ -45,7 +46,7 @@ const OpenViewDialog: FC = () => {
 const mountBody = testScopedMount();
 
 /**
- * Mounts the open dialog.
+ * Mounts the open dialog over the data as the widget reads it (`readWidgetData`).
  *
  * @param data - Widget data over the dialog defaults.
  * @param style - The widget's vis-2 CSS (kebab-case keys, as vis-2 provides them).
@@ -53,14 +54,14 @@ const mountBody = testScopedMount();
 const mountDialog = (data: Record<string, unknown>, style: Record<string, string> = {}): MountedCollectionBody => {
     const scene = collectionScene(
         'view-dialog-test',
-        {
+        readWidgetData(dialogFields(), {
             ...sessionOidData(),
             view: 'detail',
             header: 'Küche',
             dialogCloseButtonTop: true,
             noFooter: true,
             ...data,
-        },
+        }),
         true,
         DIALOG_OID,
     );
@@ -159,8 +160,7 @@ describe('ViewDialog frame background', () => {
 
 describe('ViewDialog size', () => {
     /** The default of a dialog field, from its definition. */
-    const defaultOf = (name: string): unknown =>
-        (dialogFields().find(field => field.name === name) as { default?: unknown } | undefined)?.default;
+    const defaultOf = (name: string): unknown => fieldDefaultOf(dialogFields(), name);
 
     /** The size of the box that holds the dialog frame. */
     const dialogSize = (): { width: string; height: string } => {
@@ -176,7 +176,7 @@ describe('ViewDialog size', () => {
     });
 
     // The palette stores the defaults, so an unset size comes only from raw data; emptied, the
-    // number field keeps ''. Each read 'undefined%', 'null%' or '%' — no size at all.
+    // number field keeps '' (lib/dialogFields: emptiedReadsUnset). Each reads the default.
     it.each([
         ['unset', {}],
         ['stored as null', { dialogWidth: null, dialogHeight: null }],

@@ -23,9 +23,6 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
  */
 const hasNoStates = (data: WidgetData): boolean => stateRowCount(data, MAIN_OID_ROWS) === 0;
 
-/** Default slider padding (spacing units): the single source; the renderer reads it for an unset field. */
-export const SLIDER_PADDING_DEFAULT = 1;
-
 const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
@@ -41,6 +38,8 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'medium', label: 'slider_medium' },
         ],
         default: 'medium',
+        // '' (raw data, a binding) draws the default size.
+        emptiedReadsUnset: true,
     } as const,
     {
         name: 'sliderOrientation',
@@ -71,6 +70,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
             { value: 'auto', label: 'label_auto' },
         ],
         default: 'off',
+        emptiedReadsUnset: true,
     } as const,
     {
         name: 'labelPosition',
@@ -86,7 +86,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         name: 'sliderPadding',
         label: 'slider_padding',
         type: 'number',
-        default: SLIDER_PADDING_DEFAULT,
+        default: 1,
         min: 0,
         step: 0.5,
     } as const,
@@ -99,6 +99,8 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'thumb_width',
         type: 'number',
         default: 20,
+        // An emptied length draws the default, not 0.
+        emptiedReadsUnset: true,
         min: 0,
     } as const,
     {
@@ -106,6 +108,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'thumb_height',
         type: 'number',
         default: 20,
+        emptiedReadsUnset: true,
         min: 0,
     } as const,
     createColorField({ ...sliderColorContracts.thumbColor, label: 'thumb_color' }),
@@ -128,6 +131,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'track_length',
         type: 'number',
         default: 4,
+        emptiedReadsUnset: true,
         min: 0,
     } as const,
     createColorField({ ...sliderColorContracts.trackBackgroundColor, label: 'track_background_color' }),
@@ -151,6 +155,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'rail_length',
         type: 'number',
         default: 4,
+        emptiedReadsUnset: true,
         min: 0,
     } as const,
     createColorField({ ...sliderColorContracts.railBackgroundColor, label: 'rail_background_color' }),

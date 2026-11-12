@@ -16,6 +16,7 @@ import { act } from 'react';
 
 import { collectionScene, installInertResizeObserver, testScopedMount } from '../lib/testing/collectionScene';
 import light2Fields from '../lib/light2Fields';
+import { fieldDefaultOf, readWidgetData } from '../lib/testing/widgetReading';
 import Light2Collection from './Light2Collection';
 import type { PickerGeometry } from './pickerGeometry';
 import type { PreviewScene } from '../preview/types';
@@ -39,11 +40,14 @@ const SWITCH = 'demo.0.lamp.on';
 
 const mountBody = testScopedMount();
 
-/** A Light2 scene on a boolean Schalter-OID (rgb lamp), the switch holding `status`. */
+/**
+ * A Light2 scene on a boolean Schalter-OID (rgb lamp), the switch holding `status`; the data as the
+ * widget reads it (`readWidgetData`).
+ */
 const scene = (data: Record<string, unknown> = {}, status: unknown = false): PreviewScene =>
     collectionScene(
         'light2-collection-test',
-        {
+        readWidgetData(light2Fields(), {
             colorLightSwitchOid: SWITCH,
             colorLightSwitchOidObject: { _id: SWITCH, type: 'boolean' },
             colorLightType: 'rgb',
@@ -52,7 +56,7 @@ const scene = (data: Record<string, unknown> = {}, status: unknown = false): Pre
             noFooter: true,
             noHeaderIcon: true,
             ...data,
-        },
+        }),
         status,
         SWITCH,
     );
@@ -149,7 +153,8 @@ describe('Light2Collection Button-Modus', () => {
 
 describe('Light2Collection Button-Modus long-press delay', () => {
     // vis-2's number field keeps '' once the user empties it, and the assistant may write it: the
-    // delay reads like the unset one (the field default), not as a 0 ms long press on every touch.
+    // widget reads the delay like the unset one (the field default, emptiedReadsUnset), not as a 0 ms
+    // long press on every touch.
     it.each([
         ['emptied', ''],
         ['stored as null', null],
@@ -286,8 +291,7 @@ describe('Light2Collection Lampen-Bedienelement', () => {
 
 describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {
     /** The default of a Light2 field, from its definition. */
-    const defaultOf = (name: string): unknown =>
-        (light2Fields().find(field => field.name === name) as { default?: unknown } | undefined)?.default;
+    const defaultOf = (name: string): unknown => fieldDefaultOf(light2Fields(), name);
 
     /** The Kelvin range the Kelvin-Picker was last drawn with. */
     const drawnRange = (): { minTemperature: unknown; maxTemperature: unknown } => {
@@ -304,7 +308,8 @@ describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {
     };
 
     // The OID pick stores the schema defaults, so an unset range comes only from raw data: iro took
-    // the missing bound as NaN and drew no Kelvin gradient.
+    // the missing bound as NaN and drew no Kelvin gradient. Unset, null or emptied, the widget reads
+    // the default (lib/light2Fields: emptiedReadsUnset).
     it.each([
         ['unset', {}],
         ['stored as null', { colorLightCtMin: null, colorLightCtMax: null }],

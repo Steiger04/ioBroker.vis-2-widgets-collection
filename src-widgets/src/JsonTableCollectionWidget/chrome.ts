@@ -23,20 +23,12 @@
 import type { Theme } from '@mui/material/styles';
 
 import { gradientColor } from '../lib/helper/gradientColor';
-import optionalNumber from '../lib/helper/optionalNumber';
 import {
     resolveEffectiveSolidColor,
     terminalColor,
     type ColorFieldContract,
 } from '../lib/helper/resolveEffectiveColor';
 import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
-import {
-    TABLE_BORDER_STYLE_DEFAULT,
-    TABLE_CELL_BORDER_WIDTH_DEFAULT,
-    TABLE_DENSITY_DEFAULT,
-    TABLE_HEADER_BORDER_WIDTH_DEFAULT,
-    TABLE_HEADER_ELEVATION_DEFAULT,
-} from '../lib/jsonTableDefaults';
 import type { JsonTableFieldsRxData } from '../types';
 
 /** Row height (px) per density. */
@@ -50,7 +42,11 @@ const DENSITY_HEADER_HEIGHT: Record<string, number> = { compact: 36, standard: 5
  */
 type SxObject = Record<string, unknown>;
 
-/** The raw chrome settings as vis-2 stores them in the widget data (any key may be missing). */
+/**
+ * The chrome settings as the widget reads them: an unset key of a field with a default, and an
+ * emptied one that declares it reads as unset (`emptiedReadsUnset`), read as the field's default
+ * (`lib/fieldDefaults`); a field without a default may be missing.
+ */
 export type TableChromeSettings = Readonly<
     Pick<
         JsonTableFieldsRxData,
@@ -129,9 +125,10 @@ function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, 
  * `backgroundColor` as stored; an unset one leaves the base.
  */
 function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject {
-    // An emptied slider ('') reads like the unset one
-    const headerElevation = optionalNumber(settings.tableHeaderElevation) ?? TABLE_HEADER_ELEVATION_DEFAULT;
-    const headerBorderWidth = settings.headerBorderWidth ?? TABLE_HEADER_BORDER_WIDTH_DEFAULT;
+    // An emptied slider ('') reads its default (lib/jsonTableFields: emptiedReadsUnset); a numeric
+    // string as its number.
+    const headerElevation = Number(settings.tableHeaderElevation);
+    const headerBorderWidth = Number(settings.headerBorderWidth);
 
     // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside
     // another widget the sticky bar keeps its paper and shadow, so it stays opaque and the
@@ -191,8 +188,8 @@ function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     if (settings.tableShowRowBorders === false) {
         sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
     } else {
-        // An emptied slider ('') reads like the unset one, never as the invalid `px solid`
-        const hBorderWidth = optionalNumber(settings.horizontalCellBorderWidth) ?? TABLE_CELL_BORDER_WIDTH_DEFAULT;
+        // An emptied slider ('') reads its default (emptiedReadsUnset), never the invalid `px solid`
+        const hBorderWidth = Number(settings.horizontalCellBorderWidth);
         sx['& .MuiTableCell-root'] = {
             borderBottom: `${hBorderWidth}px solid`,
             borderBottomColor: lineColor(jsonTableColorContracts.horizontalCellBorderColor, settings, theme),
@@ -200,7 +197,7 @@ function tableSx(settings: TableChromeSettings, theme: Theme): SxObject {
     }
 
     if (settings.tableShowCellBorders === true) {
-        const vBorderWidth = optionalNumber(settings.verticalCellBorderWidth) ?? TABLE_CELL_BORDER_WIDTH_DEFAULT;
+        const vBorderWidth = Number(settings.verticalCellBorderWidth);
         sx['& .MuiTableCell-root:not(:last-child)'] = {
             borderRight: `${vBorderWidth}px solid`,
             borderRightColor: lineColor(jsonTableColorContracts.verticalCellBorderColor, settings, theme),
@@ -224,7 +221,7 @@ function frameSx(settings: TableChromeSettings, theme: Theme): SxObject {
     };
 
     const borderWidth = settings.borderWidth;
-    const borderStyle = settings.borderStyle || TABLE_BORDER_STYLE_DEFAULT;
+    const borderStyle = settings.borderStyle;
     const borderRadius = settings.borderRadius;
 
     if (borderWidth && borderWidth > 0) {
@@ -255,7 +252,7 @@ function rowBackgroundSx(colorValue: string | null): SxObject | undefined {
  * @returns Every sx fragment of the table's presentation shell.
  */
 export function buildTableChrome(settings: TableChromeSettings, theme: Theme): TableChrome {
-    const density = settings.tableDensity || TABLE_DENSITY_DEFAULT;
+    const density = String(settings.tableDensity);
     const rowHeight = Number(settings.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
     const headerHeight = Number(settings.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
 

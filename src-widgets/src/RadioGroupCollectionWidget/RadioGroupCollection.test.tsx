@@ -23,6 +23,8 @@ import {
     type MountedCollectionBody,
 } from '../lib/testing/collectionScene';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
+import radioGroupFields from '../lib/radioGroupFields';
+import { readWidgetData } from '../lib/testing/widgetReading';
 import RadioGroupCollection from './RadioGroupCollection';
 import type { PreviewScene } from '../preview/types';
 
@@ -181,14 +183,22 @@ describe('RadioGroupCollection item size (Content-Box)', () => {
 });
 
 describe('RadioGroupCollection label placement', () => {
-    // The Rückfall-Regel keeps null and '' (the assistant may write either; the vis-2 select offers
-    // only start and end): both read like the unset field, MUI's default end.
+    // The vis-2 select offers only start and end: null and '' come from raw data (the assistant) or
+    // a binding. The widget reads both like the missing key (lib/radioGroupFields: emptiedReadsUnset;
+    // keepUnset leaves it unset), MUI's default end; the body is mounted over the data as read.
     it.each([
-        ['null', null],
-        ['empty', ''],
-    ])('reads a label placement stored as %s like the unset field', (_case, stored) => {
-        const unset = mountRadioGroup(scene({ labelPlacement: undefined })).container.innerHTML;
+        ['stored as null', null, undefined],
+        ['stored empty', '', undefined],
+        ['bound to an empty text', '', '{0_userdata.0.placement}'],
+    ])('reads a label placement %s like the unset field', (_case, value, binding) => {
+        const read = (labelPlacement: unknown, stored?: unknown): Record<string, unknown> =>
+            readWidgetData(
+                radioGroupFields(),
+                { labelPlacement },
+                stored === undefined ? undefined : { labelPlacement: stored },
+            );
+        const unset = mountRadioGroup(scene(read(undefined))).container.innerHTML;
 
-        expect(mountRadioGroup(scene({ labelPlacement: stored })).container.innerHTML).toBe(unset);
+        expect(mountRadioGroup(scene(read(value, binding))).container.innerHTML).toBe(unset);
     });
 });

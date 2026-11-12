@@ -11,9 +11,10 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createOnlyDisplayField } from './fieldFactories';
 
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-const checkboxFields = (): RxWidgetInfoAttributesField[] => [
+const checkboxFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="label" />,
@@ -35,6 +36,8 @@ const checkboxFields = (): RxWidgetInfoAttributesField[] => [
             { value: 'end', label: 'checkbox_end' },
         ],
         default: 'end',
+        // '' (raw data, a binding) places the label at the default end.
+        emptiedReadsUnset: true,
         hidden: 'data.withoutLabel',
     },
     {

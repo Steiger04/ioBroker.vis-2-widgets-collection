@@ -19,15 +19,18 @@ describe('virtualizesRows', () => {
         expect(virtualizesRows(paged, 1000, 50)).toBe(false);
     });
 
-    it('virtualizes above the threshold, 50 when unset', () => {
-        expect(virtualizesRows(unpaged, 51)).toBe(true);
-        expect(virtualizesRows(unpaged, 50)).toBe(false);
+    // An unset threshold reads its default (50) before the table sees it (lib/fieldDefaults).
+    it('virtualizes above the threshold', () => {
+        expect(virtualizesRows(unpaged, 51, 50)).toBe(true);
+        expect(virtualizesRows(unpaged, 50, 50)).toBe(false);
+        expect(virtualizesRows(unpaged, 11, '10')).toBe(true);
         expect(virtualizesRows(unpaged, 11, 10)).toBe(true);
         expect(virtualizesRows(unpaged, 10, 10)).toBe(false);
     });
 
-    it('never virtualizes with the threshold 0, as the field tooltip promises', () => {
+    it('never virtualizes with the threshold 0, as the field tooltip promises, nor emptied', () => {
         expect(virtualizesRows(unpaged, 1000, 0)).toBe(false);
+        expect(virtualizesRows(unpaged, 1000, '')).toBe(false);
     });
 });
 
