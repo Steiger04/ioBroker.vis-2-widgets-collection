@@ -1016,3 +1016,45 @@ describe('SliderCollection with emptied range fields', () => {
         expect(attributesOf({ values_count: 2, value1: '10', value2: '30' })).toEqual(['10', '30', '1']);
     });
 });
+
+// The vis-2 select offers only the option values and stores one; null (an assistant's flat
+// update) and '' come only from raw data and mean nothing here, so they read like the unset
+// field — MUI applies its own default to undefined only.
+describe('SliderCollection option fields stored as null or empty', () => {
+    const sliderOf = (data: Record<string, unknown>): { className: string; valueLabel: boolean } => {
+        const { container } = mount(
+            SliderCollection,
+            collectionScene(
+                'slider-option-test',
+                {
+                    oid: OID,
+                    oidObject: { _id: OID, type: 'number' },
+                    minValue: 0,
+                    maxValue: 100,
+                    noHeader: true,
+                    noFooter: true,
+                    noHeaderIcon: true,
+                    ...data,
+                },
+                50,
+            ),
+        );
+        const slider = container.querySelector('.MuiSlider-root');
+        if (!slider) {
+            throw new Error('the slider rendered no MUI slider');
+        }
+        return { className: slider.className, valueLabel: !!container.querySelector('.MuiSlider-valueLabel') };
+    };
+
+    it.each([null, ''])('sizes a slider whose size is stored as %j like the unset one', sliderSize => {
+        const unset = sliderOf({}).className;
+
+        expect(unset).toContain('MuiSlider-sizeMedium');
+        expect(sliderOf({ sliderSize }).className).toBe(unset);
+    });
+
+    it.each([null, ''])('shows no value label for a value label display stored as %j, like unset', valueLabelDisplay => {
+        expect(sliderOf({}).valueLabel).toBe(false);
+        expect(sliderOf({ valueLabelDisplay }).valueLabel).toBe(false);
+    });
+});

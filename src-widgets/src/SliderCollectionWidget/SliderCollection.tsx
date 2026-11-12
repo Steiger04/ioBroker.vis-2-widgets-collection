@@ -163,13 +163,13 @@ const SliderCollection: FC = () => {
                                 },
                             }}
                             disabled={locked}
-                            valueLabelDisplay={widget.data.valueLabelDisplay}
+                            valueLabelDisplay={widget.data.valueLabelDisplay || undefined}
                             orientation={orientation}
                             min={scale.min ?? undefined}
                             max={scale.max ?? undefined}
                             marks={scale.marks}
                             step={scale.step}
-                            size={widget.data.sliderSize}
+                            size={widget.data.sliderSize || undefined}
                             value={sliderValue}
                             onChange={(_, newValue: number | number[]) => {
                                 if (typeof newValue === 'number') {
