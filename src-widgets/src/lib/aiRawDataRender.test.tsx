@@ -293,12 +293,14 @@ async function markupOf(element: React.JSX.Element, read: (container: HTMLElemen
  * @param values - The subscribed state values.
  * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
  *   no attribute bound.
+ * @param interact - What a user does on the mounted widget before its markup is read (a click).
  */
 function renderWidget(
     widget: WidgetClass,
     data: Record<string, unknown>,
     values: Record<string, unknown>,
     stored: Record<string, unknown> = data,
+    interact?: (container: HTMLElement) => void,
 ): Promise<string> {
     const instance = new widget({
         context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
@@ -310,10 +312,10 @@ function renderWidget(
         style: {},
         refService: { current: null },
     });
-    return markupOf(
-        element,
-        container => container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`,
-    );
+    return markupOf(element, container => {
+        interact?.(container);
+        return container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`;
+    });
 }
 
 /** Renders the body directly over the raw data (no rule): the reading of stored data before it. */
@@ -533,6 +535,60 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             });
         },
     );
+
+    // The Input's own fields shape the edit field, which shows only once a click starts the
+    // Inline-Edit-Sitzung (ADR-0109): read there, each broken, null or (in an option field) empty
+    // value draws the field like the unset one.
+    describe('InputCollectionWidget: the edit field', () => {
+        const startSession = (container: HTMLElement): void => {
+            const display = container.querySelector('.BASE-PAPER-1 .MuiTypography-root');
+            if (!display) {
+                throw new Error('the widget rendered no display');
+            }
+            act(() => {
+                display.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            });
+            if (!container.querySelector('input')) {
+                throw new Error('the click started no session');
+            }
+        };
+
+        it('draws its own fields with broken, null or empty values like the unset ones', async () => {
+            const widget = (
+                (await import('../InputCollectionWidget/InputCollectionWidget')) as { default: WidgetClass }
+            ).default;
+            const fixture = FIXTURES.InputCollectionWidget!;
+            const ownFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named].filter(
+                ([key]) => !SHARED_FIELD_NAMES.has(key),
+            );
+            const valuesOf = new Map(
+                ownFields.map(([key, rule]) => [
+                    key,
+                    [
+                        ...brokenValuesOf(rule),
+                        null,
+                        ...(typeof rule === 'object' && 'options' in rule && !rule.options.includes('') ? [''] : []),
+                    ],
+                ]),
+            );
+            const editing = (data: Record<string, unknown>): Promise<string> =>
+                renderWidget(widget, data, fixture.values, data, startSession);
+
+            expect(ownFields.map(([key]) => key)).toEqual(
+                expect.arrayContaining(['showOkButton', 'inputVariant', 'inputPadding', 'step', 'minValue']),
+            );
+            expect(
+                await differingValues(
+                    [...valuesOf.keys()],
+                    key => valuesOf.get(key)!,
+                    async assigned => [
+                        await editing({ ...fixture.data, ...assigned }),
+                        await editing(without(fixture.data, Object.keys(assigned))),
+                    ],
+                ),
+            ).toEqual([]);
+        });
+    });
 
     describe('SwitchCollectionWidget: bound attributes', () => {
         it.each([
