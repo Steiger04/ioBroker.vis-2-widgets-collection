@@ -42,7 +42,7 @@ export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !
  * own fields not rendered from broken data (Naht 2). Emptied by the widget tickets; ticket 10
  * removes the list.
  */
-export const STILL_OPEN: readonly WidgetName[] = ['JsonTableCollectionWidget', 'EchartsCollectionWidget'];
+export const STILL_OPEN: readonly WidgetName[] = ['EchartsCollectionWidget'];
 
 /**
  * The names of the fields the shared field modules declare: the common block, its Active variant,
