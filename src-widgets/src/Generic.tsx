@@ -173,6 +173,45 @@ class Generic<
         return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading);
     }
 
+    /**
+     * Whether the widget is a cell of the host's grid layout with a fixed number of rows.
+     *
+     * @remarks
+     * The rows of a grid section grow with their content (`minmax(<rowHeight>px, auto)`, vis-2
+     * Vis/visView.tsx:2961), and the service div of a cell has `height: auto`
+     * (Vis/visBaseWidget.tsx:1901-1915), so the widget's `height: 100%` resolves only after the
+     * rows are sized: until then its content's own height sizes them. A cell of `span N` rows
+     * must keep the height of its rows instead, as in the absolute layout; a cell of `auto` rows
+     * grows with its content, which is what `auto` means there. The cell is read from the host's
+     * own `VisBaseWidget.getGridCellStyle` with the arguments its render passes
+     * (Vis/visBaseWidget.tsx:2090-2100), a running grid resize included. It came with the grid
+     * layout and `gridCell`; a host without it has no grid cells.
+     */
+    protected occupiesFixedGridRows(): boolean {
+        if (!this.props.gridCell) {
+            return false;
+        }
+        const host = Generic as unknown as {
+            getGridCellStyle?: (
+                style: unknown,
+                settings: unknown,
+                order: number,
+                span?: unknown,
+            ) => { gridRow?: unknown } | undefined;
+        };
+        if (typeof host.getGridCellStyle !== 'function') {
+            return false;
+        }
+        const state = this.state as VisRxWidgetState & { gridGesture?: { span?: unknown } | null };
+        const cell = host.getGridCellStyle(
+            state.rxStyle || state.style,
+            this.props.context?.views?.[this.props.view]?.settings,
+            0,
+            state.gridGesture?.span,
+        );
+        return typeof cell?.gridRow === 'string' && cell.gridRow.startsWith('span');
+    }
+
     wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {
         return (
             <>
@@ -184,6 +223,10 @@ class Generic<
 
                         width: '100%',
                         height: '100%',
+
+                        // In a grid cell of fixed rows the content takes no part in sizing the rows:
+                        // the widget gets their height and clips inside (see occupiesFixedGridRows).
+                        contain: this.occupiesFixedGridRows() ? 'size' : undefined,
 
                         display: 'flex',
                         justifyContent: 'center',

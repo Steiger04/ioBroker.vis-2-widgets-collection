@@ -10,7 +10,9 @@
  * `describe_widget_type` (`name`, `type` with `'text'` as default, translated `label`, the option
  * values, the raw `default`; `AiChat/aiTools.ts`). The palette tooltip shows the same
  * `I18n.t(help)` (`Palette/Widget.tsx`). `I18n.t` is emulated over `en.json` with the prefix the
- * translations module registers, as `I18n.extendTranslations` stores it.
+ * translations module registers, as `I18n.extendTranslations` stores it. The catalog's `style`
+ * (`visDefaultStyle`) and `grid` (`visDefaultGrid`) decide the rows a widget starts with in the
+ * host's grid layout; the last block checks that its standard configuration fits them.
  *
  * Roster and open list: `lib/testing/aiSeams`. Like the other introspection tests it runs
  * isolated (`DOM_TS_TESTS`): it mocks `Generic`, the widget bodies and the heavy editors, none of
@@ -270,5 +272,138 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         ).map(entry => entry.name);
 
         expect(stale).toEqual([]);
+    });
+});
+
+/**
+ * The host's grid layout with its default cells (vis-2 `Vis/visGridLayout.ts` GRID_LAYOUT_DEFAULTS:
+ * `rowHeight: 56`, `gridGap: 8`).
+ */
+const GRID_ROW_HEIGHT = 56;
+const GRID_GAP = 8;
+
+/**
+ * The rows the host gives a widget type's style (`Vis/visGridLayout.ts` getRowSpan): `gridRows`,
+ * else a px `height` rounded to cells, else `auto`. The assistant inserts with this style
+ * (`AiChat/aiTools.ts` newWidgetStyle, no `visDefaultGrid`).
+ */
+const rowsOfStyle = (style: Record<string, unknown> | undefined): number | 'auto' => {
+    if (style?.gridRows === 'auto') {
+        return 'auto';
+    }
+    if (typeof style?.gridRows === 'number' && style.gridRows >= 1) {
+        return Math.round(style.gridRows);
+    }
+    const raw = style?.height;
+    const height = /^(\d+(?:\.\d+)?)(px)?$/.exec(
+        typeof raw === 'number' || typeof raw === 'string' ? `${raw}`.trim() : '',
+    );
+    if (height && Number(height[1]) > 0) {
+        return Math.max(1, Math.round((Number(height[1]) + GRID_GAP) / (GRID_ROW_HEIGHT + GRID_GAP)));
+    }
+    return 'auto';
+};
+
+/**
+ * The rows a palette drop into a section gets (`Vis/visGridLayout.ts` getDefaultGridSpan):
+ * `visDefaultGrid.rows`, else the rows of `visDefaultStyle`, kept within `minRows`/`maxRows`.
+ */
+const rowsOfPaletteDrop = (info: RxWidgetInfo): number | 'auto' => {
+    const grid = info.visDefaultGrid;
+    const rows = grid?.rows ?? rowsOfStyle(info.visDefaultStyle as Record<string, unknown>);
+    if (rows === 'auto') {
+        return 'auto';
+    }
+    return Math.max(Math.min(rows, grid?.maxRows ?? Infinity), grid?.minRows ?? 1);
+};
+
+/** The height of `n` grid rows: n cells and the gaps between them. */
+const heightOfRows = (rows: number): number => rows * GRID_ROW_HEIGHT + (rows - 1) * GRID_GAP;
+
+/** The default of a field of a widget, read from its definition. */
+const defaultOf = (info: RxWidgetInfo, name: string): unknown =>
+    (info.visAttrs ?? [])
+        .flatMap(group => (group.fields ?? []) as unknown as Record<string, unknown>[])
+        .find(field => field.name === name)?.default;
+
+/** One line of MUI `body2` (0.875rem × 1.43): the header and the footer line of the frame. */
+const BODY2_LINE = 20;
+
+/**
+ * The frame around the control in the standard configuration (the defaults of the definition,
+ * as a palette insert sets them; with an OID its name heads the frame and its value foots it):
+ * the card's inset (`Generic.wrapContent`, `calc(100% - 8px)`), the header and the footer line
+ * (`CollectionBase`; their ± half padding margins cancel out) and the base padding on both sides
+ * (MUI spacing: 8 px per unit).
+ */
+const frameHeightOf = (info: RxWidgetInfo): number =>
+    (defaultOf(info, 'noCard') ? 0 : 8) +
+    (defaultOf(info, 'noHeader') ? 0 : BODY2_LINE) +
+    (defaultOf(info, 'noFooter') ? 0 : BODY2_LINE) +
+    2 * 8 * Number(defaultOf(info, 'basePadding') ?? 0);
+
+/**
+ * The least height the control of each widget needs in its standard configuration, in px, with
+ * the reason (MUI minimum heights; controls that scale with the Content-Box get the size at
+ * which MUI draws them).
+ */
+const CONTROL_MIN_HEIGHT: Partial<Record<WidgetName, { px: number; reason: string }>> = {
+    StateCollectionWidget: { px: 37, reason: 'MUI Button: 2 × 6 px padding + 24.5 px line' },
+    SliderCollectionWidget: { px: 30, reason: 'MUI Slider: 4 px rail + 2 × 13 px padding' },
+    InputCollectionWidget: {
+        px: 29,
+        reason: 'editing: TextField small standard, 1 px + 1.4375em (23 px) + 5 px; at rest a value line',
+    },
+    ButtonGroupCollectionWidget: { px: 37, reason: 'MUI Button: 2 × 6 px padding + 24.5 px line' },
+    SwitchCollectionWidget: { px: 38, reason: 'MUI Switch (medium): 38 px root' },
+    CheckboxCollectionWidget: { px: 42, reason: 'MUI Checkbox: 24 px icon + 2 × 9 px padding' },
+    DialogCollectionWidget: { px: 37, reason: 'the opening card: one value line and its icon, button-sized' },
+    SelectCollectionWidget: { px: 32, reason: 'MUI Select standard: 4 px + 1.4375em (23 px) + 5 px' },
+    RadioGroupCollectionWidget: { px: 42, reason: 'MUI Radio: 24 px icon + 2 × 9 px padding' },
+    GaugeCollectionWidget: { px: 42, reason: 'the canvas scales with the box; legible from a radio-sized dial' },
+    Light2CollectionWidget: { px: 42, reason: 'the power IconButton: 26 px icon + 2 × 8 px padding' },
+    JsonTableCollectionWidget: {
+        px: 212,
+        reason: 'standard density: 56 px header row + 3 data rows of 52 px, the rest scrolls',
+    },
+    EchartsCollectionWidget: {
+        px: 220,
+        reason: 'ECharts grid default margins (60 px above and below the plot) + a 100 px plot',
+    },
+};
+
+/** The least rows that hold a height. */
+const rowsFor = (height: number): number => {
+    let rows = 1;
+    while (heightOfRows(rows) < height) {
+        rows++;
+    }
+    return rows;
+};
+
+describe('Startspanne im Raster: each widget fits its rows in the standard configuration', () => {
+    it('names the control height of every placeable widget', () => {
+        expect(Object.keys(CONTROL_MIN_HEIGHT).sort()).toEqual([...PLACEABLE_WIDGETS].sort());
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('%s', name => {
+        const needed = (): number => rowsFor(frameHeightOf(infos.get(name)!) + CONTROL_MIN_HEIGHT[name]!.px);
+
+        it('gets enough rows from its default style where the assistant inserts it', () => {
+            const rows = rowsOfStyle(infos.get(name)!.visDefaultStyle as Record<string, unknown>);
+
+            expect(rows === 'auto' || rows >= needed(), `${rows} rows, ${needed()} needed`).toBe(true);
+        });
+
+        it('gets enough rows where the palette drops it into a section (visDefaultGrid consistent)', () => {
+            const info = infos.get(name)!;
+            const rows = rowsOfPaletteDrop(info);
+
+            expect(rows === 'auto' || rows >= needed(), `${rows} rows, ${needed()} needed`).toBe(true);
+            // A declared minimum for resizing stays within the start rows of both ways in.
+            if (info.visDefaultGrid?.minRows !== undefined && rows !== 'auto') {
+                expect(info.visDefaultGrid.minRows).toBeLessThanOrEqual(rows);
+            }
+        });
     });
 });
