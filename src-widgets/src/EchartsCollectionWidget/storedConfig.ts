@@ -1,6 +1,5 @@
 /**
- * The stored chart configuration: what each configuration blob holds, and the one way every
- * parse site reads it (KI-Integration, ADR-0114).
+ * The stored chart configuration: what each configuration blob holds (KI-Integration, ADR-0114).
  *
  * @module EchartsCollectionWidget/storedConfig
  * @remarks
@@ -8,8 +7,8 @@
  * `extractBinding` cannot mistake them for bindings); the vis-2 assistant writes them as plain
  * JSON, possibly broken or reduced by a flat update. The field definitions declare each blob's
  * top level (`storedValue`, read by the Rückfall-Regel in `Generic`), and every decoder — live
- * body, option builder and configuration editor alike — reads its blob through this module by the
- * shared parse-site rule (`lib/usableJson`):
+ * body, option builder and configuration editor alike — reads its blob with the shared blob
+ * readers (`lib/usableJson`) and the kind tables here:
  * - a value that is no JSON text of the blob's top level (plain or blob) reads as no blob;
  * - a list entry that is no object reads as an unset entry: an empty entry where the list is
  *   positional (`seriesConfig` pairs with `oid{n}`, `yAxes` with `yAxisIndex`), left out otherwise;
@@ -31,24 +30,8 @@ import type {
     EchartsToolboxConfig,
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
-import {
-    anyOf,
-    isFlag,
-    isNumber,
-    isRecord,
-    isText,
-    isTextList,
-    readUsableJson,
-    withoutBroken,
-    type KeyKinds,
-} from '../lib/usableJson';
+import { anyOf, isFlag, isNumber, isRecord, isText, isTextList, type KeyKinds } from '../lib/usableJson';
 import type { ChartConfigBlob } from './presentation';
-
-/** A blob that holds a JSON object. */
-export const OBJECT_BLOB: { json: 'object' } = { json: 'object' };
-
-/** A blob that holds a JSON list. */
-export const LIST_BLOB: { json: 'array' } = { json: 'array' };
 
 const textOrNumber = anyOf(isText, isNumber);
 
@@ -251,52 +234,3 @@ export const TOOLBOX_KINDS: KeyKinds<EchartsToolboxConfig> = {
     backgroundColor: isText,
     features: isRecord,
 };
-
-/**
- * Read an object blob.
- *
- * @param raw - The stored blob.
- * @param kinds - The kind of each key the widget reads.
- * @returns The object without its broken keys; `undefined` for no usable blob.
- */
-export const readObjectBlob = <T extends object>(raw: unknown, kinds: KeyKinds<T>): T | undefined => {
-    const parsed = readUsableJson(OBJECT_BLOB, raw);
-    return parsed === undefined ? undefined : withoutBroken(parsed as T, kinds);
-};
-
-/**
- * Read a list blob of objects.
- *
- * @param raw - The stored blob.
- * @param kinds - The kind of each key of an entry.
- * @param positional - Whether an entry's place carries meaning (an entry that is no object then
- *   reads as an empty entry instead of being left out).
- * @returns The entries without their broken keys; empty for no usable blob.
- */
-export const readListBlob = <T extends object>(raw: unknown, kinds: KeyKinds<T>, positional: boolean): T[] =>
-    (readUsableJson(LIST_BLOB, raw) ?? []).flatMap(entry =>
-        isRecord(entry) ? [withoutBroken(entry as T, kinds)] : positional ? [{} as T] : [],
-    );
-
-/**
- * Read a blob of objects by name (`jsonSeriesStyle`).
- *
- * @param raw - The stored blob.
- * @param kinds - The kind of each key of a value.
- * @returns The values that are objects, without their broken keys; empty for no usable blob.
- */
-export const readNamedBlob = <T extends object>(raw: unknown, kinds: KeyKinds<T>): Record<string, T> =>
-    Object.fromEntries(
-        Object.entries(readUsableJson(OBJECT_BLOB, raw) ?? {}).flatMap(([name, value]) =>
-            isRecord(value) ? [[name, withoutBroken(value as T, kinds)]] : [],
-        ),
-    );
-
-/**
- * Read a list blob of texts (`jsonHidden`).
- *
- * @param raw - The stored blob.
- * @returns The entries that are texts; empty for no usable blob.
- */
-export const readTextListBlob = (raw: unknown): string[] =>
-    (readUsableJson(LIST_BLOB, raw) ?? []).filter((entry): entry is string => typeof entry === 'string');

@@ -17,8 +17,7 @@ import { encodeBlob } from '../../lib/encoding';
 import { migrateLegacyRange } from '../timeWindow';
 import { normalizeStackMode } from '../stackMode';
 import { parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from '../optionBuilder';
-import { readUsableJson } from '../../lib/usableJson';
-import { OBJECT_BLOB } from '../storedConfig';
+import { OBJECT_BLOB, readUsableJson } from '../../lib/usableJson';
 import { familyOf } from '../families/kernel';
 import { editorialOf } from '../families/editorial';
 import {
@@ -350,7 +349,7 @@ const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? 
  * Decode the Platz-Gedächtnis blob (ADR-0079 place-memory addendum): each side's value list
  * must be finite numbers — anything else drops that side; an empty/absent/unusable blob is no
  * memory at all (legacy widgets render with the plain raster until their first gesture). The blob
- * has no field; its top level is judged by the stored-configuration rule (`storedConfig`).
+ * has no field; its top level is judged by the shared blob reading (`lib/usableJson`).
  */
 const decodeSlotMemory = (raw: unknown): AxisSlotMemory | undefined => {
     const parsed = readUsableJson(OBJECT_BLOB, raw);
