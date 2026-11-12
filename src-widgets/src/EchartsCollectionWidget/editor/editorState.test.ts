@@ -16,6 +16,7 @@ vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
+import echartsFields from '../../lib/echartsFields';
 import { composeActiveSnippets } from './snippetComposition';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
@@ -966,5 +967,18 @@ describe('editorState — a number scalar stored as a numeric string loads as it
         expect([state.frame.width, state.count, state.tooltipDecimals, state.animationDuration]).toEqual([
             3, 200, 2, 900,
         ]);
+    });
+});
+
+// The text scalars the editor owns (mode, chart type, positions, time window …) carry no rule; the
+// editor opens over whatever the assistant wrote there.
+describe('editorState — a text scalar of another JSON type', () => {
+    it.each([5, true, { a: 1 }, ['x'], 'zzz'])('loads without a throw: %j', value => {
+        const fields = echartsFields() as { name?: string; type?: string; storedValue?: unknown }[];
+        const texts = fields.filter(f => f.name && f.type === 'text' && f.storedValue === undefined).map(f => f.name!);
+        const data = { series_count: 1, oid1: 'demo.0.a', ...Object.fromEntries(texts.map(key => [key, value])) };
+
+        expect(texts).toEqual(expect.arrayContaining(['mode', 'chartType', 'legendPos']));
+        expect(() => saveEditorState(loadEditorState(data))).not.toThrow();
     });
 });
