@@ -1043,3 +1043,13 @@ describe('editorState — every key the editor saves is a declared field', () =>
         }
     });
 });
+
+// The title offsets and size are number fields: a numeric string loads as its number, as in the
+// other number scalars, instead of the default a save would write back.
+describe('editorState — a title number stored as a numeric string loads as its number', () => {
+    it('loads the offsets and the font size', () => {
+        const state = loadEditorState({ titleDx: '12', titleDy: '8', titleFontSize: '24' });
+
+        expect([state.titleDx, state.titleDy, state.titleFontSize]).toEqual([12, 8, 24]);
+    });
+});

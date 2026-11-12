@@ -1637,6 +1637,23 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
 
             expect(inert).toEqual([]);
         });
+
+        // The rule lets a numeric string through in a number field (a binding or the assistant).
+        it('draws a numeric string in a number field like the number', async () => {
+            const numberFields = KEYS.filter(key => rules.named.get(key) === 'number');
+
+            expect(numberFields).toEqual(['titleDx', 'titleDy', 'titleFontSize']);
+            expect(
+                await differingPerKey(
+                    numberFields,
+                    () => ['12'],
+                    async assigned => {
+                        const [key] = Object.keys(assigned);
+                        return [await chart({ ...titled, ...assigned }), await chart({ ...titled, [key]: 12 })];
+                    },
+                ),
+            ).toEqual([]);
+        });
     });
 
     // The assistant sets the series OIDs (`oid1..oidN`, the indexed group) and the series count
