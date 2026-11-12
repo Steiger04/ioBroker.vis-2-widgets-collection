@@ -17,7 +17,10 @@
  *   field lack its key, so a missing key keeps the widget's own unset reading for them;
  * - the fields of a vis-2 indexed group (`indexFrom`/`indexTo`): none declares a default (Naht 2
  *   rebuilds the palette with them and would show one);
- * - `''` and every other stored value: what is set wins, `''` keeps its meaning.
+ * - `''` and every other stored value: what is set wins, `''` keeps its meaning — except in a field
+ *   that declares `emptiedReadsUnset` (`ExtendedField`): the Rückfall-Regel reads its `''` as
+ *   unset already, so it reads the default here like a missing key. This is the one layer that
+ *   answers „unset“: a widget reads such a field directly, without a fallback of its own.
  *
  * The stored data is never written: the filled data is a copy, and data without an unset key that
  * has a default comes back as the same object.

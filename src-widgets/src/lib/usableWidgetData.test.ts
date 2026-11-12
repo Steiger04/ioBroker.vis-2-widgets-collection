@@ -285,3 +285,54 @@ describe('usableWidgetData: a text field that declares the JSON it stores (a hid
         }
     });
 });
+
+// vis-2's number field stores '' once the user empties it. A field whose reading of '' is the unset
+// field's declares it (`emptiedReadsUnset`): the rule reads its '' as unset, stored or bound — and a
+// bound value its rule rejects, which its reader read as unset too.
+describe('usableWidgetData: a field that declares its emptied value as unset', () => {
+    const emptiedRules = fieldRulesOf([
+        {
+            name: 'own',
+            fields: [
+                { name: 'gap', type: 'number', emptiedReadsUnset: true },
+                { name: 'variant', type: 'select', options: ['a', 'b'], emptiedReadsUnset: true },
+                { name: 'sizes', type: 'text', emptiedReadsUnset: true },
+                { name: 'padding', type: 'number' },
+            ],
+        },
+    ] as unknown as RxWidgetInfoGroup[]);
+
+    it('reads its stored "" and null as unset', () => {
+        expect(usableWidgetData({ gap: '', variant: '', sizes: '', padding: '' }, emptiedRules)).toEqual({
+            padding: '',
+        });
+        expect(usableWidgetData({ gap: null, sizes: null, padding: null }, emptiedRules)).toEqual({ padding: null });
+    });
+
+    it('reads a bound "" and a bound value its rule rejects as unset', () => {
+        const bound = { gap: '{0_userdata.0.gap}', variant: '{0_userdata.0.variant}', sizes: '{0_userdata.0.sizes}' };
+
+        expect(usableWidgetData({ gap: '', variant: '', sizes: '' }, emptiedRules, bound)).toEqual({});
+        expect(usableWidgetData({ gap: 'abc', variant: 'c', sizes: 'abc' }, emptiedRules, bound)).toEqual({
+            sizes: 'abc',
+        });
+    });
+
+    it('keeps a bound value its rule accepts, and a bound "" of an undeclared field', () => {
+        const data = { gap: '12', variant: 'b', padding: '' };
+
+        expect(
+            usableWidgetData(data, emptiedRules, {
+                gap: '{0_userdata.0.gap}',
+                variant: '{0_userdata.0.variant}',
+                padding: '{0_userdata.0.padding}',
+            }),
+        ).toBe(data);
+    });
+
+    it('keeps its usable stored values, as the same data object', () => {
+        const data = { gap: 0, variant: 'a', sizes: '10,20' };
+
+        expect(usableWidgetData(data, emptiedRules)).toBe(data);
+    });
+});

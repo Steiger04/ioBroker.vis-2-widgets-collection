@@ -20,12 +20,16 @@
  *   of its fields once per index and never under the bare name.
  *
  * `undefined` and `null` are never unusable: they are unset already. Neither is `''`, which keeps
- * whatever it means for its field today — except in a select field that does not offer it: vis-2's
- * select stores only its options, so `''` there comes from raw data and means nothing. Every other field — text without a declared
+ * whatever it means for its field — except in a select field that does not offer it (vis-2's
+ * select stores only its options, so `''` there comes from raw data and means nothing), and in a
+ * field that declares `emptiedReadsUnset` (`ExtendedField`): the `''` of an emptied field reads as
+ * unset there, and so does a `null`. Every other field — text without a declared
  * `storedValue`, html, OID, image, undeclared custom fields, keys without a field — is left alone. Neither is an attribute whose
  * stored value the host substitutes — a binding (vis-2 hands its resolved value as text) or a group
  * attribute: the widget reads the host's value as before, except in a checkbox field, where the
- * host's text reads as the boolean it names ({@link readsAsOn}: `'false'`, `'0'`, `''` off).
+ * host's text reads as the boolean it names ({@link readsAsOn}: `'false'`, `'0'`, `''` off), and in
+ * a field that declares `emptiedReadsUnset`, where a host's `''` and a host's text the field's rule
+ * rejects read as unset — the way its reader read them before the declaration.
  *
  * An unusable value is dropped from what the widget reads, nothing else: the widget then takes
  * exactly the way it takes for an unset field, with its cascades and fallbacks, and the stored
@@ -57,6 +61,11 @@ export interface FieldRules {
      * indexed group.
      */
     readonly perRow: ReadonlyMap<string, FieldRule>;
+    /**
+     * The named fields whose emptied value (`''`) reads as unset (`emptiedReadsUnset` of their
+     * definition); only named fields declare it.
+     */
+    readonly emptiedReadsUnset: ReadonlySet<string>;
 }
 
 /** The keys of a field definition the rule reads. */
@@ -68,6 +77,8 @@ interface RuleField {
     storedValue?: StoredValue;
     /** A Zustandseditor detail field: the per-state field it edits as `name{n}` of every row. */
     perStateField?: RuleField;
+    /** Whether the field's emptied value (`''`) reads as unset. */
+    emptiedReadsUnset?: boolean;
 }
 
 /** The value of an option entry: a plain value, or `{ value, label }`. */
@@ -115,19 +126,24 @@ const addRule = (rules: Map<string, FieldRule>, field: RuleField | undefined): v
  * first definition of a name wins.
  *
  * @param groups - The widget's `visAttrs`.
- * @returns The rules by field name and by per-row base name.
+ * @returns The rules by field name and by per-row base name, and the named fields whose emptied
+ *   value reads as unset.
  */
 export const fieldRulesOf = (groups: readonly RxWidgetInfoGroup[]): FieldRules => {
     const named = new Map<string, FieldRule>();
     const perRow = new Map<string, FieldRule>();
+    const emptiedReadsUnset = new Set<string>();
     for (const group of groups) {
         const indexed = group.indexFrom !== undefined;
         for (const field of (group.fields ?? []) as RuleField[]) {
             addRule(indexed ? perRow : named, field);
             addRule(perRow, field.perStateField);
+            if (!indexed && field.name && field.emptiedReadsUnset === true) {
+                emptiedReadsUnset.add(field.name);
+            }
         }
     }
-    return { named, perRow };
+    return { named, perRow, emptiedReadsUnset };
 };
 
 /** A key stored per row: a base name and a Feldnummer from 1. */
@@ -213,6 +229,16 @@ export const isBinding = (stored: unknown): boolean =>
 const isHostSubstituted = (stored: unknown, value: unknown): boolean =>
     typeof stored === 'string' && (value !== stored || isBinding(stored));
 
+/**
+ * Whether the value of a field that declares `emptiedReadsUnset` reads as unset: `''` and `null`,
+ * stored or from the host, and a host's text the field's rule rejects (its reader read such text as
+ * unset as well).
+ */
+const readsEmptied = (rule: FieldRule | undefined, value: unknown, stored: unknown): boolean =>
+    value === '' ||
+    value === null ||
+    (rule !== undefined && isHostSubstituted(stored, value) && !isUsableValue(rule, value));
+
 /** A reading already made: for which stored data, with what result. */
 interface Reading {
     stored: object;
@@ -252,6 +278,10 @@ export const usableWidgetData = <T extends object>(data: T, rules: FieldRules, s
     const boundFlags: string[] = [];
     for (const name of Object.keys(values)) {
         const rule = ruleOfKey(rules, name);
+        if (rules.emptiedReadsUnset.has(name) && readsEmptied(rule, values[name], storedValues[name])) {
+            unusable.push(name);
+            continue;
+        }
         if (rule === undefined) {
             continue;
         }
