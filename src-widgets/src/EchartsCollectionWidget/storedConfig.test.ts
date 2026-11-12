@@ -11,6 +11,7 @@ import {
     decodeAxes,
     decodeChartConfig,
     decodeLegendConfig,
+    decodeMarkLines,
     decodeToolboxConfig,
     decodeXAxis,
     decodeXAxisWithLegacy,
@@ -113,5 +114,17 @@ describe('the legend styling (legendConfig)', () => {
 
     it('reads a blob of another shape as none', () => {
         expect(decodeLegendConfig('[{"fontSize":20}]')).toEqual({});
+    });
+});
+
+describe('the markings (markLines)', () => {
+    it('leaves out an entry that is no object (a marking has no place to keep)', () => {
+        expect(decodeMarkLines('[null, 5, "x", ["x"], {"upper":2}]')).toEqual([{ upper: 2 }]);
+    });
+
+    it('reads a key not of its JSON type like the key left out, and keeps the legacy forms it migrates', () => {
+        expect(decodeMarkLines(blob([{ upper: 2, color: 5, width: '3', lower: {} }]))).toEqual([{ upper: 2 }]);
+        expect(decodeMarkLines('[{"value":3,"dashed":true}]')).toEqual([{ upper: 3, lineStyle: 'dashed' }]);
+        expect(decodeMarkLines('[{"upper":"demo.0.max"}]')).toEqual([{ upper: 'demo.0.max' }]);
     });
 });

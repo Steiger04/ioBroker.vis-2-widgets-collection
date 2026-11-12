@@ -26,7 +26,6 @@ import type {
     EchartsTooltipTrigger,
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
-import { decodeBlob } from '../lib/encoding';
 import { asNullableIntake, intakeValue } from './historyLogic';
 import { applyRawOverride } from './utils/mergeOption';
 import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
@@ -37,6 +36,7 @@ import {
     AXIS_KINDS,
     CHART_CONFIG_KINDS,
     LEGEND_KINDS,
+    MARK_LINE_KINDS,
     PIE_KINDS,
     readListBlob,
     readObjectBlob,
@@ -464,18 +464,13 @@ const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
     return out;
 };
 
-/** Decode the base64 mark-lines blob (legacy `dashed`/`value` migrated away, ADR-0061/0062). */
-export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? parsed.map(migrateMarkLine) : [];
-    } catch {
-        return [];
-    }
-};
+/**
+ * Decode the base64 mark-lines blob (legacy `dashed`/`value` migrated away, ADR-0061/0062).
+ * Empty/unusable → `[]`; a marking that is no object is left out, a key not of its JSON type reads
+ * as left out (the stored-configuration rule) before the migration reads the marking.
+ */
+export const decodeMarkLines = (raw: unknown): EchartsMarkLine[] =>
+    readListBlob(raw, MARK_LINE_KINDS, false).map(migrateMarkLine);
 
 /**
  * Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/unusable → `[]`;
