@@ -590,14 +590,41 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         });
 
         // Stored data is what the palette stored, with the values the user set over it: a set value wins.
+        // An emptied field ('') that declares it reads as unset is no value the body reads: checked below.
         it('renders usable stored values exactly as the body reads them raw', async () => {
             const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
             expect(
-                await differingUnderTest(usableValuesOf, async assigned => {
-                    const data = { ...stored, ...assigned };
-                    return [await renderWidget(widget, data, fixture.values), await renderBodyRaw(fixture, data)];
-                }),
+                await differingUnderTest(
+                    (rule, key) =>
+                        usableValuesOf(rule).filter(value => value !== '' || !rules.emptiedReadsUnset.has(key)),
+                    async assigned => {
+                        const data = { ...stored, ...assigned };
+                        return [await renderWidget(widget, data, fixture.values), await renderBodyRaw(fixture, data)];
+                    },
+                ),
             ).toEqual([]);
+        }, 120_000);
+
+        // vis-2's number field stores '' once the user empties it. A field whose definition declares
+        // its emptied value as unset (`emptiedReadsUnset`) renders '' like the unset field — stored,
+        // and bound (the host's resolved ''), as its reader read it before the declaration.
+        it('renders an emptied field that declares it reads as unset like the unset field', async () => {
+            const declared = [...rules.emptiedReadsUnset];
+            const bound = Object.fromEntries(declared.map(key => [key, `{0_userdata.0.${key}}`]));
+            const unset = await renderWidget(widget, without(fixture.data, declared), fixture.values);
+            const emptied = { ...fixture.data, ...Object.fromEntries(declared.map(key => [key, ''])) };
+
+            expect(
+                await differingValues(
+                    declared,
+                    () => [''],
+                    async assigned => [
+                        await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
+                        await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                    ],
+                ),
+            ).toEqual([]);
+            expect(await renderWidget(widget, emptied, fixture.values, { ...emptied, ...bound })).toBe(unset);
         }, 120_000);
 
         it('renders the default of a data-bearing custom field like the unset field', async () => {
@@ -660,42 +687,79 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         });
     });
 
-    // vis-2's number field stores '' once the user empties it, and the assistant may write it: in
-    // the Slider's geometry, the Gauge-Optionen and the ECharts scalars the body reads it like the
-    // missing key (the Gauge through the Options-Builder's schema-default coercion, ADR-0107; ECharts
-    // through its field-map number coercion). A field where '' keeps a meaning of its own is listed
-    // with it. '' is a stored value, so the palette's default never replaces it: in stored data (the
-    // palette's, `paletteInsertData`) an emptied field draws as the body draws the key missing.
-    describe.each([
-        ['SliderCollectionWidget', { sliderPadding: "'' is no padding (0), unset the field default" }],
-        ['GaugeCollectionWidget', {}],
-        ['EchartsCollectionWidget', {}],
-    ] as const)('%s: an emptied own number field', (name, ownMeaning: Readonly<Record<string, string>>) => {
-        it('renders an own number field stored as "" as the body reads the field missing', async () => {
-            const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
-            const fixture = FIXTURES[name]!;
-            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
-            const numberFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
-                .filter(([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number' && !(key in ownMeaning))
-                .map(([key]) => key);
+    // vis-2's number field stores '' once the user empties it, and the assistant may write it. The
+    // Gauge-Optionen and the ECharts scalars coerce it in their own reading — the Gauge through the
+    // Options-Builder's schema-default coercion (ADR-0107), ECharts through its field-map number
+    // coercion — so their fields declare nothing (`emptiedReadsUnset`): '' is a stored value the
+    // palette's default never replaces, and an emptied field draws as the body draws the key missing.
+    describe.each(['GaugeCollectionWidget', 'EchartsCollectionWidget'] as const)(
+        '%s: an emptied own number field',
+        name => {
+            it('renders an own number field stored as "" as the body reads the field missing', async () => {
+                const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+                const fixture = FIXTURES[name]!;
+                const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
+                const numberFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
+                    .filter(([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number')
+                    .map(([key]) => key);
 
-            expect(numberFields.length).toBeGreaterThan(0);
-            expect(
-                await differingValues(
-                    numberFields,
-                    () => [''],
-                    async assigned => [
-                        await renderWidget(widget, { ...stored, ...assigned }, fixture.values),
-                        await renderBodyRaw(fixture, without(stored, Object.keys(assigned))),
+                expect(numberFields.length).toBeGreaterThan(0);
+                expect(
+                    await differingValues(
+                        numberFields,
+                        () => [''],
+                        async assigned => [
+                            await renderWidget(widget, { ...stored, ...assigned }, fixture.values),
+                            await renderBodyRaw(fixture, without(stored, Object.keys(assigned))),
+                        ],
+                    ),
+                ).toEqual([]);
+            });
+        },
+    );
+
+    /**
+     * The own fields of a widget with what the assistant may write wrongly into them: the broken
+     * values of their rule, `null`, and `''` in a field that declares its emptied value as unset
+     * (`emptiedReadsUnset`), a text-valued custom field (its strukturiert-leerer default) or an
+     * option field without that option. A number field without the declaration keeps the meaning its
+     * reader gives `''` (checked with the usable stored values above): no `''`.
+     *
+     * @param widget - The widget class.
+     */
+    const ownFieldValues = (widget: WidgetClass): Map<string, unknown[]> => {
+        const rules = fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []);
+        return new Map(
+            [...rules.named]
+                .filter(([key]) => !SHARED_FIELD_NAMES.has(key))
+                .map(([key, rule]) => [
+                    key,
+                    [
+                        ...brokenValuesOf(rule),
+                        null,
+                        ...(rules.emptiedReadsUnset.has(key) ||
+                        rule === 'string' ||
+                        (typeof rule === 'object' && 'options' in rule && !rule.options.includes(''))
+                            ? ['']
+                            : []),
                     ],
-                ),
-            ).toEqual([]);
-        });
-    });
+                ]),
+        );
+    };
+
+    /** The own number fields of a widget whose `''` keeps the meaning its reader gives it. */
+    const emptiedKeepsReading = (widget: WidgetClass): string[] => {
+        const rules = fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []);
+        return [...rules.named]
+            .filter(
+                ([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number' && !rules.emptiedReadsUnset.has(key),
+            )
+            .map(([key]) => key);
+    };
 
     // The Input's own fields shape the edit field, which shows only once a click starts the
-    // Inline-Edit-Sitzung (ADR-0109): read there, each broken, null or (in an option field) empty
-    // value draws the field like the unset one.
+    // Inline-Edit-Sitzung (ADR-0109): read there, each broken, null or emptied value
+    // (`ownFieldValues`) draws the field like the unset one.
     describe('InputCollectionWidget: the edit field', () => {
         const startSession = (container: HTMLElement): void => {
             const display = container.querySelector('.BASE-PAPER-1 .MuiTypography-root');
@@ -715,23 +779,11 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 (await import('../InputCollectionWidget/InputCollectionWidget')) as { default: WidgetClass }
             ).default;
             const fixture = FIXTURES.InputCollectionWidget!;
-            const ownFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named].filter(
-                ([key]) => !SHARED_FIELD_NAMES.has(key),
-            );
-            const valuesOf = new Map(
-                ownFields.map(([key, rule]) => [
-                    key,
-                    [
-                        ...brokenValuesOf(rule),
-                        null,
-                        ...(typeof rule === 'object' && 'options' in rule && !rule.options.includes('') ? [''] : []),
-                    ],
-                ]),
-            );
+            const valuesOf = ownFieldValues(widget);
             const editing = (data: Record<string, unknown>): Promise<string> =>
                 renderWidget(widget, data, fixture.values, data, startSession);
 
-            expect(ownFields.map(([key]) => key)).toEqual(
+            expect([...valuesOf.keys()]).toEqual(
                 expect.arrayContaining(['showOkButton', 'inputVariant', 'inputPadding', 'step', 'minValue']),
             );
             expect(
@@ -746,33 +798,6 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             ).toEqual([]);
         });
     });
-
-    /**
-     * The own fields of a widget with what the assistant may write wrongly into them: the broken
-     * values of their rule, `null`, and `''` in a number field, a text-valued custom field (its
-     * strukturiert-leerer default) or an option field without that option.
-     *
-     * @param widget - The widget class.
-     * @param emptiedKeepsReading - Number fields whose `''` (an emptied vis-2 number field) keeps the
-     *   reading of stored widgets, which is not the palette's default the unset field reads: no `''`.
-     */
-    const ownFieldValues = (widget: WidgetClass, emptiedKeepsReading: readonly string[] = []): Map<string, unknown[]> =>
-        new Map(
-            [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
-                .filter(([key]) => !SHARED_FIELD_NAMES.has(key))
-                .map(([key, rule]) => [
-                    key,
-                    [
-                        ...brokenValuesOf(rule),
-                        null,
-                        ...((rule === 'number' && !emptiedKeepsReading.includes(key)) ||
-                        rule === 'string' ||
-                        (typeof rule === 'object' && 'options' in rule && !rule.options.includes(''))
-                            ? ['']
-                            : []),
-                    ],
-                ]),
-        );
 
     // The Lampen-Bedienelement draws its pickers only into a measured box, and its geometry, Kelvin
     // range and border fields act only there (ADR-0108 Nr. 5). Measured and with real iro pickers,
@@ -789,8 +814,6 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             [`${property}Object`]: { _id: oid, type, write: true },
         });
         const fixture = FIXTURES.Light2CollectionWidget!;
-        /** The number fields whose '' draws as in stored lamps (no border, no padding), not as the default. */
-        const EMPTIED_KEEPS_READING = ['colorLightBorderWidth', 'colorLightPadding'];
         /** An rgb & cct lamp with its three channels, without delay so that a write lands at once. */
         const data: Record<string, unknown> = {
             ...fixture.data,
@@ -921,7 +944,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         ])(
             'draws each own field broken, null or emptied like the unset one in %s',
             async (_case, view) => {
-                const valuesOf = ownFieldValues(widget, EMPTIED_KEEPS_READING);
+                const valuesOf = ownFieldValues(widget);
                 const base = { ...data, ...view };
                 const keys = [...valuesOf.keys()].filter(key => !(key in view));
 
@@ -942,12 +965,15 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             120_000,
         );
 
-        // An emptied number field ('') is a stored value: it keeps the reading of stored lamps — no
-        // border, no padding — while the unset field reads the palette's default (lib/fieldDefaults).
-        it('draws an emptied border width or padding as the body draws it in stored data', async () => {
+        // An emptied number field ('') without `emptiedReadsUnset` is a stored value: it keeps the
+        // reading of stored lamps (the border width and the padding: none), while the unset field
+        // reads the palette's default (lib/fieldDefaults).
+        it('draws an emptied number field that keeps its reading as the body draws it in stored data', async () => {
             const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], data);
+            const keys = emptiedKeepsReading(widget);
 
-            for (const key of EMPTIED_KEEPS_READING) {
+            expect(keys).toEqual(expect.arrayContaining(['colorLightBorderWidth', 'colorLightPadding']));
+            for (const key of keys) {
                 const emptied = { ...stored, [key]: '' };
                 expect(await renderWidget(widget, emptied, values), key).toBe(
                     await renderBodyRaw({ ...fixture, values }, emptied),
@@ -1023,9 +1049,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 (await import('../JsonTableCollectionWidget/JsonTableCollectionWidget')) as { default: WidgetClass }
             ).default;
             const fixture = FIXTURES.JsonTableCollectionWidget!;
-            // An emptied padding ('') keeps the reading of stored tables (no padding), not the palette's
-            // default the unset field reads: checked with the usable stored values above.
-            const valuesOf = ownFieldValues(widget, ['jsonTablePadding']);
+            const valuesOf = ownFieldValues(widget);
 
             expect([...valuesOf.keys()]).toEqual(
                 expect.arrayContaining(['columnConfig', 'tablePageSize', 'tableDensity', 'tableHeaderElevation']),
