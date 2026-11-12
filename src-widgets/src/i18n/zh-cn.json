@@ -377,6 +377,7 @@
     "echarts_pos_top_left": "左上角",
     "echarts_pos_top_right": "右上角",
     "echarts_preview_configure_series": "配置系列以显示数据",
+    "echarts_preview_history_no_data": "此时间范围内无历史数据——序列已设置，但其历史数据在此没有数值",
     "echarts_preview_configure_table": "映射列 — 在配置器中选择 X 列和 Y 列",
     "echarts_preview_json_no_series": "该数据点未产生可绘制的数据——请检查其格式；行列表负载需要 'Table/columns' 系列。",
     "echarts_preview_loading": "加载数据中…",

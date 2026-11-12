@@ -15,7 +15,7 @@ The collection brings **no AI of its own**: it calls no language model and store
 | Way                                      | What you need                                   | What the AI sees                                                      |
 | ---------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------- |
 | Assistant in the vis-2 editor            | an API key of a provider or a local model       | widget types with description and fields, views, objects and states   |
-| External MCP client, e.g. Claude Desktop | an enabled MCP endpoint, no API key in ioBroker | objects and states; views only raw as a project file, no widget types |
+| External MCP client, e.g. Claude Desktop | an enabled MCP endpoint, no API key in ioBroker | objects and states; views only raw as a project file (read-only through Admin), no widget types |
 
 ### Assistant in the vis-2 Editor
 
@@ -31,7 +31,7 @@ The collection brings **no AI of its own**: it calls no language model and store
 - **Enable the endpoint:** Admin's AI assistant is off by default. Only once it is enabled in the settings of the Admin instance does Admin start an MCP endpoint under `/mcp` on its web server. Alternatively, the `mcp` adapter provides an endpoint, as a web extension or standalone.
 - **Find the address:** in the Admin assistant, the button **Use without an API key (external MCP client)** (cable icon in the header) opens a dialog. It lists the endpoints of your installation with a copy button and shows the system prompt of the built-in assistant to copy.
 - **Connect the client:** register the endpoint URL (e.g. `http(s)://<host>:<port>/mcp`) as an MCP server in the client. The language model then runs in the client with its own account; no API key is needed in ioBroker.
-- **Views only raw:** the MCP server has no tool for vis-2. The client knows neither the widget types nor their descriptions and sees a view only as a project file, such as `vis-2.0/main/vis-views.json`. It can write that file only if the MCP server allows object and file changes; this option is off by default.
+- **Views only raw:** the MCP server has no tool for vis-2. The client knows neither the widget types nor their descriptions and sees a view only as a project file, such as `vis-2.0/main/vis-views.json`. Admin's embedded endpoint can only read that file: it has no option for object and file changes. Writing a view needs the `mcp` adapter with object and file changes allowed (off by default); the client then writes the project file as raw JSON, without the widget descriptions the vis-2 assistant gets.
 - **Way of working:** a widget that already sits in the view shows the client the data format (see [A widget as a template](#a-widget-as-a-template)). Back up the project file before you let the client write: such changes bypass the vis-2 editor and its undo.
 
 ## Name the Set

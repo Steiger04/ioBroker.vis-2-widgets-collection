@@ -15,7 +15,7 @@ Die Collection bringt **keine eigene KI** mit: Sie ruft kein Sprachmodell auf un
 | Weg                                       | Was du brauchst                                          | Was die KI sieht                                                         |
 | ----------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Assistent im vis-2-Editor                 | API-Schlüssel eines Anbieters oder ein lokales Modell    | Widget-Typen mit Beschreibung und Feldern, Views, Objekte und Zustände   |
-| Externer MCP-Client, z. B. Claude Desktop | aktivierter MCP-Endpunkt, kein API-Schlüssel in ioBroker | Objekte und Zustände; Views nur roh als Projektdatei, keine Widget-Typen |
+| Externer MCP-Client, z. B. Claude Desktop | aktivierter MCP-Endpunkt, kein API-Schlüssel in ioBroker | Objekte und Zustände; Views nur roh als Projektdatei (über Admin nur lesend), keine Widget-Typen |
 
 ### Assistent im vis-2-Editor
 
@@ -31,7 +31,7 @@ Die Collection bringt **keine eigene KI** mit: Sie ruft kein Sprachmodell auf un
 - **Endpunkt aktivieren:** Der KI-Assistent von Admin ist im Standard aus. Erst wenn er in den Einstellungen der Admin-Instanz aktiviert ist, startet Admin auf seinem Webserver einen MCP-Endpunkt unter `/mcp`. Alternativ stellt der Adapter `mcp` einen Endpunkt bereit, als Web-Erweiterung oder eigenständig.
 - **Adresse finden:** Im Admin-Assistenten öffnet der Button **Ohne API-Schlüssel verwenden (externer MCP-Client)** (Kabel-Symbol im Kopf) einen Dialog. Er listet die Endpunkte deiner Installation mit Kopier-Button und zeigt den System-Prompt des eingebauten Assistenten zum Kopieren.
 - **Client verbinden:** Trage die Endpunkt-URL (z. B. `http(s)://<host>:<port>/mcp`) im Client als MCP-Server ein. Das Sprachmodell läuft dann im Client mit dessen eigenem Konto; in ioBroker ist kein API-Schlüssel nötig.
-- **Views nur roh:** Der MCP-Server hat kein Werkzeug für vis-2. Der Client kennt weder die Widget-Typen noch ihre Beschreibungen und sieht eine View nur als Projektdatei, etwa `vis-2.0/main/vis-views.json`. Schreiben kann er sie nur, wenn der MCP-Server Objekt- und Dateiänderungen erlaubt; diese Option ist im Standard aus.
+- **Views nur roh:** Der MCP-Server hat kein Werkzeug für vis-2. Der Client kennt weder die Widget-Typen noch ihre Beschreibungen und sieht eine View nur als Projektdatei, etwa `vis-2.0/main/vis-views.json`. Der eingebettete Endpunkt von Admin kann diese Datei nur lesen: Er hat keine Option für Objekt- und Dateiänderungen. Zum Schreiben einer View braucht es den Adapter `mcp` mit erlaubten Objekt- und Dateiänderungen (im Standard aus); der Client schreibt die Projektdatei dann als rohes JSON, ohne die Widget-Beschreibungen, die der Assistent von vis-2 bekommt.
 - **Arbeitsweise:** Ein Widget, das schon in der View steht, zeigt dem Client das Datenformat (siehe [Ein Widget als Vorlage](#ein-widget-als-vorlage)). Sichere die Projektdatei, bevor du den Client schreiben lässt: Solche Änderungen laufen am vis-2-Editor und seinem Rückgängig vorbei.
 
 ## Das Set nennen

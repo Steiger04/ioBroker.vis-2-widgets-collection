@@ -377,6 +377,7 @@
     "echarts_pos_top_left": "Superior esquerda",
     "echarts_pos_top_right": "Superior direita",
     "echarts_preview_configure_series": "Configure as séries para ver os dados",
+    "echarts_preview_history_no_data": "Sem dados de histórico neste intervalo de tempo — a série está definida, mas seu histórico não contém valores aqui",
     "echarts_preview_configure_table": "Mapeie as colunas — escolha as colunas X e Y no configurador",
     "echarts_preview_json_no_series": "O ponto de dados não fornece dados plotáveis — verifique seu formato; payloads de lista de linhas precisam da família 'Tabela/colunas'.",
     "echarts_preview_loading": "A carregar dados…",

@@ -377,6 +377,7 @@
     "echarts_pos_top_left": "Góra lewo",
     "echarts_pos_top_right": "Góra prawo",
     "echarts_preview_configure_series": "Skonfiguruj serie, aby zobaczyć dane",
+    "echarts_preview_history_no_data": "Brak danych historycznych w tym przedziale czasowym — seria jest ustawiona, ale jej historia nie zawiera tu żadnych wartości",
     "echarts_preview_configure_table": "Zmapuj kolumny — wybierz kolumny X i Y w konfiguratorze",
     "echarts_preview_json_no_series": "Punkt danych nie dostarcza danych, które można wykreślić — sprawdź jego format; payloady w postaci listy wierszy wymagają rodziny „Tabela/kolumny”.",
     "echarts_preview_loading": "Ładowanie danych…",

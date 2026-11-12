@@ -377,6 +377,7 @@
     "echarts_pos_top_left": "Boven links",
     "echarts_pos_top_right": "Boven rechts",
     "echarts_preview_configure_series": "Configureer series om data te zien",
+    "echarts_preview_history_no_data": "Geen historische gegevens in dit tijdsbereik — de reeks is ingesteld, maar de geschiedenis ervan bevat hier geen waarden",
     "echarts_preview_configure_table": "Wijs de kolommen toe — kies de X- en Y-kolommen in de configurator",
     "echarts_preview_json_no_series": "Het datapunt levert geen plotbare data op — controleer het formaat; payloads met een rijenlijst vereisen de familie 'Table/columns'.",
     "echarts_preview_loading": "Data laden…",
