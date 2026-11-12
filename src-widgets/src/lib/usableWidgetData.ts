@@ -34,7 +34,7 @@
  * An unusable value is dropped from what the widget reads, nothing else: the widget then takes
  * exactly the way it takes for an unset field, with its cascades and fallbacks, and the stored
  * data is never written. `Generic.renderWithProvider` applies the rule where the widget data
- * enters the Collection-Kontext, so no widget reads the raw values. Inner structure of a JSON
+ * enters the `CollectionContext`, so no widget reads the raw values. Inner structure of a JSON
  * value (the entries of a list, the keys of an object) stays with the widget's own parse site.
  */
 import optionalNumber from './helper/optionalNumber';

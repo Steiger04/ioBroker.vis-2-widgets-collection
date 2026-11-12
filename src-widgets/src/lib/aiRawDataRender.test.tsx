@@ -6,7 +6,7 @@
  * The assistant inserts widgets without defaults and assigns updates flat, unchecked against
  * `visAttrs` (vis-2 `AiChat/aiTools.ts` add_widget / update_widget). Each widget here is
  * rendered the way vis-2 renders it — an instance of its class, `renderWidgetBody` with the
- * stored data as `rxData` — so the data takes its real way into the Collection-Kontext
+ * stored data as `rxData` — so the data takes its real way into the `CollectionContext`
  * (`Generic.renderWithProvider`). Per field with a rule (`lib/usableWidgetData`):
  * - a broken value (wrong type, unparsable, wrong shape, outside the options) renders exactly
  *   like the field unset — no crash, no other look;

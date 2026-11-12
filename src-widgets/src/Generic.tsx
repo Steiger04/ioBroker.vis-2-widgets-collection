@@ -9,7 +9,7 @@
  * - a convenience `getPropertyValue()` wrapper around the widget runtime state
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
- * - the entry of the widget data into the Collection-Kontext, read through the Rückfall-Regel
+ * - the entry of the widget data into the `CollectionContext`, read through the Rückfall-Regel
  *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
  *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`), an unset
  *   key the palette's default (`lib/fieldDefaults`)
