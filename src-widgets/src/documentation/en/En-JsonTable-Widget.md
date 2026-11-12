@@ -32,9 +32,9 @@ Anything else — a single number, text or boolean (also as JSON), invalid JSON,
 
 ### Column Editor
 
-| Field Name             | Type   | Default | Description                                                                                                                                                         | Condition |
-| ---------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Columns `columnConfig` | custom | -       | The **Configure Columns** button opens the editor; below it is the number of visible and of all columns. Stored as `b64:` + Base64 JSON, plain JSON is read as well | -         |
+| Field Name             | Type   | Default | Description                                                                                                                                                                                                                                                                                                                   | Condition |
+| ---------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Columns `columnConfig` | custom | `[]`    | The **Configure Columns** button opens the editor; below it is the number of visible and of all columns. Stored as `b64:` + Base64 JSON, plain JSON is read as well. The empty list `[]` and a value that is no JSON list show every column found; an entry without a text `path` and a setting of the wrong kind are ignored | -         |
 
 The column editor provides:
 

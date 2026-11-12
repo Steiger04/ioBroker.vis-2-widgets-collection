@@ -32,9 +32,9 @@ Alles andere — eine einzelne Zahl, ein Text oder ein Wahrheitswert (auch als J
 
 ### Spalten-Editor
 
-| Feldname               | Typ    | Standard | Beschreibung                                                                                                                                                                      | Bedingung |
-| ---------------------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Spalten `columnConfig` | custom | -        | Der Button **Spalten konfigurieren** öffnet den Editor, darunter steht die Zahl sichtbarer und aller Spalten. Gespeichert als `b64:` + Base64-JSON, reines JSON wird auch gelesen | -         |
+| Feldname               | Typ    | Standard | Beschreibung                                                                                                                                                                                                                                                                                                                                                        | Bedingung |
+| ---------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Spalten `columnConfig` | custom | `[]`     | Der Button **Spalten konfigurieren** öffnet den Editor, darunter steht die Zahl sichtbarer und aller Spalten. Gespeichert als `b64:` + Base64-JSON, reines JSON wird auch gelesen. Die leere Liste `[]` und ein Wert, der keine JSON-Liste ist, zeigen alle gefundenen Spalten; ein Eintrag ohne Text-`path` und eine Einstellung der falschen Art werden ignoriert | -         |
 
 Der Spalten-Editor bietet:
 
