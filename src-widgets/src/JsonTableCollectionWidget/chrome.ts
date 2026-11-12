@@ -30,7 +30,13 @@ import {
     type ColorFieldContract,
 } from '../lib/helper/resolveEffectiveColor';
 import { jsonTableColorContracts } from '../lib/jsonTableColorContracts';
-import { TABLE_CELL_BORDER_WIDTH_DEFAULT, TABLE_HEADER_ELEVATION_DEFAULT } from '../lib/jsonTableDefaults';
+import {
+    TABLE_BORDER_STYLE_DEFAULT,
+    TABLE_CELL_BORDER_WIDTH_DEFAULT,
+    TABLE_DENSITY_DEFAULT,
+    TABLE_HEADER_BORDER_WIDTH_DEFAULT,
+    TABLE_HEADER_ELEVATION_DEFAULT,
+} from '../lib/jsonTableDefaults';
 import type { JsonTableFieldsRxData } from '../types';
 
 /** Row height (px) per density. */
@@ -125,7 +131,7 @@ function lineColor(contract: ColorFieldContract, settings: TableChromeSettings, 
 function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject {
     // An emptied slider ('') reads like the unset one
     const headerElevation = optionalNumber(settings.tableHeaderElevation) ?? TABLE_HEADER_ELEVATION_DEFAULT;
-    const headerBorderWidth = settings.headerBorderWidth ?? 0;
+    const headerBorderWidth = settings.headerBorderWidth ?? TABLE_HEADER_BORDER_WIDTH_DEFAULT;
 
     // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside
     // another widget the sticky bar keeps its paper and shadow, so it stays opaque and the
@@ -218,7 +224,7 @@ function frameSx(settings: TableChromeSettings, theme: Theme): SxObject {
     };
 
     const borderWidth = settings.borderWidth;
-    const borderStyle = settings.borderStyle || 'solid';
+    const borderStyle = settings.borderStyle || TABLE_BORDER_STYLE_DEFAULT;
     const borderRadius = settings.borderRadius;
 
     if (borderWidth && borderWidth > 0) {
@@ -249,7 +255,7 @@ function rowBackgroundSx(colorValue: string | null): SxObject | undefined {
  * @returns Every sx fragment of the table's presentation shell.
  */
 export function buildTableChrome(settings: TableChromeSettings, theme: Theme): TableChrome {
-    const density = settings.tableDensity || 'standard';
+    const density = settings.tableDensity || TABLE_DENSITY_DEFAULT;
     const rowHeight = Number(settings.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
     const headerHeight = Number(settings.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
 

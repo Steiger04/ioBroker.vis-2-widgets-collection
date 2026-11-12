@@ -10,12 +10,10 @@
  */
 
 import { analyzeJsonTable, type FlatRow, type JsonTableColumn } from '../hooks/useJsonTableAnalysis';
+import { TABLE_MAX_DEPTH_DEFAULT } from '../lib/jsonTableDefaults';
 import { effectiveType, type EffectiveType } from './capabilities';
 import { dateReader, type DateReader } from './dateReader';
 import type { ColumnConfigEntry } from './types';
-
-/** The flattening depth when `tableMaxDepth` is unset. */
-const DEFAULT_MAX_DEPTH = 10;
 
 /** One Column of the table, after the Spalten-Merge. */
 export type EffectiveColumn = Readonly<{
@@ -151,7 +149,7 @@ function merge(saved: readonly ColumnConfigEntry[], found: readonly JsonTableCol
  * @returns The rows, the merged Columns and the depth warning.
  */
 export function readJsonTable(value: unknown, saved: readonly ColumnConfigEntry[], maxDepth?: unknown): JsonTable {
-    const configured = Number(maxDepth) || DEFAULT_MAX_DEPTH;
+    const configured = Number(maxDepth) || TABLE_MAX_DEPTH_DEFAULT;
     const analysis = analyzeJsonTable(intake(value), { maxDepth: configured });
     const actual = analysis.meta.maxDepth;
     return {
