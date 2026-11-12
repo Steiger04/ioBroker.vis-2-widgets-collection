@@ -409,7 +409,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         editorialOf(chartTypeRaw).healChartType?.(chartTypeRaw, firstSeriesType) ?? (chartTypeRaw as EchartsChartType);
     const family = familyOf(chartType);
 
-    const chartConfig = decodeChartConfig(data.chartConfig as string);
+    const chartConfig = decodeChartConfig(data.chartConfig);
     const oidAt = (i: number): string => {
         const v = data[`oid${i + 1}`];
         return typeof v === 'string' && v !== 'nothing_selected' ? v : '';
@@ -466,7 +466,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // offsets/positions survive verbatim.
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
-    const yAxesDecoded = decodeAxes(data.yAxes as string);
+    const yAxesDecoded = decodeAxes(data.yAxes);
     const yAxes = withStableIds(
         yAxesDecoded.length ? yAxesDecoded : family === 'cartesian' && seriesCount > 0 ? [legacyAxis(data)] : [],
         'ax-',
@@ -554,7 +554,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         legendShow: boolOr(data.legendShow, true),
         legendPos: normalizeLegendPos(data.legendPos),
         legendShowValues: boolOr(data.legendShowValues, false),
-        legend: decodeLegendConfig(data.legendConfig as string),
+        legend: decodeLegendConfig(data.legendConfig),
         tooltipTrigger: (data.tooltipTrigger as EchartsTooltipTrigger) ?? (family === 'cartesian' ? 'axis' : 'item'),
         tooltipTemplate: strOr(data.tooltipTemplate, ''),
         tooltipUnits: strOr(data.tooltipUnits, ''),
@@ -576,7 +576,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
         // synthesised into `splitLine` (shared resolver — same rule as the live body). The
         // activations heal in the registry's load pass (ADR-0047).
-        xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
+        xAxis: decodeXAxisWithLegacy(data.xAxis, boolOr(data.xSplit, false)),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         zoomResetAfterIdle: (strOr(data.zoomResetAfterIdle, '') || '') as EchartsZoomResetIdle,
@@ -587,7 +587,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         frame,
-        toolbox: decodeToolboxConfig(data.toolboxConfig as string),
+        toolbox: decodeToolboxConfig(data.toolboxConfig),
         titleRaw: chartConfig.titleRaw ?? '',
         titleSnippets: chartConfig.titleSnippets ?? [],
         legendRaw: chartConfig.legendRaw ?? '',
