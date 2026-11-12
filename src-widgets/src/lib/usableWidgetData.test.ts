@@ -18,6 +18,7 @@ const groups = [
             { name: 'delay', type: 'number' },
             { name: 'flag', type: 'checkbox' },
             { name: 'mode', type: 'select', options: ['a', 'b'] },
+            { name: 'align', type: 'select', options: ['', 'left'] },
             {
                 name: 'side',
                 type: 'select',
@@ -49,6 +50,9 @@ describe('usableWidgetData: an unusable stored value reads as unset', () => {
         ['a checkbox with a number', 'flag', 1],
         ['a select with a value outside its options', 'mode', 'c'],
         ['a select with the right value in the wrong type', 'side', '1'],
+        // vis-2's select stores only its options: '' there comes from raw data and means nothing.
+        ['a select with an empty string outside its options', 'mode', ''],
+        ['a select of option objects with an empty string outside its options', 'side', ''],
         ['a string custom field with a number', 'color', 5],
         ['a string custom field with an object', 'color', { r: 1 }],
         ['a JSON field with no JSON', 'config', '{oops'],
@@ -95,9 +99,20 @@ describe('usableWidgetData: usable values stay as stored', () => {
         ['null', null],
         ['an empty string', ''],
     ])('keeps %s on every kind of field (already unset, or a meaning of its own)', (_case, value) => {
-        const data = Object.fromEntries(['size', 'flag', 'mode', 'color', 'config', 'rows'].map(name => [name, value]));
+        const data = Object.fromEntries(['size', 'flag', 'color', 'config', 'rows'].map(name => [name, value]));
 
         expect(read(data)).toEqual(data);
+    });
+
+    it.each([
+        ['undefined', undefined],
+        ['null', null],
+    ])('keeps %s in a select field (already unset)', (_case, value) => {
+        expect(read({ mode: value, side: value })).toEqual({ mode: value, side: value });
+    });
+
+    it('keeps an empty string in a select field that offers it', () => {
+        expect(read({ align: '' })).toEqual({ align: '' });
     });
 
     it('returns the very same data object when nothing is unusable', () => {

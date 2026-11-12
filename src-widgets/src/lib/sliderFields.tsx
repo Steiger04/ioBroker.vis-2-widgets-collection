@@ -136,6 +136,8 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'track_border_width',
         type: 'number',
         default: 1,
+        keepUnset:
+            'added in v2.2.0: sliders stored before carry no key and draw the track without a border (0px), not the default 1',
         min: 0,
         max: 100,
     } as const,

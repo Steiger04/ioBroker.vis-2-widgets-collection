@@ -12,7 +12,8 @@
  *   like the field unset — no crash, no other look;
  * - a stored `null`, which the rule keeps as unset already, renders like the field unset too;
  * - a usable value renders exactly like the widget's body over the raw data, the reading before
- *   the rule existed: valid stored data is untouched;
+ *   the rule existed: valid stored data (the palette's defaults with the values set over them,
+ *   `paletteInsertData`) is untouched;
  * - the default of a data-bearing custom field renders like the field unset (strukturiert-leer
  *   wie leer);
  * and the widget renders with no data at all and with only an OID.
@@ -42,7 +43,7 @@ import { encodeBlob, utf8ToBase64 } from './encoding';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import type { Kind } from './usableJson';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
-import { PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, type WidgetName } from './testing/aiSeams';
+import { paletteInsertData, PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, type WidgetName } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
 import ButtonGroupCollection from '../ButtonGroupCollectionWidget/ButtonGroupCollection';
 import CheckboxCollection from '../CheckboxCollectionWidget/CheckboxCollection';
@@ -278,18 +279,23 @@ const brokenValuesOf = (rule: FieldRule): unknown[] => {
     }
 };
 
-/** Stored values a configurator or a binding writes, which the rule must leave as they are. */
+/**
+ * Stored values a configurator or a binding writes, which the rule must leave as they are. A stored
+ * `null` is unset, not a value: it reads like the missing key (the palette's default), see the
+ * check of `null` below.
+ */
 const usableValuesOf = (rule: FieldRule): unknown[] => {
     if (typeof rule === 'object') {
-        return 'options' in rule ? [...rule.options, null] : [null, ''];
+        return 'options' in rule ? [...rule.options] : [''];
     }
     switch (rule) {
         case 'number':
-            return [12, '12', null];
+            // '' is what vis-2's number field stores once the user empties it.
+            return [12, '12', ''];
         case 'boolean':
-            return [true, false, null];
+            return [true, false];
         default:
-            return ['#123456', '', null];
+            return ['#123456', ''];
     }
 };
 
@@ -576,10 +582,19 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             expect(await differingUnderTest(brokenValuesOf, likeUnset)).toEqual([]);
         }, 120_000);
 
+        // A widget dropped from the palette stores every default: nothing is unset, nothing is read in.
+        it('renders the data the palette stored exactly as the body reads it raw', async () => {
+            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
+
+            expect(await renderWidget(widget, stored, fixture.values)).toBe(await renderBodyRaw(fixture, stored));
+        });
+
+        // Stored data is what the palette stored, with the values the user set over it: a set value wins.
         it('renders usable stored values exactly as the body reads them raw', async () => {
+            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
             expect(
                 await differingUnderTest(usableValuesOf, async assigned => {
-                    const data = { ...fixture.data, ...assigned };
+                    const data = { ...stored, ...assigned };
                     return [await renderWidget(widget, data, fixture.values), await renderBodyRaw(fixture, data)];
                 }),
             ).toEqual([]);
@@ -646,17 +661,20 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
     });
 
     // vis-2's number field stores '' once the user empties it, and the assistant may write it: in
-    // the Slider's geometry, the Gauge-Optionen and the ECharts scalars it reads like the unset field
-    // (the Gauge through the Options-Builder's schema-default coercion, ADR-0107; ECharts through its
-    // field-map number coercion). A field where '' keeps a meaning of its own is listed with it.
+    // the Slider's geometry, the Gauge-Optionen and the ECharts scalars the body reads it like the
+    // missing key (the Gauge through the Options-Builder's schema-default coercion, ADR-0107; ECharts
+    // through its field-map number coercion). A field where '' keeps a meaning of its own is listed
+    // with it. '' is a stored value, so the palette's default never replaces it: in stored data (the
+    // palette's, `paletteInsertData`) an emptied field draws as the body draws the key missing.
     describe.each([
         ['SliderCollectionWidget', { sliderPadding: "'' is no padding (0), unset the field default" }],
         ['GaugeCollectionWidget', {}],
         ['EchartsCollectionWidget', {}],
     ] as const)('%s: an emptied own number field', (name, ownMeaning: Readonly<Record<string, string>>) => {
-        it('renders an own number field stored as "" like the unset field', async () => {
+        it('renders an own number field stored as "" as the body reads the field missing', async () => {
             const widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
             const fixture = FIXTURES[name]!;
+            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
             const numberFields = [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
                 .filter(([key, rule]) => !SHARED_FIELD_NAMES.has(key) && rule === 'number' && !(key in ownMeaning))
                 .map(([key]) => key);
@@ -667,8 +685,8 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     numberFields,
                     () => [''],
                     async assigned => [
-                        await renderWidget(widget, { ...fixture.data, ...assigned }, fixture.values),
-                        await renderWidget(widget, without(fixture.data, Object.keys(assigned)), fixture.values),
+                        await renderWidget(widget, { ...stored, ...assigned }, fixture.values),
+                        await renderBodyRaw(fixture, without(stored, Object.keys(assigned))),
                     ],
                 ),
             ).toEqual([]);
@@ -733,8 +751,12 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
      * The own fields of a widget with what the assistant may write wrongly into them: the broken
      * values of their rule, `null`, and `''` in a number field, a text-valued custom field (its
      * strukturiert-leerer default) or an option field without that option.
+     *
+     * @param widget - The widget class.
+     * @param emptiedKeepsReading - Number fields whose `''` (an emptied vis-2 number field) keeps the
+     *   reading of stored widgets, which is not the palette's default the unset field reads: no `''`.
      */
-    const ownFieldValues = (widget: WidgetClass): Map<string, unknown[]> =>
+    const ownFieldValues = (widget: WidgetClass, emptiedKeepsReading: readonly string[] = []): Map<string, unknown[]> =>
         new Map(
             [...fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []).named]
                 .filter(([key]) => !SHARED_FIELD_NAMES.has(key))
@@ -743,7 +765,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     [
                         ...brokenValuesOf(rule),
                         null,
-                        ...(rule === 'number' ||
+                        ...((rule === 'number' && !emptiedKeepsReading.includes(key)) ||
                         rule === 'string' ||
                         (typeof rule === 'object' && 'options' in rule && !rule.options.includes(''))
                             ? ['']
@@ -767,6 +789,8 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             [`${property}Object`]: { _id: oid, type, write: true },
         });
         const fixture = FIXTURES.Light2CollectionWidget!;
+        /** The number fields whose '' draws as in stored lamps (no border, no padding), not as the default. */
+        const EMPTIED_KEEPS_READING = ['colorLightBorderWidth', 'colorLightPadding'];
         /** An rgb & cct lamp with its three channels, without delay so that a write lands at once. */
         const data: Record<string, unknown> = {
             ...fixture.data,
@@ -897,7 +921,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
         ])(
             'draws each own field broken, null or emptied like the unset one in %s',
             async (_case, view) => {
-                const valuesOf = ownFieldValues(widget);
+                const valuesOf = ownFieldValues(widget, EMPTIED_KEEPS_READING);
                 const base = { ...data, ...view };
                 const keys = [...valuesOf.keys()].filter(key => !(key in view));
 
@@ -917,6 +941,19 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             },
             120_000,
         );
+
+        // An emptied number field ('') is a stored value: it keeps the reading of stored lamps — no
+        // border, no padding — while the unset field reads the palette's default (lib/fieldDefaults).
+        it('draws an emptied border width or padding as the body draws it in stored data', async () => {
+            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], data);
+
+            for (const key of EMPTIED_KEEPS_READING) {
+                const emptied = { ...stored, [key]: '' };
+                expect(await renderWidget(widget, emptied, values), key).toBe(
+                    await renderBodyRaw({ ...fixture, values }, emptied),
+                );
+            }
+        });
 
         it('writes to the lamp what it writes with the field unset, for each own field broken', async () => {
             const valuesOf = ownFieldValues(widget);
@@ -986,7 +1023,9 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 (await import('../JsonTableCollectionWidget/JsonTableCollectionWidget')) as { default: WidgetClass }
             ).default;
             const fixture = FIXTURES.JsonTableCollectionWidget!;
-            const valuesOf = ownFieldValues(widget);
+            // An emptied padding ('') keeps the reading of stored tables (no padding), not the palette's
+            // default the unset field reads: checked with the usable stored values above.
+            const valuesOf = ownFieldValues(widget, ['jsonTablePadding']);
 
             expect([...valuesOf.keys()]).toEqual(
                 expect.arrayContaining(['columnConfig', 'tablePageSize', 'tableDensity', 'tableHeaderElevation']),
@@ -1806,11 +1845,12 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             const fixture = FIXTURES[name]!;
             stubSocket.getObject.mockClear();
 
-            const html = await renderWidget(widget, fixture.data, fixture.values);
+            const stored = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
+            const html = await renderWidget(widget, stored, fixture.values);
 
             expect(stubSocket.getObject).not.toHaveBeenCalled();
             expect(fixture.data[`${idName}Object`]).toBeDefined();
-            expect(html).toBe(await renderBodyRaw(fixture, fixture.data));
+            expect(html).toBe(await renderBodyRaw(fixture, stored));
         });
 
         describe('GaugeCollectionWidget: the object range', () => {
@@ -1835,6 +1875,132 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     maxValue: 50,
                 });
             });
+        });
+
+        // The assistant inserts a widget with only what it sets: vis-2 writes no defaults and runs no
+        // pick (vis-2 AiChat/aiTools.ts add_widget). The reference is the same widget dropped from the
+        // palette (its defaults, `paletteInsertData`) whose id the user then picks in the panel: the pick
+        // runs after the defaults, so what it writes wins over them. A field whose unset reading stays
+        // (added after the widget was released, so stored widgets lack it) declares `keepUnset` with
+        // its reason; those are listed here.
+        describe('an assistant-inserted widget and its palette counterpart', () => {
+            /** The fields whose unset reading stays: unset in the assistant's widget, set in the palette's. */
+            const KEPT_UNSET: Readonly<Partial<Record<WidgetName, readonly string[]>>> = {
+                SliderCollectionWidget: ['trackBorderWidth'],
+                RadioGroupCollectionWidget: ['labelPlacement'],
+            };
+
+            /** The fields a widget declares with `keepUnset`, each with its reason. */
+            const keptUnsetOf = (widget: WidgetClass): [name: string, reason: unknown][] =>
+                (widget.getWidgetInfo().visAttrs ?? [])
+                    .flatMap(group => group.fields ?? [])
+                    .flatMap(field => {
+                        const { name: key, keepUnset } = field as { name?: string; keepUnset?: unknown };
+                        return key && keepUnset !== undefined ? [[key, keepUnset] as [string, unknown]] : [];
+                    });
+
+            /** The id field the fixture binds, if any. */
+            const idFieldOf = (name: WidgetName): string | undefined => {
+                const { data } = FIXTURES[name]!;
+                return Object.keys(data).find(key => `${key}Object` in data);
+            };
+
+            /**
+             * What the assistant sets: the id the fixture binds (Light2 also its Lichttyp, without
+             * which the lamp draws no picker), else the fixture's own keys without the frame texts.
+             */
+            const requiredData = (name: WidgetName): Record<string, unknown> => {
+                const { data } = FIXTURES[name]!;
+                const idName = idFieldOf(name);
+                if (!idName) {
+                    return without(data, Object.keys(CHROME));
+                }
+                return {
+                    [idName]: data[idName],
+                    ...(data.colorLightType ? { colorLightType: data.colorLightType } : {}),
+                };
+            };
+
+            /** The palette's widget with the same data, its id picked in the panel (none: the insert alone). */
+            const paletteCounterpart = async (
+                name: WidgetName,
+                widget: WidgetClass,
+                required: Record<string, unknown>,
+            ): Promise<Record<string, unknown>> => {
+                const inserted = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], required);
+                const idName = idFieldOf(name);
+                return idName ? pickedInEditor(widget, idName, inserted) : inserted;
+            };
+
+            it.each(PLACEABLE_WIDGETS)(
+                '%s declares exactly the listed fields as kept unset, each with its reason',
+                async name => {
+                    const kept = keptUnsetOf(await load(name));
+
+                    expect(kept.map(([key]) => key)).toEqual(KEPT_UNSET[name] ?? []);
+                    for (const [key, reason] of kept) {
+                        expect(typeof reason === 'string' && reason.length > 20, `reason of ${key}`).toBe(true);
+                    }
+                },
+            );
+
+            it.each(PLACEABLE_WIDGETS)(
+                '%s renders with only what the assistant sets like its palette counterpart, and writes nothing',
+                async name => {
+                    const widget = await load(name);
+                    const required = requiredData(name);
+                    const counterpart = await paletteCounterpart(name, widget, required);
+                    const { values } = FIXTURES[name]!;
+                    stubSocket.setState.mockClear();
+                    stubSocket.setObject.mockClear();
+
+                    const html = await renderWidget(widget, frozen(structuredClone(required)), values);
+
+                    expect(html).not.toContain('<no widget body');
+                    expect(html).not.toContain(HINT);
+                    expect(html).toBe(await renderWidget(widget, without(counterpart, KEPT_UNSET[name] ?? []), values));
+                    expect(stubSocket.setState).not.toHaveBeenCalled();
+                    expect(stubSocket.setObject).not.toHaveBeenCalled();
+                },
+            );
+
+            // A flag the assistant writes as text ("false") is no boolean: it reads as unset, which is the
+            // palette's default here — the frame keeps its header (Abnahme, MCP path).
+            it('renders a Checkbox with noHeader written as "false" like its palette counterpart', async () => {
+                const widget = await load('CheckboxCollectionWidget');
+                const required = requiredData('CheckboxCollectionWidget');
+                const counterpart = await paletteCounterpart('CheckboxCollectionWidget', widget, required);
+                const { values } = FIXTURES.CheckboxCollectionWidget!;
+
+                expect(counterpart.noHeader).toBe(false);
+                expect(await renderWidget(widget, { ...required, noHeader: 'false' }, values)).toBe(
+                    await renderWidget(widget, counterpart, values),
+                );
+            });
+
+            // Stored widgets of a release before the field carry no key for it: they keep today's reading,
+            // which differs from the default (else the field would need no exception).
+            it.each(Object.entries(KEPT_UNSET) as [WidgetName, readonly string[]][])(
+                '%s keeps the unset reading of its kept fields for stored data',
+                async (name, kept) => {
+                    const widget = await load(name);
+                    const fixture = FIXTURES[name]!;
+                    const inserted = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
+                    const stored = without(inserted, kept);
+                    const html = await renderWidget(widget, stored, fixture.values);
+
+                    expect(html).toBe(await renderBodyRaw(fixture, stored));
+                    for (const key of kept) {
+                        const withDefault = without(
+                            inserted,
+                            kept.filter(other => other !== key),
+                        );
+                        expect(html, `${key} set to its default draws otherwise`).not.toBe(
+                            await renderWidget(widget, withDefault, fixture.values),
+                        );
+                    }
+                },
+            );
         });
     });
 });

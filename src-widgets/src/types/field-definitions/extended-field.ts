@@ -153,6 +153,15 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * field's rule (`lib/usableWidgetData`); vis-2 ignores the key.
      */
     perStateField?: RxWidgetInfoAttributesField;
+
+    /**
+     * Why this field's key, when missing, keeps the widget's own unset reading instead of the
+     * field's `default` (KI-Integration, ADR-0114): a missing key reads as the palette would have
+     * stored it (`lib/fieldDefaults`), except for a field declared here — one added after its widget
+     * was released, so that stored widgets of earlier releases lack the key and their look must not
+     * change, or a field whose unset reading is a deliberate cascade. vis-2 ignores the key.
+     */
+    keepUnset?: string;
 };
 
 /**

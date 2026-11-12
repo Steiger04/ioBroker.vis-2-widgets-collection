@@ -50,6 +50,8 @@ const radioGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => 
         default: 'end',
         noTranslation: true,
         hidden: (data: WidgetData) => !!data.hideLabels,
+        keepUnset:
+            'added in v2.1.0: radio groups stored before carry no key and keep the label without the gap the default end adds',
     },
     {
         type: 'custom',
