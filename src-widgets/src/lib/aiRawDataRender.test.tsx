@@ -1471,6 +1471,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     'xAxis',
                     'markLines',
                     'toolboxConfig',
+                    'legendConfig',
                     'jsonSeriesStyle',
                     'jsonHidden',
                 ]),
@@ -1562,6 +1563,80 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
 
             expect(crashed).toEqual([]);
         }, 120_000);
+    });
+
+    // The title styling (flat scalars, ADR-0021/0029) and the legend styling blob are fields since
+    // KI-Integration ticket 21: the assistant sees them, the rule reads them. On a chart with a
+    // title (left-anchored, where the horizontal offset acts), each default of the definition draws
+    // like the key missing, a broken or null value like the unset one, and a value set shows.
+    describe('EchartsCollectionWidget: the title and legend styling fields', () => {
+        const KEYS = ['titleDx', 'titleDy', 'titleColor', 'titleFontSize', 'titleWeight', 'titleFontStyle'];
+        const fixture = FIXTURES.EchartsCollectionWidget!;
+        const titled = { ...fixture.data, titleText: 'Titel', titlePos: 'topLeft' };
+        let widget: WidgetClass;
+        let rules: FieldRules;
+
+        beforeAll(async () => {
+            widget = ((await import('../EchartsCollectionWidget/EchartsCollectionWidget')) as { default: WidgetClass })
+                .default;
+            rules = fieldRulesOf(widget.getWidgetInfo().visAttrs ?? []);
+        });
+
+        const chart = (data: Record<string, unknown>): Promise<string> => renderWidget(widget, data, fixture.values);
+        const likeUnset: RenderPair = async assigned => [
+            await chart({ ...titled, ...assigned }),
+            await chart(without(titled, Object.keys(assigned))),
+        ];
+
+        it('draws each default of the definition like the key missing', async () => {
+            const fields = (widget.getWidgetInfo().visAttrs ?? []).flatMap(
+                group => (group.fields ?? []) as { name?: string; default?: unknown }[],
+            );
+            const defaults = new Map(
+                fields
+                    .filter(field => field.name && [...KEYS, 'legendConfig'].includes(field.name))
+                    .map(field => [field.name!, field.default] as const),
+            );
+
+            expect([...defaults.keys()].sort()).toEqual([...KEYS, 'legendConfig'].sort());
+            expect(
+                await differingPerKey(
+                    [...defaults.keys()].filter(key => defaults.get(key) !== undefined),
+                    key => [defaults.get(key)],
+                    likeUnset,
+                ),
+            ).toEqual([]);
+        });
+
+        it('draws a broken value of the number fields and a null of each like the unset one', async () => {
+            expect(
+                await differingPerKey(
+                    KEYS,
+                    key => [...(rules.named.has(key) ? brokenValuesOf(rules.named.get(key)!) : []), null],
+                    likeUnset,
+                ),
+            ).toEqual([]);
+        });
+
+        it('shows a value set in each field', async () => {
+            const set: Record<string, unknown> = {
+                titleDx: 12,
+                titleDy: 8,
+                titleColor: '#123456',
+                titleFontSize: 24,
+                titleWeight: 600,
+                titleFontStyle: 'italic',
+            };
+            const unset = await chart(titled);
+            const inert: string[] = [];
+            for (const [key, value] of Object.entries(set)) {
+                if ((await chart({ ...titled, [key]: value })) === unset) {
+                    inert.push(key);
+                }
+            }
+
+            expect(inert).toEqual([]);
+        });
     });
 
     // The assistant sets the series OIDs (`oid1..oidN`, the indexed group) and the series count
