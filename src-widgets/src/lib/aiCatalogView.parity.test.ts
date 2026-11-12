@@ -155,6 +155,9 @@ const isShapedDefault = (rule: FieldRule | undefined, value: unknown): boolean =
     }
 };
 
+/** Whether a field stores JSON: a declared JSON rule, on a custom field or on a text field's configuration blob. */
+const isJsonRule = (rule: FieldRule | undefined): boolean => typeof rule === 'object' && 'json' in rule;
+
 /** Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end. */
 const sentencesOf = (text: string): string[] =>
     text
@@ -202,11 +205,16 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
         });
 
-        it('shows a strukturiert-leerer default for every data-bearing custom field, or lists it as UI only', () => {
+        it('shows a strukturiert-leerer default for every data-bearing custom field and configuration blob, or lists it as UI only', () => {
             const info = infos.get(name)!;
             const rules = fieldRulesOf(info.visAttrs ?? []);
             const missing = describedFields(info, I18N_PREFIX)
-                .filter(field => field.type === 'custom' && field.name && !isUiOnlyCustomField(field.name))
+                .filter(
+                    field =>
+                        field.name &&
+                        (field.type === 'custom' || isJsonRule(rules.named.get(field.name))) &&
+                        !isUiOnlyCustomField(field.name),
+                )
                 .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
 
