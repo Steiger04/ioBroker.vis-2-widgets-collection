@@ -389,6 +389,7 @@
     "echarts_pos_top_left": "Oben links",
     "echarts_pos_top_right": "Oben rechts",
     "echarts_preview_configure_series": "Serien konfigurieren, um Daten zu sehen",
+    "echarts_preview_history_no_data": "Keine Verlaufsdaten in diesem Zeitraum – die Serie ist gesetzt, ihr Verlauf enthält hier aber keine Werte",
     "echarts_preview_json_no_series": "Der Datenpunkt liefert keine darstellbaren Daten — Format prüfen; Payloads mit Zeilenliste brauchen die Familie „Tabelle/Spalten“.",
     "echarts_preview_loading": "Daten werden geladen …",
     "echarts_preview_open_series": "Klicken öffnet die passende Sektion",
