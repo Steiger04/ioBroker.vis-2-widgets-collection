@@ -17,6 +17,8 @@ vi.mock('@iobroker/gui-components', () => ({ SelectID: () => null }));
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
 import echartsFields from '../../lib/echartsFields';
+import { fieldDefaultsOf } from '../../lib/fieldDefaults';
+import { fullDataPathReset } from '../families/dataPath';
 import { composeActiveSnippets } from './snippetComposition';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
@@ -1051,5 +1053,40 @@ describe('editorState — a title number stored as a numeric string loads as its
         const state = loadEditorState({ titleDx: '12', titleDy: '8', titleFontSize: '24' });
 
         expect([state.titleDx, state.titleDy, state.titleFontSize]).toEqual([12, 8, 24]);
+    });
+});
+
+// Spec-Leitplanke 2 (KI-Integration, ADR-0114): the field definition is the one source of a
+// default. The configurator reads the raw widget data, so its start state is what a fresh widget —
+// palette-dropped (every default stored) or assistant-inserted (nothing stored) — opens as. The
+// start state, the load fallbacks and the data-path reset are copies of the field defaults: this
+// pins them to the definition.
+describe('editorState — the start state reads like the field defaults', () => {
+    const defaults = fieldDefaultsOf([{ name: 'echarts', fields: echartsFields() }]);
+    const plain = (value: unknown): unknown =>
+        JSON.parse(JSON.stringify(value, (k, v: unknown) => (k === 'id' ? undefined : v)));
+    const startState = plain(DEFAULT_EDITOR_STATE);
+
+    it('opens a widget without data in the start state', () => {
+        expect(plain(loadEditorState({}))).toEqual(startState);
+    });
+
+    it('opens a palette-dropped widget in the start state', () => {
+        expect(defaults.size).toBeGreaterThan(40);
+        expect(plain(loadEditorState(Object.fromEntries(defaults)))).toEqual(startState);
+    });
+
+    it.each([...defaults.keys()])('loads the default of %s like the key missing', key => {
+        expect(plain(loadEditorState({ [key]: defaults.get(key) }))).toEqual(startState);
+    });
+
+    it('resets the data path to the start state', () => {
+        const reset = fullDataPathReset() as unknown as Record<string, unknown>;
+        const start = DEFAULT_EDITOR_STATE as unknown as Record<string, unknown>;
+
+        expect(Object.keys(reset)).toEqual(expect.arrayContaining(['jsonOid', 'jsonKind']));
+        for (const key of Object.keys(reset)) {
+            expect(reset[key], key).toEqual(start[key]);
+        }
     });
 });
