@@ -33,7 +33,15 @@ import type { ChartValueFormat, SeriesFactsByName } from './valueFormat';
 import { legendValueFormatter } from './optionBuilders/formatters';
 import { THEME_PALETTES } from './themePalettes';
 import { withoutBroken } from '../lib/usableJson';
-import { AXIS_KINDS, CHART_CONFIG_KINDS, PIE_KINDS, readListBlob, readObjectBlob, X_AXIS_KINDS } from './storedConfig';
+import {
+    AXIS_KINDS,
+    CHART_CONFIG_KINDS,
+    PIE_KINDS,
+    readListBlob,
+    readObjectBlob,
+    TOOLBOX_KINDS,
+    X_AXIS_KINDS,
+} from './storedConfig';
 import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -495,9 +503,11 @@ const decodeObjectBlob = <T extends object>(raw: string | undefined | null, fall
 export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig =>
     decodeObjectBlob<EchartsLegendConfig>(raw, {});
 
-/** Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/invalid → `{}`. */
-export const decodeToolboxConfig = (raw: string | undefined | null): EchartsToolboxConfig =>
-    decodeObjectBlob<EchartsToolboxConfig>(raw, {});
+/**
+ * Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/unusable → `{}`; a
+ * key not of its JSON type reads as left out (the stored-configuration rule).
+ */
+export const decodeToolboxConfig = (raw: unknown): EchartsToolboxConfig => readObjectBlob(raw, TOOLBOX_KINDS) ?? {};
 
 /**
  * Decode the base64 `xAxis` blob into the single X-axis config (ADR-0035). `null` when there is

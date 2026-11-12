@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
 import { parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
+import { decodeAxes, decodeChartConfig, decodeToolboxConfig, decodeXAxis, decodeXAxisWithLegacy } from './presentation';
 
 const blob = (value: unknown): string => encodeBlob(JSON.stringify(value));
 
@@ -79,5 +79,19 @@ describe('the family and section settings (chartConfig)', () => {
 
     it('reads a blob of another shape as none', () => {
         expect(decodeChartConfig('[{"stackMode":"stack"}]')).toEqual({});
+    });
+});
+
+describe('the toolbox (toolboxConfig)', () => {
+    it('reads a key not of its JSON type like the key left out', () => {
+        expect(
+            decodeToolboxConfig(
+                JSON.stringify({ show: 'true', pos: 5, itemSize: '20', features: [], iconColor: '#123' }),
+            ),
+        ).toEqual({ iconColor: '#123' });
+    });
+
+    it('reads a blob of another shape as none', () => {
+        expect(decodeToolboxConfig('[{"show":true}]')).toEqual({});
     });
 });
