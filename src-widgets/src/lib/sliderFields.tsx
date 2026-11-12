@@ -269,6 +269,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     createPlainColorField({
         name: 'markerIconColor',
         label: 'marker_icon_color',
+        default: '',
         hidden: '!data.marks',
     }),
     {
