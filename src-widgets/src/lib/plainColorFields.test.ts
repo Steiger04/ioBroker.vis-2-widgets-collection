@@ -110,7 +110,7 @@ const PLAIN_COLOR_FIELDS: Characteristic[] = [
         list: 'dialog',
         name: 'dialogCloseButtonColor',
         label: 'dialog_close_button_color',
-        default: undefined,
+        default: '',
         hidden: 'none',
     },
     {

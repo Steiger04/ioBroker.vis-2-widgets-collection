@@ -127,6 +127,7 @@ const dialogFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     createPlainColorField({
         name: 'dialogCloseButtonColor',
         label: 'dialog_close_button_color',
+        default: '',
     }),
     {
         label: '',
