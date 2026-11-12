@@ -1081,7 +1081,7 @@ describe('editorState — the start state reads like the field defaults', () => 
     });
 
     it('resets the data path to the start state', () => {
-        const reset = fullDataPathReset() as Record<string, unknown>;
+        const reset = fullDataPathReset() as unknown as Record<string, unknown>;
         const start = DEFAULT_EDITOR_STATE as unknown as Record<string, unknown>;
 
         expect(Object.keys(reset)).toEqual(expect.arrayContaining(['jsonOid', 'jsonKind']));
