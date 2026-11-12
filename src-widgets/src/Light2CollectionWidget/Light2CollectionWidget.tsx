@@ -31,6 +31,8 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'Light2CollectionWidget', // Name of widget
             visWidgetLabel: 'light2_collection_widget', // Label for widget
+            // Palette tooltip and the vis-2 assistant's set listing; the host prefixes it like the label.
+            visHelp: 'light2_collection_widget_help',
             visOrder: 11,
             visAttrs: [
                 {

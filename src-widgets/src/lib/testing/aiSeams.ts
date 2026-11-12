@@ -43,8 +43,6 @@ export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !
  * removes the list.
  */
 export const STILL_OPEN: readonly WidgetName[] = [
-    'DialogCollectionWidget',
-    'Light2CollectionWidget',
     'JsonTableCollectionWidget',
     'EchartsCollectionWidget',
 ];
