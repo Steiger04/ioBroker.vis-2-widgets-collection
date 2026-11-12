@@ -388,3 +388,17 @@ describe('buildSliderChrome — label containers', () => {
         expect(part(data, '& .MuiSlider-markLabel')).toMatchObject({ top: undefined, left: '25px' });
     });
 });
+
+// vis-2's number field stores '' once the user empties it (and an assistant may write it):
+// the length reads like the unset field — its fallback — instead of the invalid CSS `px`.
+describe('buildSliderChrome — emptied lengths', () => {
+    const LENGTHS = ['thumbWidth', 'thumbHeight', 'trackLength', 'railLength', 'markWidth', 'markHeight'] as const;
+
+    it.each(['horizontal', 'vertical'] as const)('draws every emptied length like the unset one (%s)', orientation => {
+        const emptied = Object.fromEntries(LENGTHS.map(name => [name, ''])) as SliderFieldsRxData;
+
+        expect(chrome({ sliderOrientation: orientation, ...emptied }).sx).toEqual(
+            chrome({ sliderOrientation: orientation }).sx,
+        );
+    });
+});

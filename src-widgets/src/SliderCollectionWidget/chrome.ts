@@ -72,6 +72,17 @@ export interface SliderChrome {
     endSymbolTransform: string;
 }
 
+/**
+ * A stored length as a px string: unset, `null` or `''` (vis-2's emptied number field) take the
+ * fallback, a number or a numeric string its number.
+ *
+ * @param stored - The raw field value.
+ * @param fallback - The length in px of the unset field.
+ * @returns The CSS length.
+ */
+const px = (stored: number | string | null | undefined, fallback: number): string =>
+    `${stored === undefined || stored === null || stored === '' ? fallback : Number(stored)}px`;
+
 /** The chrome colours of one render: backgrounds may carry a gradient, the other slots are solid. */
 interface ChromeColors {
     thumbBackground: string;
@@ -144,15 +155,15 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
     // Hover/active halo; none when the thumb cascade has no Repräsentative Vollfarbe.
     const thumbShadow = alphaOf(colors.thumbShadowBase, 0.32);
 
-    const markWidth = isHorizontal ? `${data.markWidth ?? 2}px` : `${data.markHeight ?? 16}px`;
-    const markHeight = isHorizontal ? `${data.markHeight ?? 2}px` : `${data.markWidth ?? 3}px`;
+    const markWidth = isHorizontal ? px(data.markWidth, 2) : px(data.markHeight, 16);
+    const markHeight = isHorizontal ? px(data.markHeight, 2) : px(data.markWidth, 3);
 
     const offset = railOffset(marks, orientation);
 
     const sx: CSSObject = {
         '& .MuiSlider-thumb': {
-            width: `${data.thumbWidth ?? 20}px`,
-            height: `${data.thumbHeight ?? 20}px`,
+            width: px(data.thumbWidth, 20),
+            height: px(data.thumbHeight, 20),
             background: colors.thumbBackground,
             // A border only for a positive width; without a solid border colour it draws in
             // currentColor, the CSS default of the shorthand.
@@ -167,8 +178,8 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
             },
         },
         '& .MuiSlider-track': {
-            height: isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
-            width: !isHorizontal ? `${data.trackLength ?? 4}px` : 'auto',
+            height: isHorizontal ? px(data.trackLength, 4) : 'auto',
+            width: !isHorizontal ? px(data.trackLength, 4) : 'auto',
             borderColor: colors.trackBorder,
             background: colors.trackBackground,
 
@@ -176,8 +187,8 @@ export function buildSliderChrome(input: SliderChromeInput): SliderChrome {
             borderStyle: 'solid',
         },
         '& .MuiSlider-rail': {
-            height: isHorizontal ? `${data.railLength ?? 4}px` : '100%',
-            width: !isHorizontal ? `${data.railLength ?? 4}px` : '100%',
+            height: isHorizontal ? px(data.railLength, 4) : '100%',
+            width: !isHorizontal ? px(data.railLength, 4) : '100%',
             background: colors.railBackground,
 
             borderWidth: data.railBorderWidth ? `${data.railBorderWidth}px` : '0px',
