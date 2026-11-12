@@ -544,7 +544,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titleDx: numOr(data.titleDx, DEFAULT_EDITOR_STATE.titleDx),
         titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
         titleColor: typeof data.titleColor === 'string' && data.titleColor ? data.titleColor : null,
-        titleFontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
+        titleFontSize: num(data.titleFontSize),
         titleWeight: parseFontWeight(data.titleWeight),
         titleFontStyle: parseFontStyle(data.titleFontStyle),
         series,

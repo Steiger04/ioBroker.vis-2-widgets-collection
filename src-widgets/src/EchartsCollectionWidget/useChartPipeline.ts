@@ -174,8 +174,8 @@ const jsonText = (raw: unknown): string => {
 /** A table row without a usable X value, in the host language (axis fallback and pie slice). */
 const tableRowLabel = (row: number): string => translate('echarts_mapping_row_label', String(row));
 
-const numOr = (raw: unknown, fallback: number): number =>
-    typeof raw === 'number' && Number.isFinite(raw) ? raw : fallback;
+/** A number field's value (a numeric string as its number, the rule lets it through), else the fallback. */
+const numOr = (raw: unknown, fallback: number): number => num(raw) ?? fallback;
 
 /** A usable bound OID — non-empty and not vis-2's unset marker (single predicate, ADR-0046). */
 export const isUsableOid = (oid: string | undefined): oid is string => !!oid && oid !== 'nothing_selected';
@@ -405,7 +405,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             dx: numOr(src.titleDx, 0),
             dy: titleDy,
             color: typeof src.titleColor === 'string' && src.titleColor ? src.titleColor : null,
-            fontSize: typeof src.titleFontSize === 'number' ? src.titleFontSize : undefined,
+            fontSize: num(src.titleFontSize),
             fontWeight: (src.titleWeight as EchartsFontWeight) ?? null,
             fontStyle: (src.titleFontStyle as EchartsFontStyle) ?? null,
             raw: companions.chartConfig.titleRaw,

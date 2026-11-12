@@ -6,7 +6,7 @@
  * The modal editor is the sole editor for every chart-specific field (map decision 06); the
  * `chart` group exposes the "Edit chart configuration" trigger plus the four panel-owned chart
  * padding sliders (layout, not chart config); all other scalars and
- * the `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
+ * the `seriesConfig` / `toolboxConfig` / `legendConfig` blobs are hidden rxData fields (defaults still seed on
  * widget creation). Each configuration blob declares its JSON top level (`storedValue`) and seeds
  * the empty one ('[]' / '{}', strukturiert-leer: it reads like no blob) — the shape the vis-2
  * assistant sees; every decoder reads it through `EchartsCollectionWidget/storedConfig`. The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
@@ -277,9 +277,25 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // is first opened. yMin/yMax are intentionally NOT declared: `undefined` = auto-axis.
     { name: 'chartType', type: 'text', default: 'line', hidden: alwaysHidden },
     { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
+    // Title styling, flat scalars (ADR-0021/0029). Each default reads like the key missing, in the
+    // body and in the editor: offsets 0, colour '' (the theme's), no font size (the theme's).
+    // titleWeight/titleFontStyle carry no default: the body reads the missing key as the theme's
+    // (echarts' bold title), the editor as 'normal' — ADR-0029 keeps that asymmetry, so only the
+    // missing key reads alike in both. Text fields, as the weight is a name or a number.
+    { name: 'titleDx', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'titleDy', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'titleColor', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'titleFontSize', type: 'number', hidden: alwaysHidden },
+    { name: 'titleWeight', type: 'text', hidden: alwaysHidden },
+    { name: 'titleFontStyle', type: 'text', hidden: alwaysHidden },
     { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
     // A 9-grid key (ADR-0021) — the legacy 'top' only rendered topCenter by prefix accident.
     { name: 'legendPos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
+    // Legend styling blob beside the flat show/pos (ADR-0021); the empty default, like an absent
+    // blob, decodes to {} (every key inherits the theme).
+    { name: 'legendConfig', type: 'text', storedValue: OBJECT_BLOB, default: '{}', hidden: alwaysHidden },
+    // `axisSlotMemory` (saved by the editor too) has no field on purpose: the editor's own place
+    // memory (ADR-0079 addendum) — the chart never reads it and there is nothing to set there.
     // Parity Build E option cluster (ADR-0054): the adapter options-tab scalars.
     { name: 'legendShowValues', type: 'checkbox', default: false, hidden: alwaysHidden },
     // tooltipTrigger: no field default — `undefined` lets the runtime default per family

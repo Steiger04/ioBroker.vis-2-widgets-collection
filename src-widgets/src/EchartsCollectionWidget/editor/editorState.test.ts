@@ -982,3 +982,74 @@ describe('editorState — a text scalar of another JSON type', () => {
         expect(() => saveEditorState(loadEditorState(data))).not.toThrow();
     });
 });
+
+// The assistant learns a stored key only from its field (describe_widget_type lists every field,
+// hidden ones too), and the rule in Generic reads only declared keys: every key the editor saves
+// is a field, hidden like the other modal-owned scalars (KI-Integration, ADR-0114).
+describe('editorState — every key the editor saves is a declared field', () => {
+    /** Saved keys without a field, each with its reason. */
+    const UNDECLARED: Readonly<Record<string, string>> = {
+        // The editor's own place memory (ADR-0079 addendum): it only steers where the editor puts
+        // an axis back, the chart never reads it, and the assistant has nothing to set there.
+        axisSlotMemory: 'editor-internal place memory',
+    };
+    const fields = (): { name?: string; default?: unknown; hidden?: unknown }[] => echartsFields();
+    const saved = (): string[] =>
+        Object.keys(
+            saveEditorState({ ...baseState(), series: [{ oid: 'demo.0.a', id: 's0', name: 'A', yAxisIndex: 0 }] }),
+        );
+
+    it('declares each saved key but the excepted ones (the series OIDs are the indexed group)', () => {
+        const declared = new Set(fields().map(f => f.name));
+        const missing = saved().filter(key => !declared.has(key) && !/^oid\d+$/.test(key) && !(key in UNDECLARED));
+
+        expect(missing).toEqual([]);
+        expect(Object.keys(UNDECLARED).filter(key => declared.has(key) || !saved().includes(key))).toEqual([]);
+    });
+
+    it('hides the legend and title fields like the other modal-owned scalars', () => {
+        const keys = [
+            'legendConfig',
+            'titleDx',
+            'titleDy',
+            'titleColor',
+            'titleFontSize',
+            'titleWeight',
+            'titleFontStyle',
+        ];
+        const declared = fields().filter(f => f.name && keys.includes(f.name));
+
+        expect(declared.map(f => f.name).sort()).toEqual([...keys].sort());
+        expect(declared.filter(f => typeof f.hidden !== 'function' || (f.hidden as () => unknown)() !== true)).toEqual(
+            [],
+        );
+    });
+
+    it('loads the defaults of the declared fields like the keys missing', () => {
+        const base = { chartType: 'line', series_count: 1, oid1: 'demo.0.a', titleText: 'Title' };
+        const defaults = Object.fromEntries(
+            fields().flatMap(f => (f.name && f.default !== undefined ? [[f.name, f.default]] : [])),
+        );
+        const load = (data: Record<string, unknown>): unknown =>
+            JSON.parse(JSON.stringify(loadEditorState(data), (k, v: unknown) => (k === 'id' ? undefined : v)));
+
+        expect(Object.keys(defaults)).toEqual(expect.arrayContaining(['legendConfig', 'titleDx', 'titleDy']));
+        for (const [key, value] of Object.entries(defaults)) {
+            const unset = Object.fromEntries(Object.entries(base).filter(([k]) => k !== key));
+            if (key in base) {
+                continue;
+            }
+            expect(load({ ...unset, [key]: value }), key).toEqual(load(unset));
+        }
+    });
+});
+
+// The title offsets and size are number fields: a numeric string loads as its number, as in the
+// other number scalars, instead of the default a save would write back.
+describe('editorState — a title number stored as a numeric string loads as its number', () => {
+    it('loads the offsets and the font size', () => {
+        const state = loadEditorState({ titleDx: '12', titleDy: '8', titleFontSize: '24' });
+
+        expect([state.titleDx, state.titleDy, state.titleFontSize]).toEqual([12, 8, 24]);
+    });
+});

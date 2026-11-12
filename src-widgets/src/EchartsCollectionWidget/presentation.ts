@@ -487,8 +487,7 @@ export const decodeAxes = (raw: unknown): EchartsAxisConfig[] => readListBlob(ra
 
 /**
  * Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/unusable →
- * `{}`; a key not of its JSON type reads as left out (the stored-configuration rule). The key has no
- * field, so the rule in `Generic` does not see it: this decoder judges the top level alone.
+ * `{}`; a key not of its JSON type reads as left out (the stored-configuration rule).
  */
 export const decodeLegendConfig = (raw: unknown): EchartsLegendConfig => readObjectBlob(raw, LEGEND_KINDS) ?? {};
 
