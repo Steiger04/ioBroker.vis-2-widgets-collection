@@ -6,9 +6,10 @@
  * Provides the deep building blocks used across every `*Fields.tsx` file:
  * - color field factories (`createColorField`, `createColorFields`) and
  *   the Schlichtes-Farbfeld factory (`createPlainColorField`)
- * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
+ * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`, `alwaysHidden`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
  * - `createDivider` for section dividers
+ * - `createAiGuideField`, the hidden field that carries a widget's KI-Leitfaden
  * - `guardWidgetData`, the wrapper every data-reading custom field is declared through
  *
  * Per-type factories for number/select/checkbox fields are intentionally NOT
@@ -16,9 +17,10 @@
  * keys through is a shallow rename (deleting it just moves the keys inline —
  * complexity does not concentrate). Those fields stay as raw object literals
  * with a `hidden` clause; the depth lives here, in the predicates, option
- * constants, and dividers. The one exception is a FIXED field duplicated
- * verbatim across field lists (`createOnlyDisplayField`): seven hand-synced
- * copies are drift, not depth.
+ * constants, and dividers. The exception is a FIXED field duplicated
+ * verbatim across field lists (`createOnlyDisplayField`, `createAiGuideField`):
+ * hand-synced copies — seven of the first, thirteen of the second — are
+ * drift, not depth.
  * @example
  * // Single color field
  * const sliderColorField = createColorField({
@@ -46,6 +48,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type {
     RxWidgetInfoAttributesField,
+    RxWidgetInfoAttributesFieldHelp,
     RxWidgetInfoCustomComponentProperties,
     WidgetData,
 } from '@iobroker/types-vis-2';
@@ -333,6 +336,15 @@ export const hiddenWhenTruthy =
     data =>
         !!data[field];
 
+/**
+ * Hides a field whatever the data: it is declared for its default, or for what the vis-2
+ * assistant reads of it, and never shown in the attribute panel. vis-2 `hidden` is a string
+ * expression or a function — never a bare boolean.
+ *
+ * @example hidden: alwaysHidden
+ */
+export const alwaysHidden: HiddenPredicate = () => true;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared option constants
 //
@@ -443,5 +455,38 @@ export function createOnlyDisplayField(
         disabled: isLocked,
         default: false,
         hidden: isLocked,
+    };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KI-Leitfaden field builder
+//
+// Every placeable widget declares the same field; only its text differs. One
+// builder holds the name, the type and the hidden rule (ADR-0114).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Builds a widget's KI-Leitfaden field: the text that tells the vis-2 assistant how to fill the
+ * widget's data, carried as the label of an always hidden help-text field.
+ *
+ * @param label - Translation key of the Leitfaden; every language file holds the English text.
+ * @returns A fresh field definition per call (vis-2 prefixes the label in place). It goes first
+ *   in the widget's first attribute group, so the assistant reads it before the fields.
+ * @remarks
+ * The label is the one text of a field vis-2 hands the assistant (`describe_widget_type` lists
+ * name, type, translated label, options and default of every field, hidden or not). The attribute
+ * panel drops a hidden field before it renders anything of it, so `text` — what it shows of a
+ * help field — stays empty. The field stores nothing: it has no default, so neither the palette
+ * nor the widget's reading (`lib/fieldDefaults`) fills a key for it, and its type has no rule in
+ * `lib/usableWidgetData`.
+ * @example createAiGuideField('switch_collection_widget_ai_guide')
+ */
+export function createAiGuideField(label: string): RxWidgetInfoAttributesFieldHelp {
+    return {
+        name: 'aiGuide',
+        type: 'help',
+        label,
+        text: '',
+        hidden: alwaysHidden,
     };
 }

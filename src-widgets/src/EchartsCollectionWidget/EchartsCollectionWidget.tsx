@@ -9,6 +9,7 @@ import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
 import echartsFields from '../lib/echartsFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import EchartsCollection from './EchartsCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -78,7 +79,8 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: echartsCommonFields(),
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('echarts_collection_widget_ai_guide'), ...echartsCommonFields()],
                 },
                 {
                     name: 'chart', // group name

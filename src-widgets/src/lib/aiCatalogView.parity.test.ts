@@ -14,11 +14,16 @@
  * (`visDefaultStyle`) and `grid` (`visDefaultGrid`) decide the rows a widget starts with in the
  * host's grid layout; the last block checks that its standard configuration fits them.
  *
- * Roster and open list: `lib/testing/aiSeams`. Like the other introspection tests it runs
+ * The KI-Leitfaden reaches the assistant as the label of a help-text field: the field list hides
+ * nothing, while the attribute panel drops a hidden field before it renders anything of it
+ * (`Attributes/Widget/index.tsx` renderFieldRow) and the palette stores only fields with a default.
+ * The block over the language files projects the same view with the words of each language.
+ *
+ * Roster: `lib/testing/aiSeams`. Like the other introspection tests it runs
  * isolated (`DOM_TS_TESTS`): it mocks `Generic`, the widget bodies and the heavy editors, none of
  * which contributes a field.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -28,6 +33,7 @@ import en from '../i18n/en.json';
 import { decodeBlob } from './encoding';
 import {
     isUiOnlyCustomField,
+    paletteInsertData,
     PLACEABLE_WIDGETS,
     SHARED_FIELD_NAMES,
     UI_ONLY_CUSTOM_FIELDS,
@@ -69,14 +75,23 @@ const REGISTERED_PREFIX = /prefix:\s*'([^']+)'/.exec(
     readFileSync(resolve(process.cwd(), 'src', 'translations.js'), 'utf8'),
 )?.[1];
 
-/** `I18n.t` over the words as `I18n.extendTranslations` stores them: every key prefixed once. */
-const words: Record<string, string> = Object.fromEntries(
-    Object.entries(en as Record<string, string>).map(([key, text]) => [
-        key.startsWith(I18N_PREFIX) ? key : `${I18N_PREFIX}${key}`,
-        text,
-    ]),
-);
-const t = (key: string): string => words[key] ?? key;
+/** `I18n.t` of one language. */
+type Translate = (key: string) => string;
+
+/** `I18n.t` over the words of a language as `I18n.extendTranslations` stores them: every key prefixed once. */
+const translatorOf = (texts: Record<string, string>): Translate => {
+    const words: Record<string, string> = Object.fromEntries(
+        Object.entries(texts).map(([key, text]) => [key.startsWith(I18N_PREFIX) ? key : `${I18N_PREFIX}${key}`, text]),
+    );
+    return key => words[key] ?? key;
+};
+const t = translatorOf(en);
+
+/** The language files, as the translations module loads them: one per interface language. */
+const I18N_DIR = resolve(process.cwd(), 'src', 'i18n');
+const LANGUAGE_FILES = readdirSync(I18N_DIR).filter(file => file.endsWith('.json'));
+const readLanguage = (file: string): Record<string, string> =>
+    JSON.parse(readFileSync(resolve(I18N_DIR, file), 'utf8')) as Record<string, string>;
 
 /** The host's catalog entry of an RX widget (getWidgetTypes), as far as the assistant reads it. */
 interface CatalogType {
@@ -96,10 +111,13 @@ const catalogType = (info: RxWidgetInfo, i18nPrefix: string): CatalogType => ({
 });
 
 /** One entry of `list_widget_types` with a set. */
-const listEntry = (type: CatalogType): { tpl: string; label: string; help: string | undefined } => ({
+const listEntry = (
+    type: CatalogType,
+    translate: Translate = t,
+): { tpl: string; label: string; help: string | undefined } => ({
     tpl: type.name,
-    label: type.label ? t(type.label) : type.title,
-    help: type.help ? t(type.help) : undefined,
+    label: type.label ? translate(type.label) : type.title,
+    help: type.help ? translate(type.help) : undefined,
 });
 
 /** One field of `describe_widget_type`. */
@@ -112,12 +130,12 @@ interface DescribedField {
 }
 
 /** The field list of `describe_widget_type`: the groups flattened, nothing else of a field. */
-const describedFields = (info: RxWidgetInfo, i18nPrefix: string): DescribedField[] =>
+const describedFields = (info: RxWidgetInfo, i18nPrefix: string, translate: Translate = t): DescribedField[] =>
     (info.visAttrs ?? []).flatMap(group =>
         ((group.fields ?? []) as unknown as Record<string, unknown>[]).map(field => ({
             name: field.name as string | undefined,
             type: (field.type as string | undefined) || 'text',
-            label: field.label ? t(i18nPrefix + (field.label as string)) : undefined,
+            label: field.label ? translate(i18nPrefix + (field.label as string)) : undefined,
             options: Array.isArray(field.options)
                 ? field.options.map(option =>
                       typeof option === 'string' ? option : (option as { value: unknown }).value,
@@ -126,6 +144,40 @@ const describedFields = (info: RxWidgetInfo, i18nPrefix: string): DescribedField
             default: field.default,
         })),
     );
+
+/** The KI-Leitfaden fields of a field list: the assistant tells them by the help-text type. */
+const guideFieldsOf = (fields: readonly DescribedField[]): DescribedField[] =>
+    fields.filter(field => field.type === 'help');
+
+/** A field as the widget declares it, as far as the checks read past the type description. */
+interface DeclaredField {
+    name?: string;
+    label?: string;
+    hidden?: unknown;
+}
+
+/** The declaration behind a described field, with whether its group is a vis-2 indexed group. */
+const declarationOf = (info: RxWidgetInfo, name: string): { field: DeclaredField; indexed: boolean } => {
+    for (const group of info.visAttrs ?? []) {
+        const field = (group.fields as readonly DeclaredField[] | undefined)?.find(one => one.name === name);
+        if (field) {
+            return { field, indexed: group.indexFrom !== undefined };
+        }
+    }
+    throw new Error(`no field "${name}"`);
+};
+
+/**
+ * Whether the attribute panel drops a field for a widget's data (`Attributes/Widget/index.tsx`
+ * renderFieldRow with `Widget.checkFunction`): `true`, a predicate, or the source of an expression.
+ */
+const isHiddenFor = (field: DeclaredField, data: Record<string, unknown>): boolean => {
+    const { hidden } = field;
+    if (typeof hidden === 'function') {
+        return Boolean((hidden as (data: Record<string, unknown>) => unknown)(data));
+    }
+    return typeof hidden === 'string' ? Boolean(new Function('data', `return ${hidden};`)(data)) : hidden === true;
+};
 
 /** Whether a parsed value is empty but shaped: an empty list, or an object whose values are all empty. */
 const isStructurallyEmpty = (value: unknown): boolean => {
@@ -160,12 +212,21 @@ const isShapedDefault = (rule: FieldRule | undefined, value: unknown): boolean =
 /** Whether a field stores JSON: a declared JSON rule, on a custom field or on a text field's configuration blob. */
 const isJsonRule = (rule: FieldRule | undefined): boolean => typeof rule === 'object' && 'json' in rule;
 
-/** Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end. */
+/**
+ * Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end, and after
+ * the full-width marks of Chinese (`。`, `！`, `？`), which no space follows.
+ */
 const sentencesOf = (text: string): string[] =>
     text
         .trim()
-        .split(/(?<=[.!?])\s+/)
+        .split(/(?<=[.!?])\s+|(?<=[。！？])/)
         .filter(sentence => sentence !== '');
+
+/** The most characters a help text has in any language: the palette tooltip stays one short sentence. */
+const HELP_MAX_LENGTH = 120;
+
+/** The characters of a text, a surrogate pair counted once. */
+const lengthOf = (text: string): number => Array.from(text).length;
 
 const infos = new Map<WidgetName, RxWidgetInfo>();
 
@@ -194,15 +255,45 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(entry().label).toBe((en as Record<string, string>)[info.visWidgetLabel!]);
         });
 
-        it('lists a translated help of 3 to 5 sentences, resolved like the label', () => {
+        it('lists a translated help of one sentence and at most 120 characters, resolved like the label', () => {
             const info = infos.get(name)!;
             const help = entry().help;
 
             expect(info.visHelp, 'visHelp').toBeTruthy();
             // Translated: the text of en.json, not the key the host would show for a miss.
             expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
-            expect(sentencesOf(help!).length).toBeGreaterThanOrEqual(3);
-            expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
+            expect(sentencesOf(help!)).toHaveLength(1);
+            expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+        });
+
+        it('describes exactly one KI-Leitfaden field: the first field, a help text with a translated label and no default', () => {
+            const info = infos.get(name)!;
+            const fields = describedFields(info, I18N_PREFIX);
+            const guides = guideFieldsOf(fields);
+
+            expect(guides).toHaveLength(1);
+            const [guide] = guides;
+            expect(guide.name).toBeTruthy();
+            const { field, indexed } = declarationOf(info, guide.name!);
+            expect(fields[0]).toBe(guide);
+            expect(indexed, 'in an indexed group').toBe(false);
+            // Translated: the text of en.json, not the key the host would show for a miss.
+            expect(guide.label).toBeTruthy();
+            expect(guide.label).toBe((en as Record<string, string>)[field.label!]);
+            expect(guide.default).toBeUndefined();
+        });
+
+        it('keeps the KI-Leitfaden field hidden for any data, and out of the data a palette insert stores', () => {
+            const info = infos.get(name)!;
+            const guide = guideFieldsOf(describedFields(info, I18N_PREFIX))[0]?.name;
+            expect(guide, 'the name of the KI-Leitfaden field').toBeTruthy();
+            const { field } = declarationOf(info, guide!);
+            const inserted = paletteInsertData(info.visAttrs ?? []);
+
+            for (const data of [{}, inserted, { ...inserted, [guide!]: 'set by the assistant' }]) {
+                expect(isHiddenFor(field, data)).toBe(true);
+            }
+            expect(Object.keys(inserted)).not.toContain(guide);
         });
 
         it('shows a strukturiert-leerer default for every data-bearing custom field and configuration blob, or lists it as UI only', () => {
@@ -272,6 +363,16 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
+    it('gives every widget a help and a KI-Leitfaden of its own', () => {
+        const helps = PLACEABLE_WIDGETS.map(name => listEntry(catalogType(infos.get(name)!, I18N_PREFIX)).help);
+        const guides = PLACEABLE_WIDGETS.map(
+            name => guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label,
+        );
+
+        expect(new Set(helps).size).toBe(PLACEABLE_WIDGETS.length);
+        expect(new Set(guides).size).toBe(PLACEABLE_WIDGETS.length);
+    });
+
     it('lists only UI-only exceptions that some widget still has', () => {
         const names = [...infos.values()].flatMap(info =>
             describedFields(info, I18N_PREFIX).flatMap(field =>
@@ -283,6 +384,31 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         ).map(entry => entry.name);
 
         expect(stale).toEqual([]);
+    });
+});
+
+describe('Every language file: what the assistant and the palette read in each interface language', () => {
+    describe.each(LANGUAGE_FILES)('%s', file => {
+        const translate = translatorOf(readLanguage(file));
+
+        it.each(PLACEABLE_WIDGETS)('%s: lists a translated help of one sentence and at most 120 characters', name => {
+            const type = catalogType(infos.get(name)!, I18N_PREFIX);
+            const help = listEntry(type, translate).help;
+
+            // Translated: a text of the file, not the key the host would show for a miss.
+            expect(help).toBeTruthy();
+            expect(help).not.toBe(type.help);
+            expect(sentencesOf(help!)).toHaveLength(1);
+            expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+        });
+
+        it.each(PLACEABLE_WIDGETS)('%s: describes the KI-Leitfaden with the English text', name => {
+            const guideIn = (language: Translate): string | undefined =>
+                guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX, language))[0]?.label;
+
+            expect(guideIn(t)).toBeTruthy();
+            expect(guideIn(translate)).toBe(guideIn(t));
+        });
     });
 });
 

@@ -11,6 +11,7 @@ import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import sliderFields from '../lib/sliderFields';
 import SliderCollection from './SliderCollection';
 
@@ -31,7 +32,8 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields()],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('slider_collection_widget_ai_guide'), ...commonFields()],
                 },
                 {
                     name: 'slider',

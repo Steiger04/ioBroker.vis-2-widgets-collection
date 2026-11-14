@@ -10,6 +10,7 @@ import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import gaugeFields from '../lib/gaugeFields';
 import GaugeCollection from './GaugeCollection';
 
@@ -36,7 +37,11 @@ class GaugeCollectionWidget extends Generic<WidgetRegistry['tplGaugeCollectionWi
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '', allFields: true })],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [
+                        createAiGuideField('gauge_collection_widget_ai_guide'),
+                        ...commonFields({ groupName: '', allFields: true }),
+                    ],
                 },
                 {
                     name: 'gauge', // group name

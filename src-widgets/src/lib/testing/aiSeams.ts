@@ -6,7 +6,8 @@
  * Naht 1 (`lib/aiCatalogView.parity.test.ts`) projects every placeable widget's `getWidgetInfo()`
  * the way the vis-2 host hands it to the Bauzeit-KI; Naht 2 (`lib/aiRawDataRender.test.tsx`)
  * renders the widgets from raw data an assistant may write. Both check every placeable widget,
- * so a new widget without `visHelp` or without a structured-empty default fails them.
+ * so a new widget fails them without a one-sentence `visHelp`, without exactly one KI-Leitfaden
+ * field or without a structured-empty default.
  *
  * - The shared field modules ({@link SHARED_FIELD_NAMES}) are told apart from a widget's own fields.
  * - A named `custom` field that stores nothing under its name goes on
