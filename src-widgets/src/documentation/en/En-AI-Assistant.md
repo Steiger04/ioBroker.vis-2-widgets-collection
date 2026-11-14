@@ -12,9 +12,9 @@ The collection brings **no AI of its own**: it calls no language model and store
 
 ## Ways of Access
 
-| Way                                      | What you need                                   | What the AI sees                                                      |
-| ---------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------- |
-| Assistant in the vis-2 editor            | an API key of a provider or a local model       | widget types with description and fields, views, objects and states   |
+| Way                                      | What you need                                   | What the AI sees                                                                                |
+| ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Assistant in the vis-2 editor            | an API key of a provider or a local model       | widget types with description and fields, views, objects and states                             |
 | External MCP client, e.g. Claude Desktop | an enabled MCP endpoint, no API key in ioBroker | objects and states; views only raw as a project file (read-only through Admin), no widget types |
 
 ### Assistant in the vis-2 Editor

@@ -12,9 +12,9 @@ Die Collection bringt **keine eigene KI** mit: Sie ruft kein Sprachmodell auf un
 
 ## Zugangswege
 
-| Weg                                       | Was du brauchst                                          | Was die KI sieht                                                         |
-| ----------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Assistent im vis-2-Editor                 | API-Schlüssel eines Anbieters oder ein lokales Modell    | Widget-Typen mit Beschreibung und Feldern, Views, Objekte und Zustände   |
+| Weg                                       | Was du brauchst                                          | Was die KI sieht                                                                                 |
+| ----------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Assistent im vis-2-Editor                 | API-Schlüssel eines Anbieters oder ein lokales Modell    | Widget-Typen mit Beschreibung und Feldern, Views, Objekte und Zustände                           |
 | Externer MCP-Client, z. B. Claude Desktop | aktivierter MCP-Endpunkt, kein API-Schlüssel in ioBroker | Objekte und Zustände; Views nur roh als Projektdatei (über Admin nur lesend), keine Widget-Typen |
 
 ### Assistent im vis-2-Editor
