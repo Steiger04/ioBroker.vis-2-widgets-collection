@@ -95,7 +95,7 @@ reads them from there.
 
 ### **WORK IN PROGRESS**
 
-- (steiger04) The vis-2 AI assistant can now build pages with these widgets: every widget explains itself in the palette tooltip and to the assistant
+- (steiger04) The vis-2 AI assistant can now build pages with these widgets: every widget shows a one-sentence tooltip in the palette, and the assistant gets its own guide to the widget's settings
 - (steiger04) Widgets added by the assistant, over MCP or by a script now look like widgets from the palette, even without the usual default settings; a stored setting a field cannot use is read as unset instead of breaking the widget
 - (steiger04) Grid layout: a widget keeps the height of its grid rows instead of growing with its content (e.g. a long JSON table); a new input widget starts 100 px high, so its field fits
 - (steiger04) JSON Table: when one long cell makes a row tall, the other cells stay at the top of the row
