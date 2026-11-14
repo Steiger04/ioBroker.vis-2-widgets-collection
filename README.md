@@ -95,11 +95,9 @@ reads them from there.
 
 ### **WORK IN PROGRESS**
 
-- (steiger04) The vis-2 AI assistant can now build pages with these widgets: every widget shows a one-sentence tooltip in the palette, and the assistant gets its own guide to the widget's settings
-- (steiger04) Widgets added by the assistant, over MCP or by a script now look like widgets from the palette, even without the usual default settings; a stored setting a field cannot use is read as unset instead of breaking the widget
-- (steiger04) Grid layout: a widget keeps the height of its grid rows instead of growing with its content (e.g. a long JSON table); a new input widget starts 100 px high, so its field fits
-- (steiger04) JSON Table: when one long cell makes a row tall, the other cells stay at the top of the row
-- (steiger04) ECharts: a history chart without data in its time range now says so instead of asking to set up series; a new title starts bold (the chart default), and saving the configurator no longer makes a title without a set weight thin
+- (steiger04) The vis-2 AI assistant can now build pages with these widgets
+- (steiger04) Every widget shows a short tooltip in the palette
+- (steiger04) Grid layout: widgets keep the height of their grid rows
 - (steiger04) Many fixes across all widgets
 
 ### 3.0.2 (2026-11-11)
