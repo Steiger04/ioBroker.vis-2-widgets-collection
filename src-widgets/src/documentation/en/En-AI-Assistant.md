@@ -6,15 +6,16 @@ Since the 2.20 series, vis-2 has an AI assistant in the editor: it creates views
 
 The collection brings **no AI of its own**: it calls no language model and stores no API keys. It only makes its widgets readable and robust for the host's AI:
 
-- **Short description per widget:** every widget describes in a few sentences its purpose, its most important fields and the format of its configurator fields. The AI reads this text when it lists the set; the same text appears as the tooltip in the widget palette.
+- **Short description per widget:** every widget states its purpose in one short sentence. The sentence appears as the tooltip in the widget palette; the AI reads it when it lists the set.
+- **Guide for the AI:** every widget also brings a guide to its fields and to the format of its configurator fields. The AI reads it in the type description of the widget; for people it is not visible.
 - **Shaped start values:** configurator fields that used to start empty carry an empty but correctly shaped skeleton as their default. From it the AI recognizes the expected structure. The widget behaves exactly as before.
 - **Robust against AI data:** when the AI inserts a widget, the host sets no defaults and checks nothing; when it changes one, it replaces field values unchecked. An unusable value (wrong type, invalid JSON, wrong shape) therefore counts as unset in the widget: the widget renders as if the value were missing, without an error message. The stored value stays until you correct it in the configurator.
 
 ## Ways of Access
 
-| Way                                      | What you need                                   | What the AI sees                                                      |
-| ---------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------- |
-| Assistant in the vis-2 editor            | an API key of a provider or a local model       | widget types with description and fields, views, objects and states   |
+| Way                                      | What you need                                   | What the AI sees                                                                                |
+| ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Assistant in the vis-2 editor            | an API key of a provider or a local model       | widget types with short description, guide and fields, views, objects and states                |
 | External MCP client, e.g. Claude Desktop | an enabled MCP endpoint, no API key in ioBroker | objects and states; views only raw as a project file (read-only through Admin), no widget types |
 
 ### Assistant in the vis-2 Editor
@@ -31,7 +32,7 @@ The collection brings **no AI of its own**: it calls no language model and store
 - **Enable the endpoint:** Admin's AI assistant is off by default. Only once it is enabled in the settings of the Admin instance does Admin start an MCP endpoint under `/mcp` on its web server. Alternatively, the `mcp` adapter provides an endpoint, as a web extension or standalone.
 - **Find the address:** in the Admin assistant, the button **Use without an API key (external MCP client)** (cable icon in the header) opens a dialog. It lists the endpoints of your installation with a copy button and shows the system prompt of the built-in assistant to copy.
 - **Connect the client:** register the endpoint URL (e.g. `http(s)://<host>:<port>/mcp`) as an MCP server in the client. The language model then runs in the client with its own account; no API key is needed in ioBroker.
-- **Views only raw:** the MCP server has no tool for vis-2. The client knows neither the widget types nor their descriptions and sees a view only as a project file, such as `vis-2.0/main/vis-views.json`. Admin's embedded endpoint can only read that file: it has no option for object and file changes. Writing a view needs the `mcp` adapter with object and file changes allowed (off by default); the client then writes the project file as raw JSON, without the widget descriptions the vis-2 assistant gets.
+- **Views only raw:** the MCP server has no tool for vis-2. The client knows neither the widget types nor their short descriptions and guides and sees a view only as a project file, such as `vis-2.0/main/vis-views.json`. Admin's embedded endpoint can only read that file: it has no option for object and file changes. Writing a view needs the `mcp` adapter with object and file changes allowed (off by default); the client then writes the project file as raw JSON, without the guides the vis-2 assistant gets.
 - **Way of working:** a widget that already sits in the view shows the client the data format (see [A widget as a template](#a-widget-as-a-template)). Back up the project file before you let the client write: such changes bypass the vis-2 editor and its undo.
 
 ## Name the Set
@@ -62,7 +63,7 @@ When the assistant reads a view, the host returns the set data of every widget i
 
 - **No AI of its own:** the collection calls no language model and manages no keys. Everything runs through the vis-2 assistant or an external MCP client; the costs and terms of the chosen provider apply.
 - **No guarantee for every model answer:** how good the result is depends on the model. The collection makes sure a widget with unusable data does not crash, not that the AI configures it correctly.
-- **What the AI sees of a widget type:** per field only name, type, label, the values of a selection and the default, no tooltips, groups or limits. Configurator fields appear only as type `custom`; the AI learns their format from the short description, the default or a template.
+- **What the AI sees of a widget type:** the widget's guide and per field only name, type, label, the values of a selection and the default, no tooltips, groups or limits. Configurator fields appear only as type `custom`; the AI learns their format from the guide, the default or a template.
 - **Absolute views:** on an absolute view, the host gives a newly inserted collection widget a width of 200 px unless the AI specifies a width of its own. Adjust the size afterwards.
 - **Privacy:** what the assistant reads (views, objects, states) goes to the chosen provider. With a local model it stays in your network.
 - **New feature in the host:** the AI features of vis-2 and Admin are new; their behavior may change with updates. This page describes vis-2 2.20.8 and Admin 8.3.11.
