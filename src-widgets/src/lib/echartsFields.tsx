@@ -18,12 +18,9 @@
 import CollectionDivider from '../components/CollectionDivider';
 import EchartsConfigEditor from '../EchartsCollectionWidget/EchartsConfigEditor';
 import { LIST_BLOB, OBJECT_BLOB } from './usableJson';
-import { guardWidgetData } from './fieldFactories';
+import { alwaysHidden, guardWidgetData } from './fieldFactories';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-/** vis-2 `hidden` is a string expression or a function — never a bare boolean. */
-const alwaysHidden = (): boolean => true;
 
 const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // ── Editor trigger (sole UI for chart-specific config) ───────────

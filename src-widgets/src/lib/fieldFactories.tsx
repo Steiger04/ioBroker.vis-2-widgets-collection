@@ -6,7 +6,7 @@
  * Provides the deep building blocks used across every `*Fields.tsx` file:
  * - color field factories (`createColorField`, `createColorFields`) and
  *   the Schlichtes-Farbfeld factory (`createPlainColorField`)
- * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
+ * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`, `alwaysHidden`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
  * - `createDivider` for section dividers
  * - `guardWidgetData`, the wrapper every data-reading custom field is declared through
@@ -332,6 +332,15 @@ export const hiddenWhenTruthy =
     (field: string): HiddenPredicate =>
     data =>
         !!data[field];
+
+/**
+ * Hides a field whatever the data: it is declared for its default, or for what the vis-2
+ * assistant reads of it, and never shown in the attribute panel. vis-2 `hidden` is a string
+ * expression or a function — never a bare boolean.
+ *
+ * @example hidden: alwaysHidden
+ */
+export const alwaysHidden: HiddenPredicate = () => true;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared option constants
