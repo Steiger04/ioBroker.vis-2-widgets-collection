@@ -6,10 +6,9 @@
  * Naht 1 (`lib/aiCatalogView.parity.test.ts`) projects every placeable widget's `getWidgetInfo()`
  * the way the vis-2 host hands it to the Bauzeit-KI; Naht 2 (`lib/aiRawDataRender.test.tsx`)
  * renders the widgets from raw data an assistant may write. Both check every placeable widget,
- * so a new widget without `visHelp` or without a structured-empty default fails them.
+ * so a new widget fails them without a one-sentence `visHelp`, without exactly one KI-Leitfaden
+ * field or without a structured-empty default.
  *
- * - A widget whose `visHelp` still repeats the long text of its KI-Leitfaden is on
- *   {@link AI_GUIDE_OPEN_WIDGETS}.
  * - The shared field modules ({@link SHARED_FIELD_NAMES}) are told apart from a widget's own fields.
  * - A named `custom` field that stores nothing under its name goes on
  *   {@link UI_ONLY_CUSTOM_FIELDS}, with the reason.
@@ -38,27 +37,6 @@ export const NOT_PLACEABLE: Readonly<Partial<Record<WidgetName, string>>> = {
 
 /** The widgets the Bauzeit-KI can place: the registry roster without {@link NOT_PLACEABLE}. */
 export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !(name in NOT_PLACEABLE));
-
-/**
- * Noch offen: the placeable widgets whose `visHelp` still repeats the long text of their
- * KI-Leitfaden. Naht 1 keeps its former check for their help (3 to 5 sentences) and the length
- * check over the language files leaves them out. A widget leaves the list when its help becomes
- * the short sentence; the list goes with its last entry.
- */
-export const AI_GUIDE_OPEN_WIDGETS: readonly WidgetName[] = [
-    'StateCollectionWidget',
-    'SliderCollectionWidget',
-    'InputCollectionWidget',
-    'ButtonGroupCollectionWidget',
-    'CheckboxCollectionWidget',
-    'DialogCollectionWidget',
-    'SelectCollectionWidget',
-    'RadioGroupCollectionWidget',
-    'GaugeCollectionWidget',
-    'Light2CollectionWidget',
-    'JsonTableCollectionWidget',
-    'EchartsCollectionWidget',
-];
 
 /**
  * The names of the fields the shared field modules declare: the common block, its Active variant,

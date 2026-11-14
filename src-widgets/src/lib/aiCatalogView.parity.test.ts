@@ -19,7 +19,7 @@
  * (`Attributes/Widget/index.tsx` renderFieldRow) and the palette stores only fields with a default.
  * The block over the language files projects the same view with the words of each language.
  *
- * Roster and open list: `lib/testing/aiSeams`. Like the other introspection tests it runs
+ * Roster: `lib/testing/aiSeams`. Like the other introspection tests it runs
  * isolated (`DOM_TS_TESTS`): it mocks `Generic`, the widget bodies and the heavy editors, none of
  * which contributes a field.
  */
@@ -32,7 +32,6 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import en from '../i18n/en.json';
 import { decodeBlob } from './encoding';
 import {
-    AI_GUIDE_OPEN_WIDGETS,
     isUiOnlyCustomField,
     paletteInsertData,
     PLACEABLE_WIDGETS,
@@ -245,11 +244,6 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         expect(PLACEABLE_WIDGETS).toHaveLength(13);
     });
 
-    it('leaves exactly the twelve widgets open whose help still repeats their KI-Leitfaden', () => {
-        expect(new Set([...AI_GUIDE_OPEN_WIDGETS, 'SwitchCollectionWidget'])).toEqual(new Set(PLACEABLE_WIDGETS));
-        expect(AI_GUIDE_OPEN_WIDGETS).toHaveLength(12);
-    });
-
     describe.each(PLACEABLE_WIDGETS)('%s', name => {
         const entry = (): ReturnType<typeof listEntry> => listEntry(catalogType(infos.get(name)!, I18N_PREFIX));
 
@@ -258,29 +252,16 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(entry().label).toBe((en as Record<string, string>)[info.visWidgetLabel!]);
         });
 
-        if (AI_GUIDE_OPEN_WIDGETS.includes(name)) {
-            it('lists a translated help of 3 to 5 sentences, resolved like the label', () => {
-                const info = infos.get(name)!;
-                const help = entry().help;
+        it('lists a translated help of one sentence and at most 120 characters, resolved like the label', () => {
+            const info = infos.get(name)!;
+            const help = entry().help;
 
-                expect(info.visHelp, 'visHelp').toBeTruthy();
-                // Translated: the text of en.json, not the key the host would show for a miss.
-                expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
-                expect(sentencesOf(help!).length).toBeGreaterThanOrEqual(3);
-                expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
-            });
-        } else {
-            it('lists a translated help of one sentence and at most 120 characters, resolved like the label', () => {
-                const info = infos.get(name)!;
-                const help = entry().help;
-
-                expect(info.visHelp, 'visHelp').toBeTruthy();
-                // Translated: the text of en.json, not the key the host would show for a miss.
-                expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
-                expect(sentencesOf(help!)).toHaveLength(1);
-                expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
-            });
-        }
+            expect(info.visHelp, 'visHelp').toBeTruthy();
+            // Translated: the text of en.json, not the key the host would show for a miss.
+            expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
+            expect(sentencesOf(help!)).toHaveLength(1);
+            expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+        });
 
         it('describes exactly one KI-Leitfaden field: the first field, a help text with a translated label and no default', () => {
             const info = infos.get(name)!;
@@ -403,14 +384,11 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
-/** The widgets whose help is the short sentence: every placeable widget that is not still open. */
-const GUIDED_WIDGETS = PLACEABLE_WIDGETS.filter(name => !AI_GUIDE_OPEN_WIDGETS.includes(name));
-
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
 
-        it.each(GUIDED_WIDGETS)('%s: lists a translated help of at most 120 characters', name => {
+        it.each(PLACEABLE_WIDGETS)('%s: lists a translated help of at most 120 characters', name => {
             const type = catalogType(infos.get(name)!, I18N_PREFIX);
             const help = listEntry(type, translate).help;
 
