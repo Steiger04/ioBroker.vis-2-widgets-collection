@@ -14,6 +14,7 @@ import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import jsonTableFields from '../lib/jsonTableFields';
 import { JSON_TABLE_TYPES } from '../lib/allowedOidTypes';
 import JsonTableCollection from './JsonTableCollection';
@@ -89,7 +90,8 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
             visAttrs: [
                 {
                     name: 'common',
-                    fields: [...commonFields()],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('json_table_collection_widget_ai_guide'), ...commonFields()],
                 },
                 {
                     name: 'jsonTable',

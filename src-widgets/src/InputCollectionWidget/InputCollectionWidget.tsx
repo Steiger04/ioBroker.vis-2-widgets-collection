@@ -12,6 +12,7 @@ import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import inputFields from '../lib/inputFields';
 import stateFields from '../lib/stateFields';
 import { INPUT_ENTRY_TYPES } from '../lib/allowedOidTypes';
@@ -34,7 +35,8 @@ class InputCollectionWidget extends Generic<WidgetRegistry['tplInputCollectionWi
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields()],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('input_collection_widget_ai_guide'), ...commonFields()],
                 },
                 {
                     name: 'input', // group name

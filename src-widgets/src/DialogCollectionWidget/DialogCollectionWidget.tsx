@@ -10,6 +10,7 @@ import Generic from '../Generic';
 
 import commonFields from '../lib/commonFields';
 import dialogFields from '../lib/dialogFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import DialogCollection from './DialogCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
@@ -35,7 +36,11 @@ class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollection
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '', allFields: true })],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [
+                        createAiGuideField('dialog_collection_widget_ai_guide'),
+                        ...commonFields({ groupName: '', allFields: true }),
+                    ],
                 },
                 {
                     name: 'dialog', // group name

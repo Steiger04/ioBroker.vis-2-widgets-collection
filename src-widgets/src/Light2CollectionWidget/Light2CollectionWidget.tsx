@@ -10,6 +10,7 @@ import Generic from '../Generic';
 import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import light2Fields from '../lib/light2Fields';
 
 import Light2Collection from './Light2Collection';
@@ -37,7 +38,11 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '', allFields: true })],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [
+                        createAiGuideField('light2_collection_widget_ai_guide'),
+                        ...commonFields({ groupName: '', allFields: true }),
+                    ],
                 },
                 {
                     name: 'light', // group name

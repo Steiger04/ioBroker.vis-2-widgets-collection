@@ -8,7 +8,8 @@
  * renders the widgets from raw data an assistant may write. Both check every placeable widget,
  * so a new widget without `visHelp` or without a structured-empty default fails them.
  *
- * - A widget whose KI-Leitfaden is still its long `visHelp` text is on {@link AI_GUIDE_OPEN_WIDGETS}.
+ * - A widget whose `visHelp` still repeats the long text of its KI-Leitfaden is on
+ *   {@link AI_GUIDE_OPEN_WIDGETS}.
  * - The shared field modules ({@link SHARED_FIELD_NAMES}) are told apart from a widget's own fields.
  * - A named `custom` field that stores nothing under its name goes on
  *   {@link UI_ONLY_CUSTOM_FIELDS}, with the reason.
@@ -39,10 +40,10 @@ export const NOT_PLACEABLE: Readonly<Partial<Record<WidgetName, string>>> = {
 export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !(name in NOT_PLACEABLE));
 
 /**
- * Noch offen: the placeable widgets whose `visHelp` is still the long text that carries the
- * KI-Leitfaden. They have no KI-Leitfaden field yet, so Naht 1 keeps its former check for them (a
- * help of 3 to 5 sentences) and the checks over the language files leave them out. A widget
- * leaves the list when its Leitfaden moves into the field; the list goes with its last entry.
+ * Noch offen: the placeable widgets whose `visHelp` still repeats the long text of their
+ * KI-Leitfaden. Naht 1 keeps its former check for their help (3 to 5 sentences) and the length
+ * check over the language files leaves them out. A widget leaves the list when its help becomes
+ * the short sentence; the list goes with its last entry.
  */
 export const AI_GUIDE_OPEN_WIDGETS: readonly WidgetName[] = [
     'StateCollectionWidget',

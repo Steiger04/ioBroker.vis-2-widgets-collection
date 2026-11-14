@@ -11,6 +11,7 @@ import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
@@ -31,7 +32,8 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields()],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('button_group_collection_widget_ai_guide'), ...commonFields()],
                 },
                 {
                     name: 'buttonGroup',

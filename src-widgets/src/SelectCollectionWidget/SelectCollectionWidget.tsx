@@ -10,6 +10,7 @@ import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import selectFields from '../lib/selectFields';
 import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
 import SelectCollection from './SelectCollection';
@@ -31,7 +32,11 @@ class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollection
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '' })],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [
+                        createAiGuideField('select_collection_widget_ai_guide'),
+                        ...commonFields({ groupName: '' }),
+                    ],
                 },
                 {
                     name: 'select_collection', // group name

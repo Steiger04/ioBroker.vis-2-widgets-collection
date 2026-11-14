@@ -245,7 +245,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         expect(PLACEABLE_WIDGETS).toHaveLength(13);
     });
 
-    it('leaves exactly the twelve widgets open whose KI-Leitfaden is still their help text', () => {
+    it('leaves exactly the twelve widgets open whose help still repeats their KI-Leitfaden', () => {
         expect(new Set([...AI_GUIDE_OPEN_WIDGETS, 'SwitchCollectionWidget'])).toEqual(new Set(PLACEABLE_WIDGETS));
         expect(AI_GUIDE_OPEN_WIDGETS).toHaveLength(12);
     });
@@ -280,37 +280,37 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 expect(sentencesOf(help!)).toHaveLength(1);
                 expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
             });
-
-            it('describes exactly one KI-Leitfaden field: the first field, a help text with a translated label and no default', () => {
-                const info = infos.get(name)!;
-                const fields = describedFields(info, I18N_PREFIX);
-                const guides = guideFieldsOf(fields);
-
-                expect(guides).toHaveLength(1);
-                const [guide] = guides;
-                expect(guide.name).toBeTruthy();
-                const { field, indexed } = declarationOf(info, guide.name!);
-                expect(fields[0]).toBe(guide);
-                expect(indexed, 'in an indexed group').toBe(false);
-                // Translated: the text of en.json, not the key the host would show for a miss.
-                expect(guide.label).toBeTruthy();
-                expect(guide.label).toBe((en as Record<string, string>)[field.label!]);
-                expect(guide.default).toBeUndefined();
-            });
-
-            it('keeps the KI-Leitfaden field hidden for any data, and out of the data a palette insert stores', () => {
-                const info = infos.get(name)!;
-                const guide = guideFieldsOf(describedFields(info, I18N_PREFIX))[0]?.name;
-                expect(guide, 'the name of the KI-Leitfaden field').toBeTruthy();
-                const { field } = declarationOf(info, guide!);
-                const inserted = paletteInsertData(info.visAttrs ?? []);
-
-                for (const data of [{}, inserted, { ...inserted, [guide!]: 'set by the assistant' }]) {
-                    expect(isHiddenFor(field, data)).toBe(true);
-                }
-                expect(Object.keys(inserted)).not.toContain(guide);
-            });
         }
+
+        it('describes exactly one KI-Leitfaden field: the first field, a help text with a translated label and no default', () => {
+            const info = infos.get(name)!;
+            const fields = describedFields(info, I18N_PREFIX);
+            const guides = guideFieldsOf(fields);
+
+            expect(guides).toHaveLength(1);
+            const [guide] = guides;
+            expect(guide.name).toBeTruthy();
+            const { field, indexed } = declarationOf(info, guide.name!);
+            expect(fields[0]).toBe(guide);
+            expect(indexed, 'in an indexed group').toBe(false);
+            // Translated: the text of en.json, not the key the host would show for a miss.
+            expect(guide.label).toBeTruthy();
+            expect(guide.label).toBe((en as Record<string, string>)[field.label!]);
+            expect(guide.default).toBeUndefined();
+        });
+
+        it('keeps the KI-Leitfaden field hidden for any data, and out of the data a palette insert stores', () => {
+            const info = infos.get(name)!;
+            const guide = guideFieldsOf(describedFields(info, I18N_PREFIX))[0]?.name;
+            expect(guide, 'the name of the KI-Leitfaden field').toBeTruthy();
+            const { field } = declarationOf(info, guide!);
+            const inserted = paletteInsertData(info.visAttrs ?? []);
+
+            for (const data of [{}, inserted, { ...inserted, [guide!]: 'set by the assistant' }]) {
+                expect(isHiddenFor(field, data)).toBe(true);
+            }
+            expect(Object.keys(inserted)).not.toContain(guide);
+        });
 
         it('shows a strukturiert-leerer default for every data-bearing custom field and configuration blob, or lists it as UI only', () => {
             const info = infos.get(name)!;
@@ -379,6 +379,16 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
+    it('gives every widget a help and a KI-Leitfaden of its own', () => {
+        const helps = PLACEABLE_WIDGETS.map(name => listEntry(catalogType(infos.get(name)!, I18N_PREFIX)).help);
+        const guides = PLACEABLE_WIDGETS.map(
+            name => guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label,
+        );
+
+        expect(new Set(helps).size).toBe(PLACEABLE_WIDGETS.length);
+        expect(new Set(guides).size).toBe(PLACEABLE_WIDGETS.length);
+    });
+
     it('lists only UI-only exceptions that some widget still has', () => {
         const names = [...infos.values()].flatMap(info =>
             describedFields(info, I18N_PREFIX).flatMap(field =>
@@ -393,7 +403,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
-/** The widgets whose KI-Leitfaden has its own field: every placeable widget that is not still open. */
+/** The widgets whose help is the short sentence: every placeable widget that is not still open. */
 const GUIDED_WIDGETS = PLACEABLE_WIDGETS.filter(name => !AI_GUIDE_OPEN_WIDGETS.includes(name));
 
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
@@ -410,7 +420,7 @@ describe('Every language file: what the assistant and the palette read in each i
             expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
         });
 
-        it.each(GUIDED_WIDGETS)('%s: describes the KI-Leitfaden with the English text', name => {
+        it.each(PLACEABLE_WIDGETS)('%s: describes the KI-Leitfaden with the English text', name => {
             const guideIn = (language: Translate): string | undefined =>
                 guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX, language))[0]?.label;
 

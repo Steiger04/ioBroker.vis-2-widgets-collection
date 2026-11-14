@@ -11,6 +11,7 @@ import commonFields from '../lib/commonFields';
 import { stateEditorGroup } from '../lib/stateEditorFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
+import { createAiGuideField } from '../lib/fieldFactories';
 import type { WidgetRegistry } from '../types';
 import CheckboxCollection from './CheckboxCollection';
 
@@ -30,7 +31,8 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields()],
+                    // The KI-Leitfaden leads the field list the assistant reads; the panel never shows it.
+                    fields: [createAiGuideField('checkbox_collection_widget_ai_guide'), ...commonFields()],
                 },
                 {
                     name: 'checkbox', // group name
