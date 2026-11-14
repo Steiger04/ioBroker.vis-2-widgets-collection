@@ -112,10 +112,13 @@ const catalogType = (info: RxWidgetInfo, i18nPrefix: string): CatalogType => ({
 });
 
 /** One entry of `list_widget_types` with a set. */
-const listEntry = (type: CatalogType): { tpl: string; label: string; help: string | undefined } => ({
+const listEntry = (
+    type: CatalogType,
+    translate: Translate = t,
+): { tpl: string; label: string; help: string | undefined } => ({
     tpl: type.name,
-    label: type.label ? t(type.label) : type.title,
-    help: type.help ? t(type.help) : undefined,
+    label: type.label ? translate(type.label) : type.title,
+    help: type.help ? translate(type.help) : undefined,
 });
 
 /** One field of `describe_widget_type`. */
@@ -217,6 +220,12 @@ const sentencesOf = (text: string): string[] =>
         .split(/(?<=[.!?])\s+/)
         .filter(sentence => sentence !== '');
 
+/** The most characters a help text has in any language: the palette tooltip stays one short sentence. */
+const HELP_MAX_LENGTH = 120;
+
+/** The characters of a text, a surrogate pair counted once. */
+const lengthOf = (text: string): number => Array.from(text).length;
+
 const infos = new Map<WidgetName, RxWidgetInfo>();
 
 beforeAll(async () => {
@@ -249,18 +258,29 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(entry().label).toBe((en as Record<string, string>)[info.visWidgetLabel!]);
         });
 
-        it('lists a translated help of 3 to 5 sentences, resolved like the label', () => {
-            const info = infos.get(name)!;
-            const help = entry().help;
+        if (AI_GUIDE_OPEN_WIDGETS.includes(name)) {
+            it('lists a translated help of 3 to 5 sentences, resolved like the label', () => {
+                const info = infos.get(name)!;
+                const help = entry().help;
 
-            expect(info.visHelp, 'visHelp').toBeTruthy();
-            // Translated: the text of en.json, not the key the host would show for a miss.
-            expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
-            expect(sentencesOf(help!).length).toBeGreaterThanOrEqual(3);
-            expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
-        });
+                expect(info.visHelp, 'visHelp').toBeTruthy();
+                // Translated: the text of en.json, not the key the host would show for a miss.
+                expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
+                expect(sentencesOf(help!).length).toBeGreaterThanOrEqual(3);
+                expect(sentencesOf(help!).length).toBeLessThanOrEqual(5);
+            });
+        } else {
+            it('lists a translated help of one sentence and at most 120 characters, resolved like the label', () => {
+                const info = infos.get(name)!;
+                const help = entry().help;
 
-        if (!AI_GUIDE_OPEN_WIDGETS.includes(name)) {
+                expect(info.visHelp, 'visHelp').toBeTruthy();
+                // Translated: the text of en.json, not the key the host would show for a miss.
+                expect(help).toBe((en as Record<string, string>)[info.visHelp!]);
+                expect(sentencesOf(help!)).toHaveLength(1);
+                expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+            });
+
             it('describes exactly one KI-Leitfaden field: the first field, a help text with a translated label and no default', () => {
                 const info = infos.get(name)!;
                 const fields = describedFields(info, I18N_PREFIX);
@@ -379,6 +399,16 @@ const GUIDED_WIDGETS = PLACEABLE_WIDGETS.filter(name => !AI_GUIDE_OPEN_WIDGETS.i
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
+
+        it.each(GUIDED_WIDGETS)('%s: lists a translated help of at most 120 characters', name => {
+            const type = catalogType(infos.get(name)!, I18N_PREFIX);
+            const help = listEntry(type, translate).help;
+
+            // Translated: a text of the file, not the key the host would show for a miss.
+            expect(help).toBeTruthy();
+            expect(help).not.toBe(type.help);
+            expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+        });
 
         it.each(GUIDED_WIDGETS)('%s: describes the KI-Leitfaden with the English text', name => {
             const guideIn = (language: Translate): string | undefined =>
