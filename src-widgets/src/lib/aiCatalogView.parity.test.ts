@@ -212,11 +212,14 @@ const isShapedDefault = (rule: FieldRule | undefined, value: unknown): boolean =
 /** Whether a field stores JSON: a declared JSON rule, on a custom field or on a text field's configuration blob. */
 const isJsonRule = (rule: FieldRule | undefined): boolean => typeof rule === 'object' && 'json' in rule;
 
-/** Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end. */
+/**
+ * Sentences of a help text: split after `.`, `!` or `?` followed by a space or the end, and after
+ * the full-width marks of Chinese (`。`, `！`, `？`), which no space follows.
+ */
 const sentencesOf = (text: string): string[] =>
     text
         .trim()
-        .split(/(?<=[.!?])\s+/)
+        .split(/(?<=[.!?])\s+|(?<=[。！？])/)
         .filter(sentence => sentence !== '');
 
 /** The most characters a help text has in any language: the palette tooltip stays one short sentence. */
@@ -388,13 +391,14 @@ describe('Every language file: what the assistant and the palette read in each i
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
 
-        it.each(PLACEABLE_WIDGETS)('%s: lists a translated help of at most 120 characters', name => {
+        it.each(PLACEABLE_WIDGETS)('%s: lists a translated help of one sentence and at most 120 characters', name => {
             const type = catalogType(infos.get(name)!, I18N_PREFIX);
             const help = listEntry(type, translate).help;
 
             // Translated: a text of the file, not the key the host would show for a miss.
             expect(help).toBeTruthy();
             expect(help).not.toBe(type.help);
+            expect(sentencesOf(help!)).toHaveLength(1);
             expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
         });
 
