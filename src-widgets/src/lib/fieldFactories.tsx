@@ -17,9 +17,10 @@
  * keys through is a shallow rename (deleting it just moves the keys inline —
  * complexity does not concentrate). Those fields stay as raw object literals
  * with a `hidden` clause; the depth lives here, in the predicates, option
- * constants, and dividers. The one exception is a FIXED field duplicated
- * verbatim across field lists (`createOnlyDisplayField`): seven hand-synced
- * copies are drift, not depth.
+ * constants, and dividers. The exception is a FIXED field duplicated
+ * verbatim across field lists (`createOnlyDisplayField`, `createAiGuideField`):
+ * hand-synced copies — seven of the first, thirteen of the second — are
+ * drift, not depth.
  * @example
  * // Single color field
  * const sliderColorField = createColorField({
