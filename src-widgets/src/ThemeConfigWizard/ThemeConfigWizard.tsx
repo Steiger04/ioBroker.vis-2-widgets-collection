@@ -155,6 +155,13 @@ class ThemeConfigWizard extends Generic<
     /**
      * Nothing — except the hint of an order that was not confirmed, and that only where the
      * project is edited: the editor's preview and the runtime show nothing.
+     *
+     * @remarks
+     * Not a collection widget's body: no provider (an order has no collection context, and its
+     * hint is the editor's, not themed by the theme the order changes), and not the host's own
+     * `renderWidgetBody` — it would make the element a `.vis-widget`, which clips its content
+     * and takes the styles of the attribute panel. Place and size are the ones the host's
+     * assistant gave the element.
      */
     renderWidgetBody(): JSX.Element | null {
         if (!this.state.orderNotConfirmed || !this.props.editMode || this.props.context.runtime) {
