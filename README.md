@@ -96,8 +96,11 @@ reads them from there.
 ### **WORK IN PROGRESS**
 
 - (steiger04) The vis-2 AI assistant can now build pages with these widgets
+- (steiger04) The vis-2 AI assistant can now also change the theme if you name the set `vis-2-widgets-collection`
 - (steiger04) Every widget shows a short tooltip in the palette
 - (steiger04) Grid layout: widgets keep the height of their grid rows
+- (steiger04) The theme now accepts only hex, `rgb()` and `hsl()` colors
+- (steiger04) An open theme studio without unsaved changes now follows theme changes made elsewhere
 - (steiger04) Many fixes across all widgets
 
 ### 3.0.2 (2026-11-11)
