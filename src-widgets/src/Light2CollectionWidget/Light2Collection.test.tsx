@@ -473,6 +473,34 @@ describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
         const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
         expect(getComputedStyle(content).width).toBe('103px');
     });
+
+    // The outlines of frame and content paper (1px a side each) are drawn inside the modal width.
+    it('widens the modal of the single value slider by the outlines of frame and content paper', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(
+            Light2Collection,
+            scene({
+                colorLightType: 'dimmer',
+                colorLightButton: true,
+                colorLightDelayLongPress: 800,
+                basePadding: 1,
+                outlined: true,
+                outlinedFrame: true,
+            }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        // 103px and 2 × 2 × 1px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('107px');
+    });
 });
 
 describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {

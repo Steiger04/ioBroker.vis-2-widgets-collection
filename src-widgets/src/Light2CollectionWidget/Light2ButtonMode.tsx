@@ -75,6 +75,8 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
         colorModel: colorModelOf(rxData.colorLightType),
         padding: rxData.colorLightPadding,
         basePadding: rxData.basePadding,
+        outlinedFrame: rxData.outlinedFrame,
+        outlined: rxData.outlined,
     });
 
     return (

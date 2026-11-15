@@ -37,6 +37,9 @@ const POWER_COLUMN_WIDTH_PX = 26 + 2 * 8 + 1;
 /** One MUI spacing unit (`basePadding`, `colorLightPadding` 1), in px. */
 const SPACING_UNIT_PX = 8;
 
+/** The outline of an outlined MUI Paper (`outlinedFrame`, `outlined`), one side, in px. */
+const OUTLINE_WIDTH_PX = 1;
+
 /**
  * The geometry iro is created with, before the first measured layout replaces it
  * (`Light2Picker` sets the measured gap and slider size right after creation).
@@ -76,6 +79,10 @@ export interface ModalSizeConfig {
     padding?: Light2FieldsRxData['colorLightPadding'];
     /** Padding of the frame (`basePadding`), in spacing units. */
     basePadding?: BaseFieldsRxData['basePadding'];
+    /** Whether the frame is outlined (`outlinedFrame`). */
+    outlinedFrame?: BaseFieldsRxData['outlinedFrame'];
+    /** Whether the content paper is outlined (`outlined`). */
+    outlined?: BaseFieldsRxData['outlined'];
 }
 
 /** What the modal auto width is derived from: the read modal height, slider size and paddings in px. */
@@ -86,6 +93,8 @@ interface ModalContent {
     padding: number;
     /** Frame padding of one side, in px. */
     basePadding: number;
+    /** The outlines of frame and content paper across the width (both sides), in px. */
+    outlines: number;
 }
 
 /** The size of the Button-Modus modal, in px. */
@@ -200,9 +209,9 @@ const COLOR_MODEL_RULES: Partial<Record<Light2ColorModel, PickerKindRule>> = {
         resizeWidth: height => height,
         // A single component: no neighbour to space from.
         gap: () => PICKER_GAP_PX,
-        // As wide as drawn side by side: frame padding, power column, picker padding, the slider.
-        modalAutoWidth: ({ sliderSize, padding, basePadding }) =>
-            2 * basePadding + POWER_COLUMN_WIDTH_PX + 2 * padding + sliderSize,
+        // As wide as drawn side by side: outlines, frame padding, power column, picker padding, the slider.
+        modalAutoWidth: ({ sliderSize, padding, basePadding, outlines }) =>
+            outlines + 2 * basePadding + POWER_COLUMN_WIDTH_PX + 2 * padding + sliderSize,
     },
 };
 
@@ -274,9 +283,9 @@ const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): Pic
  * The Button-Modus modal size. Height: `colorLightModalHeight`, the default 300px for 0. Width: an
  * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the
  * auto width — for the colour picker from height + slider + gap, for a colour model with a rule of
- * its own from what it draws (dimmer: the slider, its padding and the frame — ADR-0116 Nr. 2).
+ * its own from what it draws (dimmer: the slider, its padding and the frame with its outlines — ADR-0116 Nr. 2).
  *
- * @param config - Modal width/height, slider width, colour model and paddings of the widget.
+ * @param config - Modal width/height, slider width, colour model, paddings and outlines of the widget.
  * @returns The modal width and height in px.
  */
 export function modalSizeOf(config: ModalSizeConfig): ModalSize {
@@ -295,6 +304,8 @@ export function modalSizeOf(config: ModalSizeConfig): ModalSize {
             // Read as the body and the frame draw them: an emptied padding ('') as 0.
             padding: (optionalNumber(config.padding) ?? 0) * SPACING_UNIT_PX,
             basePadding: (optionalNumber(config.basePadding) ?? 0) * SPACING_UNIT_PX,
+            // The frame draws under border-box (CollectionProvider): an outline takes its width from inside.
+            outlines: 2 * OUTLINE_WIDTH_PX * (Number(!!config.outlinedFrame) + Number(!!config.outlined)),
         }),
         height,
     };

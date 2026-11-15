@@ -252,6 +252,30 @@ describe('modalSizeOf: the modal of dimmer is as wide as its content (ADR-0116 N
         expect(modalSizeOf({ colorModel: 'brightness', sliderWidth: 0, padding: 0, basePadding: 0 }).width).toBe(71);
     });
 
+    // The frame draws under border-box (CollectionProvider): each outline (1px a side) takes its
+    // width from inside the modal, so the content would lose it.
+    it('widens the auto width by the outline of the frame and of the content paper', () => {
+        // 103 + 2 × 1px.
+        expect(
+            modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: 1, basePadding: 1, outlinedFrame: true })
+                .width,
+        ).toBe(105);
+        expect(
+            modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: 1, basePadding: 1, outlined: true }).width,
+        ).toBe(105);
+        // Both outlines: 103 + 4 × 1px.
+        expect(
+            modalSizeOf({
+                colorModel: 'brightness',
+                sliderWidth: 1,
+                padding: 1,
+                basePadding: 1,
+                outlined: true,
+                outlinedFrame: true,
+            }).width,
+        ).toBe(107);
+    });
+
     // vis-2's number field stores the typed text until the field is left; an emptied padding reads 0.
     it('reads paddings stored as numeric strings as their numbers, an emptied one as 0', () => {
         const asStored = (value: string): number => value as unknown as number;
