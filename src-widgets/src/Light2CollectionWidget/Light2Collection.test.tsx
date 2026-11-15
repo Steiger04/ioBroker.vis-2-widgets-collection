@@ -501,6 +501,37 @@ describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
         const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
         expect(getComputedStyle(content).width).toBe('107px');
     });
+
+    // A user theme may change the spacing the paddings are drawn in.
+    it('sizes the modal of the single value slider in the spacing of the collection theme', async () => {
+        measureContentRect({ width: 300, height: 200 });
+        // The shared user theme state holds a spacing of 6px.
+        const themeSocket = {
+            getState: (): Promise<{ val: string }> => Promise.resolve({ val: JSON.stringify({ spacing: 6 }) }),
+            subscribeState: (): Promise<void> => Promise.resolve(),
+            unsubscribeState: (): void => undefined,
+        };
+        const { container } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800, basePadding: 1 }),
+            { socket: themeSocket },
+        );
+        await act(async () => {
+            await Promise.resolve();
+        });
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        // 6 + 42 + 1 + 6 + 28 + 6 + 6 = 95px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('95px');
+    });
 });
 
 describe('Light2Collection Kelvin range of the CCT-Ansicht', () => {

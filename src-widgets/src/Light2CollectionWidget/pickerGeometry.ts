@@ -34,8 +34,8 @@ const MODAL_EXTRA_WIDTH_PX = 40;
 /** The power button column beside the picker box: the 26px icon in its 8px button padding, and the 1px divider. */
 const POWER_COLUMN_WIDTH_PX = 26 + 2 * 8 + 1;
 
-/** One MUI spacing unit (`basePadding`, `colorLightPadding` 1), in px. */
-const SPACING_UNIT_PX = 8;
+/** MUI's default spacing, 8px a unit — for a caller that hands no theme spacing. */
+const defaultSpacing = (units: number): string => `${units * 8}px`;
 
 /** The outline of an outlined MUI Paper (`outlinedFrame`, `outlined`), one side, in px. */
 const OUTLINE_WIDTH_PX = 1;
@@ -83,6 +83,11 @@ export interface ModalSizeConfig {
     outlinedFrame?: BaseFieldsRxData['outlinedFrame'];
     /** Whether the content paper is outlined (`outlined`). */
     outlined?: BaseFieldsRxData['outlined'];
+    /**
+     * The collection theme's spacing (`theme.spacing`), in which the frame and the body draw the
+     * paddings — a user theme may change it; unset, MUI's default 8px a unit.
+     */
+    spacing?: (units: number) => string;
 }
 
 /** What the modal auto width is derived from: the read modal height, slider size and paddings in px. */
@@ -280,7 +285,8 @@ const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): Pic
  * auto width — for the colour picker from height + slider + gap, for a colour model with a rule of
  * its own from what it draws (dimmer: the slider, its padding and the frame with its outlines — ADR-0116 Nr. 2).
  *
- * @param config - Modal width/height, slider width, colour model, paddings and outlines of the widget.
+ * @param config - Modal width/height, slider width, colour model, paddings and outlines of the widget, and
+ *   the theme spacing.
  * @returns The modal width and height in px.
  */
 export function modalSizeOf(config: ModalSizeConfig): ModalSize {
@@ -291,13 +297,15 @@ export function modalSizeOf(config: ModalSizeConfig): ModalSize {
         return { width, height };
     }
     const autoWidth = modelRuleOf(config.colorModel)?.modalAutoWidth ?? modalWidthBesideSlider;
+    // A padding in px as the theme draws it (MUI spacing yields '<n>px').
+    const spacingPx = (units: number): number => Number.parseFloat((config.spacing ?? defaultSpacing)(units));
     return {
         width: autoWidth({
             height,
             sliderSize: sliderSizeOf(config.sliderWidth),
             // Read as the body and the frame draw them: an emptied padding ('') as 0.
-            padding: (optionalNumber(config.padding) ?? 0) * SPACING_UNIT_PX,
-            basePadding: (optionalNumber(config.basePadding) ?? 0) * SPACING_UNIT_PX,
+            padding: spacingPx(optionalNumber(config.padding) ?? 0),
+            basePadding: spacingPx(optionalNumber(config.basePadding) ?? 0),
             // The frame draws under border-box (CollectionProvider): an outline takes its width from inside.
             outlines: 2 * OUTLINE_WIDTH_PX * (Number(!!config.outlinedFrame) + Number(!!config.outlined)),
         }),

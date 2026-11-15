@@ -276,6 +276,20 @@ describe('modalSizeOf: the modal of dimmer is as wide as its content (ADR-0116 N
         ).toBe(107);
     });
 
+    // The paddings are drawn in the collection theme's spacing (a user theme may change it).
+    it('reads the paddings in the spacing of the theme', () => {
+        const spacing = (units: number): string => `${units * 6}px`;
+
+        // 6 + 42 + 1 + 6 + 28 + 6 + 6 = 95.
+        expect(
+            modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: 1, basePadding: 1, spacing }).width,
+        ).toBe(95);
+        // 12 + 42 + 1 + 3 + 28 + 3 + 12 = 101.
+        expect(
+            modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: 0.5, basePadding: 2, spacing }).width,
+        ).toBe(101);
+    });
+
     // vis-2's number field stores the typed text until the field is left; an emptied padding reads 0.
     it('reads paddings stored as numeric strings as their numbers, an emptied one as 0', () => {
         const asStored = (value: string): number => value as unknown as number;

@@ -49,6 +49,7 @@ interface Light2ButtonModeProps {
 function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light2ButtonModeProps): React.JSX.Element {
     const {
         widget: { data: rxData },
+        theme,
     } = useContext(CollectionContext) as Light2CollectionContextProps;
     const [open, setOpen] = useState(false);
 
@@ -77,6 +78,8 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
         basePadding: rxData.basePadding,
         outlinedFrame: rxData.outlinedFrame,
         outlined: rxData.outlined,
+        // The paddings are drawn in the collection theme's spacing.
+        spacing: theme.spacing,
     });
 
     return (
