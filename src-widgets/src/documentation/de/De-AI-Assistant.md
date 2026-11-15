@@ -78,18 +78,19 @@ Es ändert sich nur, was du nennst; alles andere bleibt, wie es war. Ein Wert, d
 
 ### Beispiel-Prompts für das Theme
 
-- „Stelle das Theme der Widget-Sammlung auf das Preset Graphit.“
-- „Mach die Primärfarbe orange und die Ecken runder, der Rest bleibt.“
-- „Setze das Theme auf den Standard zurück.“
-- „Stell das vorherige Theme wieder her.“
+- „Stelle das Theme der Widget-Sammlung auf das Preset Graphit. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Mach die Primärfarbe orange und die Ecken runder, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Setze das Theme auf den Standard zurück. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Stell das vorherige Theme wieder her.“ (im selben Gespräch nach einer Änderung; den Eintrag kennt der Assistent dann schon)
 
-Den Eintrag für das Theme findet der Assistent im Set `vis-2-widgets-collection`; es gilt, was unter [Das Set nennen](#das-set-nennen) steht. Nenne also das Theme der Widget-Sammlung, und findet der Assistent den Eintrag nicht, das Set mit seinem technischen Namen. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio.
+Nenne das Set in der Anfrage, wie unter [Das Set nennen](#das-set-nennen) beschrieben: Der Eintrag für das Theme steht im Set `vis-2-widgets-collection`, und der Assistent sucht ihn dort meist nur, wenn du es sagst. Ohne den zweiten Satz blieb das Theme in der Prüfung mit Claude Haiku und Claude Sonnet in fünf von sechs Anfragen unverändert; der Assistent antwortete meist, er habe dafür kein Werkzeug. Mit dem Satz setzte er den Auftrag in jeder geprüften Sitzung richtig. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio (geprüft mit Graphit und Rubin).
 
 ### Was dabei geschieht
 
-Der Assistent setzt dafür einen **Theme-Auftrag** auf die View: einen Eintrag vom Typ „Theme-Studio“, der das Theme einmal ändert und sich danach selbst entfernt.
+Der Assistent setzt dafür einen **Theme-Auftrag** auf die View: einen Eintrag vom Typ „Theme-Studio“, der das Theme einmal ändert und sich danach selbst entfernt. Im Chat steht dazu die Zeile „Theme-Studio auf ‚‹View›‘ gesetzt“; fehlt sie, hat der Assistent nichts geändert.
 
-- **Sofort:** Das Theme ändert sich auf allen Collection-Widgets, ohne Neuladen.
+- **Nach der Antwort:** Der Auftrag wirkt, sobald die Antwort des Assistenten zu Ende ist. Das Theme ändert sich dann auf allen Collection-Widgets, ohne Neuladen.
+- **Meldung des Assistenten:** Der Assistent meldet die Änderung, bevor sie gewirkt hat. Liest er in derselben Antwort nach, sieht er noch den alten Wert und kann einen Fehlschlag melden, obwohl die Änderung danach ankommt (in der Prüfung einmal beobachtet). Es gilt, was die Widgets zeigen.
 - **Nichts bleibt zurück:** Nach der Änderung steht kein zusätzliches Widget auf der View.
 - **Nur im Editor, nur auf einer gezeigten View:** Der Auftrag wirkt, sobald seine View im Editor gezeigt wird. Hat der Assistent ihn auf eine andere View gesetzt, ändert sich das Theme erst, wenn du diese View im Editor öffnest. In der Laufzeit-Ansicht tut und zeigt er nichts.
 - **Mehrere Aufträge:** Aufträge aus einer Antwort wirken nacheinander, jeder auf dem Ergebnis des vorigen.
@@ -100,12 +101,12 @@ Der Assistent setzt dafür einen **Theme-Auftrag** auf die View: einen Eintrag v
 
 Das Rückgängig des Editors nimmt eine Theme-Änderung nicht zurück: Es stellt die View wieder her, das Theme bleibt. So kommst du zurück:
 
-- **Den Assistenten bitten**, das vorherige Theme wiederherzustellen. Seine Anleitung weist ihn an, das Theme vor einer Änderung zu lesen; hat er das getan, stehen die alten Werte im Gespräch. Wiederherstellen kann er nur, was er auch einstellen kann: Nach einem Zurücksetzen bringt er geladene Google-Schriften und CSS-Variablen nicht zurück.
+- **Den Assistenten bitten**, das vorherige Theme wiederherzustellen, im selben Gespräch. In der Prüfung las er das Theme vor jeder Änderung, wie seine Anleitung es verlangt; die alten Werte standen damit im Gespräch, und er stellte sie wieder her. Setzt er dabei alle Werte neu, steht eine Schriftfamilie danach in der Schreibweise der Studio-Auswahl (`'Georgia', serif` statt `Georgia, serif`). Wiederherstellen kann er nur, was er auch einstellen kann: Geladene Google-Schriften und CSS-Variablen bringt er nach einem Zurücksetzen nicht zurück. Das Wiederherstellen nach einem Zurücksetzen ist nicht geprüft.
 - **Das [Theme-Studio](De-Theme-Studio.md) öffnen** und die Werte dort korrigieren.
 
 Willst du sicher zurückkönnen, kopiere vor der Änderung den Wert des Datenpunkts `vis-2-widgets-collection.0.theme` (siehe [Das Theme im Datenpunkt](De-Theme-Studio.md#das-theme-im-datenpunkt)). Zurückgeschrieben stellt er das Theme vollständig wieder her.
 
-Hast du das Theme mehrmals ändern lassen, kann Rückgängig eine frühere Änderung erneut auslösen: Es bringt den Stand der früheren Antwort samt ihrem Theme-Auftrag zurück, und dieser wirkt noch einmal. Dasselbe gilt für Wiederholen. Prüfe das Theme, wenn du nach einer Theme-Änderung im Editor zurück- oder vorgehst.
+Hast du das Theme mehrmals ändern lassen, kann Rückgängig eine frühere Änderung erneut auslösen: Es bringt den Stand der früheren Antwort samt ihrem Theme-Auftrag zurück, und dieser wirkt noch einmal. Wiederholen brachte in der Prüfung mit vis-2 2.20.9 keinen Theme-Auftrag zurück: Der Schritt scheiterte an einem Fehler des Editors und änderte weder View noch Theme. Prüfe das Theme, wenn du nach einer Theme-Änderung Rückgängig benutzt.
 
 ### Wenn die Änderung nicht bestätigt wird
 
@@ -123,7 +124,7 @@ Ein externer MCP-Client hat kein Werkzeug für vis-2 und setzt keinen Theme-Auft
 - **Ganzes Theme schreiben:** Anders als der Assistent ersetzt der Client den ganzen Wert. Was er beim Schreiben weglässt, ist verloren, auch geladene Google-Schriften. Er liest also das Theme, ändert nur das Gewünschte und schreibt alles zurück.
 - **Ungültige Werte:** Ein einzelner ungültiger Wert fällt weg, der Rest des Themes gilt.
 - **Rückweg:** Lass dir den alten Wert nennen, bevor der Client schreibt. Zurückgeschrieben stellt er das Theme vollständig wieder her; das Rückgängig des Editors erfasst das Theme nicht.
-- **Form am Datenpunkt:** Bei einer neu angelegten Instanz steht die Form des Themes als englische Beschreibung am Objekt des Datenpunkts. Der Client liest sie nur, wenn er das Objekt abruft (`get_object` für `vis-2-widgets-collection.0.theme`); die Objektsuche (`search_objects`) findet den Datenpunkt, zeigt die Beschreibung aber nicht. Eine Instanz, die es schon vor dieser Funktion gab, hat die Beschreibung nicht: Ein Adapter-Update ändert das bestehende Objekt nicht.
+- **Form am Datenpunkt:** Bei einer neu angelegten Instanz steht die Form des Themes als englische Beschreibung am Objekt des Datenpunkts. Der Client liest sie nur, wenn er das Objekt abruft (`get_object` für `vis-2-widgets-collection.0.theme`); die Objektsuche (`search_objects`) findet den Datenpunkt, zeigt die Beschreibung aber nicht. Eine Instanz, die es schon vor dieser Funktion gab, hat die Beschreibung nicht: Ein Adapter-Update ändert das bestehende Objekt nicht. In der Prüfung reichte dem Client bei einem bestehenden Theme der gelesene Wert; bei einem leeren Theme rief er das Objekt ab und nutzte die Beschreibung.
 
 Fehlt die Beschreibung oder ruft der Client das Objekt nicht ab, nenne ihm den Datenpunkt und gib ihm diesen Text mit. Er ist englisch und wortgleich mit der Beschreibung am Datenpunkt:
 
