@@ -12,23 +12,17 @@
  * the structure gate next to this file.
  */
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 import { THEME_STATE_ID } from '../lib/constants';
+import { themeStateDescription } from '../lib/testing/themeStateDescription';
 
 const DOCS_DIR = __dirname;
 
-const ioPackage = JSON.parse(readFileSync(resolve(DOCS_DIR, '..', '..', '..', 'io-package.json'), 'utf8')) as {
-    instanceObjects: { _id: string; common: { desc?: unknown } }[];
-};
-
 /** The description as an MCP client reads it from the theme state's object. */
-const description = ((): string => {
-    const desc = ioPackage.instanceObjects.find(object => object._id === 'theme')?.common.desc;
-    return typeof desc === 'string' ? desc : '';
-})();
+const description = themeStateDescription();
 
 /**
  * The fenced code blocks of a page, each as one text: its lines joined by a blank. A page breaks

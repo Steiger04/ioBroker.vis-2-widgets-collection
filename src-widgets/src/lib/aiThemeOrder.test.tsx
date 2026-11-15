@@ -18,8 +18,6 @@
  * still waits. Every theme an order wrote in a test has to pass the theme validator.
  */
 import { act, type ComponentType } from 'react';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Project } from '@iobroker/types-vis-2';
@@ -29,6 +27,7 @@ import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THEME_STATE_ID } from './constants';
 import { mountEditor, stateServer, type EditorStandIn, type StateServer } from './testing/editorStandIn';
 import { createTestRoot } from './testing/testRoots';
+import { themeStateDescription } from './testing/themeStateDescription';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
@@ -752,12 +751,7 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
         const guide = (): string =>
             (en as Record<string, string>)[orderFields().find(field => field.type === 'help')!.label!];
         // The description of the theme state is the other AI channel to the same theme (an MCP client).
-        const stateDescription = (): string => {
-            const ioPackage = JSON.parse(readFileSync(resolve(process.cwd(), '..', 'io-package.json'), 'utf8')) as {
-                instanceObjects: { _id: string; common: { desc?: string } }[];
-            };
-            return ioPackage.instanceObjects.find(object => object._id === 'theme')?.common.desc ?? '';
-        };
+        const stateDescription = themeStateDescription;
 
         it('names the state the theme is read at', () => {
             expect(guide()).toContain(THEME_STATE_ID);

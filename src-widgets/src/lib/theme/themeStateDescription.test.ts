@@ -11,28 +11,18 @@
  * {@link module:lib/theme/validateTheme.validateThemeOptions} and cover what the studio knows.
  * The validator wins on any disagreement; then the description is what gets corrected.
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
 import { describe, expect, it } from 'vitest';
 
 import { STUDIO_COLOR_FIELDS } from '../../ThemeConfigWizard/studioColorFields';
+import { themeStateDescription } from '../testing/themeStateDescription';
 import { createChromeTheme } from './chromeTheme';
 import { BUNDLED_FONTS } from './fontCatalogue';
 import { resolveCollectionTheme } from './resolveCollectionTheme';
 import { getNestedValue, THEME_CONTROL_RANGES as RANGES } from './themeUtils';
 import { isComputableColor, validateThemeOptions } from './validateTheme';
 
-// vitest is launched with cwd = src-widgets, so the repo root is one level up.
-const ioPackage = JSON.parse(readFileSync(resolve(process.cwd(), '..', 'io-package.json'), 'utf8')) as {
-    instanceObjects: { _id: string; common: { desc?: unknown } }[];
-};
-
 /** The description as an MCP client reads it from the theme state's object. */
-const description = ((): string => {
-    const desc = ioPackage.instanceObjects.find(object => object._id === 'theme')?.common.desc;
-    return typeof desc === 'string' ? desc : '';
-})();
+const description = themeStateDescription();
 
 /** Marker in front of the example theme, which closes the description. */
 const EXAMPLE_MARKER = 'Example: ';
