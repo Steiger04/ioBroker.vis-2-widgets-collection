@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import {
     LIGHT2_CHANNEL_FIELDS,
     channelsOf,
+    hasAnyView,
     hasView,
     isChannelFieldVisible,
     mainColorSyncFields,
@@ -71,6 +72,30 @@ describe('views per Lichttyp', () => {
         expect(hasView(type, 'color')).toBe(views.includes('color'));
         expect(hasView(type, 'cct')).toBe(views.includes('cct'));
         expect(offersViewSwitch(type)).toBe(switchable);
+    });
+});
+
+describe('Lichttyp without a view', () => {
+    // The criterion of the none behaviour (no hint-free empty frame, no long press, no modal size
+    // in the editor): the Lichttyp has no view. Only none has none; a Lichttyp the table does not
+    // know — unset or a stored value of another version — keeps its colour view.
+    it.each<[string | undefined, boolean]>([
+        ['none', false],
+        ['cct', true],
+        ['rgb', true],
+        ['rgbcct', true],
+        ['r/g/b', true],
+        ['r/g/b/cct', true],
+        ['h/s/v', true],
+        ['h/s/v/cct', true],
+        [undefined, true],
+        ['white', true],
+    ])('%s: has a view %s', (type, expected) => {
+        expect(hasAnyView(type)).toBe(expected);
+    });
+
+    it('keeps the colour view for a stored Lichttyp it does not know', () => {
+        expect(viewsOf('white')).toEqual(['color']);
     });
 });
 

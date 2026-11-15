@@ -11,8 +11,8 @@
  * of a Lichttyp (its CCT-Ansicht), not a channel set of its own.
  *
  * Its consumers ask it: the editor `hidden` rules (`light2Fields`, field literals stay —
- * ADR-0001), the widget's channel mapping (read and write) and the Kanäle handed to
- * `backendSyncKey`. Kept free of components and of iro: the editor path loads it.
+ * ADR-0001), the widget's channel mapping (read and write), the Kanäle handed to
+ * `backendSyncKey`, and the body and Button-Modus for a Lichttyp without a view. Kept free of components and of iro: the editor path loads it.
  */
 import type { Light2FieldsRxData } from '../types/field-definitions/light2-fields';
 
@@ -129,6 +129,12 @@ export function viewsOf(type: string | undefined): Light2View[] {
     }
     return views;
 }
+
+/**
+ * Whether the Lichttyp has a view at all. A Lichttyp without one (none) draws no Lampen-Bedienelement:
+ * the widget shows a hint instead, and the Button-Modus has no long press and no modal (ADR-0116 Nr. 4).
+ */
+export const hasAnyView = (type: string | undefined): boolean => viewsOf(type).length > 0;
 
 /** Whether the Lichttyp offers the view. */
 export const hasView = (type: string | undefined, view: Light2View): boolean => viewsOf(type).includes(view);

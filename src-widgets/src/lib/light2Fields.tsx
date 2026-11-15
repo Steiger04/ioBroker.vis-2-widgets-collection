@@ -12,7 +12,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
-import { hasView, isChannelFieldVisible, viewsOf } from './light2Channels';
+import { hasAnyView, hasView, isChannelFieldVisible } from './light2Channels';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from './light2Defaults';
 import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
@@ -30,6 +30,13 @@ const PowerSettingsNewIcon =
 /** The Lichttyp of the raw widget data vis-2 hands to the `hidden` rules. */
 const lightTypeOf = (data: WidgetData): Light2FieldsRxData['colorLightType'] =>
     (data as Light2FieldsRxData).colorLightType;
+
+/**
+ * The `hidden` rule of the modal's fields (long-press delay, modal size): shown only in the
+ * Button-Modus of a Lichttyp with a view — without one a press only toggles, no modal opens.
+ */
+const hiddenWithoutModal = (data: WidgetData): boolean =>
+    !(data as Light2FieldsRxData).colorLightButton || !hasAnyView(lightTypeOf(data));
 
 /** The Zustandszeilen of the button mode: they belong to the switch OID, always two (ADR-0104). */
 const SWITCH_ROWS = stateEditorSpec({ oidProperty: 'colorLightSwitchOid', fixedRows: true }).config;
@@ -184,7 +191,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 10000,
         step: 1,
-        hidden: '!data.colorLightButton',
+        hidden: hiddenWithoutModal,
     },
     {
         name: 'colorLightModalWidth',
@@ -193,7 +200,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 5000,
         step: 1,
-        hidden: '!data.colorLightButton',
+        hidden: hiddenWithoutModal,
         tooltip: 'color_light_modal_width_tooltip',
     },
     {
@@ -204,7 +211,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 5000,
         step: 1,
-        hidden: '!data.colorLightButton',
+        hidden: hiddenWithoutModal,
     },
     {
         type: 'custom',
@@ -301,7 +308,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) => viewsOf(lightTypeOf(data)).length === 0,
+        hidden: (data: WidgetData) => !hasAnyView(lightTypeOf(data)),
     },
     {
         ...createIdField('colorLightTemperatureOid', LIGHT2_OID_TYPES),

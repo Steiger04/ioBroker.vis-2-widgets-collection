@@ -219,6 +219,45 @@ describe('Light2Collection Button-Modus long-press delay', () => {
     });
 });
 
+describe('Light2Collection Button-Modus of a Lichttyp without a view (none)', () => {
+    // No view means no Lampen-Bedienelement to open: every press toggles the Schalter-OID, whatever
+    // the delay (a delay of 0 used to turn every press into a long press, the lamp could not be
+    // switched) and however long it is held; the (almost empty) modal never opens.
+    it.each([
+        ['the default delay', {}],
+        ['a delay of 0', { colorLightDelayLongPress: 0 }],
+        ['an emptied delay', { colorLightDelayLongPress: '' }],
+        ['a delay stored as null', { colorLightDelayLongPress: null }],
+        ['a delay stored as a numeric string', { colorLightDelayLongPress: '800' }],
+    ])('toggles on every press and opens no modal for %s', async (_case, delay) => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'none', colorLightButton: true, ...delay }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        // A short press, then one held far beyond any delay.
+        for (const holdMs of [1, 2000]) {
+            pointer(face, 'pointerdown');
+            act(() => {
+                vi.advanceTimersByTime(holdMs);
+            });
+            pointer(face, 'pointerup');
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1);
+            });
+        }
+
+        expect(modal()).toBeNull();
+        // Each press toggles once; the scene's switch stays off (no backend echo), so both write true.
+        expect(setValue.mock.calls).toEqual([
+            [SWITCH, true],
+            [SWITCH, true],
+        ]);
+    });
+});
+
 describe('Light2Collection Button-Modus face (Wert-Anzeige without value text)', () => {
     /** The two fixed Zustandszeilen of the Schalter-OID, each with its own icon at the given size. */
     const switchRows = (iconSize: number): Record<string, unknown> => ({

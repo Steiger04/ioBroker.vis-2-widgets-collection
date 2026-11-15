@@ -9,7 +9,8 @@
  * next to the row (fix a1efc2ec: brightness for rgbcct and r/g/b/cct).
  * Observed through the field list's public contract: each field's `hidden(data)` as vis-2
  * calls it with the raw widget data. An unset Lichttyp (a widget stored without the key) is
- * pinned too.
+ * pinned too. A second block covers the Button-Modus fields of the modal: a Lichttyp without a
+ * view has no modal, so its delay and size stay hidden (ADR-0116 Nr. 4).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -110,4 +111,29 @@ describe('PIN light2Fields visibility per Lichttyp', () => {
             visible.filter(key => key !== 'colorLightCtMin' && key !== 'colorLightCtMax'),
         );
     });
+});
+
+describe('light2Fields Button-Modus modal fields per Lichttyp', () => {
+    const MODAL_FIELDS = ['colorLightDelayLongPress', 'colorLightModalWidth', 'colorLightModalHeight'];
+
+    const visibleModalFields = (data: WidgetData): string[] => MODAL_FIELDS.filter(key => !isHidden(key, data));
+
+    // Every Lichttyp with a view (and one the table does not know) opens its modal on a long press.
+    it.each(['cct', 'rgb', 'rgbcct', 'r/g/b', 'r/g/b/cct', 'h/s/v', 'h/s/v/cct', undefined, 'white'])(
+        '%s: delay and modal size show in the Button-Modus',
+        colorLightType => {
+            expect(visibleModalFields({ colorLightType, colorLightButton: true })).toEqual(MODAL_FIELDS);
+        },
+    );
+
+    it('none: delay and modal size stay hidden in the Button-Modus (no modal to open)', () => {
+        expect(visibleModalFields({ colorLightType: 'none', colorLightButton: true })).toEqual([]);
+    });
+
+    it.each(['none', 'rgb', undefined])(
+        '%s: delay and modal size stay hidden without the Button-Modus',
+        colorLightType => {
+            expect(visibleModalFields({ colorLightType, colorLightButton: false })).toEqual([]);
+        },
+    );
 });
