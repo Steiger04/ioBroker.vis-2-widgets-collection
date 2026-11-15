@@ -78,18 +78,19 @@ Only what you name changes; everything else stays as it was. A value the theme d
 
 ### Example Prompts for the Theme
 
-- "Set the theme of the widget collection to the preset Graphite."
-- "Make the primary color orange and the corners rounder, the rest stays."
-- "Reset the theme to the default."
-- "Restore the previous theme."
+- "Set the theme of the widget collection to the preset Graphite. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Make the primary color orange and the corners rounder, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Reset the theme to the default. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Restore the previous theme." (in the same conversation after a change; the assistant then already knows the entry)
 
-The assistant finds the entry for the theme in the set `vis-2-widgets-collection`; what [Name the set](#name-the-set) says applies. So name the theme of the widget collection, and if the assistant does not find the entry, the set by its technical name. Name presets by their name from the Theme Studio.
+Name the set in the request, as described under [Name the set](#name-the-set): the entry for the theme is in the set `vis-2-widgets-collection`, and the assistant mostly looks there only when you say so. Without the second sentence, the theme stayed unchanged in five of six requests in the check with Claude Haiku and Claude Sonnet; the assistant mostly answered that it had no tool for this. With the sentence it placed the order correctly in every session checked. The check ran with the German wording of these prompts; the English ones are translations. Name presets by their name from the Theme Studio (checked with Graphit and Rubin, the German names of Graphite and Ruby).
 
 ### What Happens
 
-For this, the assistant places a **theme order** on the view: an entry of the type "Theme Studio" that changes the theme once and then removes itself.
+For this, the assistant places a **theme order** on the view: an entry of the type "Theme Studio" that changes the theme once and then removes itself. The chat adds a line for it that names "Theme Studio" and the view (seen with the German interface as „Theme-Studio auf ‚‹View›‘ gesetzt“); if it is missing, the assistant changed nothing.
 
-- **At once:** the theme changes on all collection widgets, without a reload.
+- **After the answer:** the order takes effect as soon as the assistant's answer has ended. The theme then changes on all collection widgets, without a reload.
+- **The assistant's report:** the assistant reports the change before it has taken effect. If it reads back within the same answer, it still sees the old value and may report a failure although the change arrives afterwards (observed once in the check). What the widgets show is what counts.
 - **Nothing stays behind:** after the change there is no additional widget on the view.
 - **Only in the editor, only on a view that is shown:** the order takes effect as soon as its view is shown in the editor. If the assistant placed it on another view, the theme changes only once you open that view in the editor. In the runtime view it does nothing and shows nothing.
 - **Several orders:** orders from one answer take effect one after the other, each on the result of the one before.
@@ -100,12 +101,12 @@ For this, the assistant places a **theme order** on the view: an entry of the ty
 
 The editor's undo does not take a theme change back: it restores the view, the theme stays. This is how you get back:
 
-- **Ask the assistant** to restore the previous theme. Its guide tells it to read the theme before a change; if it did, the old values are in the conversation. It can restore only what it can also set: after a reset it does not bring back loaded Google fonts and CSS variables.
+- **Ask the assistant** to restore the previous theme, in the same conversation. In the check it read the theme before every change, as its guide demands; the old values were thus in the conversation, and it restored them. If it sets all values anew in doing so, a font family is afterwards in the notation of the studio's selection (`'Georgia', serif` instead of `Georgia, serif`). It can restore only what it can also set: after a reset it does not bring back loaded Google fonts and CSS variables. Restoring after a reset has not been checked.
 - **Open the [Theme Studio](En-Theme-Studio.md)** and correct the values there.
 
 If you want to be sure you can get back, copy the value of the state `vis-2-widgets-collection.0.theme` before the change (see [The theme in the datapoint](En-Theme-Studio.md#the-theme-in-the-datapoint)). Written back, it restores the theme completely.
 
-If you had the theme changed several times, undo can trigger an earlier change again: it brings back the state of the earlier answer together with its theme order, and that order takes effect once more. The same holds for redo. Check the theme when you go back or forward in the editor after a theme change.
+If you had the theme changed several times, undo can trigger an earlier change again: it brings back the state of the earlier answer together with its theme order, and that order takes effect once more. Redo did not bring a theme order back in the check with vis-2 2.20.9: the step failed with an error of the editor and changed neither view nor theme. Check the theme when you use undo after a theme change.
 
 ### When the Change Is Not Confirmed
 
@@ -123,7 +124,7 @@ An external MCP client has no tool for vis-2 and places no theme order. It chang
 - **Write the whole theme:** unlike the assistant, the client replaces the whole value. Whatever it leaves out when writing is lost, loaded Google fonts included. So it reads the theme, changes only what is asked for and writes everything back.
 - **Invalid values:** a single invalid value is dropped, the rest of the theme applies.
 - **Way back:** have the client tell you the old value before it writes. Written back, it restores the theme completely; the editor's undo does not cover the theme.
-- **Shape on the state:** on a newly created instance, the shape of the theme is on the state's object as an English description. The client reads it only when it fetches the object (`get_object` for `vis-2-widgets-collection.0.theme`); the object search (`search_objects`) finds the state but does not show the description. An instance that existed before this feature does not have the description: an adapter update does not change the existing object.
+- **Shape on the state:** on a newly created instance, the shape of the theme is on the state's object as an English description. The client reads it only when it fetches the object (`get_object` for `vis-2-widgets-collection.0.theme`); the object search (`search_objects`) finds the state but does not show the description. An instance that existed before this feature does not have the description: an adapter update does not change the existing object. In the check, the value it read was enough for the client with an existing theme; with an empty theme it fetched the object and used the description.
 
 If the description is missing or the client does not fetch the object, name the state to it and hand it this text. It is in English and word for word the description on the state:
 
