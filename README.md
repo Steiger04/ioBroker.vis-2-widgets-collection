@@ -389,6 +389,8 @@ reads them from there.
 
 - (steiger04) initial commit
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 
 The MIT License (MIT)
