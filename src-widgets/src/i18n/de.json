@@ -1198,6 +1198,7 @@
     "theme_config_wizard": "Theme-Studio",
     "theme_config_wizard_ai_guide": "A one-time order that changes the theme of the whole widget collection; it is not a widget that stays on the page. Set only what should change: \"mode\" switches the colour mode of all collection widgets to \"light\" or \"dark\"; whatever you leave out keeps its current value. Add it to the page the user is looking at. It takes effect at once, in every project of the installation, and then removes itself from the page, so do not read, update or delete it afterwards. It needs no position, size or other data.",
     "theme_config_wizard_help": "Ändert einmalig das Theme der ganzen Widget-Sammlung und entfernt sich danach.",
+    "theme_config_wizard_not_confirmed": "Die Theme-Änderung wurde nicht bestätigt. Dieses Widget löschen und erneut versuchen.",
     "theme_studio_close": "Schließen",
     "theme_studio_corner_bottom_left": "Unten links",
     "theme_studio_corner_bottom_right": "Unten rechts",

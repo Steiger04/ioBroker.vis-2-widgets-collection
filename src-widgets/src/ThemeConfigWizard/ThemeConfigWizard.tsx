@@ -18,25 +18,39 @@
  * the type is a Theme-Auftrag (ADR-0115): a one-time order to change that same stored theme.
  * - The assistant reads the type's short description, its KI-Leitfaden and its fields, all
  *   hidden from the attribute panel ({@link module:lib/themeOrderFields}).
- * - Mounted in the editing editor, the widget works its data into the stored theme and removes
- *   itself from the project ({@link module:ThemeConfigWizard/carryOutThemeOrder}). The data is
- *   read as stored in the project: what the assistant wrote, no binding resolved.
- * - In the runtime, and while the editor previews (its „Toggle runtime“), it does nothing; it
- *   never shows anything.
+ * - Mounted in the editing editor, the widget takes up its order: its data is worked into the
+ *   stored theme and it is removed from the project. The course — one order after the other,
+ *   never twice at once, however often the host mounts the widget — is owned by
+ *   {@link module:ThemeConfigWizard/carryOutThemeOrder}; the widget is its seat and answers
+ *   from the props the host handed it last. The data is read as stored in the project: what the
+ *   assistant wrote, no binding resolved.
+ * - An order shows nothing — unless its course failed or is overdue: then the editor shows a
+ *   hint in the order's place, and the order stays in the project.
+ * - In the runtime, and while the editor previews (its „Toggle runtime“), it does nothing and
+ *   shows nothing.
  * @see https://github.com/ioBroker/ioBroker.vis-2-widgets-material (uses the same mechanism for its Wizard)
  */
 
-import type { RxWidgetInfo } from '@iobroker/types-vis-2';
+import type { JSX } from 'react';
+import { Alert } from '@mui/material';
+
+import type { RxWidgetInfo, VisRxWidgetState } from '@iobroker/types-vis-2';
 import type { VisRxWidgetProps } from '@iobroker/types-vis-2/visRxWidget';
 import Generic from '../Generic';
 import { alwaysHidden, createAiGuideField } from '../lib/fieldFactories';
 import themeOrderFields from '../lib/themeOrderFields';
-import { carryOutThemeOrder, projectWithoutWidget } from './carryOutThemeOrder';
+import { projectWithoutWidget, takeUpThemeOrder } from './carryOutThemeOrder';
 import ThemeWizardButton from './ThemeWizardButton';
 
-class ThemeConfigWizard extends Generic<Record<string, any>> {
-    /** Whether this widget has started its order: an order starts once per mounted widget. */
-    private orderStarted = false;
+/** What a placed Theme-Auftrag keeps besides the host's widget state. */
+interface ThemeOrderState {
+    /** The order's course failed or is overdue. */
+    orderNotConfirmed?: boolean;
+}
+
+class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & ThemeOrderState> {
+    /** Releases this widget's seat in the course of its order; set once the order is taken up. */
+    private releaseOrder: (() => void) | null = null;
 
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -65,43 +79,55 @@ class ThemeConfigWizard extends Generic<Record<string, any>> {
 
     componentDidMount(): void {
         super.componentDidMount();
-        this.startOrder();
+        this.takeUpOrder();
     }
 
     componentDidUpdate(prevProps: VisRxWidgetProps, prevState: typeof this.state): void {
         super.componentDidUpdate(prevProps, prevState);
-        // An order mounted while the editor previews starts when the editor edits again.
-        this.startOrder();
+        // An order mounted while the editor previews is taken up when the editor edits again.
+        this.takeUpOrder();
+    }
+
+    componentWillUnmount(): void {
+        this.releaseOrder?.();
+        this.releaseOrder = null;
+        super.componentWillUnmount();
     }
 
     /**
-     * Starts the order once, and only where a person edits the project: in the editor's edit
-     * mode. The runtime hands no project change, and its visitors must not change the theme.
+     * Takes up the order once per mounted widget, and only where a person edits the project: in
+     * the editor's edit mode. The runtime hands no project change, and its visitors must not
+     * change the theme.
      */
-    private startOrder(): void {
+    private takeUpOrder(): void {
         const { context, editMode, view, id } = this.props;
-        if (this.orderStarted || !editMode || context.runtime || typeof context.changeProject !== 'function') {
+        if (this.releaseOrder || !editMode || context.runtime || typeof context.changeProject !== 'function') {
             return;
         }
-        this.orderStarted = true;
-
-        carryOutThemeOrder({
-            socket: context.socket,
-            order: context.views[view]?.widgets[id]?.data ?? {},
-            // The project is read when the order leaves, not when it started: the latest one the
-            // host handed this widget. `true`: no history entry of its own.
+        // Every answer is read from the props at the time of the call: the latest project the
+        // host handed this widget.
+        this.releaseOrder = takeUpThemeOrder(`${context.projectName}/${view}/${id}`, context.socket, {
+            order: () => this.props.context.views[this.props.view]?.widgets[this.props.id]?.data ?? {},
+            // `true`: no history entry of its own.
             leave: () =>
                 this.props.context.changeProject(
                     projectWithoutWidget(this.props.context.views, this.props.view, this.props.id),
                     true,
                 ),
-        }).catch((e: unknown) => console.error(`Cannot carry out the theme order ${id}: ${e}`));
+            notConfirmed: () => this.setState({ orderNotConfirmed: true }),
+        });
     }
 
-    // A Theme-Auftrag shows nothing, neither in the editor nor in the runtime.
-    // eslint-disable-next-line class-methods-use-this
-    renderWidgetBody(): null {
-        return null;
+    /**
+     * Nothing — except the hint of an order that was not confirmed, and that only where the
+     * project is edited: the editor's preview and the runtime show nothing.
+     */
+    renderWidgetBody(): JSX.Element | null {
+        if (!this.state.orderNotConfirmed || !this.props.editMode || this.props.context.runtime) {
+            return null;
+        }
+        // The pattern of the studio's own „could not save“ hint.
+        return <Alert severity="error">{Generic.t('theme_config_wizard_not_confirmed')}</Alert>;
     }
 }
 

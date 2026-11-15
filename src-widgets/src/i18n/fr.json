@@ -1317,6 +1317,7 @@
     "theme_config_wizard": "Theme Studio",
     "theme_config_wizard_ai_guide": "A one-time order that changes the theme of the whole widget collection; it is not a widget that stays on the page. Set only what should change: \"mode\" switches the colour mode of all collection widgets to \"light\" or \"dark\"; whatever you leave out keeps its current value. Add it to the page the user is looking at. It takes effect at once, in every project of the installation, and then removes itself from the page, so do not read, update or delete it afterwards. It needs no position, size or other data.",
     "theme_config_wizard_help": "Change le thème de toute la collection de widgets une seule fois, puis se supprime.",
+    "theme_config_wizard_not_confirmed": "Le changement de thème n'a pas été confirmé. Supprimez ce widget et réessayez.",
     "theme_studio_feintuning_hint": "Les polices incluses n'embarquent que les graisses réelles 400 et 700 — les autres graisses sont synthétisées par le navigateur et peuvent paraître floues.",
     "theme_studio_help_spacing": "Unité de base pour toutes les marges internes et tous les espacements dans les widgets (8 px par défaut). 2 unités = 16 px.",
     "theme_studio_mode_follows": "suit vis-2",
