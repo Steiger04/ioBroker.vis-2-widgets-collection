@@ -159,6 +159,9 @@ interface PickerKindRule {
 const modalWidthBesideSlider = ({ height, sliderSize }: ModalContent): number =>
     height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSize;
 
+/** The vertical value slider: the wheel's, the Helligkeits-Picker's and dimmer's single slider. */
+const VALUE_SLIDER: IroLayout[number] = { component: iro.ui.Slider, options: { sliderType: 'value' } };
+
 /** CCT, wheel, box: the main picker element is bounded, its value slider beside it. */
 const resizeToMainPickerBound: PickerKindRule['resizeWidth'] = (_height, mainPickerBound) => mainPickerBound;
 
@@ -181,12 +184,7 @@ const CCT_VIEW_RULE: PickerKindRule = {
                       },
                   },
               ]
-            : [
-                  {
-                      component: iro.ui.Slider,
-                      options: { sliderType: 'value' },
-                  },
-              ],
+            : [VALUE_SLIDER],
     resizeWidth: resizeToMainPickerBound,
     gap: gapBesideMainPicker,
 };
@@ -200,14 +198,9 @@ const CCT_VIEW_RULE: PickerKindRule = {
  */
 const COLOR_MODEL_RULES: Partial<Record<Light2ColorModel, PickerKindRule>> = {
     brightness: {
-        layout: () => [
-            {
-                component: iro.ui.Slider,
-                options: { sliderType: 'value' },
-            },
-        ],
+        layout: () => [VALUE_SLIDER],
         resizeWidth: height => height,
-        // A single component: no neighbour to space from.
+        // A single component: the gap spaces nothing and keeps its 12px default.
         gap: () => PICKER_GAP_PX,
         // As wide as drawn side by side: outlines, frame padding, power column, picker padding, the slider.
         modalAutoWidth: ({ sliderSize, padding, basePadding, outlines }) =>
@@ -223,10 +216,7 @@ const UI_COMPONENT_RULES: Record<NonNullable<PickerGeometryConfig['uiComponent']
                 component: iro.ui.Wheel,
                 options: {},
             },
-            {
-                component: iro.ui.Slider,
-                options: { sliderType: 'value' },
-            },
+            VALUE_SLIDER,
         ],
         resizeWidth: resizeToMainPickerBound,
         gap: gapBesideMainPicker,
@@ -265,12 +255,16 @@ const UNKNOWN_UI_COMPONENT_RULE: PickerKindRule = {
     gap: gapBesideMainPicker,
 };
 
+/** The rule of a colour model that draws its own picker; `undefined` for one drawn by the UI component. */
+const modelRuleOf = (colorModel: Light2ColorModel | undefined): PickerKindRule | undefined =>
+    colorModel !== undefined ? COLOR_MODEL_RULES[colorModel] : undefined;
+
 /** The rule of the configured picker kind: the CCT-Ansicht, else a colour model's own, else the UI component. */
 const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): PickerKindRule => {
     if (cctView) {
         return CCT_VIEW_RULE;
     }
-    const modelRule = colorModel !== undefined ? COLOR_MODEL_RULES[colorModel] : undefined;
+    const modelRule = modelRuleOf(colorModel);
     if (modelRule) {
         return modelRule;
     }
@@ -295,8 +289,7 @@ export function modalSizeOf(config: ModalSizeConfig): ModalSize {
     if (width !== undefined && width > 0) {
         return { width, height };
     }
-    const modelRule = config.colorModel !== undefined ? COLOR_MODEL_RULES[config.colorModel] : undefined;
-    const autoWidth = modelRule?.modalAutoWidth ?? modalWidthBesideSlider;
+    const autoWidth = modelRuleOf(config.colorModel)?.modalAutoWidth ?? modalWidthBesideSlider;
     return {
         width: autoWidth({
             height,
