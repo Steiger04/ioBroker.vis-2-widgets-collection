@@ -428,11 +428,33 @@ describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
         },
     );
 
-    it('opens the single slider in the modal of the Button-Modus after the long-press delay', () => {
-        measureContentRect({ width: 300, height: 200 });
-        const { container } = mountBody(
+    it('toggles the Schalter-OID on a click on the face in the Button-Modus, opening no modal', async () => {
+        const { container, setValue } = mountBody(
             Light2Collection,
             scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800 }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
+        expect(modal()).toBeNull();
+    });
+
+    // ADR-0116 Nr. 2 (GitHub #22): the long press opens the modal with the single value slider, no
+    // band beside it — without a modal width it is as wide as the drawn content.
+    it('opens the single value slider in a modal as wide as its content after the long-press delay', () => {
+        measureContentRect({ width: 300, height: 200 });
+        pickerRenders.length = 0;
+        const { container } = mountBody(
+            Light2Collection,
+            // The frame padding at its default (the scene reads the Light2 fields only).
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800, basePadding: 1 }),
         );
         vi.useFakeTimers();
 
@@ -446,6 +468,10 @@ describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
         expect(modal()).not.toBeNull();
         expect(powerIcon(modal()!)).not.toBeNull();
         expect(modal()!.querySelectorAll('[data-testid="light2-picker"]')).toHaveLength(1);
+        expect(drawnPickers()).toEqual([{ picker: 'main', sliders: ['value'] }]);
+        // Default slider width and paddings (1 each): 8 + 42 + 1 + 8 + 28 + 8 + 8 = 103px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('103px');
     });
 });
 
