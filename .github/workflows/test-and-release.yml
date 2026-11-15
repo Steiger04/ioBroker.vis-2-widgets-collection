@@ -34,11 +34,9 @@ jobs:
                   node-version: '24.x'
                   # the type-aware ESLint config and tsc need the widget package's dependencies
                   install-command: 'npm ci && cd src-widgets && npm ci'
+                  # the commands keep their defaults: npm run check, npm run lint, npm run test:package
                   type-checking: true
-                  type-checking-command: 'cd src-widgets && npx tsc'
                   lint: true
-                  lint-command: 'npm run lint && npm run format'
-                  # test-command keeps its default: npm run test:package
 
     # Runs adapter tests on all supported node versions and OSes
     adapter-tests:
