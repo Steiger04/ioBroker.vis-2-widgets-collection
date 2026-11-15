@@ -4,7 +4,7 @@
 
 ## Beschreibung
 
-Das Light Widget steuert eine Lampe mit Farbauswahl, Helligkeitsregelung und Farbtemperatursteuerung: eine Schalter-OID plus bis zu acht Kanäle, bedient über iro.js-Picker. Es unterstützt RGB, HSV und CCT (Color Temperature). Der Lichttyp legt fest, welche Kanäle das Widget bindet und welche Ansichten es zeigt. Das Lampen-Bedienelement aus Power-Button, Ansichtswechsel und Pickern steht direkt im Widget oder im Button-Modus in einem Modal.
+Das Light Widget steuert eine Lampe mit Farbauswahl, Helligkeitsregelung und Farbtemperatursteuerung: eine Schalter-OID plus bis zu acht Kanäle, bedient über iro.js-Picker. Es unterstützt RGB, HSV, CCT (Color Temperature) und Lampen, die nur dimmen. Der Lichttyp legt fest, welche Kanäle das Widget bindet und welche Ansichten es zeigt. Das Lampen-Bedienelement aus Power-Button, Ansichtswechsel und Pickern steht direkt im Widget oder im Button-Modus in einem Modal.
 
 Nur eine Schalter-OID vom Typ boolean macht das Widget lauffähig. Ohne sie zeigt der Rahmen auch bei gesetzten Kanälen nur den Hinweis „Bitte eine gültige Objekt-ID auswählen“.
 
@@ -22,16 +22,16 @@ Alle Felder stehen in der Gruppe **Licht**.
 
 ### UI-Komponente
 
-| Feldname                              | Typ      | Standard | Beschreibung                                                                         | Bedingung                                         |
-| ------------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------ | ------------------------------------------------- |
-| UI-Komponente `colorLightUIComponent` | select   | 'wheel'  | Picker der Farbansicht (wheel, box, slider), siehe [UI-Komponenten](#ui-komponenten) | Nur bei Farbansicht: Lichttyp nicht none oder cct |
-| Wheel abdunkeln `colorWheelLightness` | checkbox | false    | Das Farbrad dunkelt mit dem Helligkeitsregler ab, sonst bleibt es unverändert hell   | Nur bei Farbansicht und UI-Komponente wheel       |
+| Feldname                              | Typ      | Standard | Beschreibung                                                                         | Bedingung                                                 |
+| ------------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| UI-Komponente `colorLightUIComponent` | select   | 'wheel'  | Picker der Farbansicht (wheel, box, slider), siehe [UI-Komponenten](#ui-komponenten) | Nur bei Farbansicht: Lichttyp nicht none, dimmer oder cct |
+| Wheel abdunkeln `colorWheelLightness` | checkbox | false    | Das Farbrad dunkelt mit dem Helligkeitsregler ab, sonst bleibt es unverändert hell   | Nur bei Farbansicht und UI-Komponente wheel               |
 
 ### Lichttyp
 
-| Feldname                  | Typ    | Standard | Beschreibung                                                                                                                                                                                                | Bedingung |
-| ------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Lichttyp `colorLightType` | select | 'none'   | Was das Widget von der Lampe steuert (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct). Das Panel zeigt rgbcct als `rgb & cct`, die anderen beiden entsprechend. Siehe [Lichttypen](#lichttypen) | -         |
+| Feldname                  | Typ    | Standard | Beschreibung                                                                                                                                                                                                                                                                                      | Bedingung |
+| ------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Lichttyp `colorLightType` | select | 'none'   | Was das Widget von der Lampe steuert (none, dimmer, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct). dimmer ist eine Lampe, die nur dimmt, none heißt: noch kein Lichttyp gewählt. Das Panel zeigt rgbcct als `rgb & cct`, die anderen beiden entsprechend. Siehe [Lichttypen](#lichttypen) | -         |
 
 ### Farbtemperatur (CCT)
 
@@ -52,20 +52,20 @@ Alle Felder stehen in der Gruppe **Licht**.
 
 ### HSV-Konfiguration
 
-| Feldname                             | Typ | Standard | Beschreibung                                                        | Bedingung                                        |
-| ------------------------------------ | --- | -------- | ------------------------------------------------------------------- | ------------------------------------------------ |
-| Farbe (HUE) `colorLightHueOid`       | id  | -        | Kanal des Farbtons (0-360)                                          | Nur bei h/s/v, h/s/v/cct                         |
-| Sättigung `colorLightSaturationOid`  | id  | -        | Kanal der Sättigung (0-100, auf der [Hue-Skala](#hue-skala) 0-254)  | Nur bei h/s/v, h/s/v/cct                         |
-| Helligkeit `colorLightBrightnessOid` | id  | -        | Kanal der Helligkeit (0-100, auf der [Hue-Skala](#hue-skala) 0-254) | Nur bei cct, rgbcct, r/g/b/cct, h/s/v, h/s/v/cct |
+| Feldname                             | Typ | Standard | Beschreibung                                                        | Bedingung                                                |
+| ------------------------------------ | --- | -------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| Farbe (HUE) `colorLightHueOid`       | id  | -        | Kanal des Farbtons (0-360)                                          | Nur bei h/s/v, h/s/v/cct                                 |
+| Sättigung `colorLightSaturationOid`  | id  | -        | Kanal der Sättigung (0-100, auf der [Hue-Skala](#hue-skala) 0-254)  | Nur bei h/s/v, h/s/v/cct                                 |
+| Helligkeit `colorLightBrightnessOid` | id  | -        | Kanal der Helligkeit (0-100, auf der [Hue-Skala](#hue-skala) 0-254) | Nur bei dimmer, cct, rgbcct, r/g/b/cct, h/s/v, h/s/v/cct |
 
 ### Button-Modus
 
-| Feldname                                              | Typ              | Standard | Beschreibung                                                                                           | Bedingung           |
-| ----------------------------------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------ | ------------------- |
-| Schalter (UI) `colorLightButton`                      | checkbox         | false    | Button-Modus: Klick schaltet, langer Druck öffnet das Modal. Blendet auch die Gruppe **Werte** ein     | -                   |
-| Verzögerung (langer Druck) `colorLightDelayLongPress` | number (0-10000) | 500      | Ab dieser Druckdauer in Millisekunden gilt der Druck als lang. Bei `0` zählt fast jeder Druck als lang | Nur im Button-Modus |
-| Modalbreite `colorLightModalWidth`                    | number (0-5000)  | -        | Breite des Modals in px. Ohne Wert oder mit `0`: Modalhöhe + Reglerbreite + 52 px                      | Nur im Button-Modus |
-| Modalhöhe `colorLightModalHeight`                     | number (0-5000)  | 300      | Höhe des Modals in px. Ohne Wert oder mit `0`: 300 px                                                  | Nur im Button-Modus |
+| Feldname                                              | Typ              | Standard | Beschreibung                                                                                                                                                  | Bedingung                                    |
+| ----------------------------------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Schalter (UI) `colorLightButton`                      | checkbox         | false    | Button-Modus: Klick schaltet, langer Druck öffnet das Modal; bei Lichttyp none schaltet jeder Druck. Blendet auch die Gruppe **Werte** ein                    | -                                            |
+| Verzögerung (langer Druck) `colorLightDelayLongPress` | number (0-10000) | 500      | Ab dieser Druckdauer in Millisekunden gilt der Druck als lang. Bei `0` zählt fast jeder Druck als lang                                                        | Nur im Button-Modus, nicht bei Lichttyp none |
+| Modalbreite `colorLightModalWidth`                    | number (0-5000)  | -        | Breite des Modals in px. Ohne Wert oder mit `0`: Modalhöhe + Reglerbreite + 52 px, bei dimmer so breit wie der [Helligkeitsregler](#helligkeitsregler-dimmer) | Nur im Button-Modus, nicht bei Lichttyp none |
+| Modalhöhe `colorLightModalHeight`                     | number (0-5000)  | 300      | Höhe des Modals in px. Ohne Wert oder mit `0`: 300 px                                                                                                         | Nur im Button-Modus, nicht bei Lichttyp none |
 
 ### Styling
 
@@ -101,6 +101,7 @@ Die Gruppe **Werte** erscheint nur im Button-Modus und hat immer die zwei festen
 | Lichttyp  | Ansichten                | Kanäle der Farbansicht         | Kanäle der CCT-Ansicht     |
 | --------- | ------------------------ | ------------------------------ | -------------------------- |
 | none      | keine                    | -                              | -                          |
+| dimmer    | Helligkeitsregler        | Helligkeit                     | -                          |
 | cct       | CCT-Ansicht              | -                              | Farbtemperatur, Helligkeit |
 | rgb       | Farbansicht              | RGB (hex)                      | -                          |
 | rgbcct    | Farbansicht, CCT-Ansicht | RGB (hex)                      | Farbtemperatur, Helligkeit |
@@ -109,7 +110,19 @@ Die Gruppe **Werte** erscheint nur im Button-Modus und hat immer die zwei festen
 | h/s/v     | Farbansicht              | Farbton, Sättigung, Helligkeit | -                          |
 | h/s/v/cct | Farbansicht, CCT-Ansicht | Farbton, Sättigung, Helligkeit | Farbtemperatur, Helligkeit |
 
-Das Panel zeigt nur die Kanäle des gewählten Lichttyps. Bei none hat das Lampen-Bedienelement weder Power-Button noch Picker; im Button-Modus schaltet der Klick trotzdem, das Widget ist dann ein reiner An/Aus-Button.
+Das Panel zeigt nur die Kanäle des gewählten Lichttyps. Bei dimmer tritt der [Helligkeitsregler](#helligkeitsregler-dimmer) an die Stelle der Farbansicht, er schreibt nur den Kanal Helligkeit.
+
+Bei none hat das Widget keine Ansicht und kein Lampen-Bedienelement:
+
+- Ohne Button-Modus zeigt der Rahmen statt Lampen-Bedienelement, Kopfzeile, Fußzeile und Eck-Icon den Hinweis „Bitte einen Lichttyp auswählen“. Der Hinweis „Bitte eine gültige Objekt-ID auswählen“ hat Vorrang
+- Im Button-Modus bleibt der Button ohne Hinweis, und jeder Druck schaltet, auch einer über die Long-Press-Verzögerung hinaus; es öffnet sich kein Modal. Das Widget ist dann ein reiner An/Aus-Button
+- Das Panel blendet die Long-Press-Verzögerung und die Modalgröße aus
+
+### Dimmer
+
+- **Helligkeit**: 0-100%, auf der [Hue-Skala](#hue-skala) 0-254
+- **Keine Farbe und keine Farbtemperatur**: Die Lampe dimmt nur
+- **Verwendung**: Lampen mit festem Weiß, z. B. Philips Hue White
 
 ### RGB
 
@@ -132,7 +145,7 @@ Das Panel zeigt nur die Kanäle des gewählten Lichttyps. Bei none hat das Lampe
 
 ## UI-Komponenten
 
-Die UI-Komponente gilt nur in der Farbansicht. Sie wechselt die Darstellung, nicht die Kanäle: Was geschrieben wird, entscheidet der Lichttyp.
+Die UI-Komponente gilt nur in der Farbansicht, nicht bei dimmer. Sie wechselt die Darstellung, nicht die Kanäle: Was geschrieben wird, entscheidet der Lichttyp.
 
 ### Wheel (Farbrad)
 
@@ -157,6 +170,13 @@ Die UI-Komponente gilt nur in der Farbansicht. Sie wechselt die Darstellung, nic
 - Ersetzt die UI-Komponente durch zwei Regler: Kelvin-Picker und Helligkeits-Picker
 - Der Kelvin-Picker reicht von `colorLightCtMin` bis `colorLightCtMax`
 - Kelvin-Kopplung: Der Helligkeits-Picker zeigt immer den Weißton des Kelvin-Pickers bei seiner eigenen Helligkeit. Das schreibt nichts
+
+### Helligkeitsregler (dimmer)
+
+- Ersetzt die UI-Komponente durch einen einzelnen senkrechten Regler von Schwarz nach Weiß, unabhängig von `colorLightUIComponent`
+- Der Regler füllt die Höhe des Widgets, seine Breite ist `colorLightSliderWidth`
+- Daneben der Power-Button, kein Ansichtswechsel
+- Im Button-Modus öffnet ein langer Druck denselben Regler im Modal. Ohne `colorLightModalWidth` ist das Modal so breit wie sein Inhalt: 2 × [Padding `basePadding`](De-Home.md#ausprägungen) + 43 px Power-Button-Spalte + 2 × `colorLightPadding` + Reglerbreite, eine Padding-Einheit entspricht 8 px. Mit den Standardwerten sind das 103 px
 
 ## OID-Erkennung
 
@@ -240,7 +260,7 @@ Zwei Knöpfe unter dem Power-Button schalten zwischen Farbansicht (Farbrad) und 
 
 ### Änderungen von außen
 
-- Eine Fremdänderung bewegt die Picker der aktiven Ansicht: In der Farbansicht folgen sie den Farbkanälen, in der CCT-Ansicht der Farbtemperatur und der Helligkeit. Das Nachführen schreibt nichts
+- Eine Fremdänderung bewegt die Picker der aktiven Ansicht: In der Farbansicht folgen sie den Farbkanälen, in der CCT-Ansicht der Farbtemperatur und der Helligkeit, bei dimmer der Helligkeit. Das Nachführen schreibt nichts
 - Eine Fremdänderung um weniger als 1 bei Zahlen bewegt nichts
 - Die andere Ansicht liest ihre Kanäle erst beim Wechsel
 - Ohne brauchbaren Wert zeigt der Picker 2000 K, `#ffffff` oder bei R/G/B den Wert 0
@@ -250,7 +270,8 @@ Zwei Knöpfe unter dem Power-Button schalten zwischen Farbansicht (Farbrad) und 
 - Separater Kanal: `colorLightBrightnessOid`
 - Wert: 0-100%, auf der [Hue-Skala](#hue-skala) 0-254
 - Slider im Widget
-- Genutzt von den Lichttypen `cct`, `h/s/v` und `h/s/v/cct` sowie in der CCT-Ansicht von `rgbcct` und `r/g/b/cct`
+- Genutzt von den Lichttypen `dimmer`, `cct`, `h/s/v` und `h/s/v/cct` sowie in der CCT-Ansicht von `rgbcct` und `r/g/b/cct`
+- Bei `dimmer` schreibt der [Helligkeitsregler](#helligkeitsregler-dimmer) nur diesen Kanal
 - In der Farbansicht von `rgb`, `rgbcct`, `r/g/b` und `r/g/b/cct` steckt die Helligkeit im geschriebenen Farbwert, der Kanal bleibt unberührt
 - Bei `h/s/v/cct` nutzen beide Ansichten denselben Kanal
 - Ohne Kanal bewegt sich der Regler, schreibt aber nichts
@@ -264,14 +285,15 @@ Mit `colorLightButton = true`:
 - Langer Druck öffnet das Modal mit dem Lampen-Bedienelement und schreibt nichts
 - Long-Press-Verzögerung über `colorLightDelayLongPress` konfigurierbar
 - Verlässt der Zeiger den Button vorzeitig oder bricht der Browser den Druck ab, etwa weil eine Berührung in Scrollen übergeht, gilt das als Click und schaltet, solange noch kein langer Druck gefeuert hat
+- Bei Lichttyp none gibt es keinen langen Druck: Jeder Druck schaltet genau einmal, unabhängig von der Verzögerung, und es öffnet sich kein Modal
 
 ## Modal-Dialog
 
-Nur im Button-Modus, nach langem Druck:
+Nur im Button-Modus, nach langem Druck, nicht bei Lichttyp none:
 
 - Öffnet das Lampen-Bedienelement im Rahmen des Widgets
-- Größe über `colorLightModalWidth/Height` einstellbar
-- Vollständige Steuerung mit Power-Button, Ansichtswechsel und Pickern, beginnend in der Farbansicht
+- Größe über `colorLightModalWidth/Height` einstellbar; ohne Breite bei dimmer so breit wie der [Helligkeitsregler](#helligkeitsregler-dimmer)
+- Vollständige Steuerung mit Power-Button, Ansichtswechsel und Pickern des Lichttyps; mit Ansichtswechsel beginnt sie in der Farbansicht
 - Schließt per Click außerhalb oder Escape; ein noch wartender Wert geht dabei sofort an die OID
 
 ## Anwendungsbeispiele
@@ -309,6 +331,16 @@ colorLightTemperatureOid: zigbee.0.lamp.color_temp
 colorLightBrightnessOid: zigbee.0.lamp.brightness
 colorLightCtMin: 2700
 colorLightCtMax: 6500
+```
+
+### Dimmbare Lampe
+
+Nur der Kanal Helligkeit, keine UI-Komponente.
+
+```
+colorLightType: dimmer
+colorLightSwitchOid: zigbee.0.bulb.state
+colorLightBrightnessOid: zigbee.0.bulb.brightness
 ```
 
 ### RGB im Button-Modus

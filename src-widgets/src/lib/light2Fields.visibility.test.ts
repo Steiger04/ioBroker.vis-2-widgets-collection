@@ -6,10 +6,12 @@
  * Written against the editor as it stood before the Lichttyp channel table (dev @ b2fb111d)
  * and kept green unchanged by the refactor that made the `hidden` rules ask
  * `lib/light2Channels` (ADR-0108 Nr. 1). Only a released fix may change a row here; it says so
- * next to the row (fix a1efc2ec: brightness for rgbcct and r/g/b/cct).
+ * next to the row (fix a1efc2ec: brightness for rgbcct and r/g/b/cct). A new Lichttyp adds its
+ * row (dimmer, ADR-0116 Nr. 3) and leaves the others unchanged.
  * Observed through the field list's public contract: each field's `hidden(data)` as vis-2
  * calls it with the raw widget data. An unset Lichttyp (a widget stored without the key) is
- * pinned too.
+ * pinned too. A second block covers the Button-Modus fields of the modal: a Lichttyp without a
+ * view has no modal, so its delay and size stay hidden (ADR-0116 Nr. 4).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -65,6 +67,8 @@ const TYPE_DIVIDER = ['divider after colorLightType'];
  */
 const PIN: [string | undefined, string[]][] = [
     ['none', []],
+    // ADR-0116 Nr. 3: the single brightness slider — no UI component, wheel lightness or CT range.
+    ['dimmer', [...TYPE_DIVIDER, 'colorLightBrightnessOid']],
     ['cct', [...TYPE_DIVIDER, ...CT, 'colorLightBrightnessOid']],
     ['rgb', [...COLOR_UI, ...TYPE_DIVIDER, 'colorLightRgbHexOid']],
     // Fix a1efc2ec: brightness shows — the CCT-Ansicht writes and reads it.
@@ -110,4 +114,58 @@ describe('PIN light2Fields visibility per Lichttyp', () => {
             visible.filter(key => key !== 'colorLightCtMin' && key !== 'colorLightCtMax'),
         );
     });
+});
+
+describe('light2Fields field set of dimmer', () => {
+    /** Every named field the editor shows for the data. */
+    const shownFields = (data: WidgetData): string[] =>
+        fields.filter(field => field.name && !isHidden(field.name, data)).map(field => field.name!);
+
+    it('shows the switch, the Lichttyp, the brightness Kanal, slider width, border, padding and the Button-Modus fields', () => {
+        expect(
+            shownFields({
+                colorLightType: 'dimmer',
+                colorLightButton: true,
+                colorLightUIComponent: 'wheel',
+                colorLightTemperatureOid: 'lamp.ct',
+            }),
+        ).toEqual([
+            'colorLightButton',
+            'colorLightDelayLongPress',
+            'colorLightModalWidth',
+            'colorLightModalHeight',
+            'colorLightSliderWidth',
+            'colorLightBorderWidth',
+            'colorLightBorderColor',
+            'colorLightPadding',
+            'colorLightSwitchOid',
+            'colorLightType',
+            'colorLightBrightnessOid',
+        ]);
+    });
+});
+
+describe('light2Fields Button-Modus modal fields per Lichttyp', () => {
+    const MODAL_FIELDS = ['colorLightDelayLongPress', 'colorLightModalWidth', 'colorLightModalHeight'];
+
+    const visibleModalFields = (data: WidgetData): string[] => MODAL_FIELDS.filter(key => !isHidden(key, data));
+
+    // Every Lichttyp with a view (and one the table does not know) opens its modal on a long press.
+    it.each(['dimmer', 'cct', 'rgb', 'rgbcct', 'r/g/b', 'r/g/b/cct', 'h/s/v', 'h/s/v/cct', undefined, 'white'])(
+        '%s: delay and modal size show in the Button-Modus',
+        colorLightType => {
+            expect(visibleModalFields({ colorLightType, colorLightButton: true })).toEqual(MODAL_FIELDS);
+        },
+    );
+
+    it('none: delay and modal size stay hidden in the Button-Modus (no modal to open)', () => {
+        expect(visibleModalFields({ colorLightType: 'none', colorLightButton: true })).toEqual([]);
+    });
+
+    it.each(['none', 'rgb', undefined])(
+        '%s: delay and modal size stay hidden without the Button-Modus',
+        colorLightType => {
+            expect(visibleModalFields({ colorLightType, colorLightButton: false })).toEqual([]);
+        },
+    );
 });

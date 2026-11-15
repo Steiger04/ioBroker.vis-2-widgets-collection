@@ -81,6 +81,7 @@ describe('isCctViewActive', () => {
         ['rgb', true, false],
         ['h/s/v', true, false],
         ['none', true, false],
+        ['dimmer', true, false],
         [undefined, true, false],
     ])('%s with the switch on the CCT-Ansicht = %s → %s', (type, selected, expected) => {
         expect(isCctViewActive(type, selected)).toBe(expected);
@@ -218,6 +219,17 @@ describe('syncStep: Fremdänderung Hauptfarbe', () => {
         const next = state('rgbcct', true, { colorLightRgbHexOid: '#ff0000' });
 
         expect(syncStep(prev, next, BOTH, readContext()).actions).toEqual([]);
+    });
+
+    // dimmer's Hauptansicht carries the brightness alone: a foreign brightness change moves its slider.
+    it('mirrors a foreign brightness change into the single slider of dimmer, without writing', () => {
+        const prev = state('dimmer', false);
+        const next = state('dimmer', false, { colorLightBrightnessOid: 70 });
+
+        expect(syncStep(prev, next, { main: true, brightness: false }, readContext())).toEqual({
+            actions: [{ kind: 'read', picker: 'main', target: { type: 'dimmer', view: 'color' } }],
+            writes: [],
+        });
     });
 });
 
@@ -417,6 +429,15 @@ describe('inputStep: Ziehen', () => {
         expect(inputStep({ type: 'h/s/v/cct', cctView: false }, 'main', color, { h: true }, DATA)).toEqual({
             actions: [],
             writes: [{ field: 'colorLightHueOid', value: 120 }],
+        });
+    });
+
+    it('the single slider of dimmer writes the brightness alone, rounded, uncoupled', () => {
+        const color = new iro.Color({ h: 0, s: 0, v: 66.6 });
+
+        expect(inputStep({ type: 'dimmer', cctView: false }, 'main', color, { v: true }, DATA)).toEqual({
+            actions: [],
+            writes: [{ field: 'colorLightBrightnessOid', value: 67 }],
         });
     });
 

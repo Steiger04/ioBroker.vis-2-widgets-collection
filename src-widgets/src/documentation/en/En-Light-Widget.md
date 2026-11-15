@@ -4,7 +4,7 @@
 
 ## Description
 
-The Light Widget steers a lamp with color selection, brightness control, and color temperature control: one switch OID plus up to eight channels, operated through iro.js pickers. It supports RGB, HSV, and CCT (Color Temperature). The light type decides which channels the widget binds and which views it shows. The lamp control, made of power button, view switch and pickers, sits directly in the widget or, in button mode, in a modal.
+The Light Widget steers a lamp with color selection, brightness control, and color temperature control: one switch OID plus up to eight channels, operated through iro.js pickers. It supports RGB, HSV, CCT (Color Temperature) and lamps that only dim. The light type decides which channels the widget binds and which views it shows. The lamp control, made of power button, view switch and pickers, sits directly in the widget or, in button mode, in a modal.
 
 Only a switch OID of type boolean makes the widget work. Without one the frame shows only the hint "Please select a valid object ID", even with channels set.
 
@@ -22,16 +22,16 @@ All fields are in the **Light** group.
 
 ### UI Component
 
-| Field Name                           | Type     | Default | Description                                                                        | Condition                                          |
-| ------------------------------------ | -------- | ------- | ---------------------------------------------------------------------------------- | -------------------------------------------------- |
-| UI component `colorLightUIComponent` | select   | 'wheel' | Picker of the color view (wheel, box, slider), see [UI Components](#ui-components) | Only with a color view: light type not none or cct |
-| Wheel darken `colorWheelLightness`   | checkbox | false   | The color wheel darkens with the brightness slider, otherwise it stays bright      | Only with a color view and UI component wheel      |
+| Field Name                           | Type     | Default | Description                                                                        | Condition                                                  |
+| ------------------------------------ | -------- | ------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| UI component `colorLightUIComponent` | select   | 'wheel' | Picker of the color view (wheel, box, slider), see [UI Components](#ui-components) | Only with a color view: light type not none, dimmer or cct |
+| Wheel darken `colorWheelLightness`   | checkbox | false   | The color wheel darkens with the brightness slider, otherwise it stays bright      | Only with a color view and UI component wheel              |
 
 ### Light Type
 
-| Field Name                  | Type   | Default | Description                                                                                                                                                                                     | Condition |
-| --------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Light type `colorLightType` | select | 'none'  | What the widget steers of the lamp (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct). The panel shows rgbcct as `rgb & cct`, the other two likewise. See [Light Types](#light-types) | -         |
+| Field Name                  | Type   | Default | Description                                                                                                                                                                                                                                                                   | Condition |
+| --------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Light type `colorLightType` | select | 'none'  | What the widget steers of the lamp (none, dimmer, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct). dimmer is a lamp that only dims, none means no light type chosen yet. The panel shows rgbcct as `rgb & cct`, the other two likewise. See [Light Types](#light-types) | -         |
 
 ### Color Temperature (CCT)
 
@@ -52,20 +52,20 @@ All fields are in the **Light** group.
 
 ### HSV Configuration
 
-| Field Name                           | Type | Default | Description                                                             | Condition                                          |
-| ------------------------------------ | ---- | ------- | ----------------------------------------------------------------------- | -------------------------------------------------- |
-| Color (HUE) `colorLightHueOid`       | id   | -       | Channel of the hue (0-360)                                              | Only with h/s/v, h/s/v/cct                         |
-| Saturation `colorLightSaturationOid` | id   | -       | Channel of the saturation (0-100, on the [Hue scale](#hue-scale) 0-254) | Only with h/s/v, h/s/v/cct                         |
-| Brightness `colorLightBrightnessOid` | id   | -       | Channel of the brightness (0-100, on the [Hue scale](#hue-scale) 0-254) | Only with cct, rgbcct, r/g/b/cct, h/s/v, h/s/v/cct |
+| Field Name                           | Type | Default | Description                                                             | Condition                                                  |
+| ------------------------------------ | ---- | ------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Color (HUE) `colorLightHueOid`       | id   | -       | Channel of the hue (0-360)                                              | Only with h/s/v, h/s/v/cct                                 |
+| Saturation `colorLightSaturationOid` | id   | -       | Channel of the saturation (0-100, on the [Hue scale](#hue-scale) 0-254) | Only with h/s/v, h/s/v/cct                                 |
+| Brightness `colorLightBrightnessOid` | id   | -       | Channel of the brightness (0-100, on the [Hue scale](#hue-scale) 0-254) | Only with dimmer, cct, rgbcct, r/g/b/cct, h/s/v, h/s/v/cct |
 
 ### Button Mode
 
-| Field Name                                  | Type             | Default | Description                                                                                                 | Condition           |
-| ------------------------------------------- | ---------------- | ------- | ----------------------------------------------------------------------------------------------------------- | ------------------- |
-| Button (UI) `colorLightButton`              | checkbox         | false   | Button mode: a click switches, a long press opens the modal. Also shows the **Values** group                | -                   |
-| Long press delay `colorLightDelayLongPress` | number (0-10000) | 500     | From this press duration in milliseconds a press counts as long. With `0` almost every press counts as long | Only in button mode |
-| Modal width `colorLightModalWidth`          | number (0-5000)  | -       | Width of the modal in px. Without a value or with `0`: modal height + slider width + 52 px                  | Only in button mode |
-| Modal height `colorLightModalHeight`        | number (0-5000)  | 300     | Height of the modal in px. Without a value or with `0`: 300 px                                              | Only in button mode |
+| Field Name                                  | Type             | Default | Description                                                                                                                                                           | Condition                                     |
+| ------------------------------------------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Button (UI) `colorLightButton`              | checkbox         | false   | Button mode: a click switches, a long press opens the modal; with light type none every press switches. Also shows the **Values** group                               | -                                             |
+| Long press delay `colorLightDelayLongPress` | number (0-10000) | 500     | From this press duration in milliseconds a press counts as long. With `0` almost every press counts as long                                                           | Only in button mode, not with light type none |
+| Modal width `colorLightModalWidth`          | number (0-5000)  | -       | Width of the modal in px. Without a value or with `0`: modal height + slider width + 52 px, with dimmer as wide as the [brightness slider](#brightness-slider-dimmer) | Only in button mode, not with light type none |
+| Modal height `colorLightModalHeight`        | number (0-5000)  | 300     | Height of the modal in px. Without a value or with `0`: 300 px                                                                                                        | Only in button mode, not with light type none |
 
 ### Styling
 
@@ -101,6 +101,7 @@ The **Values** group appears only in button mode and always has the two fixed ro
 | Light type | Views                | Channels of the color view  | Channels of the CCT view      |
 | ---------- | -------------------- | --------------------------- | ----------------------------- |
 | none       | none                 | -                           | -                             |
+| dimmer     | Brightness slider    | Brightness                  | -                             |
 | cct        | CCT view             | -                           | Color temperature, brightness |
 | rgb        | Color view           | RGB (hex)                   | -                             |
 | rgbcct     | Color view, CCT view | RGB (hex)                   | Color temperature, brightness |
@@ -109,7 +110,19 @@ The **Values** group appears only in button mode and always has the two fixed ro
 | h/s/v      | Color view           | Hue, saturation, brightness | -                             |
 | h/s/v/cct  | Color view, CCT view | Hue, saturation, brightness | Color temperature, brightness |
 
-The panel shows only the channels of the chosen light type. With none the lamp control has neither power button nor pickers; in button mode the click still switches, the widget is then a plain on/off button.
+The panel shows only the channels of the chosen light type. With dimmer the [brightness slider](#brightness-slider-dimmer) takes the place of the color view, it writes only the brightness channel.
+
+With none the widget has no view and no lamp control:
+
+- Without button mode the frame shows the hint "Please select a light type" instead of the lamp control, header, footer and corner icon. The hint "Please select a valid object ID" takes precedence
+- In button mode the button stays without hint and every press switches, also one held past the long-press delay; no modal opens. The widget is then a plain on/off button
+- The panel hides the long-press delay and the modal size
+
+### Dimmer
+
+- **Brightness**: 0-100%, on the [Hue scale](#hue-scale) 0-254
+- **No Color and No Color Temperature**: The lamp only dims
+- **Usage**: Lamps with a fixed white, e.g. Philips Hue White
 
 ### RGB
 
@@ -132,7 +145,7 @@ The panel shows only the channels of the chosen light type. With none the lamp c
 
 ## UI Components
 
-The UI component applies only in the color view. It changes the display, not the channels: the light type decides what is written.
+The UI component applies only in the color view, not with dimmer. It changes the display, not the channels: the light type decides what is written.
 
 ### Wheel (Color Wheel)
 
@@ -157,6 +170,13 @@ The UI component applies only in the color view. It changes the display, not the
 - Replaces the UI component with two sliders: Kelvin picker and brightness picker
 - The Kelvin picker ranges from `colorLightCtMin` to `colorLightCtMax`
 - Kelvin coupling: The brightness picker always shows the white of the Kelvin picker at its own brightness. This writes nothing
+
+### Brightness Slider (dimmer)
+
+- Replaces the UI component with a single vertical slider from black to white, whatever `colorLightUIComponent` says
+- The slider fills the height of the widget, its width is `colorLightSliderWidth`
+- Beside it the power button, no view switch
+- In button mode a long press opens the same slider in the modal. Without `colorLightModalWidth` the modal is as wide as its content: 2 × [Padding `basePadding`](En-Home.md#characteristics) + 43 px power button column + 2 × `colorLightPadding` + slider width, one padding unit equals 8 px. With the default values that is 103 px
 
 ## OID Detection
 
@@ -240,7 +260,7 @@ Two buttons below the power button switch between the color view (color wheel) a
 
 ### External Changes
 
-- A foreign change moves the pickers of the active view: in the color view they follow the color channels, in the CCT view the color temperature and the brightness. Following writes nothing
+- A foreign change moves the pickers of the active view: in the color view they follow the color channels, in the CCT view the color temperature and the brightness, with dimmer the brightness. Following writes nothing
 - A foreign numeric change of less than 1 moves nothing
 - The other view reads its channels only on the switch
 - Without a usable value the picker shows 2000 K, `#ffffff` or with R/G/B the value 0
@@ -250,7 +270,8 @@ Two buttons below the power button switch between the color view (color wheel) a
 - Separate channel: `colorLightBrightnessOid`
 - Value: 0-100%, on the [Hue scale](#hue-scale) 0-254
 - Slider in widget
-- Used by the light types `cct`, `h/s/v` and `h/s/v/cct`, and in the CCT view of `rgbcct` and `r/g/b/cct`
+- Used by the light types `dimmer`, `cct`, `h/s/v` and `h/s/v/cct`, and in the CCT view of `rgbcct` and `r/g/b/cct`
+- With `dimmer` the [brightness slider](#brightness-slider-dimmer) writes only this channel
 - In the color view of `rgb`, `rgbcct`, `r/g/b` and `r/g/b/cct` the brightness is part of the written color value, the channel stays untouched
 - With `h/s/v/cct` both views use the same channel
 - Without a channel the slider moves but writes nothing
@@ -264,14 +285,15 @@ With `colorLightButton = true`:
 - Long press opens the modal with the lamp control and writes nothing
 - Long-press delay configurable via `colorLightDelayLongPress`
 - If the pointer leaves the button early or the browser cancels the press, for instance when a touch turns into scrolling, this counts as a click and switches, as long as no long press has fired yet
+- With light type none there is no long press: every press switches exactly once, whatever the delay, and no modal opens
 
 ## Modal Dialog
 
-Only in button mode, after a long press:
+Only in button mode, after a long press, not with light type none:
 
 - Opens the lamp control in the widget's frame
-- Size adjustable via `colorLightModalWidth/Height`
-- Complete control with power button, view switch and pickers, starting in the color view
+- Size adjustable via `colorLightModalWidth/Height`; without a width, with dimmer as wide as the [brightness slider](#brightness-slider-dimmer)
+- Complete control with power button, view switch and pickers of the light type; with a view switch it starts in the color view
 - Closes on click outside or Escape; a waiting value goes to the OID at once
 
 ## Use Cases
@@ -309,6 +331,16 @@ colorLightTemperatureOid: zigbee.0.lamp.color_temp
 colorLightBrightnessOid: zigbee.0.lamp.brightness
 colorLightCtMin: 2700
 colorLightCtMax: 6500
+```
+
+### Dimmable Lamp
+
+Only the brightness channel, no UI component.
+
+```
+colorLightType: dimmer
+colorLightSwitchOid: zigbee.0.bulb.state
+colorLightBrightnessOid: zigbee.0.bulb.brightness
 ```
 
 ### RGB in Button Mode

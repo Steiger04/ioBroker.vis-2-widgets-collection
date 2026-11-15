@@ -14,6 +14,8 @@ import { describe, expect, it } from 'vitest';
 import {
     LIGHT2_CHANNEL_FIELDS,
     channelsOf,
+    drawsColorPicker,
+    hasAnyView,
     hasView,
     isChannelFieldVisible,
     mainColorSyncFields,
@@ -24,6 +26,7 @@ import type { Light2ChannelField, Light2Type } from './light2Channels';
 
 const TYPES: (Light2Type | undefined)[] = [
     'none',
+    'dimmer',
     'cct',
     'rgb',
     'rgbcct',
@@ -53,10 +56,14 @@ const BLUE = { field: 'colorLightBlueOid', property: 'blue', hueScale: false };
 const HUE = { field: 'colorLightHueOid', property: 'hue', hueScale: false, changeFlag: 'h' };
 const SATURATION = { field: 'colorLightSaturationOid', property: 'saturation', hueScale: true, changeFlag: 's' };
 const HSV_BRIGHTNESS = { field: 'colorLightBrightnessOid', property: 'value', hueScale: true, changeFlag: 'v' };
+// dimmer: the brightness alone, written on every input of its single value slider.
+const DIMMER_BRIGHTNESS = { field: 'colorLightBrightnessOid', property: 'value', hueScale: true };
 
 describe('views per Lichttyp', () => {
     it.each<[Light2Type | undefined, string[], boolean]>([
         ['none', [], false],
+        // The Hauptansicht with the colour model brightness, no CCT-Ansicht (ADR-0116 Nr. 1).
+        ['dimmer', ['color'], false],
         ['cct', ['cct'], false],
         ['rgb', ['color'], false],
         ['rgbcct', ['color', 'cct'], true],
@@ -74,9 +81,56 @@ describe('views per Lichttyp', () => {
     });
 });
 
+describe('Lichttyp without a view', () => {
+    // The criterion of the none behaviour (no hint-free empty frame, no long press, no modal size
+    // in the editor): the Lichttyp has no view. Only none has none; a Lichttyp the table does not
+    // know — unset or a stored value of another version — keeps its colour view.
+    it.each<[string | undefined, boolean]>([
+        ['none', false],
+        ['dimmer', true],
+        ['cct', true],
+        ['rgb', true],
+        ['rgbcct', true],
+        ['r/g/b', true],
+        ['r/g/b/cct', true],
+        ['h/s/v', true],
+        ['h/s/v/cct', true],
+        [undefined, true],
+        ['white', true],
+    ])('%s: has a view %s', (type, expected) => {
+        expect(hasAnyView(type)).toBe(expected);
+    });
+
+    it('keeps the colour view for a stored Lichttyp it does not know', () => {
+        expect(viewsOf('white')).toEqual(['color']);
+    });
+});
+
+describe('Hauptansicht drawn as a colour picker', () => {
+    // The UI component (wheel/box/slider) draws the colour picker of the Hauptansicht; dimmer's
+    // Hauptansicht is a single brightness slider instead (ADR-0116 Nr. 2), the Lichttypen without
+    // a Hauptansicht draw none. An unknown Lichttyp keeps its colour picker.
+    it.each<[string | undefined, boolean]>([
+        ['none', false],
+        ['dimmer', false],
+        ['cct', false],
+        ['rgb', true],
+        ['rgbcct', true],
+        ['r/g/b', true],
+        ['r/g/b/cct', true],
+        ['h/s/v', true],
+        ['h/s/v/cct', true],
+        [undefined, true],
+        ['white', true],
+    ])('%s: %s', (type, expected) => {
+        expect(drawsColorPicker(type)).toBe(expected);
+    });
+});
+
 describe('Kanäle per Lichttyp and view', () => {
     it.each<[Light2Type | undefined, object[], object[]]>([
         ['none', [], []],
+        ['dimmer', [DIMMER_BRIGHTNESS], []],
         ['cct', [], [TEMPERATURE, CCT_BRIGHTNESS]],
         ['rgb', [RGB_HEX], []],
         ['rgbcct', [RGB_HEX], [TEMPERATURE, CCT_BRIGHTNESS]],
@@ -107,6 +161,7 @@ describe('Kanäle per Lichttyp and view', () => {
 describe('editor visibility of the Kanal fields', () => {
     const VISIBLE: Record<string, Light2ChannelField[]> = {
         none: [],
+        dimmer: ['colorLightBrightnessOid'],
         cct: ['colorLightTemperatureOid', 'colorLightBrightnessOid'],
         rgb: ['colorLightRgbHexOid'],
         // The CCT-Ansicht writes and reads the brightness, so the editor shows it (fix V4).
@@ -150,6 +205,7 @@ describe('module boundary', () => {
 describe('main-colour sync Kanäle (backendSyncKey order)', () => {
     it.each<[Light2Type | undefined, Light2ChannelField[]]>([
         ['none', []],
+        ['dimmer', ['colorLightBrightnessOid']],
         ['cct', []],
         ['rgb', ['colorLightRgbHexOid']],
         ['rgbcct', ['colorLightRgbHexOid']],

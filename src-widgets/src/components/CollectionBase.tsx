@@ -9,6 +9,9 @@
  * - an inner Paper for the actual widget content, its first element the corner icon
  *   ({@link module:components/CornerIcon}, CONTEXT "Eck-Icon")
  *
+ * Instead of all that it renders one notice in a single form: the invalid-type notice, or a
+ * widget's own `notice` (the invalid-type notice wins).
+ *
  * Header/footer text (CONTEXT "Rahmen-Kopfzeile"/"Rahmen-Fußzeile") is rendered as HTML
  * (`dangerouslySetInnerHTML`) to support rich text from vis.
  * The inner Paper's measured size is published to the children as the Content-Box
@@ -48,6 +51,12 @@ interface CollectionBaseProps {
      * their own (neither around their content nor in a control's `disabled`).
      */
     isValidType?: boolean;
+    /**
+     * A notice of the widget itself (translated text), shown in the form of the invalid-type
+     * notice and instead of the frame's content while the type is valid — for a widget whose
+     * configuration leaves nothing to draw. The invalid-type notice wins.
+     */
+    notice?: string;
     /** Whether active background styling should be applied. */
     bgActive?: boolean;
     /**
@@ -66,6 +75,39 @@ interface CollectionBaseProps {
 }
 
 /**
+ * The frame's one notice form: a centred line of text filling the frame — the invalid-type
+ * notice, or a widget's own {@link CollectionBaseProps.notice}.
+ *
+ * @param props - Component props.
+ * @param props.text - The notice text.
+ * @returns The notice.
+ */
+function FrameNotice({ text }: { text: string }): JSX.Element {
+    return (
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <Typography
+                variant="body2"
+                sx={{
+                    p: 1,
+                    width: '100%',
+                    textAlign: 'center',
+                }}
+            >
+                {text}
+            </Typography>
+        </Box>
+    );
+}
+
+/**
  * Base frame for Collection widgets.
  *
  * @returns The widget frame.
@@ -75,6 +117,7 @@ function CollectionBase({
     data,
     oidValue = null,
     isValidType = true,
+    notice,
     bgActive = true,
     hideHeader = false,
     sx = {},
@@ -204,6 +247,13 @@ function CollectionBase({
     // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
     const halfPadding = (optionalNumber(widget.data.basePadding) ?? 0) / 2;
 
+    // The one notice shown instead of header, content and footer: the invalid-type notice wins.
+    const shownNotice = !isValidType
+        ? oid
+            ? translate('collection_base_invalid_type', oid)
+            : translate('collection_base_select_oid')
+        : notice;
+
     return (
         <Paper
             className="BASE-PAPER-0"
@@ -211,7 +261,7 @@ function CollectionBase({
             variant={widget.data.outlinedFrame ? 'outlined' : 'elevation'}
             sx={paper0Sx}
         >
-            {!!isValidType && (
+            {shownNotice === undefined && (
                 <>
                     <Box
                         className="BASE-HEADER"
@@ -281,28 +331,7 @@ function CollectionBase({
                     </Box>
                 </>
             )}
-            {!isValidType && (
-                <Box
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            p: 1,
-                            width: '100%',
-                            textAlign: 'center',
-                        }}
-                    >
-                        {oid ? translate('collection_base_invalid_type', oid) : translate('collection_base_select_oid')}
-                    </Typography>
-                </Box>
-            )}
+            {shownNotice !== undefined && <FrameNotice text={shownNotice} />}
         </Paper>
     );
 }

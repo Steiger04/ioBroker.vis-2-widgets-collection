@@ -102,9 +102,10 @@ export interface Light2FieldsRxData {
      *
      * @default 'none'
      * @remarks
-     * Choose a mode that matches the target device capabilities (e.g., `rgbcct` for RGB+CCT drivers).
+     * Choose a mode that matches the target device capabilities (e.g., `rgbcct` for RGB+CCT drivers,
+     * `dimmer` for lamps that only dim).
      */
-    colorLightType?: 'none' | 'cct' | 'rgb' | 'rgbcct' | 'r/g/b' | 'r/g/b/cct' | 'h/s/v' | 'h/s/v/cct';
+    colorLightType?: 'none' | 'dimmer' | 'cct' | 'rgb' | 'rgbcct' | 'r/g/b' | 'r/g/b/cct' | 'h/s/v' | 'h/s/v/cct';
 
     /**
      * Object ID for color temperature (Kelvin) control.

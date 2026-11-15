@@ -3,7 +3,7 @@
  *
  * @module Light2CollectionWidget/pickerGeometry
  * @remarks
- * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range)
+ * ADR-0108 Nr. 5: from the configuration (UI component, colour model, CCT-Ansicht, slider width, CT range)
  * and the measured picker box one result — slider size, main picker bound, resize width, gap,
  * offset of the second picker and iro layout per picker. Beside it {@link modalSizeOf} gives the
  * size of the Button-Modus modal. The 28px slider unit and the 12px gap live only here. The widget
@@ -18,7 +18,8 @@ import iro from '@jaames/iro';
 import optionalNumber from '../lib/helper/optionalNumber';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
-import type { Light2FieldsRxData } from '../types';
+import { colorModelOf, drawsOwnPicker, type Light2ColorModel, type Light2OwnPickerModel } from '../lib/light2Channels';
+import type { BaseFieldsRxData, Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
 
 /** One iro slider unit (`colorLightSliderWidth` 1), in px. */
@@ -29,6 +30,21 @@ const PICKER_GAP_PX = 12;
 
 /** Fixed extra width of the modal auto width beside picker, gap and slider, in px. */
 const MODAL_EXTRA_WIDTH_PX = 40;
+
+/** The size of the power button's icon, in px — the body draws the icon with it. */
+export const POWER_ICON_SIZE_PX = 26;
+
+/**
+ * The power button column beside the picker box: the icon in the padding of a medium MUI
+ * IconButton (8px, fixed — not the theme spacing), and the 1px divider beside it.
+ */
+const POWER_COLUMN_WIDTH_PX = POWER_ICON_SIZE_PX + 2 * 8 + 1;
+
+/** MUI's default spacing, 8px a unit — for a caller that hands no theme spacing. */
+const defaultSpacing = (units: number): string => `${units * 8}px`;
+
+/** The outline of an outlined MUI Paper (`outlinedFrame`, `outlined`), one side, in px. */
+const OUTLINE_WIDTH_PX = 1;
 
 /**
  * The geometry iro is created with, before the first measured layout replaces it
@@ -49,6 +65,8 @@ export type IroLayout = Array<{
 /** The widget configuration the geometry depends on. */
 export interface PickerGeometryConfig {
     uiComponent: Light2FieldsRxData['colorLightUIComponent'];
+    /** Colour model of the Hauptansicht (`colorModelOf`); a rule of its own overrides the UI component. */
+    colorModel: Light2ColorModel | undefined;
     /** CCT-Ansicht active: always for the Lichttyp cct, switchable for an „& cct“ one. */
     cctView: boolean;
     sliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
@@ -56,11 +74,27 @@ export interface PickerGeometryConfig {
     ctMax: Light2FieldsRxData['colorLightCtMax'];
 }
 
-/** The widget configuration the Button-Modus modal size depends on. */
-export interface ModalSizeConfig {
-    modalWidth?: Light2FieldsRxData['colorLightModalWidth'];
-    modalHeight?: Light2FieldsRxData['colorLightModalHeight'];
-    sliderWidth?: Light2FieldsRxData['colorLightSliderWidth'];
+/**
+ * The widget fields the Button-Modus modal size depends on, as the widget reads them: the
+ * Lichttyp (its colour model may size the auto width from its content), modal width and height,
+ * slider width, the paddings of picker box and frame (in spacing units) and the outlines.
+ */
+export type ModalSizeData = Pick<
+    Light2FieldsRxData,
+    'colorLightType' | 'colorLightModalWidth' | 'colorLightModalHeight' | 'colorLightSliderWidth' | 'colorLightPadding'
+> &
+    Pick<BaseFieldsRxData, 'basePadding' | 'outlinedFrame' | 'outlined'>;
+
+/** What the modal auto width is derived from: the read modal height, slider size and paddings in px. */
+interface ModalContent {
+    height: number;
+    sliderSize: number;
+    /** Picker box padding of one side, in px. */
+    padding: number;
+    /** Frame padding of one side, in px. */
+    basePadding: number;
+    /** The outlines of frame and content paper across the width (both sides), in px. */
+    outlines: number;
 }
 
 /** The size of the Button-Modus modal, in px. */
@@ -103,7 +137,8 @@ function mainPickerBoundOf({ width, height }: ElementDimensions, sliderSize: num
 
 /**
  * What a picker kind draws: the iro layout of each picker, the `picker.resize()` target and the
- * gap. A kind is a UI component of the colour view, or the CCT-Ansicht, which overrides it.
+ * gap. A kind is a UI component (the colour picker of the Hauptansicht), or the CCT-Ansicht or a
+ * colour model with a rule of its own, which override it.
  */
 interface PickerKindRule {
     /** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
@@ -112,7 +147,20 @@ interface PickerKindRule {
     resizeWidth: (height: number | undefined, mainPickerBound: number | undefined) => number | undefined;
     /** The gap of a measured box (width and height non-zero). */
     gap: (width: number, sliderSize: number, mainPickerBound: number | undefined) => number;
+    /** The Button-Modus modal auto width; unset, the colour picker's beside its slider. */
+    modalAutoWidth?: (content: ModalContent) => number;
 }
+
+/**
+ * The colour picker's modal auto width: the picker draws its main element from the modal HEIGHT
+ * (square-ish), so the optimum width derives from height + slider + gap (see
+ * color_light_modal_width_tooltip).
+ */
+const modalWidthBesideSlider = ({ height, sliderSize }: ModalContent): number =>
+    height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSize;
+
+/** The vertical value slider: the wheel's, the Helligkeits-Picker's and dimmer's single slider. */
+const VALUE_SLIDER: IroLayout[number] = { component: iro.ui.Slider, options: { sliderType: 'value' } };
 
 /** CCT, wheel, box: the main picker element is bounded, its value slider beside it. */
 const resizeToMainPickerBound: PickerKindRule['resizeWidth'] = (_height, mainPickerBound) => mainPickerBound;
@@ -136,17 +184,32 @@ const CCT_VIEW_RULE: PickerKindRule = {
                       },
                   },
               ]
-            : [
-                  {
-                      component: iro.ui.Slider,
-                      options: { sliderType: 'value' },
-                  },
-              ],
+            : [VALUE_SLIDER],
     resizeWidth: resizeToMainPickerBound,
     gap: gapBesideMainPicker,
 };
 
-/** The colour view per UI component (`colorLightUIComponent`). */
+/**
+ * The Hauptansicht by colour model, where the model draws its own picker and overrides the UI
+ * component like the CCT-Ansicht does (ADR-0116 Nr. 2): the brightness model (dimmer) draws one
+ * vertical value slider like the Helligkeits-Picker of the CCT-Ansicht, over the full height —
+ * nothing sits beside it, so the width does not shorten it. The picker colour stays neutral white
+ * (only its value is read and written), so the slider runs black to white. Keyed by the Lichttyp
+ * table's list (`drawsOwnPicker`): the editor rules and the drawn picker cannot disagree.
+ */
+const COLOR_MODEL_RULES: Record<Light2OwnPickerModel, PickerKindRule> = {
+    brightness: {
+        layout: () => [VALUE_SLIDER],
+        resizeWidth: height => height,
+        // A single component: the gap spaces nothing and keeps its 12px default.
+        gap: () => PICKER_GAP_PX,
+        // As wide as drawn side by side: outlines, frame padding, power column, picker padding, the slider.
+        modalAutoWidth: ({ sliderSize, padding, basePadding, outlines }) =>
+            outlines + 2 * basePadding + POWER_COLUMN_WIDTH_PX + 2 * padding + sliderSize,
+    },
+};
+
+/** The colour picker of the Hauptansicht per UI component (`colorLightUIComponent`). */
 const UI_COMPONENT_RULES: Record<NonNullable<PickerGeometryConfig['uiComponent']>, PickerKindRule> = {
     wheel: {
         layout: () => [
@@ -154,10 +217,7 @@ const UI_COMPONENT_RULES: Record<NonNullable<PickerGeometryConfig['uiComponent']
                 component: iro.ui.Wheel,
                 options: {},
             },
-            {
-                component: iro.ui.Slider,
-                options: { sliderType: 'value' },
-            },
+            VALUE_SLIDER,
         ],
         resizeWidth: resizeToMainPickerBound,
         gap: gapBesideMainPicker,
@@ -196,10 +256,18 @@ const UNKNOWN_UI_COMPONENT_RULE: PickerKindRule = {
     gap: gapBesideMainPicker,
 };
 
-/** The rule of the configured picker kind: the CCT-Ansicht, else the UI component. */
-const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule => {
+/** The rule of a colour model that draws its own picker; `undefined` for one drawn by the UI component. */
+const modelRuleOf = (colorModel: Light2ColorModel | undefined): PickerKindRule | undefined =>
+    drawsOwnPicker(colorModel) ? COLOR_MODEL_RULES[colorModel] : undefined;
+
+/** The rule of the configured picker kind: the CCT-Ansicht, else a colour model's own, else the UI component. */
+const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): PickerKindRule => {
     if (cctView) {
         return CCT_VIEW_RULE;
+    }
+    const modelRule = modelRuleOf(colorModel);
+    if (modelRule) {
+        return modelRule;
     }
     return uiComponent !== undefined && Object.hasOwn(UI_COMPONENT_RULES, uiComponent)
         ? UI_COMPONENT_RULES[uiComponent]
@@ -208,21 +276,38 @@ const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule 
 
 /**
  * The Button-Modus modal size. Height: `colorLightModalHeight`, the default 300px for 0. Width: an
- * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the auto width — the picker draws its
- * main element from the modal HEIGHT (square-ish), so the optimum width derives from height +
- * slider + gap (see color_light_modal_width_tooltip).
+ * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the
+ * auto width — for the colour picker from height + slider + gap, for a colour model with a rule of
+ * its own from what it draws (dimmer: the slider, its padding and the frame with its outlines —
+ * ADR-0116 Nr. 2).
  *
- * @param config - Modal width/height and slider width of the widget.
+ * @param data - The widget fields the size depends on ({@link ModalSizeData}).
+ * @param spacing - The collection theme's spacing (`theme.spacing`), in which the frame and the
+ *   body draw the paddings — a user theme may change it; MUI's default 8px a unit when omitted.
  * @returns The modal width and height in px.
  */
-export function modalSizeOf(config: ModalSizeConfig): ModalSize {
+export function modalSizeOf(data: ModalSizeData, spacing: (units: number) => string = defaultSpacing): ModalSize {
     // A numeric string (vis-2's number field while typing, the assistant) sizes like its number.
-    const height = optionalNumber(config.modalHeight) || COLOR_LIGHT_MODAL_HEIGHT_DEFAULT;
-    const width = optionalNumber(config.modalWidth);
+    const height = optionalNumber(data.colorLightModalHeight) || COLOR_LIGHT_MODAL_HEIGHT_DEFAULT;
+    const width = optionalNumber(data.colorLightModalWidth);
     if (width !== undefined && width > 0) {
         return { width, height };
     }
-    return { width: height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSizeOf(config.sliderWidth), height };
+    const autoWidth = modelRuleOf(colorModelOf(data.colorLightType))?.modalAutoWidth ?? modalWidthBesideSlider;
+    // A padding in px as the theme draws it (MUI spacing yields '<n>px').
+    const spacingPx = (units: number): number => Number.parseFloat(spacing(units));
+    return {
+        width: autoWidth({
+            height,
+            sliderSize: sliderSizeOf(data.colorLightSliderWidth),
+            // Read as the body and the frame draw them: an emptied padding ('') as 0.
+            padding: spacingPx(optionalNumber(data.colorLightPadding) ?? 0),
+            basePadding: spacingPx(optionalNumber(data.basePadding) ?? 0),
+            // The frame draws under border-box (CollectionProvider): an outline takes its width from inside.
+            outlines: 2 * OUTLINE_WIDTH_PX * (Number(!!data.outlinedFrame) + Number(!!data.outlined)),
+        }),
+        height,
+    };
 }
 
 /**

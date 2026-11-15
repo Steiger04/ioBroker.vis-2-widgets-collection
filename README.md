@@ -96,6 +96,7 @@ reads them from there.
 ### **WORK IN PROGRESS**
 
 - (steiger04) Node.js 22 or newer is required
+- (steiger04) Light: new light type `dimmer` for lamps that only dim (#22)
 
 ### 3.1.0 (2026-11-15)
 

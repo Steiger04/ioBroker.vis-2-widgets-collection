@@ -44,7 +44,7 @@ import {
 import type { ChannelWrite, ColorChanges, Light2WidgetData, PickerTarget } from './channelMapping';
 
 /**
- * The two pickers of the Lampen-Bedienelement: the main picker (the only one of the colour view,
+ * The two pickers of the Lampen-Bedienelement: the main picker (the only one of the Hauptansicht,
  * in the CCT-Ansicht the Kelvin-Picker) and the Helligkeits-Picker of the CCT-Ansicht.
  */
 export type LampPicker = 'main' | 'brightness';
@@ -99,7 +99,7 @@ export const isCctViewActive = (type: string | undefined, cctSelected: boolean):
 /**
  * The channel-mapping target of a picker: in the CCT-Ansicht the Kelvin- (main) or the
  * Helligkeits-Picker — without a picker neither, so nothing is read or written there —, else
- * the colour view of the Lichttyp.
+ * the Hauptansicht of the Lichttyp.
  */
 export const pickerTargetOf = (state: Pick<LampSyncState, 'type' | 'cctView'>, picker?: LampPicker): PickerTarget =>
     state.cctView
@@ -216,11 +216,11 @@ export function syncStep(
         actions.push({ kind: 'couple' });
     }
 
-    // Verlassen der CCT-Ansicht: the main picker shows the colour view again, the lamp its colour.
+    // Verlassen der CCT-Ansicht: the main picker shows the Hauptansicht again, the lamp its colour.
     if (prev?.cctView && prevViewSwitch && !next.cctView && viewSwitch && pickers.main) {
         // First the lamp's brightness into the main picker, which still holds the Kelvin-Picker's
-        // white: a colour view whose Kanäle are not all configured reads nothing, so the picker
-        // keeps that white at the lamp's brightness; a complete colour view overwrites it right
+        // white: a Hauptansicht whose Kanäle are not all configured reads nothing, so the picker
+        // keeps that white at the lamp's brightness; a complete Hauptansicht overwrites it right
         // after. As the former effect did.
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(prev, 'brightness') });
         actions.push({ kind: 'read', picker: 'main', target: pickerTargetOf(next) });

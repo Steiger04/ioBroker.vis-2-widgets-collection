@@ -4,7 +4,8 @@
  * @module Light2CollectionWidget/Light2ButtonMode
  * @remarks
  * Composed by the Light2 body when `colorLightButton` is set (ADR-0108 Nr. 4): a click on the face
- * toggles the Schalter-OID, a long press (`colorLightDelayLongPress`) opens the modal. The body
+ * toggles the Schalter-OID, a long press (`colorLightDelayLongPress`) opens the modal. A Lichttyp
+ * without a view has nothing to open: there every press toggles, whatever the delay (ADR-0116 Nr. 4). The body
  * holds the switch binding once and hands its value and toggle in. The face is the Wert-Anzeige
  * without value text over the Zustandszeilen of the Schalter-OID (icon, size, offsets and colour
  * mask of the active row, resolved by useData).
@@ -18,6 +19,7 @@ import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import optionalNumber from '../lib/helper/optionalNumber';
+import { hasAnyView } from '../lib/light2Channels';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
 import { modalSizeOf } from './pickerGeometry';
@@ -47,25 +49,28 @@ interface Light2ButtonModeProps {
 function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light2ButtonModeProps): React.JSX.Element {
     const {
         widget: { data: rxData },
+        theme,
     } = useContext(CollectionContext) as Light2CollectionContextProps;
     const [open, setOpen] = useState(false);
 
     const { data } = useData('colorLightSwitchOid');
 
+    // Without a view there is no Lampen-Bedienelement to open: a press held past the delay toggles
+    // too, so every press toggles exactly once (a delay of 0 would otherwise block switching).
+    const hasModal = hasAnyView(rxData.colorLightType);
+
     const longPressProps = useLongPress({
         onClick: onToggle,
-        onLongPress: () => setOpen(true),
+        onLongPress: hasModal ? () => setOpen(true) : onToggle,
         // An emptied delay ('') reads like 0, a long press on every touch, as stored lamps read it; a
         // numeric string as its number, a bound text that names none like 0 as well.
         ms: optionalNumber(rxData.colorLightDelayLongPress) ?? 0,
     });
 
-    // Height, and explicit width or the auto width from the picker geometry (height + slider + gap).
-    const modalSize = modalSizeOf({
-        modalWidth: rxData.colorLightModalWidth,
-        modalHeight: rxData.colorLightModalHeight,
-        sliderWidth: rxData.colorLightSliderWidth,
-    });
+    // Height, and explicit width or the auto width from the picker geometry: height + slider + gap
+    // beside the colour picker, the drawn content for dimmer's single slider (ADR-0116 Nr. 2), its
+    // paddings in the collection theme's spacing.
+    const modalSize = modalSizeOf(rxData, theme.spacing);
 
     return (
         <>

@@ -10,7 +10,7 @@
  *
  * - **Read** (`readChannelsIntoColor`): Kanal values → picker colour, on picker init and on
  *   foreign changes. Safe fallbacks instead of throwing: 2000 K, `#ffffff`, 0 for r/g/b; the
- *   colour view reads only when all its Kanäle are configured.
+ *   Hauptansicht reads only when all its Kanäle are configured.
  * - **Write** (`channelWrites`): picker colour → write requests (Kanal, value), which the body
  *   carries out through its `useValueState` setters. Rounded, on the Hue-Skala where the Kanal's
  *   object says 254, gated by the HSV change flags and — in the CCT-Ansicht — by the picker; a
@@ -146,7 +146,7 @@ export function readChannelsIntoColor(
 ): void {
     const channels = channelsFor(target);
 
-    // The colour view mirrors its Kanäle only when all of them are configured.
+    // The Hauptansicht mirrors its Kanäle only when all of them are configured.
     if (target.view === 'color' && !channels.every(channel => widgetData[channel.field])) {
         return;
     }

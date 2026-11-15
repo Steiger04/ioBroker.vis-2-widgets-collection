@@ -310,6 +310,8 @@ const stateObject = (id: string, common: Record<string, unknown>): Record<string
 const MISSING_OID = 'demo.0.missing';
 const LIST_OID = 'demo.0.list';
 const OTHER_OID = 'demo.0.other';
+/** The brightness Kanal of a lamp that only dims, on the Hue-Skala. */
+const WHITE_LEVEL_OID = 'demo.0.white.level';
 
 /** The objects the fixtures' OIDs name, as the OID picker reads them; the instance carries the icon. */
 const OBJECTS: Record<string, unknown> = {
@@ -323,6 +325,8 @@ const OBJECTS: Record<string, unknown> = {
     'demo.0.power': stateObject('demo.0.power', { type: 'boolean' }),
     'demo.0.dialog': stateObject('demo.0.dialog', { type: 'boolean' }),
     'demo.0.table': stateObject('demo.0.table', { type: 'string' }),
+    // A Hue White lamp's brightness: the Hue-Skala 0-254.
+    [WHITE_LEVEL_OID]: stateObject(WHITE_LEVEL_OID, { type: 'number', role: 'level.dimmer', min: 0, max: 254 }),
     [LIST_OID]: stateObject(LIST_OID, { type: 'array' }),
 };
 
@@ -431,6 +435,42 @@ async function renderBodyRaw(fixture: WidgetFixture, data: Record<string, unknow
     const html = withoutMountIds(mounted.container.innerHTML);
     mounted.unmount();
     return html;
+}
+
+/**
+ * Measures Light2's Lampen-Bedienelement for the tests of the enclosing block: a box of 300 × 200,
+ * so that it draws its real iro pickers (ADR-0108 Nr. 5); iro's gradient ids fixed, so that two
+ * renderings compare.
+ */
+function measureLampControl(): void {
+    beforeEach(() => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.5);
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                private readonly callback: ResizeObserverCallback;
+
+                constructor(callback: ResizeObserverCallback) {
+                    this.callback = callback;
+                }
+
+                observe(target: Element): void {
+                    const contentRect = { width: 300, height: 200 };
+                    this.callback([{ target, contentRect } as unknown as ResizeObserverEntry], this);
+                }
+
+                /* eslint-disable class-methods-use-this -- nothing to release */
+                unobserve(): void {}
+                disconnect(): void {}
+                /* eslint-enable class-methods-use-this */
+            },
+        );
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
 }
 
 /** The data without some keys. */
@@ -837,35 +877,7 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 .default;
         });
 
-        beforeEach(() => {
-            // iro names its gradients after a random id: fixed, two renderings compare.
-            vi.spyOn(Math, 'random').mockReturnValue(0.5);
-            vi.stubGlobal(
-                'ResizeObserver',
-                class {
-                    private readonly callback: ResizeObserverCallback;
-
-                    constructor(callback: ResizeObserverCallback) {
-                        this.callback = callback;
-                    }
-
-                    observe(target: Element): void {
-                        const contentRect = { width: 300, height: 200 };
-                        this.callback([{ target, contentRect } as unknown as ResizeObserverEntry], this);
-                    }
-
-                    /* eslint-disable class-methods-use-this -- nothing to release */
-                    unobserve(): void {}
-                    disconnect(): void {}
-                    /* eslint-enable class-methods-use-this */
-                },
-            );
-        });
-
-        afterEach(() => {
-            vi.restoreAllMocks();
-            vi.unstubAllGlobals();
-        });
+        measureLampControl();
 
         /**
          * Mounts the widget over the lamp data with some keys assigned or unset, runs the user's
@@ -1990,6 +2002,82 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     minValue: 5,
                     maxValue: 50,
                 });
+            });
+        });
+
+        // A lamp that only dims (Lichttyp dimmer, ADR-0116 Nr. 5): the assistant writes its brightness
+        // Kanal without the pick, so the Kanal object — whose maximum 254 marks the Hue-Skala — comes
+        // from the object read like any id field's, no own way for the assistant.
+        describe('Light2CollectionWidget: a dimmer the assistant writes', () => {
+            const written = {
+                ...CHROME,
+                colorLightSwitchOid: SWITCH_OID,
+                colorLightType: 'dimmer',
+                colorLightBrightnessOid: WHITE_LEVEL_OID,
+            };
+            // Half brightness on the Hue-Skala: 127 of 254 is 50 %.
+            const values = { ...FIXTURES.Light2CollectionWidget!.values, [`${WHITE_LEVEL_OID}.val`]: 127 };
+
+            measureLampControl();
+
+            /** The vertical position of the slider's handle, from its transform. */
+            const handleY = (slider: Element): number =>
+                Number(
+                    /translate\([^,]+,\s*([\d.]+)px\)/.exec(
+                        slider.querySelector<SVGElement>('.IroHandle')!.style.transform,
+                    )![1],
+                );
+
+            it('draws a single value slider like its palette counterpart', async () => {
+                const widget = await load('Light2CollectionWidget');
+                const picked = await pickedInEditor(widget, 'colorLightBrightnessOid', written);
+
+                const html = await renderWidget(widget, written, values);
+                const body = document.createElement('div');
+                body.innerHTML = html;
+                const sliders = body.querySelectorAll('.IroSlider');
+
+                expect(picked.colorLightBrightnessOidObject).toMatchObject({ maxValue: 254 });
+                expect(html).not.toContain(HINT);
+                expect(sliders).toHaveLength(1);
+                expect(body.querySelector('.IroWheel, .IroBox')).toBeNull();
+                // 127 on the Hue-Skala reads as 50 %: the handle in the middle of the 200 px slider.
+                expect(handleY(sliders[0])).toBe(100);
+                expect(html).toBe(await renderWidget(widget, picked, values));
+            });
+
+            it('writes a drag to the brightness Kanal on the Hue-Skala, and nothing else', async () => {
+                const widget = await load('Light2CollectionWidget');
+                const container = document.createElement('div');
+                document.body.appendChild(container);
+                const root = createTestRoot(container);
+                stubSocket.setState.mockClear();
+                const settle = (ms: number): Promise<void> =>
+                    act(() => new Promise<void>(resolve => setTimeout(resolve, ms)));
+
+                await act(() => {
+                    root.render(widgetElement(widget, written, values));
+                    return Promise.resolve();
+                });
+                // The object read of the brightness Kanal lands.
+                await settle(0);
+                const slider = container.querySelector<HTMLElement>('.IroSlider')!;
+                slider.getBoundingClientRect = () =>
+                    ({ left: 0, top: 0, width: 28, height: 200, right: 28, bottom: 200 }) as DOMRect;
+                // Up to the top end of the slider: full brightness.
+                act(() => {
+                    slider.dispatchEvent(new MouseEvent('mousedown', { clientX: 14, clientY: 100, bubbles: true }));
+                    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 14, clientY: 0, bubbles: true }));
+                    document.dispatchEvent(new MouseEvent('mouseup', { clientX: 14, clientY: 0, bubbles: true }));
+                });
+                // The write delay the assistant left unset: the palette's 300 ms.
+                await settle(400);
+                const writes = stubSocket.setState.mock.calls.map(call => (call as unknown[]).slice(0, 2));
+                act(() => root.unmount());
+                container.remove();
+
+                // 100 % on the Hue-Skala is 254.
+                expect(writes).toEqual([[WHITE_LEVEL_OID, 254]]);
             });
         });
 

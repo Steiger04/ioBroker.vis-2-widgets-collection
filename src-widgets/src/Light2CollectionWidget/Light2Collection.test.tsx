@@ -7,7 +7,8 @@
  * Button-Modus a click on the face toggles the Schalter-OID and a long press (after
  * `colorLightDelayLongPress`) opens the Lampen-Bedienelement in a modal; without it the
  * Lampen-Bedienelement renders directly — power button and picker box. A Schalter-OID that is no
- * boolean shows the OID hint. The iro picker is replaced by a stub through its module: the
+ * boolean shows the OID hint. A Lichttyp without a view (none) asks for a Lichttyp instead, and in
+ * the Button-Modus every press toggles. The Lichttyp dimmer draws a single value slider. The iro picker is replaced by a stub through its module: the
  * picker transitions are pinned with real iro in the channel-mapping tests.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -219,6 +220,45 @@ describe('Light2Collection Button-Modus long-press delay', () => {
     });
 });
 
+describe('Light2Collection Button-Modus of a Lichttyp without a view (none)', () => {
+    // No view means no Lampen-Bedienelement to open: every press toggles the Schalter-OID, whatever
+    // the delay (a delay of 0 used to turn every press into a long press, the lamp could not be
+    // switched) and however long it is held; the (almost empty) modal never opens.
+    it.each([
+        ['the default delay', {}],
+        ['a delay of 0', { colorLightDelayLongPress: 0 }],
+        ['an emptied delay', { colorLightDelayLongPress: '' }],
+        ['a delay stored as null', { colorLightDelayLongPress: null }],
+        ['a delay stored as a numeric string', { colorLightDelayLongPress: '800' }],
+    ])('toggles on every press and opens no modal for %s', async (_case, delay) => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'none', colorLightButton: true, ...delay }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        // A short press, then one held far beyond any delay.
+        for (const holdMs of [1, 2000]) {
+            pointer(face, 'pointerdown');
+            act(() => {
+                vi.advanceTimersByTime(holdMs);
+            });
+            pointer(face, 'pointerup');
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1);
+            });
+        }
+
+        expect(modal()).toBeNull();
+        // Each press toggles once; the scene's switch stays off (no backend echo), so both write true.
+        expect(setValue.mock.calls).toEqual([
+            [SWITCH, true],
+            [SWITCH, true],
+        ]);
+    });
+});
+
 describe('Light2Collection Button-Modus face (Wert-Anzeige without value text)', () => {
     /** The two fixed Zustandszeilen of the Schalter-OID, each with its own icon at the given size. */
     const switchRows = (iconSize: number): Record<string, unknown> => ({
@@ -304,6 +344,193 @@ describe('Light2Collection Lampen-Bedienelement', () => {
         expect(container.textContent).toContain('collection_base_select_oid');
         expect(powerIcon(container)).toBeNull();
         expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+});
+
+describe('Light2Collection without a Lichttyp (none)', () => {
+    const LIGHT_TYPE_HINT = 'light2_collection_widget_select_light_type';
+
+    // A Lichttyp without a view draws no Lampen-Bedienelement: instead of an empty frame the widget
+    // asks for a Lichttyp (in the editor and at runtime alike — the body has no edit-mode branch).
+    it('asks for a Lichttyp instead of an empty frame, without power button and pickers', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none' }));
+
+        expect(container.textContent).toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
+        expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+
+    // The more basic problem first: a Schalter-OID without a usable object shows the OID hint.
+    it.each([
+        ['a Schalter-OID that is no boolean', { colorLightSwitchOidObject: { _id: SWITCH, type: 'number' } }],
+        ['a missing Schalter-OID', { colorLightSwitchOid: '', colorLightSwitchOidObject: undefined }],
+    ])('shows the OID hint for %s', (_case, data) => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none', ...data }, 1));
+
+        expect(container.textContent).toContain('collection_base_select_oid');
+        expect(container.textContent).not.toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
+    });
+
+    it('keeps the Button-Modus face, without the hint', () => {
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none', colorLightButton: true }));
+
+        expect(container.querySelector('button')).not.toBeNull();
+        expect(container.textContent).not.toContain(LIGHT_TYPE_HINT);
+    });
+
+    // The Rückfall-Regel (ADR-0114) reads a stored value the select does not offer as unset, so the
+    // body reads the default none — before as an empty frame, now with the hint. The table's colour
+    // view of an unknown Lichttyp serves the editor rules, which see the raw data.
+    it('reads a stored Lichttyp the select does not offer as none, with the hint', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'white' }));
+
+        expect(container.textContent).toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
+    });
+});
+
+describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
+    /** The iro layouts the stubbed pickers were last drawn with, per picker. */
+    const drawnPickers = (): Array<{ picker: unknown; sliders: unknown[] }> => {
+        const last = new Map<unknown, Record<string, unknown>>();
+        for (const props of pickerRenders) {
+            last.set(props.picker, props);
+        }
+        return [...last.values()].map(props => ({
+            picker: props.picker,
+            sliders: (props.geometry as PickerGeometry).layouts[props.picker as 'main' | 'brightness'].map(
+                entry => entry.options?.sliderType,
+            ),
+        }));
+    };
+
+    // ADR-0116 Nr. 1/2: the power button and one value slider — no view switch, and the UI component
+    // does not change it.
+    it.each(['wheel', 'box', 'slider'])(
+        'draws the power button and a single value slider, no view switch (UI component %s)',
+        uiComponent => {
+            measureContentRect({ width: 300, height: 200 });
+            pickerRenders.length = 0;
+            const { container } = mountBody(
+                Light2Collection,
+                scene({ colorLightType: 'dimmer', colorLightUIComponent: uiComponent }),
+            );
+
+            expect(powerIcon(container)).not.toBeNull();
+            // The power button is the only button: no view switch.
+            expect(container.querySelectorAll('button')).toHaveLength(1);
+            expect(container.querySelectorAll('[data-testid="light2-picker"]')).toHaveLength(1);
+            expect(drawnPickers()).toEqual([{ picker: 'main', sliders: ['value'] }]);
+        },
+    );
+
+    it('toggles the Schalter-OID on a click on the face in the Button-Modus, opening no modal', async () => {
+        const { container, setValue } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800 }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        pointer(face, 'pointerup');
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(setValue.mock.calls).toEqual([[SWITCH, true]]);
+        expect(modal()).toBeNull();
+    });
+
+    // ADR-0116 Nr. 2 (GitHub #22): the long press opens the modal with the single value slider, no
+    // band beside it — without a modal width it is as wide as the drawn content.
+    it('opens the single value slider in a modal as wide as its content after the long-press delay', () => {
+        measureContentRect({ width: 300, height: 200 });
+        pickerRenders.length = 0;
+        const { container } = mountBody(
+            Light2Collection,
+            // The frame padding at its default (the scene reads the Light2 fields only).
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800, basePadding: 1 }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        expect(modal()).not.toBeNull();
+        expect(powerIcon(modal()!)).not.toBeNull();
+        expect(modal()!.querySelectorAll('[data-testid="light2-picker"]')).toHaveLength(1);
+        expect(drawnPickers()).toEqual([{ picker: 'main', sliders: ['value'] }]);
+        // Default slider width and paddings (1 each): 8 + 42 + 1 + 8 + 28 + 8 + 8 = 103px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('103px');
+    });
+
+    // The outlines of frame and content paper (1px a side each) are drawn inside the modal width.
+    it('widens the modal of the single value slider by the outlines of frame and content paper', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(
+            Light2Collection,
+            scene({
+                colorLightType: 'dimmer',
+                colorLightButton: true,
+                colorLightDelayLongPress: 800,
+                basePadding: 1,
+                outlined: true,
+                outlinedFrame: true,
+            }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        // 103px and 2 × 2 × 1px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('107px');
+    });
+
+    // A user theme may change the spacing the paddings are drawn in.
+    it('sizes the modal of the single value slider in the spacing of the collection theme', async () => {
+        measureContentRect({ width: 300, height: 200 });
+        // The shared user theme state holds a spacing of 6px.
+        const themeSocket = {
+            getState: (): Promise<{ val: string }> => Promise.resolve({ val: JSON.stringify({ spacing: 6 }) }),
+            subscribeState: (): Promise<void> => Promise.resolve(),
+            unsubscribeState: (): void => undefined,
+        };
+        const { container } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800, basePadding: 1 }),
+            { socket: themeSocket },
+        );
+        await act(async () => {
+            await Promise.resolve();
+        });
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        // 6 + 42 + 1 + 6 + 28 + 6 + 6 = 95px.
+        const content = [...modal()!.children].find(child => powerIcon(child) !== null)!;
+        expect(getComputedStyle(content).width).toBe('95px');
     });
 });
 

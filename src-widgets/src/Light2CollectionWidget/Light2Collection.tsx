@@ -15,12 +15,13 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
-import { pickerGeometry } from './pickerGeometry';
+import { POWER_ICON_SIZE_PX, pickerGeometry } from './pickerGeometry';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
 import optionalNumber from '../lib/helper/optionalNumber';
-import { LIGHT2_CHANNEL_FIELDS, offersViewSwitch } from '../lib/light2Channels';
+import { LIGHT2_CHANNEL_FIELDS, colorModelOf, hasAnyView, offersViewSwitch } from '../lib/light2Channels';
+import { translate } from '../lib/translate';
 import type { Light2ChannelField } from '../lib/light2Channels';
 import type { SyncChannel } from './backendSyncKey';
 import { isCctViewActive } from './lampSync';
@@ -53,7 +54,8 @@ interface LampControlProps {
 }
 
 /**
- * The Lampen-Bedienelement: power button, view switch and the iro pickers of the current view.
+ * The Lampen-Bedienelement: power button, view switch and the iro pickers of the current view —
+ * for a Lichttyp without a view the frame's notice asking for one.
  *
  * @param props - Component props.
  * @param props.isValidType - Whether the Schalter-OID is a boolean.
@@ -81,8 +83,16 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
     const [boxElement, setBoxElement] = useState<HTMLDivElement | null>(null);
     const measuredBox = useElementDimensions(boxElement);
 
+    // A Lichttyp without a view (none) has no Lampen-Bedienelement: the frame asks for one instead
+    // (ADR-0116 Nr. 4) and renders none of the content below; its OID hint still wins.
+    const notice = hasAnyView(rxData.colorLightType)
+        ? undefined
+        : translate('light2_collection_widget_select_light_type');
     const hasViewSwitch = offersViewSwitch(rxData.colorLightType);
     const cctView = isCctViewActive(rxData.colorLightType, cctSelected);
+    // The colour model of the Hauptansicht: dimmer's brightness model draws its single value slider
+    // whatever the UI component (ADR-0116 Nr. 2).
+    const colorModel = colorModelOf(rxData.colorLightType);
 
     // The Kanäle: their values and Fremdänderung flags feed the lamp sync, their setters carry
     // out its write requests.
@@ -126,6 +136,7 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
             pickerGeometry(
                 {
                     uiComponent: rxData.colorLightUIComponent,
+                    colorModel,
                     cctView,
                     sliderWidth: rxData.colorLightSliderWidth,
                     // iro computes with the bounds: a numeric string as its number. An unset or
@@ -138,6 +149,7 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
         [
             measuredBox,
             rxData.colorLightUIComponent,
+            colorModel,
             cctView,
             rxData.colorLightSliderWidth,
             rxData.colorLightCtMin,
@@ -159,70 +171,70 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
     return (
         <CollectionBase
             isValidType={isValidType}
+            notice={notice}
             data={data}
         >
-            {rxData.colorLightType !== 'none' ? (
-                <Box
-                    sx={{
-                        minWidth: 0,
-                        height: '100%',
-                        display: 'flex',
-                        flexShrink: 0,
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                    }}
-                >
-                    <IconButton onClick={onToggle}>
-                        <PowerSettingsNewIcon
-                            sx={{
-                                color: onOffValue ? 'red' : 'green',
-                                width: '26px',
-                                height: '26px',
-                            }}
+            <Box
+                sx={{
+                    minWidth: 0,
+                    height: '100%',
+                    display: 'flex',
+                    flexShrink: 0,
+                    flexDirection: 'column',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
+                }}
+            >
+                <IconButton onClick={onToggle}>
+                    <PowerSettingsNewIcon
+                        sx={{
+                            color: onOffValue ? 'red' : 'green',
+                            // The power column's width enters the dimmer modal's auto width.
+                            width: `${POWER_ICON_SIZE_PX}px`,
+                            height: `${POWER_ICON_SIZE_PX}px`,
+                        }}
+                    />
+                </IconButton>
+
+                {hasViewSwitch && (
+                    <Box
+                        sx={{
+                            display: 'inline-block',
+                        }}
+                    >
+                        <Divider
+                            orientation="horizontal"
+                            flexItem
+                            variant="fullWidth"
                         />
-                    </IconButton>
-
-                    {hasViewSwitch && (
-                        <Box
-                            sx={{
-                                display: 'inline-block',
-                            }}
-                        >
-                            <Divider
-                                orientation="horizontal"
-                                flexItem
-                                variant="fullWidth"
+                        <IconButton onClick={() => setCctSelected(false)}>
+                            <ColorWheelIcon
+                                sx={{
+                                    width: '24px',
+                                    height: '24px',
+                                }}
                             />
-                            <IconButton onClick={() => setCctSelected(false)}>
-                                <ColorWheelIcon
-                                    sx={{
-                                        width: '24px',
-                                        height: '24px',
-                                    }}
-                                />
-                            </IconButton>
-                        </Box>
-                    )}
+                        </IconButton>
+                    </Box>
+                )}
 
-                    {hasViewSwitch && (
-                        <Box
-                            sx={{
-                                display: 'block',
-                            }}
-                        >
-                            <IconButton onClick={() => setCctSelected(true)}>
-                                <CctWhiteIcon
-                                    sx={{
-                                        width: '24px',
-                                        height: '24px',
-                                    }}
-                                />
-                            </IconButton>
-                        </Box>
-                    )}
-                </Box>
-            ) : null}
+                {hasViewSwitch && (
+                    <Box
+                        sx={{
+                            display: 'block',
+                        }}
+                    >
+                        <IconButton onClick={() => setCctSelected(true)}>
+                            <CctWhiteIcon
+                                sx={{
+                                    width: '24px',
+                                    height: '24px',
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
+                )}
+            </Box>
 
             <Divider
                 orientation="vertical"
@@ -242,31 +254,29 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
                     p: optionalNumber(rxData.colorLightPadding) ?? 0,
                 }}
             >
-                {Object.keys(values).length !== 0 &&
-                    measuredBox.width !== undefined &&
-                    rxData.colorLightType !== 'none' && (
-                        <>
-                            <LightPicker
-                                picker="main"
-                                ref={mainPickerRef}
-                                onColorInit={onColorInit}
-                                onInputChange={onInputChange}
-                                {...commonLightPickerProps}
-                            />
+                {Object.keys(values).length !== 0 && measuredBox.width !== undefined && (
+                    <>
+                        <LightPicker
+                            picker="main"
+                            ref={mainPickerRef}
+                            onColorInit={onColorInit}
+                            onInputChange={onInputChange}
+                            {...commonLightPickerProps}
+                        />
 
-                            {cctView && (
-                                <Box sx={{ ml: `${geometry.secondPickerOffset}px` }}>
-                                    <LightPicker
-                                        picker="brightness"
-                                        onColorInit={onColorInit}
-                                        onInputChange={onInputChange}
-                                        ref={brightnessPickerRef}
-                                        {...commonLightPickerProps}
-                                    />
-                                </Box>
-                            )}
-                        </>
-                    )}
+                        {cctView && (
+                            <Box sx={{ ml: `${geometry.secondPickerOffset}px` }}>
+                                <LightPicker
+                                    picker="brightness"
+                                    onColorInit={onColorInit}
+                                    onInputChange={onInputChange}
+                                    ref={brightnessPickerRef}
+                                    {...commonLightPickerProps}
+                                />
+                            </Box>
+                        )}
+                    </>
+                )}
             </Box>
         </CollectionBase>
     );
