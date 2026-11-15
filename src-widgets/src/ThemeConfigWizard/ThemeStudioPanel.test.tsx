@@ -69,12 +69,17 @@ const settle = async (): Promise<void> => {
     await nextFrame();
 };
 
-/** A socket whose state read never answers — the seed stays the draft (no rebase). */
+/**
+ * A socket whose state read never answers and whose state never changes — the seed stays the
+ * draft (no rebase).
+ */
 const fakeSocket = (): { socket: Connection; setState: ReturnType<typeof vi.fn> } => {
     const setState = vi.fn(() => Promise.resolve());
     const socket = {
         getState: () => new Promise(() => {}),
         setState,
+        subscribeState: () => Promise.resolve(),
+        unsubscribeState: () => {},
     } as unknown as Connection;
     return { socket, setState };
 };

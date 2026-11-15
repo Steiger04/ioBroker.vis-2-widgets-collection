@@ -21,11 +21,13 @@ import { renderComponent, type RenderComponentHandle } from '../lib/testing/test
 import ThemeWizardButton from './ThemeWizardButton';
 import { STUDIO_CONTAINER_ID, closeStudio, openStudio } from './studioHost';
 
-/** A socket whose state read never answers — the seed stays the draft. */
+/** A socket whose state read never answers and whose state never changes — the seed stays the draft. */
 const fakeSocket = (): Connection =>
     ({
         getState: () => new Promise(() => {}),
         setState: vi.fn(() => Promise.resolve()),
+        subscribeState: () => Promise.resolve(),
+        unsubscribeState: () => {},
     }) as unknown as Connection;
 
 /** Waits for the draft store's rAF flush. */
