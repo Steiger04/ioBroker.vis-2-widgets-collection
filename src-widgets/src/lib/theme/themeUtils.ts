@@ -44,8 +44,9 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
 /**
  * The single corner-radius ceiling shared by the studio sliders and the theme
  * schema. One constant, one truth: an
- * out-of-range radius is a validation ERROR and discards the whole theme at
- * load, so slider and schema must never drift apart (they once did: 32 vs. 64).
+ * out-of-range radius is a validation ERROR — it blocks Save, and a stored one
+ * falls away at load — so slider and schema must never drift apart (they once
+ * did: 32 vs. 64).
  */
 export const CORNER_RADIUS_MAX = 96;
 

@@ -1,13 +1,16 @@
 /**
- * validateThemeOptions — radius range boundaries.
+ * validateThemeOptions — radius range boundaries, and where an issue sits.
  *
  * @module lib/theme/validateTheme.test
  * @remarks
  * Guards the corner-radius ceiling: the slider
  * and the schema must share one limit, because an out-of-range value is an
- * ERROR and therefore discards the ENTIRE theme at load (`useCollectionTheme`
- * falls back to `{}`). The 96/97 literals come from the spec, not from the
+ * ERROR — it blocks Save in the studio, and a stored one falls away at load
+ * (`parseStoredTheme`). The 96/97 literals come from the spec, not from the
  * shared constant — the test must be able to disagree with the code.
+ *
+ * The issue location (`keys`) is what the stored-theme reader removes by, so it
+ * is pinned here next to the display path.
  */
 
 import { describe, expect, it } from 'vitest';

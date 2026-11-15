@@ -172,15 +172,58 @@ describe('useStudioSession seed and load', () => {
         expect(result.current.dirty).toBe(false);
     });
 
-    it('opens on the empty theme when the stored state is corrupt', async () => {
+    it.each([
+        ['corrupt', '{"palette":'],
+        ['unset', undefined],
+        ['empty', ''],
+        ['a list, not an object', '[1]'],
+        ['a text, not an object', '"dark"'],
+    ])('opens on the empty theme when the stored state is %s', async (_label, stored) => {
         setLastKnownTheme(null);
         const fake = fakeSocket();
         const { result } = start(fake.socket);
 
-        await fake.resolveState('{"palette":');
+        await fake.resolveState(stored);
 
         expect(result.current.loading).toBe(false);
         expect(result.current.draft).toEqual({});
+        expect(result.current.dirty).toBe(false);
+    });
+
+    // Rückfall-Regel (ADR-0115): an unusable value falls away, the rest holds.
+    it('opens with the rest of a stored theme when single values are unusable', async () => {
+        setLastKnownTheme(null);
+        const fake = fakeSocket();
+        const { result } = start(fake.socket);
+
+        await fake.resolveState('{"corners":{"topLeft":-1,"topRight":8},"palette":{"mode":"purple"},"spacing":4}');
+        settle();
+
+        const rest = { corners: { topRight: 8 }, spacing: 4 };
+        expect(result.current.draft).toEqual(rest);
+        // The rest is the session's baseline: nothing to save, nothing to undo.
+        expect(result.current.dirty).toBe(false);
+        expect(result.current.canUndo).toBe(false);
+        expect(result.current.validation.isValid).toBe(true);
+        expect(getLastKnownTheme()).toEqual(rest);
+        expect(getDraftTheme()).toEqual(rest);
+    });
+
+    it('opens a fully valid theme unchanged, with Google fonts, component overrides and CSS variables', async () => {
+        setLastKnownTheme(null);
+        const stored: UserTheme = {
+            palette: { mode: 'dark', primary: { main: '#ff0000' } },
+            cssVariables: { cssVarPrefix: 'my' },
+            components: { MuiButton: { defaultProps: { disableRipple: true } } },
+            googleFonts: { Lobster: [{ weight: 400, data: 'data:font/woff2;base64,AAAA' }] },
+        };
+        const fake = fakeSocket();
+        const { result } = start(fake.socket);
+
+        await fake.resolveState(JSON.stringify(stored));
+
+        expect(result.current.draft).toEqual(stored);
+        expect(result.current.dirty).toBe(false);
     });
 });
 
@@ -316,6 +359,24 @@ describe('useStudioSession save', () => {
         session = null;
         settle();
         expect(getDraftTheme()).toEqual({ ...SEED, spacing: 4 });
+    });
+
+    // Reading is tolerant (ADR-0115), saving is not: the check before the write stays as it was.
+    it('refuses to save a draft with an unusable value, although such a stored theme opens', async () => {
+        const fake = fakeSocket();
+        const handle = start(fake.socket);
+        act(() => handle.result.current.edit('corners.topLeft', -1));
+        expect(handle.result.current.dirty).toBe(true);
+        expect(handle.result.current.validation.isValid).toBe(false);
+        expect(handle.result.current.canSave).toBe(false);
+
+        let saved = true;
+        await act(async () => {
+            saved = await handle.result.current.save();
+        });
+
+        expect(saved).toBe(false);
+        expect(fake.setState).not.toHaveBeenCalled();
     });
 
     it('refuses to save a clean draft', async () => {

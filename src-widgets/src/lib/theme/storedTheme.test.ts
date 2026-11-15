@@ -2,27 +2,190 @@
  * parseStoredTheme — how the value of the theme state becomes a user theme.
  *
  * @module lib/theme/storedTheme.test
+ * @remarks
+ * Pins the Rückfall-Regel for the stored theme (ADR-0115): one unusable value falls away, the
+ * rest holds. That the canvas and the Theme Studio both read through this function is pinned
+ * in hooks/useCollectionTheme.hook.test.ts.
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { parseStoredTheme } from './storedTheme';
 
-describe('parseStoredTheme', () => {
+/** Reads a theme object the way it sits in the state: as JSON text. */
+const read = (theme: unknown): unknown => parseStoredTheme(JSON.stringify(theme));
+
+describe('parseStoredTheme: a usable theme', () => {
     it('reads a valid stored theme', () => {
         expect(parseStoredTheme('{"palette":{"primary":{"main":"#ff0000"}}}')).toEqual({
             palette: { primary: { main: '#ff0000' } },
         });
     });
 
+    it('reads Google fonts, component overrides and CSS variables unchanged', () => {
+        const stored = {
+            palette: { mode: 'dark', primary: { main: '#ff0000', light: '#ff8080' }, grey: { 500: '#808080' } },
+            typography: { fontFamily: '"Lobster", cursive', fontSize: 15, h1: { fontWeight: 700 } },
+            shape: { borderRadius: 12 },
+            corners: { topLeft: 12, topRight: 0, bottomRight: 12, bottomLeft: 0 },
+            spacing: 6,
+            cssVariables: { cssVarPrefix: 'my', disableCssColorScheme: true },
+            components: {
+                MuiButton: {
+                    defaultProps: { disableRipple: true },
+                    styleOverrides: { root: { textTransform: 'none', '&.Mui-disabled': { opacity: 0.4 } } },
+                },
+            },
+            googleFonts: {
+                Lobster: [
+                    { weight: 400, data: 'data:font/woff2;base64,AAAA' },
+                    { weight: 700, weightMax: 900, data: 'data:font/woff2;base64,BBBB' },
+                ],
+            },
+        };
+
+        expect(read(stored)).toEqual(stored);
+    });
+
+    it('keeps a key the schema does not know (a warning, not an unusable value)', () => {
+        expect(read({ spacing: 4, myOwnKey: { anything: true } })).toEqual({
+            spacing: 4,
+            myOwnKey: { anything: true },
+        });
+    });
+
+    it('keeps a branch that was stored empty', () => {
+        expect(read({ palette: {}, spacing: 4 })).toEqual({ palette: {}, spacing: 4 });
+    });
+});
+
+describe('parseStoredTheme: no theme at all', () => {
     it.each([
         ['an unset state', undefined],
+        ['a null value', null],
         ['an empty string', ''],
-        ['a non-string value', 42],
+        ['a value that is not text', 42],
         ['corrupt JSON', '{"palette":'],
-        // A range error (colour checks need CSS.supports, absent under node).
-        ['an invalid theme', '{"corners":{"topLeft":-1}}'],
-        ['a non-object theme', '[1]'],
-    ])('falls back to the empty theme for %s', (_label, raw) => {
+        ['JSON null', 'null'],
+        ['a JSON list', '[1]'],
+        ['a JSON text', '"dark"'],
+        ['a JSON number', '7'],
+    ])('reads %s as the empty theme', (_label, raw) => {
         expect(parseStoredTheme(raw)).toEqual({});
+    });
+});
+
+describe('parseStoredTheme: an unusable value falls away, the rest holds', () => {
+    it('drops a number outside its range', () => {
+        expect(read({ corners: { topLeft: -1, topRight: 8 }, spacing: 4 })).toEqual({
+            corners: { topRight: 8 },
+            spacing: 4,
+        });
+    });
+
+    it('drops a value that is not one of the allowed ones', () => {
+        expect(read({ palette: { mode: 'purple', primary: { main: '#ff0000' } } })).toEqual({
+            palette: { primary: { main: '#ff0000' } },
+        });
+    });
+
+    it('drops a value of the wrong type', () => {
+        expect(read({ typography: { fontFamily: 12, fontSize: 15 }, shape: 'round' })).toEqual({
+            typography: { fontSize: 15 },
+        });
+    });
+
+    it('drops every unusable value, wherever it sits', () => {
+        expect(
+            read({
+                palette: { mode: 'purple', contrastThreshold: 3 },
+                typography: { fontSize: 500, htmlFontSize: 16 },
+                shape: { borderRadius: 97 },
+                direction: 'up',
+                spacing: 4,
+            }),
+        ).toEqual({
+            palette: { contrastThreshold: 3 },
+            typography: { htmlFontSize: 16 },
+            spacing: 4,
+        });
+    });
+
+    it('leaves no empty branch behind', () => {
+        expect(read({ corners: { topLeft: -1 }, shape: { borderRadius: 97 }, spacing: 4 })).toEqual({ spacing: 4 });
+    });
+
+    it('reads a theme whose every value is unusable as the empty theme', () => {
+        expect(read({ corners: { topLeft: -1 }, direction: 'up' })).toEqual({});
+    });
+
+    it('finds a value below a key that contains a dot', () => {
+        expect(
+            read({
+                components: {
+                    MuiButton: { styleOverrides: { root: { '&.Mui-disabled': { color: null, opacity: 0.4 } } } },
+                },
+            }),
+        ).toEqual({
+            components: { MuiButton: { styleOverrides: { root: { '&.Mui-disabled': { opacity: 0.4 } } } } },
+        });
+    });
+});
+
+describe('parseStoredTheme: an unusable colour', () => {
+    // Colour checks ask the browser (absent under node): stand in one that rejects only "nope".
+    beforeEach(() => {
+        vi.stubGlobal('CSS', { supports: (_property: string, value?: string): boolean => value !== 'nope' });
+    });
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('drops the colour and keeps the colours next to it', () => {
+        expect(
+            read({
+                palette: {
+                    background: { paper: 'nope', default: '#101010' },
+                    divider: 'nope',
+                    primary: { main: '#ff0000' },
+                },
+            }),
+        ).toEqual({
+            palette: { background: { default: '#101010' }, primary: { main: '#ff0000' } },
+        });
+    });
+
+    // The validator names the slot, not the colour in it (a slot has alternative shapes).
+    it('drops an accent colour slot as a whole when one of its colours is unusable', () => {
+        expect(
+            read({ palette: { primary: { main: 'nope', light: '#ff8080' }, secondary: { main: '#00ff00' } } }),
+        ).toEqual({
+            palette: { secondary: { main: '#00ff00' } },
+        });
+    });
+});
+
+describe('parseStoredTheme: an unusable entry takes its list with it', () => {
+    it('drops the whole list, so no entry moves to another position', () => {
+        expect(read({ shadows: ['none', 5, '0 1px 2px #000'], spacing: 4 })).toEqual({ spacing: 4 });
+    });
+
+    it('drops a Google font with an unusable face and keeps the other fonts', () => {
+        expect(
+            read({
+                googleFonts: {
+                    Lobster: [
+                        { weight: 400, data: 'data:font/woff2;base64,AAAA' },
+                        { weight: 700, data: 7 },
+                    ],
+                    Pacifico: [{ weight: 400, data: 'data:font/woff2;base64,CCCC' }],
+                },
+            }),
+        ).toEqual({
+            googleFonts: { Pacifico: [{ weight: 400, data: 'data:font/woff2;base64,CCCC' }] },
+        });
+    });
+
+    it('drops a list with several unusable entries once', () => {
+        expect(read({ shadows: [1, 2], zIndex: { drawer: 1200 } })).toEqual({ zIndex: { drawer: 1200 } });
     });
 });

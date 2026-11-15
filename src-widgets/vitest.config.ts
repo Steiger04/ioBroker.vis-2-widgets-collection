@@ -23,6 +23,7 @@ const DOM_TS_TESTS = [
     'src/EchartsCollectionWidget/optionBuilder.test.ts',
     'src/EchartsCollectionWidget/useChartPipeline.hook.test.ts',
     'src/EchartsCollectionWidget/useHistory.test.ts',
+    'src/hooks/useCollectionTheme.hook.test.ts',
     'src/hooks/useData/useData.hook.test.ts',
     'src/hooks/useDebounce.hook.test.ts',
     'src/hooks/useFloatingPanel.test.ts',
