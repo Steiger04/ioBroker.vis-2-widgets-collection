@@ -6,9 +6,10 @@
  * ADR-0108 Nr. 1: the one place that knows the Kanäle of a Lichttyp. Per Lichttyp it declares
  * the colour model of the Hauptansicht (the `'color'` view), whether there is a CCT-Ansicht, and
  * through both the Kanäle of each view. dimmer is the Hauptansicht with the colour model
- * brightness — a deliberate widening of ADR-0108's colour view to the Hauptansicht (ADR-0116 Nr. 1). Per Kanal: the field, the picker property it is written from and read
- * into, whether the Hue-Skala may apply, the HSV change flag that gates its write, and — in the
- * CCT-Ansicht — whether the Kelvin- or the Helligkeits-Picker writes it. „& cct" is a property
+ * brightness — a deliberate widening of ADR-0108's colour view to the Hauptansicht (ADR-0116
+ * Nr. 1). Per Kanal: the field, the picker property it is written from and read into, whether
+ * the Hue-Skala may apply, the HSV change flag that gates its write, and — in the CCT-Ansicht —
+ * whether the Kelvin- or the Helligkeits-Picker writes it. „& cct" is a property
  * of a Lichttyp (its CCT-Ansicht), not a channel set of its own.
  *
  * Its consumers ask it: the editor `hidden` rules (`light2Fields`, field literals stay —
@@ -52,7 +53,7 @@ export interface Light2Channel {
     property: Light2PickerProperty;
     /** Percent Kanal: the Hue-Skala applies when its object's maximum is 254, else it is rounded. */
     hueScale: boolean;
-    /** Colour view of h/s/v: the Kanal is written only when the picker reports this component changed. */
+    /** Hauptansicht of h/s/v: the Kanal is written only when the picker reports this component changed. */
     changeFlag?: 'h' | 's' | 'v';
     /** CCT-Ansicht: the picker that writes the Kanal. */
     picker?: Light2CctPicker;
@@ -133,16 +134,17 @@ const LIGHT_TYPES: Record<Light2Type, LightTypeEntry> = {
 };
 
 /**
- * A Lichttyp the table does not know — a widget stored without the key: the widget shows the
- * colour picker without Kanäle (it only skips the pickers for `none`), so the editor shows the
- * picker settings and no Kanal field.
+ * A Lichttyp the table does not know: the table gives it the Hauptansicht with the colour picker
+ * and no Kanal, so the editor shows the picker settings and no Kanal field. The widget itself never
+ * draws for one: its reading drops an unknown select value as unusable (ADR-0114), so it reads the
+ * Lichttyp as unset — the default `none`.
  */
 const UNKNOWN_TYPE: LightTypeEntry & { unknown: true } = { cctView: false, unknown: true };
 
 const entryOf = (type: string | undefined): LightTypeEntry & { unknown?: true } =>
     type !== undefined && Object.hasOwn(LIGHT_TYPES, type) ? LIGHT_TYPES[type as Light2Type] : UNKNOWN_TYPE;
 
-/** The views the Lichttyp offers: the colour view first, then the CCT-Ansicht. */
+/** The views the Lichttyp offers: the Hauptansicht first, then the CCT-Ansicht. */
 export function viewsOf(type: string | undefined): Light2View[] {
     const entry = entryOf(type);
     const views: Light2View[] = [];
@@ -178,7 +180,7 @@ export const colorModelOf = (type: string | undefined): Light2ColorModel | undef
 export const drawsColorPicker = (type: string | undefined): boolean =>
     hasView(type, 'color') && !drawsOwnPicker(colorModelOf(type));
 
-/** Whether the Lichttyp switches between the colour view and the CCT-Ansicht („& cct"). */
+/** Whether the Lichttyp switches between the Hauptansicht and the CCT-Ansicht („& cct"). */
 export const offersViewSwitch = (type: string | undefined): boolean => viewsOf(type).length > 1;
 
 /** The Kanäle of the Lichttyp in the view, in write order — empty when the Lichttyp lacks the view. */

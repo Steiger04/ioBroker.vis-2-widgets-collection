@@ -137,8 +137,8 @@ function mainPickerBoundOf({ width, height }: ElementDimensions, sliderSize: num
 
 /**
  * What a picker kind draws: the iro layout of each picker, the `picker.resize()` target and the
- * gap. A kind is a UI component of the colour view, or the CCT-Ansicht or a colour model with a
- * rule of its own, which override it.
+ * gap. A kind is a UI component (the colour picker of the Hauptansicht), or the CCT-Ansicht or a
+ * colour model with a rule of its own, which override it.
  */
 interface PickerKindRule {
     /** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
@@ -209,7 +209,7 @@ const COLOR_MODEL_RULES: Record<Light2OwnPickerModel, PickerKindRule> = {
     },
 };
 
-/** The colour view per UI component (`colorLightUIComponent`). */
+/** The colour picker of the Hauptansicht per UI component (`colorLightUIComponent`). */
 const UI_COMPONENT_RULES: Record<NonNullable<PickerGeometryConfig['uiComponent']>, PickerKindRule> = {
     wheel: {
         layout: () => [
