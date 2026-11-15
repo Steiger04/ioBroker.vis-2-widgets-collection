@@ -156,12 +156,18 @@ describe('parseStoredTheme: an unusable colour', () => {
         });
     });
 
-    // The validator names the slot, not the colour in it (a slot has alternative shapes).
-    it('drops an accent colour slot as a whole when one of its colours is unusable', () => {
+    // Without its main colour the rest of a slot is none MUI can build.
+    it('drops an accent colour slot as a whole when its main colour is unusable', () => {
         expect(
             read({ palette: { primary: { main: 'nope', light: '#ff8080' }, secondary: { main: '#00ff00' } } }),
         ).toEqual({
             palette: { secondary: { main: '#00ff00' } },
+        });
+    });
+
+    it('drops only the unusable variant of an accent colour slot', () => {
+        expect(read({ palette: { primary: { main: '#ff0000', light: 'nope', dark: '#800000' } } })).toEqual({
+            palette: { primary: { main: '#ff0000', dark: '#800000' } },
         });
     });
 });
@@ -214,14 +220,25 @@ describe('parseStoredTheme: a colour the widgets cannot compute with', () => {
         expect(read(stored)).toEqual(stored);
     });
 
-    // The validator names the slot, not the colour in it (a slot has alternative shapes).
+    // What is left of the slot without that colour is none MUI can build.
     it.each([
         ['its main colour', { main: 'red' }],
-        ['a variant', { main: '#ff0000', light: 'red' }],
-        ['its contrast text', { main: '#ff0000', contrastText: 'white' }],
-        ['a shade', { 500: 'red' }],
+        ['its main colour, beside a usable variant', { main: 'red', light: '#ff8080' }],
+        ['its main shade', { 500: 'red' }],
+        ['its main shade, beside a usable shade', { 500: 'red', 300: '#ff8080' }],
     ])('drops an accent colour slot as a whole for %s', (_label, slot) => {
         expect(read(setNestedValue(REST, 'palette.primary', slot))).toEqual(REST);
+    });
+
+    it.each([
+        ['a variant', { main: '#ff0000', light: 'red' }, { main: '#ff0000' }],
+        ['its contrast text', { main: '#ff0000', contrastText: 'white' }, { main: '#ff0000' }],
+        ['two of its colours', { main: '#ff0000', light: 'red', dark: 'white' }, { main: '#ff0000' }],
+        ['a shade beside the main one', { 500: '#ff0000', 300: 'red' }, { 500: '#ff0000' }],
+    ])('drops only that colour of an accent colour slot for %s', (_label, slot, left) => {
+        expect(read(setNestedValue(REST, 'palette.primary', slot))).toEqual(
+            setNestedValue(REST, 'palette.primary', left),
+        );
     });
 });
 

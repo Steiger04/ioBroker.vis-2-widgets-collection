@@ -46,7 +46,16 @@ type SchemaNodeVariant =
     | { kind: 'boolean' }
     | { kind: 'color' }
     | { kind: 'literal'; values: readonly (string | number)[] }
-    | { kind: 'union'; options: SchemaNode[] }
+    | {
+          kind: 'union';
+          options: SchemaNode[];
+          /**
+           * `true`: a value that fits an option except for some of its parts is reported part
+           * by part, as long as the value without them fits that option. Left out where the
+           * parts of a value belong together, so that the value falls as a whole.
+           */
+          byPart?: boolean;
+      }
     | { kind: 'array'; items: SchemaNode }
     | {
           kind: 'record';
@@ -75,12 +84,14 @@ const cssObject: SchemaNode = { kind: 'cssObject', optional: true };
  * `PaletteColorOptions = SimplePaletteColorOptions | ColorPartial`.
  * `SimplePaletteColorOptions` requires `main`; `ColorPartial` is a record of
  * shade keys (50…900, A100…) each holding a color. MUI builds the slot from `main`, or from the
- * shade it takes for it; a slot with neither makes `createTheme` throw.
+ * shade it takes for it; a slot with neither makes `createTheme` throw. The other colours of a
+ * slot stand for themselves: an unusable one is reported — and falls away — alone.
  * @param mainShade - The shade MUI takes for `main` in this slot (`createPalette`).
  */
 const paletteColor = (mainShade: string): SchemaNode => ({
     kind: 'union',
     optional: true,
+    byPart: true,
     options: [
         {
             kind: 'object',

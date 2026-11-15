@@ -146,7 +146,7 @@ function validateNode(value: unknown, schema: SchemaNode, keys: ThemeValueKeys, 
             }
             break;
         case 'union':
-            validateUnionValue(value, schema.options, keys, issues);
+            validateUnionValue(value, schema, keys, issues);
             break;
         case 'array':
             validateArrayValue(value, schema.items, keys, issues);
@@ -263,22 +263,53 @@ function reportMissing(keys: ThemeValueKeys, issues: ThemeValidationIssue[]): vo
 }
 
 /**
+ * A value without the values at `paths` (keys from the value on), and without every branch
+ * that leaves empty; `undefined` when nothing is left, or when a path leads through a list
+ * (positions carry meaning there).
+ */
+function withoutValues(value: unknown, paths: ThemeValueKeys[]): Record<string, unknown> | undefined {
+    if (!isPlainObject(value)) {
+        return undefined;
+    }
+    const rest = { ...value };
+    for (const [key, ...below] of paths) {
+        if (typeof key === 'number' || !(key in rest)) {
+            return undefined;
+        }
+        const child = below.length ? withoutValues(rest[key], [below]) : undefined;
+        if (child) {
+            rest[key] = child;
+        } else {
+            delete rest[key];
+        }
+    }
+    return Object.keys(rest).length ? rest : undefined;
+}
+
+type UnionSchema = Extract<SchemaNode, { kind: 'union' }>;
+
+/**
  * Validates a `union` schema node: accepts the first option that produces no
  * new errors, keeping its warnings; otherwise reports the value as a whole.
  *
  * @remarks
- * The error is a generic type error — unless an option broke on nothing but a colour MUI
- * cannot compute with (a colour slot whose `main` is a colour name): then it keeps that code,
- * so a reader of the slot's error still learns what to change.
+ * - The error is a generic type error — unless an option broke on nothing but a colour MUI
+ *   cannot compute with (a colour slot whose `main` is a colour name): then it keeps that
+ *   code, so a reader of the slot's error still learns what to change.
+ * - A union that is checked part by part ({@link UnionSchema.byPart}) reports the errors of the
+ *   first option the value fits once the values at these errors are taken out — the parts that
+ *   broke it, not the value: what reads the stored theme then drops the parts and keeps the rest
+ *   ({@link module:lib/theme/storedTheme}).
  */
 function validateUnionValue(
     value: unknown,
-    options: SchemaNode[],
+    schema: UnionSchema,
     keys: ThemeValueKeys,
     issues: ThemeValidationIssue[],
 ): void {
     let uncomputableOnly = false;
-    for (const option of options) {
+    let partwise: ThemeValidationIssue[] | undefined;
+    for (const option of schema.options) {
         const trial: ThemeValidationIssue[] = [];
         validateNode(value, option, keys, trial);
         const errors = trial.filter(issue => issue.severity === 'error');
@@ -287,6 +318,21 @@ function validateUnionValue(
             return;
         }
         uncomputableOnly ||= errors.every(error => error.code === 'uncomputable-color');
+        if (schema.byPart && !partwise && errors.every(error => (error.keys?.length ?? 0) > keys.length)) {
+            const rest = withoutValues(
+                value,
+                errors.map(error => (error.keys ?? []).slice(keys.length)),
+            );
+            const left: ThemeValidationIssue[] = [];
+            if (rest) {
+                validateNode(rest, option, keys, left);
+                partwise = left.some(issue => issue.severity === 'error') ? undefined : trial;
+            }
+        }
+    }
+    if (partwise) {
+        issues.push(...partwise);
+        return;
     }
     reportTypeError(
         keys,

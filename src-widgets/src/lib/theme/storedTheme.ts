@@ -14,8 +14,10 @@
  * Reading follows the Rückfall-Regel (ADR-0115): an unusable value falls away, the rest holds.
  * "One value" is the smallest value the validator names in an error:
  * - a single setting (a number out of range, a wrong type, a value that is not allowed);
- * - a setting with alternative shapes as a whole (a colour slot, `spacing`, `cssVariables`) —
- *   the validator reports the setting, not the part that broke it;
+ * - a setting with alternative shapes as a whole (`spacing`, `cssVariables`) — the validator
+ *   reports the setting, not the part that broke it;
+ * - of an accent colour slot (`palette.primary` …) the one colour that is unusable, as long as
+ *   the slot holds without it — without its main colour it does not, and falls as a whole;
  * - for an entry of a list, the whole list: positions carry meaning (`shadows` by elevation, the
  *   faces of a Google font), so removing one entry would shift or thin out the others.
  *

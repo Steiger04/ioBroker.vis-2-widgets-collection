@@ -450,11 +450,19 @@ describe('ThemeStudioPanel field errors', () => {
         );
 
     it("shows a broken slot's error at its colour field, not in the bottom alert", async () => {
-        // `dark` is no colour → neither union option fits → one type error at `palette.primary`.
-        await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
+        // Without a usable `main` neither shape of the slot fits → one error at `palette.primary`.
+        await mountPanel({ palette: { primary: { main: 'red', dark: '#800000' } } });
         await expandColorSections();
         expect(fieldsWithError()).toEqual(['theme_wizard_palette_primary']);
         expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
+    });
+
+    it('shows the error of a slot colour that has no field in the bottom alert', async () => {
+        // `dark` is no colour, the rest of the slot holds → the error names `palette.primary.dark`.
+        await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
+        await expandColorSections();
+        expect(fieldsWithError()).toEqual([]);
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).not.toBeNull();
     });
 
     it('reports the CSS variables prefix mui, reserved by the vis-2 editor, at the prefix field', async () => {

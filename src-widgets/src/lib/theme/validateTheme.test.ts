@@ -71,11 +71,12 @@ describe('validateThemeOptions: a colour of the palette', () => {
         ]);
     });
 
-    // A slot has alternative shapes, so its error names the slot; the code still says why.
+    // A slot has alternative shapes. Without its main colour none of them is left, so the error
+    // names the slot; the code still says why.
     it.each([
-        ['its main colour', { main: 'transparent' }],
-        ['a variant', { main: '#ff0000', dark: 'red' }],
-    ])('reports an accent slot with such a colour as %s as the slot, and says why', (_label, slot) => {
+        ['alone', { main: 'transparent' }],
+        ['beside a usable variant', { main: 'transparent', dark: '#800000' }],
+    ])('reports an accent slot with such a colour as its main colour, %s, as the slot', (_label, slot) => {
         expect(validateThemeOptions({ palette: { primary: slot } }).issues).toEqual([
             expect.objectContaining({
                 path: 'palette.primary',
@@ -84,6 +85,33 @@ describe('validateThemeOptions: a colour of the palette', () => {
                 code: 'uncomputable-color',
             }),
         ]);
+    });
+
+    // The rest of the slot is usable by itself: the error names the colour that is not.
+    it.each([
+        ['a variant', { main: '#ff0000', dark: 'red' }, ['dark']],
+        ['its contrast text', { main: '#ff0000', contrastText: 'white' }, ['contrastText']],
+        ['two variants', { main: '#ff0000', light: 'red', dark: 'white' }, ['light', 'dark']],
+        ['a shade beside the main one', { 500: '#ff0000', 700: 'red' }, ['700']],
+    ])('reports such a colour as %s of an accent slot at the colour', (_label, slot, broken) => {
+        expect(validateThemeOptions({ palette: { primary: slot } }).issues).toEqual(
+            broken.map(key =>
+                expect.objectContaining({
+                    path: `palette.primary.${key}`,
+                    keys: ['palette', 'primary', key],
+                    severity: 'error',
+                    code: 'uncomputable-color',
+                }),
+            ),
+        );
+    });
+
+    it('keeps reporting a setting with alternative shapes as a whole where its parts belong together', () => {
+        const issues = validateThemeOptions({
+            cssVariables: { cssVarPrefix: 'mine', colorSchemeSelector: 5 },
+        }).issues.filter(issue => issue.severity === 'error');
+
+        expect(issues).toEqual([expect.objectContaining({ path: 'cssVariables', code: 'invalid-type' })]);
     });
 
     it('keeps the wrong-type code for a slot whose colour is none to the browser', () => {

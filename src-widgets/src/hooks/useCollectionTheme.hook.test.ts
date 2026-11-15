@@ -229,7 +229,7 @@ describe('useCollectionTheme: a stored colour the widgets cannot compute with', 
         createElement(TableBody, null, createElement(TableRow, null, createElement(TableCell, null, 'x'))),
     );
 
-    it.each<[string, object, ReactElement]>([
+    it.each<[string, object, ReactElement, object?]>([
         ['text.primary', { text: { primary: 'white' } }, createElement(Button, { color: 'inherit' }, 'x')],
         ['text.secondary', { text: { secondary: 'white' } }, createElement(Link, { color: 'textSecondary' }, 'x')],
         ['background.default', { background: { default: 'white' } }, createElement(SnackbarContent, { message: 'x' })],
@@ -242,14 +242,20 @@ describe('useCollectionTheme: a stored colour the widgets cannot compute with', 
             'primary.contrastText',
             { primary: { main: '#1976d2', contrastText: 'white' } },
             createElement(Chip, { label: 'x', color: 'primary', onDelete: () => undefined }),
+            { primary: { main: '#1976d2' } },
         ],
-        ['error.light', { error: { main: '#d32f2f', light: 'red' } }, createElement(Alert, { severity: 'error' }, 'x')],
+        [
+            'error.light',
+            { error: { main: '#d32f2f', light: 'red' } },
+            createElement(Alert, { severity: 'error' }, 'x'),
+            { error: { main: '#d32f2f' } },
+        ],
         ['primary.main', { primary: { main: 'red' } }, createElement(Button, null, 'x')],
-    ])('renders a component that computes with palette.%s', async (_path, palette, element) => {
+    ])('renders a component that computes with palette.%s', async (_path, palette, element, left) => {
         const theme = await renderOver(palette, element);
 
-        // The value fell away, the rest of the stored theme holds.
-        expect(theme).toBe(resolveCollectionTheme(HOST, undefined, { spacing: 6 }));
+        // The value fell away, the rest of the stored theme holds — also the rest of its slot.
+        expect(theme).toBe(resolveCollectionTheme(HOST, undefined, { spacing: 6, ...(left && { palette: left }) }));
     });
 });
 
