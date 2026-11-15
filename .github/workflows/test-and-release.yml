@@ -108,12 +108,13 @@ jobs:
                   build: true
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    # Syncs documentation to GitHub Wiki independently (runs on main pushes and tags)
+    # Syncs documentation to GitHub Wiki independently (runs on main pushes only)
     sync-wiki:
-        # Trigger this step on main branch pushes and tagged releases
+        # Only on main: a release pushes main and its tag at once, and two syncs in parallel
+        # race for the wiki ref ("cannot lock ref"); the tag run carries the same commit
         if: |
             contains(github.event.head_commit.message, '[skip ci]') == false &&
             github.event_name == 'push' &&
-            (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+            github.ref == 'refs/heads/main'
 
         uses: ./.github/workflows/sync-wiki.yml
