@@ -112,8 +112,8 @@ If you had the theme changed several times, undo can trigger an earlier change a
 If the server does not answer for ten seconds, or reading or writing the theme fails, the order stays on the view and shows the hint "The theme change was not confirmed. Delete this widget and try again." in the editor.
 
 - **Late answer:** if the answer comes after all, it counts: the change is completed, order and hint disappear.
-- **Delete and repeat:** otherwise select the order, delete it and ask the assistant again. If the write was already on its way, the change can still arrive; check the theme.
-- **Waiting orders:** further orders wait behind an order without an answer and then show the same hint.
+- **Delete and repeat:** otherwise select the order, delete it and ask the assistant again. If the write was already on its way, the change can still arrive, and the new order waits for that answer first; check the theme.
+- **Waiting orders:** further orders wait behind an order without an answer and then show the same hint. Once you delete it, they move up.
 
 ### Theme through an External MCP Client
 

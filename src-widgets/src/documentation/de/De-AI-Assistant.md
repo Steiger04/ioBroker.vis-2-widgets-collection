@@ -112,8 +112,8 @@ Hast du das Theme mehrmals ändern lassen, kann Rückgängig eine frühere Ände
 Antwortet der Server zehn Sekunden lang nicht oder scheitert das Lesen oder Schreiben des Themes, bleibt der Auftrag auf der View stehen und zeigt im Editor den Hinweis „Die Theme-Änderung wurde nicht bestätigt. Dieses Widget löschen und erneut versuchen.“
 
 - **Späte Antwort:** Kommt die Antwort doch noch, gilt sie: Die Änderung wird abgeschlossen, Auftrag und Hinweis verschwinden.
-- **Löschen und wiederholen:** Sonst wähle den Auftrag an, lösche ihn und bitte den Assistenten erneut. War das Schreiben schon unterwegs, kann die Änderung trotzdem ankommen; prüfe das Theme.
-- **Wartende Aufträge:** Weitere Aufträge warten hinter einem Auftrag ohne Antwort und zeigen dann denselben Hinweis.
+- **Löschen und wiederholen:** Sonst wähle den Auftrag an, lösche ihn und bitte den Assistenten erneut. War das Schreiben schon unterwegs, kann die Änderung trotzdem ankommen, und der neue Auftrag wartet diese Antwort noch ab; prüfe das Theme.
+- **Wartende Aufträge:** Weitere Aufträge warten hinter einem Auftrag ohne Antwort und zeigen dann denselben Hinweis. Löschst du ihn, rücken sie nach.
 
 ### Theme über einen externen MCP-Client
 
