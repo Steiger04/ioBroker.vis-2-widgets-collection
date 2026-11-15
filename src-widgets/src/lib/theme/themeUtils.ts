@@ -18,11 +18,27 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** The keys of an object that hold a value: what its JSON text would list. */
+const heldKeys = (obj: Record<string, unknown>): string[] => Object.keys(obj).filter(key => obj[key] !== undefined);
+
+/** Content equality of two JSON values; the sequence counts in a list, not among the keys of an object. */
+function sameValue(a: unknown, b: unknown): boolean {
+    if (isPlainObject(a) && isPlainObject(b)) {
+        const keys = heldKeys(a);
+        return keys.length === heldKeys(b).length && keys.every(key => sameValue(a[key], b[key]));
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+        return a.length === b.length && a.every((one, index) => sameValue(one, b[index]));
+    }
+    return a === b;
+}
+
 /**
  * Content equality of two themes (themes are plain JSON objects): the one notion of "the same
  * theme" — whether the studio's draft is changed, and whether a Theme-Auftrag has to write.
+ * The sequence of the keys does not count: a theme written by hand lists them in its own.
  */
-export const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
+export const sameTheme = (a: UserTheme, b: UserTheme): boolean => sameValue(a, b);
 
 /**
  * Reads a deeply nested value by dot-separated path.

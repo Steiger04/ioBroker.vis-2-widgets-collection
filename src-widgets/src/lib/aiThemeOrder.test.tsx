@@ -729,6 +729,20 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             expect(server.received()).toEqual({ reads: 2, writes: 1 });
             expect(unstamped(editor.project())).toEqual(planProject());
         });
+
+        // A theme written by hand, or by another tool, lists the same values in its own sequence.
+        it('writes nothing where the stored theme holds its values in another sequence', async () => {
+            const stored = JSON.stringify({
+                corners: { bottomLeft: 8, topLeft: 8, bottomRight: 8, topRight: 8 },
+                shape: { borderRadius: 8 },
+            });
+            const { server, editor } = placeOrder({ cornerRadius: 8 }, { stored });
+            await settle(server);
+
+            expect(server.valueOf(THEME_STATE_ID)).toBe(stored);
+            expect(server.received()).toEqual({ reads: 1, writes: 0 });
+            expect(unstamped(editor.project())).toEqual(planProject());
+        });
     });
 
     describe('what the KI-Leitfaden tells the assistant', () => {

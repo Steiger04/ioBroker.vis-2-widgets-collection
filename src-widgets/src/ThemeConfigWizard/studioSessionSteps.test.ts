@@ -46,6 +46,21 @@ describe('isDirty', () => {
         expect(isDirty({ palette: { primary: { main: '#ff0000' } } }, SEED)).toBe(false);
     });
 
+    it('is clean when the draft holds the values of the snapshot in another sequence', () => {
+        const draft = { spacing: 4, corners: { topLeft: 8, topRight: 8, bottomRight: 8, bottomLeft: 8 } };
+        const snapshot = { corners: { bottomLeft: 8, bottomRight: 8, topLeft: 8, topRight: 8 }, spacing: 4 };
+
+        expect(isDirty(draft, snapshot)).toBe(false);
+    });
+
+    it('is dirty when a list of the draft holds its entries in another sequence', () => {
+        // Shortened lists: the type asks for all 25 shadows.
+        const draft = { shadows: ['none', '0 1px 2px #000'] } as unknown as UserTheme;
+        const snapshot = { shadows: ['0 1px 2px #000', 'none'] } as unknown as UserTheme;
+
+        expect(isDirty(draft, snapshot)).toBe(true);
+    });
+
     it('is dirty when the draft differs from the snapshot', () => {
         expect(isDirty({}, SEED)).toBe(true);
     });
