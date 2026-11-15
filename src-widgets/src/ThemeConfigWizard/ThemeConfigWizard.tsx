@@ -17,7 +17,7 @@
  * Placed on a view — only the vis-2 assistant can do that, the palette offers no entry to drag —
  * the type is a Theme-Auftrag (ADR-0115): a one-time order to change that same stored theme.
  * - The assistant reads the type's short description, its KI-Leitfaden and its fields, all
- *   hidden from the attribute panel ({@link module:lib/themeOrderFields}).
+ *   hidden from the attribute panel ({@link module:ThemeConfigWizard/themeOrderFields}).
  * - Mounted in the editing editor, the widget takes up its order: its data is worked into the
  *   stored theme and it is removed from the project. The course — one order after the other,
  *   never twice at once, however often the host mounts the widget — is owned by
@@ -38,8 +38,8 @@ import type { RxWidgetInfo, VisRxWidgetState } from '@iobroker/types-vis-2';
 import type { VisRxWidgetProps } from '@iobroker/types-vis-2/visRxWidget';
 import Generic from '../Generic';
 import { alwaysHidden, createAiGuideField } from '../lib/fieldFactories';
-import themeOrderFields from '../lib/themeOrderFields';
 import { projectWithoutWidget, takeUpThemeOrder, type ThemeOrderSeat } from './carryOutThemeOrder';
+import themeOrderFields from './themeOrderFields';
 import ThemeWizardButton from './ThemeWizardButton';
 
 /**

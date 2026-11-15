@@ -6,7 +6,7 @@
  * A Theme-Auftrag is the one-time instruction of the Bauzeit-KI to change the user theme. It
  * names only what should change and is worked into the stored theme: what it does not name
  * stays. This module is the one list of what an order can name ({@link THEME_ORDER_SETTINGS})
- * — the fields the assistant fills are built from it ({@link module:lib/themeOrderFields}) —
+ * — the fields the assistant fills are built from it ({@link module:ThemeConfigWizard/themeOrderFields}) —
  * and the pure step from a theme and an order's data to the next theme
  * ({@link applyThemeOrder}). When an order is carried out, and what happens to it afterwards,
  * is not decided here ({@link module:ThemeConfigWizard/carryOutThemeOrder}).

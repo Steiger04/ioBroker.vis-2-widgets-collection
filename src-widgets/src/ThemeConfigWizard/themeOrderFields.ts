@@ -1,7 +1,7 @@
 /**
  * vis-2 field generator for the settings of a Theme-Auftrag (ADR-0115).
  *
- * @module lib/themeOrderFields
+ * @module ThemeConfigWizard/themeOrderFields
  * @remarks
  * The fields are what the vis-2 assistant reads of a Theme-Auftrag in the type description:
  * name, type, label and the values to pick from. No person edits them — every field is hidden
@@ -14,8 +14,8 @@
  * host's plain kinds (`checkbox`, `select`, `color`, `number`): the kind is all the type
  * description tells the assistant besides the label, and no editing row is ever drawn.
  */
-import { alwaysHidden } from './fieldFactories';
-import { THEME_ORDER_SETTINGS } from '../ThemeConfigWizard/themeOrder';
+import { alwaysHidden } from '../lib/fieldFactories';
+import { THEME_ORDER_SETTINGS } from './themeOrder';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
