@@ -152,7 +152,7 @@ function validateNode(value: unknown, schema: SchemaNode, keys: ThemeValueKeys, 
             validateArrayValue(value, schema.items, keys, issues);
             break;
         case 'record':
-            validateRecordValue(value, schema.values, keys, issues);
+            validateRecordValue(value, schema, keys, issues);
             break;
         case 'cssObject':
             validateCssObjectValue(value, keys, issues);
@@ -210,14 +210,7 @@ function validateObjectValue(
     // Required known properties that are missing.
     for (const [key, childSchema] of Object.entries(schema.properties)) {
         if (childSchema.required && !(key in value)) {
-            const childKeys = [...keys, key];
-            const childPath = formatPath(childKeys);
-            issues.push({
-                path: childPath,
-                keys: childKeys,
-                severity: 'error',
-                message: `Missing required option "${childPath}".`,
-            });
+            reportMissing([...keys, key], issues);
         }
     }
 }
@@ -263,12 +256,18 @@ function validateNumberValue(
     }
 }
 
+/** Reports an option that has to be there and is not. */
+function reportMissing(keys: ThemeValueKeys, issues: ThemeValidationIssue[]): void {
+    const path = formatPath(keys);
+    issues.push({ path, keys, severity: 'error', message: `Missing required option "${path}".` });
+}
+
 /**
  * Validates a `union` schema node: accepts the first option that produces no
  * new errors, keeping its warnings; otherwise reports the value as a whole.
  *
  * @remarks
- * The error is a generic type error — unless every option broke on nothing but a colour MUI
+ * The error is a generic type error — unless an option broke on nothing but a colour MUI
  * cannot compute with (a colour slot whose `main` is a colour name): then it keeps that code,
  * so a reader of the slot's error still learns what to change.
  */
@@ -278,7 +277,7 @@ function validateUnionValue(
     keys: ThemeValueKeys,
     issues: ThemeValidationIssue[],
 ): void {
-    let uncomputableOnly = true;
+    let uncomputableOnly = false;
     for (const option of options) {
         const trial: ThemeValidationIssue[] = [];
         validateNode(value, option, keys, trial);
@@ -287,7 +286,7 @@ function validateUnionValue(
             issues.push(...trial);
             return;
         }
-        uncomputableOnly &&= errors.every(error => error.code === 'uncomputable-color');
+        uncomputableOnly ||= errors.every(error => error.code === 'uncomputable-color');
     }
     reportTypeError(
         keys,
@@ -314,10 +313,15 @@ function validateArrayValue(
     });
 }
 
-/** Validates a `record` schema node: every entry must match the `values` schema. */
+type RecordSchema = Extract<SchemaNode, { kind: 'record' }>;
+
+/**
+ * Validates a `record` schema node: every entry must match the `values` schema, and the key
+ * the record needs must be there.
+ */
 function validateRecordValue(
     value: unknown,
-    valuesSchema: SchemaNode,
+    schema: RecordSchema,
     keys: ThemeValueKeys,
     issues: ThemeValidationIssue[],
 ): void {
@@ -326,7 +330,10 @@ function validateRecordValue(
         return;
     }
     for (const key of Object.keys(value)) {
-        validateNode(value[key], valuesSchema, [...keys, key], issues);
+        validateNode(value[key], schema.values, [...keys, key], issues);
+    }
+    if (schema.needs !== undefined && !(schema.needs in value)) {
+        reportMissing([...keys, schema.needs], issues);
     }
 }
 

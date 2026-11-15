@@ -225,6 +225,17 @@ describe('parseStoredTheme: a colour the widgets cannot compute with', () => {
     });
 });
 
+describe('parseStoredTheme: an accent colour MUI cannot build', () => {
+    const REST: UserTheme = { palette: { mode: 'dark' }, spacing: 6 };
+
+    it.each([
+        ['only variants', { light: '#ffaaaa' }],
+        ['shades without the main one', { 300: '#ffaaaa' }],
+    ])('drops a slot that holds %s', (_label, slot) => {
+        expect(read(setNestedValue(REST, 'palette.primary', slot))).toEqual(REST);
+    });
+});
+
 describe('parseStoredTheme: an unusable entry takes its list with it', () => {
     it('drops the whole list, so no entry moves to another position', () => {
         expect(read({ shadows: ['none', 5, '0 1px 2px #000'], spacing: 4 })).toEqual({ spacing: 4 });

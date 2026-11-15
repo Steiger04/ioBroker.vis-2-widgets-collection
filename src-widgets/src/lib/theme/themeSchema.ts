@@ -48,7 +48,12 @@ type SchemaNodeVariant =
     | { kind: 'literal'; values: readonly (string | number)[] }
     | { kind: 'union'; options: SchemaNode[] }
     | { kind: 'array'; items: SchemaNode }
-    | { kind: 'record'; values: SchemaNode }
+    | {
+          kind: 'record';
+          values: SchemaNode;
+          /** A key the record has to hold. */
+          needs?: string;
+      }
     | { kind: 'cssObject' };
 
 /** One node in the validation schema tree. */
@@ -69,9 +74,11 @@ const cssObject: SchemaNode = { kind: 'cssObject', optional: true };
  * @remarks
  * `PaletteColorOptions = SimplePaletteColorOptions | ColorPartial`.
  * `SimplePaletteColorOptions` requires `main`; `ColorPartial` is a record of
- * shade keys (50…900, A100…) each holding a color.
+ * shade keys (50…900, A100…) each holding a color. MUI builds the slot from `main`, or from the
+ * shade it takes for it; a slot with neither makes `createTheme` throw.
+ * @param mainShade - The shade MUI takes for `main` in this slot (`createPalette`).
  */
-const paletteColor: SchemaNode = {
+const paletteColor = (mainShade: string): SchemaNode => ({
     kind: 'union',
     optional: true,
     options: [
@@ -86,9 +93,9 @@ const paletteColor: SchemaNode = {
                 contrastText: color,
             },
         },
-        { kind: 'record', optional: true, values: color },
+        { kind: 'record', optional: true, values: color, needs: mainShade },
     ],
-};
+});
 
 /** The `palette` branch of `ThemeOptions`. */
 const paletteSchema: SchemaNode = {
@@ -97,12 +104,12 @@ const paletteSchema: SchemaNode = {
     allowUnknown: 'warn',
     properties: {
         mode: { kind: 'literal', values: THEME_MODES, optional: true },
-        primary: paletteColor,
-        secondary: paletteColor,
-        error: paletteColor,
-        warning: paletteColor,
-        info: paletteColor,
-        success: paletteColor,
+        primary: paletteColor('500'),
+        secondary: paletteColor('A400'),
+        error: paletteColor('500'),
+        warning: paletteColor('500'),
+        info: paletteColor('500'),
+        success: paletteColor('500'),
         text: {
             kind: 'object',
             optional: true,

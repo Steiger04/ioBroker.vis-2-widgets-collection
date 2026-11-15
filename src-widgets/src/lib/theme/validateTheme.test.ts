@@ -13,6 +13,7 @@
  * is pinned here next to the display path.
  */
 
+import { createTheme } from '@mui/material/styles';
 import { describe, expect, it, vi } from 'vitest';
 
 import { validateThemeOptions } from './validateTheme';
@@ -100,6 +101,28 @@ describe('validateThemeOptions: a colour of the palette', () => {
         expect(validateThemeOptions({ palette: { primary: { main: 'red', light: 5 } } }).issues).toEqual([
             expect.objectContaining({ path: 'palette.primary', code: 'invalid-type' }),
         ]);
+    });
+
+    // MUI builds an accent from its `main`, or from the shade it takes for it; without either,
+    // `createTheme` throws.
+    it.each<[string, string, Record<string, string>]>([
+        ['only variants', 'primary', { light: '#ffaaaa', dark: '#aa0000' }],
+        ['shades without the main one', 'primary', { 300: '#ffaaaa', 700: '#aa0000' }],
+        ['the main shade of the other accents', 'secondary', { 500: '#ff0000' }],
+    ])('rejects an accent slot that holds %s', (_label, name, slot) => {
+        expect(() => createTheme({ palette: { [name]: slot } })).toThrow();
+        expect(validateThemeOptions({ palette: { [name]: slot } }).issues).toEqual([
+            expect.objectContaining({ path: `palette.${name}`, severity: 'error', code: 'invalid-type' }),
+        ]);
+    });
+
+    it.each<[string, string, Record<string, string>]>([
+        ['its main shade', 'primary', { 500: '#ff0000', 300: '#ffaaaa' }],
+        ['its main shade, which differs for secondary', 'secondary', { A400: '#ff0000' }],
+    ])('accepts an accent slot that holds %s', (_label, name, slot) => {
+        const palette = { [name]: slot };
+        expect(() => createTheme({ palette })).not.toThrow();
+        expect(validateThemeOptions({ palette })).toEqual({ isValid: true, theme: { palette }, issues: [] });
     });
 
     it('accepts hex, rgb(), hsl() and color()', () => {
