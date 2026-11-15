@@ -388,7 +388,7 @@ const GRADIENT_RE = /\b(?:linear|radial|conic)-gradient\b/i;
  * which accept gradients for widget backgrounds; only the browser check itself is shared
  * (`supportsCssColor`), the fallback without it stays permissive.
  */
-export function isValidCssColor(value: unknown): value is string {
+function isValidCssColor(value: unknown): value is string {
     if (typeof value !== 'string') {
         return false;
     }

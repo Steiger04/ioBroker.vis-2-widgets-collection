@@ -23,9 +23,9 @@
  * - **Rückfall-Regel.** A value that cannot be used is skipped, the rest holds. A setting reads
  *   the form of its value (a catalogue name, a number); whether the resulting theme is usable is
  *   decided by the theme validator ({@link module:lib/theme/validateTheme.validateThemeOptions}),
- *   as it is when the stored theme is read ({@link module:lib/theme/storedTheme}). A colour has
- *   to pass what the studio demands before it saves as well: no colour MUI cannot compute with
- *   where it has to ({@link module:ThemeConfigWizard/studioSessionSteps.uncomputableColorIssues}).
+ *   as it is when the stored theme is read ({@link module:lib/theme/storedTheme}) and when the
+ *   studio saves — so an order writes no colour the widgets cannot compute with, in any of the
+ *   colour settings.
  * - **Repeatable.** The same order on the same theme yields the same theme, and on its own
  *   result changes nothing.
  * - Not in the list, and so never touched without a reset: Google fonts, component overrides,
@@ -38,7 +38,6 @@ import type { UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
-import { uncomputableColorIssues } from './studioSessionSteps';
 
 /** How the assistant fills a setting: the kind of field, and for a selection its values. */
 export type ThemeOrderInput =
@@ -124,11 +123,7 @@ export const THEME_ORDER_SETTINGS: readonly ThemeOrderSetting[] = [
         name: colorSettingName(field.path),
         labelKey: field.labelKey,
         input: { type: 'color' },
-        apply: (theme, value) => {
-            const next = setNestedValue(theme, field.path, value);
-            // What the studio refuses to save, an order does not write: the canvas would drop it.
-            return uncomputableColorIssues(next).some(issue => issue.path === field.path) ? undefined : next;
-        },
+        apply: (theme, value) => setNestedValue(theme, field.path, value),
     })),
     {
         name: 'fontFamily',

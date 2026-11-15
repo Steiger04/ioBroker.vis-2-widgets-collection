@@ -82,16 +82,6 @@ export const COLLECTION_CSS_VAR_PREFIX = 'vis2c';
 /** The CSS-variables prefix the host editor owns (`--mui-*`): the collection never emits it. */
 export const HOST_CSS_VAR_PREFIX = 'mui';
 
-/** Palette slots MUI augments: their `main` feeds lighten/darken/getContrastText. */
-export const AUGMENTED_SLOTS: ReadonlySet<string> = new Set([
-    'primary',
-    'secondary',
-    'error',
-    'warning',
-    'info',
-    'success',
-]);
-
 /**
  * Reduces the host theme to the DNA the collection may inherit (allowlist, ADR-0078).
  *

@@ -610,13 +610,22 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             });
         });
 
-        // MUI computes with the text colour as well (alpha on hover): a colour name stored there
-        // took the widgets down, so the theme carries none and the Theme Studio saves none.
-        it('skips a colour name in a text colour, as the Theme Studio refuses to save one', async () => {
-            expect(await themeAfter({ [textColour()]: 'white', mode: 'dark' })).toEqual(
-                withValue(STORED, 'palette.mode', 'dark'),
-            );
-        });
+        // MUI computes with every colour of the palette (alpha, lighten, darken, contrast) and
+        // throws on a notation it cannot take apart: a colour name stored in any of them took the
+        // widgets down. So the theme carries none, and the Theme Studio saves none either.
+        describe.each(['white', 'transparent', 'currentColor', 'var(--my-colour)'])(
+            'a colour the widgets cannot compute with (%s)',
+            colour => {
+                it.each(STUDIO_COLOR_FIELDS.map(field => [field.path, field] as const))(
+                    'is skipped for %s, and the rest of the order applies',
+                    async (_path, field) => {
+                        expect(await themeAfter({ [fieldLabelled(field.labelKey)]: colour, mode: 'dark' })).toEqual(
+                            withValue(STORED, 'palette.mode', 'dark'),
+                        );
+                    },
+                );
+            },
+        );
     });
 
     describe('the same order again', () => {
