@@ -31,8 +31,14 @@ const PICKER_GAP_PX = 12;
 /** Fixed extra width of the modal auto width beside picker, gap and slider, in px. */
 const MODAL_EXTRA_WIDTH_PX = 40;
 
-/** The power button column beside the picker box: the 26px icon in its 8px button padding, and the 1px divider. */
-const POWER_COLUMN_WIDTH_PX = 26 + 2 * 8 + 1;
+/** The size of the power button's icon, in px — the body draws the icon with it. */
+export const POWER_ICON_SIZE_PX = 26;
+
+/**
+ * The power button column beside the picker box: the icon in the padding of a medium MUI
+ * IconButton (8px, fixed — not the theme spacing), and the 1px divider beside it.
+ */
+const POWER_COLUMN_WIDTH_PX = POWER_ICON_SIZE_PX + 2 * 8 + 1;
 
 /** MUI's default spacing, 8px a unit — for a caller that hands no theme spacing. */
 const defaultSpacing = (units: number): string => `${units * 8}px`;

@@ -15,7 +15,7 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
-import { pickerGeometry } from './pickerGeometry';
+import { POWER_ICON_SIZE_PX, pickerGeometry } from './pickerGeometry';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
@@ -189,8 +189,9 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
                     <PowerSettingsNewIcon
                         sx={{
                             color: onOffValue ? 'red' : 'green',
-                            width: '26px',
-                            height: '26px',
+                            // The power column's width enters the dimmer modal's auto width.
+                            width: `${POWER_ICON_SIZE_PX}px`,
+                            height: `${POWER_ICON_SIZE_PX}px`,
                         }}
                     />
                 </IconButton>
