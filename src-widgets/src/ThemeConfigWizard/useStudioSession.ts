@@ -30,7 +30,7 @@ import type { Connection } from '@iobroker/gui-components';
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
-import { parseStoredTheme } from '../lib/theme/storedTheme';
+import { followThemeState, parseStoredTheme } from '../lib/theme/storedTheme';
 import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
 import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
@@ -142,41 +142,7 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
 
     // The stored theme: the background load revalidates the seed (and ends the spinner), the
     // subscription follows every later change for as long as the session lives.
-    useEffect(() => {
-        let active = true;
-        const onChange = (_id: string, state: ioBroker.State | null | undefined): void => {
-            // A report already on its way when the session ended must not reach it.
-            if (active) {
-                takeStored(state?.val);
-            }
-        };
-        socket
-            .getState(THEME_STATE_ID)
-            .then((state: ioBroker.State | null | undefined) => {
-                if (active) {
-                    takeStored(state?.val);
-                }
-            })
-            .catch((e: unknown) => console.error(`Cannot read theme state ${THEME_STATE_ID}: ${e}`))
-            .finally(() => {
-                if (active) {
-                    setLoading(false);
-                }
-            });
-        socket
-            .subscribeState(THEME_STATE_ID, onChange)
-            .catch((e: unknown) => console.error(`Cannot subscribe theme state ${THEME_STATE_ID}: ${e}`));
-        return () => {
-            active = false;
-            // Connection.unsubscribeState returns void, so a failure cannot be chained — and
-            // must not break the effect cleanup (same handling as useCollectionTheme).
-            try {
-                socket.unsubscribeState(THEME_STATE_ID, onChange);
-            } catch (e) {
-                console.error(`Cannot unsubscribe theme state ${THEME_STATE_ID}: ${e}`);
-            }
-        };
-    }, [socket, takeStored]);
+    useEffect(() => followThemeState(socket, takeStored, () => setLoading(false)), [socket, takeStored]);
 
     const mirrorRef = useRef<CanvasMirror>({ lastPush: 0, timer: null, ended: false, handedOff: false });
     const push = useCallback((value: UserTheme): void => {

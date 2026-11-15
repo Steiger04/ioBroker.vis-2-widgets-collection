@@ -9,19 +9,18 @@
  * uses too), and resolves it onto the host theme (plus optional caller overrides) via
  * {@link module:lib/theme/resolveCollectionTheme.resolveCollectionTheme}.
  *
- * Centralizes the state-reading + `Connection.unsubscribeState` handling so
+ * Centralizes the state reading so
  * the runtime {@link module:components/CollectionProvider.CollectionProvider} and
  * editor surfaces (which live outside the provider subtree) share one source of
  * truth for the user-configured theme.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, getDraftThemeString } from '../lib/theme/draftThemeStore';
 import { bundledFamiliesOf, ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
-import { parseStoredTheme } from '../lib/theme/storedTheme';
+import { followThemeState, parseStoredTheme } from '../lib/theme/storedTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
@@ -52,36 +51,7 @@ export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrid
     // The theme state's value as it arrived (JSON text; '' while unread or not text).
     const [themeJson, setThemeJson] = useState('');
 
-    useEffect(() => {
-        let active = true;
-        const handler = (_id: string, state: ioBroker.State | null | undefined): void => {
-            if (active) {
-                setThemeJson(typeof state?.val === 'string' ? state.val : '');
-            }
-        };
-        socket
-            .getState(THEME_STATE_ID)
-            .then((state: ioBroker.State | null | undefined) => {
-                if (active) {
-                    setThemeJson(typeof state?.val === 'string' ? state.val : '');
-                }
-            })
-            .catch((e: unknown) => console.error(`Cannot read theme state ${THEME_STATE_ID}: ${e}`));
-        socket
-            .subscribeState(THEME_STATE_ID, handler)
-            .catch((e: unknown) => console.error(`Cannot subscribe theme state ${THEME_STATE_ID}: ${e}`));
-        return () => {
-            active = false;
-            // Connection.unsubscribeState returns void, not a Promise, so it
-            // cannot be chained with .catch(). Wrap it to avoid an uncaught error
-            // during effect cleanup (e.g. React StrictMode double-invoke / unmount).
-            try {
-                socket.unsubscribeState(THEME_STATE_ID, handler);
-            } catch (e) {
-                console.error(`Cannot unsubscribe theme state ${THEME_STATE_ID}: ${e}`);
-            }
-        };
-    }, [socket]);
+    useEffect(() => followThemeState(socket, val => setThemeJson(typeof val === 'string' ? val : '')), [socket]);
 
     // The stored user theme, read by the one reader (never throws; the empty theme when the
     // state holds none).

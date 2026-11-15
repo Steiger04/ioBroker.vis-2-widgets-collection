@@ -9,7 +9,8 @@
  * ({@link module:ThemeConfigWizard/useStudioSession}) — turns it into a user theme here, and
  * only here, so they never read the same state differently. JSON is touched only at this
  * boundary; what counts as a usable value is decided by
- * {@link module:lib/theme/validateTheme.validateThemeOptions} alone.
+ * {@link module:lib/theme/validateTheme.validateThemeOptions} alone. How they come by the
+ * value — once now, and again with every change — is here as well ({@link followThemeState}).
  *
  * Reading follows the Rückfall-Regel (ADR-0115): an unusable value falls away, the rest holds.
  * "One value" is the smallest value the validator names in an error:
@@ -26,9 +27,62 @@
  * ({@link module:ThemeConfigWizard/studioSessionSteps.validateDraft}).
  */
 
+import { THEME_STATE_ID } from '../constants';
 import type { ThemeValueKeys, UserTheme } from './themeTypes';
 import { isPlainObject } from './themeUtils';
 import { validateThemeOptions } from './validateTheme';
+
+import type { Connection } from '@iobroker/gui-components';
+
+/**
+ * Follows the theme state: reads its value now and takes every later one.
+ *
+ * @param socket - The ioBroker connection.
+ * @param onValue - Takes the state's `val` (to be read with {@link parseStoredTheme}): once for
+ *   the read, and once per reported change. Never called after following has stopped — also
+ *   not for a report that was on its way then.
+ * @param onRead - Called once the read has an answer, whether a value or an error.
+ * @returns Stops following.
+ */
+export function followThemeState(
+    socket: Pick<Connection, 'getState' | 'subscribeState' | 'unsubscribeState'>,
+    onValue: (val: unknown) => void,
+    onRead?: () => void,
+): () => void {
+    let active = true;
+    const onChange = (_id: string, state: ioBroker.State | null | undefined): void => {
+        if (active) {
+            onValue(state?.val);
+        }
+    };
+    socket
+        .getState(THEME_STATE_ID)
+        .then((state: ioBroker.State | null | undefined) => {
+            if (active) {
+                onValue(state?.val);
+            }
+        })
+        .catch((e: unknown) => console.error(`Cannot read theme state ${THEME_STATE_ID}: ${e}`))
+        .finally(() => {
+            if (active) {
+                onRead?.();
+            }
+        });
+    socket
+        .subscribeState(THEME_STATE_ID, onChange)
+        .catch((e: unknown) => console.error(`Cannot subscribe theme state ${THEME_STATE_ID}: ${e}`));
+    return () => {
+        active = false;
+        // Connection.unsubscribeState returns void, not a Promise, so a failure cannot be
+        // chained — and must not break an effect cleanup (React StrictMode double-invoke,
+        // unmount).
+        try {
+            socket.unsubscribeState(THEME_STATE_ID, onChange);
+        } catch (e) {
+            console.error(`Cannot unsubscribe theme state ${THEME_STATE_ID}: ${e}`);
+        }
+    };
+}
 
 /** The state's value as parsed JSON; `undefined` when it is no JSON text. */
 function parseJson(raw: unknown): unknown {
