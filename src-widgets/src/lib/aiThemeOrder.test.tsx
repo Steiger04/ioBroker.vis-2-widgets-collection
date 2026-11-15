@@ -17,7 +17,7 @@
  * waiting would hold up the orders of the next test: after each test the server answers what
  * still waits. Every theme an order wrote in a test has to pass the theme validator.
  */
-import { act } from 'react';
+import { act, type ComponentType } from 'react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -28,6 +28,7 @@ import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THEME_STATE_ID } from './constants';
 import { mountEditor, stateServer, type EditorStandIn, type StateServer } from './testing/editorStandIn';
+import { createTestRoot } from './testing/testRoots';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
@@ -42,6 +43,7 @@ await vi.hoisted(async () => {
 
 import { THEME_ORDER_PATIENCE_MS } from '../ThemeConfigWizard/carryOutThemeOrder';
 import ThemeConfigWizard from '../ThemeConfigWizard/ThemeConfigWizard';
+import { applyThemeOrder } from '../ThemeConfigWizard/themeOrder';
 
 /** The type the assistant places for a Theme-Auftrag. */
 const ORDER_TYPE = 'tplCollectionThemeWizard';
@@ -162,6 +164,8 @@ interface Placement {
     runtime?: boolean;
     /** The editor previews instead of editing. */
     preview?: boolean;
+    /** The host's project change takes its time: its promise settles when the test says so. */
+    slowProjectChanges?: boolean;
 }
 
 /** The text the theme state holds for {@link STORED}. */
@@ -169,6 +173,30 @@ const STORED_TEXT = JSON.stringify(STORED);
 
 /** The servers of the running test. */
 const servers: StateServer[] = [];
+
+/** The editors of the running test. */
+const editors: EditorStandIn[] = [];
+
+/**
+ * An editor that shows the open view of a project: a browser tab of the person.
+ *
+ * @param server - The server the editor is connected to.
+ * @param project - The project it shows.
+ * @param placement - The host around the widgets.
+ */
+const openEditor = (server: StateServer, project: Project, placement: Placement = {}): EditorStandIn => {
+    const editor = mountEditor({
+        types: { [ORDER_TYPE]: ThemeConfigWizard },
+        project,
+        view: 'Main',
+        socket: server.socket,
+        runtime: placement.runtime,
+        editMode: !placement.preview,
+        slowProjectChanges: placement.slowProjectChanges,
+    });
+    editors.push(editor);
+    return editor;
+};
 
 /**
  * Places a Theme-Auftrag on the open view, as the assistant does.
@@ -182,15 +210,7 @@ const placeOrder = (
 ): { server: StateServer; editor: EditorStandIn } => {
     const server = stateServer({ [THEME_STATE_ID]: 'stored' in placement ? placement.stored : STORED_TEXT });
     servers.push(server);
-    const editor = mountEditor({
-        types: { [ORDER_TYPE]: ThemeConfigWizard },
-        project: (placement.project ?? planProject)(order),
-        view: 'Main',
-        socket: server.socket,
-        runtime: placement.runtime,
-        editMode: !placement.preview,
-    });
-    return { server, editor };
+    return { server, editor: openEditor(server, (placement.project ?? planProject)(order), placement) };
 };
 
 /** Lets the server answer every request, oldest first, until none waits: the order has run its course. */
@@ -226,7 +246,59 @@ const pass = async (ms: number): Promise<void> => {
     });
 };
 
+/** Takes a widget from the open view, as a person deletes it or an undo takes it back. */
+const remove = (editor: EditorStandIn, id: string): void =>
+    editor.edit(project => {
+        delete (project.Main.widgets as Record<string, unknown>)[id];
+    });
+
+/** Puts a Theme-Auftrag on the open view, as the assistant places it or a redo brings it back. */
+const place = (editor: EditorStandIn, order: Record<string, unknown>, id = ORDER_ID): void =>
+    editor.edit(project => {
+        (project.Main.widgets as Record<string, unknown>)[id] = placed(ORDER_TYPE, order, false);
+    });
+
+/**
+ * Mounts the order alone and hands it the projects the test chooses: a host that does not take
+ * over what the order asks for. For what the editor stand-in, which always does, cannot show.
+ *
+ * @param server - The server the widget is connected to.
+ */
+const mountAlone = (server: StateServer): { hand: (views: Project) => void; changes: Project[] } => {
+    const changes: Project[] = [];
+    const Order = ThemeConfigWizard as unknown as ComponentType<Record<string, unknown>>;
+    const root = createTestRoot(document.body.appendChild(document.createElement('div')));
+    const changeProject = (project: Project): Promise<void> => {
+        changes.push(project);
+        return Promise.resolve();
+    };
+    return {
+        changes,
+        hand: views =>
+            act(() => {
+                root.render(
+                    <Order
+                        id={ORDER_ID}
+                        view="Main"
+                        tpl={ORDER_TYPE}
+                        editMode
+                        runtime={false}
+                        context={{ views, projectName: 'main', socket: server.socket, runtime: false, changeProject }}
+                    />,
+                );
+            }),
+    };
+};
+
+/** Lets what follows a commit of the editor run: the person's next step comes later. */
+const later = (): Promise<void> => act(() => Promise.resolve());
+
 afterEach(async () => {
+    for (const editor of editors.splice(0)) {
+        while (editor.waitingChanges() > 0) {
+            await editor.confirmChange();
+        }
+    }
     for (const server of servers.splice(0)) {
         await settle(server);
         // Whatever an order writes is a theme the validator accepts.
@@ -791,6 +863,107 @@ describe('Naht „Theme-Auftrag“: orders over time', () => {
         expect(unstamped(editor.project())).toEqual(planProject());
     });
 
+    // The host's `changeProject` settles some time after the project is changed (150 ms were
+    // measured); its delayed write-back of a moved widget (200 ms) falls into that time.
+    it('acts again when it comes back while it is still on its way out, and leaves again', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' }, { slowProjectChanges: true });
+        await settle(server);
+        const written = server.valueOf(THEME_STATE_ID);
+        expect(widgetsOf(editor.project())).toEqual(['w000001']);
+        expect(editor.waitingChanges()).toBe(1);
+
+        place(editor, { mode: 'dark' });
+        await editor.confirmChange();
+        await settle(server);
+        await editor.confirmChange();
+
+        expect(server.valueOf(THEME_STATE_ID)).toBe(written);
+        expect(server.received()).toEqual({ reads: 2, writes: 1 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+        expect(hintsOf(editor)).toEqual([]);
+    });
+
+    // The host gives a new widget the highest number plus one: the id a deleted order had.
+    it('applies a new order that got the id of a deleted one whose write was still under way', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        await server.answerRead();
+
+        remove(editor, ORDER_ID);
+        await later();
+        place(editor, { spacing: 12 });
+        // The write of the deleted order may still land: the new one waits for its answer.
+        expect(server.received()).toEqual({ reads: 1, writes: 1 });
+
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' }, spacing: 12 });
+        expect(server.received()).toEqual({ reads: 2, writes: 2 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+    });
+
+    it('applies the new data when an order is changed while its write is under way', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        await server.answerRead();
+
+        // The assistant updates the placed order instead of placing a second one.
+        editor.edit(project => {
+            (project.Main.widgets[ORDER_ID].data as Record<string, unknown>).spacing = 12;
+        });
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' }, spacing: 12 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+    });
+
+    it('goes on when one of two editors that show its view leaves the view', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        const second = openEditor(server, planProject({ mode: 'dark' }));
+
+        second.open('Cellar');
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+        expect(server.received()).toEqual({ reads: 1, writes: 1 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+    });
+
+    it('is taken up once the project the host hands it holds the order', async () => {
+        const server = stateServer({ [THEME_STATE_ID]: STORED_TEXT });
+        servers.push(server);
+        const host = mountAlone(server);
+
+        // The widget is mounted from a project that does not hold its view yet.
+        host.hand({ ___settings: projectSettings(), Cellar: otherView() } as unknown as Project);
+        expect(server.received()).toEqual({ reads: 0, writes: 0 });
+
+        host.hand(planProject({ mode: 'dark' }));
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+        expect(host.changes.map(widgetsOf)).toEqual([['w000001']]);
+    });
+
+    // The host may take the project without the order and the one that holds it again in one
+    // pass: the widget stays mounted and only sees another project.
+    it('acts again when it stays mounted and is handed another project that holds it', async () => {
+        const server = stateServer({ [THEME_STATE_ID]: STORED_TEXT });
+        servers.push(server);
+        const host = mountAlone(server);
+        const project = planProject({ mode: 'dark' });
+        host.hand(project);
+        await settle(server);
+
+        // The same project once more: the order has left it, nothing is to do.
+        host.hand(project);
+        expect(server.received()).toEqual({ reads: 1, writes: 1 });
+
+        host.hand(planProject({ mode: 'dark' }));
+        await settle(server);
+
+        expect(server.received()).toEqual({ reads: 2, writes: 1 });
+        expect(host.changes.map(widgetsOf)).toEqual([['w000001'], ['w000001']]);
+    });
+
     it('leaves a project change in place that the host made while the order waited', async () => {
         const { server, editor } = placeOrder({ mode: 'dark' }, { project: gridProject });
         await server.answerRead();
@@ -1006,6 +1179,61 @@ describe('Naht „Theme-Auftrag“: an order that is not confirmed', () => {
         });
         expect(hintsOf(editor)).toEqual([NOT_CONFIRMED, NOT_CONFIRMED]);
         expect(server.received()).toEqual({ reads: 1, writes: 0 });
+    });
+
+    // The hint says: delete this widget and try again.
+    it.each<[string, Record<string, unknown>]>([
+        ['the same order', { mode: 'dark' }],
+        ['another order', { spacing: 12 }],
+    ])('lets %s act once the person has deleted one whose read was never answered', async (_label, again) => {
+        vi.useFakeTimers();
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        server.loseRead();
+        await pass(THEME_ORDER_PATIENCE_MS);
+        expect(hintsOf(editor)).toEqual([NOT_CONFIRMED]);
+
+        remove(editor, ORDER_ID);
+        await later();
+        // The host gives the new order the freed id.
+        place(editor, again);
+        await settle(server);
+
+        expect(themeOf(server)).toEqual(applyThemeOrder(STORED, again));
+        expect(unstamped(editor.project())).toEqual(planProject());
+        expect(hintsOf(editor)).toEqual([]);
+    });
+
+    it('lets a waiting order act once the one before it, whose read was never answered, is deleted', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' }, { project: withSecondOrder({ spacing: 12 }) });
+        server.loseRead();
+
+        remove(editor, ORDER_ID);
+        await later();
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, spacing: 12 });
+        expect(widgetsOf(editor.project())).toEqual(['w000001']);
+    });
+
+    // A write that is under way may still land: nothing passes it (the late write would undo
+    // the later one). The new order waits, says so after its time, and acts on the answer.
+    it('keeps a new order waiting behind the unanswered write of a deleted one, and tells it', async () => {
+        vi.useFakeTimers();
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        await server.answerRead();
+
+        remove(editor, ORDER_ID);
+        await later();
+        place(editor, { spacing: 12 });
+        await pass(THEME_ORDER_PATIENCE_MS);
+
+        expect(server.received()).toEqual({ reads: 1, writes: 1 });
+        expect(hintsOf(editor)).toEqual([NOT_CONFIRMED]);
+
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' }, spacing: 12 });
+        expect(unstamped(editor.project())).toEqual(planProject());
     });
 
     it('shows the hint only where the project is edited: not while the editor previews', async () => {

@@ -39,7 +39,7 @@ import type { VisRxWidgetProps } from '@iobroker/types-vis-2/visRxWidget';
 import Generic from '../Generic';
 import { alwaysHidden, createAiGuideField } from '../lib/fieldFactories';
 import themeOrderFields from '../lib/themeOrderFields';
-import { projectWithoutWidget, takeUpThemeOrder } from './carryOutThemeOrder';
+import { projectWithoutWidget, takeUpThemeOrder, type ThemeOrderSeat } from './carryOutThemeOrder';
 import ThemeWizardButton from './ThemeWizardButton';
 
 /**
@@ -48,6 +48,12 @@ import ThemeWizardButton from './ThemeWizardButton';
  * the plate sits inside the widget instead of above it, over the widget's own content.
  */
 const HOST_NAME_PLATE_PX = 14;
+
+/**
+ * The data of an order without settings: one object, so that the order's course can tell a new
+ * project from the one it knows.
+ */
+const NO_SETTINGS: Readonly<Record<string, unknown>> = Object.freeze({});
 
 /** What a placed Theme-Auftrag keeps besides the host's widget state. */
 interface ThemeOrderState {
@@ -58,6 +64,24 @@ interface ThemeOrderState {
 class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & ThemeOrderState> {
     /** Releases this widget's seat in the course of its order; set once the order is taken up. */
     private releaseOrder: (() => void) | null = null;
+
+    /**
+     * This widget's seat in the course of its order. Every answer is read from the props at the
+     * time of the call: the latest project the host handed this widget.
+     */
+    private readonly seat: ThemeOrderSeat = {
+        order: () => {
+            const widget = this.props.context.views[this.props.view]?.widgets[this.props.id];
+            return widget ? (widget.data ?? NO_SETTINGS) : undefined;
+        },
+        // `true`: no history entry of its own.
+        leave: () =>
+            this.props.context.changeProject(
+                projectWithoutWidget(this.props.context.views, this.props.view, this.props.id),
+                true,
+            ),
+        notConfirmed: () => this.setState({ orderNotConfirmed: true }),
+    };
 
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -91,7 +115,8 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
 
     componentDidUpdate(prevProps: VisRxWidgetProps, prevState: typeof this.state): void {
         super.componentDidUpdate(prevProps, prevState);
-        // An order mounted while the editor previews is taken up when the editor edits again.
+        // An order mounted while the editor previews is taken up when the editor edits again; one
+        // the host hands another project is asked anew whether it is the order its course knows.
         this.takeUpOrder();
     }
 
@@ -111,30 +136,16 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
     }
 
     /**
-     * Takes up the order once per mounted widget, and only where a person edits the project: in
-     * the editor's edit mode. The runtime hands no project change, and its visitors must not
-     * change the theme.
+     * Takes up the order — only where a person edits the project: in the editor's edit mode. The
+     * runtime hands no project change, and its visitors must not change the theme. Called with
+     * every set of props; the course keeps a widget that has its seat.
      */
     private takeUpOrder(): void {
         const { context, editMode, view, id } = this.props;
-        if (this.releaseOrder || !editMode || context.runtime || typeof context.changeProject !== 'function') {
+        if (!editMode || context.runtime || typeof context.changeProject !== 'function') {
             return;
         }
-        // Every answer is read from the props at the time of the call: the latest project the
-        // host handed this widget.
-        this.releaseOrder = takeUpThemeOrder(`${context.projectName}/${view}/${id}`, context.socket, {
-            order: () => {
-                const widget = this.props.context.views[this.props.view]?.widgets[this.props.id];
-                return widget ? (widget.data ?? {}) : undefined;
-            },
-            // `true`: no history entry of its own.
-            leave: () =>
-                this.props.context.changeProject(
-                    projectWithoutWidget(this.props.context.views, this.props.view, this.props.id),
-                    true,
-                ),
-            notConfirmed: () => this.setState({ orderNotConfirmed: true }),
-        });
+        this.releaseOrder = takeUpThemeOrder(`${context.projectName}/${view}/${id}`, context.socket, this.seat);
     }
 
     /**
