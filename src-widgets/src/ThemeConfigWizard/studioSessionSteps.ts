@@ -10,10 +10,8 @@
 
 import { HOST_CSS_VAR_PREFIX, ownCssVarPrefix } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue, ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
+import { sameTheme } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
-
-/** Content equality of two drafts (the drafts are plain JSON objects). */
-const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
 
 /**
  * Whether the draft differs from the stored theme the session knows (loaded, changed from

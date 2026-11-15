@@ -19,6 +19,12 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 }
 
 /**
+ * Content equality of two themes (themes are plain JSON objects): the one notion of "the same
+ * theme" — whether the studio's draft is changed, and whether a Theme-Auftrag has to write.
+ */
+export const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
+
+/**
  * Reads a deeply nested value by dot-separated path.
  *
  * @returns The value at `path`, or `undefined` when any segment is missing.

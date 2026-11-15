@@ -50,7 +50,7 @@ import type { AnyWidgetId, Project, ViewSettings } from '@iobroker/types-vis-2';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { parseStoredTheme } from '../lib/theme/storedTheme';
-import type { UserTheme } from '../lib/theme/themeTypes';
+import { sameTheme } from '../lib/theme/themeUtils';
 import { applyThemeOrder } from './themeOrder';
 
 /**
@@ -58,9 +58,6 @@ import { applyThemeOrder } from './themeOrder';
  * itself sets no time for a read or a write of a state; an answer takes milliseconds.
  */
 export const THEME_ORDER_PATIENCE_MS = 10_000;
-
-/** Content equality of two themes (themes are plain JSON objects). */
-const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
 
 /** The socket the theme state is read and written with. */
 export type ThemeOrderSocket = Pick<Connection, 'getState' | 'setState'>;
