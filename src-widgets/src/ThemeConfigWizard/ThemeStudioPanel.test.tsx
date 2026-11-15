@@ -624,11 +624,22 @@ describe('ThemeStudioPanel hex input', () => {
         expect(saveButton().disabled).toBe(true);
     });
 
-    it('accepts named colours where the resolution keeps them', async () => {
+    // MUI computes with text, surfaces and the divider too: a colour name saved there took the
+    // canvas widgets down ("MUI: Unsupported `red` color").
+    it.each([
+        'theme_wizard_palette_text_primary',
+        'theme_wizard_palette_text_secondary',
+        'theme_wizard_palette_background_default',
+        'theme_wizard_palette_background_paper',
+        'theme_wizard_palette_divider',
+    ])('reports a colour name at %s as well, and does not save it', async labelKey => {
         await mountPanel({});
         await expandColorSections();
-        await enter(hexInputOf('theme_wizard_palette_divider'), 'red');
-        expect(fieldErrors()).toEqual([]);
+        // An inheriting field may carry a derivation marker behind its label ("follows primary").
+        const input = document.body.querySelector<HTMLInputElement>(`input[data-hex-input][aria-label^="${labelKey}"]`);
+        await enter(input!, 'red');
+        expect(fieldErrors()).toEqual([[labelKey, 'theme_studio_valid_color_computable']]);
+        expect(saveButton().disabled).toBe(true);
     });
 });
 

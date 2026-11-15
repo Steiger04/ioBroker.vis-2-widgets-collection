@@ -19,9 +19,9 @@ import { describe, expect, it } from 'vitest';
 import { STUDIO_COLOR_FIELDS } from '../../ThemeConfigWizard/studioColorFields';
 import { createChromeTheme } from './chromeTheme';
 import { BUNDLED_FONTS } from './fontCatalogue';
-import { isComputableColor, resolveCollectionTheme } from './resolveCollectionTheme';
+import { resolveCollectionTheme } from './resolveCollectionTheme';
 import { getNestedValue } from './themeUtils';
-import { validateThemeOptions } from './validateTheme';
+import { isComputableColor, validateThemeOptions } from './validateTheme';
 
 // vitest is launched with cwd = src-widgets, so the repo root is one level up.
 const ioPackage = JSON.parse(readFileSync(resolve(process.cwd(), '..', 'io-package.json'), 'utf8')) as {

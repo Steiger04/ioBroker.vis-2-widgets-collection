@@ -610,9 +610,11 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             });
         });
 
-        it('takes a colour name where the Theme Studio saves one too: MUI does not compute with a text colour', async () => {
-            expect(await themeAfter({ [textColour()]: 'white' })).toEqual(
-                withValue(STORED, 'palette.text.primary', 'white'),
+        // MUI computes with the text colour as well (alpha on hover): a colour name stored there
+        // took the widgets down, so the theme carries none and the Theme Studio saves none.
+        it('skips a colour name in a text colour, as the Theme Studio refuses to save one', async () => {
+            expect(await themeAfter({ [textColour()]: 'white', mode: 'dark' })).toEqual(
+                withValue(STORED, 'palette.mode', 'dark'),
             );
         });
     });

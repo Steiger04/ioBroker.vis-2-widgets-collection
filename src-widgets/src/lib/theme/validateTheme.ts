@@ -12,9 +12,15 @@
  * - Unknown keys are warnings (MUI allows module augmentation), never fatal.
  * - Structural / type mistakes (a color that is not a color, `mode: "purple"`,
  *   non-serializable functions) are errors.
+ * - A palette colour MUI cannot compute with (a colour name, `transparent`, `var()`) is an
+ *   error too: MUI's components run colour maths on the palette and throw on such a value. This
+ *   is the one place that decides it — reading the stored theme, the Studio's Save and a theme
+ *   order all follow the verdict given here.
  * - The accepted object is returned unchanged as `theme` when valid, so callers
  *   can merge it straight into `createTheme`.
  */
+
+import { decomposeColor } from '@mui/material/styles';
 
 import type { SchemaNode, UnknownKeyPolicy } from './themeSchema';
 import { THEME_OPTIONS_SCHEMA } from './themeSchema';
@@ -117,6 +123,15 @@ function validateNode(value: unknown, schema: SchemaNode, keys: ThemeValueKeys, 
         case 'color':
             if (!isValidCssColor(value)) {
                 reportTypeError(keys, 'color', value, issues, 'invalid-color');
+            } else if (!isComputableColor(value)) {
+                const path = formatPath(keys);
+                issues.push({
+                    path,
+                    keys,
+                    severity: 'error',
+                    code: 'uncomputable-color',
+                    message: `Value at "${path}" is a colour MUI cannot compute with (use hex, rgb() or hsl()).`,
+                });
             }
             break;
         case 'literal':
@@ -250,7 +265,12 @@ function validateNumberValue(
 
 /**
  * Validates a `union` schema node: accepts the first option that produces no
- * new errors, keeping its warnings; otherwise reports a generic type error.
+ * new errors, keeping its warnings; otherwise reports the value as a whole.
+ *
+ * @remarks
+ * The error is a generic type error — unless every option broke on nothing but a colour MUI
+ * cannot compute with (a colour slot whose `main` is a colour name): then it keeps that code,
+ * so a reader of the slot's error still learns what to change.
  */
 function validateUnionValue(
     value: unknown,
@@ -258,15 +278,24 @@ function validateUnionValue(
     keys: ThemeValueKeys,
     issues: ThemeValidationIssue[],
 ): void {
+    let uncomputableOnly = true;
     for (const option of options) {
         const trial: ThemeValidationIssue[] = [];
         validateNode(value, option, keys, trial);
-        if (!trial.some(issue => issue.severity === 'error')) {
+        const errors = trial.filter(issue => issue.severity === 'error');
+        if (errors.length === 0) {
             issues.push(...trial);
             return;
         }
+        uncomputableOnly &&= errors.every(error => error.code === 'uncomputable-color');
     }
-    reportTypeError(keys, 'one of the allowed types', value, issues);
+    reportTypeError(
+        keys,
+        'one of the allowed types',
+        value,
+        issues,
+        uncomputableOnly ? 'uncomputable-color' : undefined,
+    );
 }
 
 /** Validates an `array` schema node against its `items` schema. */
@@ -359,7 +388,7 @@ const GRADIENT_RE = /\b(?:linear|radial|conic)-gradient\b/i;
  * which accept gradients for widget backgrounds; only the browser check itself is shared
  * (`supportsCssColor`), the fallback without it stays permissive.
  */
-export function isValidCssColor(value: unknown): boolean {
+export function isValidCssColor(value: unknown): value is string {
     if (typeof value !== 'string') {
         return false;
     }
@@ -369,4 +398,33 @@ export function isValidCssColor(value: unknown): boolean {
     }
     // Defensive fallback (no CSS.supports, e.g. node) — modern browsers always expose it.
     return supportsCssColor(trimmed) ?? true;
+}
+
+/**
+ * Whether MUI's colour maths (alpha/lighten/darken/contrast) can take the value apart: hex,
+ * `rgb()`, `hsl()` and `color()` — not a colour name, `transparent`, `currentColor` or `var()`.
+ *
+ * @remarks
+ * MUI's components compute with the palette (`alpha(palette.text.primary, …)`,
+ * `lighten(palette.divider, …)`, `getContrastText(palette.grey[100])`) and throw
+ * "MUI: Unsupported color" on anything else, which takes the whole widget down. Asks MUI's own
+ * parser, so the answer never drifts from what the components accept; it needs no browser and is
+ * the same under node. The value is taken as stored (untrimmed), as MUI gets it.
+ */
+export function isComputableColor(value: string): boolean {
+    try {
+        decomposeColor(value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Whether a value is a colour the palette may carry: a solid CSS colour the widgets can compute
+ * with. What the validator accepts for a palette colour, as a predicate for code that walks a
+ * theme without it (the resolution, which also gets the Studio's unvalidated draft).
+ */
+export function isPaletteColor(value: unknown): value is string {
+    return isValidCssColor(value) && isComputableColor(value);
 }

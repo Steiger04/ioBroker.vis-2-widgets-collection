@@ -10,6 +10,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { parseStoredTheme } from './storedTheme';
+import type { UserTheme } from './themeTypes';
+import { setNestedValue } from './themeUtils';
 
 /** Reads a theme object the way it sits in the state: as JSON text. */
 const read = (theme: unknown): unknown => parseStoredTheme(JSON.stringify(theme));
@@ -161,6 +163,65 @@ describe('parseStoredTheme: an unusable colour', () => {
         ).toEqual({
             palette: { secondary: { main: '#00ff00' } },
         });
+    });
+});
+
+// A colour name or `transparent` is a colour to the browser, but none MUI can compute with: a
+// component that computes with it throws (hooks/useCollectionTheme.hook.test.ts renders them).
+// The check needs no browser, so it gives the same answer under node as in the editor.
+describe('parseStoredTheme: a colour the widgets cannot compute with', () => {
+    /** The stored values next to the colour: they hold. */
+    const REST: UserTheme = { palette: { mode: 'dark' }, spacing: 6 };
+
+    it.each([
+        'text.primary',
+        'text.secondary',
+        'text.disabled',
+        'background.default',
+        'background.paper',
+        'divider',
+        'action.active',
+        'action.hover',
+        'action.selected',
+        'action.disabled',
+        'action.disabledBackground',
+        'action.focus',
+        'common.black',
+        'common.white',
+        'grey.700',
+    ])('drops a colour name at palette.%s and keeps the rest', path => {
+        expect(read(setNestedValue(REST, `palette.${path}`, 'white'))).toEqual(REST);
+    });
+
+    it.each(['white', 'transparent', 'currentColor', 'inherit', 'var(--my-colour)', 'oklch(0.5 0.1 20)', ' #fff'])(
+        'drops "%s"',
+        colour => {
+            expect(read(setNestedValue(REST, 'palette.divider', colour))).toEqual(REST);
+        },
+    );
+
+    it.each([
+        '#abc',
+        '#1976d2',
+        '#1976d280',
+        'rgb(25, 118, 210)',
+        'rgba(25, 118, 210, 0.5)',
+        'hsl(210, 79%, 46%)',
+        'hsla(210, 79%, 46%, 0.5)',
+        'color(srgb 0.1 0.46 0.82)',
+    ])('keeps "%s"', colour => {
+        const stored = setNestedValue(REST, 'palette.divider', colour);
+        expect(read(stored)).toEqual(stored);
+    });
+
+    // The validator names the slot, not the colour in it (a slot has alternative shapes).
+    it.each([
+        ['its main colour', { main: 'red' }],
+        ['a variant', { main: '#ff0000', light: 'red' }],
+        ['its contrast text', { main: '#ff0000', contrastText: 'white' }],
+        ['a shade', { 500: 'red' }],
+    ])('drops an accent colour slot as a whole for %s', (_label, slot) => {
+        expect(read(setNestedValue(REST, 'palette.primary', slot))).toEqual(REST);
     });
 });
 

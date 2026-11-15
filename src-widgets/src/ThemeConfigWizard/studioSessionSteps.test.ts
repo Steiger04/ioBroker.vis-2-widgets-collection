@@ -12,6 +12,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { UserTheme } from '../lib/theme/themeTypes';
+import { setNestedValue } from '../lib/theme/themeUtils';
 import { canSave, isDirty, shouldRebase, validateDraft } from './studioSessionSteps';
 
 const SEED: UserTheme = { palette: { primary: { main: '#ff0000' } } };
@@ -66,38 +67,53 @@ describe('canSave', () => {
 
 describe('validateDraft', () => {
     it('accepts a draft the schema and the resolution both keep', () => {
-        expect(validateDraft({ palette: { primary: { main: '#ff0000' }, divider: 'red' } })).toEqual({
-            isValid: true,
-            theme: { palette: { primary: { main: '#ff0000' }, divider: 'red' } },
-            issues: [],
-        });
+        const draft = { palette: { primary: { main: '#ff0000' }, divider: 'rgba(0, 0, 0, 0.12)' } };
+        expect(validateDraft(draft)).toEqual({ isValid: true, theme: draft, issues: [] });
     });
 
+    // A slot's error names the slot (it has alternative shapes); the Studio shows it at the
+    // slot's field (studioColorFields.colorFieldForIssuePath).
     it.each([
         ['a named colour', 'primary', 'red'],
         ['transparent', 'success', 'transparent'],
-    ])('reports %s as an accent main the resolution drops', (_label, slot, main) => {
+    ])('reports %s as an accent colour the widgets cannot compute with', (_label, slot, main) => {
         const result = validateDraft({ palette: { [slot]: { main } } });
         expect(result.isValid).toBe(false);
         expect(result.theme).toBeUndefined();
         expect(result.issues).toEqual([
             expect.objectContaining({
-                path: `palette.${slot}.main`,
+                path: `palette.${slot}`,
                 severity: 'error',
                 code: 'uncomputable-color',
             }),
         ]);
     });
 
-    it('keeps named colours outside an accent main (the resolution keeps them too)', () => {
-        expect(validateDraft({ palette: { primary: { main: '#ff0000', light: 'red' } } }).isValid).toBe(true);
+    // MUI computes with text, surfaces and the divider as well (alpha, lighten, darken): a
+    // colour name saved there took the widgets down.
+    it.each([
+        'palette.text.primary',
+        'palette.text.secondary',
+        'palette.background.default',
+        'palette.background.paper',
+        'palette.divider',
+    ])('reports a colour name at %s, at that field', path => {
+        const result = validateDraft(setNestedValue({ palette: { primary: { main: '#ff0000' } } }, path, 'white'));
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toEqual([
+            expect.objectContaining({ path, severity: 'error', code: 'uncomputable-color' }),
+        ]);
+    });
+
+    it('reports a colour name in a variant of an accent colour', () => {
+        expect(validateDraft({ palette: { primary: { main: '#ff0000', light: 'red' } } }).isValid).toBe(false);
     });
 
     it("keeps the schema's own issues", () => {
         const result = validateDraft({ corners: { topLeft: -1 }, palette: { info: { main: 'red' } } });
         expect(result.issues.map(issue => [issue.path, issue.code])).toEqual([
             ['corners.topLeft', 'number-out-of-range'],
-            ['palette.info.main', 'uncomputable-color'],
+            ['palette.info', 'uncomputable-color'],
         ]);
     });
     // The vis-2 editor owns `--mui-*` on `:root` (spec B17).

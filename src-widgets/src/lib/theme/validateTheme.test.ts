@@ -13,7 +13,7 @@
  * is pinned here next to the display path.
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { validateThemeOptions } from './validateTheme';
 
@@ -53,6 +53,62 @@ describe('validateThemeOptions: radius range', () => {
         expect(result.issues).toContainEqual(
             expect.objectContaining({ path: 'shape.borderRadius', code: 'number-out-of-range' }),
         );
+    });
+});
+
+describe('validateThemeOptions: a colour of the palette', () => {
+    it('reports a colour MUI cannot compute with, at its value', () => {
+        const result = validateThemeOptions({ palette: { text: { primary: 'white' }, divider: '#101010' } });
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toEqual([
+            expect.objectContaining({
+                path: 'palette.text.primary',
+                keys: ['palette', 'text', 'primary'],
+                severity: 'error',
+                code: 'uncomputable-color',
+            }),
+        ]);
+    });
+
+    // A slot has alternative shapes, so its error names the slot; the code still says why.
+    it.each([
+        ['its main colour', { main: 'transparent' }],
+        ['a variant', { main: '#ff0000', dark: 'red' }],
+    ])('reports an accent slot with such a colour as %s as the slot, and says why', (_label, slot) => {
+        expect(validateThemeOptions({ palette: { primary: slot } }).issues).toEqual([
+            expect.objectContaining({
+                path: 'palette.primary',
+                keys: ['palette', 'primary'],
+                severity: 'error',
+                code: 'uncomputable-color',
+            }),
+        ]);
+    });
+
+    it('keeps the wrong-type code for a slot whose colour is none to the browser', () => {
+        vi.stubGlobal('CSS', { supports: (_property: string, value?: string): boolean => value !== 'nope' });
+        try {
+            expect(validateThemeOptions({ palette: { primary: { main: 'nope' } } }).issues).toEqual([
+                expect.objectContaining({ path: 'palette.primary', code: 'invalid-type' }),
+            ]);
+        } finally {
+            vi.unstubAllGlobals();
+        }
+    });
+
+    it('keeps the wrong-type code for a slot that is broken in more than one way', () => {
+        expect(validateThemeOptions({ palette: { primary: { main: 'red', light: 5 } } }).issues).toEqual([
+            expect.objectContaining({ path: 'palette.primary', code: 'invalid-type' }),
+        ]);
+    });
+
+    it('accepts hex, rgb(), hsl() and color()', () => {
+        const palette = {
+            primary: { main: '#1976d2', light: 'rgb(66, 165, 245)', dark: 'hsl(210, 79%, 46%)' },
+            divider: 'rgba(0, 0, 0, 0.12)',
+            background: { paper: '#fff', default: 'color(srgb 0.98 0.98 0.98)' },
+        };
+        expect(validateThemeOptions({ palette })).toEqual({ isValid: true, theme: { palette }, issues: [] });
     });
 });
 

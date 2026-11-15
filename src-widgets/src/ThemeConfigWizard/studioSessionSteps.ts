@@ -8,15 +8,10 @@
  * the split the echarts editor lifecycle uses (`lifecycleGuards`, ADR-0048).
  */
 
-import {
-    AUGMENTED_SLOTS,
-    HOST_CSS_VAR_PREFIX,
-    isComputableColor,
-    ownCssVarPrefix,
-} from '../lib/theme/resolveCollectionTheme';
+import { AUGMENTED_SLOTS, HOST_CSS_VAR_PREFIX, ownCssVarPrefix } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue, ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { isPlainObject } from '../lib/theme/themeUtils';
-import { isValidCssColor, validateThemeOptions } from '../lib/theme/validateTheme';
+import { isComputableColor, isValidCssColor, validateThemeOptions } from '../lib/theme/validateTheme';
 
 /** Content equality of two drafts (the drafts are plain JSON objects). */
 const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
@@ -101,18 +96,19 @@ export function reservedCssVarPrefixIssues(theme: UserTheme): ThemeValidationIss
 }
 
 /**
- * Validates a draft: the theme schema plus the values the canvas resolution would replace
- * although the schema accepts them — an accent `main` MUI cannot compute with (the field
- * inherits) and the CSS-variables prefix `mui`, owned by the vis-2 editor (the collection uses
- * `vis2c` instead). A value the canvas silently replaces must not pass as valid — it shows as an
- * error and blocks Save. Stricter than the runtime on purpose: a stored theme with such a value
- * still loads (the resolution replaces it there), the studio only refuses to save one.
+ * Validates a draft: the theme schema plus the one value the canvas resolution would replace
+ * although the schema accepts it — the CSS-variables prefix `mui`, owned by the vis-2 editor
+ * (the collection uses `vis2c` instead). A value the canvas silently replaces must not pass as
+ * valid — it shows as an error and blocks Save. Stricter than the runtime on purpose: a stored
+ * theme with that prefix still loads (the resolution replaces it there), the studio only refuses
+ * to save one. A colour the widgets cannot compute with is the schema's own error, in every
+ * colour field — so the Studio saves no colour that reading the stored theme would drop.
  *
  * @param draft - The current draft.
  */
 export function validateDraft(draft: UserTheme): ThemeValidationResult {
     const schema = validateThemeOptions(draft);
-    const replaced = [...uncomputableColorIssues(draft), ...reservedCssVarPrefixIssues(draft)];
+    const replaced = reservedCssVarPrefixIssues(draft);
     if (replaced.length === 0) {
         return schema;
     }

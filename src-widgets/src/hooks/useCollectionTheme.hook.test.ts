@@ -11,10 +11,24 @@
  * The effective theme is compared by identity: the resolution returns one shared theme object
  * per content (`createThemeCached`), so `toBe` means "the same user theme reached the canvas".
  */
-import { act } from 'react';
+import { act, createElement, type ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTheme } from '@mui/material';
-import type { Theme } from '@mui/material/styles';
+import {
+    Alert,
+    AppBar,
+    Button,
+    Chip,
+    IconButton,
+    Link,
+    SnackbarContent,
+    SpeedDialAction,
+    Table,
+    TableBody,
+    TableCell,
+    TableRow,
+    createTheme,
+} from '@mui/material';
+import { ThemeProvider, type Theme } from '@mui/material/styles';
 import type { Connection } from '@iobroker/gui-components';
 
 import { THEME_STATE_ID } from '../lib/constants';
@@ -22,6 +36,7 @@ import { clearDraftTheme } from '../lib/theme/draftThemeStore';
 import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { renderHook, type RenderHookHandle } from '../lib/testing/testHarness';
+import { createTestRoot } from '../lib/testing/testRoots';
 import type { UserTheme } from '../lib/theme/themeTypes';
 import useStudioSession, { type StudioSession } from '../ThemeConfigWizard/useStudioSession';
 import useCollectionTheme from './useCollectionTheme';
@@ -191,6 +206,50 @@ describe('useCollectionTheme: reading the stored theme', () => {
         expect(document.querySelector('style[data-collection-google-fonts]')?.textContent).toContain(
             "font-family:'Lobster'",
         );
+    });
+});
+
+// MUI's components compute with the colours of the palette (alpha, lighten, darken, contrast)
+// and throw on a notation they cannot take apart ("MUI: Unsupported `white` color"): a colour
+// name or `transparent` is a colour to the browser, but none MUI can compute with.
+describe('useCollectionTheme: a stored colour the widgets cannot compute with', () => {
+    /** Renders `element` in the theme a canvas widget gets for the stored `palette`. */
+    const renderOver = async (palette: object, element: ReactElement): Promise<Theme> => {
+        const theme = await canvasThemeFor(JSON.stringify({ palette, spacing: 6 }));
+        const root = createTestRoot(document.body.appendChild(document.createElement('div')));
+        act(() => {
+            root.render(createElement(ThemeProvider, { theme }, element));
+        });
+        return theme;
+    };
+
+    const cell = createElement(
+        Table,
+        null,
+        createElement(TableBody, null, createElement(TableRow, null, createElement(TableCell, null, 'x'))),
+    );
+
+    it.each<[string, object, ReactElement]>([
+        ['text.primary', { text: { primary: 'white' } }, createElement(Button, { color: 'inherit' }, 'x')],
+        ['text.secondary', { text: { secondary: 'white' } }, createElement(Link, { color: 'textSecondary' }, 'x')],
+        ['background.default', { background: { default: 'white' } }, createElement(SnackbarContent, { message: 'x' })],
+        ['background.paper', { background: { paper: 'white' } }, createElement(SpeedDialAction, { open: true })],
+        ['divider', { divider: 'white' }, cell],
+        ['action.active', { action: { active: 'white' } }, createElement(IconButton, null, 'x')],
+        ['action.selected', { action: { selected: 'white' } }, createElement(Chip, { label: 'x', clickable: true })],
+        ['grey.100', { grey: { 100: 'white' } }, createElement(AppBar, { color: 'default' })],
+        [
+            'primary.contrastText',
+            { primary: { main: '#1976d2', contrastText: 'white' } },
+            createElement(Chip, { label: 'x', color: 'primary', onDelete: () => undefined }),
+        ],
+        ['error.light', { error: { main: '#d32f2f', light: 'red' } }, createElement(Alert, { severity: 'error' }, 'x')],
+        ['primary.main', { primary: { main: 'red' } }, createElement(Button, null, 'x')],
+    ])('renders a component that computes with palette.%s', async (_path, palette, element) => {
+        const theme = await renderOver(palette, element);
+
+        // The value fell away, the rest of the stored theme holds.
+        expect(theme).toBe(resolveCollectionTheme(HOST, undefined, { spacing: 6 }));
     });
 });
 

@@ -54,7 +54,10 @@ type SchemaNodeVariant =
 /** One node in the validation schema tree. */
 export type SchemaNode = SchemaNodeVariant & SchemaNodeBase;
 
-/** A solid CSS color (hex / rgb / hsl / named / transparent / currentColor …). */
+/**
+ * A solid CSS color MUI can compute with (hex / rgb() / hsl() / color()) — no colour name, no
+ * `transparent`, no `currentColor`: MUI's components run colour maths on the palette.
+ */
 const color: SchemaNode = { kind: 'color', optional: true };
 
 /** A free-form CSS object (used for typography variants and style overrides). */
