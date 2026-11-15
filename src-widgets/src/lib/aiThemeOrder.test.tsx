@@ -31,6 +31,7 @@ import { mountEditor, stateServer, type EditorStandIn, type StateServer } from '
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
+import { THEME_CONTROL_RANGES } from './theme/themeUtils';
 import { validateThemeOptions } from './theme/validateTheme';
 
 // The host's widget base class has to stand before `Generic` is loaded.
@@ -576,10 +577,16 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             ['a font stack instead of a catalogue name', () => ({ fontFamily: "'Inter', system-ui, sans-serif" })],
             ['a font size of zero', () => ({ fontSize: 0 })],
             ['a font size beyond every screen', () => ({ fontSize: 500 })],
+            // The theme itself may hold these (a hand-written one); the studio's sliders end before.
+            ['a font size below the studio’s slider', () => ({ fontSize: 7 })],
+            ['a font size above the studio’s slider', () => ({ fontSize: 30 })],
+            ['a font size above the studio’s slider, as text', () => ({ fontSize: '30' })],
             ['a font size in words', () => ({ fontSize: 'big' })],
             ['a negative corner radius', () => ({ cornerRadius: -1 })],
             ['a corner radius beyond the studio’s limit', () => ({ cornerRadius: 97 })],
             ['a corner radius in words', () => ({ cornerRadius: 'round' })],
+            ['a negative spacing', () => ({ spacing: -1 })],
+            ['a spacing above the studio’s slider', () => ({ spacing: 500 })],
             ['a spacing in words', () => ({ spacing: 'wide' })],
             ['an empty spacing', () => ({ spacing: '' })],
             ['a spacing that is a switch', () => ({ spacing: true })],
@@ -667,30 +674,25 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             expect(guide()).toContain(THEME_STATE_ID);
         });
 
-        // The bounds are read off the two wordings, not off the code.
+        // The ranges are written once, where the studio's sliders read them
+        // (lib/theme/themeUtils.THEME_CONTROL_RANGES): both wordings and the order are held to
+        // that place, so no bound stands a second time as a number.
         it.each([
-            {
-                field: 'fontSize',
-                inGuide: '"fontSize": 8 to 24',
-                inState: 'typography.fontSize: number from 8 to 24',
-                ends: [8, 24],
-            },
-            {
-                field: 'cornerRadius',
-                inGuide: '"cornerRadius": 0 to 96',
-                inState: 'each a number from 0 to 96',
-                ends: [0, 96],
-            },
-            { field: 'spacing', inGuide: '"spacing": 0 to 16', inState: 'spacing: number from 0 to 16', ends: [0, 16] },
-        ])(
-            'states the range of $field as the description of the theme state does, and the order takes both ends',
-            async ({ field, inGuide, inState, ends }) => {
-                expect(guide()).toContain(inGuide);
-                expect(stateDescription()).toContain(inState);
+            { field: 'fontSize', inState: 'typography.fontSize: number' },
+            { field: 'cornerRadius', inState: 'each a number' },
+            { field: 'spacing', inState: 'spacing: number' },
+        ] as const)(
+            'states the range of $field as the description of the theme state does, and the order takes exactly it',
+            async ({ field, inState }) => {
+                const { min, max } = THEME_CONTROL_RANGES[field];
+                expect(guide()).toContain(`"${field}": ${min} to ${max}`);
+                expect(stateDescription()).toContain(`${inState} from ${min} to ${max}`);
 
-                for (const end of ends) {
-                    const theme = JSON.stringify(await themeAfter({ reset: true, [field]: end }));
-                    expect(theme, `${field} ${end}`).not.toBe('{}');
+                for (const end of [min, max]) {
+                    expect(await themeAfter({ reset: true, [field]: end }), `${field} ${end}`).not.toEqual({});
+                }
+                for (const beyond of [min - 0.5, max + 0.5]) {
+                    expect(await themeAfter({ reset: true, [field]: beyond }), `${field} ${beyond}`).toEqual({});
                 }
             },
         );

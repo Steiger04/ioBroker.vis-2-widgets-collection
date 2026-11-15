@@ -29,7 +29,7 @@ import {
 import Generic from '../../Generic';
 import { COLLECTION_CSS_VAR_PREFIX } from '../../lib/theme/resolveCollectionTheme';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
-import { getNestedValue } from '../../lib/theme/themeUtils';
+import { getNestedValue, THEME_CONTROL_RANGES } from '../../lib/theme/themeUtils';
 
 /** "Erweitert" section: spacing + CSS vars. */
 function ErweitertSection({
@@ -68,8 +68,8 @@ function ErweitertSection({
                     <SliderField
                         label={Generic.t('theme_wizard_layout_spacing')}
                         value={spacing}
-                        min={0}
-                        max={16}
+                        min={THEME_CONTROL_RANGES.spacing.min}
+                        max={THEME_CONTROL_RANGES.spacing.max}
                         step={0.5}
                         onChange={value => onChange('spacing', value)}
                     />

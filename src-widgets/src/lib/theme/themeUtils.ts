@@ -50,6 +50,22 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
  */
 export const CORNER_RADIUS_MAX = 96;
 
+/**
+ * The ranges (px) of the number controls of the Theme Studio — the one place they are written.
+ *
+ * @remarks
+ * Read by the studio's sliders, by the Theme-Auftrag (it takes what the studio would save,
+ * {@link module:ThemeConfigWizard/themeOrder}) and by the test that holds the KI-Leitfaden and
+ * the description of the theme state to them. The theme schema is wider on purpose where a
+ * hand-written theme may go further (`typography.fontSize` 1–100, any `spacing`); only the
+ * radius ends where the schema ends ({@link CORNER_RADIUS_MAX}).
+ */
+export const THEME_CONTROL_RANGES = {
+    fontSize: { min: 8, max: 24 },
+    cornerRadius: { min: 0, max: CORNER_RADIUS_MAX },
+    spacing: { min: 0, max: 16 },
+} as const;
+
 /** The radius (px) of a corner without a stored value — resolution and studio alike. */
 export const DEFAULT_CORNER_RADIUS = 4;
 

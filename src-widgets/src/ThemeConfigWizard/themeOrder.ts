@@ -21,7 +21,7 @@
  *   empty theme as the start), then the preset (the colours only), then the single values — a
  *   single colour lies on top of a preset.
  * - **Rückfall-Regel.** A value that cannot be used is skipped, the rest holds. A setting reads
- *   the form of its value (a catalogue name, a number); whether the resulting theme is usable is
+ *   the form of its value (a catalogue name, a number of the studio's range); whether the resulting theme is usable is
  *   decided by the theme validator ({@link module:lib/theme/validateTheme.validateThemeOptions}),
  *   as it is when the stored theme is read ({@link module:lib/theme/storedTheme}) and when the
  *   studio saves — so an order writes no colour the widgets cannot compute with, in any of the
@@ -35,7 +35,7 @@
 import { FONT_CATALOGUE } from '../lib/theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from '../lib/theme/presets';
 import type { UserTheme } from '../lib/theme/themeTypes';
-import { setNestedValue } from '../lib/theme/themeUtils';
+import { setNestedValue, THEME_CONTROL_RANGES } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
 
@@ -68,9 +68,14 @@ const numberOf = (value: unknown): number | undefined => {
     return typeof number === 'number' && Number.isFinite(number) ? number : undefined;
 };
 
-/** A setting that stores a number at one path of the theme. */
+/**
+ * A setting that stores a number of the studio's range of that name
+ * ({@link module:lib/theme/themeUtils.THEME_CONTROL_RANGES}): an order takes what the studio's
+ * control would save. The theme itself may hold more (a hand-written one) — that is the
+ * validator's range, and not what an order is promised to take.
+ */
 const numberSetting = (
-    name: string,
+    name: keyof typeof THEME_CONTROL_RANGES,
     labelKey: string,
     store: (theme: UserTheme, value: number) => UserTheme,
 ): ThemeOrderSetting => ({
@@ -79,7 +84,8 @@ const numberSetting = (
     input: { type: 'number' },
     apply: (theme, value) => {
         const number = numberOf(value);
-        return number === undefined ? undefined : store(theme, number);
+        const { min, max } = THEME_CONTROL_RANGES[name];
+        return number === undefined || number < min || number > max ? undefined : store(theme, number);
     },
 });
 

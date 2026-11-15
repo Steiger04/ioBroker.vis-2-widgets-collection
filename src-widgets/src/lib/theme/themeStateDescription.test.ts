@@ -20,7 +20,7 @@ import { STUDIO_COLOR_FIELDS } from '../../ThemeConfigWizard/studioColorFields';
 import { createChromeTheme } from './chromeTheme';
 import { BUNDLED_FONTS } from './fontCatalogue';
 import { resolveCollectionTheme } from './resolveCollectionTheme';
-import { getNestedValue } from './themeUtils';
+import { getNestedValue, THEME_CONTROL_RANGES as RANGES } from './themeUtils';
 import { isComputableColor, validateThemeOptions } from './validateTheme';
 
 // vitest is launched with cwd = src-widgets, so the repo root is one level up.
@@ -101,23 +101,23 @@ describe('theme state description (AI channel for MCP clients)', () => {
         expect(theme.spacing(1)).toBe('8px');
     });
 
-    // The ranges exactly as the description words them; the bounds in `themes` are read off that
-    // wording, not off the schema — the test must be able to disagree with the code.
+    // The ranges as the description words them. The number ranges are the ones of the studio's
+    // controls, written once (THEME_CONTROL_RANGES); the validator, which may accept more, has to
+    // accept both ends.
     it.each([
         {
-            wording: 'typography.fontSize: number from 8 to 24',
-            themes: [{ typography: { fontSize: 8 } }, { typography: { fontSize: 24 } }],
+            wording: `typography.fontSize: number from ${RANGES.fontSize.min} to ${RANGES.fontSize.max}`,
+            themes: [RANGES.fontSize.min, RANGES.fontSize.max].map(fontSize => ({ typography: { fontSize } })),
         },
         {
-            wording: 'each a number from 0 to 96',
-            themes: [
-                { corners: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 } },
-                { corners: { topLeft: 96, topRight: 96, bottomRight: 96, bottomLeft: 96 } },
-            ],
+            wording: `each a number from ${RANGES.cornerRadius.min} to ${RANGES.cornerRadius.max}`,
+            themes: [RANGES.cornerRadius.min, RANGES.cornerRadius.max].map(radius => ({
+                corners: { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius },
+            })),
         },
         {
-            wording: 'spacing: number from 0 to 16',
-            themes: [{ spacing: 0 }, { spacing: 16 }],
+            wording: `spacing: number from ${RANGES.spacing.min} to ${RANGES.spacing.max}`,
+            themes: [RANGES.spacing.min, RANGES.spacing.max].map(spacing => ({ spacing })),
         },
         {
             wording: 'palette.mode: "light" or "dark"',
