@@ -23,7 +23,7 @@ import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { renderHook, type RenderHookHandle } from '../lib/testing/testHarness';
 import type { UserTheme } from '../lib/theme/themeTypes';
-import useStudioSession from '../ThemeConfigWizard/useStudioSession';
+import useStudioSession, { type StudioSession } from '../ThemeConfigWizard/useStudioSession';
 import useCollectionTheme from './useCollectionTheme';
 
 /** The host theme the collection theme resolves onto (MUI's default light theme). */
@@ -70,20 +70,28 @@ interface FakeSocket {
 
 const fakeSocket = (val: unknown): FakeSocket => {
     const answered = Promise.resolve(val === undefined ? null : ({ val } as ioBroker.State));
-    let handler: StateHandler = () => {};
+    // Every canvas widget subscribes, and so does an open Studio session.
+    const handlers = new Set<StateHandler>();
     const socket = {
         getState: vi.fn(() => answered),
         setState: vi.fn(() => Promise.resolve()),
         subscribeState: vi.fn((_id: string, cb: StateHandler) => {
-            handler = cb;
+            handlers.add(cb);
             return Promise.resolve();
         }),
-        unsubscribeState: vi.fn(),
+        unsubscribeState: vi.fn((_id: string, cb: StateHandler) => {
+            handlers.delete(cb);
+        }),
     } as unknown as Connection;
     return {
         socket,
         answered,
-        push: next => act(() => handler(THEME_STATE_ID, { val: next } as ioBroker.State)),
+        push: next =>
+            act(() => {
+                for (const handler of [...handlers]) {
+                    handler(THEME_STATE_ID, { val: next } as ioBroker.State);
+                }
+            }),
     };
 };
 
@@ -198,5 +206,77 @@ describe('the canvas and the Theme Studio read the stored theme alike', () => {
         const studioDraft = await studioDraftFor(val);
 
         expect(canvasTheme).toBe(resolveCollectionTheme(HOST, undefined, studioDraft));
+    });
+});
+
+// The stored theme changes while the Studio is open (ADR-0115): a theme request, an external
+// MCP client, a second browser. The Studio's draft covers the canvas for as long as it is open.
+describe('a foreign change of the stored theme reaches the canvas through the open Theme Studio', () => {
+    const STORED: UserTheme = { palette: { primary: { main: '#0000ff' } } };
+    const FOREIGN: UserTheme = { palette: { primary: { main: '#00aa00' } }, spacing: 6 };
+
+    /** Lets the Studio's throttled draft push and the draft store's frame pass. */
+    const settle = (): void => {
+        act(() => {
+            vi.advanceTimersByTime(120);
+        });
+        act(() => {
+            vi.advanceTimersByTime(20);
+        });
+    };
+
+    /** A canvas widget and an open, untouched Studio session over the same stored theme. */
+    const canvasWithOpenStudio = async (): Promise<{
+        theme: () => Theme;
+        studio: RenderHookHandle<StudioSession>;
+        push: (val: unknown) => void;
+        closeStudio: () => void;
+    }> => {
+        setLastKnownTheme(null);
+        const fake = fakeSocket(JSON.stringify(STORED));
+        const canvas = renderHook(() => useCollectionTheme(fake.socket, HOST));
+        const studio = renderHook(() => useStudioSession(fake.socket));
+        let studioOpen = true;
+        const closeStudio = (): void => {
+            if (studioOpen) {
+                studioOpen = false;
+                studio.unmount();
+                settle();
+            }
+        };
+        mounted = {
+            unmount: () => {
+                closeStudio();
+                canvas.unmount();
+            },
+        };
+        await act(async () => {
+            await fake.answered;
+        });
+        settle();
+        return { theme: () => canvas.result.current, studio, push: fake.push, closeStudio };
+    };
+
+    it('shows the new theme while the Studio is untouched', async () => {
+        const { theme, push } = await canvasWithOpenStudio();
+        expect(theme()).toBe(resolveCollectionTheme(HOST, undefined, STORED));
+
+        push(JSON.stringify(FOREIGN));
+        settle();
+
+        expect(theme()).toBe(resolveCollectionTheme(HOST, undefined, FOREIGN));
+    });
+
+    it('keeps showing the draft of an edited Studio, and the new theme once the Studio is closed', async () => {
+        const { theme, studio, push, closeStudio } = await canvasWithOpenStudio();
+        act(() => studio.result.current.edit('spacing', 4));
+        settle();
+
+        push(JSON.stringify(FOREIGN));
+        settle();
+        expect(theme()).toBe(resolveCollectionTheme(HOST, undefined, { ...STORED, spacing: 4 }));
+
+        closeStudio();
+        expect(theme()).toBe(resolveCollectionTheme(HOST, undefined, FOREIGN));
     });
 });

@@ -22,20 +22,24 @@ import { isValidCssColor, validateThemeOptions } from '../lib/theme/validateThem
 const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
 
 /**
- * Whether the theme loaded from the state may replace the draft: only while the draft still
- * equals the seed it started from (untouched) — otherwise edits made during the round-trip
- * would be clobbered.
- *
- * @param draft - The current draft.
- * @param seed - The session's seed (the last known theme), `null` when there was none.
- */
-export const shouldRebase = (draft: UserTheme, seed: UserTheme | null): boolean => sameTheme(draft, seed ?? {});
-
-/**
- * Whether the draft differs from the last loaded/saved snapshot — undoing back to the start
- * reads clean again.
+ * Whether the draft differs from the stored theme the session knows (loaded, changed from
+ * outside, or saved) — undoing back to the start reads clean again. The session's one notion
+ * of "changed": it gates Save and decides whether a stored theme may replace the draft.
  */
 export const isDirty = (draft: UserTheme, snapshot: UserTheme): boolean => !sameTheme(draft, snapshot);
+
+/**
+ * Whether a stored theme that just arrived (the first load, or a change from outside while the
+ * Studio is open — ADR-0115) replaces the draft: only an untouched draft gives way, an edited
+ * one stays and wins on Save. The theme the draft already shows is no reason to rebase — that
+ * would only drop the undo history.
+ *
+ * @param draft - The current draft.
+ * @param snapshot - The stored theme the session knew until now.
+ * @param stored - The stored theme that arrived.
+ */
+export const shouldRebase = (draft: UserTheme, snapshot: UserTheme, stored: UserTheme): boolean =>
+    !isDirty(draft, snapshot) && isDirty(draft, stored);
 
 /** Save needs a valid draft with something to commit, and no save already in flight. */
 export const canSave = ({ valid, dirty, saving }: { valid: boolean; dirty: boolean; saving: boolean }): boolean =>

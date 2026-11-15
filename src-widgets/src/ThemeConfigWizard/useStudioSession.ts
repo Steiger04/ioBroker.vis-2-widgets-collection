@@ -5,11 +5,12 @@
  * @module ThemeConfigWizard/useStudioSession
  * @remarks
  * Owns the draft lifecycle the studio panel only renders: the seed from the last known theme,
- * the background load (rebased onto the draft only while it is untouched), the canvas mirror
+ * the stored theme (the background load and, while the session lives, every change made
+ * elsewhere — both replace the draft only while it is untouched, ADR-0115), the canvas mirror
  * through {@link module:lib/theme/draftThemeStore} with the session's SINGLE throttle (100 ms,
- * leading + trailing — the store itself only guards against tearing), dirty against the last
- * loaded/saved snapshot, save and discard, the browser's leave-page warning while dirty, and
- * the undo/redo keyboard binding over the draft's editor history (ADR-0038).
+ * leading + trailing — the store itself only guards against tearing), dirty against the stored
+ * theme as last loaded, reported or saved, save and discard, the browser's leave-page warning
+ * while dirty, and the undo/redo keyboard binding over the draft's editor history (ADR-0038).
  *
  * The session lives exactly as long as the component calling this hook: mount starts it,
  * unmount ends it — fresh state per session. Invariant: **when the session ends, the draft
@@ -44,7 +45,10 @@ export interface StudioSession {
     draft: UserTheme;
     /** The draft's validation result (re-run on every change). */
     validation: ThemeValidationResult;
-    /** Whether the draft differs from the last loaded/saved theme (undo-to-start is clean). */
+    /**
+     * Whether the draft differs from the stored theme — as last loaded, changed elsewhere, or
+     * saved (undo-to-start is clean, unless the stored theme changed meanwhile).
+     */
     dirty: boolean;
     /** Whether Save is allowed: valid, dirty and no save in flight. */
     canSave: boolean;
@@ -98,35 +102,59 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
     const [seed] = useState(getLastKnownTheme);
     const history = useEditorHistory<UserTheme>(seed ?? {});
     const draft = history.present;
-    // Latest draft for imperative readers (load guard, trailing push).
+    // Latest draft for imperative readers (stored-theme guard, trailing push).
     const draftRef = useRef(draft);
     useInsertionEffect(() => {
         draftRef.current = draft;
     });
-    // The value the draft was last (re)based on — the load replaces only a draft still equal to it.
-    const baseRef = useRef<UserTheme | null>(seed);
+    // The stored theme as the session knows it — what `dirty` is measured against. The ref holds
+    // the same value for imperative readers (two reports can arrive before the next render).
     const [snapshot, setSnapshot] = useState<UserTheme>(seed ?? {});
+    const snapshotRef = useRef(snapshot);
     const [loading, setLoading] = useState(!seed);
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
     // The stable history callbacks (the history result object changes identity every render).
     const { set, rebase } = history;
 
-    // Background load: revalidate against the stored theme.
+    /** Notes the stored theme: the session's baseline and the seed of the next open. */
+    const noteStored = useCallback((stored: UserTheme): void => {
+        snapshotRef.current = stored;
+        setLastKnownTheme(stored);
+        setSnapshot(stored);
+    }, []);
+
+    // The stored theme arrived — from the first load or from a change made elsewhere (a theme
+    // request, an MCP client, a second browser; ADR-0115). An untouched session takes it over,
+    // an edited one keeps its draft and is from now on measured against it.
+    const takeStored = useCallback(
+        (raw: unknown): void => {
+            const stored = parseStoredTheme(raw);
+            const replacesDraft = shouldRebase(draftRef.current, snapshotRef.current, stored);
+            noteStored(stored);
+            if (replacesDraft) {
+                draftRef.current = stored;
+                rebase(stored);
+            }
+        },
+        [noteStored, rebase],
+    );
+
+    // The stored theme: the background load revalidates the seed (and ends the spinner), the
+    // subscription follows every later change for as long as the session lives.
     useEffect(() => {
         let active = true;
+        const onChange = (_id: string, state: ioBroker.State | null | undefined): void => {
+            // A report already on its way when the session ended must not reach it.
+            if (active) {
+                takeStored(state?.val);
+            }
+        };
         socket
             .getState(THEME_STATE_ID)
             .then((state: ioBroker.State | null | undefined) => {
-                if (!active) {
-                    return;
-                }
-                const loaded = parseStoredTheme(state?.val);
-                setLastKnownTheme(loaded);
-                setSnapshot(loaded);
-                if (shouldRebase(draftRef.current, baseRef.current)) {
-                    baseRef.current = loaded;
-                    rebase(loaded);
+                if (active) {
+                    takeStored(state?.val);
                 }
             })
             .catch((e: unknown) => console.error(`Cannot read theme state ${THEME_STATE_ID}: ${e}`))
@@ -135,10 +163,20 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
                     setLoading(false);
                 }
             });
+        socket
+            .subscribeState(THEME_STATE_ID, onChange)
+            .catch((e: unknown) => console.error(`Cannot subscribe theme state ${THEME_STATE_ID}: ${e}`));
         return () => {
             active = false;
+            // Connection.unsubscribeState returns void, so a failure cannot be chained — and
+            // must not break the effect cleanup (same handling as useCollectionTheme).
+            try {
+                socket.unsubscribeState(THEME_STATE_ID, onChange);
+            } catch (e) {
+                console.error(`Cannot unsubscribe theme state ${THEME_STATE_ID}: ${e}`);
+            }
         };
-    }, [socket, rebase]);
+    }, [socket, takeStored]);
 
     const mirrorRef = useRef<CanvasMirror>({ lastPush: 0, timer: null, ended: false, handedOff: false });
     const push = useCallback((value: UserTheme): void => {
@@ -230,8 +268,7 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
         push(draft);
         try {
             await socket.setState(THEME_STATE_ID, JSON.stringify(draft));
-            setLastKnownTheme(draft);
-            setSnapshot(draft);
+            noteStored(draft);
             // An edit made while the write was in flight is NOT saved: the session stays open
             // (dirty against the new snapshot) and its end still owns the canvas.
             if (isDirty(draftRef.current, draft)) {
@@ -251,7 +288,7 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
         } finally {
             setSaving(false);
         }
-    }, [canSave, cancelTrailing, push, draft, socket]);
+    }, [canSave, cancelTrailing, push, draft, socket, noteStored]);
 
     // The shared configurator undo/redo binding (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, ADR-0038) —
     // one holder of the stack: the keyboard lives here too, scoped to the panel.

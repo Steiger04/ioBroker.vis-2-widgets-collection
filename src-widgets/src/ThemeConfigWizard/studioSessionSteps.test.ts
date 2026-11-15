@@ -17,20 +17,26 @@ import { canSave, isDirty, shouldRebase, validateDraft } from './studioSessionSt
 const SEED: UserTheme = { palette: { primary: { main: '#ff0000' } } };
 
 describe('shouldRebase', () => {
-    it('rebases an untouched seeded draft', () => {
-        expect(shouldRebase({ palette: { primary: { main: '#ff0000' } } }, SEED)).toBe(true);
+    const STORED: UserTheme = { palette: { primary: { main: '#0000ff' } } };
+
+    it('rebases an untouched draft onto the theme that arrived', () => {
+        expect(shouldRebase({ palette: { primary: { main: '#ff0000' } } }, SEED, STORED)).toBe(true);
     });
 
     it('keeps a draft the user already touched', () => {
-        expect(shouldRebase({ palette: { primary: { main: '#00ff00' } } }, SEED)).toBe(false);
+        expect(shouldRebase({ palette: { primary: { main: '#00ff00' } } }, SEED, STORED)).toBe(false);
     });
 
     it('rebases the empty draft when there was no seed', () => {
-        expect(shouldRebase({}, null)).toBe(true);
+        expect(shouldRebase({}, {}, STORED)).toBe(true);
     });
 
     it('keeps an edit made while waiting for the first load without a seed', () => {
-        expect(shouldRebase({ spacing: 4 }, null)).toBe(false);
+        expect(shouldRebase({ spacing: 4 }, {}, STORED)).toBe(false);
+    });
+
+    it('leaves an untouched draft alone when the theme that arrived is the one it already shows', () => {
+        expect(shouldRebase({ palette: { primary: { main: '#ff0000' } } }, SEED, SEED)).toBe(false);
     });
 });
 
