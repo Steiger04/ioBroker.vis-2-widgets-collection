@@ -99,7 +99,7 @@ Einen einzelnen Slider-Wert leert auch hier nur **Rückgängig** oder **Alles au
 
 ## Das Theme im Datenpunkt
 
-Das Studio speichert in den State **`vis-2-widgets-collection.0.theme`** (Typ `string`): das Theme als JSON-Text. Es ist ein **partielles MUI-`ThemeOptions`-Objekt** plus zwei eigene Erweiterungen (`corners`, `googleFonts`). Jedes Collection-Widget liest und validiert den State beim Start und bei jeder Änderung; ist er ungültig, gilt das Theme als Ganzes als `{}` und das Widget-Theme bleibt beim Host-Standard.
+Das Studio speichert in den State **`vis-2-widgets-collection.0.theme`** (Typ `string`): das Theme als JSON-Text. Es ist ein **partielles MUI-`ThemeOptions`-Objekt** plus zwei eigene Erweiterungen (`corners`, `googleFonts`). Jedes Collection-Widget liest und validiert den State beim Start und bei jeder Änderung. Ein einzelner ungültiger Wert fällt weg, der Rest des Themes gilt. Ist der State leer, kein gültiges JSON oder kein Objekt, gilt das Theme als `{}` und das Widget-Theme bleibt beim Host-Standard.
 
 Kompaktes Beispiel (dunkel, eigene Akzente, Inter, Eckradius):
 
@@ -122,7 +122,8 @@ Kompaktes Beispiel (dunkel, eigene Akzente, Inter, Eckradius):
 Regeln und Hinweise für Skript-Autoren:
 
 - **Sparse:** Geleerte Felder entfallen komplett (das Studio entfernt leere Pfade). Fehlende Pfade erben; ein minimal gültiges Theme ist `{}`.
-- **Validierung:** Farben müssen plain sein (keine Verläufe), Zahlen Zahlen, Werte im Bereich (z. B. Eckradien 0–96, `typography.fontSize` 1–100; das Studio meldet „außerhalb des Bereichs (0–96)“). Unbekannte Pfade erzeugen eine Warnung („unbekannte Einstellung — wird ignoriert“), aber keine Sperre. Warnungen und Fehler ohne eigenes Feld stehen mit ihrem Pfad unten im Fenster. Fehler sperren das Speichern aus dem Studio; einen per Skript geschriebenen ungültigen State öffnet das Studio als leeres Theme, und das nächste Speichern überschreibt ihn.
+- **Validierung:** Farben müssen plain sein (keine Verläufe), Zahlen Zahlen, Werte im Bereich (z. B. Eckradien 0–96, `typography.fontSize` 1–100; das Studio meldet „außerhalb des Bereichs (0–96)“). Unbekannte Pfade erzeugen eine Warnung („unbekannte Einstellung — wird ignoriert“), aber keine Sperre. Warnungen und Fehler ohne eigenes Feld stehen mit ihrem Pfad unten im Fenster. Fehler sperren das Speichern aus dem Studio.
+- **Ungültige Werte im State:** Steht in einem per Skript geschriebenen State ein ungültiger Wert, fällt nur dieser weg: Die Widgets zeigen den Rest des Themes, und das Studio öffnet mit dem Rest; das nächste Speichern schreibt den State ohne ihn. Bei Primär, Sekundär und den Statusfarben fällt die Farbe als Ganzes weg, in einer Liste (`shadows`, die Schnitte einer Google-Schrift) die ganze Liste. Ist der State kein gültiges JSON oder kein Objekt, öffnet das Studio mit dem leeren Theme.
 - **Studio strenger als die Widgets:** Einen nicht rechenbaren Wert bei Primär, Sekundär oder den Statusfarben (`red`) lassen die Widgets nur an diesem Feld erben, das Präfix `mui` ersetzen sie durch `vis2c`; der Rest des Themes gilt weiter. Das Studio zeigt beides als Fehler und speichert erst nach der Korrektur.
 - **Direkt schreiben** geht: `setState('vis-2-widgets-collection.0.theme', JSON.stringify(theme), true)` — das Studio liest den State beim Öffnen und arbeitet damit weiter. Danach übernimmt es ihn nicht mehr: Solange es offen ist, gewinnt auf der Canvas der Entwurf, und Speichern überschreibt den geschriebenen Wert.
 - **`googleFonts`** (Map aus Schriftname → Liste aus `weight`, bei einer variablen Schrift `weightMax`, und `data`, der eingebetteten woff2-Data-URI) verwaltet das Studio allein beim Laden einer Google-Schrift; nicht von Hand editieren (große Base64-Blöcke).
