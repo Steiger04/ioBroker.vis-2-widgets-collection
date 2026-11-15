@@ -116,7 +116,10 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
         // Every answer is read from the props at the time of the call: the latest project the
         // host handed this widget.
         this.releaseOrder = takeUpThemeOrder(`${context.projectName}/${view}/${id}`, context.socket, {
-            order: () => this.props.context.views[this.props.view]?.widgets[this.props.id]?.data ?? {},
+            order: () => {
+                const widget = this.props.context.views[this.props.view]?.widgets[this.props.id];
+                return widget ? (widget.data ?? {}) : undefined;
+            },
             // `true`: no history entry of its own.
             leave: () =>
                 this.props.context.changeProject(

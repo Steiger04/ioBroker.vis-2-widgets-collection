@@ -435,8 +435,42 @@ describe('Naht „Theme-Auftrag“: orders over time', () => {
         expect(unstamped(editor.project())).toEqual(planProject());
     });
 
-    it('stays in the project while its view is not shown, and leaves when the view is shown again', async () => {
+    it('does not write when it is deleted before the answer to its read comes', async () => {
         const { server, editor } = placeOrder({ mode: 'dark' });
+
+        // The person deletes the order, as the hint of an overdue order says; the answer comes late.
+        editor.edit(project => {
+            delete (project.Main.widgets as Record<string, unknown>)[ORDER_ID];
+        });
+        await settle(server);
+
+        expect(server.received()).toEqual({ reads: 1, writes: 0 });
+        expect(server.valueOf(THEME_STATE_ID)).toBe(STORED_TEXT);
+        expect(unstamped(editor.project())).toEqual(planProject());
+        expect(editor.changes).toEqual([]);
+    });
+
+    it('does not write while its view is not shown, and acts when the view is shown again', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+
+        editor.open('Cellar');
+        await settle(server);
+
+        // Nothing tells the order that it is still in the project.
+        expect(server.received()).toEqual({ reads: 1, writes: 0 });
+        expect(editor.project()).toEqual(planProject({ mode: 'dark' }));
+
+        editor.open('Main');
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+        expect(server.received()).toEqual({ reads: 2, writes: 1 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+    });
+
+    it('stays in the project when its view is left after it wrote, and leaves when the view is shown again', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+        await server.answerRead();
 
         editor.open('Cellar');
         await settle(server);

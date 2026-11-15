@@ -21,10 +21,14 @@
  * - **Repeatable.** A course that ends frees its order. An order that shows up again — a redo,
  *   the host's delayed write-back of a moved widget, a new mount after a failure — runs again:
  *   it finds its settings in the theme, writes nothing and leaves.
- * - **The project as it is now.** The data is read when the order's turn comes and the way out
- *   is taken right after the write is confirmed, both through the widget mounted at that moment:
- *   from the project the host handed it last. Without a mounted widget the order does not act
- *   and does not leave; it runs when it is mounted again.
+ * - **The project as it is now.** Whether the order is still in the project, its data and its
+ *   way out are asked of the widget mounted at that moment: from the project the host handed it
+ *   last. The data is read once the theme is read, right before the write; the way out is taken
+ *   right after the write is confirmed.
+ * - **Gone is gone.** An order without a mounted widget, or one the project no longer holds,
+ *   neither reads nor writes — also when the answer to its read comes late and the person has
+ *   deleted it meanwhile. Nor does it leave; an order whose view is merely not shown runs when
+ *   it is mounted again. A write that is under way cannot be taken back.
  * - **No silent wait.** A failed step ends the course, and the order stays in the project. An
  *   answer that takes longer than {@link THEME_ORDER_PATIENCE_MS} is told to the widget the same
  *   way, and the course keeps waiting: a late answer still counts. The time is for the hint
@@ -56,8 +60,11 @@ export type ThemeOrderSocket = Pick<Connection, 'getState' | 'setState'>;
 
 /** The mounted widget of an order: what the course asks of it, answered from its latest props. */
 export interface ThemeOrderSeat {
-    /** The order's data as the assistant wrote it, from the project the host handed last. */
-    order: () => Readonly<Record<string, unknown>>;
+    /**
+     * The order's data as the assistant wrote it, from the project the host handed last;
+     * `undefined` when that project does not hold the order any more.
+     */
+    order: () => Readonly<Record<string, unknown>> | undefined;
     /** Takes the order out of the project the host handed last. */
     leave: () => Promise<void>;
     /** The course failed or is overdue: the order is still in the project. */
@@ -85,12 +92,16 @@ let line: Promise<void> = Promise.resolve();
  * @param socket - The socket to the theme state.
  */
 async function carryOut(course: Course, socket: ThemeOrderSocket): Promise<void> {
-    const order = course.seat?.order();
-    if (!order) {
+    if (!course.seat?.order()) {
         // Unmounted while it stood in line: nothing says the order is still in the project.
         return;
     }
     const state = await socket.getState(THEME_STATE_ID);
+    // Asked anew: the answer may come long after the person has deleted the order.
+    const order = course.seat?.order();
+    if (!order) {
+        return;
+    }
     const stored = parseStoredTheme(state?.val);
     const next = applyThemeOrder(stored, order);
     if (!sameTheme(next, stored)) {
