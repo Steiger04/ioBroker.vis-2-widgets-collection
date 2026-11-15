@@ -507,10 +507,28 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing', () => {
             const names = settings().map(field => field.name);
 
+            // The names are what an order's data is keyed by: the wiki and every stored example use them.
+            expect(names).toEqual([
+                'reset',
+                'preset',
+                'mode',
+                'primary',
+                'secondary',
+                'error',
+                'warning',
+                'info',
+                'success',
+                'textPrimary',
+                'textSecondary',
+                'backgroundDefault',
+                'backgroundPaper',
+                'divider',
+                'fontFamily',
+                'fontSize',
+                'cornerRadius',
+                'spacing',
+            ]);
             expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4);
-            expect(new Set(names).size).toBe(names.length);
-            expect(names.slice(0, 3)).toEqual(['reset', 'preset', 'mode']);
-            expect(names.slice(-4)).toEqual(['fontFamily', 'fontSize', 'cornerRadius', 'spacing']);
         });
     });
 
