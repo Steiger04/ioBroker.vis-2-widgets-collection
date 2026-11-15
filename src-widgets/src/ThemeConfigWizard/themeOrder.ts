@@ -62,9 +62,15 @@ export interface ThemeOrderSetting {
     apply: (theme: UserTheme, value: unknown) => UserTheme | undefined;
 }
 
-/** A number as an order may hold it: a number, or a text that is nothing but one. */
+/** A number as a text holds it: plain decimal writing, as a person types it into a number field. */
+const DECIMAL_TEXT = /^-?\d+(\.\d+)?$/;
+
+/**
+ * A number as an order may hold it: a number, or a text that is nothing but one in decimal
+ * writing — not what JavaScript would read as a number besides (`0x10`, `1e1`).
+ */
 const numberOf = (value: unknown): number | undefined => {
-    const number = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+    const number = typeof value === 'string' && DECIMAL_TEXT.test(value.trim()) ? Number(value) : value;
     return typeof number === 'number' && Number.isFinite(number) ? number : undefined;
 };
 

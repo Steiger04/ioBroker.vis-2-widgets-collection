@@ -654,6 +654,9 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             ['a font size above the studio’s slider', () => ({ fontSize: 30 })],
             ['a font size above the studio’s slider, as text', () => ({ fontSize: '30' })],
             ['a font size in words', () => ({ fontSize: 'big' })],
+            // What JavaScript would read as 16 and as 10: no person writes a size that way.
+            ['a font size in hexadecimal writing', () => ({ fontSize: '0x10' })],
+            ['a font size in exponent writing', () => ({ fontSize: '1e1' })],
             ['a negative corner radius', () => ({ cornerRadius: -1 })],
             ['a corner radius beyond the studio’s limit', () => ({ cornerRadius: 97 })],
             ['a corner radius in words', () => ({ cornerRadius: 'round' })],
