@@ -15,16 +15,23 @@
  *
  * Orders are carried out one after the other across the whole page, so an order a test leaves
  * waiting would hold up the orders of the next test: after each test the server answers what
- * still waits.
+ * still waits. Every theme an order wrote in a test has to pass the theme validator.
  */
 import { act } from 'react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Project } from '@iobroker/types-vis-2';
 
+import en from '../i18n/en.json';
+import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THEME_STATE_ID } from './constants';
 import { mountEditor, stateServer, type EditorStandIn, type StateServer } from './testing/editorStandIn';
+import { FONT_CATALOGUE } from './theme/fontCatalogue';
+import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
+import { validateThemeOptions } from './theme/validateTheme';
 
 // The host's widget base class has to stand before `Generic` is loaded.
 await vi.hoisted(async () => {
@@ -221,9 +228,53 @@ const pass = async (ms: number): Promise<void> => {
 afterEach(async () => {
     for (const server of servers.splice(0)) {
         await settle(server);
+        // Whatever an order writes is a theme the validator accepts.
+        for (const text of server.stored()) {
+            expect(validateThemeOptions(JSON.parse(text as string)).isValid, text as string).toBe(true);
+        }
     }
     vi.useRealTimers();
 });
+
+/** A copy of a theme with one value at a dot path. */
+const withValue = (theme: UserTheme, path: string, value: unknown): UserTheme => {
+    const copy = JSON.parse(JSON.stringify(theme)) as Record<string, unknown>;
+    const segments = path.split('.');
+    let node = copy;
+    for (const segment of segments.slice(0, -1)) {
+        node = (node[segment] ??= {}) as Record<string, unknown>;
+    }
+    node[segments[segments.length - 1]] = value;
+    return copy;
+};
+
+/** The fields of the order, as the host's type description flattens them. */
+const orderFields = (): { name: string; type?: string; label?: string }[] =>
+    (ThemeConfigWizard.getWidgetInfo().visAttrs ?? []).flatMap(
+        group => (group.fields ?? []) as { name: string; type?: string; label?: string }[],
+    );
+
+/** The name of the field the assistant finds under a label of the Theme Studio. */
+const fieldLabelled = (labelKey: string): string => {
+    const field = orderFields().find(one => one.label === labelKey);
+    if (!field) {
+        throw new Error(`No field is labelled ${labelKey}`);
+    }
+    return field.name;
+};
+
+/**
+ * The theme the state holds after an order has run its course.
+ *
+ * @param order - The data the assistant wrote.
+ * @param stored - The theme stored before; {@link STORED} when left out.
+ */
+const themeAfter = async (order: Record<string, unknown>, stored: UserTheme = STORED): Promise<unknown> => {
+    const { server, editor } = placeOrder(order, { stored: JSON.stringify(stored) });
+    await settle(server);
+    expect(unstamped(editor.project())).toEqual(planProject());
+    return themeOf(server);
+};
 
 describe('Naht „Theme-Auftrag“: an order placed in the editor', () => {
     it('changes only the mode of the stored theme; everything else stays, Google fonts included', async () => {
@@ -340,7 +391,331 @@ describe('Naht „Theme-Auftrag“: an order placed in the editor', () => {
     });
 });
 
+describe('Naht „Theme-Auftrag“: what an order can set', () => {
+    describe('a preset', () => {
+        it('replaces the colours of the stored theme by the preset’s; font, size, radius, spacing and Google fonts stay', async () => {
+            expect(await themeAfter({ preset: 'graphit' })).toEqual({
+                ...STORED,
+                palette: {
+                    mode: 'dark',
+                    primary: { main: '#38bdf8' },
+                    secondary: { main: '#818cf8' },
+                    background: { default: '#0f1216', paper: '#181c23' },
+                },
+            });
+        });
+
+        it.each(THEME_PRESETS.map(preset => [preset.id, preset] as const))(
+            '%s leaves the theme the Theme Studio leaves when the preset is clicked there',
+            async (id, preset) => {
+                const stored = withValue(
+                    withValue(STORED, 'palette.divider', '#445566'),
+                    'palette.text.primary',
+                    '#ffeedd',
+                );
+
+                expect(await themeAfter({ preset: id }, stored)).toEqual(applyPreset(stored, preset));
+            },
+        );
+
+        it('lies under a single colour of the same order', async () => {
+            expect(
+                await themeAfter({ preset: 'graphit', [fieldLabelled('theme_wizard_palette_primary')]: '#ff9800' }),
+            ).toEqual({
+                ...STORED,
+                palette: {
+                    mode: 'dark',
+                    primary: { main: '#ff9800' },
+                    secondary: { main: '#818cf8' },
+                    background: { default: '#0f1216', paper: '#181c23' },
+                },
+            });
+        });
+
+        it('lies under the mode of the same order', async () => {
+            const theme = (await themeAfter({ preset: 'graphit', mode: 'light' })) as UserTheme;
+
+            expect(theme.palette).toEqual({
+                mode: 'light',
+                primary: { main: '#38bdf8' },
+                secondary: { main: '#818cf8' },
+                background: { default: '#0f1216', paper: '#181c23' },
+            });
+        });
+    });
+
+    describe('a reset', () => {
+        it('writes the empty theme', async () => {
+            const { server } = placeOrder({ reset: true });
+            await settle(server);
+
+            expect(server.valueOf(THEME_STATE_ID)).toBe('{}');
+        });
+
+        it('with further fields leaves the empty theme plus these fields', async () => {
+            expect(await themeAfter({ reset: true, mode: 'dark', spacing: 4, fontFamily: 'Inter' })).toEqual({
+                palette: { mode: 'dark' },
+                spacing: 4,
+                typography: { fontFamily: "'Inter', system-ui, sans-serif" },
+            });
+        });
+
+        it('with a preset leaves only the colours of the preset', async () => {
+            expect(await themeAfter({ reset: true, preset: 'graphit' })).toEqual({
+                palette: {
+                    mode: 'dark',
+                    primary: { main: '#38bdf8' },
+                    secondary: { main: '#818cf8' },
+                    background: { default: '#0f1216', paper: '#181c23' },
+                },
+            });
+        });
+
+        it('writes nothing where the theme is empty already', async () => {
+            const { server, editor } = placeOrder({ reset: true }, { stored: '{}' });
+            await settle(server);
+
+            expect(server.received().writes).toBe(0);
+            expect(unstamped(editor.project())).toEqual(planProject());
+        });
+
+        it.each([['yes'], ['true'], [1], [false]])('happens only for true, not for %j', async value => {
+            expect(await themeAfter({ reset: value, spacing: 4 })).toEqual({ ...STORED, spacing: 4 });
+        });
+    });
+
+    describe('single values', () => {
+        it.each(STUDIO_COLOR_FIELDS.map(field => [field.path, field] as const))(
+            'the colour of %s changes exactly this colour',
+            async (path, field) => {
+                expect(await themeAfter({ [fieldLabelled(field.labelKey)]: '#123456' })).toEqual(
+                    withValue(STORED, path, '#123456'),
+                );
+            },
+        );
+
+        it.each(['#1976d2', '#abc', 'rgb(25, 118, 210)', 'hsl(210, 79%, 46%)'])(
+            'takes the colour notation %s',
+            async colour => {
+                expect(await themeAfter({ [fieldLabelled('theme_wizard_palette_primary')]: colour })).toEqual(
+                    withValue(STORED, 'palette.primary.main', colour),
+                );
+            },
+        );
+
+        it.each(FONT_CATALOGUE.map(font => [font.label, font.value] as const))(
+            'the font family %s stores the font stack the Theme Studio stores',
+            async (label, stack) => {
+                expect(await themeAfter({ fontFamily: label })).toEqual(
+                    withValue(STORED, 'typography.fontFamily', stack),
+                );
+            },
+        );
+
+        it('the font size changes exactly the font size', async () => {
+            expect(await themeAfter({ fontSize: 18 })).toEqual(withValue(STORED, 'typography.fontSize', 18));
+        });
+
+        it('the corner radius sets all four corners, as the linked radius of the Theme Studio does', async () => {
+            expect(await themeAfter({ cornerRadius: 10 })).toEqual({
+                ...STORED,
+                corners: { topLeft: 10, topRight: 10, bottomRight: 10, bottomLeft: 10 },
+            });
+        });
+
+        it('the spacing changes exactly the spacing', async () => {
+            expect(await themeAfter({ spacing: 4 })).toEqual({ ...STORED, spacing: 4 });
+        });
+
+        it('takes a number written as text', async () => {
+            expect(await themeAfter({ fontSize: '18', cornerRadius: '10', spacing: '4' })).toEqual({
+                ...STORED,
+                typography: { ...STORED.typography, fontSize: 18 },
+                corners: { topLeft: 10, topRight: 10, bottomRight: 10, bottomLeft: 10 },
+                spacing: 4,
+            });
+        });
+
+        it('sets every kind of value in one order', async () => {
+            expect(
+                await themeAfter({
+                    mode: 'dark',
+                    [fieldLabelled('theme_wizard_palette_secondary')]: '#00897b',
+                    [fieldLabelled('theme_wizard_palette_text_primary')]: '#eeeeee',
+                    fontFamily: 'Georgia',
+                    fontSize: 16,
+                    cornerRadius: 0,
+                    spacing: 8,
+                }),
+            ).toEqual({
+                ...STORED,
+                palette: {
+                    ...STORED.palette,
+                    mode: 'dark',
+                    secondary: { main: '#00897b' },
+                    text: { primary: '#eeeeee' },
+                },
+                typography: { fontFamily: "'Georgia', serif", fontSize: 16 },
+                corners: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 },
+                spacing: 8,
+            });
+        });
+    });
+
+    describe('values that cannot be used', () => {
+        const primary = (): string => fieldLabelled('theme_wizard_palette_primary');
+        const textColour = (): string => fieldLabelled('theme_wizard_palette_text_primary');
+
+        it.each<[string, () => Record<string, unknown>]>([
+            ['a colour that is none', () => ({ [primary()]: 'not a colour' })],
+            ['a gradient as colour', () => ({ [textColour()]: 'linear-gradient(#000, #fff)' })],
+            ['a colour that is no text', () => ({ [textColour()]: 42 })],
+            // MUI cannot compute with a colour name in an accent or status colour; the studio refuses to save one.
+            ['a colour name where MUI has to compute', () => ({ [primary()]: 'red' })],
+            ['a font that is not in the catalogue', () => ({ fontFamily: 'Comic Sans MS' })],
+            ['a font stack instead of a catalogue name', () => ({ fontFamily: "'Inter', system-ui, sans-serif" })],
+            ['a font size of zero', () => ({ fontSize: 0 })],
+            ['a font size beyond every screen', () => ({ fontSize: 500 })],
+            ['a font size in words', () => ({ fontSize: 'big' })],
+            ['a negative corner radius', () => ({ cornerRadius: -1 })],
+            ['a corner radius beyond the studio’s limit', () => ({ cornerRadius: 97 })],
+            ['a corner radius in words', () => ({ cornerRadius: 'round' })],
+            ['a spacing in words', () => ({ spacing: 'wide' })],
+            ['an empty spacing', () => ({ spacing: '' })],
+            ['a spacing that is a switch', () => ({ spacing: true })],
+            ['a preset that does not exist', () => ({ preset: 'neon' })],
+            ['a preset in other letters', () => ({ preset: 'Graphit' })],
+        ])('skips %s and applies the usable values of the same order', async (_label, unusable) => {
+            expect(await themeAfter({ ...unusable(), mode: 'dark' })).toEqual(
+                withValue(STORED, 'palette.mode', 'dark'),
+            );
+        });
+
+        it('skips each unusable value of an order full of them, and applies the usable ones in between', async () => {
+            expect(
+                await themeAfter({
+                    preset: 'neon',
+                    mode: 'dark',
+                    [primary()]: 'red',
+                    [textColour()]: '#eeeeee',
+                    fontFamily: 'Comic Sans MS',
+                    fontSize: 16,
+                    cornerRadius: 200,
+                    spacing: 'wide',
+                }),
+            ).toEqual({
+                ...STORED,
+                palette: { ...STORED.palette, mode: 'dark', text: { primary: '#eeeeee' } },
+                typography: { ...STORED.typography, fontSize: 16 },
+            });
+        });
+
+        it('takes a colour name where the Theme Studio saves one too: MUI does not compute with a text colour', async () => {
+            expect(await themeAfter({ [textColour()]: 'white' })).toEqual(
+                withValue(STORED, 'palette.text.primary', 'white'),
+            );
+        });
+    });
+
+    describe('the same order again', () => {
+        it.each<[string, Record<string, unknown>]>([
+            ['single values', { mode: 'dark', fontSize: 16, cornerRadius: 6, spacing: 4, fontFamily: 'Inter' }],
+            ['a reset', { reset: true }],
+            ['a reset with values', { reset: true, mode: 'dark', spacing: 4 }],
+            ['a preset', { preset: 'sunset' }],
+            ['a preset with values', { preset: 'sunset', fontSize: 16, mode: 'light' }],
+            ['a reset with a preset', { reset: true, preset: 'salbei', cornerRadius: 12 }],
+        ])('with %s leaves the theme it left the first time, and writes nothing', async (_label, order) => {
+            const { server, editor } = placeOrder(order);
+            await settle(server);
+            const first = server.valueOf(THEME_STATE_ID);
+
+            editor.edit(project => {
+                (project.Main.widgets as Record<string, unknown>)[ORDER_ID] = placed(ORDER_TYPE, order, false);
+            });
+            await settle(server);
+
+            expect(server.valueOf(THEME_STATE_ID)).toBe(first);
+            expect(server.received()).toEqual({ reads: 2, writes: 1 });
+            expect(unstamped(editor.project())).toEqual(planProject());
+        });
+    });
+
+    describe('what the KI-Leitfaden tells the assistant', () => {
+        const guide = (): string =>
+            (en as Record<string, string>)[orderFields().find(field => field.type === 'help')!.label!];
+        // The description of the theme state is the other AI channel to the same theme (an MCP client).
+        const stateDescription = (): string => {
+            const ioPackage = JSON.parse(readFileSync(resolve(process.cwd(), '..', 'io-package.json'), 'utf8')) as {
+                instanceObjects: { _id: string; common: { desc?: string } }[];
+            };
+            return ioPackage.instanceObjects.find(object => object._id === 'theme')?.common.desc ?? '';
+        };
+
+        it('names the state the theme is read at', () => {
+            expect(guide()).toContain(THEME_STATE_ID);
+        });
+
+        // The bounds are read off the two wordings, not off the code.
+        it.each([
+            {
+                field: 'fontSize',
+                inGuide: '"fontSize": 8 to 24',
+                inState: 'typography.fontSize: number from 8 to 24',
+                ends: [8, 24],
+            },
+            {
+                field: 'cornerRadius',
+                inGuide: '"cornerRadius": 0 to 96',
+                inState: 'each a number from 0 to 96',
+                ends: [0, 96],
+            },
+            { field: 'spacing', inGuide: '"spacing": 0 to 16', inState: 'spacing: number from 0 to 16', ends: [0, 16] },
+        ])(
+            'states the range of $field as the description of the theme state does, and the order takes both ends',
+            async ({ field, inGuide, inState, ends }) => {
+                expect(guide()).toContain(inGuide);
+                expect(stateDescription()).toContain(inState);
+
+                for (const end of ends) {
+                    const theme = JSON.stringify(await themeAfter({ reset: true, [field]: end }));
+                    expect(theme, `${field} ${end}`).not.toBe('{}');
+                }
+            },
+        );
+
+        it('names the colour notations the description of the theme state names', () => {
+            const notations = 'hex like #1976d2, rgb() or hsl()';
+
+            expect(guide()).toContain(notations);
+            expect(stateDescription()).toContain(notations);
+        });
+    });
+});
+
 describe('Naht „Theme-Auftrag“: orders over time', () => {
+    it('works two orders with different fields into the theme one after the other: it holds the values of both', async () => {
+        const second = { [fieldLabelled('theme_wizard_palette_primary')]: '#00897b', fontSize: 18 };
+        const { server, editor } = placeOrder({ mode: 'dark', spacing: 4 }, { project: withSecondOrder(second) });
+        // Both orders are mounted, one reads.
+        expect(server.pendingReads()).toBe(1);
+
+        await server.answerRead();
+        // The first writes; the second has not read what the first is about to change.
+        expect(server.received()).toEqual({ reads: 1, writes: 1 });
+
+        await settle(server);
+
+        expect(themeOf(server)).toEqual({
+            ...STORED,
+            palette: { ...STORED.palette, mode: 'dark', primary: { main: '#00897b' } },
+            typography: { ...STORED.typography, fontSize: 18 },
+            spacing: 4,
+        });
+        expect(server.received()).toEqual({ reads: 2, writes: 2 });
+        expect(unstamped(editor.project())).toEqual(planProject());
+    });
+
     it('lets a second order read only once the first has written, and removes both', async () => {
         const { server, editor } = placeOrder(
             { mode: 'dark' },

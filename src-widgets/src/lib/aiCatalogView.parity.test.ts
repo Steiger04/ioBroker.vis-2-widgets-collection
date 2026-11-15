@@ -34,6 +34,9 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
+import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
+import { FONT_CATALOGUE } from './theme/fontCatalogue';
+import { THEME_PRESETS } from './theme/presets';
 import { decodeBlob } from './encoding';
 import {
     isUiOnlyCustomField,
@@ -431,15 +434,83 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
-    it('describes the colour mode of a Theme-Auftrag as a selection of light and dark', () => {
-        const mode = describedFields(infos.get('ThemeConfigWizard')!, I18N_PREFIX).find(field => field.name === 'mode');
+    describe('the settings of a Theme-Auftrag, as the type description shows them', () => {
+        /** The described fields of the order without its KI-Leitfaden. */
+        const settings = (): DescribedField[] =>
+            describedFields(infos.get('ThemeConfigWizard')!, I18N_PREFIX).filter(field => field.type !== 'help');
+        const setting = (fieldName: string): DescribedField | undefined =>
+            settings().find(field => field.name === fieldName);
+        const text = (key: string): string => (en as Record<string, string>)[key];
 
-        expect(mode).toEqual({
-            name: 'mode',
-            type: 'select',
-            label: 'Color mode',
-            options: ['light', 'dark'],
-            default: undefined,
+        it('describes the colour mode as a selection of light and dark', () => {
+            expect(setting('mode')).toEqual({
+                name: 'mode',
+                type: 'select',
+                label: 'Color mode',
+                options: ['light', 'dark'],
+                default: undefined,
+            });
+        });
+
+        it('describes one colour field for every colour of the studio’s register, under the studio’s label', () => {
+            const colours = settings().filter(field => field.type === 'color');
+
+            // A colour added to the register without a field of its own breaks the equality.
+            expect(STUDIO_COLOR_FIELDS).toHaveLength(11);
+            expect(colours.map(field => field.label)).toEqual(STUDIO_COLOR_FIELDS.map(field => text(field.labelKey)));
+            expect(new Set(colours.map(field => field.name)).size).toBe(STUDIO_COLOR_FIELDS.length);
+            expect(colours.every(field => field.options === undefined)).toBe(true);
+        });
+
+        it('offers exactly the presets of the studio to pick from', () => {
+            expect(THEME_PRESETS).toHaveLength(9);
+            expect(setting('preset')).toEqual({
+                name: 'preset',
+                type: 'select',
+                label: 'Presets',
+                options: THEME_PRESETS.map(preset => preset.id),
+                default: undefined,
+            });
+        });
+
+        it('offers exactly the entries of the studio’s font catalogue to pick from, by their names', () => {
+            expect(setting('fontFamily')).toEqual({
+                name: 'fontFamily',
+                type: 'select',
+                label: 'Font family',
+                options: FONT_CATALOGUE.map(font => font.label),
+                default: undefined,
+            });
+            expect(new Set(FONT_CATALOGUE.map(font => font.label)).size).toBe(FONT_CATALOGUE.length);
+        });
+
+        it('describes the reset as a switch, and font size, corner radius and spacing as numbers in px', () => {
+            expect(setting('reset')).toEqual({
+                name: 'reset',
+                type: 'checkbox',
+                label: 'Reset all to default',
+                options: undefined,
+                default: undefined,
+            });
+            expect(
+                ['fontSize', 'cornerRadius', 'spacing'].map(fieldName => {
+                    const field = setting(fieldName);
+                    return [field?.name, field?.type, field?.label];
+                }),
+            ).toEqual([
+                ['fontSize', 'number', 'Base font size (px)'],
+                ['cornerRadius', 'number', 'Border radius (px)'],
+                ['spacing', 'number', 'Spacing unit (px)'],
+            ]);
+        });
+
+        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing', () => {
+            const names = settings().map(field => field.name);
+
+            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4);
+            expect(new Set(names).size).toBe(names.length);
+            expect(names.slice(0, 3)).toEqual(['reset', 'preset', 'mode']);
+            expect(names.slice(-4)).toEqual(['fontFamily', 'fontSize', 'cornerRadius', 'spacing']);
         });
     });
 

@@ -305,6 +305,8 @@ export interface StateServer {
     pendingWrites: () => number;
     /** The requests the server has received at all. */
     received: () => { reads: number; writes: number };
+    /** The values the server has stored for confirmed writes, oldest first. */
+    stored: () => readonly unknown[];
     /** Answers the oldest waiting read with the value the state held when the read arrived. */
     answerRead: () => Promise<void>;
     /** Stores the value of the oldest waiting write and confirms it. */
@@ -327,6 +329,7 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
     const reads: Waiting[] = [];
     const writes: Waiting[] = [];
     const received = { reads: 0, writes: 0 };
+    const stored: unknown[] = [];
 
     const socket = {
         getState: (id: string): Promise<ioBroker.State | null> => {
@@ -347,6 +350,7 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
                 writes.push({
                     answer: () => {
                         values.set(id, value);
+                        stored.push(value);
                         resolve();
                     },
                     // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- as the socket does
@@ -375,6 +379,7 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
         pendingReads: () => reads.length,
         pendingWrites: () => writes.length,
         received: () => ({ ...received }),
+        stored: () => stored,
         answerRead: () => answerOldest(reads, 'read', 'answer'),
         answerWrite: () => answerOldest(writes, 'write', 'answer'),
         failRead: () => answerOldest(reads, 'read', 'fail'),

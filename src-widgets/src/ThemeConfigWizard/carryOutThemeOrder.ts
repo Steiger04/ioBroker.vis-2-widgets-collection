@@ -6,7 +6,7 @@
  * @remarks
  * A Theme-Auftrag is a one-time order: once its settings are in the stored theme it is gone
  * from the view. This module owns the steps, their sequence and what holds over time; what an
- * order sets is the reckoning of {@link module:lib/theme/themeOrder}, and when an order is taken
+ * order sets is the reckoning of {@link module:ThemeConfigWizard/themeOrder}, and when an order is taken
  * up is decided by the widget ({@link module:ThemeConfigWizard}).
  *
  * - **Answers, not times.** The order reads, then writes, then leaves, each step after the
@@ -43,8 +43,8 @@ import type { AnyWidgetId, Project, ViewSettings } from '@iobroker/types-vis-2';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { parseStoredTheme } from '../lib/theme/storedTheme';
-import { applyThemeOrder } from '../lib/theme/themeOrder';
 import type { UserTheme } from '../lib/theme/themeTypes';
+import { applyThemeOrder } from './themeOrder';
 
 /**
  * How long an order waits for its course before it tells that it is not confirmed. The socket
