@@ -53,8 +53,8 @@ interface CollectionBaseProps {
     isValidType?: boolean;
     /**
      * A notice of the widget itself (translated text), shown in the form of the invalid-type
-     * notice and instead of the frame's content while the type is valid — for a widget that is
-     * not configured beyond its OID (Light2 without a Lichttyp). The invalid-type notice wins.
+     * notice and instead of the frame's content while the type is valid — for a widget whose
+     * configuration leaves nothing to draw. The invalid-type notice wins.
      */
     notice?: string;
     /** Whether active background styling should be applied. */
@@ -247,6 +247,13 @@ function CollectionBase({
     // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
     const halfPadding = (optionalNumber(widget.data.basePadding) ?? 0) / 2;
 
+    // The one notice shown instead of header, content and footer: the invalid-type notice wins.
+    const shownNotice = !isValidType
+        ? oid
+            ? translate('collection_base_invalid_type', oid)
+            : translate('collection_base_select_oid')
+        : notice;
+
     return (
         <Paper
             className="BASE-PAPER-0"
@@ -254,7 +261,7 @@ function CollectionBase({
             variant={widget.data.outlinedFrame ? 'outlined' : 'elevation'}
             sx={paper0Sx}
         >
-            {!!isValidType && notice === undefined && (
+            {shownNotice === undefined && (
                 <>
                     <Box
                         className="BASE-HEADER"
@@ -324,14 +331,7 @@ function CollectionBase({
                     </Box>
                 </>
             )}
-            {!isValidType && (
-                <FrameNotice
-                    text={
-                        oid ? translate('collection_base_invalid_type', oid) : translate('collection_base_select_oid')
-                    }
-                />
-            )}
-            {!!isValidType && notice !== undefined && <FrameNotice text={notice} />}
+            {shownNotice !== undefined && <FrameNotice text={shownNotice} />}
         </Paper>
     );
 }
