@@ -93,6 +93,10 @@ reads them from there.
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+- (steiger04) Node.js 22 or newer is required
+
 ### 3.1.0 (2026-11-15)
 
 - (steiger04) The vis-2 AI assistant can now build pages with these widgets
