@@ -314,6 +314,9 @@ interface Waiting {
     fail: () => void;
 }
 
+/** What a subscriber of a state is called with. */
+type StateHandler = (id: string, state: ioBroker.State | null) => void;
+
 /** What a failing request is answered with: the socket rejects with the server's text, not an `Error`. */
 export const SERVER_ERROR = 'permissionError';
 
@@ -341,6 +344,8 @@ export interface StateServer {
     failWrite: () => Promise<void>;
     /** The oldest waiting read never gets its answer: it is lost on the way. */
     loseRead: () => void;
+    /** Changes a state from outside — another browser, an MCP client — and reports it to the subscribers. */
+    change: (id: string, value: unknown) => void;
 }
 
 /**
@@ -356,6 +361,10 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
     const writes: Waiting[] = [];
     const received = { reads: 0, writes: 0 };
     const stored: unknown[] = [];
+    const subscribers = new Map<string, Set<StateHandler>>();
+    // The server reports a changed state to everyone subscribed, the writer included.
+    const report = (id: string): void =>
+        [...(subscribers.get(id) ?? [])].forEach(handler => handler(id, { val: values.get(id) } as ioBroker.State));
 
     const socket = {
         getState: (id: string): Promise<ioBroker.State | null> => {
@@ -378,14 +387,20 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
                         values.set(id, value);
                         stored.push(value);
                         resolve();
+                        report(id);
                     },
                     // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- as the socket does
                     fail: () => reject(SERVER_ERROR),
                 });
             });
         },
-        subscribeState: (): Promise<void> => Promise.resolve(),
-        unsubscribeState: (): void => undefined,
+        subscribeState: (id: string, handler: StateHandler): Promise<void> => {
+            subscribers.set(id, (subscribers.get(id) ?? new Set()).add(handler));
+            return Promise.resolve();
+        },
+        unsubscribeState: (id: string, handler: StateHandler): void => {
+            subscribers.get(id)?.delete(handler);
+        },
     } as unknown as Connection;
 
     const answerOldest = async (waiting: Waiting[], what: string, how: keyof Waiting): Promise<void> => {
@@ -415,5 +430,10 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
                 throw new Error('No read waits for an answer');
             }
         },
+        change: (id, value) =>
+            act(() => {
+                values.set(id, value);
+                report(id);
+            }),
     };
 }
