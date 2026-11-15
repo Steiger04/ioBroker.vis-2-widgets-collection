@@ -14,11 +14,13 @@
  * - {@link mountEditor} holds a project, mounts the widgets of the open view by their type and
  *   hands each the context the engine builds (`Vis/visEngine.tsx`): `views` is the whole
  *   project, frozen as the host's store freezes it; `changeProject` replaces the whole project
- *   and stamps it (`Editor.tsx` changeProject). A widget is keyed by its place in the view and
+ *   and stamps it (`Editor.tsx` changeProject). The store has the new project at once; the
+ *   promise settles later (the host awaits a state update of its own, 150 ms were measured) —
+ *   when the test says so, if it asked for that. A widget is keyed by its place in the view and
  *   its id (`Vis/visView.tsx` getOneWidget), so a widget is mounted anew when one before it
  *   leaves. In the runtime there is no edit mode and no `changeProject` (`Runtime.tsx`);
  * - {@link stateServer} answers a read or a write only when the test triggers it — with the
- *   value, with an error, or not at all. A socket that answers at once hides every race between
+ *   value, with an error, or never. A socket that answers at once hides every race between
  *   two orders, a re-mount and the project.
  *
  * The module must not import a widget: `Generic` reads `window.visRxWidget` when it is loaded,
@@ -148,6 +150,13 @@ const deepFreeze = <T,>(value: T): T => {
     return value;
 };
 
+/** Lets the continuations of an answered request run: a widget's own steps between two requests. */
+const flush = async (): Promise<void> => {
+    for (let round = 0; round < 20; round++) {
+        await Promise.resolve();
+    }
+};
+
 /** A project change a widget asked the editor for. */
 export interface ProjectChange {
     /** The project as it was handed over. */
@@ -173,6 +182,12 @@ export interface EditorOptions {
     runtime?: boolean;
     /** Whether the editor edits (`true`) or previews (`false`, its „Toggle runtime“); the runtime never edits. */
     editMode?: boolean;
+    /**
+     * `true`: a project change a widget asked for is in the project at once, but its promise
+     * settles only with {@link EditorStandIn.confirmChange} — the time the host's own
+     * `changeProject` takes after it has updated its store.
+     */
+    slowProjectChanges?: boolean;
 }
 
 /** The mounted editor stand-in. */
@@ -192,6 +207,10 @@ export interface EditorStandIn {
     edit: (recipe: (draft: Project) => void) => void;
     /** Shows another view: the widgets of the one shown before are unmounted. */
     open: (view: string) => void;
+    /** The project changes of widgets whose promise has not settled (see `slowProjectChanges`). */
+    waitingChanges: () => number;
+    /** Settles the promise of the oldest waiting project change. */
+    confirmChange: () => Promise<void>;
 }
 
 /**
@@ -208,6 +227,7 @@ export function mountEditor(options: EditorOptions): EditorStandIn {
     let project = deepFreeze(clone(options.project));
     let stamp = 0;
     const changes: ProjectChange[] = [];
+    const waiting: (() => void)[] = [];
 
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -250,7 +270,7 @@ export function mountEditor(options: EditorOptions): EditorStandIn {
         (next.___settings as unknown as { ts: string }).ts = `stamp-${++stamp}`;
         project = deepFreeze(next);
         render();
-        return Promise.resolve();
+        return options.slowProjectChanges ? new Promise(resolve => waiting.push(resolve)) : Promise.resolve();
     }
 
     act(render);
@@ -274,15 +294,19 @@ export function mountEditor(options: EditorOptions): EditorStandIn {
             view = next;
             act(render);
         },
+        waitingChanges: () => waiting.length,
+        confirmChange: async () => {
+            const settle = waiting.shift();
+            if (!settle) {
+                throw new Error('No project change waits for its promise');
+            }
+            await act(async () => {
+                settle();
+                await flush();
+            });
+        },
     };
 }
-
-/** Lets the continuations of an answered request run: a widget's own steps between two requests. */
-const flush = async (): Promise<void> => {
-    for (let round = 0; round < 20; round++) {
-        await Promise.resolve();
-    }
-};
 
 /** A request that waits for its answer. */
 interface Waiting {
@@ -315,6 +339,8 @@ export interface StateServer {
     failRead: () => Promise<void>;
     /** Answers the oldest waiting write with an error; the state keeps its value. */
     failWrite: () => Promise<void>;
+    /** The oldest waiting read never gets its answer: it is lost on the way. */
+    loseRead: () => void;
 }
 
 /**
@@ -384,5 +410,10 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
         answerWrite: () => answerOldest(writes, 'write', 'answer'),
         failRead: () => answerOldest(reads, 'read', 'fail'),
         failWrite: () => answerOldest(writes, 'write', 'fail'),
+        loseRead: () => {
+            if (!reads.shift()) {
+                throw new Error('No read waits for an answer');
+            }
+        },
     };
 }
