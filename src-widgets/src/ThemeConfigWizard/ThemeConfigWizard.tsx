@@ -38,6 +38,7 @@ import type { RxWidgetInfo, VisRxWidgetState } from '@iobroker/types-vis-2';
 import type { VisRxWidgetProps } from '@iobroker/types-vis-2/visRxWidget';
 import Generic from '../Generic';
 import { alwaysHidden, createAiGuideField } from '../lib/fieldFactories';
+import type { ThemeOrderFieldsRxData, WidgetRegistry } from '../types';
 import { projectWithoutWidget, takeUpThemeOrder, type ThemeOrderSeat } from './carryOutThemeOrder';
 import themeOrderFields from './themeOrderFields';
 import ThemeWizardButton from './ThemeWizardButton';
@@ -53,7 +54,7 @@ const HOST_NAME_PLATE_PX = 14;
  * The data of an order without settings: one object, so that the order's course can tell a new
  * project from the one it knows.
  */
-const NO_SETTINGS: Readonly<Record<string, unknown>> = Object.freeze({});
+const NO_SETTINGS: ThemeOrderFieldsRxData = Object.freeze({});
 
 /** What a placed Theme-Auftrag keeps besides the host's widget state. */
 interface ThemeOrderState {
@@ -61,7 +62,10 @@ interface ThemeOrderState {
     orderNotConfirmed?: boolean;
 }
 
-class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & ThemeOrderState> {
+class ThemeConfigWizard extends Generic<
+    WidgetRegistry['tplCollectionThemeWizard'],
+    VisRxWidgetState & ThemeOrderState
+> {
     /** Releases this widget's seat in the course of its order; set once the order is taken up. */
     private releaseOrder: (() => void) | null = null;
 

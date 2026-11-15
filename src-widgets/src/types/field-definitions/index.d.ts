@@ -16,6 +16,7 @@ import type { Light2FieldsRxData } from './light2-fields';
 import type { JsonTableFieldsRxData } from './json-table-fields';
 import type { InputFieldsRxData } from './input-fields';
 import type { EchartsFieldsRxData } from './echarts-fields';
+import type { ThemeOrderFieldsRxData } from './theme-order-fields';
 
 /**
  * Registry of all available field definitions for vis-2 Collection widgets.
@@ -130,6 +131,9 @@ export interface FieldDefinitions {
 
     /** Echarts-specific field types (line-chart time-series, multi-OID series, data modes) */
     echarts: EchartsFieldsRxData;
+
+    /** Theme-Auftrag field types (the settings the assistant filled, unchecked) */
+    themeOrder: ThemeOrderFieldsRxData;
 }
 
 /**
@@ -169,6 +173,7 @@ export type * from './light2-fields';
 export type * from './json-table-fields';
 export type * from './input-fields';
 export type * from './echarts-fields';
+export type * from './theme-order-fields';
 
 /**
  * Re-export ExtendedField type for custom field definitions.

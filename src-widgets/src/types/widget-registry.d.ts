@@ -49,6 +49,7 @@ import type { UnionToIntersection } from './widget-builder';
  * - `dialog`: Dialog/modal fields (dialogTitle, dialogContent) - ~5 properties
  * - `light2`: Advanced light control fields (brightness, color, effects) - ~24 properties
  * - `delay`: Delay behavior fields (delay, delayEnabled) - ~2 properties
+ * - `themeOrder`: The settings of a Theme-Auftrag, as the assistant wrote them
  * @example
  * ```typescript
  * // Check which fields a widget uses
@@ -151,6 +152,15 @@ export interface WidgetFieldMappings {
      * Fields: base (30) + common (30) + commonObject (15) + echarts (multi-OID series + modes) ≈ 90
      */
     tplEchartsCollectionWidget: ['base', 'common', 'commonObject', 'echarts'];
+
+    /**
+     * Theme-Auftrag - a placed Theme Studio type: a one-time order to change the stored theme
+     *
+     * @remarks
+     * No collection widget: it has no body, no collection context and none of the shared field
+     * groups — only the settings the assistant filled.
+     */
+    tplCollectionThemeWizard: ['themeOrder'];
 }
 
 /**

@@ -51,6 +51,7 @@ import type { AnyWidgetId, Project, ViewSettings } from '@iobroker/types-vis-2';
 import { THEME_STATE_ID } from '../lib/constants';
 import { parseStoredTheme } from '../lib/theme/storedTheme';
 import { sameTheme } from '../lib/theme/themeUtils';
+import type { ThemeOrderFieldsRxData } from '../types';
 import { applyThemeOrder } from './themeOrder';
 
 /**
@@ -62,9 +63,6 @@ export const THEME_ORDER_PATIENCE_MS = 10_000;
 /** The socket the theme state is read and written with. */
 export type ThemeOrderSocket = Pick<Connection, 'getState' | 'setState'>;
 
-/** The data of an order as the project holds it. */
-type OrderData = Readonly<Record<string, unknown>>;
-
 /**
  * The mounted widget of an order: what the course asks of it, answered from its latest props.
  * One object per mounted widget, the same for every call of {@link takeUpThemeOrder}.
@@ -75,7 +73,7 @@ export interface ThemeOrderSeat {
      * `undefined` when that project does not hold the order any more. The same object as long
      * as the project is the same.
      */
-    order: () => OrderData | undefined;
+    order: () => ThemeOrderFieldsRxData | undefined;
     /** Takes the order out of the project the host handed last. */
     leave: () => Promise<void>;
     /** The course failed or is overdue: the order is still in the project. */
@@ -107,7 +105,7 @@ interface Settled {
     /** The data of the order, as text. */
     data: string | undefined;
     /** The data as the widget's project held it then. */
-    order: OrderData | undefined;
+    order: ThemeOrderFieldsRxData | undefined;
     /** Whether the course failed. */
     failed: boolean;
 }
@@ -125,7 +123,7 @@ const sitting = new WeakMap<ThemeOrderSeat, Course>();
 const settled = new WeakMap<ThemeOrderSeat, Settled>();
 
 /** An order's data as text: what tells one order from another at the same place. */
-const textOf = (order: OrderData | undefined): string | undefined => JSON.stringify(order);
+const textOf = (order: ThemeOrderFieldsRxData | undefined): string | undefined => JSON.stringify(order);
 
 /**
  * The seat a course asks: the widget mounted last whose project holds the order — with the data

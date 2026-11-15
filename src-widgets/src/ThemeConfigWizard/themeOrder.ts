@@ -35,6 +35,7 @@
 import { FONT_CATALOGUE } from '../lib/theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from '../lib/theme/presets';
 import type { UserTheme } from '../lib/theme/themeTypes';
+import type { ThemeOrderFieldsRxData } from '../types';
 import { setNestedValue, THEME_CONTROL_RANGES, THEME_MODES } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
@@ -175,7 +176,7 @@ export const THEME_ORDER_SETTINGS: readonly ThemeOrderSetting[] = [
  *   validator rejects leave the theme as it was. Applying the same order to the result again
  *   yields the same theme.
  */
-export function applyThemeOrder(theme: UserTheme, order: Readonly<Record<string, unknown>>): UserTheme {
+export function applyThemeOrder(theme: UserTheme, order: ThemeOrderFieldsRxData): UserTheme {
     let next = theme;
     for (const setting of THEME_ORDER_SETTINGS) {
         const value = order[setting.name];
