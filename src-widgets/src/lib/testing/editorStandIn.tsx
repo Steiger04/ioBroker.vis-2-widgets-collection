@@ -8,14 +8,18 @@
  * changes it, the socket. The stand-in rebuilds that part of the host (vis-2 2.20):
  * - {@link installHostWidgetClass} sets a `window.visRxWidget` that is a real React component
  *   with the host's lifecycle and render shape (`Vis/visBaseWidget.tsx` render: the widget's
- *   entry in the project, then `renderWidgetBody`);
+ *   entry in the project, then `renderWidgetBody`; `Vis/visRxWidget.tsx` render: nothing at
+ *   all for a widget that is not visible outside the edit mode). Its `t` answers with the
+ *   English text of the widget set, as the host does for a person with an English browser;
  * - {@link mountEditor} holds a project, mounts the widgets of the open view by their type and
  *   hands each the context the engine builds (`Vis/visEngine.tsx`): `views` is the whole
  *   project, frozen as the host's store freezes it; `changeProject` replaces the whole project
- *   and stamps it (`Editor.tsx` changeProject). In the runtime there is no edit mode and no
- *   `changeProject` (`Runtime.tsx`);
- * - {@link stateServer} answers a read or a write only when the test triggers it. A socket
- *   that answers at once hides every race between two orders, a re-mount and the project.
+ *   and stamps it (`Editor.tsx` changeProject). A widget is keyed by its place in the view and
+ *   its id (`Vis/visView.tsx` getOneWidget), so a widget is mounted anew when one before it
+ *   leaves. In the runtime there is no edit mode and no `changeProject` (`Runtime.tsx`);
+ * - {@link stateServer} answers a read or a write only when the test triggers it — with the
+ *   value, with an error, or not at all. A socket that answers at once hides every race between
+ *   two orders, a re-mount and the project.
  *
  * The module must not import a widget: `Generic` reads `window.visRxWidget` when it is loaded,
  * so a test installs the host class in a `vi.hoisted` block before its imports.
@@ -25,10 +29,17 @@ import { act, Component, type ComponentType, type ReactNode } from 'react';
 import type { Connection } from '@iobroker/gui-components';
 import type { Project } from '@iobroker/types-vis-2';
 
+import en from '../../i18n/en.json';
 import { createTestRoot } from './testRoots';
 
 // React requires the act-environment flag when updates are driven outside react-dom/test-utils.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+/** The state the host keeps for a widget, as far as the stand-in fills it. */
+interface HostWidgetState {
+    editMode: boolean;
+    visible: boolean;
+}
 
 /** The props the host's view hands a widget, as far as the stand-in fills them. */
 interface HostWidgetProps {
@@ -39,6 +50,7 @@ interface HostWidgetProps {
     runtime: boolean;
     context: {
         views: Project;
+        projectName: string;
         socket: Connection;
         runtime: boolean;
         changeProject: ((project: Project, ignoreHistory?: boolean) => Promise<void>) | undefined;
@@ -51,17 +63,36 @@ interface HostWidgetProps {
  * the host's (see {@link module:lib/testing/visRxWidgetStub}).
  */
 export function installHostWidgetClass(): void {
-    class HostWidget extends Component<HostWidgetProps> {
+    class HostWidget extends Component<HostWidgetProps, HostWidgetState> {
         static getI18nPrefix(): string {
             return '';
         }
 
         static t(key: string): string {
             void this.getI18nPrefix;
-            return key;
+            return (en as Record<string, string>)[key] ?? key;
         }
 
-        state = {};
+        // `Vis/visBaseWidget.tsx`: the state follows the edit mode of the props.
+        static getDerivedStateFromProps(
+            props: HostWidgetProps,
+            state: HostWidgetState,
+        ): Partial<HostWidgetState> | null {
+            return props.editMode !== state.editMode ? { editMode: props.editMode } : null;
+        }
+
+        constructor(props: HostWidgetProps) {
+            super(props);
+            this.state = { editMode: props.editMode, visible: true };
+            // `Vis/visRxWidget.tsx` constructor: the visibility is asked once the state stands.
+            this.state = { ...this.state, visible: this.checkVisibility() };
+        }
+
+        /** Whether the widget is shown outside the edit mode; a widget may override it. */
+        // eslint-disable-next-line class-methods-use-this
+        checkVisibility(): boolean {
+            return true;
+        }
 
         // The host's lifecycle hooks: a widget overrides them and calls `super`.
         // eslint-disable-next-line class-methods-use-this
@@ -79,6 +110,10 @@ export function installHostWidgetClass(): void {
         }
 
         render(): ReactNode {
+            // `Vis/visRxWidget.tsx` render: a hidden widget has no element outside the edit mode.
+            if (!this.state.visible && !this.state.editMode) {
+                return null;
+            }
             const { context, view, id } = this.props;
             const widget = (context.views[view]?.widgets as Record<string, unknown> | undefined)?.[id];
             if (!widget || typeof widget !== 'object') {
@@ -150,6 +185,13 @@ export interface EditorStandIn {
     changes: readonly ProjectChange[];
     /** Switches between editing and the editor's preview. */
     setEditMode: (editMode: boolean) => void;
+    /**
+     * A change of the project that does not come from a widget: what a person does in the
+     * editor, an undo or redo, the host's delayed write-back of a moved widget.
+     */
+    edit: (recipe: (draft: Project) => void) => void;
+    /** Shows another view: the widgets of the one shown before are unmounted. */
+    open: (view: string) => void;
 }
 
 /**
@@ -159,7 +201,8 @@ export interface EditorStandIn {
  * @returns The stand-in; its root is unmounted after the test ({@link module:lib/testing/testRoots}).
  */
 export function mountEditor(options: EditorOptions): EditorStandIn {
-    const { types, view, socket } = options;
+    const { types, socket } = options;
+    let view = options.view;
     const runtime = options.runtime === true;
     let editMode = !runtime && options.editMode !== false;
     let project = deepFreeze(clone(options.project));
@@ -175,17 +218,18 @@ export function mountEditor(options: EditorOptions): EditorStandIn {
         // The engine builds the context anew with every render.
         const context: HostWidgetProps['context'] = {
             views: project,
+            projectName: 'main',
             socket,
             runtime,
             changeProject: runtime ? undefined : changeProject,
         };
         root.render(
             <>
-                {Object.keys(widgets).map(id => {
+                {Object.keys(widgets).map((id, index) => {
                     const Widget = types[widgets[id].tpl] as ComponentType<HostWidgetProps> | undefined;
                     return Widget ? (
                         <Widget
-                            key={id}
+                            key={`${index}_${id}`}
                             id={id}
                             view={view}
                             tpl={widgets[id].tpl}
@@ -219,12 +263,23 @@ export function mountEditor(options: EditorOptions): EditorStandIn {
             editMode = !runtime && next;
             act(render);
         },
+        edit: recipe => {
+            const next = clone(project);
+            recipe(next);
+            (next.___settings as unknown as { ts: string }).ts = `stamp-${++stamp}`;
+            project = deepFreeze(next);
+            act(render);
+        },
+        open: next => {
+            view = next;
+            act(render);
+        },
     };
 }
 
 /** Lets the continuations of an answered request run: a widget's own steps between two requests. */
 const flush = async (): Promise<void> => {
-    for (let round = 0; round < 10; round++) {
+    for (let round = 0; round < 20; round++) {
         await Promise.resolve();
     }
 };
@@ -232,7 +287,11 @@ const flush = async (): Promise<void> => {
 /** A request that waits for its answer. */
 interface Waiting {
     answer: () => void;
+    fail: () => void;
 }
+
+/** What a failing request is answered with: the socket rejects with the server's text, not an `Error`. */
+export const SERVER_ERROR = 'permissionError';
 
 /** A server holding states that answers a request only when the test triggers it. */
 export interface StateServer {
@@ -250,6 +309,10 @@ export interface StateServer {
     answerRead: () => Promise<void>;
     /** Stores the value of the oldest waiting write and confirms it. */
     answerWrite: () => Promise<void>;
+    /** Answers the oldest waiting read with an error. */
+    failRead: () => Promise<void>;
+    /** Answers the oldest waiting write with an error; the state keeps its value. */
+    failWrite: () => Promise<void>;
 }
 
 /**
@@ -270,18 +333,24 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
             received.reads++;
             // A read sees the state as it is when it arrives, however late its answer comes.
             const value = values.get(id);
-            return new Promise(resolve => {
-                reads.push({ answer: () => resolve(value === undefined ? null : ({ val: value } as ioBroker.State)) });
+            return new Promise((resolve, reject) => {
+                reads.push({
+                    answer: () => resolve(value === undefined ? null : ({ val: value } as ioBroker.State)),
+                    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- as the socket does
+                    fail: () => reject(SERVER_ERROR),
+                });
             });
         },
         setState: (id: string, value: unknown): Promise<void> => {
             received.writes++;
-            return new Promise(resolve => {
+            return new Promise((resolve, reject) => {
                 writes.push({
                     answer: () => {
                         values.set(id, value);
                         resolve();
                     },
+                    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- as the socket does
+                    fail: () => reject(SERVER_ERROR),
                 });
             });
         },
@@ -289,13 +358,13 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
         unsubscribeState: (): void => undefined,
     } as unknown as Connection;
 
-    const answerOldest = async (waiting: Waiting[], what: string): Promise<void> => {
+    const answerOldest = async (waiting: Waiting[], what: string, how: keyof Waiting): Promise<void> => {
         const request = waiting.shift();
         if (!request) {
             throw new Error(`No ${what} waits for an answer`);
         }
         await act(async () => {
-            request.answer();
+            request[how]();
             await flush();
         });
     };
@@ -306,7 +375,9 @@ export function stateServer(states: Readonly<Record<string, unknown>>): StateSer
         pendingReads: () => reads.length,
         pendingWrites: () => writes.length,
         received: () => ({ ...received }),
-        answerRead: () => answerOldest(reads, 'read'),
-        answerWrite: () => answerOldest(writes, 'write'),
+        answerRead: () => answerOldest(reads, 'read', 'answer'),
+        answerWrite: () => answerOldest(writes, 'write', 'answer'),
+        failRead: () => answerOldest(reads, 'read', 'fail'),
+        failWrite: () => answerOldest(writes, 'write', 'fail'),
     };
 }
