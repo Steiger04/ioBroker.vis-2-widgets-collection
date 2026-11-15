@@ -16,7 +16,9 @@ import type { Connection } from '@iobroker/gui-components';
 import type { CustomPaletteProperties } from '@iobroker/types-vis-2';
 
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
+import { THEME_STATE_ID } from '../lib/constants';
 import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { stateServer } from '../lib/testing/editorStandIn';
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import ThemeWizardButton from './ThemeWizardButton';
 import { STUDIO_CONTAINER_ID, closeStudio, openStudio } from './studioHost';
@@ -192,5 +194,42 @@ describe('palette button as trigger', () => {
         buttonHandle = mountButton({ socket: fakeSocket(), themeType: 'light' });
 
         expect(containers()).toHaveLength(0);
+    });
+});
+
+// The seed lets the studio open at once, before its own read of the theme has an answer. What
+// it shows until then — and mirrors onto the canvas — has to be the theme as it is stored.
+describe('the theme the studio opens with', () => {
+    const KNOWN = { palette: { primary: { main: '#ff0000' } } };
+    const CHANGED = { palette: { primary: { main: '#0000ff' } }, spacing: 4 };
+
+    afterEach(() => setLastKnownTheme(null));
+
+    it('is the stored theme also when that was changed while the studio was closed', async () => {
+        // An earlier session left the theme it knew.
+        setLastKnownTheme(KNOWN);
+        const server = stateServer({ [THEME_STATE_ID]: JSON.stringify(KNOWN) });
+        buttonHandle = mountButton({ socket: server.socket, themeType: 'light' });
+        await server.answerRead();
+
+        // A Theme-Auftrag, an MCP client, another browser.
+        server.change(THEME_STATE_ID, JSON.stringify(CHANGED));
+        clickButton(buttonHandle);
+        await nextFrame();
+
+        expect(server.pendingReads()).toBe(1);
+        expect(getDraftTheme()).toEqual(CHANGED);
+    });
+
+    it('is the stored theme at the first open, without waiting for the read of the studio', async () => {
+        const server = stateServer({ [THEME_STATE_ID]: JSON.stringify(CHANGED) });
+        buttonHandle = mountButton({ socket: server.socket, themeType: 'light' });
+        await server.answerRead();
+
+        clickButton(buttonHandle);
+        await nextFrame();
+
+        expect(server.pendingReads()).toBe(1);
+        expect(getDraftTheme()).toEqual(CHANGED);
     });
 });

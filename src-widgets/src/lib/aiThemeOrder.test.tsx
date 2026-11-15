@@ -17,18 +17,21 @@
  * waiting would hold up the orders of the next test: after each test the server answers what
  * still waits. Every theme an order wrote in a test has to pass the theme validator.
  */
-import { act, type ComponentType } from 'react';
+import { act, type ComponentType, type FC } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Connection } from '@iobroker/gui-components';
 import type { Project } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THEME_STATE_ID } from './constants';
 import { mountEditor, stateServer, type EditorStandIn, type StateServer } from './testing/editorStandIn';
+import { renderComponent } from './testing/testHarness';
 import { createTestRoot } from './testing/testRoots';
 import { themeStateDescription } from './testing/themeStateDescription';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
+import { getLastKnownTheme, setLastKnownTheme } from './theme/lastKnownTheme';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
 import { THEME_CONTROL_RANGES } from './theme/themeUtils';
@@ -42,6 +45,7 @@ await vi.hoisted(async () => {
 
 import { THEME_ORDER_PATIENCE_MS } from '../ThemeConfigWizard/carryOutThemeOrder';
 import ThemeConfigWizard from '../ThemeConfigWizard/ThemeConfigWizard';
+import ThemeWizardButton from '../ThemeConfigWizard/ThemeWizardButton';
 import { applyThemeOrder } from '../ThemeConfigWizard/themeOrder';
 
 /** The type the assistant places for a Theme-Auftrag. */
@@ -973,6 +977,22 @@ describe('Naht „Theme-Auftrag“: orders over time', () => {
 
         expect(server.received()).toEqual({ reads: 2, writes: 1 });
         expect(host.changes.map(widgetsOf)).toEqual([['w000001'], ['w000001']]);
+    });
+
+    // The palette entry of the studio is in the editor beside the view.
+    it('leaves the theme it wrote as the one the Theme Studio opens with', async () => {
+        setLastKnownTheme(STORED);
+        const { server } = placeOrder({ mode: 'dark' });
+        const PaletteEntry = ThemeWizardButton as unknown as FC<{ socket: Connection; themeType: string }>;
+        const entry = renderComponent(PaletteEntry, { socket: server.socket, themeType: 'light' });
+        try {
+            await settle(server);
+
+            expect(getLastKnownTheme()).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+        } finally {
+            entry.unmount();
+            setLastKnownTheme(null);
+        }
     });
 
     it('leaves a project change in place that the host made while the order waited', async () => {
