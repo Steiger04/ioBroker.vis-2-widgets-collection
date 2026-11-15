@@ -1315,6 +1315,8 @@
     "theme_studio_help_weights": "Визначає товщину шрифту, яку віджети використовують для ролей Light, Regular, Medium і Bold.",
     "theme_studio_help_css_vars": "Надає кожне значення теми у вигляді CSS-змінної (стандартний префікс --vis2c, напр. --vis2c-palette-primary-main) — для власного CSS у vis-2. Не потрібна без власного CSS.",
     "theme_config_wizard": "Theme Studio",
+    "theme_config_wizard_ai_guide": "A one-time order that changes the theme of the whole widget collection; it is not a widget that stays on the page. Set only what should change: \"mode\" switches the colour mode of all collection widgets to \"light\" or \"dark\"; whatever you leave out keeps its current value. Add it to the page the user is looking at. It takes effect at once, in every project of the installation, and then removes itself from the page, so do not read, update or delete it afterwards. It needs no position, size or other data.",
+    "theme_config_wizard_help": "Одноразово змінює тему всієї колекції віджетів, а потім видаляє сам себе.",
     "theme_studio_feintuning_hint": "Вбудовані шрифти постачаються лише зі справжніми накресленнями 400 і 700 — інші товщини браузер синтезує самостійно, і вони можуть виглядати розмито.",
     "theme_studio_help_spacing": "Базова одиниця для всіх відступів та інтервалів усередині віджетів (типово 8 px). 2 одиниці = 16 px.",
     "theme_studio_mode_follows": "як у vis-2",

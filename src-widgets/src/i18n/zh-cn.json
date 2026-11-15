@@ -1315,6 +1315,8 @@
     "theme_studio_help_weights": "设置部件在 Light、Regular、Medium 和 Bold 角色下使用的字体粗细。",
     "theme_studio_help_css_vars": "将每个主题值公开为 CSS 变量（默认前缀 --vis2c，例如 --vis2c-palette-primary-main）— 用于在 vis-2 中编写您自己的 CSS。若无自定义 CSS 则无需此功能。",
     "theme_config_wizard": "Theme Studio",
+    "theme_config_wizard_ai_guide": "A one-time order that changes the theme of the whole widget collection; it is not a widget that stays on the page. Set only what should change: \"mode\" switches the colour mode of all collection widgets to \"light\" or \"dark\"; whatever you leave out keeps its current value. Add it to the page the user is looking at. It takes effect at once, in every project of the installation, and then removes itself from the page, so do not read, update or delete it afterwards. It needs no position, size or other data.",
+    "theme_config_wizard_help": "将整个 widget 集合的主题更改一次，然后移除自身。",
     "theme_studio_feintuning_hint": "内置字体仅附带真正的 400 和 700 字重——其他字重由浏览器合成，效果可能模糊。",
     "theme_studio_help_spacing": "组件内所有内边距和间距的基础单位（默认 8 px）。2 个单位 = 16 px。",
     "theme_studio_mode_follows": "跟随 vis-2",

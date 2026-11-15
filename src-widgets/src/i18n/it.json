@@ -1315,6 +1315,8 @@
     "theme_studio_help_weights": "Imposta lo spessore del carattere usato dai widget per i ruoli Light, Regular, Medium e Bold.",
     "theme_studio_help_css_vars": "Espone ogni valore del tema come variabile CSS (prefisso predefinito --vis2c, ad es. --vis2c-palette-primary-main) — per il tuo CSS in vis-2. Non necessario senza CSS personalizzato.",
     "theme_config_wizard": "Theme Studio",
+    "theme_config_wizard_ai_guide": "A one-time order that changes the theme of the whole widget collection; it is not a widget that stays on the page. Set only what should change: \"mode\" switches the colour mode of all collection widgets to \"light\" or \"dark\"; whatever you leave out keeps its current value. Add it to the page the user is looking at. It takes effect at once, in every project of the installation, and then removes itself from the page, so do not read, update or delete it afterwards. It needs no position, size or other data.",
+    "theme_config_wizard_help": "Cambia il tema dell'intera raccolta di widget una sola volta, quindi si rimuove.",
     "theme_studio_feintuning_hint": "I font inclusi sono forniti solo con i tagli reali 400 e 700 — gli altri pesi vengono sintetizzati dal browser e possono risultare impastati.",
     "theme_studio_help_spacing": "Unità di base per tutti i padding e gli spazi interni ai widget (predefinito 8 px). 2 unità = 16 px.",
     "theme_studio_mode_follows": "segue vis-2",

@@ -18,6 +18,8 @@
 
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import Generic from '../Generic';
+import { alwaysHidden, createAiGuideField } from '../lib/fieldFactories';
+import themeOrderFields from '../lib/themeOrderFields';
 import ThemeWizardButton from './ThemeWizardButton';
 
 class ThemeConfigWizard extends Generic<Record<string, any>> {
@@ -28,8 +30,18 @@ class ThemeConfigWizard extends Generic<Record<string, any>> {
             visSetLabel: 'widgets_collection',
             visName: 'ThemeConfigWizard',
             visWidgetLabel: 'theme_config_wizard',
+            // What the vis-2 assistant reads in its set listing; the host prefixes it like the label.
+            visHelp: 'theme_config_wizard_help',
             visOrder: 0, // end of the collection group
-            visAttrs: [], // no configuration fields — not a real droppable widget
+            visAttrs: [
+                {
+                    name: 'themeOrder',
+                    // No person edits a Theme-Auftrag: the panel shows neither the group nor a field.
+                    hidden: alwaysHidden,
+                    // The KI-Leitfaden leads the field list the assistant reads.
+                    fields: [createAiGuideField('theme_config_wizard_ai_guide'), ...themeOrderFields()],
+                },
+            ],
             visPrev: '', // no preview — not a droppable widget (customPalette takes over)
             // Rendered by vis-2 instead of the normal palette widget entry (edit mode only).
             customPalette: props => <ThemeWizardButton {...props} />,

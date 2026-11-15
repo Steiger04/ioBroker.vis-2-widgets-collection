@@ -1,14 +1,17 @@
 /**
- * The rosters and lists the two KI-Integration test seams share (ADR-0114).
+ * The rosters and lists the KI-Integration test seams share (ADR-0114, ADR-0115).
  *
  * @module lib/testing/aiSeams
  * @remarks
- * Naht 1 (`lib/aiCatalogView.parity.test.ts`) projects every placeable widget's `getWidgetInfo()`
+ * Naht 1 (`lib/aiCatalogView.parity.test.ts`) projects every placeable type's `getWidgetInfo()`
  * the way the vis-2 host hands it to the Bauzeit-KI; Naht 2 (`lib/aiRawDataRender.test.tsx`)
  * renders the widgets from raw data an assistant may write. Both check every placeable widget,
  * so a new widget fails them without a one-sentence `visHelp`, without exactly one KI-Leitfaden
  * field or without a structured-empty default.
  *
+ * - A type the assistant places as an order ({@link ORDER_TYPES}) passes Naht 1 like a widget.
+ *   It renders nothing from its data, so Naht 2 leaves it out; what it does has its own seam
+ *   (`lib/aiThemeOrder.test.tsx`).
  * - The shared field modules ({@link SHARED_FIELD_NAMES}) are told apart from a widget's own fields.
  * - A named `custom` field that stores nothing under its name goes on
  *   {@link UI_ONLY_CUSTOM_FIELDS}, with the reason.
@@ -26,17 +29,21 @@ import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
 /** A module of the widget roster. */
 export type WidgetName = (typeof widgets)[number];
 
+/** The types the Bauzeit-KI can place: every module of the registry roster. */
+export const PLACEABLE_TYPES: readonly WidgetName[] = widgets;
+
 /**
- * Registry modules that are not widget types the assistant can place. Each with its reason;
- * everything else in `widgetsRegistry.widgets` is a placeable widget.
+ * Types the assistant places as an order, not as a widget: the type acts once on its data and
+ * leaves the view, it has no body and no field a person edits. Each with its reason; everything
+ * else in `widgetsRegistry.widgets` is a placeable widget.
  */
-export const NOT_PLACEABLE: Readonly<Partial<Record<WidgetName, string>>> = {
-    // `customPalette` replaces its palette entry with the theme button; no fields, no body.
-    ThemeConfigWizard: 'theme wizard button in the palette, not a widget',
+export const ORDER_TYPES: Readonly<Partial<Record<WidgetName, string>>> = {
+    // Its palette entry is the Theme Studio button (`customPalette`); placed, it is a Theme-Auftrag.
+    ThemeConfigWizard: 'Theme-Auftrag: changes the user theme once and removes itself (ADR-0115)',
 };
 
-/** The widgets the Bauzeit-KI can place: the registry roster without {@link NOT_PLACEABLE}. */
-export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !(name in NOT_PLACEABLE));
+/** The widgets the Bauzeit-KI can place: the registry roster without {@link ORDER_TYPES}. */
+export const PLACEABLE_WIDGETS: readonly WidgetName[] = widgets.filter(name => !(name in ORDER_TYPES));
 
 /**
  * The names of the fields the shared field modules declare: the common block, its Active variant,
