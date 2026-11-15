@@ -414,6 +414,30 @@ describe('Naht „Theme-Auftrag“: an order placed in the editor', () => {
         expect(unstamped(editor.project())).toEqual(gridProject());
     });
 
+    // An order that stayed on the view (its hint) can be put into a group by hand.
+    it('leaves the group a person has put it into as well', async () => {
+        const grouped = (order?: Record<string, unknown>): Project => {
+            const project = JSON.parse(JSON.stringify(planProject(order))) as Project;
+            const widgets = project.Main.widgets as unknown as Record<string, Record<string, unknown>>;
+            widgets.w000001.groupid = 'g000001';
+            if (order) {
+                widgets[ORDER_ID].groupid = 'g000001';
+            }
+            widgets.g000001 = {
+                tpl: '_tplGroup',
+                data: { members: ['w000001', ...(order ? [ORDER_ID] : [])] },
+                style: {},
+                widgetSet: 'basic',
+            };
+            return project;
+        };
+        const { server, editor } = placeOrder({ mode: 'dark' }, { project: grouped });
+
+        await settle(server);
+
+        expect(unstamped(editor.project())).toEqual(grouped());
+    });
+
     it('stays in the project until the server has confirmed the write', async () => {
         const { server, editor } = placeOrder({ mode: 'dark' });
         expect(server.pendingReads()).toBe(1);

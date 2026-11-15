@@ -316,9 +316,10 @@ export function takeUpThemeOrder(key: string, socket: ThemeOrderSocket, seat: Th
 }
 
 /**
- * A project without one widget, as the host removes a widget (vis-2 `AiChat/aiTools.ts`
- * delete_widget): its entry on the view and, on a view with the grid layout, its place in the
- * sections and in the order list. Nothing else differs.
+ * A project without one widget, as the host removes a widget: its entry on the view and, on a
+ * view with the grid layout, its place in the sections and in the order list (vis-2
+ * `AiChat/aiTools.ts` delete_widget) — and, for a widget a person has put into a group, its
+ * place among the group's members (vis-2 `Editor.tsx` deleteWidgets). Nothing else differs.
  *
  * @param project - The project as the host hands it to a widget; never changed (the host's
  *   store freezes it).
@@ -328,8 +329,13 @@ export function takeUpThemeOrder(key: string, socket: ThemeOrderSocket, seat: Th
  */
 export function projectWithoutWidget(project: Project, view: string, id: AnyWidgetId): Project {
     const next = JSON.parse(JSON.stringify(project)) as Project;
-    const widgets = next[view]?.widgets as Record<string, unknown> | undefined;
+    const widgets = next[view]?.widgets as
+        Record<string, { groupid?: string; data?: { members?: string[] } } | undefined> | undefined;
     if (widgets) {
+        const group = widgets[widgets[id]?.groupid ?? ''];
+        if (group?.data?.members) {
+            group.data.members = group.data.members.filter(one => one !== id);
+        }
         delete widgets[id];
     }
     const settings: ViewSettings | undefined = next[view]?.settings;
