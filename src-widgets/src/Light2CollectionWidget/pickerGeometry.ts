@@ -18,7 +18,7 @@ import iro from '@jaames/iro';
 import optionalNumber from '../lib/helper/optionalNumber';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
-import { drawsOwnPicker, type Light2ColorModel, type Light2OwnPickerModel } from '../lib/light2Channels';
+import { colorModelOf, drawsOwnPicker, type Light2ColorModel, type Light2OwnPickerModel } from '../lib/light2Channels';
 import type { BaseFieldsRxData, Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
 
@@ -74,27 +74,16 @@ export interface PickerGeometryConfig {
     ctMax: Light2FieldsRxData['colorLightCtMax'];
 }
 
-/** The widget configuration the Button-Modus modal size depends on. */
-export interface ModalSizeConfig {
-    modalWidth?: Light2FieldsRxData['colorLightModalWidth'];
-    modalHeight?: Light2FieldsRxData['colorLightModalHeight'];
-    sliderWidth?: Light2FieldsRxData['colorLightSliderWidth'];
-    /** Colour model of the Hauptansicht (`colorModelOf`); a rule of its own sizes the auto width from its content. */
-    colorModel?: Light2ColorModel;
-    /** Padding of the picker box (`colorLightPadding`), in spacing units. */
-    padding?: Light2FieldsRxData['colorLightPadding'];
-    /** Padding of the frame (`basePadding`), in spacing units. */
-    basePadding?: BaseFieldsRxData['basePadding'];
-    /** Whether the frame is outlined (`outlinedFrame`). */
-    outlinedFrame?: BaseFieldsRxData['outlinedFrame'];
-    /** Whether the content paper is outlined (`outlined`). */
-    outlined?: BaseFieldsRxData['outlined'];
-    /**
-     * The collection theme's spacing (`theme.spacing`), in which the frame and the body draw the
-     * paddings — a user theme may change it; unset, MUI's default 8px a unit.
-     */
-    spacing?: (units: number) => string;
-}
+/**
+ * The widget fields the Button-Modus modal size depends on, as the widget reads them: the
+ * Lichttyp (its colour model may size the auto width from its content), modal width and height,
+ * slider width, the paddings of picker box and frame (in spacing units) and the outlines.
+ */
+export type ModalSizeData = Pick<
+    Light2FieldsRxData,
+    'colorLightType' | 'colorLightModalWidth' | 'colorLightModalHeight' | 'colorLightSliderWidth' | 'colorLightPadding'
+> &
+    Pick<BaseFieldsRxData, 'basePadding' | 'outlinedFrame' | 'outlined'>;
 
 /** What the modal auto width is derived from: the read modal height, slider size and paddings in px. */
 interface ModalContent {
@@ -289,31 +278,33 @@ const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): Pic
  * The Button-Modus modal size. Height: `colorLightModalHeight`, the default 300px for 0. Width: an
  * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the
  * auto width — for the colour picker from height + slider + gap, for a colour model with a rule of
- * its own from what it draws (dimmer: the slider, its padding and the frame with its outlines — ADR-0116 Nr. 2).
+ * its own from what it draws (dimmer: the slider, its padding and the frame with its outlines —
+ * ADR-0116 Nr. 2).
  *
- * @param config - Modal width/height, slider width, colour model, paddings and outlines of the widget, and
- *   the theme spacing.
+ * @param data - The widget fields the size depends on ({@link ModalSizeData}).
+ * @param spacing - The collection theme's spacing (`theme.spacing`), in which the frame and the
+ *   body draw the paddings — a user theme may change it; MUI's default 8px a unit when omitted.
  * @returns The modal width and height in px.
  */
-export function modalSizeOf(config: ModalSizeConfig): ModalSize {
+export function modalSizeOf(data: ModalSizeData, spacing: (units: number) => string = defaultSpacing): ModalSize {
     // A numeric string (vis-2's number field while typing, the assistant) sizes like its number.
-    const height = optionalNumber(config.modalHeight) || COLOR_LIGHT_MODAL_HEIGHT_DEFAULT;
-    const width = optionalNumber(config.modalWidth);
+    const height = optionalNumber(data.colorLightModalHeight) || COLOR_LIGHT_MODAL_HEIGHT_DEFAULT;
+    const width = optionalNumber(data.colorLightModalWidth);
     if (width !== undefined && width > 0) {
         return { width, height };
     }
-    const autoWidth = modelRuleOf(config.colorModel)?.modalAutoWidth ?? modalWidthBesideSlider;
+    const autoWidth = modelRuleOf(colorModelOf(data.colorLightType))?.modalAutoWidth ?? modalWidthBesideSlider;
     // A padding in px as the theme draws it (MUI spacing yields '<n>px').
-    const spacingPx = (units: number): number => Number.parseFloat((config.spacing ?? defaultSpacing)(units));
+    const spacingPx = (units: number): number => Number.parseFloat(spacing(units));
     return {
         width: autoWidth({
             height,
-            sliderSize: sliderSizeOf(config.sliderWidth),
+            sliderSize: sliderSizeOf(data.colorLightSliderWidth),
             // Read as the body and the frame draw them: an emptied padding ('') as 0.
-            padding: spacingPx(optionalNumber(config.padding) ?? 0),
-            basePadding: spacingPx(optionalNumber(config.basePadding) ?? 0),
+            padding: spacingPx(optionalNumber(data.colorLightPadding) ?? 0),
+            basePadding: spacingPx(optionalNumber(data.basePadding) ?? 0),
             // The frame draws under border-box (CollectionProvider): an outline takes its width from inside.
-            outlines: 2 * OUTLINE_WIDTH_PX * (Number(!!config.outlinedFrame) + Number(!!config.outlined)),
+            outlines: 2 * OUTLINE_WIDTH_PX * (Number(!!data.outlinedFrame) + Number(!!data.outlined)),
         }),
         height,
     };
