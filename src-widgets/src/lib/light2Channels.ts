@@ -94,8 +94,18 @@ const COLOR_MODEL_CHANNELS: Record<Light2ColorModel, readonly Light2Channel[]> =
     brightness: [{ field: 'colorLightBrightnessOid', property: 'value', hueScale: true }],
 };
 
-/** The colour models whose Hauptansicht is not the colour picker of the UI component. */
-const NO_COLOR_PICKER: ReadonlySet<Light2ColorModel> = new Set(['brightness']);
+/**
+ * The colour models whose Hauptansicht draws a picker of its own instead of the colour picker of
+ * the UI component — the one list; the picker geometry keys its colour model rules by it.
+ */
+const OWN_PICKER_MODELS = ['brightness'] as const satisfies readonly Light2ColorModel[];
+
+/** A colour model that draws a picker of its own (dimmer's single brightness slider, ADR-0116 Nr. 2). */
+export type Light2OwnPickerModel = (typeof OWN_PICKER_MODELS)[number];
+
+/** Whether the colour model draws a picker of its own instead of the colour picker of the UI component. */
+export const drawsOwnPicker = (model: Light2ColorModel | undefined): model is Light2OwnPickerModel =>
+    OWN_PICKER_MODELS.some(ownPickerModel => ownPickerModel === model);
 
 /** The Kanäle of the CCT-Ansicht: the Kelvin-Picker writes the temperature, the Helligkeits-Picker the brightness. */
 const CCT_CHANNELS: readonly Light2Channel[] = [
@@ -165,10 +175,8 @@ export const colorModelOf = (type: string | undefined): Light2ColorModel | undef
  * every colour Lichttyp and an unknown one; not dimmer, whose single brightness slider overrides
  * the UI component (ADR-0116 Nr. 2), nor a Lichttyp without a Hauptansicht.
  */
-export const drawsColorPicker = (type: string | undefined): boolean => {
-    const model = colorModelOf(type);
-    return hasView(type, 'color') && (model === undefined || !NO_COLOR_PICKER.has(model));
-};
+export const drawsColorPicker = (type: string | undefined): boolean =>
+    hasView(type, 'color') && !drawsOwnPicker(colorModelOf(type));
 
 /** Whether the Lichttyp switches between the colour view and the CCT-Ansicht („& cct"). */
 export const offersViewSwitch = (type: string | undefined): boolean => viewsOf(type).length > 1;

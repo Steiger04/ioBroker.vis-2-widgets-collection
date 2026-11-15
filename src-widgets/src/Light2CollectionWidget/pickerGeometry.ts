@@ -18,7 +18,7 @@ import iro from '@jaames/iro';
 import optionalNumber from '../lib/helper/optionalNumber';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
-import type { Light2ColorModel } from '../lib/light2Channels';
+import { drawsOwnPicker, type Light2ColorModel, type Light2OwnPickerModel } from '../lib/light2Channels';
 import type { BaseFieldsRxData, Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
 
@@ -194,9 +194,10 @@ const CCT_VIEW_RULE: PickerKindRule = {
  * component like the CCT-Ansicht does (ADR-0116 Nr. 2): the brightness model (dimmer) draws one
  * vertical value slider like the Helligkeits-Picker of the CCT-Ansicht, over the full height —
  * nothing sits beside it, so the width does not shorten it. The picker colour stays neutral white
- * (only its value is read and written), so the slider runs black to white.
+ * (only its value is read and written), so the slider runs black to white. Keyed by the Lichttyp
+ * table's list (`drawsOwnPicker`): the editor rules and the drawn picker cannot disagree.
  */
-const COLOR_MODEL_RULES: Partial<Record<Light2ColorModel, PickerKindRule>> = {
+const COLOR_MODEL_RULES: Record<Light2OwnPickerModel, PickerKindRule> = {
     brightness: {
         layout: () => [VALUE_SLIDER],
         resizeWidth: height => height,
@@ -257,7 +258,7 @@ const UNKNOWN_UI_COMPONENT_RULE: PickerKindRule = {
 
 /** The rule of a colour model that draws its own picker; `undefined` for one drawn by the UI component. */
 const modelRuleOf = (colorModel: Light2ColorModel | undefined): PickerKindRule | undefined =>
-    colorModel !== undefined ? COLOR_MODEL_RULES[colorModel] : undefined;
+    drawsOwnPicker(colorModel) ? COLOR_MODEL_RULES[colorModel] : undefined;
 
 /** The rule of the configured picker kind: the CCT-Ansicht, else a colour model's own, else the UI component. */
 const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): PickerKindRule => {
