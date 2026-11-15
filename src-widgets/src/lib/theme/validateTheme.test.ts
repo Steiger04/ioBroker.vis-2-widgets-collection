@@ -52,3 +52,41 @@ describe('validateThemeOptions: radius range', () => {
         );
     });
 });
+
+describe('validateThemeOptions: where an issue sits', () => {
+    it('names the keys leading to the value, next to the display path', () => {
+        const result = validateThemeOptions({ corners: { topLeft: -1 } });
+        expect(result.issues).toContainEqual(
+            expect.objectContaining({ path: 'corners.topLeft', keys: ['corners', 'topLeft'] }),
+        );
+    });
+
+    it('keeps a key that contains a dot in one piece', () => {
+        const result = validateThemeOptions({
+            components: { MuiButton: { styleOverrides: { root: { '&.Mui-disabled': { color: null } } } } },
+        });
+        expect(result.issues).toContainEqual(
+            expect.objectContaining({
+                path: 'components.MuiButton.styleOverrides.root.&.Mui-disabled.color',
+                keys: ['components', 'MuiButton', 'styleOverrides', 'root', '&.Mui-disabled', 'color'],
+            }),
+        );
+    });
+
+    it('names a list entry by its position', () => {
+        const result = validateThemeOptions({ shadows: ['none', 5] });
+        expect(result.issues).toContainEqual(expect.objectContaining({ path: 'shadows[1]', keys: ['shadows', 1] }));
+    });
+
+    it('names an unknown key the same way', () => {
+        const result = validateThemeOptions({ palette: { myOwnKey: 1 } });
+        expect(result.issues).toContainEqual(
+            expect.objectContaining({ path: 'palette.myOwnKey', severity: 'warning', keys: ['palette', 'myOwnKey'] }),
+        );
+    });
+
+    it('names the theme itself with no key', () => {
+        const result = validateThemeOptions([1]);
+        expect(result.issues).toContainEqual(expect.objectContaining({ path: '', keys: [] }));
+    });
+});
