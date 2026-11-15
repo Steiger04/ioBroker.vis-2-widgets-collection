@@ -20,7 +20,7 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import CctWhiteSvg from '../img/cctWhite.svg?react';
 import optionalNumber from '../lib/helper/optionalNumber';
-import { LIGHT2_CHANNEL_FIELDS, hasAnyView, offersViewSwitch } from '../lib/light2Channels';
+import { LIGHT2_CHANNEL_FIELDS, colorModelOf, hasAnyView, offersViewSwitch } from '../lib/light2Channels';
 import { translate } from '../lib/translate';
 import type { Light2ChannelField } from '../lib/light2Channels';
 import type { SyncChannel } from './backendSyncKey';
@@ -90,6 +90,9 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
         : translate('light2_collection_widget_select_light_type');
     const hasViewSwitch = offersViewSwitch(rxData.colorLightType);
     const cctView = isCctViewActive(rxData.colorLightType, cctSelected);
+    // The colour model of the Hauptansicht: dimmer's brightness model draws its single value slider
+    // whatever the UI component (ADR-0116 Nr. 2).
+    const colorModel = colorModelOf(rxData.colorLightType);
 
     // The Kanäle: their values and Fremdänderung flags feed the lamp sync, their setters carry
     // out its write requests.
@@ -133,6 +136,7 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
             pickerGeometry(
                 {
                     uiComponent: rxData.colorLightUIComponent,
+                    colorModel,
                     cctView,
                     sliderWidth: rxData.colorLightSliderWidth,
                     // iro computes with the bounds: a numeric string as its number. An unset or
@@ -145,6 +149,7 @@ function LampControl({ isValidType, onOffValue, onToggle }: LampControlProps): R
         [
             measuredBox,
             rxData.colorLightUIComponent,
+            colorModel,
             cctView,
             rxData.colorLightSliderWidth,
             rxData.colorLightCtMin,

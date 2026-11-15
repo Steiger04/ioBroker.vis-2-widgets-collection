@@ -461,3 +461,24 @@ describe('Light2 switch-OID pick — without a usable object (ADR-0111 Nr. 3)', 
         });
     });
 });
+
+describe('Light2 Lichttyp select — the options the panel offers', () => {
+    const typeField = light2Fields().find(field => field.name === 'colorLightType') as RxWidgetInfoAttributesField & {
+        options: { value: string; label: string }[];
+    };
+
+    it('lists dimmer right after none, labelled with the value itself (ADR-0116 Nr. 1)', () => {
+        expect(typeField.options).toEqual([
+            { value: 'none', label: 'none' },
+            { value: 'dimmer', label: 'dimmer' },
+            { value: 'cct', label: 'cct' },
+            { value: 'rgb', label: 'rgb' },
+            { value: 'rgbcct', label: 'rgb & cct' },
+            { value: 'r/g/b', label: 'r/g/b' },
+            { value: 'r/g/b/cct', label: 'r/g/b & cct' },
+            { value: 'h/s/v', label: 'h/s/v' },
+            { value: 'h/s/v/cct', label: 'h/s/v & cct' },
+        ]);
+        expect(typeField).toMatchObject({ default: 'none', noTranslation: true });
+    });
+});

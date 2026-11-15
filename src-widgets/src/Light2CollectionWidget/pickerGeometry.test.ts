@@ -17,6 +17,7 @@ import type { ElementDimensions } from '../hooks/useElementDimensions';
 
 const config = (overrides: Partial<PickerGeometryConfig> = {}): PickerGeometryConfig => ({
     uiComponent: 'wheel',
+    colorModel: 'rgb-hex',
     cctView: false,
     sliderWidth: 1,
     ctMin: 2000,
@@ -78,6 +79,43 @@ describe('pickerGeometry: iro layout per picker', () => {
         // colorLightUIComponent undefined (never configured) must not throw.
         expect(pickerGeometry(config({ uiComponent: undefined }), box(400, 300)).layouts.main).toEqual([]);
     });
+});
+
+describe('pickerGeometry: the single brightness slider of dimmer (ADR-0116 Nr. 2)', () => {
+    const UI_COMPONENTS: PickerGeometryConfig['uiComponent'][] = ['wheel', 'box', 'slider', undefined];
+
+    it.each(UI_COMPONENTS)('draws one value slider whatever the UI component (%s)', uiComponent => {
+        const layout = pickerGeometry(config({ colorModel: 'brightness', uiComponent }), box(400, 300)).layouts.main;
+
+        expect(layout).toHaveLength(1);
+        expect(layout[0].component).toBe(iro.ui.Slider);
+        expect(layout[0].options).toEqual({ sliderType: 'value' });
+    });
+
+    it('draws the slider vertically over the full height, its width the slider width', () => {
+        const wide = pickerGeometry(config({ colorModel: 'brightness', sliderWidth: 2 }), box(400, 300));
+        expect(wide.resizeWidth).toBe(300);
+        expect(wide.sliderSize).toBe(56);
+        // A narrow box does not shorten it: nothing sits beside the slider.
+        expect(pickerGeometry(config({ colorModel: 'brightness' }), box(60, 300)).resizeWidth).toBe(300);
+    });
+
+    it('keeps the 12px gap (a single component has no neighbour to space from)', () => {
+        expect(pickerGeometry(config({ colorModel: 'brightness' }), box(400, 300)).gap).toBe(12);
+        expect(pickerGeometry(config({ colorModel: 'brightness' }), box()).gap).toBe(12);
+    });
+
+    it.each<PickerGeometryConfig['colorModel']>(['rgb-hex', 'r/g/b', 'h/s/v', undefined])(
+        'leaves the colour models of the colour picker to the UI component (%s)',
+        colorModel => {
+            expect(
+                pickerGeometry(config({ colorModel, uiComponent: 'box' }), box(400, 300)).layouts.main.map(
+                    entry => entry.component,
+                ),
+            ).toEqual([iro.ui.Box, iro.ui.Slider]);
+            expect(pickerGeometry(config({ colorModel, uiComponent: 'slider' }), box(400, 300)).gap).toBe(158);
+        },
+    );
 });
 
 describe('pickerGeometry: slider size', () => {

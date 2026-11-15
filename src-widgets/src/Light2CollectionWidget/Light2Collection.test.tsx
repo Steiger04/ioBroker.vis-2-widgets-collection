@@ -8,7 +8,7 @@
  * `colorLightDelayLongPress`) opens the Lampen-Bedienelement in a modal; without it the
  * Lampen-Bedienelement renders directly — power button and picker box. A Schalter-OID that is no
  * boolean shows the OID hint. A Lichttyp without a view (none) asks for a Lichttyp instead, and in
- * the Button-Modus every press toggles. The iro picker is replaced by a stub through its module: the
+ * the Button-Modus every press toggles. The Lichttyp dimmer draws a single value slider. The iro picker is replaced by a stub through its module: the
  * picker transitions are pinned with real iro in the channel-mapping tests.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -390,6 +390,62 @@ describe('Light2Collection without a Lichttyp (none)', () => {
 
         expect(container.textContent).toContain(LIGHT_TYPE_HINT);
         expect(powerIcon(container)).toBeNull();
+    });
+});
+
+describe('Light2Collection Lichttyp dimmer (a lamp that only dims)', () => {
+    /** The iro layouts the stubbed pickers were last drawn with, per picker. */
+    const drawnPickers = (): Array<{ picker: unknown; sliders: unknown[] }> => {
+        const last = new Map<unknown, Record<string, unknown>>();
+        for (const props of pickerRenders) {
+            last.set(props.picker, props);
+        }
+        return [...last.values()].map(props => ({
+            picker: props.picker,
+            sliders: (props.geometry as PickerGeometry).layouts[props.picker as 'main' | 'brightness'].map(
+                entry => entry.options?.sliderType,
+            ),
+        }));
+    };
+
+    // ADR-0116 Nr. 1/2: the power button and one value slider — no view switch, and the UI component
+    // does not change it.
+    it.each(['wheel', 'box', 'slider'])(
+        'draws the power button and a single value slider, no view switch (UI component %s)',
+        uiComponent => {
+            measureContentRect({ width: 300, height: 200 });
+            pickerRenders.length = 0;
+            const { container } = mountBody(
+                Light2Collection,
+                scene({ colorLightType: 'dimmer', colorLightUIComponent: uiComponent }),
+            );
+
+            expect(powerIcon(container)).not.toBeNull();
+            // The power button is the only button: no view switch.
+            expect(container.querySelectorAll('button')).toHaveLength(1);
+            expect(container.querySelectorAll('[data-testid="light2-picker"]')).toHaveLength(1);
+            expect(drawnPickers()).toEqual([{ picker: 'main', sliders: ['value'] }]);
+        },
+    );
+
+    it('opens the single slider in the modal of the Button-Modus after the long-press delay', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(
+            Light2Collection,
+            scene({ colorLightType: 'dimmer', colorLightButton: true, colorLightDelayLongPress: 800 }),
+        );
+        vi.useFakeTimers();
+
+        const face = container.querySelector('button')!;
+        pointer(face, 'pointerdown');
+        act(() => {
+            vi.advanceTimersByTime(800);
+        });
+        pointer(face, 'pointerup');
+
+        expect(modal()).not.toBeNull();
+        expect(powerIcon(modal()!)).not.toBeNull();
+        expect(modal()!.querySelectorAll('[data-testid="light2-picker"]')).toHaveLength(1);
     });
 });
 

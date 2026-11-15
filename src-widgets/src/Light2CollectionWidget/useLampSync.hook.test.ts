@@ -44,12 +44,13 @@ let backend: Partial<Record<Light2ChannelField, ioBroker.StateValue>> = {};
 const makeSetters = (): LampSyncOptions['setters'] =>
     Object.fromEntries(LIGHT2_CHANNEL_FIELDS.map(field => [field, vi.fn()])) as unknown as LampSyncOptions['setters'];
 
-/** Options of a render: Lichttyp, view, flagged Kanäle (foreign change with value). */
+/** Options of a render: Lichttyp, view, flagged Kanäle (foreign change with value), widget data. */
 const options = (
     type: string,
     cctView: boolean,
     setters: LampSyncOptions['setters'],
     flagged: Partial<Record<Light2ChannelField, ioBroker.StateValue>> = {},
+    widgetData: Light2WidgetData = DATA,
 ): LampSyncOptions => {
     const channels = {} as Record<Light2ChannelField, SyncChannel>;
     for (const field of LIGHT2_CHANNEL_FIELDS) {
@@ -58,7 +59,7 @@ const options = (
     return {
         type,
         cctView,
-        widgetData: DATA,
+        widgetData,
         getPropertyValue: name => backend[name as Light2ChannelField] as ioBroker.StateValue,
         channels,
         setters,
@@ -211,5 +212,85 @@ describe('useLampSync', () => {
 
         expect(brightness.picker.color.value).toBe(70);
         expect(setters.colorLightBrightnessOid).not.toHaveBeenCalled();
+    });
+});
+
+describe('useLampSync Lichttyp dimmer (the single value slider of the Hauptansicht)', () => {
+    /** A dimmer bound to its brightness Kanal alone, with the object's maximum. */
+    const dimmerData = (maxValue: number): Light2WidgetData =>
+        ({
+            colorLightBrightnessOid: 'lamp.v',
+            colorLightBrightnessOidObject: { maxValue },
+        }) as unknown as Light2WidgetData;
+
+    /** Mounts the hook in dimmer's Hauptansicht with one value slider as the main picker. */
+    const mountDimmer = (
+        widgetData: Light2WidgetData,
+    ): {
+        setters: LampSyncOptions['setters'];
+        hook: ReturnType<typeof renderHook<LampSync>>;
+        slider: ReturnType<typeof mountPicker>;
+    } => {
+        const setters = makeSetters();
+        const hook = renderHook(() => useLampSync(options('dimmer', false, setters, {}, widgetData)));
+        const slider = mountPicker('value', hook.result, 'main');
+        hook.result.current.mainPickerRef.current = slider.picker;
+        return { setters, hook, slider };
+    };
+
+    /** Every write the setters received, as [Kanal, value]. */
+    const allWrites = (setters: LampSyncOptions['setters']): Array<[string, unknown]> =>
+        LIGHT2_CHANNEL_FIELDS.flatMap(field =>
+            vi.mocked(setters[field]).mock.calls.map(([value]) => [field, value] as [string, unknown]),
+        );
+
+    it('inits the slider from the brightness and leaves the picker neutral white', () => {
+        backend = { colorLightBrightnessOid: 40 };
+        const { slider } = mountDimmer(dimmerData(100));
+
+        expect(slider.picker.color.value).toBe(40);
+        expect(slider.picker.color.saturation).toBe(0);
+    });
+
+    it('a drag writes only the brightness Kanal, in whole percent', async () => {
+        backend = { colorLightBrightnessOid: 40 };
+        const { setters, slider } = mountDimmer(dimmerData(100));
+
+        await drag(slider.slider, 20, 100);
+
+        const writes = allWrites(setters);
+        expect(writes.length).toBeGreaterThan(0);
+        expect(writes.every(([field, value]) => field === 'colorLightBrightnessOid' && Number.isInteger(value))).toBe(
+            true,
+        );
+        // Worked example: x 100 of 200 is half the slider → 50 %.
+        expect(slider.picker.color.value).toBe(50);
+        expect(writes.at(-1)).toEqual(['colorLightBrightnessOid', 50]);
+    });
+
+    it('a drag on a Hue-Skala Kanal (0-254) writes the brightness on that scale', async () => {
+        backend = { colorLightBrightnessOid: 100 };
+        const { setters, slider } = mountDimmer(dimmerData(254));
+
+        await drag(slider.slider, 20, 100);
+
+        const writes = allWrites(setters);
+        expect(writes.every(([field]) => field === 'colorLightBrightnessOid')).toBe(true);
+        // Worked example: x 100 of 200 is half the slider → 50 % → 127 on the Hue-Skala.
+        expect(slider.picker.color.value).toBe(50);
+        expect(writes.at(-1)).toEqual(['colorLightBrightnessOid', 127]);
+    });
+
+    it('a foreign brightness change moves the slider without writing', () => {
+        backend = { colorLightBrightnessOid: 40 };
+        const { setters, hook, slider } = mountDimmer(dimmerData(254));
+
+        backend = { colorLightBrightnessOid: 127 };
+        hook.rerender(() =>
+            useLampSync(options('dimmer', false, setters, { colorLightBrightnessOid: 127 }, dimmerData(254))),
+        );
+
+        expect(slider.picker.color.value).toBe(50);
+        expect(allWrites(setters)).toEqual([]);
     });
 });

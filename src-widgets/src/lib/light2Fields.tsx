@@ -12,7 +12,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
 import { createColorField } from './fieldFactories';
-import { hasAnyView, hasView, isChannelFieldVisible } from './light2Channels';
+import { drawsColorPicker, hasAnyView, hasView, isChannelFieldVisible } from './light2Channels';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from './light2Defaults';
 import { light2BorderColorContract } from './light2ColorContract';
 import { stateEditorSpec } from './stateEditorConfig';
@@ -273,7 +273,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         ],
         default: 'wheel',
         noTranslation: true,
-        hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'color'),
+        hidden: (data: WidgetData) => !drawsColorPicker(lightTypeOf(data)),
     },
     {
         name: 'colorWheelLightness',
@@ -281,12 +281,12 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         default: false,
         hidden: (data: WidgetData) =>
-            !hasView(lightTypeOf(data), 'color') || (data as Light2FieldsRxData).colorLightUIComponent !== 'wheel',
+            !drawsColorPicker(lightTypeOf(data)) || (data as Light2FieldsRxData).colorLightUIComponent !== 'wheel',
     },
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) => !hasView(lightTypeOf(data), 'color'),
+        hidden: (data: WidgetData) => !drawsColorPicker(lightTypeOf(data)),
     },
     {
         name: 'colorLightType',
@@ -294,6 +294,7 @@ const light2Fields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'color_light_type',
         options: [
             { value: 'none', label: 'none' },
+            { value: 'dimmer', label: 'dimmer' },
             { value: 'cct', label: 'cct' },
             { value: 'rgb', label: 'rgb' },
             { value: 'rgbcct', label: 'rgb & cct' },

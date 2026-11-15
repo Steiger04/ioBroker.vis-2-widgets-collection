@@ -3,7 +3,7 @@
  *
  * @module Light2CollectionWidget/pickerGeometry
  * @remarks
- * ADR-0108 Nr. 5: from the configuration (UI component, CCT-Ansicht, slider width, CT range)
+ * ADR-0108 Nr. 5: from the configuration (UI component, colour model, CCT-Ansicht, slider width, CT range)
  * and the measured picker box one result — slider size, main picker bound, resize width, gap,
  * offset of the second picker and iro layout per picker. Beside it {@link modalSizeOf} gives the
  * size of the Button-Modus modal. The 28px slider unit and the 12px gap live only here. The widget
@@ -18,6 +18,7 @@ import iro from '@jaames/iro';
 import optionalNumber from '../lib/helper/optionalNumber';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
+import type { Light2ColorModel } from '../lib/light2Channels';
 import type { Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
 
@@ -49,6 +50,8 @@ export type IroLayout = Array<{
 /** The widget configuration the geometry depends on. */
 export interface PickerGeometryConfig {
     uiComponent: Light2FieldsRxData['colorLightUIComponent'];
+    /** Colour model of the Hauptansicht (`colorModelOf`); a rule of its own overrides the UI component. */
+    colorModel: Light2ColorModel | undefined;
     /** CCT-Ansicht active: always for the Lichttyp cct, switchable for an „& cct“ one. */
     cctView: boolean;
     sliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
@@ -103,7 +106,8 @@ function mainPickerBoundOf({ width, height }: ElementDimensions, sliderSize: num
 
 /**
  * What a picker kind draws: the iro layout of each picker, the `picker.resize()` target and the
- * gap. A kind is a UI component of the colour view, or the CCT-Ansicht, which overrides it.
+ * gap. A kind is a UI component of the colour view, or the CCT-Ansicht or a colour model with a
+ * rule of its own, which override it.
  */
 interface PickerKindRule {
     /** The iro layout of one picker (which one matters only in the CCT-Ansicht). */
@@ -144,6 +148,27 @@ const CCT_VIEW_RULE: PickerKindRule = {
               ],
     resizeWidth: resizeToMainPickerBound,
     gap: gapBesideMainPicker,
+};
+
+/**
+ * The Hauptansicht by colour model, where the model draws its own picker and overrides the UI
+ * component like the CCT-Ansicht does (ADR-0116 Nr. 2): the brightness model (dimmer) draws one
+ * vertical value slider like the Helligkeits-Picker of the CCT-Ansicht, over the full height —
+ * nothing sits beside it, so the width does not shorten it. The picker colour stays neutral white
+ * (only its value is read and written), so the slider runs black to white.
+ */
+const COLOR_MODEL_RULES: Partial<Record<Light2ColorModel, PickerKindRule>> = {
+    brightness: {
+        layout: () => [
+            {
+                component: iro.ui.Slider,
+                options: { sliderType: 'value' },
+            },
+        ],
+        resizeWidth: height => height,
+        // A single component: no neighbour to space from.
+        gap: () => PICKER_GAP_PX,
+    },
 };
 
 /** The colour view per UI component (`colorLightUIComponent`). */
@@ -196,10 +221,14 @@ const UNKNOWN_UI_COMPONENT_RULE: PickerKindRule = {
     gap: gapBesideMainPicker,
 };
 
-/** The rule of the configured picker kind: the CCT-Ansicht, else the UI component. */
-const ruleOf = ({ cctView, uiComponent }: PickerGeometryConfig): PickerKindRule => {
+/** The rule of the configured picker kind: the CCT-Ansicht, else a colour model's own, else the UI component. */
+const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): PickerKindRule => {
     if (cctView) {
         return CCT_VIEW_RULE;
+    }
+    const modelRule = colorModel !== undefined ? COLOR_MODEL_RULES[colorModel] : undefined;
+    if (modelRule) {
+        return modelRule;
     }
     return uiComponent !== undefined && Object.hasOwn(UI_COMPONENT_RULES, uiComponent)
         ? UI_COMPONENT_RULES[uiComponent]

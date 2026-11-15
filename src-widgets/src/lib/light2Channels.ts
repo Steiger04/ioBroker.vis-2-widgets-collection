@@ -4,22 +4,27 @@
  * @module lib/light2Channels
  * @remarks
  * ADR-0108 Nr. 1: the one place that knows the Kanäle of a Lichttyp. Per Lichttyp it declares
- * the colour model of the colour view, whether there is a CCT-Ansicht, and through both the
- * Kanäle of each view. Per Kanal: the field, the picker property it is written from and read
+ * the colour model of the Hauptansicht (the `'color'` view), whether there is a CCT-Ansicht, and
+ * through both the Kanäle of each view. dimmer is the Hauptansicht with the colour model
+ * brightness — a deliberate widening of ADR-0108's colour view to the Hauptansicht (ADR-0116 Nr. 1). Per Kanal: the field, the picker property it is written from and read
  * into, whether the Hue-Skala may apply, the HSV change flag that gates its write, and — in the
  * CCT-Ansicht — whether the Kelvin- or the Helligkeits-Picker writes it. „& cct" is a property
  * of a Lichttyp (its CCT-Ansicht), not a channel set of its own.
  *
  * Its consumers ask it: the editor `hidden` rules (`light2Fields`, field literals stay —
  * ADR-0001), the widget's channel mapping (read and write), the Kanäle handed to
- * `backendSyncKey`, and the body and Button-Modus for a Lichttyp without a view. Kept free of components and of iro: the editor path loads it.
+ * `backendSyncKey`, the picker geometry (by colour model), and the body and Button-Modus for a
+ * Lichttyp without a view. Kept free of components and of iro: the editor path loads it.
  */
 import type { Light2FieldsRxData } from '../types/field-definitions/light2-fields';
 
 /** What a Light2 widget steers of its lamp (`colorLightType`). */
 export type Light2Type = NonNullable<Light2FieldsRxData['colorLightType']>;
 
-/** The two views of a Light2 widget: the colour picker, or the CCT-Ansicht (Kelvin + Helligkeit). */
+/**
+ * The two views of a Light2 widget: the Hauptansicht (`'color'` — the colour picker, or dimmer's
+ * brightness slider), or the CCT-Ansicht (Kelvin + Helligkeit).
+ */
 export type Light2View = 'color' | 'cct';
 
 /** The field of a Kanal — one of the eight colour states a Light2 widget binds. */
@@ -65,11 +70,14 @@ export const LIGHT2_CHANNEL_FIELDS: readonly Light2ChannelField[] = [
     'colorLightBrightnessOid',
 ];
 
-/** The colour model of the colour view. */
-type ColorModel = 'rgb-hex' | 'r/g/b' | 'h/s/v';
+/**
+ * The colour model of the Hauptansicht (the `'color'` view): a colour model of the colour picker,
+ * or `brightness` — dimmer's single value slider (ADR-0116 Nr. 1).
+ */
+export type Light2ColorModel = 'rgb-hex' | 'r/g/b' | 'h/s/v' | 'brightness';
 
 /** The Kanäle of each colour model, in write and sync order. */
-const COLOR_MODEL_CHANNELS: Record<ColorModel, readonly Light2Channel[]> = {
+const COLOR_MODEL_CHANNELS: Record<Light2ColorModel, readonly Light2Channel[]> = {
     'rgb-hex': [{ field: 'colorLightRgbHexOid', property: 'hexString', hueScale: false }],
     'r/g/b': [
         { field: 'colorLightRedOid', property: 'red', hueScale: false },
@@ -82,7 +90,12 @@ const COLOR_MODEL_CHANNELS: Record<ColorModel, readonly Light2Channel[]> = {
         // Brightness is shared: the same Kanal as in the CCT-Ansicht.
         { field: 'colorLightBrightnessOid', property: 'value', hueScale: true, changeFlag: 'v' },
     ],
+    // The same brightness Kanal again; its single value slider changes nothing else, so no flag.
+    brightness: [{ field: 'colorLightBrightnessOid', property: 'value', hueScale: true }],
 };
+
+/** The colour models whose Hauptansicht is not the colour picker of the UI component. */
+const NO_COLOR_PICKER: ReadonlySet<Light2ColorModel> = new Set(['brightness']);
 
 /** The Kanäle of the CCT-Ansicht: the Kelvin-Picker writes the temperature, the Helligkeits-Picker the brightness. */
 const CCT_CHANNELS: readonly Light2Channel[] = [
@@ -90,14 +103,16 @@ const CCT_CHANNELS: readonly Light2Channel[] = [
     { field: 'colorLightBrightnessOid', property: 'value', hueScale: true, picker: 'brightness' },
 ];
 
-/** A Lichttyp: the colour model of its colour view (none: no colour view), and whether it has a CCT-Ansicht. */
+/** A Lichttyp: the colour model of its Hauptansicht (none, cct: no Hauptansicht), and whether it has a CCT-Ansicht. */
 interface LightTypeEntry {
-    colorModel?: ColorModel;
+    colorModel?: Light2ColorModel;
     cctView: boolean;
 }
 
 const LIGHT_TYPES: Record<Light2Type, LightTypeEntry> = {
     none: { cctView: false },
+    // A lamp that only dims: the Hauptansicht is a single brightness slider (ADR-0116 Nr. 1).
+    dimmer: { colorModel: 'brightness', cctView: false },
     cct: { cctView: true },
     rgb: { colorModel: 'rgb-hex', cctView: false },
     rgbcct: { colorModel: 'rgb-hex', cctView: true },
@@ -138,6 +153,22 @@ export const hasAnyView = (type: string | undefined): boolean => viewsOf(type).l
 
 /** Whether the Lichttyp offers the view. */
 export const hasView = (type: string | undefined, view: Light2View): boolean => viewsOf(type).includes(view);
+
+/**
+ * The colour model of the Lichttyp's Hauptansicht — `undefined` without one, and for a Lichttyp the
+ * table does not know (its colour picker binds no Kanal). The picker geometry draws by it.
+ */
+export const colorModelOf = (type: string | undefined): Light2ColorModel | undefined => entryOf(type).colorModel;
+
+/**
+ * Whether the Hauptansicht is the colour picker of the UI component (`colorLightUIComponent`):
+ * every colour Lichttyp and an unknown one; not dimmer, whose single brightness slider overrides
+ * the UI component (ADR-0116 Nr. 2), nor a Lichttyp without a Hauptansicht.
+ */
+export const drawsColorPicker = (type: string | undefined): boolean => {
+    const model = colorModelOf(type);
+    return hasView(type, 'color') && (model === undefined || !NO_COLOR_PICKER.has(model));
+};
 
 /** Whether the Lichttyp switches between the colour view and the CCT-Ansicht („& cct"). */
 export const offersViewSwitch = (type: string | undefined): boolean => viewsOf(type).length > 1;
