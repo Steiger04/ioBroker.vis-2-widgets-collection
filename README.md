@@ -93,7 +93,7 @@ reads them from there.
 
 ## Changelog
 
-### **WORK IN PROGRESS**
+### 3.1.0 (2026-11-15)
 
 - (steiger04) The vis-2 AI assistant can now build pages with these widgets
 - (steiger04) The vis-2 AI assistant can now also change the theme if you name the set `vis-2-widgets-collection`
