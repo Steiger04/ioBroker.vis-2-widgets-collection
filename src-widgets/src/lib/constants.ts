@@ -38,7 +38,7 @@ export const DEFAULT_SAMPLE_INTERVAL_MS = 200;
  * The adapter is `singleton: true`, so the instance is always `0`.
  * The state is declared in `io-package.json` under `instanceObjects`
  * and created by the ioBroker controller on instance installation.
- * Written by the {@link module:ThemeConfigWizard} palette wizard and
+ * Written by the Theme Studio and by a Theme-Auftrag (both {@link module:ThemeConfigWizard}) and
  * read/subscribed by {@link module:components/CollectionProvider}.
  */
 export const THEME_STATE_ID = 'vis-2-widgets-collection.0.theme';
