@@ -21,7 +21,7 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
-import { CORNER_RADIUS_MAX } from './themeUtils';
+import { CORNER_RADIUS_MAX, THEME_MODES } from './themeUtils';
 
 /** How to treat keys not declared in an `object` schema node's `properties`. */
 export type UnknownKeyPolicy = 'warn' | 'error' | 'ignore';
@@ -96,7 +96,7 @@ const paletteSchema: SchemaNode = {
     optional: true,
     allowUnknown: 'warn',
     properties: {
-        mode: { kind: 'literal', values: ['light', 'dark'], optional: true },
+        mode: { kind: 'literal', values: THEME_MODES, optional: true },
         primary: paletteColor,
         secondary: paletteColor,
         error: paletteColor,

@@ -35,7 +35,7 @@
 import { FONT_CATALOGUE } from '../lib/theme/fontCatalogue';
 import { applyPreset, THEME_PRESETS } from '../lib/theme/presets';
 import type { UserTheme } from '../lib/theme/themeTypes';
-import { setNestedValue, THEME_CONTROL_RANGES } from '../lib/theme/themeUtils';
+import { setNestedValue, THEME_CONTROL_RANGES, THEME_MODES } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
 
@@ -122,7 +122,7 @@ export const THEME_ORDER_SETTINGS: readonly ThemeOrderSetting[] = [
     {
         name: 'mode',
         labelKey: 'theme_wizard_palette_mode',
-        input: { type: 'select', options: ['light', 'dark'] },
+        input: { type: 'select', options: THEME_MODES },
         apply: (theme, value) => setNestedValue(theme, 'palette.mode', value),
     },
     ...STUDIO_COLOR_FIELDS.map((field): ThemeOrderSetting => ({

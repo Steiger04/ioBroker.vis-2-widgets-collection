@@ -73,6 +73,12 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
 export const CORNER_RADIUS_MAX = 96;
 
 /**
+ * The colour modes a theme can fix — the one place they are written: read by the theme schema
+ * and by the Theme-Auftrag ({@link module:ThemeConfigWizard/themeOrder}).
+ */
+export const THEME_MODES = ['light', 'dark'] as const;
+
+/**
  * The ranges (px) of the number controls of the Theme Studio — the one place they are written.
  *
  * @remarks
