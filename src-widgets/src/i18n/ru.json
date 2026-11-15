@@ -40,7 +40,7 @@
     "color_light_hue_oid": "Цвет (HUE)",
     "color_light_modal_height": "Высота модального окна",
     "color_light_modal_width": "Ширина модального окна",
-    "color_light_modal_width_tooltip": "Без ширины модального окна будет использована оптимальная ширина для компонента UI, в зависимости от указанной высоты.",
+    "color_light_modal_width_tooltip": "Если ширина модального окна не задана, используется оптимальная ширина UI-компонента в зависимости от указанной высоты. Для типа света \"dimmer\" модальное окно имеет ту же ширину, что и его ползунок яркости, с учётом его отступов.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Красный",
     "color_light_rgb_hex_oid": "RGB (hex)",

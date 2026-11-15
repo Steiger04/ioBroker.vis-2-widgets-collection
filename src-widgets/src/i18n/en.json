@@ -48,7 +48,7 @@
     "color_light_hue_oid": "Color (HUE)",
     "color_light_modal_height": "Modal height",
     "color_light_modal_width": "Modal width",
-    "color_light_modal_width_tooltip": "Without modal width, the optimum width is used for the UI component, depending on the specified height.",
+    "color_light_modal_width_tooltip": "Without a modal width, the optimum width for the UI component is used, depending on the specified height. With the light type \"dimmer\", the modal is as wide as its brightness slider and its padding.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Red",
     "color_light_rgb_hex_oid": "RGB (hex)",

@@ -40,7 +40,7 @@
     "color_light_hue_oid": "Color (HUE)",
     "color_light_modal_height": "Alto modal",
     "color_light_modal_width": "Ancho modal",
-    "color_light_modal_width_tooltip": "Sin ancho modal, se utilizará el ancho óptimo para el componente de UI, dependiendo de la altura especificada.",
+    "color_light_modal_width_tooltip": "Sin un ancho de modal, se utiliza el ancho óptimo para el componente de UI, dependiendo de la altura especificada. Con el tipo de luz \"dimmer\", el modal es tan ancho como su control deslizante de brillo y su relleno.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Rojo",
     "color_light_rgb_hex_oid": "RGB (hex)",

@@ -40,7 +40,7 @@
     "color_light_hue_oid": "Kolor (HUE)",
     "color_light_modal_height": "Wysokość modalna",
     "color_light_modal_width": "Szerokość modalna",
-    "color_light_modal_width_tooltip": "Bez szerokości modalnej zostanie użyta optymalna szerokość dla komponentu UI, w zależności od określonej wysokości.",
+    "color_light_modal_width_tooltip": "Bez szerokości modala używana jest optymalna szerokość komponentu interfejsu użytkownika, w zależności od określonej wysokości. Przy typie światła \"dimmer\" modal jest tak szeroki jak jego suwak jasności wraz z jego wewnętrznym marginesem.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Czerwony",
     "color_light_rgb_hex_oid": "RGB (hex)",

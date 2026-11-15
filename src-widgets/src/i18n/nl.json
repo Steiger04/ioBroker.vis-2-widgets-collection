@@ -40,7 +40,7 @@
     "color_light_hue_oid": "Kleur (HUE)",
     "color_light_modal_height": "Modale hoogte",
     "color_light_modal_width": "Modale breedte",
-    "color_light_modal_width_tooltip": "Zonder modale breedte wordt de optimale breedte gebruikt voor de UI-component, afhankelijk van de opgegeven hoogte.",
+    "color_light_modal_width_tooltip": "Zonder modale breedte wordt de optimale breedte voor de UI-component gebruikt, afhankelijk van de opgegeven hoogte. Bij het lichttype \"dimmer\" is de modal even breed als de helderheidsschuifregelaar plus de padding.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Rood",
     "color_light_rgb_hex_oid": "RGB (hex)",

@@ -40,7 +40,7 @@
     "color_light_hue_oid": "颜色 (HUE)",
     "color_light_modal_height": "模态框高度",
     "color_light_modal_width": "模态框宽度",
-    "color_light_modal_width_tooltip": "如果没有模态框宽度，将根据指定的高度为 UI 组件使用最佳宽度。",
+    "color_light_modal_width_tooltip": "未设置模态宽度时，将根据指定的高度采用 UI 组件的最佳宽度。使用灯光类型 \"dimmer\" 时，模态框的宽度与其亮度滑块及内边距的宽度相同。",
     "color_light_padding": "Padding",
     "color_light_red_oid": "红色",
     "color_light_rgb_hex_oid": "RGB (hex)",

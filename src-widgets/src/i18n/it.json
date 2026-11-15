@@ -40,7 +40,7 @@
     "color_light_hue_oid": "Colore (HUE)",
     "color_light_modal_height": "Altezza modale",
     "color_light_modal_width": "Larghezza modale",
-    "color_light_modal_width_tooltip": "Senza larghezza modale, verrà utilizzata la larghezza ottimale per il componente UI, a seconda dell'altezza specificata.",
+    "color_light_modal_width_tooltip": "Senza una larghezza della modale, viene utilizzata la larghezza ottimale per il componente UI, in base all'altezza specificata. Con il tipo di luce \"dimmer\", la modale è larga quanto il suo slider di luminosità e il relativo padding.",
     "color_light_padding": "Padding",
     "color_light_red_oid": "Rosso",
     "color_light_rgb_hex_oid": "RGB (hex)",
