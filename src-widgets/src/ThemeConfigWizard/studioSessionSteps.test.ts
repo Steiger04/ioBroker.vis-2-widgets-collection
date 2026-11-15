@@ -4,14 +4,15 @@
  * @module ThemeConfigWizard/studioSessionSteps.test
  * @remarks
  * Pins the policy the session hook only wires (ADR-0020 addendum 2026-11-02): when the stored
- * theme may replace the draft, when the draft counts as dirty, when Save is allowed and how a
- * stored state value becomes a draft, and which drafts count as valid. The wiring (load, canvas mirror, end invariant) is pinned
- * in useStudioSession.hook.test.ts.
+ * theme may replace the draft, when the draft counts as dirty, when Save is allowed and which
+ * drafts count as valid. The wiring (load, canvas mirror, end invariant) is pinned in
+ * useStudioSession.hook.test.ts; how a stored state value becomes a draft is pinned in
+ * lib/theme/storedTheme.test.ts.
  */
 import { describe, expect, it } from 'vitest';
 
 import type { UserTheme } from '../lib/theme/themeTypes';
-import { canSave, isDirty, parseStoredTheme, shouldRebase, validateDraft } from './studioSessionSteps';
+import { canSave, isDirty, shouldRebase, validateDraft } from './studioSessionSteps';
 
 const SEED: UserTheme = { palette: { primary: { main: '#ff0000' } } };
 
@@ -54,24 +55,6 @@ describe('canSave', () => {
         ['already saving', { valid: true, dirty: true, saving: true }],
     ])('refuses a draft that is %s', (_label, input) => {
         expect(canSave(input)).toBe(false);
-    });
-});
-
-describe('parseStoredTheme', () => {
-    it('reads a valid stored theme', () => {
-        expect(parseStoredTheme('{"palette":{"primary":{"main":"#ff0000"}}}')).toEqual(SEED);
-    });
-
-    it.each([
-        ['an unset state', undefined],
-        ['an empty string', ''],
-        ['a non-string value', 42],
-        ['corrupt JSON', '{"palette":'],
-        // A range error (colour checks need CSS.supports, absent under node).
-        ['an invalid theme', '{"corners":{"topLeft":-1}}'],
-        ['a non-object theme', '[1]'],
-    ])('falls back to the empty theme for %s', (_label, raw) => {
-        expect(parseStoredTheme(raw)).toEqual({});
     });
 });
 

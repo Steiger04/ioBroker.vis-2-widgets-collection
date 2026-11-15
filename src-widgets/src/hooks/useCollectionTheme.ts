@@ -4,8 +4,9 @@
  * @module hooks/useCollectionTheme
  * @remarks
  * Subscribes to the shared user-theme ioBroker state
- * (`vis-2-widgets-collection.0.theme`), parses/validates it, and resolves it onto
- * the host theme (plus optional caller overrides) via
+ * (`vis-2-widgets-collection.0.theme`), reads it through
+ * {@link module:lib/theme/storedTheme.parseStoredTheme} (the one reader the Studio session
+ * uses too), and resolves it onto the host theme (plus optional caller overrides) via
  * {@link module:lib/theme/resolveCollectionTheme.resolveCollectionTheme}.
  *
  * Centralizes the state-reading + `Connection.unsubscribeState` handling so
@@ -20,7 +21,7 @@ import { clearDraftTheme, getDraftThemeString } from '../lib/theme/draftThemeSto
 import { bundledFamiliesOf, ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
-import { validateThemeOptions } from '../lib/theme/validateTheme';
+import { parseStoredTheme } from '../lib/theme/storedTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
@@ -48,7 +49,7 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
  * ```
  */
 export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
-    // User-supplied MUI theme JSON, read from the shared ioBroker state.
+    // The theme state's value as it arrived (JSON text; '' while unread or not text).
     const [themeJson, setThemeJson] = useState('');
 
     useEffect(() => {
@@ -82,21 +83,9 @@ export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrid
         };
     }, [socket]);
 
-    // Parsed, validated user theme; empty object when unset or invalid.
-    // JSON is only touched here at the ioBroker state boundary — the validator
-    // itself works on the plain object. A corrupt/invalid state must never crash
-    // rendering, hence the try/catch and `{}` fallback.
-    const parsedTheme = useMemo(() => {
-        if (!themeJson) {
-            return {};
-        }
-        try {
-            const result = validateThemeOptions(JSON.parse(themeJson));
-            return result.isValid ? (result.theme ?? {}) : {};
-        } catch {
-            return {};
-        }
-    }, [themeJson]);
+    // The stored user theme, read by the one reader (never throws; the empty theme when the
+    // state holds none).
+    const parsedTheme = useMemo(() => parseStoredTheme(themeJson), [themeJson]);
 
     // In-progress draft from the studio panel (null when the panel is closed).
     // The draft wins over the persisted theme so canvas widgets preview edits

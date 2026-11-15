@@ -29,10 +29,11 @@ import type { Connection } from '@iobroker/gui-components';
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { parseStoredTheme } from '../lib/theme/storedTheme';
 import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
 import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
-import { canSave as canSaveStep, isDirty, parseStoredTheme, shouldRebase, validateDraft } from './studioSessionSteps';
+import { canSave as canSaveStep, isDirty, shouldRebase, validateDraft } from './studioSessionSteps';
 
 /** Minimum gap between two draft pushes to the canvas (the session's single throttle, ADR-0020). */
 const DRAFT_FLUSH_MS = 100;

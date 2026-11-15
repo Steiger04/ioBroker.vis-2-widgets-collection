@@ -114,21 +114,3 @@ export function validateDraft(draft: UserTheme): ThemeValidationResult {
     }
     return { isValid: false, issues: [...schema.issues, ...replaced] };
 }
-
-/**
- * Turns a stored state value into a draft. An unset, corrupt or invalid state yields the
- * empty theme — the studio must open on any state.
- *
- * @param raw - The state's `val`.
- */
-export function parseStoredTheme(raw: unknown): UserTheme {
-    if (typeof raw !== 'string' || !raw) {
-        return {};
-    }
-    try {
-        const result = validateThemeOptions(JSON.parse(raw));
-        return result.isValid ? (result.theme ?? {}) : {};
-    } catch {
-        return {};
-    }
-}
