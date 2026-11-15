@@ -579,7 +579,7 @@ describe('Naht „Theme-Auftrag“: an order outside the editing editor', () => 
         ['a plan', planProject({ mode: 'dark' })],
         ['a grid view', gridProject({ mode: 'dark' })],
     ])(
-        'does nothing in the runtime on %s: nothing read or written, nothing removed, nothing shown',
+        'does nothing in the runtime on %s: nothing read or written, nothing removed, no element at all',
         async (_label, project) => {
             const { server, editor } = placeOrder({ mode: 'dark' }, { project: () => project, runtime: true });
 
@@ -589,7 +589,9 @@ describe('Naht „Theme-Auftrag“: an order outside the editing editor', () => 
             expect(server.valueOf(THEME_STATE_ID)).toBe(STORED_TEXT);
             expect(editor.project()).toEqual(project);
             expect(editor.changes).toEqual([]);
-            expect(editor.container.querySelector(`[data-widget="${ORDER_ID}"]`)?.childNodes).toHaveLength(0);
+            // The host lays the grid cell on the element it renders around a widget: an order
+            // that has an element takes a cell of the view, however empty the element is.
+            expect(editor.container.querySelector(`[data-widget="${ORDER_ID}"]`)).toBeNull();
             expect(editor.container.textContent).toBe('');
         },
     );

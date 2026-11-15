@@ -27,7 +27,7 @@
  * - An order shows nothing — unless its course failed or is overdue: then the editor shows a
  *   hint in the order's place, and the order stays in the project.
  * - In the runtime, and while the editor previews (its „Toggle runtime“), it does nothing and
- *   shows nothing.
+ *   shows nothing: the host renders no element for it, so it takes no cell of a grid view.
  * @see https://github.com/ioBroker/ioBroker.vis-2-widgets-material (uses the same mechanism for its Wizard)
  */
 
@@ -92,6 +92,15 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
         this.releaseOrder?.();
         this.releaseOrder = null;
         super.componentWillUnmount();
+    }
+
+    /**
+     * Outside the edit mode an order is not visible to the host, which then renders no element
+     * for it (`Vis/visRxWidget.tsx` render). The host lays the cell of a grid view on that
+     * element: an empty one would still take a cell of the runtime.
+     */
+    checkVisibility(stateId?: string | null, newState?: typeof this.newState): boolean {
+        return !!this.state.editMode && super.checkVisibility(stateId, newState);
     }
 
     /**
