@@ -510,6 +510,18 @@ describe('Naht „Theme-Auftrag“: an order that is not confirmed', () => {
         expect(server.valueOf(THEME_STATE_ID)).toBe(STORED_TEXT);
     });
 
+    it('gives the whole width of the hint to its text: no icon beside it', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' });
+
+        await server.failRead();
+
+        // The host gives a placed order 200 px of width; an icon column takes 34 px of them
+        // from the text, and the hint grows out of the order's 120 px of height.
+        const hint = editor.container.querySelector('[role="alert"]');
+        expect(hint?.textContent).toBe(NOT_CONFIRMED);
+        expect(hint?.querySelector('svg')).toBeNull();
+    });
+
     it('lets the next order act after one that failed', async () => {
         const { server, editor } = placeOrder({ mode: 'dark' }, { project: withSecondOrder({ mode: 'dark' }) });
 

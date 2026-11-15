@@ -138,8 +138,18 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
         if (!this.state.orderNotConfirmed || !this.props.editMode || this.props.context.runtime) {
             return null;
         }
-        // The pattern of the studio's own „could not save“ hint.
-        return <Alert severity="error">{Generic.t('theme_config_wizard_not_confirmed')}</Alert>;
+        // The pattern of the studio's own „could not save“ hint, set tight: the host's assistant
+        // gives a placed widget 200 × 120 px, and the hint has to be readable inside them. So the
+        // text takes the whole width (no icon, narrow padding) in the caption size.
+        return (
+            <Alert
+                severity="error"
+                icon={false}
+                sx={{ boxSizing: 'border-box', width: '100%', px: 1, py: 0, typography: 'caption' }}
+            >
+                {Generic.t('theme_config_wizard_not_confirmed')}
+            </Alert>
+        );
     }
 }
 

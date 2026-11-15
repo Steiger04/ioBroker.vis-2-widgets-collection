@@ -17,6 +17,7 @@ const readLang = (file: string): Record<string, string> =>
 
 const en = readLang('en.json');
 const languages = readdirSync(DIR).filter(f => f.endsWith('.json') && f !== 'en.json');
+const allLanguages = readdirSync(DIR).filter(f => f.endsWith('.json'));
 
 /** Keys whose text may equal the English text in a language, by reason. */
 const SAME_AS_ENGLISH: { reason: string; keys: (key: string) => boolean }[] = [
@@ -70,5 +71,25 @@ describe('i18n: the texts of the Theme Studio', () => {
             .map(key => `${key}: "${en[key]}"`);
 
         expect(untranslated).toEqual([]);
+    });
+});
+
+/**
+ * The hint of a Theme-Auftrag that was not confirmed has to be readable inside the element the
+ * host gives a widget its assistant places: 200 × 120 px (vis-2 `AiChat/aiTools.ts`
+ * newWidgetStyle). The hint is set in the caption size without an icon: 184 px of text width and
+ * five lines of 20 px. A Cyrillic letter takes about 7 px there, which makes 26 letters a line;
+ * a line break can cost a word, so four of the five lines are counted. A CJK character is twice
+ * as wide and counts as two.
+ */
+const HINT_LETTERS = 100;
+const lettersOf = (text: string): number => [...text].reduce((sum, char) => sum + (char > '\u2e7f' ? 2 : 1), 0);
+
+describe('i18n: the hint of a Theme-Auftrag that was not confirmed', () => {
+    it.each(allLanguages)('%s is short enough for the element the host gives a placed order', file => {
+        const hint = readLang(file).theme_config_wizard_not_confirmed;
+
+        expect(hint).toBeTruthy();
+        expect(lettersOf(hint)).toBeLessThanOrEqual(HINT_LETTERS);
     });
 });
