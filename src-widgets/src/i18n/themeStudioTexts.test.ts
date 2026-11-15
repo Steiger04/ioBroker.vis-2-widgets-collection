@@ -77,19 +77,20 @@ describe('i18n: the texts of the Theme Studio', () => {
 /**
  * The hint of a Theme-Auftrag that was not confirmed has to be readable inside the element the
  * host gives a widget its assistant places: 200 × 120 px (vis-2 `AiChat/aiTools.ts`
- * newWidgetStyle). The hint is set in the caption size without an icon: 184 px of text width and
- * five lines of 20 px. A Cyrillic letter takes about 7 px there, which makes 26 letters a line;
- * a line break can cost a word, so four of the five lines are counted. A CJK character is twice
- * as wide and counts as two.
+ * newWidgetStyle). The hint is set in the caption size without an icon, below a band of 14 px
+ * that stays free for the editor's name plates: 184 px of text width and four lines of 20 px
+ * (14 + 8 + 4 × 20 + 8 = 110 px). A line break can cost a word, so three of the four lines are
+ * counted. A Latin letter takes about 6 px there, a Cyrillic one about 7, a CJK character 12.
  */
-const HINT_LETTERS = 100;
-const lettersOf = (text: string): number => [...text].reduce((sum, char) => sum + (char > '\u2e7f' ? 2 : 1), 0);
+const HINT_TEXT_PX = 3 * 184;
+const widthOf = (text: string): number =>
+    [...text].reduce((sum, char) => sum + (char > '\u2e7f' ? 12 : char > '\u03ff' ? 7 : 6), 0);
 
 describe('i18n: the hint of a Theme-Auftrag that was not confirmed', () => {
     it.each(allLanguages)('%s is short enough for the element the host gives a placed order', file => {
         const hint = readLang(file).theme_config_wizard_not_confirmed;
 
         expect(hint).toBeTruthy();
-        expect(lettersOf(hint)).toBeLessThanOrEqual(HINT_LETTERS);
+        expect(widthOf(hint)).toBeLessThanOrEqual(HINT_TEXT_PX);
     });
 });

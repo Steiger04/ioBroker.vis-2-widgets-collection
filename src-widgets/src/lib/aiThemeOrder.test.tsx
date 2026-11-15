@@ -910,6 +910,22 @@ describe('Naht „Theme-Auftrag“: an order that is not confirmed', () => {
         expect(hint?.querySelector('svg')).toBeNull();
     });
 
+    // A widget at the top of a view carries its name plate inside, over its own first 14 px (the
+    // host's `vis-editmode-widget-name-bottom`), and the plates lie above every widget. On a grid
+    // view an order has no cell and sits at the view's top left corner: its plate, and the one of
+    // the first cell's widget 8 px further down, covered the beginning of the hint.
+    it('starts the text of the hint below the name plates the host draws at the top of a view', async () => {
+        const { server, editor } = placeOrder({ mode: 'dark' }, { project: gridProject });
+
+        await server.failRead();
+
+        const hint = editor.container.querySelector('[role="alert"]')!;
+        const text = hint.querySelector('.MuiAlert-message')!;
+        const textStart = parseFloat(getComputedStyle(hint).paddingTop) + parseFloat(getComputedStyle(text).paddingTop);
+        // The plate of the first cell's widget ends at 8 + 14 px.
+        expect(textStart).toBeGreaterThanOrEqual(22);
+    });
+
     it('lets the next order act after one that failed', async () => {
         const { server, editor } = placeOrder({ mode: 'dark' }, { project: withSecondOrder({ mode: 'dark' }) });
 

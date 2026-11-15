@@ -42,6 +42,13 @@ import themeOrderFields from '../lib/themeOrderFields';
 import { projectWithoutWidget, takeUpThemeOrder } from './carryOutThemeOrder';
 import ThemeWizardButton from './ThemeWizardButton';
 
+/**
+ * The height of the name plate the vis-2 editor draws for every widget (its
+ * `.vis-editmode-widget-name`, fixed at 14 px). For a widget within 15 px of the top of its view
+ * the plate sits inside the widget instead of above it, over the widget's own content.
+ */
+const HOST_NAME_PLATE_PX = 14;
+
 /** What a placed Theme-Auftrag keeps besides the host's widget state. */
 interface ThemeOrderState {
     /** The order's course failed or is overdue. */
@@ -141,11 +148,22 @@ class ThemeConfigWizard extends Generic<Record<string, any>, VisRxWidgetState & 
         // The pattern of the studio's own „could not save“ hint, set tight: the host's assistant
         // gives a placed widget 200 × 120 px, and the hint has to be readable inside them. So the
         // text takes the whole width (no icon, narrow padding) in the caption size.
+        // The band at the top stays free for the editor's name plates, which lie above every
+        // widget: on a grid view an order has no cell and sits at the view's top left corner,
+        // where the editor draws the plate inside the widget — and the plate of the first cell's
+        // widget 8 px below. With the 8 px above the text itself, the text starts beneath both.
         return (
             <Alert
                 severity="error"
                 icon={false}
-                sx={{ boxSizing: 'border-box', width: '100%', px: 1, py: 0, typography: 'caption' }}
+                sx={{
+                    boxSizing: 'border-box',
+                    width: '100%',
+                    px: 1,
+                    pt: `${HOST_NAME_PLATE_PX}px`,
+                    pb: 0,
+                    typography: 'caption',
+                }}
             >
                 {Generic.t('theme_config_wizard_not_confirmed')}
             </Alert>
