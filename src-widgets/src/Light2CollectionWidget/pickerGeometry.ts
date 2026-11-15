@@ -19,7 +19,7 @@ import optionalNumber from '../lib/helper/optionalNumber';
 import { COLOR_LIGHT_MODAL_HEIGHT_DEFAULT, COLOR_LIGHT_SLIDER_WIDTH_DEFAULT } from '../lib/light2Defaults';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 import type { Light2ColorModel } from '../lib/light2Channels';
-import type { Light2FieldsRxData } from '../types';
+import type { BaseFieldsRxData, Light2FieldsRxData } from '../types';
 import type { LampPicker } from './lampSync';
 
 /** One iro slider unit (`colorLightSliderWidth` 1), in px. */
@@ -30,6 +30,12 @@ const PICKER_GAP_PX = 12;
 
 /** Fixed extra width of the modal auto width beside picker, gap and slider, in px. */
 const MODAL_EXTRA_WIDTH_PX = 40;
+
+/** The power button column beside the picker box: the 26px icon in its 8px button padding, and the 1px divider. */
+const POWER_COLUMN_WIDTH_PX = 26 + 2 * 8 + 1;
+
+/** One MUI spacing unit (`basePadding`, `colorLightPadding` 1), in px. */
+const SPACING_UNIT_PX = 8;
 
 /**
  * The geometry iro is created with, before the first measured layout replaces it
@@ -64,6 +70,22 @@ export interface ModalSizeConfig {
     modalWidth?: Light2FieldsRxData['colorLightModalWidth'];
     modalHeight?: Light2FieldsRxData['colorLightModalHeight'];
     sliderWidth?: Light2FieldsRxData['colorLightSliderWidth'];
+    /** Colour model of the Hauptansicht (`colorModelOf`); a rule of its own sizes the auto width from its content. */
+    colorModel?: Light2ColorModel;
+    /** Padding of the picker box (`colorLightPadding`), in spacing units. */
+    padding?: Light2FieldsRxData['colorLightPadding'];
+    /** Padding of the frame (`basePadding`), in spacing units. */
+    basePadding?: BaseFieldsRxData['basePadding'];
+}
+
+/** What the modal auto width is derived from: the read modal height, slider size and paddings in px. */
+interface ModalContent {
+    height: number;
+    sliderSize: number;
+    /** Picker box padding of one side, in px. */
+    padding: number;
+    /** Frame padding of one side, in px. */
+    basePadding: number;
 }
 
 /** The size of the Button-Modus modal, in px. */
@@ -116,7 +138,17 @@ interface PickerKindRule {
     resizeWidth: (height: number | undefined, mainPickerBound: number | undefined) => number | undefined;
     /** The gap of a measured box (width and height non-zero). */
     gap: (width: number, sliderSize: number, mainPickerBound: number | undefined) => number;
+    /** The Button-Modus modal auto width; unset, the colour picker's beside its slider. */
+    modalAutoWidth?: (content: ModalContent) => number;
 }
+
+/**
+ * The colour picker's modal auto width: the picker draws its main element from the modal HEIGHT
+ * (square-ish), so the optimum width derives from height + slider + gap (see
+ * color_light_modal_width_tooltip).
+ */
+const modalWidthBesideSlider = ({ height, sliderSize }: ModalContent): number =>
+    height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSize;
 
 /** CCT, wheel, box: the main picker element is bounded, its value slider beside it. */
 const resizeToMainPickerBound: PickerKindRule['resizeWidth'] = (_height, mainPickerBound) => mainPickerBound;
@@ -168,6 +200,9 @@ const COLOR_MODEL_RULES: Partial<Record<Light2ColorModel, PickerKindRule>> = {
         resizeWidth: height => height,
         // A single component: no neighbour to space from.
         gap: () => PICKER_GAP_PX,
+        // As wide as drawn side by side: frame padding, power column, picker padding, the slider.
+        modalAutoWidth: ({ sliderSize, padding, basePadding }) =>
+            2 * basePadding + POWER_COLUMN_WIDTH_PX + 2 * padding + sliderSize,
     },
 };
 
@@ -237,11 +272,11 @@ const ruleOf = ({ cctView, colorModel, uiComponent }: PickerGeometryConfig): Pic
 
 /**
  * The Button-Modus modal size. Height: `colorLightModalHeight`, the default 300px for 0. Width: an
- * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the auto width — the picker draws its
- * main element from the modal HEIGHT (square-ish), so the optimum width derives from height +
- * slider + gap (see color_light_modal_width_tooltip).
+ * explicit positive `colorLightModalWidth` as is (a numeric string as its number), otherwise the
+ * auto width — for the colour picker from height + slider + gap, for a colour model with a rule of
+ * its own from what it draws (dimmer: the slider, its padding and the frame — ADR-0116 Nr. 2).
  *
- * @param config - Modal width/height and slider width of the widget.
+ * @param config - Modal width/height, slider width, colour model and paddings of the widget.
  * @returns The modal width and height in px.
  */
 export function modalSizeOf(config: ModalSizeConfig): ModalSize {
@@ -251,7 +286,18 @@ export function modalSizeOf(config: ModalSizeConfig): ModalSize {
     if (width !== undefined && width > 0) {
         return { width, height };
     }
-    return { width: height + MODAL_EXTRA_WIDTH_PX + PICKER_GAP_PX + sliderSizeOf(config.sliderWidth), height };
+    const modelRule = config.colorModel !== undefined ? COLOR_MODEL_RULES[config.colorModel] : undefined;
+    const autoWidth = modelRule?.modalAutoWidth ?? modalWidthBesideSlider;
+    return {
+        width: autoWidth({
+            height,
+            sliderSize: sliderSizeOf(config.sliderWidth),
+            // Read as the body and the frame draw them: an emptied padding ('') as 0.
+            padding: (optionalNumber(config.padding) ?? 0) * SPACING_UNIT_PX,
+            basePadding: (optionalNumber(config.basePadding) ?? 0) * SPACING_UNIT_PX,
+        }),
+        height,
+    };
 }
 
 /**

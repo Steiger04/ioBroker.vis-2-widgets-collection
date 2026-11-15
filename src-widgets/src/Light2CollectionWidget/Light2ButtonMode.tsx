@@ -19,7 +19,7 @@ import CollectionValueDisplay from '../components/CollectionValueDisplay';
 import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import optionalNumber from '../lib/helper/optionalNumber';
-import { hasAnyView } from '../lib/light2Channels';
+import { colorModelOf, hasAnyView } from '../lib/light2Channels';
 import type { UseValueStateReturn } from '../hooks/useValueState';
 import type { Light2CollectionContextProps } from '../types';
 import { modalSizeOf } from './pickerGeometry';
@@ -66,11 +66,15 @@ function Light2ButtonMode({ isValidType, onOffValue, onToggle, children }: Light
         ms: optionalNumber(rxData.colorLightDelayLongPress) ?? 0,
     });
 
-    // Height, and explicit width or the auto width from the picker geometry (height + slider + gap).
+    // Height, and explicit width or the auto width from the picker geometry: height + slider + gap
+    // beside the colour picker, the drawn content for dimmer's single slider (ADR-0116 Nr. 2).
     const modalSize = modalSizeOf({
         modalWidth: rxData.colorLightModalWidth,
         modalHeight: rxData.colorLightModalHeight,
         sliderWidth: rxData.colorLightSliderWidth,
+        colorModel: colorModelOf(rxData.colorLightType),
+        padding: rxData.colorLightPadding,
+        basePadding: rxData.basePadding,
     });
 
     return (

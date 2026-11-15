@@ -12,7 +12,7 @@
 import { describe, expect, it } from 'vitest';
 import iro from '@jaames/iro';
 
-import { modalSizeOf, pickerGeometry, type PickerGeometryConfig } from './pickerGeometry';
+import { modalSizeOf, pickerGeometry, type ModalSizeConfig, type PickerGeometryConfig } from './pickerGeometry';
 import type { ElementDimensions } from '../hooks/useElementDimensions';
 
 const config = (overrides: Partial<PickerGeometryConfig> = {}): PickerGeometryConfig => ({
@@ -238,4 +238,57 @@ describe('modalSizeOf (Button-Modus modal size)', () => {
             height: 400,
         });
     });
+});
+
+describe('modalSizeOf: the modal of dimmer is as wide as its content (ADR-0116 Nr. 2)', () => {
+    // The drawn content side by side: frame padding (basePadding), power button (26px icon + 2 × 8px)
+    // and divider (1px), picker padding (colorLightPadding), the slider — spacing unit 8px.
+    it('derives the auto width from the slider, the picker padding and the frame', () => {
+        // 8 + 42 + 1 + 8 + 28 + 8 + 8 = 103.
+        expect(modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: 1, basePadding: 1 }).width).toBe(103);
+        // 16 + 42 + 1 + 4 + 56 + 4 + 16 = 139.
+        expect(modalSizeOf({ colorModel: 'brightness', sliderWidth: 2, padding: 0.5, basePadding: 2 }).width).toBe(139);
+        // No padding, the default slider width for 0: 42 + 1 + 28 = 71.
+        expect(modalSizeOf({ colorModel: 'brightness', sliderWidth: 0, padding: 0, basePadding: 0 }).width).toBe(71);
+    });
+
+    // vis-2's number field stores the typed text until the field is left; an emptied padding reads 0.
+    it('reads paddings stored as numeric strings as their numbers, an emptied one as 0', () => {
+        const asStored = (value: string): number => value as unknown as number;
+
+        // 42 + 1 + 8 + 28 + 8 = 87.
+        expect(
+            modalSizeOf({ colorModel: 'brightness', sliderWidth: 1, padding: asStored('1'), basePadding: asStored('') })
+                .width,
+        ).toBe(87);
+    });
+
+    it('takes an explicit positive modal width as is', () => {
+        expect(
+            modalSizeOf({ colorModel: 'brightness', modalWidth: 240, sliderWidth: 1, padding: 1, basePadding: 1 })
+                .width,
+        ).toBe(240);
+    });
+
+    it('keeps the modal height', () => {
+        expect(modalSizeOf({ colorModel: 'brightness', modalHeight: 400, padding: 1, basePadding: 1 }).height).toBe(
+            400,
+        );
+        expect(modalSizeOf({ colorModel: 'brightness', modalHeight: 0 }).height).toBe(300);
+    });
+
+    // The colour picker sits beside its slider: the auto width stays height + slider + gap (+ 40px),
+    // whatever the paddings.
+    it.each<ModalSizeConfig['colorModel']>(['rgb-hex', 'r/g/b', 'h/s/v', undefined])(
+        'keeps the auto width of the colour picker (%s)',
+        colorModel => {
+            expect(modalSizeOf({ colorModel, modalHeight: 300, sliderWidth: 1, padding: 1, basePadding: 1 })).toEqual({
+                width: 380,
+                height: 300,
+            });
+            expect(
+                modalSizeOf({ colorModel, modalHeight: 400, sliderWidth: 2, padding: 3, basePadding: 0 }).width,
+            ).toBe(508);
+        },
+    );
 });
