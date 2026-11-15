@@ -43,7 +43,7 @@ All color fields of the **Colors** and **Status & Text** sections work the same 
 
 Derived values are marked in the label: the secondary color reads "· derived from primary" while it is computed from a set primary color; Text (primary) reads "· follows primary" while it inherits.
 
-Gradients are invalid: base surface, widget surface, divider and the text colors report "Must be a color (gradients are not allowed)", primary, secondary and the status colors "Wrong value type". Primary, secondary and the status colors need a computable value (hex, `rgb()`, `hsl()`); the studio reports color names such as `red` and `transparent` there as an error. The color value text keeps the value for correcting it, the swatch meanwhile shows the inherited color that the canvas paints as well.
+Gradients are invalid: base surface, widget surface, divider and the text colors report "Must be a color (gradients are not allowed)", primary, secondary and the status colors "Wrong value type". Every color needs a computable value (hex, `rgb()`, `hsl()`): the widgets cannot compute with color names such as `red` or with `transparent`, the studio reports them at the field as an error and does not save them. The color value text keeps the value for correcting it, the swatch meanwhile shows the inherited color that the canvas paints as well.
 
 ## Colors section
 
@@ -99,7 +99,7 @@ Here too, only **Undo** or **Reset all to default** clears a single slider value
 
 ## The theme in the datapoint
 
-The studio saves into the state **`vis-2-widgets-collection.0.theme`** (type `string`): the theme as JSON text. It is a **partial MUI `ThemeOptions` object** plus two custom extensions (`corners`, `googleFonts`). Every collection widget reads and validates the state on start and on every change; if it is invalid, the theme as a whole counts as `{}` and the widget theme stays at the host default.
+The studio saves into the state **`vis-2-widgets-collection.0.theme`** (type `string`): the theme as JSON text. It is a **partial MUI `ThemeOptions` object** plus two custom extensions (`corners`, `googleFonts`). Every collection widget reads and validates the state on start and on every change. A single invalid value is dropped, the rest of the theme applies. If the state is empty, not valid JSON or not an object, the theme counts as `{}` and the widget theme stays at the host default.
 
 Compact example (dark, own accents, Inter, corner radius):
 
@@ -122,9 +122,10 @@ Compact example (dark, own accents, Inter, corner radius):
 Rules and notes for script authors:
 
 - **Sparse:** cleared fields disappear completely (the studio prunes empty paths). Missing paths inherit; a minimal valid theme is `{}`.
-- **Validation:** colors must be plain (no gradients), numbers numbers, values in range (e.g. corner radii 0–96, `typography.fontSize` 1–100; the studio reports "out of range (0–96)"). Unknown paths produce a warning ("unknown setting — ignored") but no block. Warnings and errors without a field of their own appear with their path at the bottom of the window. Errors block saving from the studio; the studio opens a state written invalidly via script as an empty theme, and the next save overwrites it.
-- **Studio stricter than the widgets:** a non-computable value for primary, secondary or the status colors (`red`) only makes that field inherit in the widgets, the prefix `mui` is replaced by `vis2c` there; the rest of the theme still applies. The studio shows both as errors and saves only after the correction.
-- **Writing directly** works: `setState('vis-2-widgets-collection.0.theme', JSON.stringify(theme), true)` — the studio reads the state on open and continues from it. It does not pick it up after that: while the studio is open the draft wins on the canvas, and saving overwrites the written value.
+- **Validation:** colors must be plain and computable (hex, `rgb()` or `hsl()`; no gradients, no color names, no `transparent`), numbers numbers, values in range (e.g. corner radii 0–96, `typography.fontSize` 1–100; the studio reports "out of range (0–96)"). Unknown paths produce a warning ("unknown setting — ignored") but no block. Warnings and errors without a field of their own appear with their path at the bottom of the window. Errors block saving from the studio.
+- **Invalid values in the state:** if a state written via script holds an invalid value, a color name for instance, only that value is dropped: the widgets show the rest of the theme, and the studio opens with the rest; the next save writes the state without it. For primary, secondary and the status colors an invalid main color (`main`) drops the color as a whole, an invalid variant (`light`, `dark`, `contrastText`) only itself; in a list (`shadows`, the faces of a Google font) the whole list. If the state is not valid JSON or not an object, the studio opens with the empty theme.
+- **Studio stricter than the widgets:** the widgets replace the prefix `mui` for CSS variables by `vis2c`; the rest of the theme still applies. The studio shows it as an error and saves only after the correction.
+- **Writing directly** works: `setState('vis-2-widgets-collection.0.theme', JSON.stringify(theme), true)` — the studio reads the state on open and follows it while it is open. An open studio without unsaved changes takes the written value over, the canvas shows it, and the undo history is empty afterwards. With unsaved changes the draft stays in the studio and on the canvas; it still counts as changed, now measured against the written value, and saving overwrites it.
 - **`googleFonts`** (a map of font name → list of `weight`, with a variable font `weightMax`, and `data`, the embedded woff2 data URI) is managed by the studio alone when loading a Google font; do not edit by hand (large base64 blobs).
 
 ## Related pages

@@ -12,13 +12,19 @@
  * - Unknown keys are warnings (MUI allows module augmentation), never fatal.
  * - Structural / type mistakes (a color that is not a color, `mode: "purple"`,
  *   non-serializable functions) are errors.
+ * - A palette colour MUI cannot compute with (a colour name, `transparent`, `var()`) is an
+ *   error too: MUI's components run colour maths on the palette and throw on such a value. This
+ *   is the one place that decides it — reading the stored theme, the Studio's Save and a theme
+ *   order all follow the verdict given here.
  * - The accepted object is returned unchanged as `theme` when valid, so callers
  *   can merge it straight into `createTheme`.
  */
 
+import { decomposeColor } from '@mui/material/styles';
+
 import type { SchemaNode, UnknownKeyPolicy } from './themeSchema';
 import { THEME_OPTIONS_SCHEMA } from './themeSchema';
-import type { ThemeValidationIssue, ThemeValidationResult } from './themeTypes';
+import type { ThemeValidationIssue, ThemeValidationResult, ThemeValueKeys } from './themeTypes';
 import { isPlainObject } from './themeUtils';
 import { supportsCssColor } from '../helper/colorValidation';
 
@@ -37,75 +43,119 @@ export function validateThemeOptions(value: unknown): ThemeValidationResult {
         return { isValid: true, theme: {}, issues };
     }
     if (!isPlainObject(value)) {
-        issues.push({ path: '', severity: 'error', code: 'invalid-shape', message: 'Theme must be a plain object.' });
+        issues.push({
+            path: '',
+            keys: [],
+            severity: 'error',
+            code: 'invalid-shape',
+            message: 'Theme must be a plain object.',
+        });
         return { isValid: false, issues };
     }
     if (Object.keys(value).length === 0) {
         return { isValid: true, theme: {}, issues };
     }
 
-    validateNode(value, THEME_OPTIONS_SCHEMA, '', issues);
+    validateNode(value, THEME_OPTIONS_SCHEMA, [], issues);
 
     const isValid = !issues.some(issue => issue.severity === 'error');
     return { isValid, theme: isValid ? value : undefined, issues };
 }
 
 /**
+ * The display form of a value's location: object keys joined by dots, list positions in
+ * brackets (`palette.primary.main`, `shadows[3]`).
+ *
+ * @remarks
+ * For reading only — a key may itself contain a dot (`&.Mui-disabled`), so the text cannot be
+ * split back into its keys. Code that needs the location takes the issue's `keys`.
+ */
+function formatPath(keys: ThemeValueKeys): string {
+    let path = '';
+    for (const key of keys) {
+        if (typeof key === 'number') {
+            path = `${path}[${key}]`;
+        } else {
+            path = path ? `${path}.${key}` : key;
+        }
+    }
+    return path;
+}
+
+/** Pushes the "not serializable" error for a function or symbol value. */
+function reportNotSerializable(keys: ThemeValueKeys, value: unknown, issues: ThemeValidationIssue[]): void {
+    const path = formatPath(keys);
+    issues.push({
+        path,
+        keys,
+        severity: 'error',
+        message: `Value at "${path}" is a ${typeof value}, which is not serializable.`,
+    });
+}
+
+/**
  * Walks a single value against its schema node, pushing issues as it goes.
  */
-function validateNode(value: unknown, schema: SchemaNode, path: string, issues: ThemeValidationIssue[]): void {
+function validateNode(value: unknown, schema: SchemaNode, keys: ThemeValueKeys, issues: ThemeValidationIssue[]): void {
     // Non-serializable guard — fires for every value the walker visits.
     if (typeof value === 'function' || typeof value === 'symbol') {
-        issues.push({
-            path,
-            severity: 'error',
-            message: `Value at "${path}" is a ${typeof value}, which is not serializable.`,
-        });
+        reportNotSerializable(keys, value, issues);
         return;
     }
 
     switch (schema.kind) {
         case 'object':
-            validateObjectValue(value, schema, path, issues);
+            validateObjectValue(value, schema, keys, issues);
             break;
         case 'string':
             if (typeof value !== 'string') {
-                reportTypeError(path, 'string', value, issues);
+                reportTypeError(keys, 'string', value, issues);
             }
             break;
         case 'number':
-            validateNumberValue(value, schema, path, issues);
+            validateNumberValue(value, schema, keys, issues);
             break;
         case 'boolean':
             if (typeof value !== 'boolean') {
-                reportTypeError(path, 'boolean', value, issues);
+                reportTypeError(keys, 'boolean', value, issues);
             }
             break;
         case 'color':
             if (!isValidCssColor(value)) {
-                reportTypeError(path, 'color', value, issues, 'invalid-color');
+                reportTypeError(keys, 'color', value, issues, 'invalid-color');
+            } else if (!isComputableColor(value)) {
+                const path = formatPath(keys);
+                issues.push({
+                    path,
+                    keys,
+                    severity: 'error',
+                    code: 'uncomputable-color',
+                    message: `Value at "${path}" is a colour MUI cannot compute with (use hex, rgb() or hsl()).`,
+                });
             }
             break;
         case 'literal':
             if (!schema.values.includes(value as string | number)) {
+                const path = formatPath(keys);
                 issues.push({
                     path,
+                    keys,
                     severity: 'error',
                     message: `Value at "${path}" must be one of: ${schema.values.join(', ')}.`,
                 });
             }
             break;
         case 'union':
-            validateUnionValue(value, schema.options, path, issues);
+            validateUnionValue(value, schema, keys, issues);
             break;
         case 'array':
-            validateArrayValue(value, schema.items, path, issues);
+            validateArrayValue(value, schema.items, keys, issues);
             break;
         case 'record':
-            validateRecordValue(value, schema.values, path, issues);
+            validateRecordValue(value, schema, keys, issues);
             break;
         case 'cssObject':
-            validateCssObjectValue(value, path, issues);
+            validateCssObjectValue(value, keys, issues);
             break;
     }
 }
@@ -113,37 +163,42 @@ function validateNode(value: unknown, schema: SchemaNode, path: string, issues: 
 type ObjectSchema = Extract<SchemaNode, { kind: 'object' }>;
 
 /** Validates an `object` schema node: known keys recurse, unknown keys follow policy. */
-function validateObjectValue(value: unknown, schema: ObjectSchema, path: string, issues: ThemeValidationIssue[]): void {
+function validateObjectValue(
+    value: unknown,
+    schema: ObjectSchema,
+    keys: ThemeValueKeys,
+    issues: ThemeValidationIssue[],
+): void {
     if (!isPlainObject(value)) {
-        reportTypeError(path, 'object', value, issues);
+        reportTypeError(keys, 'object', value, issues);
         return;
     }
 
     const policy: UnknownKeyPolicy = schema.allowUnknown ?? 'warn';
 
     for (const key of Object.keys(value)) {
-        const childPath = path ? `${path}.${key}` : key;
+        const childKeys = [...keys, key];
         const childSchema = schema.properties[key];
         const childValue = value[key];
 
         if (childSchema) {
-            validateNode(childValue, childSchema, childPath, issues);
+            validateNode(childValue, childSchema, childKeys, issues);
         } else if (typeof childValue === 'function' || typeof childValue === 'symbol') {
-            issues.push({
-                path: childPath,
-                severity: 'error',
-                message: `Value at "${childPath}" is a ${typeof childValue}, which is not serializable.`,
-            });
+            reportNotSerializable(childKeys, childValue, issues);
         } else if (policy === 'warn') {
+            const childPath = formatPath(childKeys);
             issues.push({
                 path: childPath,
+                keys: childKeys,
                 severity: 'warning',
                 code: 'unknown-key',
                 message: `Unknown theme option "${childPath}" — it may be ignored by MUI.`,
             });
         } else if (policy === 'error') {
+            const childPath = formatPath(childKeys);
             issues.push({
                 path: childPath,
+                keys: childKeys,
                 severity: 'error',
                 code: 'unknown-key',
                 message: `Unknown theme option "${childPath}".`,
@@ -155,8 +210,7 @@ function validateObjectValue(value: unknown, schema: ObjectSchema, path: string,
     // Required known properties that are missing.
     for (const [key, childSchema] of Object.entries(schema.properties)) {
         if (childSchema.required && !(key in value)) {
-            const childPath = path ? `${path}.${key}` : key;
-            issues.push({ path: childPath, severity: 'error', message: `Missing required option "${childPath}".` });
+            reportMissing([...keys, key], issues);
         }
     }
 }
@@ -164,11 +218,17 @@ function validateObjectValue(value: unknown, schema: ObjectSchema, path: string,
 type NumberSchema = Extract<SchemaNode, { kind: 'number' }>;
 
 /** Validates a `number` schema node, including optional bounds. */
-function validateNumberValue(value: unknown, schema: NumberSchema, path: string, issues: ThemeValidationIssue[]): void {
+function validateNumberValue(
+    value: unknown,
+    schema: NumberSchema,
+    keys: ThemeValueKeys,
+    issues: ThemeValidationIssue[],
+): void {
     if (typeof value !== 'number' || Number.isNaN(value)) {
-        reportTypeError(path, 'number', value, issues, 'invalid-number');
+        reportTypeError(keys, 'number', value, issues, 'invalid-number');
         return;
     }
+    const path = formatPath(keys);
     // The bounds for the localized "out of range (min–max)"; an open side reads as infinity.
     const params = [
         schema.min === undefined ? '-∞' : String(schema.min),
@@ -177,6 +237,7 @@ function validateNumberValue(value: unknown, schema: NumberSchema, path: string,
     if (schema.min !== undefined && value < schema.min) {
         issues.push({
             path,
+            keys,
             severity: 'error',
             code: 'number-out-of-range',
             message: `Value at "${path}" must be >= ${schema.min}.`,
@@ -186,6 +247,7 @@ function validateNumberValue(value: unknown, schema: NumberSchema, path: string,
     if (schema.max !== undefined && value > schema.max) {
         issues.push({
             path,
+            keys,
             severity: 'error',
             code: 'number-out-of-range',
             message: `Value at "${path}" must be <= ${schema.max}.`,
@@ -194,46 +256,130 @@ function validateNumberValue(value: unknown, schema: NumberSchema, path: string,
     }
 }
 
+/** Reports an option that has to be there and is not. */
+function reportMissing(keys: ThemeValueKeys, issues: ThemeValidationIssue[]): void {
+    const path = formatPath(keys);
+    issues.push({ path, keys, severity: 'error', message: `Missing required option "${path}".` });
+}
+
+/**
+ * A value without the values at `paths` (keys from the value on), and without every branch
+ * that leaves empty; `undefined` when nothing is left, or when a path leads through a list
+ * (positions carry meaning there).
+ */
+function withoutValues(value: unknown, paths: ThemeValueKeys[]): Record<string, unknown> | undefined {
+    if (!isPlainObject(value)) {
+        return undefined;
+    }
+    const rest = { ...value };
+    for (const [key, ...below] of paths) {
+        if (typeof key === 'number' || !(key in rest)) {
+            return undefined;
+        }
+        const child = below.length ? withoutValues(rest[key], [below]) : undefined;
+        if (child) {
+            rest[key] = child;
+        } else {
+            delete rest[key];
+        }
+    }
+    return Object.keys(rest).length ? rest : undefined;
+}
+
+type UnionSchema = Extract<SchemaNode, { kind: 'union' }>;
+
 /**
  * Validates a `union` schema node: accepts the first option that produces no
- * new errors, keeping its warnings; otherwise reports a generic type error.
+ * new errors, keeping its warnings; otherwise reports the value as a whole.
+ *
+ * @remarks
+ * - The error is a generic type error — unless an option broke on nothing but a colour MUI
+ *   cannot compute with (a colour slot whose `main` is a colour name): then it keeps that
+ *   code, so a reader of the slot's error still learns what to change.
+ * - A union that is checked part by part ({@link UnionSchema.byPart}) reports the errors of the
+ *   first option the value fits once the values at these errors are taken out — the parts that
+ *   broke it, not the value: what reads the stored theme then drops the parts and keeps the rest
+ *   ({@link module:lib/theme/storedTheme}).
  */
-function validateUnionValue(value: unknown, options: SchemaNode[], path: string, issues: ThemeValidationIssue[]): void {
-    for (const option of options) {
+function validateUnionValue(
+    value: unknown,
+    schema: UnionSchema,
+    keys: ThemeValueKeys,
+    issues: ThemeValidationIssue[],
+): void {
+    let uncomputableOnly = false;
+    let partwise: ThemeValidationIssue[] | undefined;
+    for (const option of schema.options) {
         const trial: ThemeValidationIssue[] = [];
-        validateNode(value, option, path, trial);
-        if (!trial.some(issue => issue.severity === 'error')) {
+        validateNode(value, option, keys, trial);
+        const errors = trial.filter(issue => issue.severity === 'error');
+        if (errors.length === 0) {
             issues.push(...trial);
             return;
         }
+        uncomputableOnly ||= errors.every(error => error.code === 'uncomputable-color');
+        if (schema.byPart && !partwise && errors.every(error => (error.keys?.length ?? 0) > keys.length)) {
+            const rest = withoutValues(
+                value,
+                errors.map(error => (error.keys ?? []).slice(keys.length)),
+            );
+            const left: ThemeValidationIssue[] = [];
+            if (rest) {
+                validateNode(rest, option, keys, left);
+                partwise = left.some(issue => issue.severity === 'error') ? undefined : trial;
+            }
+        }
     }
-    reportTypeError(path, 'one of the allowed types', value, issues);
+    if (partwise) {
+        issues.push(...partwise);
+        return;
+    }
+    reportTypeError(
+        keys,
+        'one of the allowed types',
+        value,
+        issues,
+        uncomputableOnly ? 'uncomputable-color' : undefined,
+    );
 }
 
 /** Validates an `array` schema node against its `items` schema. */
-function validateArrayValue(value: unknown, items: SchemaNode, path: string, issues: ThemeValidationIssue[]): void {
+function validateArrayValue(
+    value: unknown,
+    items: SchemaNode,
+    keys: ThemeValueKeys,
+    issues: ThemeValidationIssue[],
+): void {
     if (!Array.isArray(value)) {
-        reportTypeError(path, 'array', value, issues);
+        reportTypeError(keys, 'array', value, issues);
         return;
     }
     value.forEach((item, index) => {
-        validateNode(item, items, `${path}[${index}]`, issues);
+        validateNode(item, items, [...keys, index], issues);
     });
 }
 
-/** Validates a `record` schema node: every entry must match the `values` schema. */
+type RecordSchema = Extract<SchemaNode, { kind: 'record' }>;
+
+/**
+ * Validates a `record` schema node: every entry must match the `values` schema, and the key
+ * the record needs must be there.
+ */
 function validateRecordValue(
     value: unknown,
-    valuesSchema: SchemaNode,
-    path: string,
+    schema: RecordSchema,
+    keys: ThemeValueKeys,
     issues: ThemeValidationIssue[],
 ): void {
     if (!isPlainObject(value)) {
-        reportTypeError(path, 'object', value, issues);
+        reportTypeError(keys, 'object', value, issues);
         return;
     }
     for (const key of Object.keys(value)) {
-        validateNode(value[key], valuesSchema, path ? `${path}.${key}` : key, issues);
+        validateNode(value[key], schema.values, [...keys, key], issues);
+    }
+    if (schema.needs !== undefined && !(schema.needs in value)) {
+        reportMissing([...keys, schema.needs], issues);
     }
 }
 
@@ -245,13 +391,9 @@ function validateRecordValue(
  * keys so nested selectors and media queries pass). Rejects everything else and
  * non-serializable values.
  */
-function validateCssObjectValue(value: unknown, path: string, issues: ThemeValidationIssue[]): void {
+function validateCssObjectValue(value: unknown, keys: ThemeValueKeys, issues: ThemeValidationIssue[]): void {
     if (typeof value === 'function' || typeof value === 'symbol') {
-        issues.push({
-            path,
-            severity: 'error',
-            message: `Value at "${path}" is a ${typeof value}, which is not serializable.`,
-        });
+        reportNotSerializable(keys, value, issues);
         return;
     }
     if (typeof value === 'string' || typeof value === 'number') {
@@ -259,24 +401,26 @@ function validateCssObjectValue(value: unknown, path: string, issues: ThemeValid
     }
     if (isPlainObject(value)) {
         for (const key of Object.keys(value)) {
-            validateCssObjectValue(value[key], path ? `${path}.${key}` : key, issues);
+            validateCssObjectValue(value[key], [...keys, key], issues);
         }
         return;
     }
-    reportTypeError(path, 'CSS value', value, issues);
+    reportTypeError(keys, 'CSS value', value, issues);
 }
 
 /** Pushes a "wrong type" error describing what was expected vs. received. */
 function reportTypeError(
-    path: string,
+    keys: ThemeValueKeys,
     expected: string,
     value: unknown,
     issues: ThemeValidationIssue[],
     code = 'invalid-type',
 ): void {
     const actual = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+    const path = formatPath(keys);
     issues.push({
         path,
+        keys,
         severity: 'error',
         code,
         message: `Value at "${path}" must be a ${expected} (got ${actual}).`,
@@ -297,7 +441,7 @@ const GRADIENT_RE = /\b(?:linear|radial|conic)-gradient\b/i;
  * which accept gradients for widget backgrounds; only the browser check itself is shared
  * (`supportsCssColor`), the fallback without it stays permissive.
  */
-export function isValidCssColor(value: unknown): boolean {
+function isValidCssColor(value: unknown): value is string {
     if (typeof value !== 'string') {
         return false;
     }
@@ -307,4 +451,33 @@ export function isValidCssColor(value: unknown): boolean {
     }
     // Defensive fallback (no CSS.supports, e.g. node) — modern browsers always expose it.
     return supportsCssColor(trimmed) ?? true;
+}
+
+/**
+ * Whether MUI's colour maths (alpha/lighten/darken/contrast) can take the value apart: hex,
+ * `rgb()`, `hsl()` and `color()` — not a colour name, `transparent`, `currentColor` or `var()`.
+ *
+ * @remarks
+ * MUI's components compute with the palette (`alpha(palette.text.primary, …)`,
+ * `lighten(palette.divider, …)`, `getContrastText(palette.grey[100])`) and throw
+ * "MUI: Unsupported color" on anything else, which takes the whole widget down. Asks MUI's own
+ * parser, so the answer never drifts from what the components accept; it needs no browser and is
+ * the same under node. The value is taken as stored (untrimmed), as MUI gets it.
+ */
+export function isComputableColor(value: string): boolean {
+    try {
+        decomposeColor(value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Whether a value is a colour the palette may carry: a solid CSS colour the widgets can compute
+ * with. What the validator accepts for a palette colour, as a predicate for code that walks a
+ * theme without it (the resolution, which also gets the Studio's unvalidated draft).
+ */
+export function isPaletteColor(value: unknown): value is string {
+    return isValidCssColor(value) && isComputableColor(value);
 }

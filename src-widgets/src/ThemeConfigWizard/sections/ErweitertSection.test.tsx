@@ -11,6 +11,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
+import { THEME_CONTROL_RANGES } from '../../lib/theme/themeUtils';
 import ErweitertSection from './ErweitertSection';
 
 let handle: RenderComponentHandle<StudioSectionProps> | null = null;
@@ -59,6 +60,21 @@ describe('ErweitertSection CSS variables', () => {
         const describedBy = input?.getAttribute('aria-describedby');
         expect(describedBy && document.getElementById(describedBy)?.textContent).toBe('reserved prefix');
         expect(handle.container.querySelector('[data-theme-error]')).not.toBeNull();
+    });
+});
+
+describe('ErweitertSection spacing', () => {
+    // A Theme-Auftrag takes what this slider offers, and the KI-Leitfaden promises it.
+    it('offers the spacing in the range written for the studio', () => {
+        handle = renderComponent<StudioSectionProps>(ErweitertSection, {
+            theme: {},
+            onChange: () => {},
+            expanded: true,
+        });
+        const sliders = Array.from(handle.container.querySelectorAll<HTMLInputElement>('input[type="range"]'));
+        expect(sliders.map(slider => ({ min: Number(slider.min), max: Number(slider.max) }))).toEqual([
+            THEME_CONTROL_RANGES.spacing,
+        ]);
     });
 });
 

@@ -22,6 +22,7 @@ import { createTheme } from '@mui/material';
 import { resolveCollectionTheme, sanitizeHostTheme } from './resolveCollectionTheme';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
 import type { UserTheme } from './themeTypes';
+import { getNestedValue } from './themeUtils';
 
 /** A Rubin-style user theme (palette-only, like the curated presets). */
 const USER_THEME: ThemeOptions = {
@@ -232,6 +233,24 @@ describe('resolveCollectionTheme — the effective colour', () => {
             expect(theme.palette.text.primary).toBe('#137bf8');
         },
     );
+
+    // The Studio's draft reaches the resolution unvalidated: what is typed there must not throw
+    // in a component that computes with it (alpha/lighten/darken on text, surfaces, divider …).
+    it.each<[string, string, object]>([
+        ['text.primary', 'white', { text: { primary: 'white' } }],
+        ['background.paper', 'white', { background: { paper: 'white' } }],
+        ['divider', 'transparent', { divider: 'transparent' }],
+        ['action.active', 'currentColor', { action: { active: 'currentColor' } }],
+        ['grey.700', 'white', { grey: { 700: 'white' } }],
+        ['error.light', 'red', { error: { main: '#d32f2f', light: 'red' } }],
+        ['primary.contrastText', 'white', { primary: { main: '#137bf8', contrastText: 'white' } }],
+    ])('lets a colour MUI cannot compute with at palette.%s inherit', (path, colour, palette) => {
+        const theme = resolveCollectionTheme(host(), {}, { palette, spacing: 6 });
+        // The colour is gone (the field inherits or MUI derives it), the rest of the draft holds.
+        expect(getNestedValue<string>(theme.palette, path)).toEqual(expect.any(String));
+        expect(getNestedValue<string>(theme.palette, path)).not.toBe(colour);
+        expect(theme.spacing(1)).toBe('6px');
+    });
 
     it('drops an unusable status colour but keeps the valid ones next to it', () => {
         const user: UserTheme = { palette: { error: { main: 'nope' }, success: { main: '#00aa00' } } };

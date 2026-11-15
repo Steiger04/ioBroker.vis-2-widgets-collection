@@ -69,12 +69,27 @@ export type UserTheme = Partial<ThemeOptions> & {
 };
 
 /**
+ * Where a value sits in the theme object: the object keys (text) and list positions (numbers)
+ * leading to it from the root; empty for the theme itself.
+ */
+export type ThemeValueKeys = readonly (string | number)[];
+
+/**
  * One issue found while validating a {@link UserTheme}.
  */
 export interface ThemeValidationIssue {
-    /** Dot-separated path into the theme object, e.g. `"palette.primary.main"`. */
+    /** Dot-separated path into the theme object, e.g. `"palette.primary.main"` — for display. */
     path: string;
-    /** `error` blocks saving / falls back to `{}`; `warning` is non-blocking. */
+    /**
+     * The same location key by key. A key may itself contain a dot (`&.Mui-disabled`), so `path`
+     * cannot be split back; code that needs the value's location reads this. The schema
+     * validator sets it on every issue.
+     */
+    keys?: ThemeValueKeys;
+    /**
+     * `error` blocks saving and makes the value unusable when the stored theme is read (it falls
+     * away there, the rest holds); `warning` is non-blocking.
+     */
     severity: 'error' | 'warning';
     /** Human-readable message (English, used as a fallback). */
     message: string;

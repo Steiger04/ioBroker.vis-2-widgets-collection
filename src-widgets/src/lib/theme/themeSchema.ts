@@ -21,7 +21,7 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
-import { CORNER_RADIUS_MAX } from './themeUtils';
+import { CORNER_RADIUS_MAX, THEME_MODES } from './themeUtils';
 
 /** How to treat keys not declared in an `object` schema node's `properties`. */
 export type UnknownKeyPolicy = 'warn' | 'error' | 'ignore';
@@ -46,15 +46,32 @@ type SchemaNodeVariant =
     | { kind: 'boolean' }
     | { kind: 'color' }
     | { kind: 'literal'; values: readonly (string | number)[] }
-    | { kind: 'union'; options: SchemaNode[] }
+    | {
+          kind: 'union';
+          options: SchemaNode[];
+          /**
+           * `true`: a value that fits an option except for some of its parts is reported part
+           * by part, as long as the value without them fits that option. Left out where the
+           * parts of a value belong together, so that the value falls as a whole.
+           */
+          byPart?: boolean;
+      }
     | { kind: 'array'; items: SchemaNode }
-    | { kind: 'record'; values: SchemaNode }
+    | {
+          kind: 'record';
+          values: SchemaNode;
+          /** A key the record has to hold. */
+          needs?: string;
+      }
     | { kind: 'cssObject' };
 
 /** One node in the validation schema tree. */
 export type SchemaNode = SchemaNodeVariant & SchemaNodeBase;
 
-/** A solid CSS color (hex / rgb / hsl / named / transparent / currentColor …). */
+/**
+ * A solid CSS color MUI can compute with (hex / rgb() / hsl() / color()) — no colour name, no
+ * `transparent`, no `currentColor`: MUI's components run colour maths on the palette.
+ */
 const color: SchemaNode = { kind: 'color', optional: true };
 
 /** A free-form CSS object (used for typography variants and style overrides). */
@@ -66,11 +83,15 @@ const cssObject: SchemaNode = { kind: 'cssObject', optional: true };
  * @remarks
  * `PaletteColorOptions = SimplePaletteColorOptions | ColorPartial`.
  * `SimplePaletteColorOptions` requires `main`; `ColorPartial` is a record of
- * shade keys (50…900, A100…) each holding a color.
+ * shade keys (50…900, A100…) each holding a color. MUI builds the slot from `main`, or from the
+ * shade it takes for it; a slot with neither makes `createTheme` throw. The other colours of a
+ * slot stand for themselves: an unusable one is reported — and falls away — alone.
+ * @param mainShade - The shade MUI takes for `main` in this slot (`createPalette`).
  */
-const paletteColor: SchemaNode = {
+const paletteColor = (mainShade: string): SchemaNode => ({
     kind: 'union',
     optional: true,
+    byPart: true,
     options: [
         {
             kind: 'object',
@@ -83,9 +104,9 @@ const paletteColor: SchemaNode = {
                 contrastText: color,
             },
         },
-        { kind: 'record', optional: true, values: color },
+        { kind: 'record', optional: true, values: color, needs: mainShade },
     ],
-};
+});
 
 /** The `palette` branch of `ThemeOptions`. */
 const paletteSchema: SchemaNode = {
@@ -93,13 +114,13 @@ const paletteSchema: SchemaNode = {
     optional: true,
     allowUnknown: 'warn',
     properties: {
-        mode: { kind: 'literal', values: ['light', 'dark'], optional: true },
-        primary: paletteColor,
-        secondary: paletteColor,
-        error: paletteColor,
-        warning: paletteColor,
-        info: paletteColor,
-        success: paletteColor,
+        mode: { kind: 'literal', values: THEME_MODES, optional: true },
+        primary: paletteColor('500'),
+        secondary: paletteColor('A400'),
+        error: paletteColor('500'),
+        warning: paletteColor('500'),
+        info: paletteColor('500'),
+        success: paletteColor('500'),
         text: {
             kind: 'object',
             optional: true,

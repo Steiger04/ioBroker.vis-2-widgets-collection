@@ -1,5 +1,5 @@
 /**
- * Naht 1 — what the vis-2 assistant (Bauzeit-KI) learns about each widget from `getWidgetInfo()`.
+ * Naht 1 — what the vis-2 assistant (Bauzeit-KI) learns about each type from `getWidgetInfo()`.
  *
  * @module lib/aiCatalogView.parity.test
  * @remarks
@@ -19,6 +19,10 @@
  * (`Attributes/Widget/index.tsx` renderFieldRow) and the palette stores only fields with a default.
  * The block over the language files projects the same view with the words of each language.
  *
+ * A type placed as an order (`ORDER_TYPES`: the Theme-Auftrag, ADR-0115) is listed and described
+ * like a widget. Its block checks what sets it apart: the attribute panel shows nothing of it,
+ * whatever its data, and no field has a default — only what the assistant sets counts.
+ *
  * Roster: `lib/testing/aiSeams`. Like the other introspection tests it runs
  * isolated (`DOM_TS_TESTS`): it mocks `Generic`, the widget bodies and the heavy editors, none of
  * which contributes a field.
@@ -30,10 +34,15 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
+import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
+import { FONT_CATALOGUE } from './theme/fontCatalogue';
+import { THEME_PRESETS } from './theme/presets';
 import { decodeBlob } from './encoding';
 import {
     isUiOnlyCustomField,
+    ORDER_TYPES,
     paletteInsertData,
+    PLACEABLE_TYPES,
     PLACEABLE_WIDGETS,
     SHARED_FIELD_NAMES,
     UI_ONLY_CUSTOM_FIELDS,
@@ -50,8 +59,8 @@ vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 vi.mock('../JsonTableCollectionWidget/JsonTableColumnEditor', () => ({ default: () => null }));
 vi.mock('../EchartsCollectionWidget/EchartsConfigEditor', () => ({ default: () => null }));
 
-/** The render body each placeable widget module imports (mocked: it contributes no field). */
-const WIDGET_BODIES: Record<string, string> = {
+/** The render body each placeable type's module imports (mocked: it contributes no field). */
+const WIDGET_BODIES: Record<WidgetName, string> = {
     StateCollectionWidget: 'StateCollection',
     SliderCollectionWidget: 'SliderCollection',
     InputCollectionWidget: 'InputCollection',
@@ -65,8 +74,9 @@ const WIDGET_BODIES: Record<string, string> = {
     Light2CollectionWidget: 'Light2Collection',
     JsonTableCollectionWidget: 'JsonTableCollection',
     EchartsCollectionWidget: 'EchartsCollection',
+    ThemeConfigWizard: 'ThemeWizardButton',
 };
-for (const name of PLACEABLE_WIDGETS) {
+for (const name of PLACEABLE_TYPES) {
     vi.doMock(`../${name}/${WIDGET_BODIES[name]}`, () => ({ default: () => null }));
 }
 
@@ -170,8 +180,9 @@ const declarationOf = (info: RxWidgetInfo, name: string): { field: DeclaredField
 /**
  * Whether the attribute panel drops a field for a widget's data (`Attributes/Widget/index.tsx`
  * renderFieldRow with `Widget.checkFunction`): `true`, a predicate, or the source of an expression.
+ * A group is dropped by the same rule before any of its fields (the panel's `render`).
  */
-const isHiddenFor = (field: DeclaredField, data: Record<string, unknown>): boolean => {
+const isHiddenFor = (field: { hidden?: unknown }, data: Record<string, unknown>): boolean => {
     const { hidden } = field;
     if (typeof hidden === 'function') {
         return Boolean((hidden as (data: Record<string, unknown>) => unknown)(data));
@@ -231,7 +242,7 @@ const lengthOf = (text: string): number => Array.from(text).length;
 const infos = new Map<WidgetName, RxWidgetInfo>();
 
 beforeAll(async () => {
-    for (const name of PLACEABLE_WIDGETS) {
+    for (const name of PLACEABLE_TYPES) {
         const mod = (await import(`../${name}/${name}.tsx`)) as { default: { getWidgetInfo: () => RxWidgetInfo } };
         infos.set(name, mod.default.getWidgetInfo());
     }
@@ -243,11 +254,13 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         expect(REGISTERED_PREFIX).toBe(I18N_PREFIX);
     });
 
-    it('checks every placeable widget of the registry', () => {
+    it('checks every type of the registry: the placeable widgets and the order', () => {
+        expect(PLACEABLE_TYPES).toHaveLength(14);
         expect(PLACEABLE_WIDGETS).toHaveLength(13);
+        expect(Object.keys(ORDER_TYPES)).toEqual(['ThemeConfigWizard']);
     });
 
-    describe.each(PLACEABLE_WIDGETS)('%s', name => {
+    describe.each(PLACEABLE_TYPES)('%s', name => {
         const entry = (): ReturnType<typeof listEntry> => listEntry(catalogType(infos.get(name)!, I18N_PREFIX));
 
         it('lists a translated label (the resolution visHelp has to follow)', () => {
@@ -363,14 +376,160 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
-    it('gives every widget a help and a KI-Leitfaden of its own', () => {
-        const helps = PLACEABLE_WIDGETS.map(name => listEntry(catalogType(infos.get(name)!, I18N_PREFIX)).help);
-        const guides = PLACEABLE_WIDGETS.map(
+    it('gives every type a help and a KI-Leitfaden of its own', () => {
+        const helps = PLACEABLE_TYPES.map(name => listEntry(catalogType(infos.get(name)!, I18N_PREFIX)).help);
+        const guides = PLACEABLE_TYPES.map(
             name => guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label,
         );
 
-        expect(new Set(helps).size).toBe(PLACEABLE_WIDGETS.length);
-        expect(new Set(guides).size).toBe(PLACEABLE_WIDGETS.length);
+        expect(new Set(helps).size).toBe(PLACEABLE_TYPES.length);
+        expect(new Set(guides).size).toBe(PLACEABLE_TYPES.length);
+    });
+
+    describe.each(Object.keys(ORDER_TYPES) as WidgetName[])('%s: an order, not a widget a person edits', name => {
+        /** The described fields that store a value. */
+        const namedFields = (): DescribedField[] =>
+            describedFields(infos.get(name)!, I18N_PREFIX).filter(field => field.name !== undefined);
+
+        /** Data an order may hold: none, what the assistant sets, and anything under every field name. */
+        const dataSets = (): Record<string, unknown>[] => {
+            const withEvery = (valueOf: (field: DescribedField) => unknown): Record<string, unknown> =>
+                Object.fromEntries(namedFields().map(field => [field.name!, valueOf(field)]));
+            return [
+                {},
+                // What the host stores for an insert without data (`AiChat/aiTools.ts` add_widget).
+                { bindings: [] },
+                withEvery(field => field.options?.[0] ?? 'set by the assistant'),
+                ...[true, false, 0, 1, '', 'anything', null, [], {}].map(value => ({
+                    ...withEvery(() => value),
+                    notAField: value,
+                    bindings: [],
+                })),
+            ];
+        };
+
+        it('shows nothing in the attribute panel: every group and every field is hidden for empty, set and any data', () => {
+            const info = infos.get(name)!;
+            const shown = dataSets().flatMap(data => [
+                ...(info.visAttrs ?? [])
+                    .filter(group => !isHiddenFor(group, data))
+                    .map(group => `group ${group.name} for ${JSON.stringify(data)}`),
+                ...namedFields()
+                    .filter(field => !isHiddenFor(declarationOf(info, field.name!).field, data))
+                    .map(field => `${field.name} for ${JSON.stringify(data)}`),
+            ]);
+
+            expect(namedFields().length).toBeGreaterThan(1);
+            expect(shown).toEqual([]);
+        });
+
+        it('has no default: only what the assistant sets changes something', () => {
+            const info = infos.get(name)!;
+            const defaults = describedFields(info, I18N_PREFIX)
+                .filter(field => field.default !== undefined)
+                .map(field => `${field.name}: ${JSON.stringify(field.default)}`);
+
+            expect(defaults).toEqual([]);
+            expect(paletteInsertData(info.visAttrs ?? [])).toEqual({});
+        });
+    });
+
+    describe('the settings of a Theme-Auftrag, as the type description shows them', () => {
+        /** The described fields of the order without its KI-Leitfaden. */
+        const settings = (): DescribedField[] =>
+            describedFields(infos.get('ThemeConfigWizard')!, I18N_PREFIX).filter(field => field.type !== 'help');
+        const setting = (fieldName: string): DescribedField | undefined =>
+            settings().find(field => field.name === fieldName);
+        const text = (key: string): string => (en as Record<string, string>)[key];
+
+        it('describes the colour mode as a selection of light and dark', () => {
+            expect(setting('mode')).toEqual({
+                name: 'mode',
+                type: 'select',
+                label: 'Color mode',
+                options: ['light', 'dark'],
+                default: undefined,
+            });
+        });
+
+        it('describes one colour field for every colour of the studio’s register, under the studio’s label', () => {
+            const colours = settings().filter(field => field.type === 'color');
+
+            // A colour added to the register without a field of its own breaks the equality.
+            expect(STUDIO_COLOR_FIELDS).toHaveLength(11);
+            expect(colours.map(field => field.label)).toEqual(STUDIO_COLOR_FIELDS.map(field => text(field.labelKey)));
+            expect(new Set(colours.map(field => field.name)).size).toBe(STUDIO_COLOR_FIELDS.length);
+            expect(colours.every(field => field.options === undefined)).toBe(true);
+        });
+
+        it('offers exactly the presets of the studio to pick from', () => {
+            expect(THEME_PRESETS).toHaveLength(9);
+            expect(setting('preset')).toEqual({
+                name: 'preset',
+                type: 'select',
+                label: 'Presets',
+                options: THEME_PRESETS.map(preset => preset.id),
+                default: undefined,
+            });
+        });
+
+        it('offers exactly the entries of the studio’s font catalogue to pick from, by their names', () => {
+            expect(setting('fontFamily')).toEqual({
+                name: 'fontFamily',
+                type: 'select',
+                label: 'Font family',
+                options: FONT_CATALOGUE.map(font => font.label),
+                default: undefined,
+            });
+            expect(new Set(FONT_CATALOGUE.map(font => font.label)).size).toBe(FONT_CATALOGUE.length);
+        });
+
+        it('describes the reset as a switch, and font size, corner radius and spacing as numbers in px', () => {
+            expect(setting('reset')).toEqual({
+                name: 'reset',
+                type: 'checkbox',
+                label: 'Reset all to default',
+                options: undefined,
+                default: undefined,
+            });
+            expect(
+                ['fontSize', 'cornerRadius', 'spacing'].map(fieldName => {
+                    const field = setting(fieldName);
+                    return [field?.name, field?.type, field?.label];
+                }),
+            ).toEqual([
+                ['fontSize', 'number', 'Base font size (px)'],
+                ['cornerRadius', 'number', 'Border radius (px)'],
+                ['spacing', 'number', 'Spacing unit (px)'],
+            ]);
+        });
+
+        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing', () => {
+            const names = settings().map(field => field.name);
+
+            // The names are what an order's data is keyed by: the wiki and every stored example use them.
+            expect(names).toEqual([
+                'reset',
+                'preset',
+                'mode',
+                'primary',
+                'secondary',
+                'error',
+                'warning',
+                'info',
+                'success',
+                'textPrimary',
+                'textSecondary',
+                'backgroundDefault',
+                'backgroundPaper',
+                'divider',
+                'fontFamily',
+                'fontSize',
+                'cornerRadius',
+                'spacing',
+            ]);
+            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4);
+        });
     });
 
     it('lists only UI-only exceptions that some widget still has', () => {
@@ -391,7 +550,7 @@ describe('Every language file: what the assistant and the palette read in each i
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
 
-        it.each(PLACEABLE_WIDGETS)('%s: lists a translated help of one sentence and at most 120 characters', name => {
+        it.each(PLACEABLE_TYPES)('%s: lists a translated help of one sentence and at most 120 characters', name => {
             const type = catalogType(infos.get(name)!, I18N_PREFIX);
             const help = listEntry(type, translate).help;
 
@@ -402,12 +561,25 @@ describe('Every language file: what the assistant and the palette read in each i
             expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
         });
 
-        it.each(PLACEABLE_WIDGETS)('%s: describes the KI-Leitfaden with the English text', name => {
+        it.each(PLACEABLE_TYPES)('%s: describes the KI-Leitfaden with the English text', name => {
             const guideIn = (language: Translate): string | undefined =>
                 guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX, language))[0]?.label;
 
             expect(guideIn(t)).toBeTruthy();
             expect(guideIn(translate)).toBe(guideIn(t));
+        });
+
+        // The label is all the assistant reads of a field no person ever sees.
+        it.each(Object.keys(ORDER_TYPES) as WidgetName[])('%s: describes every field with a translated label', name => {
+            const info = infos.get(name)!;
+            const untranslated = describedFields(info, I18N_PREFIX, translate)
+                .filter(
+                    field =>
+                        !field.label || field.label === I18N_PREFIX + declarationOf(info, field.name!).field.label!,
+                )
+                .map(field => field.name);
+
+            expect(untranslated).toEqual([]);
         });
     });
 });

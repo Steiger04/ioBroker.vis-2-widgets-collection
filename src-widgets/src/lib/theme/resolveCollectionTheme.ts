@@ -14,14 +14,13 @@
  */
 
 import { deepmerge } from '@mui/utils';
-import { decomposeColor } from '@mui/material/styles';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
 
 import { createThemeCached } from './createThemeCache';
 import { withDerivedSecondary, withPrimaryAsText } from './derivePalette';
 import type { CornerRadii, UserTheme } from './themeTypes';
 import { DEFAULT_CORNER_RADIUS, buildCornerRadiusCss, getNestedValue, isPlainObject } from './themeUtils';
-import { isValidCssColor } from './validateTheme';
+import { isPaletteColor } from './validateTheme';
 
 /** Standard MUI typography variant keys that `createTypography` regenerates. */
 const TYPOGRAPHY_VARIANT_KEYS = [
@@ -83,16 +82,6 @@ export const COLLECTION_CSS_VAR_PREFIX = 'vis2c';
 /** The CSS-variables prefix the host editor owns (`--mui-*`): the collection never emits it. */
 export const HOST_CSS_VAR_PREFIX = 'mui';
 
-/** Palette slots MUI augments: their `main` feeds lighten/darken/getContrastText. */
-export const AUGMENTED_SLOTS: ReadonlySet<string> = new Set([
-    'primary',
-    'secondary',
-    'error',
-    'warning',
-    'info',
-    'success',
-]);
-
 /**
  * Reduces the host theme to the DNA the collection may inherit (allowlist, ADR-0078).
  *
@@ -141,19 +130,6 @@ export function sanitizeHostTheme(host: Theme): ThemeOptions {
     return sanitized;
 }
 
-/**
- * Whether MUI's colour maths (lighten/darken/contrast) can parse the value — an augmented slot's
- * `main` that fails this is dropped by the resolution (the studio validation reports it).
- */
-export function isComputableColor(value: string): boolean {
-    try {
-        decomposeColor(value);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 /** The `cssVariables.cssVarPrefix` a theme sets, if it is a string. */
 export function ownCssVarPrefix(theme: object): string | undefined {
     const cssVariables: unknown = (theme as Record<string, unknown>).cssVariables;
@@ -189,30 +165,23 @@ function withCollectionCssVariables(options: ThemeOptions): ThemeOptions {
  * Copies a palette (sub)tree without the colour leaves the widgets cannot use.
  *
  * @remarks
- * Every string leaf of the palette except `mode` is a colour (theme schema). A leaf the browser
- * rejects is dropped; an augmented slot's `main` must also be computable by MUI, which otherwise
- * throws inside `createTheme` ("MUI: Unsupported color") — named colours and `transparent` pass
- * the browser but not MUI. Returns the input itself when nothing was dropped.
+ * Every string leaf of the palette except `mode` is a colour (theme schema). A leaf that is no
+ * palette colour to the validator is dropped: one the browser rejects, and one MUI cannot
+ * compute with — named colours and `transparent` pass the browser, but MUI throws on them
+ * ("MUI: Unsupported color"), inside `createTheme` for a slot's `main` and inside every
+ * component that runs colour maths on the palette for the rest. Returns the input itself when
+ * nothing was dropped.
  * @param node - The palette (sub)tree.
- * @param level - Where `node` sits: the palette root (its `mode` is no colour), an augmented
- *   slot (its `main` must be computable) or any other node.
+ * @param isPalette - Whether `node` is the palette root (its `mode` is no colour).
  */
-function withoutUnusableLeaves(
-    node: Record<string, unknown>,
-    level: 'palette' | 'augmented-slot' | 'other',
-): Record<string, unknown> {
+function withoutUnusableLeaves(node: Record<string, unknown>, isPalette: boolean): Record<string, unknown> {
     let result: Record<string, unknown> | null = null;
     for (const [key, value] of Object.entries(node)) {
         let next: unknown = value;
         if (isPlainObject(value)) {
-            next = withoutUnusableLeaves(
-                value,
-                level === 'palette' && AUGMENTED_SLOTS.has(key) ? 'augmented-slot' : 'other',
-            );
-        } else if (typeof value === 'string' && !(level === 'palette' && key === 'mode')) {
-            const usable =
-                isValidCssColor(value) && (level !== 'augmented-slot' || key !== 'main' || isComputableColor(value));
-            next = usable ? value : undefined;
+            next = withoutUnusableLeaves(value, false);
+        } else if (typeof value === 'string' && !(isPalette && key === 'mode')) {
+            next = isPaletteColor(value) ? value : undefined;
         }
         if (next !== value) {
             result ??= { ...node };
@@ -238,7 +207,7 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
     if (!isPlainObject(palette)) {
         return theme;
     }
-    const cleaned = withoutUnusableLeaves(palette, 'palette');
+    const cleaned = withoutUnusableLeaves(palette, true);
     return cleaned === palette ? theme : { ...theme, palette: cleaned };
 }
 

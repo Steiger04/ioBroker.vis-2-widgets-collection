@@ -18,6 +18,28 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** The keys of an object that hold a value: what its JSON text would list. */
+const heldKeys = (obj: Record<string, unknown>): string[] => Object.keys(obj).filter(key => obj[key] !== undefined);
+
+/** Content equality of two JSON values; the sequence counts in a list, not among the keys of an object. */
+function sameValue(a: unknown, b: unknown): boolean {
+    if (isPlainObject(a) && isPlainObject(b)) {
+        const keys = heldKeys(a);
+        return keys.length === heldKeys(b).length && keys.every(key => sameValue(a[key], b[key]));
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+        return a.length === b.length && a.every((one, index) => sameValue(one, b[index]));
+    }
+    return a === b;
+}
+
+/**
+ * Content equality of two themes (themes are plain JSON objects): the one notion of "the same
+ * theme" — whether the studio's draft is changed, and whether a Theme-Auftrag has to write.
+ * The sequence of the keys does not count: a theme written by hand lists them in its own.
+ */
+export const sameTheme = (a: UserTheme, b: UserTheme): boolean => sameValue(a, b);
+
 /**
  * Reads a deeply nested value by dot-separated path.
  *
@@ -44,10 +66,33 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
 /**
  * The single corner-radius ceiling shared by the studio sliders and the theme
  * schema. One constant, one truth: an
- * out-of-range radius is a validation ERROR and discards the whole theme at
- * load, so slider and schema must never drift apart (they once did: 32 vs. 64).
+ * out-of-range radius is a validation ERROR — it blocks Save, and a stored one
+ * falls away at load — so slider and schema must never drift apart (they once
+ * did: 32 vs. 64).
  */
 export const CORNER_RADIUS_MAX = 96;
+
+/**
+ * The colour modes a theme can fix — the one place they are written: read by the theme schema
+ * and by the Theme-Auftrag ({@link module:ThemeConfigWizard/themeOrder}).
+ */
+export const THEME_MODES = ['light', 'dark'] as const;
+
+/**
+ * The ranges (px) of the number controls of the Theme Studio — the one place they are written.
+ *
+ * @remarks
+ * Read by the studio's sliders, by the Theme-Auftrag (it takes what the studio would save,
+ * {@link module:ThemeConfigWizard/themeOrder}) and by the test that holds the KI-Leitfaden and
+ * the description of the theme state to them. The theme schema is wider on purpose where a
+ * hand-written theme may go further (`typography.fontSize` 1–100, any `spacing`); only the
+ * radius ends where the schema ends ({@link CORNER_RADIUS_MAX}).
+ */
+export const THEME_CONTROL_RANGES = {
+    fontSize: { min: 8, max: 24 },
+    cornerRadius: { min: 0, max: CORNER_RADIUS_MAX },
+    spacing: { min: 0, max: 16 },
+} as const;
 
 /** The radius (px) of a corner without a stored value — resolution and studio alike. */
 export const DEFAULT_CORNER_RADIUS = 4;

@@ -15,7 +15,7 @@ import { act } from 'react';
 
 import { renderComponent, type RenderComponentHandle } from '../../lib/testing/testHarness';
 import type { GoogleFontsMap } from '../../lib/theme/themeTypes';
-import { CORNER_RADIUS_MAX } from '../../lib/theme/themeUtils';
+import { CORNER_RADIUS_MAX, THEME_CONTROL_RANGES } from '../../lib/theme/themeUtils';
 import type { TypographySectionProps } from './TypographySection';
 import TypographySection from './TypographySection';
 
@@ -203,6 +203,16 @@ describe('TypographySection corner radii', () => {
         expect(container.querySelector('[data-corner-grid]')).toBeNull();
         // Base font size + the linked radius.
         expect(rangeSliders(container)).toBe(2);
+    });
+
+    // A Theme-Auftrag takes what these sliders offer, and the KI-Leitfaden promises it.
+    it('offers the font size and the linked radius in the ranges written for the studio', () => {
+        const { container } = mount({});
+        const ranges = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="range"]')).map(slider => ({
+            min: Number(slider.min),
+            max: Number(slider.max),
+        }));
+        expect(ranges).toEqual([THEME_CONTROL_RANGES.fontSize, THEME_CONTROL_RANGES.cornerRadius]);
     });
 
     it('lays the unlinked corners out as a 2x2 grid of number fields, without sliders', () => {

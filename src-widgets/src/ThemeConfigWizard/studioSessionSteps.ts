@@ -8,70 +8,34 @@
  * the split the echarts editor lifecycle uses (`lifecycleGuards`, ADR-0048).
  */
 
-import {
-    AUGMENTED_SLOTS,
-    HOST_CSS_VAR_PREFIX,
-    isComputableColor,
-    ownCssVarPrefix,
-} from '../lib/theme/resolveCollectionTheme';
+import { HOST_CSS_VAR_PREFIX, ownCssVarPrefix } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue, ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
-import { isPlainObject } from '../lib/theme/themeUtils';
-import { isValidCssColor, validateThemeOptions } from '../lib/theme/validateTheme';
-
-/** Content equality of two drafts (the drafts are plain JSON objects). */
-const sameTheme = (a: UserTheme, b: UserTheme): boolean => JSON.stringify(a) === JSON.stringify(b);
+import { sameTheme } from '../lib/theme/themeUtils';
+import { validateThemeOptions } from '../lib/theme/validateTheme';
 
 /**
- * Whether the theme loaded from the state may replace the draft: only while the draft still
- * equals the seed it started from (untouched) — otherwise edits made during the round-trip
- * would be clobbered.
- *
- * @param draft - The current draft.
- * @param seed - The session's seed (the last known theme), `null` when there was none.
- */
-export const shouldRebase = (draft: UserTheme, seed: UserTheme | null): boolean => sameTheme(draft, seed ?? {});
-
-/**
- * Whether the draft differs from the last loaded/saved snapshot — undoing back to the start
- * reads clean again.
+ * Whether the draft differs from the stored theme the session knows (loaded, changed from
+ * outside, or saved) — undoing back to the start reads clean again. The session's one notion
+ * of "changed": it gates Save and decides whether a stored theme may replace the draft.
  */
 export const isDirty = (draft: UserTheme, snapshot: UserTheme): boolean => !sameTheme(draft, snapshot);
+
+/**
+ * Whether a stored theme that just arrived (the first load, or a change from outside while the
+ * Studio is open — ADR-0115) replaces the draft: only an untouched draft gives way, an edited
+ * one stays and wins on Save. The theme the draft already shows is no reason to rebase — that
+ * would only drop the undo history.
+ *
+ * @param draft - The current draft.
+ * @param snapshot - The stored theme the session knew until now.
+ * @param stored - The stored theme that arrived.
+ */
+export const shouldRebase = (draft: UserTheme, snapshot: UserTheme, stored: UserTheme): boolean =>
+    !isDirty(draft, snapshot) && isDirty(draft, stored);
 
 /** Save needs a valid draft with something to commit, and no save already in flight. */
 export const canSave = ({ valid, dirty, saving }: { valid: boolean; dirty: boolean; saving: boolean }): boolean =>
     valid && dirty && !saving;
-
-/**
- * Field-level issues for the colours the resolution drops although the schema accepts them: an
- * augmented slot's `main` that is a valid CSS colour but not computable by MUI (named colours,
- * `transparent`) — the resolution's own predicate decides. Colours the browser rejects are left
- * to the schema validator, which reports them already — so the two never report the same value
- * twice.
- *
- * @param theme - The user theme (typically the studio draft).
- * @returns One `uncomputable-color` error per such `palette.<slot>.main`.
- */
-export function uncomputableColorIssues(theme: UserTheme): ThemeValidationIssue[] {
-    const palette: unknown = theme.palette;
-    if (!isPlainObject(palette)) {
-        return [];
-    }
-    const issues: ThemeValidationIssue[] = [];
-    for (const slot of AUGMENTED_SLOTS) {
-        const slotValue = palette[slot];
-        const main = isPlainObject(slotValue) ? slotValue.main : undefined;
-        if (typeof main === 'string' && isValidCssColor(main) && !isComputableColor(main)) {
-            const path = `palette.${slot}.main`;
-            issues.push({
-                path,
-                severity: 'error',
-                code: 'uncomputable-color',
-                message: `Value at "${path}" is a colour MUI cannot compute with (use hex, rgb() or hsl()).`,
-            });
-        }
-    }
-    return issues;
-}
 
 /**
  * Field-level issue for the CSS-variables prefix the host editor owns (`mui`): the resolution
@@ -97,38 +61,21 @@ export function reservedCssVarPrefixIssues(theme: UserTheme): ThemeValidationIss
 }
 
 /**
- * Validates a draft: the theme schema plus the values the canvas resolution would replace
- * although the schema accepts them — an accent `main` MUI cannot compute with (the field
- * inherits) and the CSS-variables prefix `mui`, owned by the vis-2 editor (the collection uses
- * `vis2c` instead). A value the canvas silently replaces must not pass as valid — it shows as an
- * error and blocks Save. Stricter than the runtime on purpose: a stored theme with such a value
- * still loads (the resolution replaces it there), the studio only refuses to save one.
+ * Validates a draft: the theme schema plus the one value the canvas resolution would replace
+ * although the schema accepts it — the CSS-variables prefix `mui`, owned by the vis-2 editor
+ * (the collection uses `vis2c` instead). A value the canvas silently replaces must not pass as
+ * valid — it shows as an error and blocks Save. Stricter than the runtime on purpose: a stored
+ * theme with that prefix still loads (the resolution replaces it there), the studio only refuses
+ * to save one. A colour the widgets cannot compute with is the schema's own error, in every
+ * colour field — so the Studio saves no colour that reading the stored theme would drop.
  *
  * @param draft - The current draft.
  */
 export function validateDraft(draft: UserTheme): ThemeValidationResult {
     const schema = validateThemeOptions(draft);
-    const replaced = [...uncomputableColorIssues(draft), ...reservedCssVarPrefixIssues(draft)];
+    const replaced = reservedCssVarPrefixIssues(draft);
     if (replaced.length === 0) {
         return schema;
     }
     return { isValid: false, issues: [...schema.issues, ...replaced] };
-}
-
-/**
- * Turns a stored state value into a draft. An unset, corrupt or invalid state yields the
- * empty theme — the studio must open on any state.
- *
- * @param raw - The state's `val`.
- */
-export function parseStoredTheme(raw: unknown): UserTheme {
-    if (typeof raw !== 'string' || !raw) {
-        return {};
-    }
-    try {
-        const result = validateThemeOptions(JSON.parse(raw));
-        return result.isValid ? (result.theme ?? {}) : {};
-    } catch {
-        return {};
-    }
 }

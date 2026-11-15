@@ -63,7 +63,13 @@ import {
 } from '../../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
 import type { CornerRadii, StudioSectionProps, UserTheme } from '../../lib/theme/themeTypes';
-import { CORNER_RADIUS_MAX, DEFAULT_CORNER_RADIUS, getNestedValue, setNestedValue } from '../../lib/theme/themeUtils';
+import {
+    CORNER_RADIUS_MAX,
+    DEFAULT_CORNER_RADIUS,
+    getNestedValue,
+    setNestedValue,
+    THEME_CONTROL_RANGES,
+} from '../../lib/theme/themeUtils';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -428,8 +434,8 @@ function TypographySection({
                 <SliderField
                     label={Generic.t('theme_wizard_typography_font_size')}
                     value={fontSize}
-                    min={8}
-                    max={24}
+                    min={THEME_CONTROL_RANGES.fontSize.min}
+                    max={THEME_CONTROL_RANGES.fontSize.max}
                     step={0.5}
                     onChange={value => onChange('typography.fontSize', value)}
                 />
@@ -440,8 +446,8 @@ function TypographySection({
                                 <SliderField
                                     label={Generic.t('theme_wizard_layout_border_radius')}
                                     value={linkedRadius}
-                                    min={0}
-                                    max={CORNER_RADIUS_MAX}
+                                    min={THEME_CONTROL_RANGES.cornerRadius.min}
+                                    max={THEME_CONTROL_RANGES.cornerRadius.max}
                                     step={0.5}
                                     onChange={handleLinkedRadiusChange}
                                 />

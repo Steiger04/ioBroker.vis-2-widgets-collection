@@ -69,12 +69,17 @@ const settle = async (): Promise<void> => {
     await nextFrame();
 };
 
-/** A socket whose state read never answers — the seed stays the draft (no rebase). */
+/**
+ * A socket whose state read never answers and whose state never changes — the seed stays the
+ * draft (no rebase).
+ */
 const fakeSocket = (): { socket: Connection; setState: ReturnType<typeof vi.fn> } => {
     const setState = vi.fn(() => Promise.resolve());
     const socket = {
         getState: () => new Promise(() => {}),
         setState,
+        subscribeState: () => Promise.resolve(),
+        unsubscribeState: () => {},
     } as unknown as Connection;
     return { socket, setState };
 };
@@ -445,11 +450,19 @@ describe('ThemeStudioPanel field errors', () => {
         );
 
     it("shows a broken slot's error at its colour field, not in the bottom alert", async () => {
-        // `dark` is no colour → neither union option fits → one type error at `palette.primary`.
-        await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
+        // Without a usable `main` neither shape of the slot fits → one error at `palette.primary`.
+        await mountPanel({ palette: { primary: { main: 'red', dark: '#800000' } } });
         await expandColorSections();
         expect(fieldsWithError()).toEqual(['theme_wizard_palette_primary']);
         expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
+    });
+
+    it('shows the error of a slot colour that has no field in the bottom alert', async () => {
+        // `dark` is no colour, the rest of the slot holds → the error names `palette.primary.dark`.
+        await mountPanel({ palette: { primary: { main: '#ff0000', dark: 5 as unknown as string } } });
+        await expandColorSections();
+        expect(fieldsWithError()).toEqual([]);
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).not.toBeNull();
     });
 
     it('reports the CSS variables prefix mui, reserved by the vis-2 editor, at the prefix field', async () => {
@@ -619,11 +632,22 @@ describe('ThemeStudioPanel hex input', () => {
         expect(saveButton().disabled).toBe(true);
     });
 
-    it('accepts named colours where the resolution keeps them', async () => {
+    // MUI computes with text, surfaces and the divider too: a colour name saved there took the
+    // canvas widgets down ("MUI: Unsupported `red` color").
+    it.each([
+        'theme_wizard_palette_text_primary',
+        'theme_wizard_palette_text_secondary',
+        'theme_wizard_palette_background_default',
+        'theme_wizard_palette_background_paper',
+        'theme_wizard_palette_divider',
+    ])('reports a colour name at %s as well, and does not save it', async labelKey => {
         await mountPanel({});
         await expandColorSections();
-        await enter(hexInputOf('theme_wizard_palette_divider'), 'red');
-        expect(fieldErrors()).toEqual([]);
+        // An inheriting field may carry a derivation marker behind its label ("follows primary").
+        const input = document.body.querySelector<HTMLInputElement>(`input[data-hex-input][aria-label^="${labelKey}"]`);
+        await enter(input!, 'red');
+        expect(fieldErrors()).toEqual([[labelKey, 'theme_studio_valid_color_computable']]);
+        expect(saveButton().disabled).toBe(true);
     });
 });
 
