@@ -2,6 +2,10 @@
     "plugins": ["iobroker", "license", "manual-review"],
     "exec": {
         "before_check": "npm run lint",
-        "before_commit": ["npx prettier --write README.md", "npm run build"]
+        "before_commit": [
+            "npx prettier --write README.md",
+            "npm run build",
+            "npm --prefix src-widgets install --package-lock-only --ignore-scripts"
+        ]
     }
 }
