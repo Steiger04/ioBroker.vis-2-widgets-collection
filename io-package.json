@@ -17,32 +17,6 @@
         "zh-cn": "vis-2 AI 助手现在可以使用这些小部件构建页面\n如果你将集合命名为 “vis-2-widgets-collection”，vis-2 AI 助手现在也可以更改主题\n每个控件在调色板中都显示一个简短的工具提示\n网格布局：控件保持其网格行的高度\n主题现在只接受十六进制、`rgb () `和`hsl () `颜色\n没有未保存更改的开放式主题工作室现在会关注其他地方所做的主题更改\n修复了所有小部件的许多问题"
       },
       "3.0.2": {
-        "en": "Same content as 3.0.0; the release builds of 3.0.0 and 3.0.1 failed before they reached npm",
-        "de": "Inhalt wie 3.0.0; die Release-Builds von 3.0.0 und 3.0.1 scheiterten vor npm",
-        "ru": "То же содержимое, что и 3.0.0; релизные сборки 3.0.0 и 3.0.1 вышли из строя, не дойдя до npm",
-        "pt": "Mesmo conteúdo da versão 3.0.0; as versões 3.0.0 e 3.0.1 falharam antes de chegarem ao npm",
-        "nl": "Zelfde inhoud als 3.0.0; de versies van de versies van 3.0.0 en 3.0.1 zijn mislukt voordat ze npm bereikten",
-        "fr": "Même contenu que la 3.0.0 ; les versions 3.0.0 et 3.0.1 ont échoué avant d'atteindre npm",
-        "it": "Stesso contenuto della 3.0.0; le versioni 3.0.0 e 3.0.1 sono fallite prima di npm",
-        "es": "El mismo contenido que la 3.0.0; las versiones 3.0.0 y 3.0.1 fallaron antes de llegar a npm",
-        "pl": "Ta sama zawartość co 3.0.0; kompilacje wersji 3.0.0 i 3.0.1 nie powiodły się, zanim osiągnęły wartość npm",
-        "uk": "Той самий вміст, що і 3.0.0; збірки випуску 3.0.0 та 3.0.1 зазнали невдачі, перш ніж вони досягли npm",
-        "zh-cn": "内容与 3.0.0 相同；3.0.0 和 3.0.1 的发行版本在到达 npm 之前就失败了"
-      },
-      "3.0.1": {
-        "en": "Same content as 3.0.0, whose release build failed before it reached npm",
-        "de": "Derselbe Inhalt wie 3.0.0, dessen Release-Build vor npm fehlschlug",
-        "ru": "То же содержимое, что и в версии 3.0.0, сборка релиза которой завершилась неудачей до достижения npm",
-        "pt": "Mesmo conteúdo do 3.0.0, cuja versão falhou antes de chegar ao npm",
-        "nl": "Zelfde inhoud als 3.0.0, waarvan de opbouw van de release is mislukt voordat de npm werd bereikt",
-        "fr": "Même contenu que la 3.0.0, dont la version a échoué avant npm",
-        "it": "Stesso contenuto della 3.0.0, la cui build è fallita prima di npm",
-        "es": "El mismo contenido que la 3.0.0, cuya versión falló antes de llegar a npm",
-        "pl": "Ta sama zawartość co 3.0.0, której kompilacja wydania nie powiodła się, zanim osiągnęła wartość npm",
-        "uk": "Той самий вміст, що і 3.0.0, збирання випуску якого не вдалося, перш ніж він досяг npm",
-        "zh-cn": "与 3.0.0 的内容相同，其发布版本在到达 npm 之前就失败了"
-      },
-      "3.0.0": {
         "en": "**BREAKING** vis-2 2.20.0 or newer is required: the widgets now use the MUI 9 shared by the vis-2 host; older hosts are rejected at installation\n**BREAKING** the collection theme's CSS variables are named `--vis2c-*` instead of `--mui-*`; custom CSS must switch to `--vis2c-palette-*`\n**BREAKING** Dialog: without an own background color the dialog area is now transparent; set the color to keep an opaque surface\nNew ECharts widget: line, bar, scatter and pie/donut charts from history or JSON data, set up in its own configurator\nNew color picker for all color fields (any CSS color, theme presets, inherited colors visible) and a new state editor for the value rows (search, drag-and-drop, several widgets at once)\nTheme studio reworked: resizable panel, hex input next to each swatch, rounded corners set per corner in a 2×2 layout, presets in their own section\nMany fixes across all widgets",
         "de": "**BREAKING** vis-2 2.20.0 oder neuer ist erforderlich: Die Widgets nutzen nun MUI 9 des Vis-2-Hosts; ältere Hosts werden bei der Installation abgelehnt\n**BREAKING** Die CSS-Variablen des Themes heißen `--vis2c-*` statt `--mui-*`; eigenes CSS muss auf `--vis2c-palette-*` wechseln\n**BREAKING** Dialog: Ohne eigene Hintergrundfarbe ist der Dialogbereich jetzt transparent. Stellen Sie die Farbe opak ein\nNeues eCharts-Widget: Linien-, Balken-, Punkt- und Kreisdiagramme aus Historie oder JSON-Daten, eigener Konfigurator\nNeuer Farbwähler für alle Farbfelder (jede CSS-Farbe, Theme-Presets, vererbte Farben sichtbar) und neuer Status-Editor für Wertezeilen (Suchen, Drag-and-Drop, mehrere Widgets auf einmal)\nTheme Studio überarbeitet: anpassbares Panel, Hex-Eingabe neben jedem Feld, abgerundete Ecken im 2×2-Layout, Presets in eigenem Bereich\nViele Fixes für alle Widgets",
         "ru": "Требуется версия **BREAKING** vis-2 2.20.0 или новее: теперь виджеты используют MUI 9, совместно используемый хостом vis-2; старые хосты отклоняются при установке\n**BREAKING** переменные CSS темы коллекции называются `--vis2c-*` вместо `--mui-*`; пользовательский CSS должен переключиться на `--vis2c-palette-*`\n**BREAKING** Диалоговое окно: без собственного цвета фона область диалогового окна теперь прозрачна; задайте цвет так, чтобы поверхность оставалась непрозрачной\nНовый виджет eCharts: линейные, столбчатые, точечные и круглые диаграммы на основе истории или данных JSON, настроенных в собственном конфигураторе\nНовая палитра цветов для всех цветовых полей (любой цвет CSS, предустановки тем, видимые унаследованные цвета) и новый редактор состояний для строк значений (поиск, перетаскивание, несколько виджетов одновременно)\nТематическая студия переработала: панель с изменяемым размером, шестнадцатеричный ввод рядом с каждым образцом, закругленные углы в каждом углу в макете 2×2, пресеты в отдельном разделе\nМножество исправлений во всех виджетах",
@@ -54,19 +28,6 @@
         "pl": "**Wymagane jest przerywanie** vis-2 2.20.0 lub nowszy: widżety używają teraz MUI 9 udostępnionego przez hosta vis-2; starsze hosty są odrzucane podczas instalacji\n**BREAKING** zmienne CSS motywu kolekcji są nazywane `--vis2c-*` zamiast `--mui-*`; niestandardowy CSS musi przełączyć się na `--vis2c-palette-*`\n**PRZERWANIE** Okno dialogowe: bez własnego koloru tła obszar dialogowy jest teraz przezroczysty; ustaw kolor tak, aby zachował nieprzezroczystą powierzchnię\nNowy widget eCharts: wykresy liniowe, słupkowe, scatter i pie/donut z historii lub danych JSON, skonfigurowane we własnym konfiguratorze\nNowy selektor kolorów dla wszystkich pól kolorów (dowolny kolor CSS, ustawienia wstępne motywu, widoczne kolory odziedziczone) i nowy edytor stanu wierszy wartości (wyszukiwanie, przeciąganie i upuszczanie, kilka widżetów jednocześnie)\nPrzerobiono studio tematyczne: panel z możliwością zmiany rozmiaru, wejście sześciokątne obok każdej próbki, zaokrąglone narożniki ustawione na narożnik w układzie 2×2, ustawienia wstępne we własnej sekcji\nWiele poprawek we wszystkich widżetach",
         "uk": "**ПОРУШЕННЯ** вимагається vis-2 2.20.0 або новіша версія: віджети тепер використовують MUI 9, спільний з хостом vis-2; старі хости відхиляються під час встановлення\n**ПОРУШЕННЯ** змінні CSS теми колекції називаються `--vis2c-*` замість `--mui-*`; користувацький CSS повинен переключитися на `--vis2c-palette-*`\n**РОЗБИВАННЯ** Діалогове вікно: без власного кольору фону область діалогу тепер прозора; встановіть колір, щоб зберегти непрозору поверхню\nНовий віджет eCharts: діаграми ліній, смуги, розсіювання та пічки/пончики з історії або даних JSON, налаштовані у власному конфігураторі\nНовий вибір кольорів для всіх полів кольорів (будь-який колір CSS, пресети тем, видимі спадкові кольори) та новий редактор стану для рядків значень (пошук, перетягування, кілька віджетів одночасно)\nТематична студія перероблена: панель з можливістю зміни розміру, шестигранний вхід поруч із кожним зразком, закруглені кути, встановлені на кут у макеті 2 × 2, пресети у власному розділі\nБагато виправлень у всіх віджетах",
         "zh-cn": "**BREAKING** 需要 vis-2 2.20.0 或更高版本：插件现在使用 vis-2 主机共享的 MUI 9；较旧的主机在安装时会被拒绝\n**BREAKING** 集合主题的 CSS 变量命名为 `--vis2c-*` 而不是 `--mui-*`；自定义 CSS 必须切换到 `--vis2c-palette-*`\n**BREAKING** 对话框：如果没有自己的背景颜色，对话框区域现在是透明的；设置颜色以保持不透明表面\n新的 eCharts 控件：在自己的配置器中设置的历史或 JSON 数据中的折线图、条形图、散点图和饼状图/甜甜圈图\n适用于所有颜色域（任何 CSS 颜色、主题预设、可见的继承颜色）的新颜色选择器，以及值行的新状态编辑器（搜索、拖放、同时使用多个小部件）\n主题工作室重做了：可调整大小的面板、每个样本旁边的十六进制输入、2×2 布局中每个角设置圆角、在自己的分区中设置预设\n修复了所有小部件的许多问题"
-      },
-      "2.6.1": {
-        "en": "Widgets are now built for React 19 - required for current vis-2 versions; older vis-2 versions running on React 18 can no longer load this widget set",
-        "de": "Widgets sind jetzt für React 19 gebaut – erforderlich für aktuelle vis-2-Versionen; ältere vis-2-Versionen mit React 18 können dieses Widget-Set nicht mehr laden",
-        "ru": "Виджеты теперь собраны для React 19 — требуется для актуальных версий vis-2; более старые версии vis-2 на React 18 больше не могут загрузить этот набор виджетов",
-        "pt": "Os widgets agora são compilados para React 19 — necessário para as versões atuais do vis-2; versões mais antigas do vis-2 com React 18 já não conseguem carregar este conjunto de widgets",
-        "nl": "Widgets zijn nu gebouwd voor React 19 — vereist voor huidige vis-2-versies; oudere vis-2-versies op React 18 kunnen deze widgetset niet meer laden",
-        "fr": "Les widgets sont désormais compilés pour React 19 — requis pour les versions actuelles de vis-2 ; les anciennes versions de vis-2 fonctionnant sous React 18 ne peuvent plus charger ce jeu de widgets",
-        "it": "I widget sono ora compilati per React 19 — necessario per le versioni attuali di vis-2; le versioni precedenti di vis-2 con React 18 non possono più caricare questo set di widget",
-        "es": "Los widgets ahora están compilados para React 19: necesario para las versiones actuales de vis-2; las versiones antiguas de vis-2 con React 18 ya no pueden cargar este conjunto de widgets",
-        "pl": "Widżety są teraz zbudowane dla React 19 — wymagane dla aktualnych wersji vis-2; starsze wersje vis-2 działające na React 18 nie mogą już wczytać tego zestawu widżetów",
-        "uk": "Віджети тепер зібрано для React 19 — потрібно для актуальних версій vis-2; старіші версії vis-2 на React 18 більше не можуть завантажити цей набір віджетів",
-        "zh-cn": "部件现已基于 React 19 构建——需要当前版本的 vis-2；运行 React 18 的旧版 vis-2 无法再加载此部件集"
       },
       "2.6.0": {
         "en": "Input widget added (text/number input with inline editing)\nnoIcon option now correctly hides the widget icon",
