@@ -11,7 +11,8 @@
  * the content slot's first element, substituted by a `cornerIcon` override, absent for
  * `cornerIcon={false}`, `noHeaderIcon` and an invalid type. The frame publishes its Content-Box (ADR-0098) to its children: the injected
  * box of the test scene, else the measured inner paper (BASE-PAPER-1); `undefined` until the
- * first measurement and outside the frame.
+ * first measurement and outside the frame. A widget's own notice takes the form of the OID hint,
+ * which wins over it.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -213,6 +214,41 @@ describe('CollectionBase invalid object hint', () => {
 
     it('asks for an object through the translation while none is bound', () => {
         expect(hint({ oid: '', oidObject: undefined })).toBe(`${PREFIX}collection_base_select_oid`);
+    });
+});
+
+describe('CollectionBase widget notice', () => {
+    /** The frame's HTML, its widget reporting the type and handing a notice. */
+    const frameHtml = (
+        props: Partial<ComponentProps<typeof CollectionBase>>,
+        data: Record<string, unknown> = {},
+    ): string => {
+        const Frame: FC = () => {
+            const { data: styleData } = useData('oid');
+            return createElement(
+                CollectionBase,
+                { data: styleData, ...props },
+                createElement('span', { 'data-testid': 'frame-child' }),
+            );
+        };
+        return mountBody(Frame, frameScene({ noHeader: true, ...data })).container.innerHTML;
+    };
+
+    // A widget that is not configured beyond its OID says so in the frame's one hint form: the
+    // shape of the OID hint, with its own text — no header, footer, corner icon or children.
+    it('shows the notice in the form of the OID hint, instead of the content', () => {
+        const oidHint = frameHtml({ isValidType: false }, { oid: '', oidObject: undefined });
+        const notice = frameHtml({ notice: 'Pick a type' });
+
+        expect(notice).toBe(oidHint.replace('vis_2_widgets_collection_collection_base_select_oid', 'Pick a type'));
+        expect(notice).not.toContain('frame-child');
+    });
+
+    it('lets the OID hint win over the notice', () => {
+        const html = frameHtml({ isValidType: false, notice: 'Pick a type' }, { oid: '', oidObject: undefined });
+
+        expect(html).toContain('collection_base_select_oid');
+        expect(html).not.toContain('Pick a type');
     });
 });
 

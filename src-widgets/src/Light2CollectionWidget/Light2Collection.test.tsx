@@ -7,7 +7,8 @@
  * Button-Modus a click on the face toggles the Schalter-OID and a long press (after
  * `colorLightDelayLongPress`) opens the Lampen-Bedienelement in a modal; without it the
  * Lampen-Bedienelement renders directly — power button and picker box. A Schalter-OID that is no
- * boolean shows the OID hint. The iro picker is replaced by a stub through its module: the
+ * boolean shows the OID hint. A Lichttyp without a view (none) asks for a Lichttyp instead, and in
+ * the Button-Modus every press toggles. The iro picker is replaced by a stub through its module: the
  * picker transitions are pinned with real iro in the channel-mapping tests.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -343,6 +344,52 @@ describe('Light2Collection Lampen-Bedienelement', () => {
         expect(container.textContent).toContain('collection_base_select_oid');
         expect(powerIcon(container)).toBeNull();
         expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+});
+
+describe('Light2Collection without a Lichttyp (none)', () => {
+    const LIGHT_TYPE_HINT = 'light2_collection_widget_select_light_type';
+
+    // A Lichttyp without a view draws no Lampen-Bedienelement: instead of an empty frame the widget
+    // asks for a Lichttyp (in the editor and at runtime alike — the body has no edit-mode branch).
+    it('asks for a Lichttyp instead of an empty frame, without power button and pickers', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none' }));
+
+        expect(container.textContent).toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
+        expect(container.querySelector('[data-testid="light2-picker"]')).toBeNull();
+    });
+
+    // The more basic problem first: a Schalter-OID without a usable object shows the OID hint.
+    it.each([
+        ['a Schalter-OID that is no boolean', { colorLightSwitchOidObject: { _id: SWITCH, type: 'number' } }],
+        ['a missing Schalter-OID', { colorLightSwitchOid: '', colorLightSwitchOidObject: undefined }],
+    ])('shows the OID hint for %s', (_case, data) => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none', ...data }, 1));
+
+        expect(container.textContent).toContain('collection_base_select_oid');
+        expect(container.textContent).not.toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
+    });
+
+    it('keeps the Button-Modus face, without the hint', () => {
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'none', colorLightButton: true }));
+
+        expect(container.querySelector('button')).not.toBeNull();
+        expect(container.textContent).not.toContain(LIGHT_TYPE_HINT);
+    });
+
+    // The Rückfall-Regel (ADR-0114) reads a stored value the select does not offer as unset, so the
+    // body reads the default none — before as an empty frame, now with the hint. The table's colour
+    // view of an unknown Lichttyp serves the editor rules, which see the raw data.
+    it('reads a stored Lichttyp the select does not offer as none, with the hint', () => {
+        measureContentRect({ width: 300, height: 200 });
+        const { container } = mountBody(Light2Collection, scene({ colorLightType: 'white' }));
+
+        expect(container.textContent).toContain(LIGHT_TYPE_HINT);
+        expect(powerIcon(container)).toBeNull();
     });
 });
 
