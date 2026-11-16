@@ -1280,6 +1280,7 @@
     "theme_studio_feintuning_hint": "Included fonts ship real 400 and 700 faces only — other weights are synthesised by the browser and can look muddy.",
     "theme_studio_frame_elevation": "Shadow",
     "theme_studio_frame_info": "Widgets without an own value follow these presets; without a preset the built-in standard applies. Existing widgets keep their stored values: to let them follow, select them in vis-2 and set the setting under General to “As theme”.",
+    "theme_studio_frame_no_card": "Without card",
     "theme_studio_frame_reset": "Reset to standard",
     "theme_studio_frame_standard": "standard",
     "theme_studio_frame_summary": "%s of %s preset",

@@ -92,7 +92,7 @@ export const isUiOnlyCustomField = (name: string): boolean =>
  * ADR-0117 — what an existing widget holds. Since then the fields have none (`lib/widgetFrame`), so
  * these are literals: the reference a widget leaving them unset is measured against.
  */
-export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Record<string, unknown>> = { baseElevation: 4 };
+export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Record<string, unknown>> = { noCard: false, baseElevation: 4 };
 
 /** A bound of an indexed group as vis-2 reads it: a number, or the name of the data key holding one. */
 const groupBound = (bound: number | string | undefined, data: Record<string, unknown>): number =>

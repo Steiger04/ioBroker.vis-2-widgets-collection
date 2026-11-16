@@ -94,7 +94,7 @@ export interface MenuChromeInput {
     /** Content-Box width in px (useContentBox) — `undefined` until the first measurement. */
     width: number | undefined;
     /**
-     * rxData.noCard — the EXPLICIT flag only, never `wrappedContent`: the popup is
+     * The widget's noCard — own or inherited from the Rahmenvorgabe (ADR-0117) — never `wrappedContent`: the popup is
      * portaled to the body, so an embedded Select keeps its own elevated surface.
      */
     noCard: boolean | undefined;
@@ -130,7 +130,7 @@ export interface MenuChrome {
  * transparent backdrop, and the popup root bounded by the measured content
  * width, offset below the field, list unpadded.
  *
- * @param input - Measured width, the explicit noCard flag, frame background and border styles.
+ * @param input - Measured width, the widget's noCard, frame background and border styles.
  * @returns The popup's chrome; pass it as `<Select MenuProps={…}>`.
  */
 export function buildMenuChrome(input: MenuChromeInput): MenuChrome {

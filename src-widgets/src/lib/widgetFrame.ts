@@ -33,8 +33,15 @@ interface NumberFrameSetting {
     readonly step: number;
 }
 
+/** A frame setting that is on or off (the field's checkbox). */
+interface BooleanFrameSetting {
+    readonly kind: 'boolean';
+    /** The built-in standard: the field's default before ADR-0117, so stored widgets look the same. */
+    readonly standard: boolean;
+}
+
 /** A frame setting of the Widget-Rahmen. */
-export type WidgetFrameSetting = NumberFrameSetting;
+export type WidgetFrameSetting = NumberFrameSetting | BooleanFrameSetting;
 
 /**
  * The frame settings that take a Rahmenvorgabe, by the name of their widget data field.
@@ -43,6 +50,7 @@ export type WidgetFrameSetting = NumberFrameSetting;
  * ADR-0117 names eight ({@link WIDGET_FRAME_SETTING_COUNT}); the table holds those built so far.
  */
 export const WIDGET_FRAME_SETTINGS = {
+    noCard: { kind: 'boolean', standard: false },
     baseElevation: { kind: 'number', standard: 4, min: 0, max: 24, step: 1 },
 } as const satisfies Record<string, WidgetFrameSetting>;
 
@@ -57,7 +65,7 @@ export const WIDGET_FRAME_SETTING_COUNT = 8;
 
 /** The Rahmenvorgaben of the user theme (`UserTheme.widgetFrame`): a value per frame setting. */
 export type WidgetFramePresets = {
-    [K in WidgetFrameKey]?: (typeof WIDGET_FRAME_SETTINGS)[K] extends NumberFrameSetting ? number : never;
+    [K in WidgetFrameKey]?: (typeof WIDGET_FRAME_SETTINGS)[K] extends NumberFrameSetting ? number : boolean;
 };
 
 /** Whether `key` names a frame setting. */
@@ -66,6 +74,9 @@ export const isWidgetFrameKey = (key: string): key is WidgetFrameKey => Object.h
 /** Whether a value is usable as the Rahmenvorgabe of `key`: the setting's kind within its bounds. */
 export function isUsableFramePreset(key: WidgetFrameKey, value: unknown): boolean {
     const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
+    if (setting.kind === 'boolean') {
+        return typeof value === 'boolean';
+    }
     return typeof value === 'number' && Number.isFinite(value) && value >= setting.min && value <= setting.max;
 }
 

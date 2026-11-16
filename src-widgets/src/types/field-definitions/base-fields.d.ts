@@ -136,7 +136,8 @@ export interface BaseFieldsRxData {
      * Hide card container (base property without index).
      * Removes the Material-UI Card wrapper for a flat appearance.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard `false` (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {

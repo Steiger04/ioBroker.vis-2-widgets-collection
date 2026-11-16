@@ -123,7 +123,7 @@ function SelectCollection(): React.ReactElement {
                     value={activePosition ?? ''}
                     onChange={changeHandler}
                     disabled={readOnly}
-                    // Select-Chrome: the popup follows the EXPLICIT noCard, never wrappedContent.
+                    // Select-Chrome: the popup follows the widget's noCard (own or inherited, ADR-0117), never wrappedContent.
                     menuChrome={{
                         noCard: widget.data.noCard,
                         frameBackground: data.frameBackground,

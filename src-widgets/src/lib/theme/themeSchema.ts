@@ -21,7 +21,7 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
-import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from '../widgetFrame';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS, type WidgetFrameSetting } from '../widgetFrame';
 import { CORNER_RADIUS_MAX, THEME_MODES } from './themeUtils';
 
 /** How to treat keys not declared in an `object` schema node's `properties`. */
@@ -287,7 +287,11 @@ const widgetFrameSchema: SchemaNode = {
     allowUnknown: 'warn',
     properties: Object.fromEntries(
         WIDGET_FRAME_KEYS.map(key => {
-            const { min, max } = WIDGET_FRAME_SETTINGS[key];
+            const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
+            if (setting.kind === 'boolean') {
+                return [key, { kind: 'boolean', optional: true } satisfies SchemaNode];
+            }
+            const { min, max } = setting;
             return [key, { kind: 'number', optional: true, min, max } satisfies SchemaNode];
         }),
     ),

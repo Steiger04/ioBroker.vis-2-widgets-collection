@@ -37,6 +37,7 @@ export const widgetFramePath = (key: WidgetFrameKey): string => `widgetFrame.${k
 
 /** The label key of each frame setting's control. */
 const LABEL_KEYS: Record<WidgetFrameKey, string> = {
+    noCard: 'theme_studio_frame_no_card',
     baseElevation: 'theme_studio_frame_elevation',
 };
 
@@ -54,6 +55,10 @@ function FrameSettingControl({
 }: Pick<StudioSectionProps, 'theme' | 'onChange' | 'errorFor'> & { settingKey: WidgetFrameKey }): React.JSX.Element {
     const path = widgetFramePath(settingKey);
     const setting = WIDGET_FRAME_SETTINGS[settingKey];
+    // Provisional until the boolean control lands: a boolean setting has no slider.
+    if (setting.kind !== 'number') {
+        return <></>;
+    }
     const stored = getNestedValue<unknown>(theme, path);
     const isSet = stored !== undefined;
     const error = errorFor?.(path);

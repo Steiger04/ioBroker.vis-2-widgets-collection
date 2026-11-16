@@ -129,6 +129,12 @@ interface MountedWidget {
     elevation: () => number | null;
     /** The markup of the widget's body, without React's mount ids. */
     markup: () => string;
+    /** The markup of the whole widget — outer size and card included —, without React's mount ids. */
+    widgetMarkup: () => string;
+    /** Whether the widget shows its card: the inset of the card around the frame (`Generic`). */
+    hasCard: () => boolean;
+    /** The background the frame paints (its outer paper). */
+    frameBackground: () => string;
     socket: ThemeSocket;
 }
 
@@ -148,6 +154,7 @@ afterEach(async () => {
  * @param values - The subscribed state values.
  * @param theme - The stored theme; none: the theme state is unset.
  * @param hostTheme - The vis-2 host theme the widget receives (default: the light host theme).
+ * @param embedded - Whether the widget renders inside another widget (`usedInWidget`).
  */
 async function mountWidget(
     widget: WidgetClass,
@@ -155,6 +162,7 @@ async function mountWidget(
     values: Record<string, unknown>,
     theme?: UserTheme | string,
     hostTheme: object = Theme('light'),
+    embedded = false,
 ): Promise<MountedWidget> {
     const socket = themeSocket(theme);
     const instance = new widget({
@@ -169,7 +177,7 @@ async function mountWidget(
         root.render(
             instance.renderWidgetBody({
                 id: 'preview-widget-frame',
-                widget: { data, style: {} },
+                widget: embedded ? { data, style: {}, usedInWidget: true } : { data, style: {} },
                 style: {},
                 refService: { current: null },
             }),
@@ -188,6 +196,18 @@ async function mountWidget(
             return match ? Number(match[1]) : null;
         },
         markup: () => (container.querySelector('.GENERIC-1')?.innerHTML ?? '').replace(/_r_[0-9a-z]+_/g, '_r_'),
+        widgetMarkup: () => container.innerHTML.replace(/_r_[0-9a-z]+_/g, '_r_'),
+        hasCard: () => {
+            const { width, height } = getComputedStyle(container.querySelector('.GENERIC-1')!);
+            if (width === 'calc(100% - 8px)' && height === 'calc(100% - 8px)') {
+                return true;
+            }
+            if (width === '100%' && height === '100%') {
+                return false;
+            }
+            throw new Error(`unexpected outer size ${width} × ${height}`);
+        },
+        frameBackground: () => getComputedStyle(container.querySelector('.BASE-PAPER-0')!).backgroundColor,
         socket,
     };
 }
@@ -266,5 +286,127 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
                 expect(widgetOnCanvas.elevation()).toBe(10);
             });
         });
+
+        describe('ticket 04: without card', () => {
+            const presetWithoutCard: UserTheme = { widgetFrame: { noCard: true } };
+
+            it('keeps the card for an unset noCard without a Rahmenvorgabe, as for a stored false', async () => {
+                const unset = await mount(fixture.data);
+                const storedFalse = await mount({ ...fixture.data, noCard: false });
+
+                expect(unset.hasCard()).toBe(true);
+                expect(unset.widgetMarkup()).toBe(storedFalse.widgetMarkup());
+            });
+
+            // Erben und Setzen sehen gleich aus: size, edge and background (ADR-0004: transparent).
+            it('drops the card for an unset noCard under the Rahmenvorgabe, exactly like an own noCard', async () => {
+                const inherited = await mount(fixture.data, presetWithoutCard);
+                const own = await mount({ ...fixture.data, noCard: true });
+
+                expect(inherited.hasCard()).toBe(false);
+                expect(inherited.frameBackground()).toBe(own.frameBackground());
+                expect(inherited.widgetMarkup()).toBe(own.widgetMarkup());
+                expect(inherited.socket.setState).not.toHaveBeenCalled();
+                expect(inherited.socket.setObject).not.toHaveBeenCalled();
+            });
+
+            it('lets an own noCard beat the Rahmenvorgabe', async () => {
+                const ownCard = await mount({ ...fixture.data, noCard: false }, presetWithoutCard);
+                const ownWithout = await mount({ ...fixture.data, noCard: true }, { widgetFrame: { noCard: false } });
+
+                expect([ownCard.hasCard(), ownWithout.hasCard()]).toEqual([true, false]);
+            });
+
+            it('follows a Studio draft over the stored Rahmenvorgabe; without a draft the stored one holds again', async () => {
+                const widgetOnCanvas = await mount(fixture.data, presetWithoutCard);
+                expect(widgetOnCanvas.hasCard()).toBe(false);
+
+                await showDraft({ widgetFrame: { noCard: false } });
+                expect(widgetOnCanvas.hasCard()).toBe(true);
+
+                clearDraftTheme();
+                await nextFrame();
+                expect(widgetOnCanvas.hasCard()).toBe(false);
+            });
+
+            it('renders an embedded widget without card, with and without the Rahmenvorgabe', async () => {
+                const host = Theme('light');
+                const plain = await mountWidget(widget, fixture.data, fixture.values, undefined, host, true);
+                const withPreset = await mountWidget(
+                    widget,
+                    fixture.data,
+                    fixture.values,
+                    { widgetFrame: { noCard: false } },
+                    host,
+                    true,
+                );
+
+                expect([plain.hasCard(), withPreset.hasCard()]).toEqual([false, false]);
+            });
+        });
+    });
+});
+
+// The two readers of noCard beside the frame, which follow noCard alone, never the embedding: each
+// sees the effective value, an inherited noCard like an own one.
+describe('ticket 04: the readers of noCard beside the frame', () => {
+    const presetWithoutCard: UserTheme = { widgetFrame: { noCard: true } };
+
+    const load = async (name: 'SelectCollectionWidget' | 'JsonTableCollectionWidget'): Promise<WidgetClass> =>
+        ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+
+    describe('Select popup', () => {
+        /** Opens the popup and returns its surface. */
+        const popupSurface = (): { boxShadow: string; backgroundColor: string } => {
+            const combobox = document.querySelector<HTMLElement>('[role="combobox"]');
+            act(() => {
+                combobox!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+            });
+            const { boxShadow, backgroundColor } = getComputedStyle(document.querySelector('.MuiMenu-paper')!);
+            return { boxShadow, backgroundColor };
+        };
+
+        it('draws the same flat popup for an inherited and an own noCard', async () => {
+            const widget = await load('SelectCollectionWidget');
+            const fixture = FIXTURES.SelectCollectionWidget!;
+
+            await mountWidget(widget, fixture.data, fixture.values, presetWithoutCard);
+            const inherited = popupSurface();
+            // Unmounting takes the portaled popup along.
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, { ...fixture.data, noCard: true }, fixture.values);
+            const own = popupSurface();
+
+            expect(inherited.boxShadow).toBe('none');
+            expect(inherited).toEqual(own);
+        }, 60_000);
+    });
+
+    describe('JsonTable header bar', () => {
+        const headerBar = (): { boxShadow: string; backgroundColor: string } => {
+            const { boxShadow, backgroundColor } = getComputedStyle(document.querySelector('.MuiTableHead-root')!);
+            return { boxShadow, backgroundColor };
+        };
+
+        it('draws the same transparent, flat header bar for an inherited and an own noCard', async () => {
+            const widget = await load('JsonTableCollectionWidget');
+            const fixture = FIXTURES.JsonTableCollectionWidget!;
+
+            await mountWidget(widget, fixture.data, fixture.values);
+            const withCard = headerBar();
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, fixture.data, fixture.values, presetWithoutCard);
+            const inherited = headerBar();
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, { ...fixture.data, noCard: true }, fixture.values);
+            const own = headerBar();
+
+            expect(withCard.boxShadow).not.toBe('none');
+            expect(inherited).toEqual({ boxShadow: 'none', backgroundColor: 'transparent' });
+            expect(inherited).toEqual(own);
+        }, 60_000);
     });
 });

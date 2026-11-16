@@ -76,8 +76,9 @@ export type TableChromeSettings = Readonly<
         | 'oddRowColor'
     > & {
         /**
-         * Card styling off (common field) — the header bar loses its paper and shadow. The RAW
-         * flag only: an embedded table (`wrappedContent` false) keeps its opaque header bar.
+         * Card styling off (common field) — the header bar loses its paper and shadow. The widget's
+         * noCard only (own or inherited, ADR-0117): an embedded table (`wrappedContent` false) keeps
+         * its opaque header bar.
          */
         noCard?: boolean;
     }
@@ -132,7 +133,7 @@ function headerSurfaceSx(settings: TableChromeSettings, theme: Theme): SxObject 
     // An emptied width ('') reads like 0, no line; a bound text that names no number as well.
     const headerBorderWidth = optionalNumber(settings.headerBorderWidth) ?? 0;
 
-    // Deliberately the RAW noCard, not noCard || usedInWidget (= !wrappedContent): inside
+    // Deliberately the widget's noCard, not noCard || usedInWidget (= !wrappedContent): inside
     // another widget the sticky bar keeps its paper and shadow, so it stays opaque and the
     // rows never scroll visibly underneath it.
     const flat = settings.noCard === true;
@@ -251,7 +252,7 @@ function rowBackgroundSx(colorValue: string | null): SxObject | undefined {
 /**
  * Resolves the Tabellen-Chrome.
  *
- * @param settings The raw widget data (the raw `noCard`, never `wrappedContent`).
+ * @param settings The widget data (its `noCard`, own or inherited, never `wrappedContent`).
  * @param theme The effective MUI theme (the shadow ladder and the contract terminals).
  * @returns Every sx fragment of the table's presentation shell.
  */
