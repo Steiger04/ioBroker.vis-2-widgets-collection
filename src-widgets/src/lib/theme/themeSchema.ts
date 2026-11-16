@@ -278,8 +278,9 @@ const componentsSchema: SchemaNode = {
 };
 
 /**
- * The Rahmenvorgaben (`widgetFrame`, ADR-0117): one value per frame setting, in the bounds of its
- * field (lib/widgetFrame). Each value stands for itself: an unusable one falls away alone.
+ * The Rahmenvorgaben (`widgetFrame`, ADR-0117): one value per frame setting, of its kind — a number
+ * in the bounds of its field, or a boolean (lib/widgetFrame). Each value stands for itself: an
+ * unusable one falls away alone.
  */
 const widgetFrameSchema: SchemaNode = {
     kind: 'object',
@@ -288,11 +289,11 @@ const widgetFrameSchema: SchemaNode = {
     properties: Object.fromEntries(
         WIDGET_FRAME_KEYS.map(key => {
             const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
-            if (setting.kind === 'boolean') {
-                return [key, { kind: 'boolean', optional: true } satisfies SchemaNode];
-            }
-            const { min, max } = setting;
-            return [key, { kind: 'number', optional: true, min, max } satisfies SchemaNode];
+            const node: SchemaNode =
+                setting.kind === 'boolean'
+                    ? { kind: 'boolean', optional: true }
+                    : { kind: 'number', optional: true, min: setting.min, max: setting.max };
+            return [key, node];
         }),
     ),
 };

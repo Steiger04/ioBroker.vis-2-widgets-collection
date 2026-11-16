@@ -242,9 +242,10 @@ function CollectionBase({
         [footerValue, widget.data.noFooter],
     );
 
-    // Header and footer sit half the padding into it. The padding reads its default when unset
-    // (lib/fieldDefaults); an emptied one ('') reads as 0, as the padding itself does, and a numeric
-    // string as its number. Only a body mounted without the widget's reading leaves it out: no margin.
+    // Header and footer sit half the padding into it. An unset padding reads the Rahmenvorgabe, else
+    // its standard (lib/widgetFrame, ADR-0117); an emptied one ('') reads as 0, as the padding itself
+    // does, and a numeric string as its number. Only a body mounted without the widget's reading
+    // leaves it out: no margin.
     const halfPadding = (optionalNumber(widget.data.basePadding) ?? 0) / 2;
 
     // The one notice shown instead of header, content and footer: the invalid-type notice wins.

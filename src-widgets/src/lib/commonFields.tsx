@@ -151,17 +151,16 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             component: () => <CollectionDivider dividerText="header" />,
             hidden: (data, _i) => data.noHeader && !allFields,
         },
+        // Frame settings of the Widget-Rahmen (ADR-0117): no `default`, see basePadding below.
         {
             name: `noHeader${groupName}`,
             type: 'checkbox',
             label: 'no_header',
-            default: false,
         },
         {
             name: `noHeaderIcon${groupName}`,
             type: 'checkbox',
             label: 'no_header_icon',
-            default: false,
             hidden: hiddenWhenTruthy('noHeader'),
         },
         {
@@ -213,11 +212,11 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             component: () => <CollectionDivider dividerText="footer" />,
             hidden: (data, _i) => data.noFooter && !allFields,
         },
+        // A frame setting of the Widget-Rahmen (ADR-0117): no `default`, see basePadding below.
         {
             name: `noFooter${groupName}`,
             label: 'no_footer',
             type: 'checkbox',
-            default: false,
         },
         {
             name: `footer${groupName}`,
@@ -266,17 +265,16 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider />,
         },
+        // Frame settings of the Widget-Rahmen (ADR-0117): no `default`, see basePadding below.
         {
             name: `outlined${groupName}`,
             label: 'outlined',
             type: 'checkbox',
-            default: false,
         },
         {
             name: `outlinedFrame${groupName}`,
             label: 'outlined_frame',
             type: 'checkbox',
-            default: false,
         },
         {
             label: '',
@@ -284,18 +282,17 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider />,
         },
+        // Frame settings of the Widget-Rahmen (ADR-0117): no `default` — vis-2 would store it on
+        // every dropped widget, which could then never follow the Rahmenvorgabe of the theme. Unset,
+        // a setting reads the Rahmenvorgabe, else the built-in standard (lib/widgetFrame).
         {
             name: `basePadding${groupName}`,
             label: 'base_padding',
             type: 'slider',
-            min: 0,
-            max: 10,
-            step: 0.1,
-            default: 1,
+            min: WIDGET_FRAME_SETTINGS.basePadding.min,
+            max: WIDGET_FRAME_SETTINGS.basePadding.max,
+            step: WIDGET_FRAME_SETTINGS.basePadding.step,
         },
-        // A frame setting of the Widget-Rahmen (ADR-0117): no `default` — vis-2 would store it on
-        // every dropped widget, which could then never follow the Rahmenvorgabe of the theme. Unset,
-        // it reads the Rahmenvorgabe, else the built-in standard (lib/widgetFrame).
         {
             name: `baseElevation${groupName}`,
             label: 'base_elevation',

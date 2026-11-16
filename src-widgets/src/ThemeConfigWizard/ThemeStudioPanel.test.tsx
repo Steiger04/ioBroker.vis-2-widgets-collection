@@ -986,3 +986,251 @@ describe('ThemeStudioPanel Widget-Rahmen section (ADR-0117)', () => {
         ).toContain('theme_studio_valid_range(0,24)');
     });
 });
+
+describe('ticket 03: ThemeStudioPanel Widget-Rahmen — padding, outlines, header, header icon and footer', () => {
+    const SECTION = 'theme_studio_section_widget_frame';
+    const MARKER = ' · theme_studio_frame_standard';
+    const CARD = 'theme_studio_group_card';
+    const HEADER_FOOTER = 'theme_studio_group_header_footer';
+    /** The control labels (stubbed keys), by frame setting. */
+    const LABEL = {
+        outlined: 'theme_studio_frame_outlined',
+        outlinedFrame: 'theme_studio_frame_outlined_frame',
+        basePadding: 'theme_studio_frame_padding',
+        baseElevation: 'theme_studio_frame_elevation',
+        noHeader: 'theme_studio_frame_header',
+        noHeaderIcon: 'theme_studio_frame_header_icon',
+        noFooter: 'theme_studio_frame_footer',
+    } as const;
+
+    const section = (): HTMLElement => document.body.querySelector<HTMLElement>('[data-studio-section="widgetFrame"]')!;
+
+    /** The group titles and control labels of the open section, in reading order, without the marker. */
+    const layout = (): string[] => {
+        const known = new Set<string>([CARD, HEADER_FOOTER, ...Object.values(LABEL)]);
+        const texts: string[] = [];
+        const walker = document.createTreeWalker(section(), NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = (node.textContent ?? '').replace(MARKER, '');
+            if (known.has(text)) {
+                texts.push(text);
+            }
+        }
+        return texts;
+    };
+
+    /** The `<label>` of a switch control. */
+    const switchLabel = (label: string): HTMLLabelElement | undefined =>
+        Array.from(section().querySelectorAll<HTMLLabelElement>('label')).find(
+            element => element.textContent?.replace(MARKER, '') === label,
+        );
+
+    /** A switch control: what it shows, and its reset. */
+    const switchControl = (
+        label: string,
+    ): { checked: boolean; standard: boolean; toggle: () => Promise<void>; reset: HTMLButtonElement | null } => {
+        const labelElement = switchLabel(label)!;
+        const input = document.getElementById(labelElement.htmlFor) as HTMLInputElement;
+        return {
+            checked: input.checked,
+            standard: labelElement.textContent === `${label}${MARKER}`,
+            toggle: async () => {
+                act(() => input.click());
+                await settle();
+            },
+            reset:
+                labelElement
+                    .closest('[data-frame-setting]')
+                    ?.querySelector<HTMLButtonElement>('button[title="theme_studio_frame_reset"]') ?? null,
+        };
+    };
+
+    /** The number input of a slider control (its accessible name is the control's label). */
+    const numberInput = (label: string): HTMLInputElement | null =>
+        section().querySelector<HTMLInputElement>(`input[type="number"][aria-label^="${label}"]`);
+
+    const typeInto = async (input: HTMLInputElement, value: string): Promise<void> => {
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        await settle();
+    };
+
+    const undoRedo = async (label: 'theme_studio_undo' | 'theme_studio_redo'): Promise<void> => {
+        act(() => document.body.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)?.click());
+        await settle();
+    };
+
+    it('groups the controls like Allgemein: Karte, then Kopf & Fuß', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(layout()).toEqual([
+            CARD,
+            LABEL.outlined,
+            LABEL.outlinedFrame,
+            LABEL.basePadding,
+            LABEL.baseElevation,
+            HEADER_FOOTER,
+            LABEL.noHeader,
+            LABEL.noHeaderIcon,
+            LABEL.noFooter,
+        ]);
+    });
+
+    it('counts every set preset against the eight settings, a preset equal to the standard too', async () => {
+        await mountPanel({ widgetFrame: { noHeader: false, outlined: true, basePadding: 2, baseElevation: 4 } });
+        expect(sectionHeader(SECTION).querySelector('.MuiTypography-caption')?.textContent).toBe(
+            'theme_studio_frame_summary(4,8)',
+        );
+    });
+
+    it('shows a negated setting positively and stores the semantics of its field', async () => {
+        await mountPanel(SEED);
+        await expandSections(SECTION);
+        // Unset: the header shows (standard noHeader false), marked as the standard, nothing to reset.
+        expect(switchControl(LABEL.noHeader)).toMatchObject({ checked: true, standard: true, reset: null });
+
+        await switchControl(LABEL.noHeader).toggle();
+        expect(getDraftTheme()).toEqual({ ...SEED, widgetFrame: { noHeader: true } });
+        expect(switchControl(LABEL.noHeader)).toMatchObject({ checked: false, standard: false });
+        expect(switchControl(LABEL.noHeader).reset).not.toBeNull();
+
+        // Switched back on, the preset is set — to the standard's value — until it is reset.
+        await switchControl(LABEL.noHeader).toggle();
+        expect(getDraftTheme()).toEqual({ ...SEED, widgetFrame: { noHeader: false } });
+        expect(switchControl(LABEL.noHeader)).toMatchObject({ checked: true, standard: false });
+
+        act(() => switchControl(LABEL.noHeader).reset?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual(SEED);
+        expect(switchControl(LABEL.noHeader)).toMatchObject({ checked: true, standard: true, reset: null });
+    });
+
+    // Each switch leaves its standard false: a negated one shows on there, a positive one off.
+    it.each([
+        ['noHeaderIcon', LABEL.noHeaderIcon, true],
+        ['noFooter', LABEL.noFooter, true],
+        ['outlined', LABEL.outlined, false],
+        ['outlinedFrame', LABEL.outlinedFrame, false],
+    ] as const)('switches %s from its standard and stores true', async (key, label, checkedAtStandard) => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(switchControl(label)).toMatchObject({ checked: checkedAtStandard, standard: true });
+
+        await switchControl(label).toggle();
+        expect(getDraftTheme()).toEqual({ widgetFrame: { [key]: true } });
+        expect(switchControl(label)).toMatchObject({ checked: !checkedAtStandard, standard: false });
+    });
+
+    it('shows the padding standard while unset and stores a typed padding', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(numberInput(LABEL.basePadding)?.getAttribute('aria-label')).toBe(`${LABEL.basePadding}${MARKER}`);
+        expect(numberInput(LABEL.basePadding)?.placeholder).toBe('1');
+
+        await typeInto(numberInput(LABEL.basePadding)!, '2.5');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { basePadding: 2.5 } });
+        expect(numberInput(LABEL.basePadding)?.getAttribute('aria-label')).toBe(LABEL.basePadding);
+    });
+
+    it('undoes and redoes a switched preset', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await switchControl(LABEL.noFooter).toggle();
+        expect(getDraftTheme()).toEqual({ widgetFrame: { noFooter: true } });
+
+        await undoRedo('theme_studio_undo');
+        expect(getDraftTheme()).toEqual({});
+        expect(switchControl(LABEL.noFooter)).toMatchObject({ checked: true, standard: true });
+
+        await undoRedo('theme_studio_redo');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { noFooter: true } });
+        expect(switchControl(LABEL.noFooter)).toMatchObject({ checked: false, standard: false });
+    });
+
+    it('keeps the presets when a colour preset is applied; the reset clears them', async () => {
+        const presets = { noHeader: true, outlined: true, basePadding: 2 };
+        const rubin = THEME_PRESETS.find(preset => preset.id === 'rubin')!;
+        await mountPanel({ widgetFrame: presets });
+        await expandSections('theme_studio_presets');
+        const card = Array.from(document.body.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')).find(
+            preset => preset.textContent === 'theme_studio_preset_rubin',
+        );
+        act(() => card?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual({ ...applyPreset({}, rubin), widgetFrame: presets });
+
+        act(() => button('theme_wizard_reset').click());
+        await settle();
+        expect(getDraftTheme()).toEqual({});
+    });
+
+    it('reports an unusable stored switch or padding at its control', async () => {
+        await mountPanel({ widgetFrame: { noFooter: 'yes' as unknown as boolean, basePadding: 30 } });
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
+        await expandSections(SECTION);
+        const errorOf = (label: string): string | null | undefined =>
+            Array.from(section().querySelectorAll('[data-theme-error]')).find(control =>
+                control.textContent?.includes(label),
+            )?.textContent;
+        expect(errorOf(LABEL.basePadding)).toContain('theme_studio_valid_range(0,10)');
+        expect(errorOf(LABEL.noFooter)).not.toBeUndefined();
+    });
+});
+
+describe('ticket 04: ThemeStudioPanel Widget-Rahmen — without card', () => {
+    const SECTION = 'theme_studio_section_widget_frame';
+    const MARKER = ' · theme_studio_frame_standard';
+    const CARD_GROUP = 'theme_studio_group_card';
+    /** The positively worded control of noCard ("Card" on = noCard false). */
+    const CARD = 'theme_studio_frame_card';
+
+    const section = (): HTMLElement => document.body.querySelector<HTMLElement>('[data-studio-section="widgetFrame"]')!;
+
+    /** The card switch: what it shows, and its toggle. */
+    const cardSwitch = (): { checked: boolean; standard: boolean; toggle: () => Promise<void> } => {
+        const label = Array.from(section().querySelectorAll<HTMLLabelElement>('label')).find(
+            element => element.textContent?.replace(MARKER, '') === CARD,
+        )!;
+        const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+        return {
+            checked: input.checked,
+            standard: label.textContent === `${CARD}${MARKER}`,
+            toggle: async () => {
+                act(() => input.click());
+                await settle();
+            },
+        };
+    };
+
+    it('opens the Karte group with the card switch', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        const texts: string[] = [];
+        const walker = document.createTreeWalker(section(), NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            texts.push((node.textContent ?? '').replace(MARKER, ''));
+        }
+        const group = texts.indexOf(CARD_GROUP);
+        expect(group).toBeGreaterThanOrEqual(0);
+        expect(texts.slice(group + 1).find(text => text.startsWith('theme_studio_frame_'))).toBe(CARD);
+    });
+
+    it('shows the card on at the standard and stores noCard when switched off', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(cardSwitch()).toMatchObject({ checked: true, standard: true });
+
+        await cardSwitch().toggle();
+        expect(getDraftTheme()).toEqual({ widgetFrame: { noCard: true } });
+        expect(cardSwitch()).toMatchObject({ checked: false, standard: false });
+    });
+
+    it('counts the noCard preset in the summary', async () => {
+        await mountPanel({ widgetFrame: { noCard: true, baseElevation: 2 } });
+        expect(sectionHeader(SECTION).querySelector('.MuiTypography-caption')?.textContent).toBe(
+            'theme_studio_frame_summary(2,8)',
+        );
+    });
+});
