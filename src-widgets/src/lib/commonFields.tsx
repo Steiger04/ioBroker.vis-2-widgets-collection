@@ -10,9 +10,10 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField, hiddenWhenTruthy } from './fieldFactories';
+import { createColorField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
-import { WIDGET_FRAME_SETTINGS } from './widgetFrame';
+import { fieldRulesOf, type FieldRules } from './usableWidgetData';
+import { storedFrameValue, WIDGET_FRAME_SETTINGS } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -39,6 +40,24 @@ type Settings = {
     markerLayer?: boolean;
 };
 
+/** The field rules of the full shared list, read once on first use (the list is built below). */
+let sharedFieldRules: FieldRules | undefined;
+
+/**
+ * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
+ * hands the predicate the stored data alone, which is read the widget's way — the Rückfall-Regel
+ * by the rules of the shared fields, then the cascade (lib/widgetFrame).
+ *
+ * @param key - The boolean frame setting the field hangs on (`noHeader`, `noFooter`).
+ */
+const hiddenWhileFrameOn =
+    (key: 'noHeader' | 'noFooter'): HiddenPredicate =>
+    data => {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- read lazily, after the module is evaluated
+        sharedFieldRules ??= fieldRulesOf([{ name: 'common', fields: commonFields() }]);
+        return storedFrameValue(data, key, sharedFieldRules, {}) === true;
+    };
+
 /**
  * Build the shared editor field list used by most widgets.
  *
@@ -46,6 +65,9 @@ type Settings = {
  */
 const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true, perState = false, markerLayer = false } = settings || {};
+    // The header and footer fields of every list hang on the widget's own header and footer.
+    const headerOff = hiddenWhileFrameOn('noHeader');
+    const footerOff = hiddenWhileFrameOn('noFooter');
 
     /**
      * The fallback fields of the colour field `base{groupName}` — the variant inherits what the
@@ -149,7 +171,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="header" />,
-            hidden: (data, _i) => data.noHeader && !allFields,
+            hidden: data => !allFields && headerOff(data),
         },
         // Frame settings of the Widget-Rahmen (ADR-0117): no `default`, see basePadding below.
         {
@@ -161,14 +183,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `noHeaderIcon${groupName}`,
             type: 'checkbox',
             label: 'no_header_icon',
-            hidden: hiddenWhenTruthy('noHeader'),
+            hidden: headerOff,
         },
         {
             name: `header${groupName}`,
             label: 'header_text',
             type: 'html',
             default: '',
-            hidden: hiddenWhenTruthy('noHeader'),
+            hidden: headerOff,
         },
         {
             name: `headerSize${groupName}`,
@@ -177,7 +199,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: hiddenWhenTruthy('noHeader'),
+            hidden: headerOff,
         },
         {
             label: '',
@@ -210,7 +232,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="footer" />,
-            hidden: (data, _i) => data.noFooter && !allFields,
+            hidden: data => !allFields && footerOff(data),
         },
         // A frame setting of the Widget-Rahmen (ADR-0117): no `default`, see basePadding below.
         {
@@ -223,7 +245,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'footer_text',
             type: 'html',
             default: '',
-            hidden: hiddenWhenTruthy('noFooter'),
+            hidden: footerOff,
         },
         {
             name: `footerSize${groupName}`,
@@ -232,7 +254,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: hiddenWhenTruthy('noFooter'),
+            hidden: footerOff,
         },
         {
             label: '',
