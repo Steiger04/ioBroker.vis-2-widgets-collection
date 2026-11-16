@@ -8,6 +8,8 @@
  * - the widget data with the editor's OID pick read in for an id field without its object, and the
  *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration),
  *   and the Rahmenvorgaben of the collection theme for the unset frame settings ({@link module:lib/widgetFrame})
+ * - the card decision (`wrappedContent`): no card where the widget class says it is embedded or the
+ *   effective `noCard` — own or inherited — says so
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
  *   overrides + user theme). The shared theme-building/subscribe logic lives in
  *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
@@ -111,6 +113,11 @@ function CollectionProvider({
     );
     const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
 
+    // The card decision (ADR-0117): the widget class says whether the host lets it carry a card
+    // (not embedded); the effective noCard — inherited or own, the one value the frame, the Select
+    // popup and the table header read — takes it away. The outer size follows (`Generic`).
+    const wrappedContent = context.wrappedContent && !data.noCard;
+
     // No <CssBaseline />: MUI's CssBaseline also spreads theme.typography.body1
     // — whose fontFamily the user's choice is forced onto (see
     // useCollectionTheme) — onto the global <body>, leaking the configured font
@@ -128,7 +135,7 @@ function CollectionProvider({
                     '*, *::before, *::after': { boxSizing: 'inherit' },
                 }}
             />
-            <CollectionContext.Provider value={{ ...context, widget, theme: _theme }}>
+            <CollectionContext.Provider value={{ ...context, widget, theme: _theme, wrappedContent }}>
                 {children}
             </CollectionContext.Provider>
         </ThemeProvider>

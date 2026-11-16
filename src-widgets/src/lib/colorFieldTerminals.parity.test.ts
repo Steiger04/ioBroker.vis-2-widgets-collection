@@ -45,6 +45,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import { widgets } from '../widgetsRegistry';
+import { widgetFrameKeysOf } from './widgetFrame';
 
 type WidgetName = (typeof widgets)[number];
 
@@ -89,6 +90,7 @@ interface FieldLike {
     name?: string;
     type?: string;
     terminal?: string;
+    terminalWithoutCard?: string;
     component?: (...args: unknown[]) => unknown;
 }
 
@@ -96,6 +98,7 @@ interface ColorField {
     key: string;
     widget: WidgetName;
     terminal: string | undefined;
+    terminalWithoutCard: string | undefined;
 }
 
 /** Calls a custom field's component the way vis-2 does and checks for the picker element. */
@@ -131,7 +134,12 @@ const colorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): ColorField[] => 
         for (const field of fields as FieldLike[]) {
             if (isPickerField(field)) {
                 const key = `${widget}.${field.name}`;
-                byKey.set(key, { key, widget, terminal: field.terminal });
+                byKey.set(key, {
+                    key,
+                    widget,
+                    terminal: field.terminal,
+                    terminalWithoutCard: field.terminalWithoutCard,
+                });
             }
         }
     }
@@ -153,6 +161,8 @@ const stateColorFieldsOf = (widget: WidgetName, info: RxWidgetInfo): StateColorF
 
 let scanned: ColorField[] = [];
 let stateScanned: StateColorField[] = [];
+/** The widgets that offer the frame setting noCard (lib/widgetFrame). */
+let offeringNoCard = new Set<WidgetName>();
 
 beforeAll(async () => {
     const perWidget = await Promise.all(
@@ -161,11 +171,17 @@ beforeAll(async () => {
                 default: { getWidgetInfo: () => RxWidgetInfo };
             };
             const info = mod.default.getWidgetInfo();
-            return { fields: colorFieldsOf(name, info), stateFields: stateColorFieldsOf(name, info) };
+            return {
+                name,
+                fields: colorFieldsOf(name, info),
+                stateFields: stateColorFieldsOf(name, info),
+                offersNoCard: widgetFrameKeysOf(info.visAttrs ?? []).includes('noCard'),
+            };
         }),
     );
     scanned = perWidget.flatMap(entry => entry.fields);
     stateScanned = perWidget.flatMap(entry => entry.stateFields);
+    offeringNoCard = new Set(perWidget.filter(entry => entry.offersNoCard).map(entry => entry.name));
     // The first run pays the cold Vite transform of every field module.
 }, 60_000);
 
@@ -257,5 +273,28 @@ describe('per-state colour fields inherit the base field (ADR-0004, per-state va
             .filter(field => (field.fallbackFields ?? []).some(fallback => fallback.startsWith('marker')))
             .map(field => field.widget);
         expect([...new Set(withMarker)]).toEqual(['SliderCollectionWidget']);
+    });
+});
+
+// The swatch reads noCard through the widget's cascade (ADR-0117) without knowing the widget's
+// fields (ContractColorField reads every frame setting): sound only where the widget offers noCard.
+describe('ticket 04: a terminal without card belongs to a widget that offers noCard', () => {
+    it('finds the surfaces without card (commonFields and the table header)', () => {
+        const keys = scanned.filter(field => field.terminalWithoutCard !== undefined).map(field => field.key);
+        expect(keys).toEqual(
+            expect.arrayContaining([
+                'StateCollectionWidget.background',
+                'StateCollectionWidget.frameBackground',
+                'JsonTableCollectionWidget.tableHeaderBgColor',
+            ]),
+        );
+    });
+
+    it.each(widgets)('%s: every colour field with a terminal without card sits beside noCard', name => {
+        const stray = scanned
+            .filter(field => field.widget === name && field.terminalWithoutCard !== undefined)
+            .filter(field => !offeringNoCard.has(field.widget))
+            .map(field => field.key);
+        expect(stray, 'offer noCard (commonFields) where a field paints differently without card').toEqual([]);
     });
 });

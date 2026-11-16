@@ -46,6 +46,7 @@ const CONTROLS: Record<WidgetFrameKey, { labelKey: string; negated?: true }> = {
     noHeader: { labelKey: 'theme_studio_frame_header', negated: true },
     noHeaderIcon: { labelKey: 'theme_studio_frame_header_icon', negated: true },
     noFooter: { labelKey: 'theme_studio_frame_footer', negated: true },
+    noCard: { labelKey: 'theme_studio_frame_card', negated: true },
     outlined: { labelKey: 'theme_studio_frame_outlined' },
     outlinedFrame: { labelKey: 'theme_studio_frame_outlined_frame' },
     basePadding: { labelKey: 'theme_studio_frame_padding' },
@@ -57,7 +58,10 @@ const CONTROLS: Record<WidgetFrameKey, { labelKey: string; negated?: true }> = {
  * of their fields there. Consecutive booleans share one switch list.
  */
 const GROUPS: readonly { titleKey: string; keys: readonly WidgetFrameKey[] }[] = [
-    { titleKey: 'theme_studio_group_card', keys: ['outlined', 'outlinedFrame', 'basePadding', 'baseElevation'] },
+    {
+        titleKey: 'theme_studio_group_card',
+        keys: ['noCard', 'outlined', 'outlinedFrame', 'basePadding', 'baseElevation'],
+    },
     { titleKey: 'theme_studio_group_header_footer', keys: ['noHeader', 'noHeaderIcon', 'noFooter'] },
 ];
 

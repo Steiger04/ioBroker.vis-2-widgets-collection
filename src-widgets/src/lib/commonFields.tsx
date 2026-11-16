@@ -267,11 +267,11 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider dividerText="characteristics" />,
         },
+        // A frame setting: no `default`, so an unset value follows the Rahmenvorgabe (lib/widgetFrame).
         {
             name: `noCard${groupName}`,
             label: 'without_card',
             type: 'checkbox',
-            default: false,
         },
         {
             name: `squaredCorner${groupName}`,

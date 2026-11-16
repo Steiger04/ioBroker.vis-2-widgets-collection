@@ -1278,6 +1278,7 @@
     "theme_studio_discard_title": "Discard unsaved changes?",
     "theme_studio_feintuning": "Fine-tuning",
     "theme_studio_feintuning_hint": "Included fonts ship real 400 and 700 faces only — other weights are synthesised by the browser and can look muddy.",
+    "theme_studio_frame_card": "Card",
     "theme_studio_frame_elevation": "Shadow",
     "theme_studio_frame_footer": "Footer",
     "theme_studio_frame_header": "Header",

@@ -1178,3 +1178,59 @@ describe('ticket 03: ThemeStudioPanel Widget-Rahmen — padding, outlines, heade
         expect(errorOf(LABEL.noFooter)).not.toBeUndefined();
     });
 });
+
+describe('ticket 04: ThemeStudioPanel Widget-Rahmen — without card', () => {
+    const SECTION = 'theme_studio_section_widget_frame';
+    const MARKER = ' · theme_studio_frame_standard';
+    const CARD_GROUP = 'theme_studio_group_card';
+    /** The positively worded control of noCard ("Card" on = noCard false). */
+    const CARD = 'theme_studio_frame_card';
+
+    const section = (): HTMLElement => document.body.querySelector<HTMLElement>('[data-studio-section="widgetFrame"]')!;
+
+    /** The card switch: what it shows, and its toggle. */
+    const cardSwitch = (): { checked: boolean; standard: boolean; toggle: () => Promise<void> } => {
+        const label = Array.from(section().querySelectorAll<HTMLLabelElement>('label')).find(
+            element => element.textContent?.replace(MARKER, '') === CARD,
+        )!;
+        const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+        return {
+            checked: input.checked,
+            standard: label.textContent === `${CARD}${MARKER}`,
+            toggle: async () => {
+                act(() => input.click());
+                await settle();
+            },
+        };
+    };
+
+    it('opens the Karte group with the card switch', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        const texts: string[] = [];
+        const walker = document.createTreeWalker(section(), NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            texts.push((node.textContent ?? '').replace(MARKER, ''));
+        }
+        const group = texts.indexOf(CARD_GROUP);
+        expect(group).toBeGreaterThanOrEqual(0);
+        expect(texts.slice(group + 1).find(text => text.startsWith('theme_studio_frame_'))).toBe(CARD);
+    });
+
+    it('shows the card on at the standard and stores noCard when switched off', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(cardSwitch()).toMatchObject({ checked: true, standard: true });
+
+        await cardSwitch().toggle();
+        expect(getDraftTheme()).toEqual({ widgetFrame: { noCard: true } });
+        expect(cardSwitch()).toMatchObject({ checked: false, standard: false });
+    });
+
+    it('counts the noCard preset in the summary', async () => {
+        await mountPanel({ widgetFrame: { noCard: true, baseElevation: 2 } });
+        expect(sectionHeader(SECTION).querySelector('.MuiTypography-caption')?.textContent).toBe(
+            'theme_studio_frame_summary(2,8)',
+        );
+    });
+});

@@ -96,6 +96,7 @@ export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Record<string, unknown>> =
     noHeader: false,
     noHeaderIcon: false,
     noFooter: false,
+    noCard: false,
     outlined: false,
     outlinedFrame: false,
     basePadding: 1,

@@ -48,7 +48,7 @@ export type WidgetFrameSetting = NumberFrameSetting | BooleanFrameSetting;
  * The frame settings that take a Rahmenvorgabe, by the name of their widget data field.
  *
  * @remarks
- * ADR-0117 names eight ({@link WIDGET_FRAME_SETTING_COUNT}); the table holds those built so far, in
+ * ADR-0117 names eight ({@link WIDGET_FRAME_SETTING_COUNT}); the table holds all of them, in
  * the order of their fields under Allgemein. A boolean keeps the semantics of its field (`noHeader`:
  * true hides the header), however a control presents it.
  */
@@ -56,6 +56,7 @@ export const WIDGET_FRAME_SETTINGS = {
     noHeader: { kind: 'boolean', standard: false },
     noHeaderIcon: { kind: 'boolean', standard: false },
     noFooter: { kind: 'boolean', standard: false },
+    noCard: { kind: 'boolean', standard: false },
     outlined: { kind: 'boolean', standard: false },
     outlinedFrame: { kind: 'boolean', standard: false },
     basePadding: { kind: 'number', standard: 1, min: 0, max: 10, step: 0.1 },

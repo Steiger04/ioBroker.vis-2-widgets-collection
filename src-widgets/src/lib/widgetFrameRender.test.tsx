@@ -130,6 +130,12 @@ interface MountedWidget {
     elevation: () => number | null;
     /** The markup of the widget's body, without React's mount ids. */
     markup: () => string;
+    /** The markup of the whole widget — outer size and card included —, without React's mount ids. */
+    widgetMarkup: () => string;
+    /** Whether the widget shows its card: the inset of the card around the frame (`Generic`). */
+    hasCard: () => boolean;
+    /** The background the frame paints (its outer paper). */
+    frameBackground: () => string;
     /** What the frame shows of the other frame settings (ticket 03); null where a part is absent. */
     frame: () => FrameView;
     /** The element the widget renders into (portalled modals live in the document body). */
@@ -137,8 +143,10 @@ interface MountedWidget {
     socket: ThemeSocket;
 }
 
-/** What the frame shows of the frame settings besides the shadow (ticket 03). */
+/** What the frame shows of the frame settings besides the shadow (tickets 03, 04). */
 interface FrameView {
+    /** Whether the widget shows its card (ticket 04). */
+    card: boolean;
     /** The content box's padding in spacing units (the default theme's 8px a unit). */
     padding: number | null;
     /** Whether the frame paper is outlined. */
@@ -175,6 +183,7 @@ afterEach(async () => {
  * @param values - The subscribed state values.
  * @param theme - The stored theme; none: the theme state is unset.
  * @param hostTheme - The vis-2 host theme the widget receives (default: the light host theme).
+ * @param embedded - Whether the widget renders inside another widget (`usedInWidget`).
  */
 async function mountWidget(
     widget: WidgetClass,
@@ -182,6 +191,7 @@ async function mountWidget(
     values: Record<string, unknown>,
     theme?: UserTheme | string,
     hostTheme: object = Theme('light'),
+    embedded = false,
 ): Promise<MountedWidget> {
     const socket = themeSocket(theme);
     const instance = new widget({
@@ -196,7 +206,7 @@ async function mountWidget(
         root.render(
             instance.renderWidgetBody({
                 id: 'preview-widget-frame',
-                widget: { data, style: {} },
+                widget: embedded ? { data, style: {}, usedInWidget: true } : { data, style: {} },
                 style: {},
                 refService: { current: null },
             }),
@@ -208,6 +218,17 @@ async function mountWidget(
         act(() => root.unmount());
         container.remove();
     });
+    // The card shows as its inset around the frame (`Generic`), which sets the outer size.
+    const hasCard = (): boolean => {
+        const { width, height } = getComputedStyle(container.querySelector('.GENERIC-1')!);
+        if (width === 'calc(100% - 8px)' && height === 'calc(100% - 8px)') {
+            return true;
+        }
+        if (width === '100%' && height === '100%') {
+            return false;
+        }
+        throw new Error(`unexpected outer size ${width} × ${height}`);
+    };
     return {
         elevation: () => {
             const paper = container.querySelector('.BASE-PAPER-1');
@@ -215,10 +236,14 @@ async function mountWidget(
             return match ? Number(match[1]) : null;
         },
         markup: () => (container.querySelector('.GENERIC-1')?.innerHTML ?? '').replace(/_r_[0-9a-z]+_/g, '_r_'),
+        widgetMarkup: () => container.innerHTML.replace(/_r_[0-9a-z]+_/g, '_r_'),
+        hasCard,
+        frameBackground: () => getComputedStyle(container.querySelector('.BASE-PAPER-0')!).backgroundColor,
         frame: () => {
             const contentBox = container.querySelector('.BASE-BOX-1');
             const header = container.querySelector('.BASE-HEADER');
             return {
+                card: hasCard(),
                 padding: spacingUnits(contentBox, 'paddingTop'),
                 frameOutlined: Boolean(
                     container.querySelector('.BASE-PAPER-0')?.classList.contains('MuiPaper-outlined'),
@@ -248,7 +273,7 @@ const showDraft = async (draft: UserTheme): Promise<void> => {
 const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=';
 
 /**
- * A frame setting of ticket 03 as the render seam checks it: values of the setting's own kind, and
+ * A frame setting of tickets 03 and 04 as the render seam checks it: values of the setting's own kind, and
  * how the frame shows the setting's value (read back from what is visible).
  */
 interface FrameSettingCase {
@@ -268,6 +293,8 @@ interface FrameSettingCase {
 }
 
 const FRAME_SETTING_CASES: readonly FrameSettingCase[] = [
+    // Ticket 04: the card and the outer size; embedding and Erben = Setzen in `ticket 04: without card`.
+    { key: 'noCard', standard: false, preset: true, own: false, draft: false, shown: f => !f.card },
     { key: 'basePadding', standard: 1, preset: 3, own: 0.5, draft: 2, shown: frame => frame.padding },
     { key: 'outlinedFrame', standard: false, preset: true, own: false, draft: false, shown: f => f.frameOutlined },
     { key: 'outlined', standard: false, preset: true, own: false, draft: false, shown: f => f.contentOutlined },
@@ -354,7 +381,46 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
             });
         });
 
-        describe('ticket 03: padding, outlines, header, header icon and footer', () => {
+        describe('ticket 04: without card', () => {
+            const presetWithoutCard: UserTheme = { widgetFrame: { noCard: true } };
+
+            it('keeps the card for an unset noCard without a Rahmenvorgabe, as for a stored false', async () => {
+                const unset = await mount(fixture.data);
+                const storedFalse = await mount({ ...fixture.data, noCard: false });
+
+                expect(unset.hasCard()).toBe(true);
+                expect(unset.widgetMarkup()).toBe(storedFalse.widgetMarkup());
+            });
+
+            // Erben und Setzen sehen gleich aus: size, edge and background (ADR-0004: transparent).
+            it('drops the card for an unset noCard under the Rahmenvorgabe, exactly like an own noCard', async () => {
+                const inherited = await mount(fixture.data, presetWithoutCard);
+                const own = await mount({ ...fixture.data, noCard: true });
+
+                expect(inherited.hasCard()).toBe(false);
+                expect(inherited.frameBackground()).toBe(own.frameBackground());
+                expect(inherited.widgetMarkup()).toBe(own.widgetMarkup());
+                expect(inherited.socket.setState).not.toHaveBeenCalled();
+                expect(inherited.socket.setObject).not.toHaveBeenCalled();
+            });
+
+            it('renders an embedded widget without card, with and without the Rahmenvorgabe', async () => {
+                const host = Theme('light');
+                const plain = await mountWidget(widget, fixture.data, fixture.values, undefined, host, true);
+                const withPreset = await mountWidget(
+                    widget,
+                    fixture.data,
+                    fixture.values,
+                    { widgetFrame: { noCard: false } },
+                    host,
+                    true,
+                );
+
+                expect([plain.hasCard(), withPreset.hasCard()]).toEqual([false, false]);
+            });
+        });
+
+        describe('ticket 03: padding, outlines, header, header icon and footer (ticket 04: without card)', () => {
             describe.each(FRAME_SETTING_CASES.filter(({ notShownBy }) => !notShownBy?.includes(name)))(
                 '$key',
                 ({ key, standard, preset, own, draft, shown }) => {
@@ -412,6 +478,70 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
                 expect([standard, inherited, own].map(m => m.frame().headerOffset)).toEqual([0.5, 1.5, 1]);
             });
         });
+    });
+});
+
+// The two readers of noCard beside the frame, which follow noCard alone, never the embedding: each
+// sees the effective value, an inherited noCard like an own one.
+describe('ticket 04: the readers of noCard beside the frame', () => {
+    const presetWithoutCard: UserTheme = { widgetFrame: { noCard: true } };
+
+    const load = async (name: 'SelectCollectionWidget' | 'JsonTableCollectionWidget'): Promise<WidgetClass> =>
+        ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+
+    describe('Select popup', () => {
+        /** Opens the popup and returns its surface. */
+        const popupSurface = (): { boxShadow: string; backgroundColor: string } => {
+            const combobox = document.querySelector<HTMLElement>('[role="combobox"]');
+            act(() => {
+                combobox!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+            });
+            const { boxShadow, backgroundColor } = getComputedStyle(document.querySelector('.MuiMenu-paper')!);
+            return { boxShadow, backgroundColor };
+        };
+
+        it('draws the same flat popup for an inherited and an own noCard', async () => {
+            const widget = await load('SelectCollectionWidget');
+            const fixture = FIXTURES.SelectCollectionWidget!;
+
+            await mountWidget(widget, fixture.data, fixture.values, presetWithoutCard);
+            const inherited = popupSurface();
+            // Unmounting takes the portaled popup along.
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, { ...fixture.data, noCard: true }, fixture.values);
+            const own = popupSurface();
+
+            expect(inherited.boxShadow).toBe('none');
+            expect(inherited).toEqual(own);
+        }, 60_000);
+    });
+
+    describe('JsonTable header bar', () => {
+        const headerBar = (): { boxShadow: string; backgroundColor: string } => {
+            const { boxShadow, backgroundColor } = getComputedStyle(document.querySelector('.MuiTableHead-root')!);
+            return { boxShadow, backgroundColor };
+        };
+
+        it('draws the same transparent, flat header bar for an inherited and an own noCard', async () => {
+            const widget = await load('JsonTableCollectionWidget');
+            const fixture = FIXTURES.JsonTableCollectionWidget!;
+
+            await mountWidget(widget, fixture.data, fixture.values);
+            const withCard = headerBar();
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, fixture.data, fixture.values, presetWithoutCard);
+            const inherited = headerBar();
+            mounted.splice(0).forEach(unmount => unmount());
+
+            await mountWidget(widget, { ...fixture.data, noCard: true }, fixture.values);
+            const own = headerBar();
+
+            expect(withCard.boxShadow).not.toBe('none');
+            expect(inherited).toEqual({ boxShadow: 'none', backgroundColor: 'transparent' });
+            expect(inherited).toEqual(own);
+        }, 60_000);
     });
 });
 
