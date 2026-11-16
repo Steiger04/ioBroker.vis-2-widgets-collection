@@ -12,6 +12,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, hiddenWhenTruthy } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
+import { WIDGET_FRAME_SETTINGS } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -292,14 +293,16 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             step: 0.1,
             default: 1,
         },
+        // A frame setting of the Widget-Rahmen (ADR-0117): no `default` — vis-2 would store it on
+        // every dropped widget, which could then never follow the Rahmenvorgabe of the theme. Unset,
+        // it reads the Rahmenvorgabe, else the built-in standard (lib/widgetFrame).
         {
             name: `baseElevation${groupName}`,
             label: 'base_elevation',
             type: 'slider',
-            min: 0,
-            max: 24,
-            step: 1,
-            default: 4,
+            min: WIDGET_FRAME_SETTINGS.baseElevation.min,
+            max: WIDGET_FRAME_SETTINGS.baseElevation.max,
+            step: WIDGET_FRAME_SETTINGS.baseElevation.step,
         },
         {
             label: '',

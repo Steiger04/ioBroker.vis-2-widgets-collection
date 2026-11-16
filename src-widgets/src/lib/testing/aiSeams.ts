@@ -87,6 +87,13 @@ export const UI_ONLY_CUSTOM_FIELDS: readonly UiOnlyCustomField[] = [
 export const isUiOnlyCustomField = (name: string): boolean =>
     UI_ONLY_CUSTOM_FIELDS.some(entry => (entry.name.endsWith(':') ? name.startsWith(entry.name) : name === entry.name));
 
+/**
+ * The defaults the vis-2 palette stored for the frame settings on every dropped widget before
+ * ADR-0117 — what an existing widget holds. Since then the fields have none (`lib/widgetFrame`), so
+ * these are literals: the reference a widget leaving them unset is measured against.
+ */
+export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Record<string, unknown>> = { baseElevation: 4 };
+
 /** A bound of an indexed group as vis-2 reads it: a number, or the name of the data key holding one. */
 const groupBound = (bound: number | string | undefined, data: Record<string, unknown>): number =>
     Number.isInteger(bound) ? (bound as number) : parseInt(String(data[(bound as string | undefined) || 1]), 10);

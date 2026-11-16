@@ -57,6 +57,36 @@ describe('validateThemeOptions: radius range', () => {
     });
 });
 
+// ADR-0117: the Rahmenvorgaben are a known key; the bounds are the shadow field's (0–24), literals
+// from the field definition before it lost its default.
+describe('validateThemeOptions: the Rahmenvorgaben', () => {
+    it('knows the key and accepts a shadow from 0 to 24', () => {
+        for (const baseElevation of [0, 4, 24]) {
+            const result = validateThemeOptions({ widgetFrame: { baseElevation } });
+            expect(result.issues).toEqual([]);
+            expect(result.isValid).toBe(true);
+        }
+    });
+
+    it.each<[unknown, string, string[] | undefined]>([
+        [25, 'number-out-of-range', ['0', '24']],
+        [-1, 'number-out-of-range', ['0', '24']],
+        ['deep', 'invalid-number', undefined],
+    ])('reports the shadow %j at its field', (baseElevation, code, params) => {
+        const result = validateThemeOptions({ widgetFrame: { baseElevation } });
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.baseElevation',
+                keys: ['widgetFrame', 'baseElevation'],
+                severity: 'error',
+                code,
+                ...(params ? { params } : {}),
+            }),
+        ]);
+    });
+});
+
 describe('validateThemeOptions: a colour of the palette', () => {
     it('reports a colour MUI cannot compute with, at its value', () => {
         const result = validateThemeOptions({ palette: { text: { primary: 'white' }, divider: '#101010' } });

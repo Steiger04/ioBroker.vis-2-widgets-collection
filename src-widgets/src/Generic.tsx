@@ -12,7 +12,8 @@
  * - the entry of the widget data into the `CollectionContext`, read through the Rückfall-Regel
  *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
  *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`), an unset
- *   key the palette's default (`lib/fieldDefaults`)
+ *   key the palette's default (`lib/fieldDefaults`), an unset frame setting the Rahmenvorgabe of the
+ *   collection theme or the built-in standard (`lib/widgetFrame`, inside the provider)
  */
 import type { JSX } from 'react';
 import { Box } from '@mui/material';
@@ -24,6 +25,7 @@ import { I18N_PREFIX } from './lib/translate';
 import { fieldRulesOf, usableWidgetData } from './lib/usableWidgetData';
 import { oidPickFieldsOf } from './lib/pickedWidgetData';
 import { fieldDefaultsOf } from './lib/fieldDefaults';
+import { widgetFrameKeysOf } from './lib/widgetFrame';
 
 import type { FieldRules } from './lib/usableWidgetData';
 import type { WidgetDataReading } from './lib/pickedWidgetData';
@@ -50,7 +52,11 @@ const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
         const visAttrs = widgetClass.getWidgetInfo().visAttrs ?? [];
         reading = {
             rules: fieldRulesOf(visAttrs),
-            dataReading: { oidPickFields: oidPickFieldsOf(visAttrs), defaults: fieldDefaultsOf(visAttrs) },
+            dataReading: {
+                oidPickFields: oidPickFieldsOf(visAttrs),
+                defaults: fieldDefaultsOf(visAttrs),
+                frameKeys: widgetFrameKeysOf(visAttrs),
+            },
         };
         fieldReadingByClass.set(widgetClass, reading);
     }
@@ -170,6 +176,8 @@ class Generic<
 
         // Inside the provider an id without its object reads the editor's pick, an unset key the
         // palette's default (lib/pickedWidgetData): an assistant-inserted widget reads like the palette's.
+        // There, too, an unset frame setting reads the Rahmenvorgabe of the collection theme, which only
+        // the provider knows, else its standard (lib/widgetFrame, ADR-0117).
         return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading);
     }
 

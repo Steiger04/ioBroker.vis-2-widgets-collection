@@ -120,6 +120,19 @@ describe('parseStoredTheme: an unusable value falls away, the rest holds', () =>
         expect(read({ corners: { topLeft: -1 }, direction: 'up' })).toEqual({});
     });
 
+    // ADR-0117: a broken Rahmenvorgabe neither takes the others nor the rest of the theme along.
+    it('drops an unusable Rahmenvorgabe alone', () => {
+        expect(read({ widgetFrame: { baseElevation: 25 }, spacing: 4 })).toEqual({ spacing: 4 });
+        expect(read({ widgetFrame: { baseElevation: 'deep' }, corners: { topLeft: 8 } })).toEqual({
+            corners: { topLeft: 8 },
+        });
+    });
+
+    it('keeps a usable Rahmenvorgabe', () => {
+        expect(read({ widgetFrame: { baseElevation: 0 } })).toEqual({ widgetFrame: { baseElevation: 0 } });
+        expect(read({ widgetFrame: { baseElevation: 24 } })).toEqual({ widgetFrame: { baseElevation: 24 } });
+    });
+
     it('finds a value below a key that contains a dot', () => {
         expect(
             read({

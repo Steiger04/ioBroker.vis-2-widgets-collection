@@ -237,7 +237,8 @@ export interface BaseFieldsRxData {
      * Material-UI elevation level (base property without index).
      * Controls shadow depth of the card container.
      *
-     * @default 2
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard 4 (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {

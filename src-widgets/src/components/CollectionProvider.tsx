@@ -6,7 +6,8 @@
  * This module provides:
  * - `CollectionContext`: the shared runtime context for all collection widgets
  * - the widget data with the editor's OID pick read in for an id field without its object, and the
- *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration)
+ *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration),
+ *   and the Rahmenvorgaben of the collection theme for the unset frame settings ({@link module:lib/widgetFrame})
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
  *   overrides + user theme). The shared theme-building/subscribe logic lives in
  *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
@@ -23,6 +24,10 @@ import type { AllCollectionContextProps } from '../types';
 import type { WidgetDataReading } from '../lib/pickedWidgetData';
 import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';
+import { widgetFramePresetsOf, withWidgetFrame, type WidgetFrameKey } from '../lib/widgetFrame';
+
+/** No frame settings: the data reads as it is. */
+const NO_FRAME_KEYS: readonly WidgetFrameKey[] = [];
 
 /**
  * Runtime context used by all Collection widgets.
@@ -40,7 +45,7 @@ interface CollectionProviderProps {
     /**
      * What the widget data's reading takes from the widget's fields (`Generic`, from its
      * `getWidgetInfo()`): an id without its object reads the object and the keys of the pick, an
-     * unset key the palette's default. Absent: the data as it is.
+     * unset key the palette's default, an unset frame setting the Rahmenvorgabe. Absent: the data as it is.
      */
     reading?: WidgetDataReading;
 }
@@ -65,10 +70,9 @@ function CollectionProvider({
     // A widget the vis-2 assistant inserted reads like the palette's: an id set without the field's
     // onChange reads its object and what the pick would have written, an unset key its default; the
     // stored data stays as it is. Unchanged data keeps its identity.
-    const data = usePickedWidgetData(context.widget.data, reading, socket);
-    const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
+    const picked = usePickedWidgetData(context.widget.data, reading, socket);
 
-    const { fontStyles, textStyles } = useStyles(widget.style || {});
+    const { fontStyles, textStyles } = useStyles(context.widget.style || {});
 
     // Collection-specific overrides layered between the host theme and the user
     // theme (see useCollectionTheme): widget-level font/text styles. Memoized so
@@ -96,6 +100,16 @@ function CollectionProvider({
 
     // Effective theme: host → collection overrides → user theme (user wins).
     const _theme = useCollectionTheme(socket, theme, overrides);
+
+    // The last step of the reading (ADR-0117): an unset frame setting the widget offers reads the
+    // Rahmenvorgabe the collection theme carries — the Studio draft while one is open — else its
+    // standard (lib/widgetFrame). The one cascade every reader of the widget data sees.
+    const frameKeys = reading?.frameKeys ?? NO_FRAME_KEYS;
+    const data = useMemo(
+        () => withWidgetFrame(picked, frameKeys, widgetFramePresetsOf(_theme)),
+        [picked, frameKeys, _theme],
+    );
+    const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
 
     // No <CssBaseline />: MUI's CssBaseline also spreads theme.typography.body1
     // — whose fontFamily the user's choice is forced onto (see

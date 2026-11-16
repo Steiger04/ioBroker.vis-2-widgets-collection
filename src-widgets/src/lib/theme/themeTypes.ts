@@ -11,6 +11,8 @@
 
 import type { Theme, ThemeOptions } from '@mui/material/styles';
 
+import type { WidgetFramePresets } from '../widgetFrame';
+
 /**
  * One inlined woff2 face of a Google Font loaded by name in the wizard.
  *
@@ -59,13 +61,19 @@ export interface CornerRadii {
  * @remarks
  * Mirrors MUI's `ThemeOptions` but every field is optional — the form only
  * ever produces a subset, and cleared fields are pruned before serialization.
- * `googleFonts` is a non-MUI extension holding Google Fonts loaded by name.
+ * `googleFonts` is a non-MUI extension holding Google Fonts loaded by name; `corners` and
+ * `widgetFrame` are non-MUI extensions as well.
  */
 export type UserTheme = Partial<ThemeOptions> & {
     /** Google Fonts loaded by name, stored as inlined woff2 data URIs. */
     googleFonts?: GoogleFontsMap;
     /** Per-corner border radii (custom extension; MUI's shape.borderRadius is single-valued). */
     corners?: CornerRadii;
+    /**
+     * The Rahmenvorgaben: what the frame settings of every Collection widget read while the widget
+     * leaves them unset (custom extension, ADR-0117; see lib/widgetFrame).
+     */
+    widgetFrame?: WidgetFramePresets;
 };
 
 /**
