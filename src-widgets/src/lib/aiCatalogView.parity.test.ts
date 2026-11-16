@@ -51,7 +51,7 @@ import {
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
-import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from './widgetFrame';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from './widgetFrame';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -702,17 +702,24 @@ const heightOfRows = (rows: number): number => rows * GRID_ROW_HEIGHT + (rows - 
 const BODY2_LINE = 20;
 
 /**
+ * A frame setting in the standard configuration: the definition's default, or — the frame settings
+ * have none since ADR-0117 — the built-in standard an unset setting reads without a Rahmenvorgabe.
+ */
+const frameSettingOf = (info: RxWidgetInfo, key: WidgetFrameKey): unknown =>
+    fieldDefaultOf(info, key) ?? WIDGET_FRAME_SETTINGS[key].standard;
+
+/**
  * The frame around the control in the standard configuration (the defaults of the definition,
- * as a palette insert sets them; with an OID its name heads the frame and its value foots it):
- * the card's inset (`Generic.wrapContent`, `calc(100% - 8px)`), the header and the footer line
- * (`CollectionBase`; their ± half padding margins cancel out) and the base padding on both sides
- * (MUI spacing: 8 px per unit).
+ * as a palette insert sets them, and the standard of the frame settings; with an OID its name
+ * heads the frame and its value foots it): the card's inset (`Generic.wrapContent`,
+ * `calc(100% - 8px)`), the header and the footer line (`CollectionBase`; their ± half padding
+ * margins cancel out) and the base padding on both sides (MUI spacing: 8 px per unit).
  */
 const frameHeightOf = (info: RxWidgetInfo): number =>
-    (fieldDefaultOf(info, 'noCard') ? 0 : 8) +
-    (fieldDefaultOf(info, 'noHeader') ? 0 : BODY2_LINE) +
-    (fieldDefaultOf(info, 'noFooter') ? 0 : BODY2_LINE) +
-    2 * 8 * Number(fieldDefaultOf(info, 'basePadding') ?? 0);
+    (frameSettingOf(info, 'noCard') ? 0 : 8) +
+    (frameSettingOf(info, 'noHeader') ? 0 : BODY2_LINE) +
+    (frameSettingOf(info, 'noFooter') ? 0 : BODY2_LINE) +
+    2 * 8 * Number(frameSettingOf(info, 'basePadding'));
 
 /**
  * The least height the control of each widget needs in its standard configuration, in px, with
