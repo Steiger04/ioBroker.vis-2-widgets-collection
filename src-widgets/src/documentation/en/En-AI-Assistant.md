@@ -10,7 +10,7 @@ The collection brings **no AI of its own**: it calls no language model and store
 - **Guide for the AI:** every widget also brings a guide to its fields and to the format of its configurator fields. The AI reads it in the type description of the widget; for people it is not visible.
 - **Shaped start values:** configurator fields that used to start empty carry an empty but correctly shaped skeleton as their default. From it the AI recognizes the expected structure. The widget behaves exactly as before.
 - **Robust against AI data:** when the AI inserts a widget, the host sets no defaults and checks nothing; when it changes one, it replaces field values unchecked. An unusable value (wrong type, invalid JSON, wrong shape) therefore counts as unset in the widget: the widget renders as if the value were missing, without an error message. The stored value stays until you correct it in the configurator.
-- **Theme by AI:** the assistant can also change the theme of the collection, i.e. colors, font and shape of all collection widgets (see [Theme by AI](#theme-by-ai)).
+- **Theme by AI:** the assistant can also change the theme of the collection, i.e. colors, font, shape and widget frame of all collection widgets (see [Theme by AI](#theme-by-ai)).
 
 ## Ways of Access
 
@@ -63,7 +63,7 @@ When the assistant reads a view, the host returns the set data of every widget i
 
 ## Theme by AI
 
-The vis-2 assistant can change the theme of the collection: colors, font and shape of all collection widgets, without you opening the [Theme Studio](En-Theme-Studio.md). It edits the same theme as the studio. The theme applies **to the whole installation**, not per project or view: a change takes effect in every project.
+The vis-2 assistant can change the theme of the collection: colors, font, shape and widget frame of all collection widgets, without you opening the [Theme Studio](En-Theme-Studio.md). It edits the same theme as the studio. The theme applies **to the whole installation**, not per project or view: a change takes effect in every project.
 
 ### What You Can Have Changed
 
@@ -72,18 +72,23 @@ The vis-2 assistant can change the theme of the collection: colors, font and sha
 - **Single colors:** primary color, secondary color, error, warning, info and success color, text (primary), text (secondary), base surface, widget surface and divider. A named color lies on top of a preset from the same request.
 - **Font:** a font family from the selection of the Theme Studio (included or system, see [Typography & shape section](En-Theme-Studio.md#typography--shape-section)) and the base font size (8–24 px).
 - **Shape:** the border radius for all four corners (0–96 px) and the spacing unit (0–16 px).
-- **Reset:** the whole theme to the default. This empties every value, including loaded Google fonts and CSS variables. Together with new values, the theme starts from the default and then gets these values.
+- **Widget frame:** the [frame presets](En-Theme-Studio.md#widget-frame-section) of the Theme Studio, such as all widgets without card or without footer: without card, without header, without header icon, without footer, content outlined, frame outlined (each on or off), padding (0–10) and shadow (0–24, whole numbers). They apply to every widget without an own value for the setting; a widget with an own value keeps it (see [Widget frame](En-Home.md#widget-frame)).
+- **Reset:** the whole theme to the default. This empties every value, including loaded Google fonts, CSS variables and the frame presets. Together with new values, the theme starts from the default and then gets these values.
 
-Only what you name changes; everything else stays as it was. A value the theme does not accept is skipped, the rest applies. The assistant cannot set Google fonts, different radii per corner, font weights, line height or CSS variables. Without a reset these values are kept; a new border radius replaces all four corners. It cannot clear a single value either, such as putting the color mode back to "Auto"; that is done in the Theme Studio.
+Only what you name changes; everything else stays as it was. A value the theme does not accept is skipped, the rest applies. The assistant cannot set Google fonts, different radii per corner, font weights, line height or CSS variables. Without a reset these values are kept; a new border radius replaces all four corners. It cannot clear a single value either, such as putting the color mode back to "Auto" or removing a single frame preset; that is done in the Theme Studio.
+
+On a single widget, the assistant's guide tells it to set the frame settings only when you ask for them on that widget, for example "show this switch without card". A widget it inserts without them follows the frame presets like a widget placed by hand.
 
 ### Example Prompts for the Theme
 
 - "Set the theme of the widget collection to the preset Graphite. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Make the primary color orange and the corners rounder, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Reset the theme to the default. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Show all widgets of the widget collection without card. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Hide the footer on all widgets of the widget collection, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Restore the previous theme." (in the same conversation after a change; the assistant then already knows the entry)
 
-Name the set in the request, as described under [Name the set](#name-the-set): the entry for the theme is in the set `vis-2-widgets-collection`, and the assistant mostly looks there only when you say so. Without the second sentence, the theme stayed unchanged in five of six requests in the check with Claude Haiku and Claude Sonnet; the assistant mostly answered that it had no tool for this. With the sentence it placed the order correctly in every session checked. The check ran with the German wording of these prompts; the English ones are translations. Name presets by their name from the Theme Studio (checked with Graphit and Rubin, the German names of Graphite and Ruby).
+Name the set in the request, as described under [Name the set](#name-the-set): the entry for the theme is in the set `vis-2-widgets-collection`, and the assistant mostly looks there only when you say so. Without the second sentence, the theme stayed unchanged in five of six requests in the check with Claude Haiku and Claude Sonnet; the assistant mostly answered that it had no tool for this. With the sentence it placed the order correctly in every session checked. The check ran with the German wording of these prompts; the English ones are translations. Name presets by their name from the Theme Studio (checked with Graphit and Rubin, the German names of Graphite and Ruby). The two prompts for the widget frame have not been checked yet.
 
 ### What Happens
 
