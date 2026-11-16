@@ -2041,18 +2041,20 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 },
             );
 
-            // A flag the assistant writes as text ("false") is no boolean: it reads as unset, which is the
-            // palette's default here — the frame keeps its header (Abnahme, MCP path).
+            // A flag the assistant writes as text ("false") is no boolean: it reads as unset — since
+            // ADR-0117 the palette stores no noHeader either, and unset reads the built-in standard false
+            // (lib/widgetFrame) — so the frame keeps its header, like the palette's widget and like one
+            // that stored the old default false (Abnahme, MCP path).
             it('renders a Checkbox with noHeader written as "false" like its palette counterpart', async () => {
                 const widget = await load('CheckboxCollectionWidget');
                 const required = requiredData('CheckboxCollectionWidget');
                 const counterpart = await paletteCounterpart('CheckboxCollectionWidget', widget, required);
                 const { values } = FIXTURES.CheckboxCollectionWidget!;
 
-                expect(counterpart.noHeader).toBe(false);
-                expect(await renderWidget(widget, { ...required, noHeader: 'false' }, values)).toBe(
-                    await renderWidget(widget, counterpart, values),
-                );
+                expect(counterpart.noHeader).toBeUndefined();
+                const asText = await renderWidget(widget, { ...required, noHeader: 'false' }, values);
+                expect(asText).toBe(await renderWidget(widget, counterpart, values));
+                expect(asText).toBe(await renderWidget(widget, { ...counterpart, noHeader: false }, values));
             });
 
             // The assistant's flat update sets the id of a widget the palette inserted (as does vis-2's

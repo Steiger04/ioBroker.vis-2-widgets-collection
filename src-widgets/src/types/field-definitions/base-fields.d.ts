@@ -21,7 +21,8 @@ export interface BaseFieldsRxData {
      * Hide header section (base property without index).
      * Used in CollectionBase and other base components for global header visibility control.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard false (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {
@@ -38,7 +39,8 @@ export interface BaseFieldsRxData {
      * Hide header icon (base property without index).
      * Used in CollectionBase for global header icon visibility control.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard false (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {
@@ -55,7 +57,8 @@ export interface BaseFieldsRxData {
      * Hide footer section (base property without index).
      * Used in CollectionBase for global footer visibility control.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard false (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {
@@ -186,7 +189,8 @@ export interface BaseFieldsRxData {
      * Use outlined card style (base property without index).
      * Applies outlined variant to Material-UI Card.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard false (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {
@@ -203,7 +207,8 @@ export interface BaseFieldsRxData {
      * Use outlined frame style (base property without index).
      * Applies border to frame elements within the widget.
      *
-     * @default false
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard false (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {
@@ -220,7 +225,8 @@ export interface BaseFieldsRxData {
      * Padding inside base container in pixels (base property without index).
      * Global padding applied to the widget's main container.
      *
-     * @default 8
+     * No field default (ADR-0117): unset, it reads the Rahmenvorgabe of the collection theme, else
+     * the built-in standard 1 (lib/widgetFrame).
      * @example
      * ```typescript
      * const config: BaseFieldsRxData = {

@@ -87,6 +87,49 @@ describe('validateThemeOptions: the Rahmenvorgaben', () => {
     });
 });
 
+// The padding bounds are the field's before it lost its default (0–10); the five switches take a boolean.
+describe('ticket 03: validateThemeOptions — the boolean and padding Rahmenvorgaben', () => {
+    it('accepts the five switches as booleans and a padding from 0 to 10', () => {
+        const result = validateThemeOptions({
+            widgetFrame: {
+                noHeader: true,
+                noHeaderIcon: false,
+                noFooter: true,
+                outlined: false,
+                outlinedFrame: true,
+                basePadding: 0,
+            },
+        });
+        expect(result.issues).toEqual([]);
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 10 } }).issues).toEqual([]);
+    });
+
+    it.each(['noHeader', 'noHeaderIcon', 'noFooter', 'outlined', 'outlinedFrame'])(
+        'reports a %s that is no boolean at its field',
+        key => {
+            const result = validateThemeOptions({ widgetFrame: { [key]: 'false' } });
+            expect(result.isValid).toBe(false);
+            expect(result.issues).toEqual([
+                expect.objectContaining({
+                    path: `widgetFrame.${key}`,
+                    keys: ['widgetFrame', key],
+                    severity: 'error',
+                }),
+            ]);
+        },
+    );
+
+    it('reports a padding beyond 10 at its field', () => {
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 11 } }).issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.basePadding',
+                code: 'number-out-of-range',
+                params: ['0', '10'],
+            }),
+        ]);
+    });
+});
+
 describe('validateThemeOptions: a colour of the palette', () => {
     it('reports a colour MUI cannot compute with, at its value', () => {
         const result = validateThemeOptions({ palette: { text: { primary: 'white' }, divider: '#101010' } });

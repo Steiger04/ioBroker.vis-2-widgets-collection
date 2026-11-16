@@ -21,7 +21,7 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
-import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from '../widgetFrame';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS, type WidgetFrameSetting } from '../widgetFrame';
 import { CORNER_RADIUS_MAX, THEME_MODES } from './themeUtils';
 
 /** How to treat keys not declared in an `object` schema node's `properties`. */
@@ -278,8 +278,9 @@ const componentsSchema: SchemaNode = {
 };
 
 /**
- * The Rahmenvorgaben (`widgetFrame`, ADR-0117): one value per frame setting, in the bounds of its
- * field (lib/widgetFrame). Each value stands for itself: an unusable one falls away alone.
+ * The Rahmenvorgaben (`widgetFrame`, ADR-0117): one value per frame setting, of its kind — a number
+ * in the bounds of its field, or a boolean (lib/widgetFrame). Each value stands for itself: an
+ * unusable one falls away alone.
  */
 const widgetFrameSchema: SchemaNode = {
     kind: 'object',
@@ -287,8 +288,12 @@ const widgetFrameSchema: SchemaNode = {
     allowUnknown: 'warn',
     properties: Object.fromEntries(
         WIDGET_FRAME_KEYS.map(key => {
-            const { min, max } = WIDGET_FRAME_SETTINGS[key];
-            return [key, { kind: 'number', optional: true, min, max } satisfies SchemaNode];
+            const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
+            const node: SchemaNode =
+                setting.kind === 'boolean'
+                    ? { kind: 'boolean', optional: true }
+                    : { kind: 'number', optional: true, min: setting.min, max: setting.max };
+            return [key, node];
         }),
     ),
 };

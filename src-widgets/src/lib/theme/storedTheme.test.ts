@@ -146,6 +146,26 @@ describe('parseStoredTheme: an unusable value falls away, the rest holds', () =>
     });
 });
 
+describe('ticket 03: parseStoredTheme — the boolean and padding Rahmenvorgaben', () => {
+    it('keeps usable switch and padding presets, false included', () => {
+        const widgetFrame = { noHeader: true, noHeaderIcon: false, noFooter: true, outlined: false, basePadding: 0 };
+        expect(read({ widgetFrame })).toEqual({ widgetFrame });
+        expect(read({ widgetFrame: { outlinedFrame: true, basePadding: 10 } })).toEqual({
+            widgetFrame: { outlinedFrame: true, basePadding: 10 },
+        });
+    });
+
+    it('drops an unusable switch or padding alone: the other presets and the rest hold', () => {
+        expect(read({ widgetFrame: { noFooter: 'yes', outlined: true }, spacing: 4 })).toEqual({
+            widgetFrame: { outlined: true },
+            spacing: 4,
+        });
+        expect(read({ widgetFrame: { basePadding: 10.5, noHeader: false } })).toEqual({
+            widgetFrame: { noHeader: false },
+        });
+    });
+});
+
 describe('parseStoredTheme: an unusable colour', () => {
     // Colour checks ask the browser (absent under node): stand in one that rejects only "nope".
     beforeEach(() => {

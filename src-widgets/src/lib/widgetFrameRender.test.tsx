@@ -25,10 +25,11 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import { THEME_STATE_ID } from './constants';
 import { clearDraftTheme, setDraftTheme } from './theme/draftThemeStore';
 import { installInertResizeObserver } from './testing/collectionScene';
-import { paletteInsertData, PLACEABLE_WIDGETS } from './testing/aiSeams';
+import { FRAME_DEFAULTS_BEFORE_ADR_0117, paletteInsertData, PLACEABLE_WIDGETS } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
 import { FIXTURES } from './testing/widgetFixtures';
 import type { UserTheme } from './theme/themeTypes';
+import type { WidgetName } from './testing/aiSeams';
 
 // The host base class with what renderWidgetBody reaches (as in Naht 2): props, state, the signal
 // check. Its `t` reads `this` like the host's (see lib/testing/visRxWidgetStub).
@@ -129,8 +130,34 @@ interface MountedWidget {
     elevation: () => number | null;
     /** The markup of the widget's body, without React's mount ids. */
     markup: () => string;
+    /** What the frame shows of the other frame settings (ticket 03); null where a part is absent. */
+    frame: () => FrameView;
+    /** The element the widget renders into (portalled modals live in the document body). */
+    container: HTMLElement;
     socket: ThemeSocket;
 }
+
+/** What the frame shows of the frame settings besides the shadow (ticket 03). */
+interface FrameView {
+    /** The content box's padding in spacing units (the default theme's 8px a unit). */
+    padding: number | null;
+    /** Whether the frame paper is outlined. */
+    frameOutlined: boolean;
+    /** Whether the content paper is outlined. */
+    contentOutlined: boolean;
+    /** Whether the header line shows its text. */
+    header: boolean;
+    /** Whether the corner icon shows. */
+    headerIcon: boolean;
+    /** Whether the footer line shows its text. */
+    footer: boolean;
+    /** The top margin of the header line in spacing units: half the padding. */
+    headerOffset: number | null;
+}
+
+/** A computed length in spacing units of the default theme (8px). */
+const spacingUnits = (element: Element | null | undefined, property: 'paddingTop' | 'marginTop'): number | null =>
+    element ? Number.parseFloat(getComputedStyle(element)[property] || '0') / 8 : null;
 
 const mounted: (() => void)[] = [];
 
@@ -188,6 +215,25 @@ async function mountWidget(
             return match ? Number(match[1]) : null;
         },
         markup: () => (container.querySelector('.GENERIC-1')?.innerHTML ?? '').replace(/_r_[0-9a-z]+_/g, '_r_'),
+        frame: () => {
+            const contentBox = container.querySelector('.BASE-BOX-1');
+            const header = container.querySelector('.BASE-HEADER');
+            return {
+                padding: spacingUnits(contentBox, 'paddingTop'),
+                frameOutlined: Boolean(
+                    container.querySelector('.BASE-PAPER-0')?.classList.contains('MuiPaper-outlined'),
+                ),
+                contentOutlined: Boolean(
+                    container.querySelector('.BASE-PAPER-1')?.classList.contains('MuiPaper-outlined'),
+                ),
+                header: (header?.textContent ?? '') !== '',
+                // The corner icon: the content paper's absolutely positioned image.
+                headerIcon: container.querySelector('.BASE-PAPER-1 > img[style*="absolute"]') !== null,
+                footer: (contentBox?.nextElementSibling?.textContent ?? '') !== '',
+                headerOffset: spacingUnits(header, 'marginTop'),
+            };
+        },
+        container,
         socket,
     };
 }
@@ -197,6 +243,47 @@ const showDraft = async (draft: UserTheme): Promise<void> => {
     setDraftTheme(draft);
     await nextFrame();
 };
+
+/** A tiny image as the widget's icon, so the corner icon has something to show. */
+const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=';
+
+/**
+ * A frame setting of ticket 03 as the render seam checks it: values of the setting's own kind, and
+ * how the frame shows the setting's value (read back from what is visible).
+ */
+interface FrameSettingCase {
+    key: string;
+    /** The built-in standard: what the field stored as its default before ADR-0117. */
+    standard: number | boolean;
+    /** A Rahmenvorgabe that differs from the standard. */
+    preset: number | boolean;
+    /** An own value of the widget that differs from the preset. */
+    own: number | boolean;
+    /** A Studio draft that differs from the preset. */
+    draft: number | boolean;
+    /** The setting's value as the frame shows it. */
+    shown: (frame: FrameView) => number | boolean | null;
+    /** Widgets that do not show this setting, and why. */
+    notShownBy?: readonly WidgetName[];
+}
+
+const FRAME_SETTING_CASES: readonly FrameSettingCase[] = [
+    { key: 'basePadding', standard: 1, preset: 3, own: 0.5, draft: 2, shown: frame => frame.padding },
+    { key: 'outlinedFrame', standard: false, preset: true, own: false, draft: false, shown: f => f.frameOutlined },
+    { key: 'outlined', standard: false, preset: true, own: false, draft: false, shown: f => f.contentOutlined },
+    { key: 'noHeader', standard: false, preset: true, own: false, draft: false, shown: f => !f.header },
+    {
+        key: 'noHeaderIcon',
+        standard: false,
+        preset: true,
+        own: false,
+        draft: false,
+        shown: f => !f.headerIcon,
+        // The chart draws no corner icon at all; the gauge's is the active highlight zone's (none here).
+        notShownBy: ['EchartsCollectionWidget', 'GaugeCollectionWidget'],
+    },
+    { key: 'noFooter', standard: false, preset: true, own: false, draft: false, shown: f => !f.footer },
+];
 
 describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () => {
     describe.each(PLACEABLE_WIDGETS)('%s', name => {
@@ -265,6 +352,154 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
                 await nextFrame();
                 expect(widgetOnCanvas.elevation()).toBe(10);
             });
+        });
+
+        describe('ticket 03: padding, outlines, header, header icon and footer', () => {
+            describe.each(FRAME_SETTING_CASES.filter(({ notShownBy }) => !notShownBy?.includes(name)))(
+                '$key',
+                ({ key, standard, preset, own, draft, shown }) => {
+                    // The icon lets the corner icon show; the fixture's header and footer have text.
+                    const data = { ...fixture.data, icon: ICON };
+                    const presetTheme: UserTheme = { widgetFrame: { [key]: preset } };
+
+                    it('renders an unset value without a Rahmenvorgabe like the standard, and the stored old default alike', async () => {
+                        const unset = await mount(data);
+                        const storedDefault = await mount({ ...data, [key]: FRAME_DEFAULTS_BEFORE_ADR_0117[key] });
+
+                        expect(shown(unset.frame())).toBe(standard);
+                        expect(unset.markup()).toBe(storedDefault.markup());
+                    });
+
+                    it('renders the Rahmenvorgabe for an unset value, on a dropped widget too; an own value beats it', async () => {
+                        const unset = await mount(data, presetTheme);
+                        const dropped = await mount(
+                            paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], data),
+                            presetTheme,
+                        );
+                        const ownValue = await mount({ ...data, [key]: own }, presetTheme);
+
+                        expect([shown(unset.frame()), shown(dropped.frame()), shown(ownValue.frame())]).toEqual([
+                            preset,
+                            preset,
+                            own,
+                        ]);
+                        for (const { socket } of [unset, dropped, ownValue]) {
+                            expect(socket.setState).not.toHaveBeenCalled();
+                            expect(socket.setObject).not.toHaveBeenCalled();
+                        }
+                    });
+
+                    it('renders a Studio draft over the stored Rahmenvorgabe; without a draft the stored one holds again', async () => {
+                        const widgetOnCanvas = await mount(data, presetTheme);
+                        expect(shown(widgetOnCanvas.frame())).toBe(preset);
+
+                        await showDraft({ widgetFrame: { [key]: draft } });
+                        expect(shown(widgetOnCanvas.frame())).toBe(draft);
+
+                        clearDraftTheme();
+                        await nextFrame();
+                        expect(shown(widgetOnCanvas.frame())).toBe(preset);
+                    });
+                },
+            );
+
+            it('sets header and footer half the effective padding into it', async () => {
+                const theme: UserTheme = { widgetFrame: { basePadding: 3 } };
+                const standard = await mount(fixture.data);
+                const inherited = await mount(fixture.data, theme);
+                const own = await mount({ ...fixture.data, basePadding: 2 }, theme);
+
+                expect([standard, inherited, own].map(m => m.frame().headerOffset)).toEqual([0.5, 1.5, 1]);
+            });
+        });
+    });
+});
+
+// Readers of the frame settings outside the frame building block: they read the widget data of the
+// context, so they follow the cascade like the frame does.
+describe('ticket 03: what Light2 and the button group read of the Widget-Rahmen themselves', () => {
+    /** Imports a placeable widget's class. */
+    const widgetClass = async (name: WidgetName): Promise<WidgetClass> =>
+        ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+
+    describe('Light2: the modal of the single value slider is as wide as the drawn content', () => {
+        const fixture = FIXTURES.Light2CollectionWidget!;
+        // A dimmer in Button-Modus: the long press opens the modal; its auto width counts the frame
+        // padding and the outlines of frame and content paper.
+        const data = {
+            ...fixture.data,
+            colorLightType: 'dimmer',
+            colorLightButton: true,
+            colorLightDelayLongPress: 800,
+        };
+
+        /** The width of the modal content a long press on the face opens. */
+        const modalWidth = async (stored: Record<string, unknown>, theme?: UserTheme): Promise<string> => {
+            const lamp = await mountWidget(await widgetClass('Light2CollectionWidget'), stored, fixture.values, theme);
+            const face = lamp.container.querySelector('.BASE-PAPER-1 button')!;
+            const press = (type: 'pointerdown' | 'pointerup'): void =>
+                act(() => {
+                    face.dispatchEvent(
+                        new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, button: 0 }),
+                    );
+                });
+            vi.useFakeTimers();
+            try {
+                press('pointerdown');
+                act(() => {
+                    vi.advanceTimersByTime(800);
+                });
+                press('pointerup');
+            } finally {
+                vi.useRealTimers();
+            }
+            const content = [...(document.body.querySelector('.MuiModal-root')?.children ?? [])].find(
+                child => child.querySelector('[data-testid="PowerSettingsNewIcon"]') !== null,
+            );
+            return content ? getComputedStyle(content).width : 'no modal';
+        };
+
+        // Default slider width and paddings (1 each): 8 + 42 + 1 + 8 + 28 + 8 + 8 = 103px; a frame
+        // padding of 2 adds 2 × 8px, the two outlines 2 × 2 × 1px.
+        it.each([
+            ['the standard padding without a Rahmenvorgabe', data, undefined, '103px'],
+            ['the padding Rahmenvorgabe', data, { widgetFrame: { basePadding: 2 } }, '119px'],
+            ['the outline Rahmenvorgaben', data, { widgetFrame: { outlined: true, outlinedFrame: true } }, '107px'],
+            [
+                'an own padding over the Rahmenvorgabe',
+                { ...data, basePadding: 1 },
+                { widgetFrame: { basePadding: 2 } },
+                '103px',
+            ],
+        ] as const)('sizes the modal by %s', async (_case, stored, theme, width) => {
+            expect(await modalWidth(stored, theme)).toBe(width);
+        });
+    });
+
+    describe('Button group: without a frame padding the group ends are square', () => {
+        const fixture = FIXTURES.ButtonGroupCollectionWidget!;
+
+        /** The top left corner radius of the group's first button. */
+        const firstButtonRadius = async (stored: Record<string, unknown>, theme?: UserTheme): Promise<string> => {
+            const group = await mountWidget(
+                await widgetClass('ButtonGroupCollectionWidget'),
+                stored,
+                fixture.values,
+                theme,
+            );
+            const first = group.container.querySelector('.MuiToggleButtonGroup-firstButton');
+            return first ? getComputedStyle(first).borderTopLeftRadius : 'no button';
+        };
+
+        it('rounds the ends at the standard padding and squares them at a padding Rahmenvorgabe of 0', async () => {
+            expect(await firstButtonRadius(fixture.data)).not.toBe('0px');
+            expect(await firstButtonRadius(fixture.data, { widgetFrame: { basePadding: 0 } })).toBe('0px');
+        });
+
+        it('keeps the ends of an own padding over the Rahmenvorgabe', async () => {
+            expect(
+                await firstButtonRadius({ ...fixture.data, basePadding: 1 }, { widgetFrame: { basePadding: 0 } }),
+            ).not.toBe('0px');
         });
     });
 });
