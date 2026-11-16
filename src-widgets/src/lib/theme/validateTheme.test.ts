@@ -130,6 +130,21 @@ describe('ticket 03: validateThemeOptions — the boolean and padding Rahmenvorg
     });
 });
 
+// MUI's shadows are a list: only a whole elevation draws one (Paper warns about any other).
+describe('ticket 07: validateThemeOptions — a shadow preset that is no whole number', () => {
+    it('reports the shadow 2.5 at its field; a padding of 0.5 stays valid', () => {
+        expect(validateThemeOptions({ widgetFrame: { baseElevation: 2.5 } }).issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.baseElevation',
+                keys: ['widgetFrame', 'baseElevation'],
+                severity: 'error',
+                code: 'number-not-integer',
+            }),
+        ]);
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 0.5 } }).issues).toEqual([]);
+    });
+});
+
 describe('validateThemeOptions: a colour of the palette', () => {
     it('reports a colour MUI cannot compute with, at its value', () => {
         const result = validateThemeOptions({ palette: { text: { primary: 'white' }, divider: '#101010' } });

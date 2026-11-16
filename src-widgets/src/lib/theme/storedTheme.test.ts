@@ -166,6 +166,19 @@ describe('ticket 03: parseStoredTheme — the boolean and padding Rahmenvorgaben
     });
 });
 
+// MUI draws a shadow only for a whole elevation: a shadow preset that is no whole number falls away alone.
+describe('ticket 07: parseStoredTheme — a shadow preset that is no whole number', () => {
+    it('drops the shadow and keeps the other presets', () => {
+        expect(read({ widgetFrame: { baseElevation: 2.5, noCard: true }, spacing: 4 })).toEqual({
+            widgetFrame: { noCard: true },
+            spacing: 4,
+        });
+        expect(read({ widgetFrame: { baseElevation: 24, basePadding: 0.5 } })).toEqual({
+            widgetFrame: { baseElevation: 24, basePadding: 0.5 },
+        });
+    });
+});
+
 describe('parseStoredTheme: an unusable colour', () => {
     // Colour checks ask the browser (absent under node): stand in one that rejects only "nope".
     beforeEach(() => {

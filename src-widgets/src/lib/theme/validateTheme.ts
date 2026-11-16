@@ -254,6 +254,15 @@ function validateNumberValue(
             params,
         });
     }
+    if (schema.integer && !Number.isInteger(value)) {
+        issues.push({
+            path,
+            keys,
+            severity: 'error',
+            code: 'number-not-integer',
+            message: `Value at "${path}" must be a whole number.`,
+        });
+    }
 }
 
 /** Reports an option that has to be there and is not. */

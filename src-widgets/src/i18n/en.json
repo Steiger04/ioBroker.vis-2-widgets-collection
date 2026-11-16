@@ -1349,6 +1349,7 @@
     "theme_studio_valid_color": "Must be a color (gradients are not allowed)",
     "theme_studio_valid_color_computable": "Use hex, rgb() or hsl() here — the widgets cannot compute with colour names or transparent",
     "theme_studio_valid_css_var_prefix": "The prefix mui is reserved for the vis-2 editor's own variables — choose another one or leave it empty (default vis2c)",
+    "theme_studio_valid_integer": "must be a whole number",
     "theme_studio_valid_number": "must be a number",
     "theme_studio_valid_range": "out of range (%s–%s)",
     "theme_studio_valid_shape": "theme must be an object",
