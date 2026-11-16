@@ -12,8 +12,9 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
+import { knownUserTheme } from './theme/lastKnownTheme';
 import { fieldRulesOf, type FieldRules } from './usableWidgetData';
-import { storedFrameValue, WIDGET_FRAME_SETTINGS } from './widgetFrame';
+import { storedFrameValue, WIDGET_FRAME_SETTINGS, widgetFramePresetsOf } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -46,8 +47,13 @@ let sharedFieldRules: FieldRules | undefined;
 /**
  * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
  * hands the predicate the stored data alone, which is read the widget's way — the Rückfall-Regel
- * by the rules of the shared fields, then the cascade (lib/widgetFrame).
+ * by the rules of the shared fields, then the cascade (lib/widgetFrame) over the Rahmenvorgaben of
+ * the theme the canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
  *
+ * @remarks
+ * Before the page knows any theme the built-in standard applies, as on the canvas of a widget
+ * that has not read the theme yet. vis-2 re-runs the predicate on every render of the attribute
+ * panel, not on a change of the theme: a changed Rahmenvorgabe shows with the panel's next render.
  * @param key - The boolean frame setting the field hangs on (`noHeader`, `noFooter`).
  */
 const hiddenWhileFrameOn =
@@ -55,7 +61,7 @@ const hiddenWhileFrameOn =
     data => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define -- read lazily, after the module is evaluated
         sharedFieldRules ??= fieldRulesOf([{ name: 'common', fields: commonFields() }]);
-        return storedFrameValue(data, key, sharedFieldRules, {}) === true;
+        return storedFrameValue(data, key, sharedFieldRules, widgetFramePresetsOf(knownUserTheme())) === true;
     };
 
 /**

@@ -13,6 +13,10 @@
  * the runtime {@link module:components/CollectionProvider.CollectionProvider} and
  * editor surfaces (which live outside the provider subtree) share one source of
  * truth for the user-configured theme.
+ *
+ * What it reads it also notes as the page's last known theme
+ * ({@link module:lib/theme/lastKnownTheme}), for the readers that cannot take a hook: the attribute
+ * panel's visibility predicates (ADR-0117) and the next Studio open.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,6 +24,7 @@ import { clearDraftTheme, getDraftThemeString } from '../lib/theme/draftThemeSto
 import { bundledFamiliesOf, ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
+import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import { followThemeState, parseStoredTheme } from '../lib/theme/storedTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
@@ -48,14 +53,22 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
  * ```
  */
 export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
-    // The theme state's value as it arrived (JSON text; '' while unread or not text).
-    const [themeJson, setThemeJson] = useState('');
+    // The theme state's value as it arrived (JSON text; '' when not text; undefined while unread).
+    const [themeJson, setThemeJson] = useState<string>();
 
     useEffect(() => followThemeState(socket, val => setThemeJson(typeof val === 'string' ? val : '')), [socket]);
 
     // The stored user theme, read by the one reader (never throws; the empty theme when the
-    // state holds none).
-    const parsedTheme = useMemo(() => parseStoredTheme(themeJson), [themeJson]);
+    // state holds none or is still unread).
+    const parsedTheme = useMemo(() => parseStoredTheme(themeJson ?? ''), [themeJson]);
+
+    // Note what was read as the page's last known theme (ADR-0117) — never the empty theme of a
+    // widget that has not read yet, which would hide what an earlier widget read.
+    useEffect(() => {
+        if (themeJson !== undefined) {
+            setLastKnownTheme(parsedTheme);
+        }
+    }, [themeJson, parsedTheme]);
 
     // In-progress draft from the studio panel (null when the panel is closed).
     // The draft wins over the persisted theme so canvas widgets preview edits
