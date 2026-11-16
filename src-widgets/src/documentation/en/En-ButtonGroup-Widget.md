@@ -92,7 +92,7 @@ In the ButtonGroup Widget, `background`, `background{n}` and `backgroundActive` 
 
 ### Group Ends
 
-With `basePadding` `0` or without a value the ends of the group are square, otherwise rounded.
+With a `basePadding` of `0` the ends of the group are square, otherwise rounded. Without an own value the frame preset or the standard `1` applies, see [Widget frame](En-Home.md#widget-frame).
 
 ## Data Types
 
