@@ -51,6 +51,7 @@ import {
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from './widgetFrame';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -504,7 +505,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             ]);
         });
 
-        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing', () => {
+        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing, eight Rahmenvorgaben', () => {
             const names = settings().map(field => field.name);
 
             // The names are what an order's data is keyed by: the wiki and every stored example use them.
@@ -527,9 +528,77 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 'fontSize',
                 'cornerRadius',
                 'spacing',
+                'noHeader',
+                'noHeaderIcon',
+                'noFooter',
+                'noCard',
+                'outlined',
+                'outlinedFrame',
+                'basePadding',
+                'baseElevation',
             ]);
-            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4);
+            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4 + 8);
         });
+    });
+
+    // ADR-0117: a widget's frame settings have no default, so vis-2 stores nothing and they erben;
+    // the order sets the Rahmenvorgaben under the same names (addendum ADR-0115).
+    describe('ticket 07: the Widget-Rahmen in the assistant’s view', () => {
+        /** The frame settings a widget's type description shows, by name. */
+        const frameFieldsOf = (name: WidgetName): DescribedField[] =>
+            describedFields(infos.get(name)!, I18N_PREFIX).filter(field =>
+                (WIDGET_FRAME_KEYS as readonly (string | undefined)[]).includes(field.name),
+            );
+
+        it.each(PLACEABLE_WIDGETS)('%s describes the eight frame settings, none with a default', name => {
+            const fields = frameFieldsOf(name);
+
+            expect(fields.map(field => field.name).sort()).toEqual([...WIDGET_FRAME_KEYS].sort());
+            expect(fields.filter(field => field.default !== undefined).map(field => field.name)).toEqual([]);
+            expect(Object.keys(paletteInsertData(infos.get(name)!.visAttrs ?? []))).not.toEqual(
+                expect.arrayContaining([expect.stringMatching(/^(noCard|basePadding|baseElevation)$/)]),
+            );
+        });
+
+        /** The sentence of a widget's KI-Leitfaden that names the frame settings. */
+        const frameSentenceOf = (name: WidgetName): string[] =>
+            sentencesOf(guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '').filter(
+                sentence => WIDGET_FRAME_KEYS.every(key => sentence.includes(`"${key}"`)),
+            );
+
+        it.each(PLACEABLE_WIDGETS)(
+            '%s: its KI-Leitfaden says to set the frame settings only on an explicit request for this widget',
+            name => {
+                const sentences = frameSentenceOf(name);
+
+                expect(sentences).toHaveLength(1);
+                expect(sentences[0]).toContain('only when the user explicitly asks for them on this widget');
+                expect(sentences[0]).toContain('follow the theme');
+            },
+        );
+
+        it('words the frame sentence alike in every widget’s KI-Leitfaden', () => {
+            expect(new Set(PLACEABLE_WIDGETS.flatMap(frameSentenceOf)).size).toBe(1);
+        });
+
+        it.each(Object.keys(ORDER_TYPES) as WidgetName[])(
+            '%s describes each Rahmenvorgabe like the widget field it stands in for: name, type and label',
+            name => {
+                const settings = describedFields(infos.get(name)!, I18N_PREFIX).filter(field =>
+                    (WIDGET_FRAME_KEYS as readonly (string | undefined)[]).includes(field.name),
+                );
+                const widgetField = (key: string): DescribedField | undefined =>
+                    frameFieldsOf('StateCollectionWidget').find(field => field.name === key);
+
+                expect(settings.map(field => field.name)).toEqual([...WIDGET_FRAME_KEYS]);
+                for (const setting of settings) {
+                    const { kind } = WIDGET_FRAME_SETTINGS[setting.name as keyof typeof WIDGET_FRAME_SETTINGS];
+                    expect(setting.type, setting.name).toBe(kind === 'boolean' ? 'checkbox' : 'number');
+                    expect(setting.label, setting.name).toBe(widgetField(setting.name!)?.label);
+                    expect(setting.default, setting.name).toBeUndefined();
+                }
+            },
+        );
     });
 
     it('lists only UI-only exceptions that some widget still has', () => {

@@ -145,6 +145,11 @@ Any other stack needs the font on the device.
 typography.fontSize: number from 8 to 24 (px).
 corners.topLeft, corners.topRight, corners.bottomRight and corners.bottomLeft: each a number from 0 to 96 (px); set all four.
 spacing: number from 0 to 16 (px).
+widgetFrame: the frame of all widgets that have no value of their own for a setting; a widget's own value wins.
+widgetFrame.noHeader, widgetFrame.noHeaderIcon, widgetFrame.noFooter, widgetFrame.noCard, widgetFrame.outlined and widgetFrame.outlinedFrame: true or false, meaning what the name says (noCard true: no card).
+widgetFrame.basePadding: number from 0 to 10 (spacing units).
+widgetFrame.baseElevation: whole number from 0 to 24 (shadow).
+Without a value the frame uses padding 1, elevation 4 and false for the rest.
 Example: {"palette":{"mode":"dark","primary":{"main":"#38bdf8"},"secondary":{"main":"#818cf8"},"error":{"main":"#f44336"},"warning":{"main":"#ffa726"},"info":{"main":"#29b6f6"},"success":{"main":"#66bb6a"},"text":{"primary":"#e6edf3","secondary":"#9aa7b4"},"background":{"default":"#0f1216","paper":"#181c23"},"divider":"#2a313c"},"typography":{"fontFamily":"'Inter', system-ui, sans-serif","fontSize":14},"corners":{"topLeft":8,"topRight":8,"bottomRight":8,"bottomLeft":8},"spacing":8}
 ```
 

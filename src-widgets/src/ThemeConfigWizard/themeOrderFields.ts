@@ -10,7 +10,9 @@
  *
  * One field per entry of {@link module:ThemeConfigWizard/themeOrder.THEME_ORDER_SETTINGS}, the
  * one list of what an order can set. Each label is the Theme Studio's label of the same
- * control, so the assistant reads the name the user knows from the studio. The fields are the
+ * control, so the assistant reads the name the user knows from the studio — except a
+ * Rahmenvorgabe's, which is the label of the widget field it stands in for (it keeps that field's
+ * name and sense, ADR-0117). The fields are the
  * host's plain kinds (`checkbox`, `select`, `color`, `number`): the kind is all the type
  * description tells the assistant besides the label, and no editing row is ever drawn.
  */

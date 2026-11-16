@@ -15,11 +15,13 @@
  *   keep no list of their own: one colour setting per entry of the colour register
  *   ({@link module:ThemeConfigWizard/studioColorFields}), the presets and their palette-only
  *   merge ({@link module:lib/theme/presets}), the font catalogue
- *   ({@link module:lib/theme/fontCatalogue}). A setting writes what the studio writes for the
- *   same control: a font's stack, one radius into all four corners.
+ *   ({@link module:lib/theme/fontCatalogue}), one Rahmenvorgabe per row of the Widget-Rahmen
+ *   table ({@link module:lib/widgetFrame}). A setting writes what the studio writes for the
+ *   same control: a font's stack, one radius into all four corners, a Rahmenvorgabe under the
+ *   name of its widget field.
  * - **Sequence.** The settings are worked in in the order of the list: the reset first (the
- *   empty theme as the start), then the preset (the colours only), then the single values — a
- *   single colour lies on top of a preset.
+ *   empty theme as the start, without Rahmenvorgaben), then the preset (the colours only; it
+ *   leaves the Rahmenvorgaben), then the single values — a single colour lies on top of a preset.
  * - **Rückfall-Regel.** A value that cannot be used is skipped, the rest holds. A setting reads
  *   the form of its value (a catalogue name, a number of the studio's range); whether the resulting theme is usable is
  *   decided by the theme validator ({@link module:lib/theme/validateTheme.validateThemeOptions}),
@@ -38,6 +40,7 @@ import type { UserTheme } from '../lib/theme/themeTypes';
 import type { ThemeOrderFieldsRxData } from '../types';
 import { setNestedValue, THEME_CONTROL_RANGES, THEME_MODES } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import { isUsableFramePreset, WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from '../lib/widgetFrame';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
 
 /** How the assistant fills a setting: the kind of field, and for a selection its values. */
@@ -108,6 +111,40 @@ const colorSettingName = (path: string): string =>
         .map((segment, index) => (index === 0 ? segment : segment[0].toUpperCase() + segment.slice(1)))
         .join('');
 
+/**
+ * The label of the widget field a Rahmenvorgabe stands in for. The order names a Rahmenvorgabe by
+ * that field and keeps its sense (`noCard: true` = no card), so it takes the field's label, not the
+ * studio's positive wording of the same control ("Card"), which would read the other way round.
+ */
+const FRAME_FIELD_LABEL_KEYS: Readonly<Record<WidgetFrameKey, string>> = {
+    noHeader: 'no_header',
+    noHeaderIcon: 'no_header_icon',
+    noFooter: 'no_footer',
+    noCard: 'without_card',
+    outlined: 'outlined',
+    outlinedFrame: 'outlined_frame',
+    basePadding: 'base_padding',
+    baseElevation: 'base_elevation',
+};
+
+/**
+ * A setting that stores a Rahmenvorgabe of the Widget-Rahmen (`widgetFrame.<key>`, ADR-0117): a
+ * boolean as it is, a number — also written as text — in the bounds of its field, a whole one for
+ * the shadow. Kind, bounds and step are the one table's ({@link module:lib/widgetFrame}).
+ */
+const frameSetting = (key: WidgetFrameKey): ThemeOrderSetting => {
+    const isNumber = WIDGET_FRAME_SETTINGS[key].kind === 'number';
+    return {
+        name: key,
+        labelKey: FRAME_FIELD_LABEL_KEYS[key],
+        input: { type: isNumber ? 'number' : 'checkbox' },
+        apply: (theme, value) => {
+            const preset = isNumber ? numberOf(value) : value;
+            return isUsableFramePreset(key, preset) ? setNestedValue(theme, `widgetFrame.${key}`, preset) : undefined;
+        },
+    };
+};
+
 /** What a Theme-Auftrag can set, in the order the settings are worked in. */
 export const THEME_ORDER_SETTINGS: readonly ThemeOrderSetting[] = [
     {
@@ -163,6 +200,8 @@ export const THEME_ORDER_SETTINGS: readonly ThemeOrderSetting[] = [
     numberSetting('spacing', 'theme_wizard_layout_spacing', (theme, spacing) =>
         setNestedValue(theme, 'spacing', spacing),
     ),
+    // The Rahmenvorgaben, in the order of the table (ADR-0117, addendum ADR-0115).
+    ...WIDGET_FRAME_KEYS.map(frameSetting),
 ];
 
 /**
