@@ -10,9 +10,18 @@
  * stored data is left out. vis-2 hands the predicates the raw stored data only; what is checked is
  * that they hide by the value the widget renders — the Rückfall-Regel, then the cascade own value →
  * Rahmenvorgabe → standard — never where that value is read.
+ *
+ * Ticket 05 adds the frame settings themselves (the Erb-Adapter): its blocks open the state widget's
+ * Allgemein group in a test host that plays the rest of vis-2 — it stores the data per selected
+ * widget, hands the fields the first widget's data (under multi-selection vis-2's `commonValues`)
+ * and the project in `context.views`, and applies a patch the way vis-2's custom branch does
+ * (`WidgetField.tsx`): `null` deletes the key in every selected widget, a missing key keeps the old
+ * value. The theme comes from a socket in the field context whose theme state holds the stored user
+ * theme, so the panel reads the Rahmenvorgaben the way the widget does. Texts there are the English
+ * words of `en.json`, placeholders filled.
  */
-import { act } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, useState } from 'react';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 // The colour fields and dividers come back as rows; their own rendering is covered by their tests.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -22,7 +31,9 @@ vi.mock('../components/CollectionDivider', () => ({ default: () => null }));
 import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 
+import en from '../i18n/en.json';
 import useCollectionTheme from '../hooks/useCollectionTheme';
+import StateCollectionWidget from '../StateCollectionWidget/StateCollectionWidget';
 import SliderCollectionWidget from '../SliderCollectionWidget/SliderCollectionWidget';
 import { THEME_STATE_ID } from './constants';
 import { setDraftTheme } from './theme/draftThemeStore';
@@ -49,13 +60,23 @@ type PanelProps = {
     hostTheme?: object;
 };
 
+/**
+ * The socket of the panel's own fields (the frame settings' Erb-Adapter reads the theme through it):
+ * its read never answers, so only the canvas widgets of a test decide what the page knows of the theme.
+ */
+const pendingSocket = {
+    getState: () => new Promise<never>(() => undefined),
+    subscribeState: () => Promise.resolve(),
+    unsubscribeState: () => undefined,
+};
+
 /** The group body as vis-2 renders it for the selected widgets. */
 function Panel({ fields, widgets, hostTheme = vis2HostTheme }: PanelProps): React.JSX.Element {
     const ids = Object.keys(widgets);
     const props = {
         context: {
             theme: hostTheme,
-            socket: {},
+            socket: pendingSocket,
             views: { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } },
             projectName: 'main',
             instance: 0,
@@ -313,8 +334,392 @@ describe('ticket 06: the header and footer fields follow the inherited value', (
 
     it('takes no Rahmenvorgabe from the host theme (ADR-0078)', async () => {
         await canvasWidget({});
-        const host = Object.assign(Object.create(vis2HostTheme), { widgetFrame: { noHeader: true } });
+        const host = { ...vis2HostTheme, widgetFrame: { noHeader: true } };
 
         expect(openPanel({ w1: {} }, 'common', host)()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+    });
+});
+
+/** The fields of the state widget's Allgemein group. */
+const ALLGEMEIN = (StateCollectionWidget.getWidgetInfo().visAttrs.find(group => group.name === 'common')?.fields ??
+    []) as readonly Vis2PanelField[];
+
+/** A socket whose theme state holds `theme`; `push` sends a new value, as a change from elsewhere. */
+const themeSocket = (theme?: object): { socket: unknown; push: (theme: object) => Promise<void> } => {
+    const listeners = new Set<(id: string, state: { val: string }) => void>();
+    const socket = {
+        getState: (id: string): Promise<{ val: string } | null> =>
+            Promise.resolve(id === THEME_STATE_ID && theme ? { val: JSON.stringify(theme) } : null),
+        subscribeState: (_id: string, onChange: (id: string, state: { val: string }) => void): Promise<void> => {
+            listeners.add(onChange);
+            return Promise.resolve();
+        },
+        unsubscribeState: (_id: string, onChange: (id: string, state: { val: string }) => void): void => {
+            listeners.delete(onChange);
+        },
+    };
+    return {
+        socket,
+        push: async next => {
+            await act(async () => {
+                for (const listener of listeners) {
+                    listener(THEME_STATE_ID, { val: JSON.stringify(next) });
+                }
+                await Promise.resolve();
+            });
+        },
+    };
+};
+
+type HostProps = {
+    /** The stored data per selected widget, in selection order. */
+    initial: Record<string, WidgetData>;
+    socket: unknown;
+    /** Receives every patch a field reports. */
+    onPatch: (patch: WidgetData) => void;
+};
+
+/** vis-2's attribute panel for the selected widgets: the Allgemein group, patches applied. */
+function PanelHost({ initial, socket, onPatch }: HostProps): React.JSX.Element {
+    const [widgets, setWidgets] = useState(initial);
+    const ids = Object.keys(widgets);
+    const props = {
+        context: {
+            theme: vis2HostTheme,
+            socket,
+            views: { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } },
+        },
+        selectedView: 'v',
+        selectedWidgets: ids,
+        selectedWidget: ids[0],
+        Editor: () => null,
+    } as unknown as RxWidgetInfoCustomComponentProperties;
+    const onDataChange = (patch: WidgetData): void => {
+        onPatch(patch);
+        setWidgets(current =>
+            Object.fromEntries(
+                Object.entries(current).map(([id, data]) => {
+                    const next: WidgetData = { ...data };
+                    for (const [key, value] of Object.entries(patch)) {
+                        if (value === null) {
+                            delete next[key];
+                        } else {
+                            next[key] = value;
+                        }
+                    }
+                    return [id, next];
+                }),
+            ),
+        );
+    };
+    return (
+        <Vis2GroupBody
+            fields={ALLGEMEIN}
+            data={ids.length > 1 ? vis2CommonValues(widgets) : widgets[ids[0]]}
+            stored={Object.values(widgets)}
+            onDataChange={onDataChange}
+            props={props}
+        />
+    );
+}
+
+let framePanel: RenderComponentHandle<HostProps> | null = null;
+
+afterEach(() => {
+    framePanel?.unmount();
+    framePanel = null;
+});
+
+/** Opens Allgemein for the selected widgets under the stored theme; the theme read settles first. */
+const openFramePanel = async (
+    widgets: Record<string, WidgetData>,
+    theme?: object,
+): Promise<{ patches: WidgetData[]; push: (theme: object) => Promise<void> }> => {
+    const { socket, push } = themeSocket(theme);
+    const patches: WidgetData[] = [];
+    framePanel = renderComponent<HostProps>(PanelHost, {
+        initial: widgets,
+        socket,
+        onPatch: patch => void patches.push(patch),
+    });
+    await act(async () => {
+        await Promise.resolve();
+    });
+    return { patches, push };
+};
+
+/** The value cell of the field `name`. */
+const cellOf = (name: string): HTMLElement => {
+    const cell = framePanel!.container.querySelector<HTMLElement>(`tr[data-field="${name}"] td:last-child`);
+    if (!cell) {
+        throw new Error(`no row ${name}`);
+    }
+    return cell;
+};
+
+/** What the choice of a boolean frame setting shows. */
+const shownChoice = (name: string): string =>
+    cellOf(name).querySelector<HTMLElement>('[role="combobox"]')?.textContent ?? '(no choice)';
+
+/** Opens the choice of `name` and picks the option `value` (`inherit`, `on`, `off`), as a click does. */
+const choose = (name: string, value: string): void => {
+    const combobox = cellOf(name).querySelector<HTMLElement>('[role="combobox"]');
+    act(() => {
+        combobox?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+    });
+    const option = document.body.querySelector<HTMLElement>(`[role="listbox"] li[data-value="${value}"]`);
+    if (!option) {
+        throw new Error(`no option ${value} for ${name}`);
+    }
+    act(() => option.click());
+};
+
+/** The options the open or closed choice of `name` offers, by their words (opens it to read them). */
+const offeredChoices = (name: string): string[] => {
+    const combobox = cellOf(name).querySelector<HTMLElement>('[role="combobox"]');
+    act(() => {
+        combobox?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+    });
+    const offered = [...document.body.querySelectorAll<HTMLElement>('[role="listbox"] li')]
+        .filter(item => getComputedStyle(item).display !== 'none' && item.getAttribute('aria-disabled') !== 'true')
+        .map(item => item.textContent ?? '');
+    act(() => {
+        document.body
+            .querySelector('[role="listbox"]')
+            ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    return offered;
+};
+
+/** Sets the native value of an input and fires its event, as a drag or typing does. */
+const setInput = (input: HTMLInputElement | null, value: string, event: 'change' | 'input'): void => {
+    if (!input) {
+        throw new Error('no input');
+    }
+    act(() => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+        input.dispatchEvent(new Event(event, { bubbles: true }));
+    });
+};
+
+/** What the slider of a number frame setting shows: position, number, caption, whether × is offered. */
+const shownSlider = (name: string): { position: string; number: string; caption: string; clear: boolean } => {
+    const cell = cellOf(name);
+    return {
+        position: cell.querySelector<HTMLInputElement>('input[type="range"]')?.value ?? '(no slider)',
+        number: cell.querySelector<HTMLInputElement>('input[type="number"]')?.value ?? '(no number)',
+        caption: cell.querySelector<HTMLElement>('[data-frame-caption]')?.textContent ?? '',
+        clear: cell.querySelector('button[aria-label]') !== null,
+    };
+};
+
+/** Drags the slider of `name` to `value`. */
+const drag = (name: string, value: number): void =>
+    setInput(cellOf(name).querySelector<HTMLInputElement>('input[type="range"]'), String(value), 'change');
+
+/** Clicks the × of `name`. */
+const clear = (name: string): void => {
+    const button = cellOf(name).querySelector<HTMLButtonElement>('button[aria-label]');
+    if (!button) {
+        throw new Error(`no × for ${name}`);
+    }
+    act(() => button.click());
+};
+
+/** The host's `t` of the dom test project, put back after this file. */
+let keyTranslator: unknown;
+
+beforeAll(() => {
+    const host = (window as unknown as { visRxWidget: { t: unknown } }).visRxWidget;
+    keyTranslator = host.t;
+    // The words of en.json for the host's `t`, `%s` filled in order.
+    host.t = (key: string, ...args: string[]): string =>
+        args.reduce((text, arg) => text.replace('%s', arg), (en as Record<string, string>)[key] ?? key);
+});
+
+afterAll(() => {
+    (window as unknown as { visRxWidget: { t: unknown } }).visRxWidget.t = keyTranslator;
+});
+
+describe('ticket 05: a boolean frame setting', () => {
+    it('without an own value shows "As theme" with the standard, or with the Rahmenvorgabe', async () => {
+        await openFramePanel({ w1: {} });
+        expect(shownChoice('noCard')).toBe('As theme (off)');
+
+        framePanel!.unmount();
+        await openFramePanel({ w1: {} }, { widgetFrame: { noCard: true } });
+        expect(shownChoice('noCard')).toBe('As theme (on)');
+    });
+
+    it('offers "As theme" with the inherited value, "On" and "Off" — under the field\'s own label', async () => {
+        await openFramePanel({ w1: {} }, { widgetFrame: { noHeader: true } });
+
+        expect(offeredChoices('noHeader')).toEqual(['As theme (on)', 'On', 'Off']);
+        expect(framePanel!.container.querySelector('tr[data-field="noHeader"] td')?.textContent).toBe('no_header');
+    });
+
+    it('follows a changed Rahmenvorgabe while the panel is open', async () => {
+        const { push } = await openFramePanel({ w1: {} }, { widgetFrame: { outlined: false } });
+        expect(shownChoice('outlined')).toBe('As theme (off)');
+
+        await push({ widgetFrame: { outlined: true } });
+
+        expect(shownChoice('outlined')).toBe('As theme (on)');
+    });
+
+    it('shows nothing it writes: opening and showing report no patch', async () => {
+        const { patches } = await openFramePanel({ w1: {} }, { widgetFrame: { noCard: true } });
+        offeredChoices('noCard');
+
+        expect(patches).toEqual([]);
+    });
+
+    it('"On" and "Off" report the value, also where it equals the inherited one; "As theme" reports null', async () => {
+        const { patches } = await openFramePanel({ w1: {} });
+
+        choose('noFooter', 'off');
+        expect(shownChoice('noFooter')).toBe('Off');
+        choose('noFooter', 'on');
+        expect(shownChoice('noFooter')).toBe('On');
+        choose('noFooter', 'inherit');
+        expect(shownChoice('noFooter')).toBe('As theme (off)');
+
+        expect(patches).toEqual([{ noFooter: false }, { noFooter: true }, { noFooter: null }]);
+    });
+
+    it('an existing widget with the stored old default shows it as set ("Off"), not as inheriting', async () => {
+        await openFramePanel({ w1: { noCard: false, noHeader: false, outlinedFrame: false } });
+
+        expect(shownChoice('noCard')).toBe('Off');
+        expect(shownChoice('noHeader')).toBe('Off');
+        expect(shownChoice('outlinedFrame')).toBe('Off');
+    });
+
+    it('reads a stored value the widget cannot use as inheriting, as the widget does (Rückfall-Regel)', async () => {
+        // The vis-2 assistant writes text into a boolean field; the widget reads it as unset (ADR-0114).
+        const { patches } = await openFramePanel({ w1: { noCard: 'true' } }, { widgetFrame: { noCard: true } });
+        expect(shownChoice('noCard')).toBe('As theme (on)');
+
+        choose('noCard', 'off');
+        expect(patches).toEqual([{ noCard: false }]);
+    });
+
+    describe('multi-selection', () => {
+        it.each<[string, Record<string, WidgetData>]>([
+            ['set against inheriting', { w1: { noCard: true }, w2: {} }],
+            ['inheriting against set (the first widget lacks the key)', { w1: {}, w2: { noCard: true } }],
+            ['two own values', { w1: { noCard: true }, w2: { noCard: false } }],
+        ])('%s shows the mixed state', async (_case, widgets) => {
+            await openFramePanel(widgets);
+
+            expect(shownChoice('noCard')).toBe('Mixed');
+            expect(offeredChoices('noCard')).toEqual(['As theme (off)', 'On', 'Off']);
+        });
+
+        it('shows the common state where the widgets agree', async () => {
+            await openFramePanel({ w1: { noCard: true }, w2: { noCard: true }, w3: { noCard: true } });
+            expect(shownChoice('noCard')).toBe('On');
+
+            framePanel!.unmount();
+            await openFramePanel({ w1: {}, w2: { noCard: null } }, { widgetFrame: { noCard: true } });
+            expect(shownChoice('noCard')).toBe('As theme (on)');
+        });
+
+        it('a choice reports one patch for all selected widgets, and all show it', async () => {
+            const { patches } = await openFramePanel({ w1: {}, w2: { noCard: true } });
+
+            choose('noCard', 'off');
+            expect(shownChoice('noCard')).toBe('Off');
+            choose('noCard', 'inherit');
+            expect(shownChoice('noCard')).toBe('As theme (off)');
+
+            expect(patches).toEqual([{ noCard: false }, { noCard: null }]);
+        });
+    });
+});
+
+describe('ticket 05: a number frame setting', () => {
+    it('without an own value shows the slider at the inherited value, "inherits · Standard: n", no ×', async () => {
+        await openFramePanel({ w1: {} });
+
+        expect(shownSlider('baseElevation')).toEqual({
+            position: '4',
+            number: '',
+            caption: 'inherits · Standard: 4',
+            clear: false,
+        });
+        expect(shownSlider('basePadding').caption).toBe('inherits · Standard: 1');
+    });
+
+    it('names the Rahmenvorgabe as "Theme" and follows it while the panel is open', async () => {
+        const { push } = await openFramePanel({ w1: {} }, { widgetFrame: { baseElevation: 10 } });
+        expect(shownSlider('baseElevation')).toMatchObject({ position: '10', caption: 'inherits · Theme: 10' });
+
+        await push({ widgetFrame: { baseElevation: 0 } });
+
+        expect(shownSlider('baseElevation')).toMatchObject({ position: '0', caption: 'inherits · Theme: 0' });
+    });
+
+    it('dragging stores the value and offers ×; × reports null and the setting erbt again', async () => {
+        const { patches } = await openFramePanel({ w1: {} }, { widgetFrame: { baseElevation: 10 } });
+
+        drag('baseElevation', 7);
+        expect(shownSlider('baseElevation')).toEqual({ position: '7', number: '7', caption: '', clear: true });
+
+        clear('baseElevation');
+        expect(shownSlider('baseElevation')).toMatchObject({
+            position: '10',
+            caption: 'inherits · Theme: 10',
+            clear: false,
+        });
+
+        expect(patches).toEqual([{ baseElevation: 7 }, { baseElevation: null }]);
+    });
+
+    it('typing a number stores it within the range', async () => {
+        const { patches } = await openFramePanel({ w1: {} });
+        const input = cellOf('basePadding').querySelector<HTMLInputElement>('input[type="number"]');
+
+        setInput(input, '2.5', 'input');
+        setInput(input, '40', 'input');
+
+        expect(patches).toEqual([{ basePadding: 2.5 }, { basePadding: 10 }]);
+    });
+
+    it('an existing widget with the stored old defaults shows them as set, with ×', async () => {
+        await openFramePanel({ w1: { basePadding: 1, baseElevation: 4 } });
+
+        expect(shownSlider('basePadding')).toEqual({ position: '1', number: '1', caption: '', clear: true });
+        expect(shownSlider('baseElevation')).toEqual({ position: '4', number: '4', caption: '', clear: true });
+    });
+
+    it('shows nothing it writes: opening reports no patch', async () => {
+        const { patches } = await openFramePanel({ w1: { basePadding: 1 } }, { widgetFrame: { basePadding: 3 } });
+
+        expect(shownSlider('basePadding').position).toBe('1');
+        expect(patches).toEqual([]);
+    });
+
+    describe('multi-selection', () => {
+        it.each<[string, Record<string, WidgetData>]>([
+            ['set against inheriting', { w1: { baseElevation: 8 }, w2: {} }],
+            ['inheriting against set (the first widget lacks the key)', { w1: {}, w2: { baseElevation: 8 } }],
+            ['two own values', { w1: { baseElevation: 8 }, w2: { baseElevation: 2 } }],
+        ])('%s shows the mixed state and offers ×', async (_case, widgets) => {
+            await openFramePanel(widgets);
+
+            expect(shownSlider('baseElevation')).toMatchObject({ number: '', caption: 'Mixed', clear: true });
+        });
+
+        it('dragging and × report one patch for all selected widgets', async () => {
+            const { patches } = await openFramePanel({ w1: {}, w2: { baseElevation: 8 } });
+
+            drag('baseElevation', 12);
+            expect(shownSlider('baseElevation')).toMatchObject({ number: '12', clear: true });
+            clear('baseElevation');
+            expect(shownSlider('baseElevation')).toMatchObject({ caption: 'inherits · Standard: 4', clear: false });
+
+            expect(patches).toEqual([{ baseElevation: 12 }, { baseElevation: null }]);
+        });
     });
 });

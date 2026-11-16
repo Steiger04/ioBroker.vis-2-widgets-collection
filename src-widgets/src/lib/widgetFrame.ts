@@ -17,7 +17,8 @@
  * the resolution allowlists (ADR-0078).
  *
  * {@link WIDGET_FRAME_SETTINGS} is the one table: the cascade, the theme schema, the field
- * definitions' ranges and the Theme Studio section read it. A setting joins by its row.
+ * definitions and their Erb-Adapter in the attribute panel (kind, standard, slider range) and the
+ * Theme Studio section read it. A setting joins by its row.
  *
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.

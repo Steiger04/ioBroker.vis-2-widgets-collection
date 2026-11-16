@@ -51,6 +51,7 @@ import {
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
+import { isWidgetFrameKey, WIDGET_FRAME_SETTINGS, widgetFrameKeysOf } from './widgetFrame';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -317,7 +318,9 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                     field =>
                         field.name &&
                         (field.type === 'custom' || isJsonRule(rules.named.get(field.name))) &&
-                        !isUiOnlyCustomField(field.name),
+                        !isUiOnlyCustomField(field.name) &&
+                        // A frame setting has no default on purpose (ADR-0117); see its own block.
+                        !isWidgetFrameKey(field.name),
                 )
                 .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
@@ -353,7 +356,10 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         it('shows a strukturiert-leerer default for every data-bearing custom field, or lists it as UI only', () => {
             const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
             const missing = sharedFields()
-                .filter(field => field.type === 'custom' && !isUiOnlyCustomField(field.name!))
+                .filter(
+                    field =>
+                        field.type === 'custom' && !isUiOnlyCustomField(field.name!) && !isWidgetFrameKey(field.name!),
+                )
                 .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
 
@@ -373,6 +379,43 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
 
             expect(sharedFields().length).toBeGreaterThan(0);
             expect(dropped).toEqual([]);
+        });
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('ticket 05: %s — the frame settings as the assistant reads them', name => {
+        /** The label each frame setting carried as a vis-2 checkbox or slider, before its Erb-Adapter. */
+        const LABELS: Record<string, string> = {
+            noHeader: 'no_header',
+            noHeaderIcon: 'no_header_icon',
+            noFooter: 'no_footer',
+            noCard: 'without_card',
+            outlined: 'outlined',
+            outlinedFrame: 'outlined_frame',
+            basePadding: 'base_padding',
+            baseElevation: 'base_elevation',
+        };
+
+        it('describes all eight under their name and translated label, without a default', () => {
+            const info = infos.get(name)!;
+            const offered = widgetFrameKeysOf(info.visAttrs ?? []);
+            const described = describedFields(info, I18N_PREFIX).filter(
+                field => field.name !== undefined && isWidgetFrameKey(field.name),
+            );
+
+            expect(offered).toHaveLength(8);
+            expect(described.map(field => [field.name, field.label, field.default])).toEqual(
+                offered.map(key => [key, (en as Record<string, string>)[LABELS[key]], undefined]),
+            );
+        });
+
+        it('keeps the rule of the former field: a boolean like a checkbox, a number like a slider', () => {
+            const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
+
+            for (const key of widgetFrameKeysOf(infos.get(name)!.visAttrs ?? [])) {
+                expect(rules.named.get(key), key).toBe(
+                    WIDGET_FRAME_SETTINGS[key].kind === 'boolean' ? 'boolean' : 'number',
+                );
+            }
         });
     });
 
