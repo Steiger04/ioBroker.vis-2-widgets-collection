@@ -1291,7 +1291,7 @@
     "theme_studio_frame_footer": "Footer",
     "theme_studio_frame_header": "Header",
     "theme_studio_frame_header_icon": "Header icon",
-    "theme_studio_frame_info": "Widgets without an own value follow these presets; without a preset the built-in standard applies. Existing widgets keep their stored values: to let them follow, select them in vis-2 and set the setting under General to “As theme”.",
+    "theme_studio_frame_info": "Widgets without an own value follow these presets, otherwise the standard applies; existing widgets keep their stored values until you select them and set the setting under Common to “As theme” or clear it with ×.",
     "theme_studio_frame_outlined": "Content outlined",
     "theme_studio_frame_outlined_frame": "Frame outlined",
     "theme_studio_frame_padding": "Padding",
