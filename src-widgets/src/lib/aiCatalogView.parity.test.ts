@@ -629,6 +629,25 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             expect(new Set(PLACEABLE_WIDGETS.flatMap(frameSentenceOf)).size).toBe(1);
         });
 
+        // The type description shows the frame settings as custom fields without a default (the
+        // Erb-Adapter, ticket 05): the KI-Leitfaden names the values an explicit request sets.
+        it.each(PLACEABLE_WIDGETS)(
+            'ticket 05: %s: its KI-Leitfaden names the format of the frame settings for an explicit request',
+            name => {
+                const sentences = sentencesOf(
+                    guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '',
+                );
+                const format = sentences.filter(sentence => sentence.includes('"basePadding" a number'));
+
+                expect(format).toHaveLength(1);
+                expect(format[0]).toContain('the six on/off fields take true or false as their names say');
+                expect(format[0]).toContain('"basePadding" a number from 0 to 10');
+                expect(format[0]).toContain('"baseElevation" a whole number from 0 to 24');
+                // It follows the sentence that names all eight and says that unset means the theme.
+                expect(sentences[sentences.indexOf(format[0]) - 1]).toBe(frameSentenceOf(name)[0]);
+            },
+        );
+
         it.each(Object.keys(ORDER_TYPES) as WidgetName[])(
             '%s describes each Rahmenvorgabe like the widget field it stands in for: name, type and label',
             name => {
