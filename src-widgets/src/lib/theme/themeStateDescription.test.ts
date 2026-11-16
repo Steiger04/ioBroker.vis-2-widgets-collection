@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest';
 
 import { STUDIO_COLOR_FIELDS } from '../../ThemeConfigWizard/studioColorFields';
 import { themeStateDescription } from '../testing/themeStateDescription';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from '../widgetFrame';
 import { createChromeTheme } from './chromeTheme';
 import { BUNDLED_FONTS } from './fontCatalogue';
 import { resolveCollectionTheme } from './resolveCollectionTheme';
@@ -137,5 +138,49 @@ describe('theme state description (AI channel for MCP clients)', () => {
         expect(description).toContain('JSON text');
         expect(description).toContain('write the whole theme back');
         expect(description).toContain('A single invalid value is ignored');
+    });
+});
+
+// ADR-0117: the Rahmenvorgaben are a key of the same theme; an MCP client learns their shape here.
+describe('ticket 07: the Rahmenvorgaben in the theme state description', () => {
+    const numberKeys = ['basePadding', 'baseElevation'] as const;
+    const booleanKeys = WIDGET_FRAME_KEYS.filter(key => WIDGET_FRAME_SETTINGS[key].kind === 'boolean');
+
+    it('names every boolean Rahmenvorgabe as true or false, and the validator accepts both', () => {
+        const sentence = description.split('. ').find(part => part.includes('true or false')) ?? '';
+
+        expect(booleanKeys.filter(key => !sentence.includes(`widgetFrame.${key}`))).toEqual([]);
+        for (const key of booleanKeys) {
+            for (const value of [true, false]) {
+                expect(errorsOf({ widgetFrame: { [key]: value } }), `${key} ${value}`).toEqual([]);
+            }
+        }
+    });
+
+    it('knows every number Rahmenvorgabe', () => {
+        expect(WIDGET_FRAME_KEYS.filter(key => WIDGET_FRAME_SETTINGS[key].kind === 'number')).toEqual([...numberKeys]);
+    });
+
+    it.each(numberKeys)('states the range of %s, which the validator accepts at both ends', key => {
+        const setting = WIDGET_FRAME_SETTINGS[key];
+        const whole = Number.isInteger(setting.step);
+
+        expect(description).toContain(
+            `widgetFrame.${key}: ${whole ? 'whole number' : 'number'} from ${setting.min} to ${setting.max}`,
+        );
+        for (const value of [setting.min, setting.max]) {
+            expect(errorsOf({ widgetFrame: { [key]: value } }), `${key} ${value}`).toEqual([]);
+        }
+        expect(errorsOf({ widgetFrame: { [key]: setting.max + 1 } })).not.toEqual([]);
+        if (whole) {
+            expect(errorsOf({ widgetFrame: { [key]: setting.min + 0.5 } })).not.toEqual([]);
+        }
+    });
+
+    it('names the standard an unset Rahmenvorgabe falls back to', () => {
+        expect(description).toContain(
+            `padding ${WIDGET_FRAME_SETTINGS.basePadding.standard}, elevation ${WIDGET_FRAME_SETTINGS.baseElevation.standard} and false for the rest`,
+        );
+        expect(booleanKeys.every(key => WIDGET_FRAME_SETTINGS[key].standard === false)).toBe(true);
     });
 });

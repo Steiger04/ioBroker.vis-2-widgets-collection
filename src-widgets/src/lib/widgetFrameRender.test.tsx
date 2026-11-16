@@ -633,3 +633,31 @@ describe('ticket 03: what Light2 and the button group read of the Widget-Rahmen 
         });
     });
 });
+
+// MUI draws a shadow only for a whole elevation (`theme.shadows` is a list): a Rahmenvorgabe of 2.5
+// would leave the widget without a shadow and log errors. It is unusable and falls away alone.
+describe('ticket 07: a shadow preset that is no whole number', () => {
+    const load = async (): Promise<WidgetClass> =>
+        ((await import('../SwitchCollectionWidget/SwitchCollectionWidget')) as { default: WidgetClass }).default;
+    const fixture = FIXTURES.SwitchCollectionWidget!;
+
+    it('falls away from the stored theme: the standard 4 shows, the other presets hold', async () => {
+        const shown = await mountWidget(await load(), fixture.data, fixture.values, {
+            widgetFrame: { baseElevation: 2.5, outlinedFrame: true },
+        });
+
+        expect(shown.elevation()).toBe(4);
+        expect(shown.frame().frameOutlined).toBe(true);
+    }, 60_000);
+
+    // The draft is the whole theme while it lasts: without a usable shadow the standard shows.
+    it('falls away from a Studio draft: the standard 4 shows, the other presets of the draft hold', async () => {
+        const shown = await mountWidget(await load(), fixture.data, fixture.values, {
+            widgetFrame: { baseElevation: 8 },
+        });
+        await showDraft({ widgetFrame: { baseElevation: 2.5, outlinedFrame: true } });
+
+        expect(shown.elevation()).toBe(4);
+        expect(shown.frame().frameOutlined).toBe(true);
+    }, 60_000);
+});

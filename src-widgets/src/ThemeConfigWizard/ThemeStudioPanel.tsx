@@ -131,6 +131,7 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
     'reserved-css-var-prefix': 'theme_studio_valid_css_var_prefix',
     'invalid-number': 'theme_studio_valid_number',
     'number-out-of-range': 'theme_studio_valid_range',
+    'number-not-integer': 'theme_studio_valid_integer',
     'invalid-type': 'theme_studio_valid_type',
     'unknown-key': 'theme_studio_valid_unknown',
     'invalid-shape': 'theme_studio_valid_shape',

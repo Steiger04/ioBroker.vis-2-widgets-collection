@@ -36,6 +36,7 @@ import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
 import { THEME_CONTROL_RANGES } from './theme/themeUtils';
 import { validateThemeOptions } from './theme/validateTheme';
+import { WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS } from './widgetFrame';
 
 // The host's widget base class has to stand before `Generic` is loaded.
 await vi.hoisted(async () => {
@@ -814,6 +815,130 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             expect(guide()).toContain(notations);
             expect(stateDescription()).toContain(notations);
         });
+    });
+});
+
+// ADR-0117, addendum ADR-0115: the order sets the Rahmenvorgaben of the Widget-Rahmen too, by the
+// names of the widget fields they stand in for, under the same merge rule.
+describe('ticket 07: Naht „Theme-Auftrag“ — the Rahmenvorgaben', () => {
+    /** A stored theme with Rahmenvorgaben besides the rest. */
+    const WITH_FRAME: UserTheme = { ...STORED, widgetFrame: { basePadding: 2, noFooter: true } };
+
+    it('sets a named Rahmenvorgabe; the other Rahmenvorgaben and the rest of the theme stay', async () => {
+        expect(await themeAfter({ noCard: true }, WITH_FRAME)).toEqual({
+            ...STORED,
+            widgetFrame: { basePadding: 2, noFooter: true, noCard: true },
+        });
+    });
+
+    // A value that differs from the stored one and from the standard; booleans keep the field's sense.
+    it.each<[string, unknown]>([
+        ['noHeader', true],
+        ['noHeaderIcon', true],
+        ['noFooter', false],
+        ['noCard', true],
+        ['outlined', true],
+        ['outlinedFrame', true],
+        ['basePadding', 0.5],
+        ['baseElevation', 0],
+    ])('%s changes exactly this Rahmenvorgabe', async (name, value) => {
+        expect(await themeAfter({ [name]: value }, WITH_FRAME)).toEqual(
+            withValue(WITH_FRAME, `widgetFrame.${name}`, value),
+        );
+    });
+
+    it('sets several Rahmenvorgaben and other values in one order', async () => {
+        expect(await themeAfter({ noCard: true, outlined: true, baseElevation: 0, mode: 'dark' }, WITH_FRAME)).toEqual({
+            ...STORED,
+            palette: { ...STORED.palette, mode: 'dark' },
+            widgetFrame: { basePadding: 2, noFooter: true, noCard: true, outlined: true, baseElevation: 0 },
+        });
+    });
+
+    it('takes a number written as text', async () => {
+        expect(await themeAfter({ basePadding: '0.5', baseElevation: '8' }, WITH_FRAME)).toEqual({
+            ...STORED,
+            widgetFrame: { basePadding: 0.5, noFooter: true, baseElevation: 8 },
+        });
+    });
+
+    it('a reset clears the Rahmenvorgaben with the rest; named ones are set afterwards', async () => {
+        expect(await themeAfter({ reset: true, mode: 'dark' }, WITH_FRAME)).toEqual({ palette: { mode: 'dark' } });
+        expect(await themeAfter({ reset: true, noCard: true }, WITH_FRAME)).toEqual({ widgetFrame: { noCard: true } });
+    });
+
+    it('a preset replaces only the colours and leaves the Rahmenvorgaben', async () => {
+        const preset = THEME_PRESETS.find(one => one.id === 'graphit')!;
+
+        expect(await themeAfter({ preset: 'graphit' }, WITH_FRAME)).toEqual(applyPreset(WITH_FRAME, preset));
+        expect(((await themeAfter({ preset: 'graphit' }, WITH_FRAME)) as UserTheme).widgetFrame).toEqual(
+            WITH_FRAME.widgetFrame,
+        );
+    });
+
+    it.each<[string, Record<string, unknown>]>([
+        ['a switch written as text', { noCard: 'true' }],
+        ['a switch written as a number', { noHeader: 1 }],
+        ['a padding beyond the field', { basePadding: 11 }],
+        ['a negative padding', { basePadding: -1 }],
+        ['a padding in words', { basePadding: 'wide' }],
+        ['a shadow beyond the field', { baseElevation: 25 }],
+        // MUI draws a shadow only for a whole elevation; the studio's slider moves in whole steps.
+        ['a shadow that is no whole number', { baseElevation: 2.5 }],
+        ['a shadow that is no whole number, as text', { baseElevation: '2.5' }],
+        ['a shadow that is a switch', { baseElevation: true }],
+    ])('skips %s and applies the usable values of the same order', async (_label, unusable) => {
+        expect(await themeAfter({ ...unusable, outlined: true, mode: 'dark' }, WITH_FRAME)).toEqual({
+            ...withValue(WITH_FRAME, 'palette.mode', 'dark'),
+            widgetFrame: { ...WITH_FRAME.widgetFrame, outlined: true },
+        });
+    });
+
+    it('the same order again leaves the theme it left the first time, and writes nothing', async () => {
+        const order = { noCard: true, basePadding: 0.5 };
+        const { server, editor } = placeOrder(order, { stored: JSON.stringify(WITH_FRAME) });
+        await settle(server);
+        const first = server.valueOf(THEME_STATE_ID);
+
+        place(editor, order);
+        await settle(server);
+
+        expect(server.valueOf(THEME_STATE_ID)).toBe(first);
+        expect(server.received()).toEqual({ reads: 2, writes: 1 });
+    });
+
+    describe('what the KI-Leitfaden tells the assistant', () => {
+        const guide = (): string =>
+            (en as Record<string, string>)[orderFields().find(field => field.type === 'help')!.label!];
+
+        it('names every Rahmenvorgabe by its field, and that a reset clears them and a preset leaves them', () => {
+            for (const key of WIDGET_FRAME_KEYS) {
+                expect(guide(), key).toContain(`"${key}"`);
+            }
+            expect(guide()).toContain('a reset clears them, a preset leaves them');
+        });
+
+        // The bounds are the one table's (lib/widgetFrame); guide and state description are held to it.
+        it.each([
+            { field: 'basePadding', inState: 'widgetFrame.basePadding: number', inGuide: '' },
+            { field: 'baseElevation', inState: 'widgetFrame.baseElevation: whole number', inGuide: 'whole number ' },
+        ] as const)(
+            'states the range of $field as the description of the theme state does, and the order takes exactly it',
+            async ({ field, inState, inGuide }) => {
+                const { min, max } = WIDGET_FRAME_SETTINGS[field];
+                expect(guide()).toContain(`"${field}": ${inGuide}${min} to ${max}`);
+                expect(themeStateDescription()).toContain(`${inState} from ${min} to ${max}`);
+
+                for (const end of [min, max]) {
+                    expect(await themeAfter({ reset: true, [field]: end }), `${field} ${end}`).toEqual({
+                        widgetFrame: { [field]: end },
+                    });
+                }
+                for (const beyond of [min - 1, max + 1]) {
+                    expect(await themeAfter({ reset: true, [field]: beyond }), `${field} ${beyond}`).toEqual({});
+                }
+            },
+        );
     });
 });
 

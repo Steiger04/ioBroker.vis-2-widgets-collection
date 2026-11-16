@@ -51,6 +51,8 @@ import {
     type WidgetName,
 } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
+import { THEME_STATE_ID } from './constants';
+import { WIDGET_FRAME_KEYS, type WidgetFramePresets } from './widgetFrame';
 import {
     CHART_OID,
     CHROME,
@@ -248,15 +250,17 @@ async function markupOf(element: React.JSX.Element, read: (container: HTMLElemen
  * @param values - The subscribed state values.
  * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
  *   no attribute bound.
+ * @param socket - The socket the widget talks to; defaults to one without a stored theme.
  */
 function widgetElement(
     widget: WidgetClass,
     data: Record<string, unknown>,
     values: Record<string, unknown>,
     stored: Record<string, unknown> = data,
+    socket: object = stubSocket,
 ): React.JSX.Element {
     const instance = new widget({
-        context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
+        context: { socket, themeType: 'light', lang: 'en', theme: Theme('light') },
     });
     instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
     return instance.renderWidgetBody({
@@ -2105,6 +2109,73 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     }
                 },
             );
+        });
+    });
+});
+
+/**
+ * The KI-Lesenaht of the Widget-Rahmen (ADR-0117): the assistant inserts a widget without its frame
+ * settings, as its KI-Leitfaden tells it to. The widget reads each of them through the cascade —
+ * the Rahmenvorgabe of the stored theme, else the built-in standard — exactly like a widget that
+ * stores these values itself, read raw.
+ */
+describe('ticket 07: an assistant-inserted widget without frame settings', () => {
+    /** Rahmenvorgaben that differ from the standard in every one of the eight settings. */
+    const PRESETS: Required<WidgetFramePresets> = {
+        noHeader: true,
+        noHeaderIcon: true,
+        noFooter: true,
+        noCard: true,
+        outlined: true,
+        outlinedFrame: true,
+        basePadding: 2.5,
+        baseElevation: 9,
+    };
+
+    /** The stub socket, its theme state holding `widgetFrame` as the Rahmenvorgaben. */
+    const socketWithPresets = (widgetFrame: WidgetFramePresets): object => ({
+        ...stubSocket,
+        getState: (id: string): Promise<unknown> =>
+            Promise.resolve(id === THEME_STATE_ID ? { val: JSON.stringify({ widgetFrame }) } : null),
+    });
+
+    it('sets every frame setting in the presets', () => {
+        expect(Object.keys(PRESETS).sort()).toEqual([...WIDGET_FRAME_KEYS].sort());
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('%s', name => {
+        const fixture = FIXTURES[name]!;
+        let widget: WidgetClass;
+
+        beforeAll(async () => {
+            widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+        }, 60_000);
+
+        /** The assistant's data: the fixture holds no frame setting. */
+        const inserted = (): Record<string, unknown> => {
+            expect(WIDGET_FRAME_KEYS.filter(key => key in fixture.data)).toEqual([]);
+            return fixture.data;
+        };
+
+        // The reference is the same data with the frame settings stored — what a person's widget
+        // holds — rendered with no theme: a stored value never reads the cascade.
+        it('reads the built-in standard without a Rahmenvorgabe, like the old defaults stored', async () => {
+            expect(await renderWidget(widget, inserted(), fixture.values)).toBe(
+                await renderWidget(widget, { ...inserted(), ...FRAME_DEFAULTS_BEFORE_ADR_0117 }, fixture.values),
+            );
+        });
+
+        it('reads the Rahmenvorgaben of the stored theme, like these values stored', async () => {
+            const data = inserted();
+            const html = await markupOf(
+                widgetElement(widget, data, fixture.values, data, socketWithPresets(PRESETS)),
+                container =>
+                    container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`,
+            );
+
+            expect(html).toBe(await renderWidget(widget, { ...data, ...PRESETS }, fixture.values));
+            // The presets show: the widget does not look as it does with the standard.
+            expect(html).not.toBe(await renderWidget(widget, data, fixture.values));
         });
     });
 });

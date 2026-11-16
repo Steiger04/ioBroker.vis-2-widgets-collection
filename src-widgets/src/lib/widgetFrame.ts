@@ -32,6 +32,7 @@ interface NumberFrameSetting {
     readonly standard: number;
     readonly min: number;
     readonly max: number;
+    /** The slider's step; a whole step admits whole numbers only ({@link isWholeNumberSetting}). */
     readonly step: number;
 }
 
@@ -84,13 +85,28 @@ export type WidgetFramePresets = {
 /** Whether `key` names a frame setting. */
 export const isWidgetFrameKey = (key: string): key is WidgetFrameKey => Object.hasOwn(WIDGET_FRAME_SETTINGS, key);
 
-/** Whether a value is usable as the Rahmenvorgabe of `key`: the setting's kind, a number within its bounds. */
+/**
+ * Whether a number setting takes whole numbers only: its step is whole. The shadow is one — MUI's
+ * shadows are a list, a Paper with elevation 2.5 draws none and logs an error.
+ */
+export const isWholeNumberSetting = (setting: NumberFrameSetting): boolean => Number.isInteger(setting.step);
+
+/**
+ * Whether a value is usable as the Rahmenvorgabe of `key`: the setting's kind, a number within its
+ * bounds — and a whole one where the setting takes whole numbers only.
+ */
 export function isUsableFramePreset(key: WidgetFrameKey, value: unknown): boolean {
     const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
     if (setting.kind === 'boolean') {
         return typeof value === 'boolean';
     }
-    return typeof value === 'number' && Number.isFinite(value) && value >= setting.min && value <= setting.max;
+    return (
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        value >= setting.min &&
+        value <= setting.max &&
+        (!isWholeNumberSetting(setting) || Number.isInteger(value))
+    );
 }
 
 /** No Rahmenvorgaben: every unset setting reads its standard. */
