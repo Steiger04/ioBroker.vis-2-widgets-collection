@@ -43,6 +43,7 @@ vi.mock('../lib/theme/googleFonts', async importOriginal => ({
 }));
 
 import { lastLibraryProps } from '../components/colorPicker/testing/fakeColorPickerLibrary';
+import { THEME_STATE_ID } from '../lib/constants';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { BUNDLED_FONTS, CUSTOM_FONT_VALUE } from '../lib/theme/fontCatalogue';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
@@ -835,5 +836,153 @@ describe('ThemeStudioPanel fonts and corners follow the draft', () => {
         act(() => button('theme_wizard_reset').click());
         await settle();
         expect(linkToggle()?.getAttribute('aria-pressed')).toBe('true');
+    });
+});
+
+describe('ThemeStudioPanel Widget-Rahmen section (ADR-0117)', () => {
+    const SECTION = 'theme_studio_section_widget_frame';
+    /** The shadow control's label: the stubbed key, with the standard marker while unset. */
+    const SHADOW = 'theme_studio_frame_elevation';
+    const STANDARD_MARKER = `${SHADOW} · theme_studio_frame_standard`;
+
+    /** The collapsed section's summary line. */
+    const summary = (): string | null | undefined =>
+        sectionHeader(SECTION).querySelector('.MuiTypography-caption')?.textContent;
+
+    /** The number input of the shadow control (its accessible name is the control's label). */
+    const shadowInput = (): HTMLInputElement | null =>
+        document.body.querySelector<HTMLInputElement>(
+            `[data-studio-section="widgetFrame"] input[type="number"][aria-label^="${SHADOW}"]`,
+        );
+
+    const resetButton = (): HTMLButtonElement | null =>
+        document.body.querySelector<HTMLButtonElement>(
+            '[data-studio-section="widgetFrame"] button[title="theme_studio_frame_reset"]',
+        );
+
+    /** Types a value into an input like a user would: React listens to the native input event. */
+    const typeInto = async (input: HTMLInputElement, value: string): Promise<void> => {
+        act(() => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        await settle();
+    };
+
+    const undoRedo = async (label: 'theme_studio_undo' | 'theme_studio_redo'): Promise<void> => {
+        act(() => document.body.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)?.click());
+        await settle();
+    };
+
+    it('sits between Typography & Shape and Status & Text', async () => {
+        await mountPanel({});
+        const titles = Array.from(document.body.querySelectorAll<HTMLElement>('.MuiAccordionSummary-root')).map(
+            header => header.firstElementChild?.firstElementChild?.textContent,
+        );
+        expect(titles.slice(titles.indexOf('theme_studio_section_schrift_form'))).toEqual([
+            'theme_studio_section_schrift_form',
+            SECTION,
+            'theme_studio_section_status_text',
+            'theme_studio_section_advanced',
+        ]);
+    });
+
+    it('sums up how many of the eight settings are preset', async () => {
+        await mountPanel({});
+        expect(summary()).toBe('theme_studio_frame_summary(0,8)');
+        handle?.unmount();
+        await mountPanel({ widgetFrame: { baseElevation: 10 } });
+        expect(summary()).toBe('theme_studio_frame_summary(1,8)');
+    });
+
+    it('explains the inheritance rule in an info box', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        expect(document.body.querySelector('[data-studio-section="widgetFrame"] [data-info-box]')?.textContent).toBe(
+            'theme_studio_frame_info',
+        );
+    });
+
+    it('shows the standard while unset, the preset once set, and resets it alone', async () => {
+        await mountPanel(SEED);
+        await expandSections(SECTION);
+        expect(shadowInput()?.getAttribute('aria-label')).toBe(STANDARD_MARKER);
+        expect(shadowInput()?.value).toBe('');
+        expect(shadowInput()?.placeholder).toBe('4');
+        expect(resetButton()).toBeNull();
+
+        await typeInto(shadowInput()!, '10');
+        expect(getDraftTheme()).toEqual({ ...SEED, widgetFrame: { baseElevation: 10 } });
+        expect(shadowInput()?.getAttribute('aria-label')).toBe(SHADOW);
+        expect(resetButton()).not.toBeNull();
+
+        act(() => resetButton()?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual(SEED);
+        expect(shadowInput()?.getAttribute('aria-label')).toBe(STANDARD_MARKER);
+        expect(resetButton()).toBeNull();
+    });
+
+    it('undoes and redoes a preset', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(shadowInput()!, '0');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { baseElevation: 0 } });
+
+        await undoRedo('theme_studio_undo');
+        expect(getDraftTheme()).toEqual({});
+        expect(shadowInput()?.getAttribute('aria-label')).toBe(STANDARD_MARKER);
+
+        await undoRedo('theme_studio_redo');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { baseElevation: 0 } });
+        expect(shadowInput()?.value).toBe('0');
+    });
+
+    it('saves the preset into the theme state', async () => {
+        const { setState } = await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(shadowInput()!, '12');
+        await act(async () => {
+            button('save').click();
+            await Promise.resolve();
+        });
+        expect(setState).toHaveBeenCalledWith(THEME_STATE_ID, JSON.stringify({ widgetFrame: { baseElevation: 12 } }));
+    });
+
+    it('takes a discarded preset off the canvas', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(shadowInput()!, '12');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { baseElevation: 12 } });
+
+        act(() => document.body.querySelector<HTMLButtonElement>('button[aria-label="theme_studio_close"]')?.click());
+        act(() => button('theme_studio_discard').click());
+        await nextFrame();
+        expect(getDraftTheme()).toBeNull();
+    });
+
+    it('keeps the presets when a colour preset is applied; the reset clears them', async () => {
+        const rubin = THEME_PRESETS.find(preset => preset.id === 'rubin')!;
+        await mountPanel({ widgetFrame: { baseElevation: 10 } });
+        await expandSections('theme_studio_presets');
+        const card = Array.from(document.body.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')).find(
+            preset => preset.textContent === 'theme_studio_preset_rubin',
+        );
+        act(() => card?.click());
+        await settle();
+        expect(getDraftTheme()).toEqual({ ...applyPreset({}, rubin), widgetFrame: { baseElevation: 10 } });
+
+        act(() => button('theme_wizard_reset').click());
+        await settle();
+        expect(getDraftTheme()).toEqual({});
+    });
+
+    it('reports an unusable stored preset at its field', async () => {
+        await mountPanel({ widgetFrame: { baseElevation: 30 } });
+        expect(document.body.querySelector('.MuiAlert-standard.MuiAlert-colorError')).toBeNull();
+        await expandSections(SECTION);
+        expect(
+            document.body.querySelector('[data-studio-section="widgetFrame"] [data-theme-error]')?.textContent,
+        ).toContain('theme_studio_valid_range(0,24)');
     });
 });

@@ -25,7 +25,7 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import { THEME_STATE_ID } from './constants';
 import { clearDraftTheme, setDraftTheme } from './theme/draftThemeStore';
 import { installInertResizeObserver } from './testing/collectionScene';
-import { PLACEABLE_WIDGETS } from './testing/aiSeams';
+import { paletteInsertData, PLACEABLE_WIDGETS } from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
 import { FIXTURES } from './testing/widgetFixtures';
 import type { UserTheme } from './theme/themeTypes';
@@ -231,6 +231,12 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
                     expect(socket.setState).not.toHaveBeenCalled();
                     expect(socket.setObject).not.toHaveBeenCalled();
                 }
+            });
+
+            // vis-2 stores the default of every field on a drop: a widget dropped now stores no shadow.
+            it('renders the Rahmenvorgabe on a widget dropped from the palette', async () => {
+                const dropped = paletteInsertData(widget.getWidgetInfo().visAttrs ?? [], fixture.data);
+                expect((await mount(dropped, { widgetFrame: { baseElevation: 10 } })).elevation()).toBe(10);
             });
 
             it('drops an unusable stored Rahmenvorgabe alone: the standard holds, the rest of the theme too', async () => {
