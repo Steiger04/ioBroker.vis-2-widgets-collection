@@ -12,9 +12,15 @@
  *
  * The seed is shown — and mirrored onto the canvas — until that background read answers, so it
  * has to follow a change made while no session is open as well: the studio's palette entry
- * keeps it on the stored theme ({@link module:ThemeConfigWizard/ThemeWizardButton}).
+ * keeps it on the stored theme ({@link module:ThemeConfigWizard/ThemeWizardButton}), and so does every
+ * collection widget on the canvas once it has read the theme ({@link module:hooks/useCollectionTheme}).
+ *
+ * The attribute panel's visibility predicates read it too (ADR-0117): vis-2 calls them with the
+ * stored widget data alone, synchronously, with no hook — {@link knownUserTheme} is the theme the
+ * canvas shows as far as the page knows it then.
  */
 
+import { getDraftTheme } from './draftThemeStore';
 import type { UserTheme } from './themeTypes';
 
 /** The stored theme as it was known last on this page (null before the first load). */
@@ -28,4 +34,14 @@ export function getLastKnownTheme(): UserTheme | null {
 /** Seeds the session cache (on a load, a save and a change of the stored theme); `null` forgets it. */
 export function setLastKnownTheme(theme: UserTheme | null): void {
     lastKnown = theme;
+}
+
+/**
+ * The user theme the canvas shows right now as far as this page knows it, read synchronously: the
+ * Studio draft while the Studio has one, else the last known stored theme — the precedence the
+ * canvas widgets take ({@link module:hooks/useCollectionTheme}). `null` before either is known: a
+ * canvas widget that has not read the theme yet renders the empty theme as well.
+ */
+export function knownUserTheme(): UserTheme | null {
+    return getDraftTheme() ?? lastKnown;
 }

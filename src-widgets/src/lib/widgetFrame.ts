@@ -22,6 +22,7 @@
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
  */
+import { usableWidgetData, type FieldRules } from './usableWidgetData';
 
 /** A frame setting with a bounded number (the field's slider). */
 interface NumberFrameSetting {
@@ -190,4 +191,27 @@ export function withWidgetFrame<T extends object>(
         }
     }
     return (filled as T | undefined) ?? data;
+}
+
+/**
+ * The value a widget renders for one frame setting, read from its stored data — for a reader that
+ * has only the stored data at hand, as vis-2 hands it to an attribute-panel predicate.
+ *
+ * @remarks
+ * The same reading as the widget's: the Rückfall-Regel first (an unusable stored value reads as
+ * unset, ADR-0114), then the cascade of {@link withWidgetFrame}. The widget's pick and field
+ * defaults do not apply: a frame setting has neither.
+ * @param stored - The widget data as stored in the project; never changed.
+ * @param key - The frame setting.
+ * @param rules - The field rules of the widget's fields (`fieldRulesOf`, lib/usableWidgetData).
+ * @param presets - The usable Rahmenvorgaben ({@link widgetFramePresetsOf}).
+ */
+export function storedFrameValue<K extends WidgetFrameKey>(
+    stored: object,
+    key: K,
+    rules: FieldRules,
+    presets: WidgetFramePresets,
+): FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]> {
+    const read = withWidgetFrame(usableWidgetData(stored, rules), [key], presets) as Record<string, unknown>;
+    return read[key] as FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
 }
