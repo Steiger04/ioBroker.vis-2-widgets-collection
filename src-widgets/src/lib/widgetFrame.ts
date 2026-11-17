@@ -71,8 +71,8 @@ export type WidgetFrameKey = keyof typeof WIDGET_FRAME_SETTINGS;
 /** The frame settings in table order. */
 export const WIDGET_FRAME_KEYS = Object.keys(WIDGET_FRAME_SETTINGS) as readonly WidgetFrameKey[];
 
-/** The number of frame settings the Widget-Rahmen has (ADR-0117), the Studio summary's total. */
-export const WIDGET_FRAME_SETTING_COUNT = 8;
+/** The number of frame settings the Widget-Rahmen has (ADR-0117: eight), the Studio summary's total. */
+export const WIDGET_FRAME_SETTING_COUNT = WIDGET_FRAME_KEYS.length;
 
 /** The value a frame setting of the kind `S` takes: a number or a boolean. */
 type FrameValue<S extends WidgetFrameSetting> = S extends BooleanFrameSetting ? boolean : number;
