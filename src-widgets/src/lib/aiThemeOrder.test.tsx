@@ -894,6 +894,20 @@ describe('ticket 07: Naht „Theme-Auftrag“ — the Rahmenvorgaben', () => {
         });
     });
 
+    // ADR-0117 addendum 2026-11-17, decision 8: the order's fields carry the names of the frame
+    // settings, so the frame stage of the Lese-Naht would fill every one the order leaves unset —
+    // from the Rahmenvorgabe, else the standard — and the order would write it into the theme.
+    it('without frame values writes no Rahmenvorgabe, though the theme has Rahmenvorgaben', async () => {
+        const names = orderFields().map(field => field.name);
+        expect(names).toEqual(expect.arrayContaining([...WIDGET_FRAME_KEYS]));
+
+        expect(await themeAfter({ mode: 'dark' }, WITH_FRAME)).toEqual(withValue(WITH_FRAME, 'palette.mode', 'dark'));
+
+        const { server } = placeOrder({}, { stored: JSON.stringify(WITH_FRAME) });
+        await settle(server);
+        expect(server.received()).toEqual({ reads: 1, writes: 0 });
+    });
+
     it('the same order again leaves the theme it left the first time, and writes nothing', async () => {
         const order = { noCard: true, basePadding: 0.5 };
         const { server, editor } = placeOrder(order, { stored: JSON.stringify(WITH_FRAME) });

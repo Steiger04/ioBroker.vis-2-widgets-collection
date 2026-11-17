@@ -24,6 +24,9 @@
  *   {@link module:ThemeConfigWizard/carryOutThemeOrder}; the widget is its seat and answers
  *   from the props the host handed it last. The data is read as stored in the project: what the
  *   assistant wrote, no binding resolved.
+ * - Its data never runs through the frame stage of the Lese-Naht (ADR-0117): the order's fields
+ *   carry the names of the frame settings, so that stage would fill every one the order leaves
+ *   unset with the Rahmenvorgabe or the standard, and the order would write it into the theme.
  * - An order shows nothing — unless its course failed or is overdue: then the editor shows a
  *   hint in the order's place, and the order stays in the project.
  * - In the runtime, and while the editor previews (its „Toggle runtime“), it does nothing and
