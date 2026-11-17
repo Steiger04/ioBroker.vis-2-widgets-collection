@@ -30,7 +30,16 @@ const stubSocket = {
 const noop = (): void => undefined;
 
 /**
- * Assembles the full CollectionContext for a scene.
+ * Whether the scene's host lets the body carry its card — the provider's `hostAllowsCard`, as
+ * `Generic` hands it for a widget that is not embedded. Default: allowed.
+ *
+ * @param scene - The preview scene.
+ */
+export const previewHostAllowsCard = (scene: PreviewScene): boolean => scene.context.wrappedContent ?? true;
+
+/**
+ * Assembles the CollectionContext for a scene, as `Generic` does: without the card decision, which
+ * the provider makes from {@link previewHostAllowsCard} and the effective `noCard`.
  */
 export function buildPreviewContext(scene: PreviewScene): AllCollectionContextProps {
     const { values, widget } = scene.context;
@@ -58,6 +67,5 @@ export function buildPreviewContext(scene: PreviewScene): AllCollectionContextPr
         // Host theme: Theme('light') → palette.primary.main #3399CC. CollectionProvider
         // re-merges this through useCollectionTheme.
         theme: Theme(mode) as AllCollectionContextProps['theme'],
-        wrappedContent: scene.context.wrappedContent ?? true,
     } as unknown as AllCollectionContextProps;
 }

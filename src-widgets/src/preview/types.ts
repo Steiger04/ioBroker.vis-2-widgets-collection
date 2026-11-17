@@ -18,7 +18,11 @@ export interface PreviewSceneContext {
     values: Record<string, unknown>;
     /** Theme mode passed to the host `Theme()`. */
     mode?: 'light' | 'dark';
-    /** Whether CollectionBase renders the framed card (matches the runtime default). */
+    /**
+     * Whether the host lets the body carry its framed card (default true, the runtime default of a
+     * widget not embedded) — handed to the provider as `hostAllowsCard`
+     * ({@link module:preview/mockContext.previewHostAllowsCard}); an effective `noCard` still takes it away.
+     */
     wrappedContent?: boolean;
 }
 

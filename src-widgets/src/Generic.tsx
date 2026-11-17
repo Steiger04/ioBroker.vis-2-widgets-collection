@@ -153,11 +153,12 @@ class Generic<
      * shared tail of every widget's `renderWidgetBody`.
      *
      * @remarks
-     * Whether the widget shows its card is decided across the seam to the provider: here only
-     * what the host says — an embedded widget (`usedInWidget`) never does —, in the provider the
-     * effective `noCard`, which only there reads the Rahmenvorgabe of the collection theme
-     * (ADR-0117). The internal cast mirrors what every widget class used to spell out as
-     * `as XxxCollectionContextProps`.
+     * Whether the widget shows its card falls in the provider, at one place: here only the host's
+     * permission is read — an embedded widget (`usedInWidget`) never carries one — and handed to the
+     * provider under its own name, not through the context; there the effective `noCard`, which only
+     * the provider reads with the Rahmenvorgabe, takes it away. The context's `wrappedContent` means
+     * only "the card is shown" (ADR-0117). The internal cast mirrors what every widget class used to
+     * spell out as `as XxxCollectionContextProps`.
      * @param component - The widget's React body.
      * @param props - The render props vis-2 passed to `renderWidgetBody`.
      * @param extraContext - Optional per-widget context additions (e.g. Dialog's
@@ -192,16 +193,22 @@ class Generic<
             socket: this.props.context.socket,
             lang: this.props.context.lang,
             theme: this.props.context.theme,
-            // Embedded, no card; otherwise the provider decides from the effective noCard.
-            wrappedContent: !props.widget.usedInWidget,
             ...extraContext,
         } as CollectionContextProps<RxData>;
+        // The host's permission to carry a card: embedded in another widget, none.
+        const hostAllowsCard = !props.widget.usedInWidget;
 
         // Stages 2 and 3 inside the provider: an id without its object reads the editor's pick, an
         // unset key the palette's default (lib/pickedWidgetData): an assistant-inserted widget reads
         // like the palette's. Stage 4 there, too: an unset frame setting reads the Rahmenvorgabe of the
         // Leinwand-Theme, which only the provider reads, else its standard (lib/widgetFrame, ADR-0117).
-        return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading, frameKeys);
+        return withCollectionProvider(
+            this.wrapContent(component),
+            collectionContext,
+            dataReading,
+            frameKeys,
+            hostAllowsCard,
+        );
     }
 
     /**

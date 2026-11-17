@@ -19,6 +19,7 @@ import type { WidgetFrameKey } from '../lib/widgetFrame';
  * @param context - Typed collection context.
  * @param reading - What the pick and the field defaults take from the widget's fields (see CollectionProvider).
  * @param frameKeys - The frame settings the widget offers (see CollectionProvider).
+ * @param hostAllowsCard - Whether the host lets the widget carry its card (see CollectionProvider).
  * @returns The same element(s) wrapped in a provider.
  * @example
  * ```tsx
@@ -33,12 +34,14 @@ function withCollectionProvider<T extends object = object>(
     context: CollectionContextProps<T>,
     reading?: WidgetDataReading,
     frameKeys?: readonly WidgetFrameKey[],
+    hostAllowsCard?: boolean,
 ): JSX.Element {
     return (
         <CollectionProvider
             context={context as AllCollectionContextProps}
             reading={reading}
             frameKeys={frameKeys}
+            hostAllowsCard={hostAllowsCard}
         >
             {component}
         </CollectionProvider>

@@ -10,8 +10,8 @@
  *   defaults for the unset keys (3) ({@link module:hooks/usePickedWidgetData}, KI-Integration), then
  *   the Rahmenvorgaben of the Leinwand-Theme for the unset frame settings (4)
  *   ({@link module:lib/widgetFrame}, {@link module:lib/theme/canvasTheme})
- * - the card decision (`wrappedContent`): no card where the widget class says it is embedded or the
- *   effective `noCard` — own or inherited — says so
+ * - the card decision (`wrappedContent`, "the card is shown"): the host's permission (`hostAllowsCard`,
+ *   not embedded), taken away by the effective `noCard` — own or inherited
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
  *   overrides + user theme). The shared theme-building/subscribe logic lives in
  *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
@@ -58,6 +58,12 @@ interface CollectionProviderProps {
      * the Rahmenvorgabe of the Leinwand-Theme, else the built-in standard. Absent: none.
      */
     frameKeys?: readonly WidgetFrameKey[];
+    /**
+     * Whether the host lets the widget carry its card (`Generic`: not embedded in another widget).
+     * The context's `wrappedContent` the provider hands down is this permission, taken away by the
+     * effective `noCard`; an incoming `wrappedContent` decides nothing. Absent: allowed.
+     */
+    hostAllowsCard?: boolean;
 }
 
 /**
@@ -68,6 +74,7 @@ interface CollectionProviderProps {
  * @param props.context - The fully-typed collection context provided by vis-2.
  * @param props.reading - What the pick and the field defaults take from the widget's fields.
  * @param props.frameKeys - The frame settings the widget offers.
+ * @param props.hostAllowsCard - Whether the host lets the widget carry its card.
  * @returns Provider subtree.
  */
 function CollectionProvider({
@@ -75,6 +82,7 @@ function CollectionProvider({
     context,
     reading,
     frameKeys = NO_FRAME_KEYS,
+    hostAllowsCard = true,
 }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {
     const theme = context.theme;
     const socket = context.socket;
@@ -125,10 +133,10 @@ function CollectionProvider({
     );
     const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
 
-    // The card decision (ADR-0117): the widget class says whether the host lets it carry a card
-    // (not embedded); the effective noCard — inherited or own, the one value the frame, the Select
-    // popup and the table header read — takes it away. The outer size follows (`Generic`).
-    const wrappedContent = context.wrappedContent && !data.noCard;
+    // The card decision (ADR-0117), the one place it falls: the host's permission (not embedded),
+    // taken away by the effective noCard — inherited or own, the one value the frame, the Select
+    // popup and the table header read. Its readers only paint; the outer size follows (`Generic`).
+    const wrappedContent = hostAllowsCard && !data.noCard;
 
     // No <CssBaseline />: MUI's CssBaseline also spreads theme.typography.body1
     // — whose fontFamily the user's choice is forced onto (see
