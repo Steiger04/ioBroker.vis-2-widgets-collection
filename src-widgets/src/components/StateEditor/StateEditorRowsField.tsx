@@ -19,10 +19,11 @@ import { createPortal } from 'react-dom';
 import { translate } from '../../lib/translate';
 import { stateRowsDifference } from '../../lib/stateRows';
 import { InfoBox } from '../controls';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
 import StateEditorSurface from './StateEditorSurface';
 import StateEditorToolbar from './StateEditorToolbar';
 import { useLabelCell } from './useLabelCell';
-import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 import type { StateRowsDifference } from '../../lib/stateRows';
 
@@ -48,7 +49,10 @@ function StateEditorRowsField(fieldProps: StateEditorFieldProps): React.JSX.Elem
     // Multi-selection: one patch goes into every widget, so structural actions need identical
     // rows (ADR-0104 §4) — the toolbar locks them, this InfoBox says why: it points to the
     // marked rows only where a row is marked, else to the row count or the bindings.
-    const difference = stateRowsDifference(selectedWidgetDatas(fieldProps), fieldProps.spec.config);
+    const difference = stateRowsDifference(
+        readSelectedWidgetDatas(fieldProps.data, fieldProps.props),
+        fieldProps.spec.config,
+    );
 
     return (
         <StateEditorSurface props={fieldProps.props}>

@@ -37,10 +37,11 @@ import { createPortal } from 'react-dom';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoCustomComponentProperties } from '@iobroker/types-vis-2';
 import { stateRowKeyDiffers } from '../../lib/stateRows';
 import type { StateFieldDefinition } from '../../lib/stateEditorConfig';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
 import StateBindingSwitch, { stateBindingTextField, useStateFieldBinding } from './StateBindingSwitch';
 import { StateDifferentMark } from './StateDifferentMark';
 import { useLabelCell } from './useLabelCell';
-import { selectedWidgetDatas, useStateEditor, type StateEditorFieldProps } from './useStateEditor';
+import { useStateEditor, type StateEditorFieldProps } from './useStateEditor';
 
 /** What vis-2's `Editor` takes (fork `WidgetField.tsx`; `data`/`onChange` it declares are unused). */
 export type Vis2EditorProps = {
@@ -147,7 +148,7 @@ function StateDetailField({ definition, ...fieldProps }: StateDetailFieldProps):
     // Evaluated on every selected widget's stored data, locked only when it holds for all — as
     // vis-2 hid the row in "Value [n]" (`checkFunction`). The field data is vis-2's merged
     // `commonValues` under multi-selection, where differing keys (two URL icons) are `null`.
-    const stored = selectedWidgetDatas({ data, props });
+    const stored = readSelectedWidgetDatas(data, props);
     const locked =
         field !== null && typeof rule === 'function' && stored.every(widgetData => rule(widgetData, selected));
     const differs = field !== null && stateRowKeyDiffers(stored, field.name as string);
