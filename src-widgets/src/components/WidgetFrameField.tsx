@@ -19,8 +19,8 @@
  * "As theme" and × report `null`, which vis-2 turns into deleting the key in every selected widget;
  * a value is reported for every selected widget at once. vis-2 hands a custom field the first
  * selected widget's data (`commonValues`, order dependent) and no `isDifferent`, so the adapter reads
- * each selected widget's own value from the project in its props (`context.views`) and shows a mixed
- * state where they differ — inheriting against an own value included. vis-2 writes the project for
+ * each selected widget's own value from the project (`readSelectedWidgetDatas`) and shows a mixed state
+ * where they differ — inheriting against an own value included. vis-2 writes the project for
  * every patch of a custom field without comparing, so a choice that changes nothing reports nothing.
  * Each selected widget is read through lib/widgetFrame (`storedFrameSetting`), as the widget renders
  * it: an own value counts by the setting's Rückfall-Regel, a value the widget cannot use reads as
@@ -47,6 +47,7 @@ import {
     type WidgetFrameKey,
     type WidgetFrameSetting,
 } from '../lib/widgetFrame';
+import { readSelectedWidgetDatas } from './selectedWidgets';
 
 /** Props for {@link WidgetFrameField} — the vis-2 custom-field contract plus the setting. */
 export interface WidgetFrameFieldProps {
@@ -68,15 +69,6 @@ type FrameSelection<V> =
     | { kind: 'own'; value: V }
     /** The selected widgets differ, inheriting against an own value included. */
     | { kind: 'mixed' };
-
-/** The stored data of every selected widget, else the data vis-2 handed the field. */
-function selectedWidgetDatas(data: WidgetData, props: RxWidgetInfoCustomComponentProperties): WidgetData[] {
-    const views = props.context.views as unknown as
-        Record<string, { widgets?: Record<string, { data?: WidgetData }> }> | undefined;
-    const ids = (props.selectedWidgets?.length ? props.selectedWidgets : [props.selectedWidget]) as string[];
-    const datas = ids.map(id => (id ? views?.[props.selectedView]?.widgets?.[id]?.data : undefined));
-    return datas.length > 0 && datas.every(one => one !== undefined) ? datas : [data];
-}
 
 /** What the selected widgets hold, read through each widget's own value. */
 function selectionOf<V>(owns: readonly (V | undefined)[]): FrameSelection<V> {
@@ -163,7 +155,7 @@ function WidgetFrameField({ setting, data, onDataChange, props }: WidgetFrameFie
     const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
     const presets = widgetFramePresetsOf(collectionTheme);
 
-    const datas = selectedWidgetDatas(data, props);
+    const datas = readSelectedWidgetDatas(data, props);
     const stored = datas.map(one => one[setting] as unknown);
     // Each selected widget read as it renders: its own value, else what it inherits.
     const readings = datas.map(one => storedFrameSetting(one, setting, presets));

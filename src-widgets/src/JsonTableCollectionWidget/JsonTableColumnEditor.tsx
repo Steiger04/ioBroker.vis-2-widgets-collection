@@ -18,7 +18,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../Generic';
-import { readWidgetStyleColor } from '../components/ContractColorField';
+import { readSelectedWidgets } from '../components/selectedWidgets';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import JsonTableColumnEditorModal from './components/JsonTableColumnEditorModal';
 import { encodeBlob } from '../lib/encoding';
@@ -56,7 +56,7 @@ function JsonTableColumnEditor(
     // The table renders under the Collection theme and the widget's vis-2 CSS `color`; the
     // colour rows of the editors show what its cells inherit from them (pattern ContractColorField).
     const collectionTheme = useCollectionTheme(props.context.socket, theme);
-    const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
+    const styleColor = useMemo(() => readSelectedWidgets(data, props)[0].style, [data, props]);
     const inheritance = useMemo<CellColorInheritance>(
         () => ({ theme: collectionTheme, styleColor }),
         [collectionTheme, styleColor],

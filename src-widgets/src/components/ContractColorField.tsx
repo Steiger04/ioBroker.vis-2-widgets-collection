@@ -7,7 +7,7 @@
  * effective colour comes from the shared resolver (`resolveEffectiveColor`, stages at
  * `cascadeCandidates`) over the widget data, the Collection theme (the theme the widget runs
  * under, whose Rahmenvorgaben an unset frame setting reads, ADR-0117) and the vis-2 widget style
- * of the selected widget. It hands the stored value, that
+ * of the first selected widget (`readSelectedWidgets`). It hands the stored value, that
  * effective colour and the translated field name (Farbwähler title) to the Textfeld-Zeile
  * (`ColorTextFieldRow`, variant standard, "erbt" placeholder) and writes every change back as a
  * one-field patch — `null` removes the override, the field inherits again.
@@ -22,10 +22,11 @@ import { useMemo } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
 import useCollectionTheme from '../hooks/useCollectionTheme';
-import { resolveEffectiveColor, type StyleColor } from '../lib/helper/resolveEffectiveColor';
+import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
 import { storedWidgetFrame, widgetFramePresetsOf } from '../lib/widgetFrame';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
+import { readSelectedWidgets } from './selectedWidgets';
 import { useColorFieldBinding } from './useColorFieldBinding';
 
 /** Props for {@link ContractColorField} — the vis-2 custom-field contract. */
@@ -38,24 +39,6 @@ export interface ContractColorFieldProps {
     onDataChange: (patch: WidgetData) => void;
     /** vis-2 editor context (socket, theme, views, selected widget, …). */
     props: RxWidgetInfoCustomComponentProperties;
-}
-
-/**
- * Reads the vis-2 widget CSS `color` of the widget being edited.
- *
- * The custom-field props do not expose the widget directly; its style is reached through the
- * project map (`context.views[selectedView].widgets[selectedWidget]`). Undefined when the path is
- * unavailable — the resolver then skips the vis-2-style stage.
- *
- * @param props - vis-2 editor context.
- * @returns The widget style fragment carrying `color`, or undefined.
- */
-export function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): StyleColor {
-    const ctx = props.context as unknown as {
-        views?: Record<string, { widgets?: Record<string, { style?: { color?: string } }> }>;
-    };
-    const widgetId = props.selectedWidgets?.[0] ?? props.selectedWidget;
-    return widgetId ? ctx?.views?.[props.selectedView]?.widgets?.[widgetId as string]?.style : undefined;
 }
 
 /**
@@ -72,7 +55,8 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
     const { value, title, onChange } = useColorFieldBinding(field, data, onDataChange);
     const hostTheme = props.context.theme;
     const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
-    const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
+    // The vis-2 CSS `color` of the first selected widget; undefined skips the vis-2-style stage.
+    const styleColor = useMemo(() => readSelectedWidgets(data, props)[0].style, [data, props]);
 
     // The cascade reads the frame as the widget renders it (ADR-0117): noCard — the terminal
     // without card — by the Rückfall-Regel (ADR-0114), and an unset one reads the Rahmenvorgabe of
