@@ -17,8 +17,8 @@
  * the resolution allowlists (ADR-0078).
  *
  * {@link WIDGET_FRAME_SETTINGS} is the one table: the cascade, the theme schema, the field
- * definitions and their Erb-Adapter in the attribute panel (kind, standard, slider range) and the
- * Theme Studio section read it. A setting joins by its row.
+ * definitions and their Erb-Adapter in the attribute panel (kind, label, standard, slider range),
+ * the Theme Studio section and the Theme-Auftrag read it. A setting joins by its row.
  *
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
@@ -28,6 +28,8 @@ import { usableWidgetData, type FieldRules, type StoredValue } from './usableWid
 /** A frame setting with a bounded number (the field's slider). */
 export interface NumberFrameSetting {
     readonly kind: 'number';
+    /** The translation key of the field's label under Allgemein (also the Theme-Auftrag's name). */
+    readonly label: string;
     /** The built-in standard: the field's default before ADR-0117, so stored widgets look the same. */
     readonly standard: number;
     readonly min: number;
@@ -39,6 +41,8 @@ export interface NumberFrameSetting {
 /** A frame setting that is on or off (the field's checkbox). */
 interface BooleanFrameSetting {
     readonly kind: 'boolean';
+    /** The translation key of the field's label under Allgemein (also the Theme-Auftrag's name). */
+    readonly label: string;
     /** The built-in standard: the field's default before ADR-0117, so stored widgets look the same. */
     readonly standard: boolean;
 }
@@ -55,14 +59,14 @@ export type WidgetFrameSetting = NumberFrameSetting | BooleanFrameSetting;
  * true hides the header), however a control presents it.
  */
 export const WIDGET_FRAME_SETTINGS = {
-    noHeader: { kind: 'boolean', standard: false },
-    noHeaderIcon: { kind: 'boolean', standard: false },
-    noFooter: { kind: 'boolean', standard: false },
-    noCard: { kind: 'boolean', standard: false },
-    outlined: { kind: 'boolean', standard: false },
-    outlinedFrame: { kind: 'boolean', standard: false },
-    basePadding: { kind: 'number', standard: 1, min: 0, max: 10, step: 0.1 },
-    baseElevation: { kind: 'number', standard: 4, min: 0, max: 24, step: 1 },
+    noHeader: { kind: 'boolean', label: 'no_header', standard: false },
+    noHeaderIcon: { kind: 'boolean', label: 'no_header_icon', standard: false },
+    noFooter: { kind: 'boolean', label: 'no_footer', standard: false },
+    noCard: { kind: 'boolean', label: 'without_card', standard: false },
+    outlined: { kind: 'boolean', label: 'outlined', standard: false },
+    outlinedFrame: { kind: 'boolean', label: 'outlined_frame', standard: false },
+    basePadding: { kind: 'number', label: 'base_padding', standard: 1, min: 0, max: 10, step: 0.1 },
+    baseElevation: { kind: 'number', label: 'base_elevation', standard: 4, min: 0, max: 24, step: 1 },
 } as const satisfies Record<string, WidgetFrameSetting>;
 
 /** The name of a frame setting: its widget data field and its key in the Rahmenvorgaben. */

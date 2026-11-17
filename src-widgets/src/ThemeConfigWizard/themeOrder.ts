@@ -118,22 +118,6 @@ const colorSettingName = (path: string): string =>
         .join('');
 
 /**
- * The label of the widget field a Rahmenvorgabe stands in for. The order names a Rahmenvorgabe by
- * that field and keeps its sense (`noCard: true` = no card), so it takes the field's label, not the
- * studio's positive wording of the same control ("Card"), which would read the other way round.
- */
-const FRAME_FIELD_LABEL_KEYS: Readonly<Record<WidgetFrameKey, string>> = {
-    noHeader: 'no_header',
-    noHeaderIcon: 'no_header_icon',
-    noFooter: 'no_footer',
-    noCard: 'without_card',
-    outlined: 'outlined',
-    outlinedFrame: 'outlined_frame',
-    basePadding: 'base_padding',
-    baseElevation: 'base_elevation',
-};
-
-/**
  * A setting that stores a Rahmenvorgabe of the Widget-Rahmen (`widgetFrame.<key>`, ADR-0117): a
  * boolean as it is, a number — also written as text — in the bounds of its field, a whole one for
  * the shadow. Kind, bounds and step are the one table's ({@link module:lib/widgetFrame}).
@@ -142,7 +126,10 @@ const frameSetting = (key: WidgetFrameKey): ThemeOrderSetting => {
     const isNumber = WIDGET_FRAME_SETTINGS[key].kind === 'number';
     return {
         name: key,
-        labelKey: FRAME_FIELD_LABEL_KEYS[key],
+        // The label of the widget field the Rahmenvorgabe stands in for: the order names it by that
+        // field and keeps its sense (`noCard: true` = no card), not by the studio's positive wording
+        // of the same control ("Card"), which would read the other way round.
+        labelKey: WIDGET_FRAME_SETTINGS[key].label,
         input: { type: isNumber ? 'number' : 'checkbox' },
         apply: (theme, value) => {
             const preset = isNumber ? numberOf(value) : value;

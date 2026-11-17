@@ -289,8 +289,8 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
 export interface WidgetFrameFieldOptions {
     /** Field name; the setting's name by default (`commonFields` adds its group suffix). */
     name?: string;
-    /** Label translation key — the field's label under Allgemein (e.g. `without_card`). */
-    label: string;
+    /** Label translation key; the setting's label under Allgemein (`lib/widgetFrame`) by default. */
+    label?: string;
     /** Hidden condition (vis-2 hands a predicate the raw widget data). */
     hidden?: string | HiddenPredicate;
 }
@@ -310,10 +310,10 @@ export interface WidgetFrameFieldOptions {
  * @param setting - The frame setting (`lib/widgetFrame`).
  * @param options - Name, label and hidden condition.
  * @returns A fresh field definition per call.
- * @example createWidgetFrameField('noCard', { name: `noCard${groupName}`, label: 'without_card' })
+ * @example createWidgetFrameField('noCard', { name: `noCard${groupName}` })
  */
 export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetFrameFieldOptions): ExtendedField {
-    const { name = setting, label, hidden } = options;
+    const { name = setting, label = WIDGET_FRAME_SETTINGS[setting].label, hidden } = options;
     const kind = WIDGET_FRAME_SETTINGS[setting].kind;
     const field: ExtendedField = {
         name,
