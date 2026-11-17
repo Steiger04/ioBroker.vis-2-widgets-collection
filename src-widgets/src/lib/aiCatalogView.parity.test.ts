@@ -414,12 +414,17 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             );
         });
 
+        // The shadow narrows the slider's rule to the shadows MUI draws: whole numbers from 0 to 24.
         it('keeps the rule of the former field: a boolean like a checkbox, a number like a slider', () => {
             const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
 
             for (const key of widgetFrameKeysOf(infos.get(name)!.visAttrs ?? [])) {
-                expect(rules.named.get(key), key).toBe(
-                    WIDGET_FRAME_SETTINGS[key].kind === 'boolean' ? 'boolean' : 'number',
+                expect(rules.named.get(key), key).toEqual(
+                    WIDGET_FRAME_SETTINGS[key].kind === 'boolean'
+                        ? 'boolean'
+                        : key === 'baseElevation'
+                          ? { whole: { min: 0, max: 24 } }
+                          : 'number',
                 );
             }
         });

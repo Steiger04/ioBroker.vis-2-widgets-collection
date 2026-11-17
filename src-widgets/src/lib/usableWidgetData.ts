@@ -13,7 +13,8 @@
  * - `select` fields with an option list: one of the option values (strictly);
  * - data-bearing `custom` fields, and `text` fields that hold a configuration blob: the
  *   {@link StoredValue} their definition declares (`storedValue`) — a string, a number, a boolean,
- *   or JSON text (plain or as `b64:` blob) whose top level is an object or a list;
+ *   a whole number within bounds, or JSON text (plain or as `b64:` blob) whose top level is an
+ *   object or a list;
  * - the keys `name{n}` of a Zustandszeile: the rule of the per-state field `name` the
  *   Zustandseditor edits there (`perStateField` of its detail field), unless a field is named so;
  *   likewise the keys `name{n}` of a vis-2 indexed group (`indexFrom`/`indexTo`), which stores each
@@ -47,7 +48,22 @@ import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
  * What a data-bearing `custom` field stores under its name, declared on its definition as
  * `storedValue` (vis-2 ignores the key). JSON is stored as text, plain or as `b64:` blob.
  */
-export type StoredValue = 'string' | 'number' | 'boolean' | BlobShape;
+export type StoredValue = 'string' | 'number' | 'boolean' | WholeNumberRange | BlobShape;
+
+/**
+ * A whole number within bounds, stored as a number or as a text that reads as one: a position in a
+ * list, as a MUI elevation picks one of `theme.shadows` (Paper draws none for any other and logs an
+ * error).
+ */
+export interface WholeNumberRange {
+    readonly whole: { readonly min: number; readonly max: number };
+}
+
+/** Whether a value reads as a whole number within the bounds of `rule` (the one number reading). */
+const isWholeWithin = ({ whole: { min, max } }: WholeNumberRange, value: unknown): boolean => {
+    const number = optionalNumber(value);
+    return number !== undefined && Number.isInteger(number) && number >= min && number <= max;
+};
 
 /** The rule of one field: a stored-value kind, or the option values of a select field. */
 export type FieldRule = StoredValue | { options: readonly unknown[] };
@@ -182,8 +198,11 @@ export const isUsableValue = (rule: FieldRule, value: unknown): boolean => {
         return !(typeof rule === 'object' && 'options' in rule) || rule.options.includes('');
     }
     if (typeof rule === 'object') {
+        if ('options' in rule) {
+            return rule.options.includes(value);
+        }
         // The one parse of a blob, shared with the parse sites (`lib/usableJson`).
-        return 'options' in rule ? rule.options.includes(value) : readUsableJson(rule, value) !== undefined;
+        return 'whole' in rule ? isWholeWithin(rule, value) : readUsableJson(rule, value) !== undefined;
     }
     switch (rule) {
         case 'number':

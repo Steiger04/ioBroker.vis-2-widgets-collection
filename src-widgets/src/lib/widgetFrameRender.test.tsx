@@ -661,3 +661,38 @@ describe('ticket 07: a shadow preset that is no whole number', () => {
         expect(shown.frame().frameOutlined).toBe(true);
     }, 60_000);
 });
+
+// The Rückfall-Regel (ADR-0114) for an own shadow: MUI draws a shadow only for a whole elevation
+// within `theme.shadows` (0–24) and logs an error otherwise. An own value outside it — written by
+// the vis-2 assistant or typed before the panel kept to the step — is unusable and reads as unset,
+// like such a Rahmenvorgabe: the widget inherits. Nothing is written.
+describe('review: an own shadow the widget cannot use', () => {
+    const load = async (): Promise<WidgetClass> =>
+        ((await import('../SwitchCollectionWidget/SwitchCollectionWidget')) as { default: WidgetClass }).default;
+    const fixture = FIXTURES.SwitchCollectionWidget!;
+
+    it.each<[string, unknown]>([
+        ['no whole number', 2.5],
+        ['no whole number, as text', '2.5'],
+        ['above the shadows', 30],
+        ['below the shadows', -1],
+    ])(
+        '%s (%s) inherits: the standard 4, else the Rahmenvorgabe',
+        async (_case, own) => {
+            const widget = await load();
+            const standard = await mountWidget(widget, { ...fixture.data, baseElevation: own }, fixture.values);
+            const preset = await mountWidget(widget, { ...fixture.data, baseElevation: own }, fixture.values, {
+                widgetFrame: { baseElevation: 10 },
+            });
+
+            expect([standard.elevation(), preset.elevation()]).toEqual([4, 10]);
+            expect(preset.socket.setObject).not.toHaveBeenCalled();
+        },
+        60_000,
+    );
+
+    it('a whole own shadow as text holds', async () => {
+        const shown = await mountWidget(await load(), { ...fixture.data, baseElevation: '7' }, fixture.values);
+        expect(shown.elevation()).toBe(7);
+    }, 60_000);
+});

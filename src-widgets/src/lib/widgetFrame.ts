@@ -23,7 +23,7 @@
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
  */
-import { usableWidgetData, type FieldRules } from './usableWidgetData';
+import { usableWidgetData, type FieldRules, type StoredValue } from './usableWidgetData';
 
 /** A frame setting with a bounded number (the field's slider). */
 interface NumberFrameSetting {
@@ -233,11 +233,26 @@ export function storedFrameValue<K extends WidgetFrameKey>(
 }
 
 /**
- * The Rückfall-Regel of every frame setting under its own name: the stored value of its kind, as
- * its field declares it (`storedValue`, `createWidgetFrameField`).
+ * The stored value a frame setting's field declares (`storedValue`, the Rückfall-Regel of
+ * lib/usableWidgetData): a boolean; a number; for a setting of whole numbers (the shadow) a whole
+ * number within its bounds — MUI draws a shadow for no other, as for a Rahmenvorgabe
+ * ({@link isUsableFramePreset}).
+ *
+ * @param key - The frame setting.
+ */
+export function frameStoredValue(key: WidgetFrameKey): StoredValue {
+    const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
+    return setting.kind === 'number' && isWholeNumberSetting(setting)
+        ? { whole: { min: setting.min, max: setting.max } }
+        : setting.kind;
+}
+
+/**
+ * The Rückfall-Regel of every frame setting under its own name, as its field declares it
+ * ({@link frameStoredValue}, `createWidgetFrameField`).
  */
 const FRAME_RULES: FieldRules = {
-    named: new Map(WIDGET_FRAME_KEYS.map(key => [key, WIDGET_FRAME_SETTINGS[key].kind])),
+    named: new Map(WIDGET_FRAME_KEYS.map(key => [key, frameStoredValue(key)])),
     perRow: new Map(),
     emptiedReadsUnset: new Set(),
 };

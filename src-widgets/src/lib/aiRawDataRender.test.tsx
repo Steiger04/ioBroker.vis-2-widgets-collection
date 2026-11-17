@@ -135,9 +135,13 @@ installInertResizeObserver();
 /** Values the assistant may write that the rule must read as unset. */
 const brokenValuesOf = (rule: FieldRule): unknown[] => {
     if (typeof rule === 'object') {
-        return 'options' in rule
-            ? ['__not_an_option__', { value: rule.options[0] }]
-            : ['{"oops', rule.json === 'array' ? '{}' : '[]', 5];
+        if ('options' in rule) {
+            return ['__not_an_option__', { value: rule.options[0] }];
+        }
+        if ('whole' in rule) {
+            return ['abc', true, rule.whole.min + 0.5, String(rule.whole.min + 0.5), rule.whole.max + 1];
+        }
+        return ['{"oops', rule.json === 'array' ? '{}' : '[]', 5];
     }
     switch (rule) {
         case 'number':
@@ -156,6 +160,9 @@ const brokenValuesOf = (rule: FieldRule): unknown[] => {
  */
 const usableValuesOf = (rule: FieldRule): unknown[] => {
     if (typeof rule === 'object') {
+        if ('whole' in rule) {
+            return [rule.whole.min, String(rule.whole.max), ''];
+        }
         return 'options' in rule ? [...rule.options] : [''];
     }
     switch (rule) {

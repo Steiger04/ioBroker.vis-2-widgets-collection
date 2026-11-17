@@ -703,6 +703,16 @@ describe('ticket 05: a number frame setting', () => {
         });
     });
 
+    // The widget reads an own shadow it cannot draw as unset (Rückfall-Regel): the panel says so.
+    it('review: a stored shadow of 2.5 or 30 shows as inheriting, as the widget renders it', async () => {
+        await openFramePanel({ w1: { baseElevation: 2.5 } }, { widgetFrame: { baseElevation: 10 } });
+        expect(shownSlider('baseElevation')).toMatchObject({ position: '10', caption: 'inherits · Theme: 10' });
+
+        framePanel!.unmount();
+        await openFramePanel({ w1: { baseElevation: 30 } });
+        expect(shownSlider('baseElevation')).toMatchObject({ position: '4', caption: 'inherits · Standard: 4' });
+    });
+
     it('an existing widget with the stored old defaults shows them as set, with ×', async () => {
         await openFramePanel({ w1: { basePadding: 1, baseElevation: 4 } });
 

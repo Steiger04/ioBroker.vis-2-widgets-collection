@@ -47,7 +47,7 @@ import ContractColorField from '../components/ContractColorField';
 import PlainColorField from '../components/PlainColorField';
 import CollectionDivider from '../components/CollectionDivider';
 import WidgetFrameField from '../components/WidgetFrameField';
-import { WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from './widgetFrame';
+import { frameStoredValue, WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from './widgetFrame';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type {
     RxWidgetInfoAttributesField,
@@ -303,7 +303,8 @@ export interface WidgetFrameFieldOptions {
  * @remarks
  * No `default`: vis-2 stores a field's default on every dropped widget, which could then never
  * follow the Rahmenvorgabe. `storedValue` keeps the Rückfall-Regel of the former vis-2 field (a
- * boolean, like a checkbox; a number, like a slider — `lib/usableWidgetData`). A boolean has no
+ * boolean, like a checkbox; a number, like a slider — `lib/usableWidgetData`), the shadow narrowed
+ * to the whole numbers MUI draws (`frameStoredValue`). A boolean has no
  * binding, like vis-2's checkbox; a number keeps the binding vis-2's slider offers (a bound field
  * shows vis-2's binding input instead of the adapter).
  * @param setting - The frame setting (`lib/widgetFrame`).
@@ -318,7 +319,7 @@ export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetF
         name,
         label,
         type: 'custom',
-        storedValue: kind,
+        storedValue: frameStoredValue(setting),
         ...(kind === 'boolean' ? { noBinding: true } : {}),
         component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
             <WidgetFrameField
