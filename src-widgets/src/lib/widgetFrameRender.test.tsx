@@ -30,6 +30,7 @@ import { createTestRoot } from './testing/testRoots';
 import { FIXTURES } from './testing/widgetFixtures';
 import type { UserTheme } from './theme/themeTypes';
 import type { WidgetName } from './testing/aiSeams';
+import type { WidgetFrameKey } from './widgetFrame';
 
 // The host base class with what renderWidgetBody reaches (as in Naht 2): props, state, the signal
 // check. Its `t` reads `this` like the host's (see lib/testing/visRxWidgetStub).
@@ -284,7 +285,7 @@ const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcv
  * how the frame shows the setting's value (read back from what is visible).
  */
 interface FrameSettingCase {
-    key: string;
+    key: WidgetFrameKey;
     /** The built-in standard: what the field stored as its default before ADR-0117. */
     standard: number | boolean;
     /** A Rahmenvorgabe that differs from the standard. */
