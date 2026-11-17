@@ -11,7 +11,10 @@
  * - a boolean as a choice "As theme (on|off)" / "On" / "Off" — "On" and "Off" store the value even
  *   where it equals the inherited one;
  * - a number as a slider with its number, "inherits · Theme: n" (or "Standard: n" without a
- *   Rahmenvorgabe) while unset, and × while an own value is stored.
+ *   Rahmenvorgabe) while unset, and × while an own value is stored. A drag shows every move at
+ *   once and reports the latest value 150 ms after the first unreported move, and at once on
+ *   release (configurator-design: slider moves debounce), so a drag does not write the project
+ *   on every step.
  *
  * "As theme" and × report `null`, which vis-2 turns into deleting the key in every selected widget;
  * a value is reported for every selected widget at once. vis-2 hands a custom field the first
@@ -28,7 +31,7 @@
 
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Input, MenuItem, Select, Slider, ThemeProvider, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
 import useCollectionTheme from '../hooks/useCollectionTheme';
@@ -92,6 +95,64 @@ function selectionOf<V>(owns: readonly (V | undefined)[]): FrameSelection<V> {
         return { kind: 'mixed' };
     }
     return first === undefined ? { kind: 'inherit' } : { kind: 'own', value: first };
+}
+
+/** How long a slider move waits for the next before it is reported (the Farbwähler's commit delay). */
+const MOVE_REPORT_MS = 150;
+
+/**
+ * Reports slider moves delayed: the latest move 150 ms after the first unreported one — not
+ * restarted, so a long drag reports at least every 150 ms —, a value at once through `now`, and a
+ * move still waiting on unmount.
+ *
+ * @param report - Receives a value to store.
+ */
+function useDelayedReport(report: (value: number) => void): {
+    move: (value: number) => void;
+    now: (value: number) => void;
+} {
+    const reportRef = useRef(report);
+    useEffect(() => {
+        reportRef.current = report;
+    });
+    const pendingRef = useRef<{ timer: ReturnType<typeof setTimeout>; value: number } | null>(null);
+
+    /** Drops the waiting move and reports `value`. */
+    const now = useCallback((value: number): void => {
+        if (pendingRef.current !== null) {
+            clearTimeout(pendingRef.current.timer);
+            pendingRef.current = null;
+        }
+        reportRef.current(value);
+    }, []);
+
+    const move = useCallback(
+        (value: number): void => {
+            if (pendingRef.current !== null) {
+                pendingRef.current.value = value;
+                return;
+            }
+            const timer = setTimeout(() => {
+                const waiting = pendingRef.current;
+                if (waiting !== null) {
+                    now(waiting.value);
+                }
+            }, MOVE_REPORT_MS);
+            pendingRef.current = { value, timer };
+        },
+        [now],
+    );
+
+    useEffect(
+        () => () => {
+            if (pendingRef.current !== null) {
+                now(pendingRef.current.value);
+            }
+        },
+        [now],
+    );
+
+    return { move, now };
 }
 
 /** The values of the boolean choice. */
@@ -256,7 +317,11 @@ function NumberFrameSlider({
 }): React.JSX.Element {
     // The typed text while the number field has focus; null shows the stored value.
     const [draft, setDraft] = useState<string | null>(null);
+    // The slider position while a drag has moves not reported yet; null shows the stored value.
+    const [moving, setMoving] = useState<number | null>(null);
+    const delayed = useDelayedReport(onChange);
     const own = selection.kind === 'own' ? selection.value : undefined;
+    const shown = moving ?? own;
     const caption =
         selection.kind === 'mixed'
             ? translate('frame_field_mixed')
@@ -272,17 +337,24 @@ function NumberFrameSlider({
                 <Box sx={{ width: 5, flexShrink: 0 }} />
                 <Slider
                     size="small"
-                    value={own ?? inherited}
+                    value={shown ?? inherited}
                     min={min}
                     max={max}
                     step={step}
-                    onChange={(_event, value) => onChange(value)}
+                    onChange={(_event, value) => {
+                        setMoving(value);
+                        delayed.move(value);
+                    }}
+                    onChangeCommitted={(_event, value) => {
+                        setMoving(null);
+                        delayed.now(value);
+                    }}
                     // An inheriting slider shows where the widget is, quieter than an own value.
-                    sx={{ flex: 1, minWidth: 0, mr: 1, opacity: own === undefined ? 0.6 : 1 }}
+                    sx={{ flex: 1, minWidth: 0, mr: 1, opacity: shown === undefined ? 0.6 : 1 }}
                 />
                 <Input
                     size="small"
-                    value={draft ?? (own === undefined ? '' : String(own))}
+                    value={draft ?? (shown === undefined ? '' : String(shown))}
                     placeholder={selection.kind === 'inherit' ? String(inherited) : undefined}
                     onFocus={() => setDraft(own === undefined ? '' : String(own))}
                     onBlur={() => setDraft(null)}

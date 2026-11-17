@@ -604,6 +604,84 @@ describe('ticket 05: a boolean frame setting', () => {
         expect(patches).toEqual([{ noCard: false }]);
     });
 
+    // configurator-design: a slider move does not write the project on every step (vis-2 writes it
+    // for every patch). The slider shows each move at once; the latest value is written 150 ms after
+    // the first unwritten move, at once on release, and on unmount.
+    describe('review: dragging the slider writes every 150 ms, and on release', () => {
+        /** Presses the slider of `name` at `value` (a 240 px track: 10 px per shadow step). */
+        const pointerOn = (
+            name: string,
+        ): { down: (v: number) => void; move: (v: number) => void; up: (v: number) => void } => {
+            const root = cellOf(name).querySelector<HTMLElement>('.MuiSlider-root')!;
+            root.getBoundingClientRect = () =>
+                ({ left: 0, top: 0, width: 240, height: 20, right: 240, bottom: 20, x: 0, y: 0 }) as DOMRect;
+            const at = (type: string, value: number, target: EventTarget): void => {
+                act(() => {
+                    target.dispatchEvent(
+                        new PointerEvent(type, {
+                            bubbles: true,
+                            cancelable: true,
+                            pointerId: 1,
+                            button: 0,
+                            buttons: type === 'pointerup' ? 0 : 1,
+                            clientX: value * 10,
+                            clientY: 10,
+                        }),
+                    );
+                });
+            };
+            return {
+                down: value => at('pointerdown', value, root),
+                move: value => at('pointermove', value, document),
+                up: value => at('pointerup', value, document),
+            };
+        };
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('shows every move at once and writes the latest one 150 ms after the first, then on release', async () => {
+            vi.useFakeTimers();
+            const { patches } = await openFramePanel({ w1: {} });
+            const slider = pointerOn('baseElevation');
+
+            slider.down(5);
+            slider.move(7);
+            slider.move(9);
+            expect(shownSlider('baseElevation').position).toBe('9');
+            expect(patches).toEqual([]);
+
+            act(() => {
+                vi.advanceTimersByTime(150);
+            });
+            expect(patches).toEqual([{ baseElevation: 9 }]);
+
+            slider.move(12);
+            slider.up(12);
+            expect(patches).toEqual([{ baseElevation: 9 }, { baseElevation: 12 }]);
+            expect(shownSlider('baseElevation')).toMatchObject({ position: '12', number: '12' });
+
+            // Nothing waits any more.
+            act(() => {
+                vi.advanceTimersByTime(500);
+            });
+            expect(patches).toHaveLength(2);
+        });
+
+        it('writes a move still waiting when the panel closes', async () => {
+            vi.useFakeTimers();
+            const { patches } = await openFramePanel({ w1: {} });
+            const slider = pointerOn('baseElevation');
+
+            slider.down(6);
+            framePanel!.unmount();
+            framePanel = null;
+
+            expect(patches).toEqual([{ baseElevation: 6 }]);
+        });
+    });
+
     describe('multi-selection', () => {
         it.each<[string, Record<string, WidgetData>]>([
             ['set against inheriting', { w1: { noCard: true }, w2: {} }],
