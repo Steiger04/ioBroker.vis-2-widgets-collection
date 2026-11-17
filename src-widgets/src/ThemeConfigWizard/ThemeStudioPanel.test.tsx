@@ -47,7 +47,7 @@ import { THEME_STATE_ID } from '../lib/constants';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { BUNDLED_FONTS, CUSTOM_FONT_VALUE } from '../lib/theme/fontCatalogue';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
-import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { noteSavedTheme } from '../lib/theme/canvasTheme';
 import { THEME_PRESETS, applyPreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
@@ -119,7 +119,7 @@ const mountPanel = async (
     seed: UserTheme,
     themeType: 'dark' | 'light' = 'light',
 ): Promise<{ setState: ReturnType<typeof vi.fn>; socket: Connection }> => {
-    setLastKnownTheme(seed);
+    noteSavedTheme(seed);
     const fake = fakeSocket();
     handle = renderComponent<HostProps>(Host, { mounted: true, socket: fake.socket, themeType });
     await settle();

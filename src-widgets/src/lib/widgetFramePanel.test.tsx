@@ -37,7 +37,6 @@ import StateCollectionWidget from '../StateCollectionWidget/StateCollectionWidge
 import SliderCollectionWidget from '../SliderCollectionWidget/SliderCollectionWidget';
 import { THEME_STATE_ID } from './constants';
 import { setDraftTheme } from './theme/draftThemeStore';
-import { setLastKnownTheme } from './theme/lastKnownTheme';
 import { renderComponent, renderHook, type RenderComponentHandle } from './testing/testHarness';
 import type { UserTheme } from './theme/themeTypes';
 import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from './testing/vis2GroupBody';
@@ -174,10 +173,10 @@ afterEach(async () => {
     for (const canvas of canvases.splice(0)) {
         canvas.unmount();
     }
-    // The page forgets its theme: the next test opens a fresh editor.
-    setLastKnownTheme(null);
 });
 
+// The test file is one page, which knows the theme once a canvas widget or a panel field has read
+// it: the next two blocks run first, before anything here has read one.
 describe('fix: the header and footer fields follow the value the widget reads', () => {
     it.each([
         ['noHeader', HEADER_FIELDS],
@@ -198,6 +197,32 @@ describe('fix: the header and footer fields follow the value the widget reads', 
         for (const name of names) {
             expect(rows()).not.toContain(name);
         }
+    });
+});
+
+describe('ticket 06: before the editor knows the theme the built-in standard applies (header and footer on)', () => {
+    it('without a canvas widget an unset header shows its fields, a set "off" hides them', () => {
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+        expect(openPanel({ w1: { noHeader: true } })()).not.toContain('header');
+    });
+
+    it('while the canvas widget still waits for the theme, the fields show as on its canvas', async () => {
+        await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
+
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+    });
+
+    it('a theme without Rahmenvorgaben reads the standard', async () => {
+        await canvasWidget({});
+
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+    });
+
+    it('a widget mounting later keeps what an earlier one read until its own read answers', async () => {
+        await canvasWidget(withPresets({ noHeader: true }));
+        await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
+
+        expect(openPanel({ w1: {} })()).not.toContain('header');
     });
 });
 
@@ -271,32 +296,6 @@ describe('ticket 06: the header and footer fields follow the inherited value', (
             for (const name of HEADER_FIELDS) {
                 expect(rows().includes(name)).toBe(!hidden);
             }
-        });
-    });
-
-    describe('before the editor knows the theme the built-in standard applies (header and footer on)', () => {
-        it('without a canvas widget an unset header shows its fields, a set "off" hides them', () => {
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-            expect(openPanel({ w1: { noHeader: true } })()).not.toContain('header');
-        });
-
-        it('while the canvas widget still waits for the theme, the fields show as on its canvas', async () => {
-            await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
-
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-        });
-
-        it('a theme without Rahmenvorgaben reads the standard', async () => {
-            await canvasWidget({});
-
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-        });
-
-        it('a widget mounting later keeps what an earlier one read until its own read answers', async () => {
-            await canvasWidget(withPresets({ noHeader: true }));
-            await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
-
-            expect(openPanel({ w1: {} })()).not.toContain('header');
         });
     });
 

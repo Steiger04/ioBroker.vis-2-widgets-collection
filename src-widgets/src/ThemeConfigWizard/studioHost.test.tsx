@@ -17,7 +17,7 @@ import type { CustomPaletteProperties } from '@iobroker/types-vis-2';
 
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
 import { THEME_STATE_ID } from '../lib/constants';
-import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { noteSavedTheme } from '../lib/theme/canvasTheme';
 import { stateServer } from '../lib/testing/editorStandIn';
 import { renderComponent, type RenderComponentHandle } from '../lib/testing/testHarness';
 import ThemeWizardButton from './ThemeWizardButton';
@@ -105,7 +105,7 @@ describe('studio host', () => {
     });
 
     it('closing through the panel removes the container and ends the session', async () => {
-        setLastKnownTheme({ palette: { primary: { main: '#ff0000' } } });
+        noteSavedTheme({ palette: { primary: { main: '#ff0000' } } });
         act(() => openStudio({ socket: fakeSocket(), themeType: 'light' }));
         await nextFrame();
         expect(getDraftTheme()).not.toBeNull();
@@ -117,11 +117,10 @@ describe('studio host', () => {
 
         expect(containers()).toHaveLength(0);
         expect(getDraftTheme()).toBeNull();
-        setLastKnownTheme(null);
     });
 
     it('the discard confirm portals out of the root and its confirm closes the studio', async () => {
-        setLastKnownTheme({ palette: { primary: { main: '#ff0000' } } });
+        noteSavedTheme({ palette: { primary: { main: '#ff0000' } } });
         act(() => openStudio({ socket: fakeSocket(), themeType: 'light' }));
         // Reset makes the draft dirty, so closing asks first.
         act(() => buttonByText('theme_wizard_reset').click());
@@ -137,7 +136,6 @@ describe('studio host', () => {
 
         expect(containers()).toHaveLength(0);
         expect(getDraftTheme()).toBeNull();
-        setLastKnownTheme(null);
     });
 
     it('reopens fresh after a close', () => {
@@ -203,11 +201,9 @@ describe('the theme the studio opens with', () => {
     const KNOWN = { palette: { primary: { main: '#ff0000' } } };
     const CHANGED = { palette: { primary: { main: '#0000ff' } }, spacing: 4 };
 
-    afterEach(() => setLastKnownTheme(null));
-
     it('is the stored theme also when that was changed while the studio was closed', async () => {
         // An earlier session left the theme it knew.
-        setLastKnownTheme(KNOWN);
+        noteSavedTheme(KNOWN);
         const server = stateServer({ [THEME_STATE_ID]: JSON.stringify(KNOWN) });
         buttonHandle = mountButton({ socket: server.socket, themeType: 'light' });
         await server.answerRead();

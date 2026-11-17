@@ -33,7 +33,6 @@ import type { Connection } from '@iobroker/gui-components';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme } from '../lib/theme/draftThemeStore';
-import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { renderHook, type RenderHookHandle } from '../lib/testing/testHarness';
 import { createTestRoot } from '../lib/testing/testRoots';
@@ -141,9 +140,8 @@ const releaseCanvas = (): void => {
     });
 };
 
-/** The draft a Studio session opens with for a stored value (no seed from an earlier session). */
+/** The draft a Studio session opens with for a stored value, once its read has answered. */
 const studioDraftFor = async (val: unknown): Promise<UserTheme> => {
-    setLastKnownTheme(null);
     const fake = fakeSocket(val);
     const handle = renderHook(() => useStudioSession(fake.socket));
     mounted = handle;
@@ -166,7 +164,6 @@ afterEach(() => {
     mounted?.unmount();
     mounted = null;
     releaseCanvas();
-    setLastKnownTheme(null);
     vi.useRealTimers();
 });
 
@@ -297,7 +294,6 @@ describe('a foreign change of the stored theme reaches the canvas through the op
         push: (val: unknown) => void;
         closeStudio: () => void;
     }> => {
-        setLastKnownTheme(null);
         const fake = fakeSocket(JSON.stringify(STORED));
         const canvas = renderHook(() => useCollectionTheme(fake.socket, HOST));
         const studio = renderHook(() => useStudioSession(fake.socket));

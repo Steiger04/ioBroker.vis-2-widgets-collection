@@ -23,7 +23,7 @@ vi.mock('../lib/theme/draftThemeStore', async importOriginal => {
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, getDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
-import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { lastStoredTheme, noteSavedTheme } from '../lib/theme/canvasTheme';
 import { renderHook, type RenderHookHandle } from '../lib/testing/testHarness';
 import type { UserTheme } from '../lib/theme/themeTypes';
 import useStudioSession, { type StudioSession } from './useStudioSession';
@@ -117,8 +117,10 @@ const start = (socket: Connection): RenderHookHandle<StudioSession> => {
 beforeEach(() => {
     vi.useFakeTimers();
     vi.mocked(setDraftTheme).mockClear();
-    setLastKnownTheme(SEED);
 });
+
+/** The page knows SEED as the stored theme: an earlier session saved it. */
+const seeded = (): void => noteSavedTheme(SEED);
 
 afterEach(() => {
     session?.unmount();
@@ -128,7 +130,24 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
+// First in the file, which is one page: nothing here has read or saved a theme yet.
+describe('useStudioSession on a page that knows no theme yet', () => {
+    it('waits for the stored theme when there is no seed', async () => {
+        const fake = fakeSocket();
+        const { result } = start(fake.socket);
+        expect(result.current.loading).toBe(true);
+
+        await fake.resolveState(JSON.stringify(STORED));
+
+        expect(result.current.loading).toBe(false);
+        expect(result.current.draft).toEqual(STORED);
+        expect(result.current.dirty).toBe(false);
+    });
+});
+
 describe('useStudioSession canvas mirror', () => {
+    beforeEach(seeded);
+
     it('throttles a burst of edits to one leading and one trailing push, the last value landing', () => {
         const { result } = start(fakeSocket().socket);
         act(() => {
@@ -155,6 +174,8 @@ describe('useStudioSession canvas mirror', () => {
 });
 
 describe('useStudioSession seed and load', () => {
+    beforeEach(seeded);
+
     it('seeds the draft from the last known theme and shows it on the canvas at once', () => {
         const { result } = start(fakeSocket().socket);
         nextFrame();
@@ -176,7 +197,7 @@ describe('useStudioSession seed and load', () => {
         expect(result.current.draft).toEqual(STORED);
         expect(result.current.dirty).toBe(false);
         expect(result.current.canUndo).toBe(false);
-        expect(getLastKnownTheme()).toEqual(STORED);
+        expect(lastStoredTheme()).toEqual(STORED);
         expect(getDraftTheme()).toEqual(STORED);
     });
 
@@ -195,19 +216,6 @@ describe('useStudioSession seed and load', () => {
         expect(result.current.dirty).toBe(true);
     });
 
-    it('waits for the stored theme when there is no seed', async () => {
-        setLastKnownTheme(null);
-        const fake = fakeSocket();
-        const { result } = start(fake.socket);
-        expect(result.current.loading).toBe(true);
-
-        await fake.resolveState(JSON.stringify(STORED));
-
-        expect(result.current.loading).toBe(false);
-        expect(result.current.draft).toEqual(STORED);
-        expect(result.current.dirty).toBe(false);
-    });
-
     it.each([
         ['corrupt', '{"palette":'],
         ['unset', undefined],
@@ -215,7 +223,6 @@ describe('useStudioSession seed and load', () => {
         ['a list, not an object', '[1]'],
         ['a text, not an object', '"dark"'],
     ])('opens on the empty theme when the stored state is %s', async (_label, stored) => {
-        setLastKnownTheme(null);
         const fake = fakeSocket();
         const { result } = start(fake.socket);
 
@@ -228,7 +235,6 @@ describe('useStudioSession seed and load', () => {
 
     // Rückfall-Regel (ADR-0115): an unusable value falls away, the rest holds.
     it('opens with the rest of a stored theme when single values are unusable', async () => {
-        setLastKnownTheme(null);
         const fake = fakeSocket();
         const { result } = start(fake.socket);
 
@@ -241,12 +247,11 @@ describe('useStudioSession seed and load', () => {
         expect(result.current.dirty).toBe(false);
         expect(result.current.canUndo).toBe(false);
         expect(result.current.validation.isValid).toBe(true);
-        expect(getLastKnownTheme()).toEqual(rest);
+        expect(lastStoredTheme()).toEqual(rest);
         expect(getDraftTheme()).toEqual(rest);
     });
 
     it('opens a fully valid theme unchanged, with Google fonts, component overrides and CSS variables', async () => {
-        setLastKnownTheme(null);
         const stored: UserTheme = {
             palette: { mode: 'dark', primary: { main: '#ff0000' } },
             cssVariables: { cssVarPrefix: 'my' },
@@ -264,6 +269,8 @@ describe('useStudioSession seed and load', () => {
 });
 
 describe('useStudioSession end invariant', () => {
+    beforeEach(seeded);
+
     /** Starts a session with an edit whose trailing push is still pending. */
     const startWithPendingPush = (): RenderHookHandle<StudioSession> => {
         const handle = start(fakeSocket().socket);
@@ -294,6 +301,8 @@ describe('useStudioSession end invariant', () => {
 });
 
 describe('useStudioSession save', () => {
+    beforeEach(seeded);
+
     it('writes the draft to the state and leaves it on the canvas for the save handoff', async () => {
         const fake = fakeSocket();
         const handle = start(fake.socket);
@@ -308,7 +317,7 @@ describe('useStudioSession save', () => {
 
         expect(saved).toBe(true);
         expect(fake.setState).toHaveBeenCalledWith(THEME_STATE_ID, JSON.stringify({ ...SEED, spacing: 4 }));
-        expect(getLastKnownTheme()).toEqual({ ...SEED, spacing: 4 });
+        expect(lastStoredTheme()).toEqual({ ...SEED, spacing: 4 });
         expect(handle.result.current.dirty).toBe(false);
 
         handle.unmount();
@@ -455,6 +464,8 @@ describe('useStudioSession save', () => {
 // The stored theme changes while the Studio is open (ADR-0115): a theme request, an external
 // MCP client, a second browser.
 describe('useStudioSession foreign change of the stored theme', () => {
+    beforeEach(seeded);
+
     const FOREIGN: UserTheme = { palette: { primary: { main: '#00aa00' } }, spacing: 6 };
 
     /** Starts a session that has loaded STORED and shows it: open and untouched. */
@@ -478,7 +489,7 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(handle.result.current.dirty).toBe(false);
         expect(handle.result.current.canSave).toBe(false);
         expect(handle.result.current.canUndo).toBe(false);
-        expect(getLastKnownTheme()).toEqual(FOREIGN);
+        expect(lastStoredTheme()).toEqual(FOREIGN);
     });
 
     it('keeps the draft of an edited session, in the Studio and on the canvas', async () => {
@@ -493,7 +504,7 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(handle.result.current.dirty).toBe(true);
         expect(handle.result.current.canUndo).toBe(true);
         // The next open starts from what is stored now, not from the abandoned draft.
-        expect(getLastKnownTheme()).toEqual(FOREIGN);
+        expect(lastStoredTheme()).toEqual(FOREIGN);
     });
 
     it('measures an edited session against the new stored theme', async () => {
@@ -530,7 +541,7 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(fake.setState).toHaveBeenCalledWith(THEME_STATE_ID, JSON.stringify({ ...STORED, spacing: 4 }));
         expect(handle.result.current.draft).toEqual({ ...STORED, spacing: 4 });
         expect(handle.result.current.dirty).toBe(false);
-        expect(getLastKnownTheme()).toEqual({ ...STORED, spacing: 4 });
+        expect(lastStoredTheme()).toEqual({ ...STORED, spacing: 4 });
     });
 
     it('wins with a save whose write is still in flight when the foreign change arrives', async () => {
@@ -560,7 +571,7 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(saved).toBe(true);
         expect(handle.result.current.draft).toEqual({ ...STORED, spacing: 4 });
         expect(handle.result.current.dirty).toBe(false);
-        expect(getLastKnownTheme()).toEqual({ ...STORED, spacing: 4 });
+        expect(lastStoredTheme()).toEqual({ ...STORED, spacing: 4 });
     });
 
     // Rückfall-Regel (ADR-0115): the foreign change is read like the theme at opening.
@@ -574,7 +585,7 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(handle.result.current.draft).toEqual(rest);
         expect(handle.result.current.dirty).toBe(false);
         expect(handle.result.current.validation.isValid).toBe(true);
-        expect(getLastKnownTheme()).toEqual(rest);
+        expect(lastStoredTheme()).toEqual(rest);
         expect(getDraftTheme()).toEqual(rest);
     });
 
@@ -622,12 +633,14 @@ describe('useStudioSession foreign change of the stored theme', () => {
         expect(fake.subscribers()).toBe(0);
         fake.pushLate(JSON.stringify(FOREIGN));
         settle();
-        expect(getLastKnownTheme()).toEqual(STORED);
+        expect(lastStoredTheme()).toEqual(STORED);
         expect(getDraftTheme()).toBeNull();
     });
 });
 
 describe('useStudioSession beforeunload warning', () => {
+    beforeEach(seeded);
+
     /** Dispatches a cancelable beforeunload and reports whether the session objected. */
     const leavePage = (): boolean => {
         const event = new Event('beforeunload', { cancelable: true });

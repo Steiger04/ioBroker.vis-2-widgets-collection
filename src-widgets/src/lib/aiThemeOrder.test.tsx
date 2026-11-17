@@ -31,7 +31,7 @@ import { renderComponent } from './testing/testHarness';
 import { createTestRoot } from './testing/testRoots';
 import { themeStateDescription } from './testing/themeStateDescription';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
-import { getLastKnownTheme, setLastKnownTheme } from './theme/lastKnownTheme';
+import { lastStoredTheme, noteSavedTheme } from './theme/canvasTheme';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
 import { THEME_CONTROL_RANGES } from './theme/themeUtils';
@@ -1144,17 +1144,16 @@ describe('Naht „Theme-Auftrag“: orders over time', () => {
 
     // The palette entry of the studio is in the editor beside the view.
     it('leaves the theme it wrote as the one the Theme Studio opens with', async () => {
-        setLastKnownTheme(STORED);
+        noteSavedTheme(STORED);
         const { server } = placeOrder({ mode: 'dark' });
         const PaletteEntry = ThemeWizardButton as unknown as FC<{ socket: Connection; themeType: string }>;
         const entry = renderComponent(PaletteEntry, { socket: server.socket, themeType: 'light' });
         try {
             await settle(server);
 
-            expect(getLastKnownTheme()).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+            expect(lastStoredTheme()).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
         } finally {
             entry.unmount();
-            setLastKnownTheme(null);
         }
     });
 

@@ -17,7 +17,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createWidgetFrameField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
-import { knownUserTheme } from './theme/lastKnownTheme';
+import { canvasUserTheme } from './theme/canvasTheme';
 import { isWidgetFrameKey, storedFrameSetting, widgetFramePresetsOf } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
@@ -49,7 +49,7 @@ type Settings = {
  * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
  * hands the predicate the stored data alone, which lib/widgetFrame reads the widget's way — the
  * Rückfall-Regel of the frame setting, then the cascade over the Rahmenvorgaben of the theme the
- * canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
+ * canvas shows (the Leinwand-Theme, {@link canvasUserTheme}: the Studio draft, else the stored theme).
  *
  * @remarks
  * Before the page knows any theme the built-in standard applies, as on the canvas of a widget
@@ -60,7 +60,7 @@ type Settings = {
 const hiddenWhileFrameOn =
     (key: 'noHeader' | 'noFooter'): HiddenPredicate =>
     data =>
-        storedFrameSetting(data, key, widgetFramePresetsOf(knownUserTheme())).effective;
+        storedFrameSetting(data, key, widgetFramePresetsOf(canvasUserTheme())).effective;
 
 /**
  * Build the shared editor field list used by most widgets.
