@@ -84,11 +84,11 @@ An einem einzelnen Widget soll der Assistent die Rahmen-Einstellungen laut seine
 - „Stelle das Theme der Widget-Sammlung auf das Preset Graphit. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Mach die Primärfarbe orange und die Ecken runder, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Setze das Theme auf den Standard zurück. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
-- „Stell alle Widgets der Widget-Sammlung ohne Karte dar. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
-- „Blende bei allen Widgets der Widget-Sammlung die Fußzeile aus, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Stelle im Theme der Widget-Sammlung ein, dass alle Widgets ohne Karte erscheinen. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Blende im Theme der Widget-Sammlung bei allen Widgets die Fußzeile aus, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Stell das vorherige Theme wieder her.“ (im selben Gespräch nach einer Änderung; den Eintrag kennt der Assistent dann schon)
 
-Nenne das Set in der Anfrage, wie unter [Das Set nennen](#das-set-nennen) beschrieben: Der Eintrag für das Theme steht im Set `vis-2-widgets-collection`, und der Assistent sucht ihn dort meist nur, wenn du es sagst. Ohne den zweiten Satz blieb das Theme in der Prüfung mit Claude Haiku und Claude Sonnet in fünf von sechs Anfragen unverändert; der Assistent antwortete meist, er habe dafür kein Werkzeug. Mit dem Satz setzte er den Auftrag in jeder geprüften Sitzung richtig. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio (geprüft mit Graphit und Rubin). Die beiden Prompts zum Widget-Rahmen sind noch nicht geprüft.
+Nenne das Set in der Anfrage, wie unter [Das Set nennen](#das-set-nennen) beschrieben: Der Eintrag für das Theme steht im Set `vis-2-widgets-collection`, und der Assistent sucht ihn dort meist nur, wenn du es sagst. Ohne den zweiten Satz blieb das Theme in der Prüfung mit Claude Haiku und Claude Sonnet in fünf von sechs Anfragen unverändert; der Assistent antwortete meist, er habe dafür kein Werkzeug. Mit dem Satz setzte er den Auftrag in jeder geprüften Sitzung richtig. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio (geprüft mit Graphit und Rubin). Für den Widget-Rahmen nenne das Theme ausdrücklich: Auf „Stell alle Widgets der Widget-Sammlung ohne Karte dar“ änderte der Assistent in der Prüfung mit Claude Sonnet jedes Widget einzeln oder legte sogar je ein neues Widget jedes Typs an; mit „im Theme“ setzte er die Rahmenvorgabe, und ein zweiter Auftrag ergänzte sie, ohne die erste zu verlieren.
 
 ### Was dabei geschieht
 

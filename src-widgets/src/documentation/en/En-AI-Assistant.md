@@ -84,11 +84,11 @@ On a single widget, the assistant's guide tells it to set the frame settings onl
 - "Set the theme of the widget collection to the preset Graphite. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Make the primary color orange and the corners rounder, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Reset the theme to the default. You find the entry for it in the set `vis-2-widgets-collection`."
-- "Show all widgets of the widget collection without card. You find the entry for it in the set `vis-2-widgets-collection`."
-- "Hide the footer on all widgets of the widget collection, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Set in the theme of the widget collection that all widgets appear without card. You find the entry for it in the set `vis-2-widgets-collection`."
+- "Hide the footer of all widgets in the theme of the widget collection, the rest stays. You find the entry for it in the set `vis-2-widgets-collection`."
 - "Restore the previous theme." (in the same conversation after a change; the assistant then already knows the entry)
 
-Name the set in the request, as described under [Name the set](#name-the-set): the entry for the theme is in the set `vis-2-widgets-collection`, and the assistant mostly looks there only when you say so. Without the second sentence, the theme stayed unchanged in five of six requests in the check with Claude Haiku and Claude Sonnet; the assistant mostly answered that it had no tool for this. With the sentence it placed the order correctly in every session checked. The check ran with the German wording of these prompts; the English ones are translations. Name presets by their name from the Theme Studio (checked with Graphit and Rubin, the German names of Graphite and Ruby). The two prompts for the widget frame have not been checked yet.
+Name the set in the request, as described under [Name the set](#name-the-set): the entry for the theme is in the set `vis-2-widgets-collection`, and the assistant mostly looks there only when you say so. Without the second sentence, the theme stayed unchanged in five of six requests in the check with Claude Haiku and Claude Sonnet; the assistant mostly answered that it had no tool for this. With the sentence it placed the order correctly in every session checked. The check ran with the German wording of these prompts; the English ones are translations. Name presets by their name from the Theme Studio (checked with Graphit and Rubin, the German names of Graphite and Ruby). For the widget frame, name the theme explicitly: asked to "show all widgets of the widget collection without card", the assistant in the check with Claude Sonnet changed every widget on its own or even added a new widget of each type; with "in the theme" it set the frame preset, and a second order added to it without losing the first.
 
 ### What Happens
 
