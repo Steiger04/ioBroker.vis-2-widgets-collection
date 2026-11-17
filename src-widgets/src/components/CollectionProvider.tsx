@@ -40,13 +40,10 @@ const NO_FRAME_KEYS: readonly WidgetFrameKey[] = [];
 const CollectionContext = createContext<AllCollectionContextProps>({} as AllCollectionContextProps);
 
 /**
- * Props for {@link module:components/CollectionProvider.default}.
+ * What the provider reads besides the context — the widget's reading of its fields and the host's
+ * permission to carry a card (`Generic`). Every key may be absent.
  */
-interface CollectionProviderProps {
-    /** Child element(s) to render inside the provider. */
-    children: JSX.Element | JSX.Element[] | null;
-    /** The fully-typed collection context provided by vis-2. */
-    context: AllCollectionContextProps;
+export interface CollectionProviderInput {
     /**
      * What the pick and the field defaults take from the widget's fields (`Generic`, from its
      * `getWidgetInfo()`): an id without its object reads the object and the keys of the pick, an
@@ -64,6 +61,17 @@ interface CollectionProviderProps {
      * effective `noCard`; an incoming `wrappedContent` decides nothing. Absent: allowed.
      */
     hostAllowsCard?: boolean;
+}
+
+/**
+ * Props for {@link module:components/CollectionProvider.default}: the context and its children, plus
+ * the provider input ({@link CollectionProviderInput}).
+ */
+interface CollectionProviderProps extends CollectionProviderInput {
+    /** Child element(s) to render inside the provider. */
+    children: JSX.Element | JSX.Element[] | null;
+    /** The fully-typed collection context provided by vis-2. */
+    context: AllCollectionContextProps;
 }
 
 /**

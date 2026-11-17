@@ -44,7 +44,7 @@ interface FieldReading {
     /** The field rules of the Rückfall-Regel (lib/usableWidgetData). */
     rules: FieldRules;
     /** The id fields with the shared pick and the defaults of the unset keys (lib/pickedWidgetData). */
-    dataReading: WidgetDataReading;
+    reading: WidgetDataReading;
     /** The frame settings the widget offers, read by the provider's frame stage (lib/widgetFrame). */
     frameKeys: readonly WidgetFrameKey[];
 }
@@ -59,7 +59,7 @@ const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
         const visAttrs = widgetClass.getWidgetInfo().visAttrs ?? [];
         reading = {
             rules: fieldRulesOf(visAttrs),
-            dataReading: {
+            reading: {
                 oidPickFields: oidPickFieldsOf(visAttrs),
                 defaults: fieldDefaultsOf(visAttrs),
             },
@@ -173,7 +173,7 @@ class Generic<
         // Stage 1 of the Lese-Naht, the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
         // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
-        const { rules, dataReading, frameKeys } = fieldReadingOf(this.constructor as unknown as WidgetClass);
+        const { rules, reading, frameKeys } = fieldReadingOf(this.constructor as unknown as WidgetClass);
         const data = usableWidgetData(this.state.rxData, rules, props.widget.data);
 
         const collectionContext = {
@@ -202,13 +202,11 @@ class Generic<
         // unset key the palette's default (lib/pickedWidgetData): an assistant-inserted widget reads
         // like the palette's. Stage 4 there, too: an unset frame setting reads the Rahmenvorgabe of the
         // Leinwand-Theme, which only the provider reads, else its standard (lib/widgetFrame, ADR-0117).
-        return withCollectionProvider(
-            this.wrapContent(component),
-            collectionContext,
-            dataReading,
+        return withCollectionProvider(this.wrapContent(component), collectionContext, {
+            reading,
             frameKeys,
             hostAllowsCard,
-        );
+        });
     }
 
     /**
