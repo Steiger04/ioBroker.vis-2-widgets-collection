@@ -93,6 +93,10 @@ reads them from there.
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+- (steiger04) Same content as 3.3.0, whose release build failed before it reached npm
+
 ### 3.3.0 (2026-11-17)
 
 - (steiger04) Theme Studio: the new "Widget frame" section sets the frame of all widgets at once
