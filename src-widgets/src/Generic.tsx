@@ -30,6 +30,7 @@ import { widgetFrameKeysOf } from './lib/widgetFrame';
 
 import type { FieldRules } from './lib/usableWidgetData';
 import type { WidgetDataReading } from './lib/pickedWidgetData';
+import type { WidgetFrameKey } from './lib/widgetFrame';
 import type { CollectionContextProps } from './types';
 
 /** A widget class as far as its field rules are concerned: its static declaration. */
@@ -41,6 +42,8 @@ interface FieldReading {
     rules: FieldRules;
     /** The id fields with the shared pick and the defaults of the unset keys (lib/pickedWidgetData). */
     dataReading: WidgetDataReading;
+    /** The frame settings the widget offers, read by the provider's frame stage (lib/widgetFrame). */
+    frameKeys: readonly WidgetFrameKey[];
 }
 
 /** The field reading of each widget class, read once from its static `getWidgetInfo()`. */
@@ -56,8 +59,8 @@ const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
             dataReading: {
                 oidPickFields: oidPickFieldsOf(visAttrs),
                 defaults: fieldDefaultsOf(visAttrs),
-                frameKeys: widgetFrameKeysOf(visAttrs),
             },
+            frameKeys: widgetFrameKeysOf(visAttrs),
         };
         fieldReadingByClass.set(widgetClass, reading);
     }
@@ -166,7 +169,7 @@ class Generic<
         // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
         // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
-        const { rules, dataReading } = fieldReadingOf(this.constructor as unknown as WidgetClass);
+        const { rules, dataReading, frameKeys } = fieldReadingOf(this.constructor as unknown as WidgetClass);
         const data = usableWidgetData(this.state.rxData, rules, props.widget.data);
 
         const collectionContext = {
@@ -195,7 +198,7 @@ class Generic<
         // palette's default (lib/pickedWidgetData): an assistant-inserted widget reads like the palette's.
         // There, too, an unset frame setting reads the Rahmenvorgabe of the collection theme, which only
         // the provider knows, else its standard (lib/widgetFrame, ADR-0117).
-        return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading);
+        return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading, frameKeys);
     }
 
     /**

@@ -9,6 +9,7 @@ import CollectionProvider from './CollectionProvider';
 
 import type { CollectionContextProps, AllCollectionContextProps } from '../types';
 import type { WidgetDataReading } from '../lib/pickedWidgetData';
+import type { WidgetFrameKey } from '../lib/widgetFrame';
 
 /**
  * Wraps a widget element in a {@link module:components/CollectionProvider.default}.
@@ -16,7 +17,8 @@ import type { WidgetDataReading } from '../lib/pickedWidgetData';
  * @template T - Widget data type from WidgetRegistry
  * @param component - Rendered element(s) to wrap.
  * @param context - Typed collection context.
- * @param reading - What the widget data's reading takes from the widget's fields (see CollectionProvider).
+ * @param reading - What the pick and the field defaults take from the widget's fields (see CollectionProvider).
+ * @param frameKeys - The frame settings the widget offers (see CollectionProvider).
  * @returns The same element(s) wrapped in a provider.
  * @example
  * ```tsx
@@ -30,11 +32,13 @@ function withCollectionProvider<T extends object = object>(
     component: JSX.Element | JSX.Element[] | null,
     context: CollectionContextProps<T>,
     reading?: WidgetDataReading,
+    frameKeys?: readonly WidgetFrameKey[],
 ): JSX.Element {
     return (
         <CollectionProvider
             context={context as AllCollectionContextProps}
             reading={reading}
+            frameKeys={frameKeys}
         >
             {component}
         </CollectionProvider>

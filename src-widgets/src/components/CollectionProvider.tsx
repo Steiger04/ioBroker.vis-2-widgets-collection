@@ -47,11 +47,16 @@ interface CollectionProviderProps {
     /** The fully-typed collection context provided by vis-2. */
     context: AllCollectionContextProps;
     /**
-     * What the widget data's reading takes from the widget's fields (`Generic`, from its
+     * What the pick and the field defaults take from the widget's fields (`Generic`, from its
      * `getWidgetInfo()`): an id without its object reads the object and the keys of the pick, an
-     * unset key the palette's default, an unset frame setting the Rahmenvorgabe. Absent: the data as it is.
+     * unset key the palette's default. Absent: the data as it is.
      */
     reading?: WidgetDataReading;
+    /**
+     * The frame settings the widget offers (`Generic`, from its `getWidgetInfo()`): unset, they read
+     * the Rahmenvorgabe of the Leinwand-Theme, else the built-in standard. Absent: none.
+     */
+    frameKeys?: readonly WidgetFrameKey[];
 }
 
 /**
@@ -60,13 +65,15 @@ interface CollectionProviderProps {
  * @param props - Provider props.
  * @param props.children - Child element(s) to render inside the provider.
  * @param props.context - The fully-typed collection context provided by vis-2.
- * @param props.reading - What the widget data's reading takes from the widget's fields.
+ * @param props.reading - What the pick and the field defaults take from the widget's fields.
+ * @param props.frameKeys - The frame settings the widget offers.
  * @returns Provider subtree.
  */
 function CollectionProvider({
     children,
     context,
     reading,
+    frameKeys = NO_FRAME_KEYS,
 }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {
     const theme = context.theme;
     const socket = context.socket;
@@ -110,7 +117,6 @@ function CollectionProvider({
     // The last step of the reading (ADR-0117): an unset frame setting the widget offers reads the
     // Rahmenvorgabe of the Leinwand-Theme — the Studio draft while one is open — else its standard
     // (lib/widgetFrame). The one cascade every reader of the widget data sees.
-    const frameKeys = reading?.frameKeys ?? NO_FRAME_KEYS;
     const userTheme = canvas.theme;
     const data = useMemo(
         () => withWidgetFrame(picked, frameKeys, widgetFramePresetsOf(userTheme)),
