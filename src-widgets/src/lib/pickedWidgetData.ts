@@ -24,7 +24,7 @@
  * without such a field and without an unset key that has a default comes back as the same object.
  */
 import { applyObjectPick, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
-import { NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
+import { isUnset, NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
 import type { PickedObject } from './commonObjectFields';
@@ -113,8 +113,6 @@ export const awaitedObjectsOf = (data: WidgetData, fields: readonly OidPickField
         const id = idOf(data, field);
         return id !== undefined && !hasOwnObject(data, field, id) ? [{ field, id }] : [];
     });
-
-const isUnset = (value: unknown): boolean => value === undefined || value === null;
 
 /**
  * The widget data with the picks of its awaited objects read in, over the palette's defaults.

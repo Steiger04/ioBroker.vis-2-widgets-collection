@@ -37,6 +37,16 @@ interface DefaultField {
     keepUnset?: string;
 }
 
+/**
+ * Whether a key the widget reads is unset: `undefined` (missing), or a `null` the assistant's flat
+ * update wrote. The one meaning of unset the Lese-Naht reads — the pick (`lib/pickedWidgetData`),
+ * the field defaults and the frame stage (`lib/widgetFrame`) fill exactly such a key; `''`, `0` and
+ * `false` are set.
+ *
+ * @param value - The value of the key in the data as the widget reads it.
+ */
+export const isUnset = (value: unknown): value is undefined | null => value === undefined || value === null;
+
 /** No defaults: the data reads as it is. */
 export const NO_FIELD_DEFAULTS: FieldDefaults = new Map();
 
@@ -62,7 +72,7 @@ export const fieldDefaultsOf = (visAttrs: readonly RxWidgetInfoGroup[]): FieldDe
 };
 
 /**
- * The data with every unset key (`undefined`, `null`) that has a default read as that default.
+ * The data with every unset key ({@link isUnset}) that has a default read as that default.
  *
  * @param data - The widget data as the widget reads it; never changed.
  * @param defaults - The widget's {@link fieldDefaultsOf}.
@@ -72,7 +82,7 @@ export function withFieldDefaults<T extends object>(data: T, defaults: FieldDefa
     const values = data as Record<string, unknown>;
     let filled: Record<string, unknown> | undefined;
     defaults.forEach((value, name) => {
-        if (values[name] === undefined || values[name] === null) {
+        if (isUnset(values[name])) {
             filled ??= { ...values };
             filled[name] = value;
         }

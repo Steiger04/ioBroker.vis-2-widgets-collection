@@ -34,6 +34,7 @@
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
  */
+import { isUnset } from './fieldDefaults';
 import optionalNumber from './helper/optionalNumber';
 import { usableWidgetData, type FieldRules, type StoredValue } from './usableWidgetData';
 
@@ -220,7 +221,7 @@ export function withWidgetFrame<T extends object>(
     const values = data as Record<string, unknown>;
     let filled: Record<string, unknown> | undefined;
     for (const key of keys) {
-        if (values[key] === undefined || values[key] === null) {
+        if (isUnset(values[key])) {
             filled ??= { ...values };
             filled[key] = presets[key] ?? WIDGET_FRAME_SETTINGS[key].standard;
         }
