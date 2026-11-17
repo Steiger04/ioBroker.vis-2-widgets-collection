@@ -18,7 +18,18 @@
  *
  * {@link WIDGET_FRAME_SETTINGS} is the one table: the cascade, the theme schema, the field
  * definitions and their Erb-Adapter in the attribute panel (kind, label, standard, slider range),
- * the Theme Studio section and the Theme-Auftrag read it. A setting joins by its row.
+ * the Theme Studio section and the Theme-Auftrag read it. A setting joins by its row, and beyond
+ * it needs, each held by hand and caught when missing:
+ *
+ * - its place under Allgemein (`commonFields`, through `createWidgetFrameField`) — the parity test
+ *   of the KI catalogue turns red while a placeable widget lacks it;
+ * - its control in a sub-group of the Theme Studio section (`WidgetFrameSection`) — a type error;
+ * - its old default in the test helpers (`FRAME_DEFAULTS_BEFORE_ADR_0117`) — a type error;
+ * - its words in the KI-Leitfaden of every placeable widget (13 hand-kept translations, ADR-0114:
+ *   the sentence that names every setting, and the format sentence with the count of on/off fields
+ *   and the number ranges) and in the Theme-Auftrag's guide — the guide tests turn red while a
+ *   guide does not name it. They compare the ranges of `basePadding` and `baseElevation` with this
+ *   table; a new number's range needs its own assertion there.
  *
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
