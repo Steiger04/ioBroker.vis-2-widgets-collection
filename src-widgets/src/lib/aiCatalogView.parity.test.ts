@@ -388,6 +388,23 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
+    // The panel predicate of the header and footer and the colour fields' swatch read the frame
+    // settings from stored data without the widget's fields (lib/widgetFrame): they rely on this.
+    describe.each(PLACEABLE_WIDGETS)('%s: the Widget-Rahmen', name => {
+        it('offers all eight frame settings under their own names', () => {
+            expect(widgetFrameKeysOf(infos.get(name)!.visAttrs ?? [])).toEqual([
+                'noHeader',
+                'noHeaderIcon',
+                'noFooter',
+                'noCard',
+                'outlined',
+                'outlinedFrame',
+                'basePadding',
+                'baseElevation',
+            ]);
+        });
+    });
+
     describe.each(PLACEABLE_WIDGETS)('ticket 05: %s — the frame settings as the assistant reads them', name => {
         /** The label each frame setting carried as a vis-2 checkbox or slider, before its Erb-Adapter. */
         const LABELS: Record<string, string> = {
@@ -408,7 +425,6 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 field => field.name !== undefined && isWidgetFrameKey(field.name),
             );
 
-            expect(offered).toHaveLength(8);
             expect(described.map(field => [field.name, field.label, field.default])).toEqual(
                 offered.map(key => [key, (en as Record<string, string>)[LABELS[key]], undefined]),
             );
