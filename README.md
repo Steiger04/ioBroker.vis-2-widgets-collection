@@ -100,6 +100,7 @@ reads them from there.
 - (steiger04) Existing widgets keep their stored frame settings and look unchanged; new widgets follow the Theme Studio
 - (steiger04) The vis-2 AI assistant can set the widget frame of all widgets with the theme
 - (steiger04) A widget without card no longer shows a shadow around its transparent frame
+- (steiger04) Theme Studio: a typed padding or shadow lands on the slider's step, like in the attribute panel (a shadow of 2.5 becomes 3 instead of an error)
 - (steiger04) Attribute panel: with several widgets selected, the colour preview of background and frame background follows the card setting of the first selected widget
 
 ### 3.2.0 (2026-11-15)

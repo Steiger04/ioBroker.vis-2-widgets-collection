@@ -923,6 +923,14 @@ describe('ThemeStudioPanel Widget-Rahmen section (ADR-0117)', () => {
         expect(resetButton()).toBeNull();
     });
 
+    it('snaps a typed shadow onto its step, like the field under Allgemein, instead of a field error', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(shadowInput()!, '2.5');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { baseElevation: 3 } });
+        expect(document.body.querySelector('[data-studio-section="widgetFrame"] [data-theme-error]')).toBeNull();
+    });
+
     it('undoes and redoes a preset', async () => {
         await mountPanel({});
         await expandSections(SECTION);
@@ -1132,6 +1140,13 @@ describe('ticket 03: ThemeStudioPanel Widget-Rahmen — padding, outlines, heade
         await typeInto(numberInput(LABEL.basePadding)!, '2.5');
         expect(getDraftTheme()).toEqual({ widgetFrame: { basePadding: 2.5 } });
         expect(numberInput(LABEL.basePadding)?.getAttribute('aria-label')).toBe(LABEL.basePadding);
+    });
+
+    it('snaps a typed padding onto its step of 0.1', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(numberInput(LABEL.basePadding)!, '2.57');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { basePadding: 2.6 } });
     });
 
     it('undoes and redoes a switched preset', async () => {
