@@ -51,7 +51,7 @@ import type { ExtendedField } from '../types/field-definitions/extended-field';
 
 /** Props for {@link WidgetFrameField} — the vis-2 custom-field contract plus the setting. */
 export interface WidgetFrameFieldProps {
-    /** The frame setting the field stores (its name may carry a group suffix). */
+    /** The frame setting the field stores; also the field's name (`createWidgetFrameField`). */
     setting: WidgetFrameKey;
     /** Field definition (name, label, storedValue). */
     field: ExtendedField;

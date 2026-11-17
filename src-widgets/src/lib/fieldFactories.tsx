@@ -287,8 +287,6 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
 
 /** Options for {@link createWidgetFrameField}. */
 export interface WidgetFrameFieldOptions {
-    /** Field name; the setting's name by default (`commonFields` adds its group suffix). */
-    name?: string;
     /** Label translation key; the setting's label under Allgemein (`lib/widgetFrame`) by default. */
     label?: string;
     /** Hidden condition (vis-2 hands a predicate the raw widget data). */
@@ -306,17 +304,18 @@ export interface WidgetFrameFieldOptions {
  * boolean, like a checkbox; a number, like a slider — `lib/usableWidgetData`), the shadow narrowed
  * to the whole numbers MUI draws (`frameStoredValue`). A boolean has no
  * binding, like vis-2's checkbox; a number keeps the binding vis-2's slider offers (a bound field
- * shows vis-2's binding input instead of the adapter).
- * @param setting - The frame setting (`lib/widgetFrame`).
- * @param options - Name, label and hidden condition.
+ * shows vis-2's binding input instead of the adapter). The field is named after its setting: the
+ * frame settings exist only in the shared list without group suffix (`commonFields`).
+ * @param setting - The frame setting (`lib/widgetFrame`); also the field's name.
+ * @param options - Label and hidden condition.
  * @returns A fresh field definition per call.
- * @example createWidgetFrameField('noCard', { name: `noCard${groupName}` })
+ * @example createWidgetFrameField('noCard')
  */
-export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetFrameFieldOptions): ExtendedField {
-    const { name = setting, label = WIDGET_FRAME_SETTINGS[setting].label, hidden } = options;
+export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetFrameFieldOptions = {}): ExtendedField {
+    const { label = WIDGET_FRAME_SETTINGS[setting].label, hidden } = options;
     const kind = WIDGET_FRAME_SETTINGS[setting].kind;
     const field: ExtendedField = {
-        name,
+        name: setting,
         label,
         type: 'custom',
         storedValue: frameStoredValue(setting),
