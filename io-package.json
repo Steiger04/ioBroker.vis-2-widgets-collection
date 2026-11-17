@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "3.3.0",
+    "version": "3.3.1",
     "news": {
+      "3.3.1": {
+        "en": "Same content as 3.3.0, whose release build failed before it reached npm",
+        "de": "Derselbe Inhalt wie 3.3.0, dessen Release-Build vor npm fehlschlug",
+        "ru": "То же содержимое, что и в версии 3.3.0, сборка релиза которой завершилась неудачей до достижения npm",
+        "pt": "Mesmo conteúdo do 3.3.0, cuja versão falhou antes de chegar ao npm",
+        "nl": "Zelfde inhoud als 3.3.0, waarvan het bouwen van de release mislukte voordat de npm werd bereikt",
+        "fr": "Même contenu que la version 3.3.0, dont la version a échoué avant npm",
+        "it": "Stesso contenuto della 3.3.0, la cui release non è riuscita a npm",
+        "es": "El mismo contenido que la 3.3.0, cuya versión falló antes de llegar a npm",
+        "pl": "Ta sama zawartość co 3.3.0, której kompilacja wydania nie powiodła się, zanim osiągnęła wartość npm",
+        "uk": "Той самий вміст, що і 3.3.0, збирання випуску якого не вдалося до досягнення npm",
+        "zh-cn": "与 3.3.0 的内容相同，其发布版本在到达 npm 之前就失败了"
+      },
       "3.3.0": {
         "en": "Theme Studio: the new \"Widget frame\" section sets the frame of all widgets at once\nAttribute panel: frame settings show the value they inherit from the theme\nExisting widgets keep their frame settings and look unchanged\nThe vis-2 AI assistant can set the widget frame of all widgets with the theme\nA widget without card no longer shows a shadow",
         "de": "Theme Studio: Der neue Bereich „Widget-Rahmen“ legt den Rahmen aller Widgets auf einmal fest\nAttributpanel: Rahmen-Einstellungen zeigen den Wert, den sie vom Theme erben\nBestehende Widgets behalten ihre Rahmen-Einstellungen und sehen unverändert aus\nDer KI-Assistent von vis-2 kann den Widget-Rahmen aller Widgets über das Theme setzen\nEin Widget ohne Karte zeigt keinen Schatten mehr",
