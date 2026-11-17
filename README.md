@@ -99,6 +99,7 @@ reads them from there.
 - (steiger04) Attribute panel: the frame settings show the inherited value ("As theme (on)", "inherits · Theme: 4"); "As theme" or × lets a widget follow the theme again, also for several selected widgets
 - (steiger04) Existing widgets keep their stored frame settings and look unchanged; new widgets follow the Theme Studio
 - (steiger04) The vis-2 AI assistant can set the widget frame of all widgets with the theme
+- (steiger04) A widget without card no longer shows a shadow around its transparent frame
 
 ### 3.2.0 (2026-11-15)
 
