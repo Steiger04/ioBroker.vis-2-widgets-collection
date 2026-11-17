@@ -95,13 +95,11 @@ reads them from there.
 
 ### **WORK IN PROGRESS**
 
-- (steiger04) Theme Studio: new section "Widget frame" sets card, outlines, padding, shadow, header, header icon and footer for all widgets; a widget's own value still wins
-- (steiger04) Attribute panel: the frame settings show the inherited value ("As theme (on)", "inherits · Theme: 4"); "As theme" or × lets a widget follow the theme again, also for several selected widgets
-- (steiger04) Existing widgets keep their stored frame settings and look unchanged; new widgets follow the Theme Studio
+- (steiger04) Theme Studio: the new "Widget frame" section sets the frame of all widgets at once
+- (steiger04) Attribute panel: frame settings show the value they inherit from the theme
+- (steiger04) Existing widgets keep their frame settings and look unchanged
 - (steiger04) The vis-2 AI assistant can set the widget frame of all widgets with the theme
-- (steiger04) A widget without card no longer shows a shadow around its transparent frame
-- (steiger04) Theme Studio: a typed padding or shadow lands on the slider's step, like in the attribute panel (a shadow of 2.5 becomes 3 instead of an error)
-- (steiger04) Attribute panel: with several widgets selected, the colour preview of background and frame background follows the card setting of the first selected widget
+- (steiger04) A widget without card no longer shows a shadow
 
 ### 3.2.0 (2026-11-15)
 
