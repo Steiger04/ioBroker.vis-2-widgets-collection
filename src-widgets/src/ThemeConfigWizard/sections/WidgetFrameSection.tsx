@@ -31,6 +31,7 @@ import {
     WIDGET_FRAME_KEYS,
     WIDGET_FRAME_SETTING_COUNT,
     WIDGET_FRAME_SETTINGS,
+    snapToSetting,
     widgetFramePath,
     type NumberFrameSetting,
     type WidgetFrameKey,
@@ -146,7 +147,11 @@ function FrameControlFrame({
     );
 }
 
-/** A number setting: a slider with its number, the standard while unset. */
+/**
+ * A number setting: a slider with its number, the standard while unset. A typed number lands on the
+ * slider's step and bounds, like the field under Allgemein (a shadow of 2.5 stores 3, not a field
+ * error).
+ */
 function FrameSliderControl(props: FrameControlProps & { setting: NumberFrameSetting }): React.JSX.Element {
     const { settingKey, setting, onChange } = props;
     const { path, stored, isSet, error, label } = frameSettingState(props);
@@ -166,7 +171,7 @@ function FrameSliderControl(props: FrameControlProps & { setting: NumberFrameSet
                 max={setting.max}
                 step={setting.step}
                 fallback={setting.standard}
-                onChange={value => onChange(path, value)}
+                onChange={value => onChange(path, value === undefined ? undefined : snapToSetting(setting, value))}
             />
         </FrameControlFrame>
     );
