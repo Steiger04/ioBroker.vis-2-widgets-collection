@@ -5,10 +5,11 @@
  * @remarks
  * This module provides:
  * - `CollectionContext`: the shared runtime context for all collection widgets
- * - the widget data with the editor's OID pick read in for an id field without its object, and the
- *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration),
- *   and the Rahmenvorgaben of the Leinwand-Theme for the unset frame settings ({@link module:lib/widgetFrame},
- *   {@link module:lib/theme/canvasTheme})
+ * - stages 2–4 of the Lese-Naht (stage 1, the Rückfall-Regel, runs in `Generic`): the widget data
+ *   with the editor's OID pick read in for an id field without its object (2) and the palette's
+ *   defaults for the unset keys (3) ({@link module:hooks/usePickedWidgetData}, KI-Integration), then
+ *   the Rahmenvorgaben of the Leinwand-Theme for the unset frame settings (4)
+ *   ({@link module:lib/widgetFrame}, {@link module:lib/theme/canvasTheme})
  * - the card decision (`wrappedContent`): no card where the widget class says it is embedded or the
  *   effective `noCard` — own or inherited — says so
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
@@ -78,9 +79,9 @@ function CollectionProvider({
     const theme = context.theme;
     const socket = context.socket;
 
-    // A widget the vis-2 assistant inserted reads like the palette's: an id set without the field's
-    // onChange reads its object and what the pick would have written, an unset key its default; the
-    // stored data stays as it is. Unchanged data keeps its identity.
+    // Stages 2 and 3 of the Lese-Naht: a widget the vis-2 assistant inserted reads like the palette's:
+    // an id set without the field's onChange reads its object and what the pick would have written, an
+    // unset key its default; the stored data stays as it is. Unchanged data keeps its identity.
     const picked = usePickedWidgetData(context.widget.data, reading, socket);
 
     const { fontStyles, textStyles } = useStyles(context.widget.style || {});
@@ -114,7 +115,7 @@ function CollectionProvider({
     const canvas = useCanvasTheme(socket);
     const _theme = useCollectionThemeOf(canvas, theme, overrides);
 
-    // The last step of the reading (ADR-0117): an unset frame setting the widget offers reads the
+    // Stage 4, the last of the Lese-Naht (ADR-0117): an unset frame setting the widget offers reads the
     // Rahmenvorgabe of the Leinwand-Theme — the Studio draft while one is open — else its standard
     // (lib/widgetFrame). The one cascade every reader of the widget data sees.
     const userTheme = canvas.theme;

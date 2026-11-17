@@ -11,14 +11,16 @@
  * written, with the pick's own derivation ({@link applyObjectPick}), into what the widget reads:
  * - an object whose `_id` is not the id reads as missing (also while it loads, and for an id
  *   without a usable object: the widget shows its OID hint as without an object);
- * - every key the pick writes counts only where the data leaves it unset (`undefined`, `null`):
+ * - every key the pick writes counts only where the data leaves it unset (`isUnset`):
  *   what is set wins — except the row count (`values_count`, `ignoreCommonStates`), which the pick
  *   counts from the stored rows and count together with the rows it supplements, so the stored
  *   value is its input and the pick's own result counts.
  *
  * The same merge reads the palette's defaults (`lib/fieldDefaults`) for the unset keys: the
  * reference of an assistant-inserted widget is the palette's widget with the same data whose id the
- * user picked after the drop, so the picks run over the defaults and win over them.
+ * user picked after the drop, so the picks run over the defaults and win over them. In the Lese-Naht
+ * this is stages 2 (pick) and 3 (defaults), after the Rückfall-Regel and before the frame stage
+ * (`lib/widgetFrame`).
  *
  * The stored data is never written. A field whose object matches its id is not touched, and data
  * without such a field and without an unset key that has a default comes back as the same object.

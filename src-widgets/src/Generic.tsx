@@ -9,11 +9,14 @@
  * - a convenience `getPropertyValue()` wrapper around the widget runtime state
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
- * - the entry of the widget data into the `CollectionContext`, read through the Rückfall-Regel
- *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
- *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`), an unset
- *   key the palette's default (`lib/fieldDefaults`), an unset frame setting the Rahmenvorgabe of the
- *   collection theme or the built-in standard (`lib/widgetFrame`, inside the provider)
+ * - the entry of the widget data into the `CollectionContext`: the Lese-Naht (ADR-0114, ADR-0117)
+ *   reads it in four stages, from the field definitions of the widget's own `getWidgetInfo()`:
+ *   1. the Rückfall-Regel (`lib/usableWidgetData`), here;
+ *   2. the editor's OID pick for an id field without its object (`lib/pickedWidgetData`);
+ *   3. the palette's default for an unset key (`lib/fieldDefaults`);
+ *   4. the Rahmenvorgabe of the Leinwand-Theme, else the built-in standard, for an unset frame
+ *      setting the widget offers (`lib/widgetFrame`).
+ *   Stages 2–4 run inside the provider; stages 3 and 4 share one meaning of unset (`isUnset`).
  */
 import { useContext, type JSX } from 'react';
 import { Box } from '@mui/material';
@@ -166,7 +169,7 @@ class Generic<
         props: RxRenderWidgetProps,
         extraContext?: Partial<CollectionContextProps<RxData>>,
     ): JSX.Element {
-        // The widget reads its data through the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
+        // Stage 1 of the Lese-Naht, the Rückfall-Regel (KI-Integration, ADR-0114): an unusable
         // stored value reads as unset. The stored data itself is never written. `props.widget.data` is
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
         const { rules, dataReading, frameKeys } = fieldReadingOf(this.constructor as unknown as WidgetClass);
@@ -194,10 +197,10 @@ class Generic<
             ...extraContext,
         } as CollectionContextProps<RxData>;
 
-        // Inside the provider an id without its object reads the editor's pick, an unset key the
-        // palette's default (lib/pickedWidgetData): an assistant-inserted widget reads like the palette's.
-        // There, too, an unset frame setting reads the Rahmenvorgabe of the collection theme, which only
-        // the provider knows, else its standard (lib/widgetFrame, ADR-0117).
+        // Stages 2 and 3 inside the provider: an id without its object reads the editor's pick, an
+        // unset key the palette's default (lib/pickedWidgetData): an assistant-inserted widget reads
+        // like the palette's. Stage 4 there, too: an unset frame setting reads the Rahmenvorgabe of the
+        // Leinwand-Theme, which only the provider reads, else its standard (lib/widgetFrame, ADR-0117).
         return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading, frameKeys);
     }
 
