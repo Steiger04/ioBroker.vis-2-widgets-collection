@@ -36,6 +36,7 @@ import optionalNumber from '../lib/helper/optionalNumber';
 import { translate } from '../lib/translate';
 import { fieldRulesOf, usableWidgetData } from '../lib/usableWidgetData';
 import {
+    snapToSetting,
     storedFrameValue,
     WIDGET_FRAME_SETTINGS,
     widgetFramePresetsOf,
@@ -289,7 +290,8 @@ function NumberFrameSlider({
                         setDraft(event.target.value);
                         const typed = optionalNumber(event.target.value);
                         if (typed !== undefined) {
-                            onChange(Math.min(Math.max(typed, min), max));
+                            // On the slider's step: a shadow of 2.5 would draw none.
+                            onChange(snapToSetting({ min, max, step }, typed));
                         }
                     }}
                     inputProps={{ type: 'number', step, min, max }}

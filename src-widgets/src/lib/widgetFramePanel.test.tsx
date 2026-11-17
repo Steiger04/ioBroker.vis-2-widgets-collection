@@ -686,6 +686,23 @@ describe('ticket 05: a number frame setting', () => {
         expect(patches).toEqual([{ basePadding: 2.5 }, { basePadding: 10 }]);
     });
 
+    // A typed number lands on the slider's step: MUI draws no shadow for an elevation of 2.5 (and
+    // logs an error), the Rahmenvorgabe drops such a shadow already.
+    describe('review: a typed number snaps to the step of the setting', () => {
+        it.each<[string, string, number]>([
+            ['baseElevation', '2.5', 3],
+            ['baseElevation', '7.4', 7],
+            ['basePadding', '1.23', 1.2],
+            ['basePadding', '2.57', 2.6],
+        ])('%s: typing %s stores %s', async (name, typed, stored) => {
+            const { patches } = await openFramePanel({ w1: {} });
+
+            setInput(cellOf(name).querySelector<HTMLInputElement>('input[type="number"]'), typed, 'input');
+
+            expect(patches).toEqual([{ [name]: stored }]);
+        });
+    });
+
     it('an existing widget with the stored old defaults shows them as set, with ×', async () => {
         await openFramePanel({ w1: { basePadding: 1, baseElevation: 4 } });
 
