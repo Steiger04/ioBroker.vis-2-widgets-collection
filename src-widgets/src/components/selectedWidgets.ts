@@ -61,3 +61,20 @@ export function readSelectedWidgets(data: WidgetData, props: RxWidgetInfoCustomC
 export function readSelectedWidgetDatas(data: WidgetData, props: RxWidgetInfoCustomComponentProperties): WidgetData[] {
     return readSelectedWidgets(data, props).map(one => one.data);
 }
+
+/**
+ * Reads the first selected widget of a custom field (see {@link readSelectedWidgets}) — the one
+ * whose vis-2 widget style and stored frame a field reads where it shows one value for the
+ * selection (the Vertrags-Adapter's swatch, the colour rows of the JSON table's column editor).
+ *
+ * @param data - The data vis-2 hands the field (`commonValues` under a multi-selection).
+ * @param props - The vis-2 editor context.
+ * @returns The first selected widget with its stored data and style; the field data where the
+ *   project does not hold the data of every selected widget.
+ */
+export function readFirstSelectedWidget(
+    data: WidgetData,
+    props: RxWidgetInfoCustomComponentProperties,
+): SelectedWidget {
+    return readSelectedWidgets(data, props)[0];
+}

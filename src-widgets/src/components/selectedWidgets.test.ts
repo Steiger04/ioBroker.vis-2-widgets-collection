@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
-import { readSelectedWidgetDatas, readSelectedWidgets } from './selectedWidgets';
+import { readFirstSelectedWidget, readSelectedWidgetDatas, readSelectedWidgets } from './selectedWidgets';
 
 /** A widget as the project holds it. */
 type StoredWidget = { data?: WidgetData; style?: { color?: string } };
@@ -97,5 +97,28 @@ describe('readSelectedWidgetDatas', () => {
         const props = editorProps({ w1: { style: { color: 'red' } } }, { selectedWidgets: ['w1'] });
 
         expect(readSelectedWidgetDatas(FIELD_DATA, props)).toEqual([FIELD_DATA]);
+    });
+});
+
+describe('readFirstSelectedWidget', () => {
+    it('reads the first selected widget, in selection order', () => {
+        const props = editorProps(
+            {
+                w1: { data: { noCard: true }, style: { color: 'red' } },
+                w2: { data: { noCard: false }, style: { color: 'blue' } },
+            },
+            { selectedWidgets: ['w2', 'w1'] },
+        );
+
+        expect(readFirstSelectedWidget(FIELD_DATA, props)).toEqual({
+            data: { noCard: false },
+            style: { color: 'blue' },
+        });
+    });
+
+    it('reads the field data without style where nothing is selected', () => {
+        const props = editorProps({}, { selectedWidgets: [] });
+
+        expect(readFirstSelectedWidget(FIELD_DATA, props)).toEqual({ data: FIELD_DATA, style: undefined });
     });
 });

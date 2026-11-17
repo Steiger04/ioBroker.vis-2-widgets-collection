@@ -8,7 +8,7 @@
  * `cascadeCandidates`) over the widget data, the Collection theme (the theme the widget runs
  * under), the Rahmenvorgaben of the Leinwand-Theme an unset frame setting reads (ADR-0117,
  * `lib/theme/canvasTheme`) and the vis-2 widget style
- * of the first selected widget (`readSelectedWidgets`), whose stored data also give the frame
+ * of the first selected widget (`readFirstSelectedWidget`), whose stored data also give the frame
  * (noCard …) under a multi-selection. It hands the stored value, that effective colour and the
  * translated field name (Farbwähler title) to the Textfeld-Zeile (`ColorTextFieldRow`, variant
  * standard, "erbt" placeholder) and writes every change back as a one-field patch — `null`
@@ -29,7 +29,7 @@ import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { storedWidgetFrame, WIDGET_FRAME_KEYS, widgetFramePresetsOf } from '../lib/widgetFrame';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
-import { readSelectedWidgets } from './selectedWidgets';
+import { readFirstSelectedWidget } from './selectedWidgets';
 import { useColorFieldBinding } from './useColorFieldBinding';
 
 /** Props for {@link ContractColorField} — the vis-2 custom-field contract. */
@@ -65,7 +65,7 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
     // The first selected widget: its vis-2 CSS `color` (undefined skips the vis-2-style stage) and
     // its stored data, from which the frame is read — under a multi-selection the field data are
     // vis-2's `commonValues`, where a differing noCard is null and would read as inherited.
-    const firstSelected = useMemo(() => readSelectedWidgets(data, props)[0], [data, props]);
+    const firstSelected = useMemo(() => readFirstSelectedWidget(data, props), [data, props]);
     const styleColor = firstSelected.style;
 
     // The cascade reads the frame as the widget renders it (ADR-0117): noCard — the terminal
