@@ -17,7 +17,7 @@ import { afterEach, vi } from 'vitest';
 
 import CollectionProvider from '../../components/CollectionProvider';
 import { InjectedContentBoxContext, type ContentBox } from '../../hooks/useContentBox';
-import { buildPreviewContext, previewHostAllowsCard } from '../../preview/mockContext';
+import { buildPreviewContext } from '../../preview/mockContext';
 import { renderComponent } from './testHarness';
 import type { AllCollectionContextProps } from '../../types';
 import type { PreviewScene } from '../../preview/types';
@@ -63,7 +63,7 @@ export const collectionScene = (
             widget: { data, style: {} },
             values: { [`${valueOid}.val`]: status },
             mode: 'light',
-            wrappedContent: true,
+            hostAllowsCard: true,
         },
     }) as unknown as PreviewScene;
 
@@ -102,7 +102,7 @@ export interface MountedCollectionBody {
 
 const CollectionHost: FC<{
     context: AllCollectionContextProps;
-    hostAllowsCard: boolean;
+    hostAllowsCard: boolean | undefined;
     body: FC;
     contentBox?: ContentBox;
 }> = ({ context, hostAllowsCard, body, contentBox }) =>
@@ -137,7 +137,7 @@ export function mountCollectionBody(
 
     const propsOf = (next: CollectionScene): Parameters<typeof CollectionHost>[0] => ({
         context: contextOf(next),
-        hostAllowsCard: previewHostAllowsCard(next),
+        hostAllowsCard: next.context.hostAllowsCard,
         body,
         contentBox: next.contentBox,
     });

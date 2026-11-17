@@ -128,7 +128,7 @@ describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
     });
 
     /** Zones 0–20 and 20–100 with no frame colour of their own; the scene value 21 lies in the second. */
-    const uncolouredZoneScene = (data: Record<string, unknown>, wrappedContent: boolean): PreviewScene => {
+    const uncolouredZoneScene = (data: Record<string, unknown>, hostAllowsCard: boolean): PreviewScene => {
         const zones = scene({
             gaugeMaxValue: 100,
             values_count: 2,
@@ -138,7 +138,7 @@ describe('GaugeCollection Highlight-Zone (frame colour, canvas arcs)', () => {
             textColor2: '#ff0000',
             ...data,
         });
-        return { ...zones, context: { ...zones.context, wrappedContent } };
+        return { ...zones, context: { ...zones.context, hostAllowsCard } };
     };
 
     /** The background the frame (BASE-PAPER-0) paints, shorthand first. */

@@ -63,7 +63,7 @@ const mountCheckboxBody = (
             },
             values,
             mode: 'light',
-            wrappedContent: true,
+            hostAllowsCard: true,
         },
     } as unknown as PreviewScene;
 

@@ -30,16 +30,8 @@ const stubSocket = {
 const noop = (): void => undefined;
 
 /**
- * Whether the scene's host lets the body carry its card — the provider's `hostAllowsCard`, as
- * `Generic` hands it for a widget that is not embedded. Default: allowed.
- *
- * @param scene - The preview scene.
- */
-export const previewHostAllowsCard = (scene: PreviewScene): boolean => scene.context.wrappedContent ?? true;
-
-/**
  * Assembles the CollectionContext for a scene, as `Generic` does: without the card decision, which
- * the provider makes from {@link previewHostAllowsCard} and the effective `noCard`.
+ * the provider makes from the scene's `hostAllowsCard` and the effective `noCard`.
  */
 export function buildPreviewContext(scene: PreviewScene): AllCollectionContextProps {
     const { values, widget } = scene.context;

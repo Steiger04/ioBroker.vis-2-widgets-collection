@@ -139,7 +139,7 @@ const popup = (selector: '.MuiMenu-root' | '.MuiMenu-paper'): HTMLElement => {
 /** The same scene, rendered embedded (inside a dialog or another widget): no wrapping card. */
 const embedded = (currentScene: PreviewScene): PreviewScene => ({
     ...currentScene,
-    context: { ...currentScene.context, wrappedContent: false },
+    context: { ...currentScene.context, hostAllowsCard: false },
 });
 
 /** Lets the debounced backend write (`delay: 0`) fire. */

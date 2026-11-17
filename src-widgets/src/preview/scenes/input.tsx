@@ -46,7 +46,7 @@ const inputScene: PreviewScene = {
             [`${OID}.val`]: 21.5,
         },
         mode: 'light',
-        wrappedContent: true,
+        hostAllowsCard: true,
     },
 };
 

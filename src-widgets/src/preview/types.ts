@@ -19,11 +19,11 @@ export interface PreviewSceneContext {
     /** Theme mode passed to the host `Theme()`. */
     mode?: 'light' | 'dark';
     /**
-     * Whether the host lets the body carry its framed card (default true, the runtime default of a
-     * widget not embedded) — handed to the provider as `hostAllowsCard`
-     * ({@link module:preview/mockContext.previewHostAllowsCard}); an effective `noCard` still takes it away.
+     * Whether the host lets the body carry its framed card — the provider's `hostAllowsCard`, as
+     * `Generic` hands it for a widget that is not embedded (absent: the provider's default, allowed);
+     * an effective `noCard` still takes it away.
      */
-    wrappedContent?: boolean;
+    hostAllowsCard?: boolean;
 }
 
 /**

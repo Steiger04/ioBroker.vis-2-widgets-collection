@@ -84,7 +84,7 @@ export async function buildScaffoldSource(widgetName: string): Promise<string> {
         `        widget: { data: ${defaultsLiteral.replace(/\n/g, '\n        ')}, style: {} },`,
         "        values: { [`${OID}.val`]: 'TODO' }, // TODO: demo value",
         "        mode: 'light',",
-        '        wrappedContent: true,',
+        '        hostAllowsCard: true,',
         '    },',
         '};',
         '',

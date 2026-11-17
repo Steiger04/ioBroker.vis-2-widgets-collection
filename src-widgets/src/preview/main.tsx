@@ -15,7 +15,7 @@ import { createRoot } from 'react-dom/client';
 import { Theme } from '@iobroker/gui-components';
 
 import CollectionProvider from '../components/CollectionProvider';
-import { buildPreviewContext, previewHostAllowsCard } from './mockContext';
+import { buildPreviewContext } from './mockContext';
 import { scenes, sceneSlugs } from './scenes';
 import { buildScaffoldSource, slugFor } from './scaffold';
 import type { PreviewScene } from './types';
@@ -43,7 +43,7 @@ function SceneView({ scene, mode }: { scene: PreviewScene; mode?: 'light' | 'dar
     return (
         <CollectionProvider
             context={context}
-            hostAllowsCard={previewHostAllowsCard(effectiveScene)}
+            hostAllowsCard={effectiveScene.context.hostAllowsCard}
         >
             {/* #scene is the screenshot canvas. Inner padding gives the card
                 margin so its elevation shadow isn't clipped at the edge —
