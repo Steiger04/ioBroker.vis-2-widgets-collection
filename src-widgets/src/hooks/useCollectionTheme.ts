@@ -14,7 +14,7 @@
  * editor surfaces (which live outside the provider subtree) share one source of
  * truth for the user-configured theme. A caller that also reads the Rahmenvorgaben (the provider,
  * the Vertrags-Adapter) reads the Leinwand-Theme itself and hands it to
- * {@link useCollectionThemeOf}, so it subscribes once.
+ * {@link useCollectionThemeFrom}, so it subscribes once.
  */
 
 import { useEffect, useMemo, useRef } from 'react';
@@ -49,7 +49,7 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
  * ```
  */
 export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
-    return useCollectionThemeOf(useCanvasTheme(socket), hostTheme, overrides);
+    return useCollectionThemeFrom(useCanvasTheme(socket), hostTheme, overrides);
 }
 
 /**
@@ -61,7 +61,7 @@ export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrid
  * @param overrides - Optional collection-specific overrides (e.g. typography). Editors omit this.
  * @returns The merged MUI theme.
  */
-export function useCollectionThemeOf(canvas: CanvasTheme, hostTheme: Theme, overrides?: ThemeOptions): Theme {
+export function useCollectionThemeFrom(canvas: CanvasTheme, hostTheme: Theme, overrides?: ThemeOptions): Theme {
     // The stored theme as this widget read it, the Studio draft, and the theme the canvas shows
     // (the draft while the Studio has one, so canvas widgets preview edits live).
     const { stored: parsedTheme, draft, theme: userTheme } = canvas;

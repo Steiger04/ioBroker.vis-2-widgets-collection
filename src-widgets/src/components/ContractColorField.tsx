@@ -23,7 +23,7 @@ import { ThemeProvider } from '@mui/material';
 import { useMemo } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
-import { useCollectionThemeOf } from '../hooks/useCollectionTheme';
+import { useCollectionThemeFrom } from '../hooks/useCollectionTheme';
 import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
 import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { storedWidgetFrame, WIDGET_FRAME_KEYS, widgetFramePresetsOf } from '../lib/widgetFrame';
@@ -60,7 +60,7 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
     // One subscription: the Leinwand-Theme gives the Rahmenvorgaben, the collection theme resolved
     // from it the colours.
     const canvas = useCanvasTheme(props.context.socket);
-    const collectionTheme = useCollectionThemeOf(canvas, props.context.theme) as VisTheme;
+    const collectionTheme = useCollectionThemeFrom(canvas, props.context.theme) as VisTheme;
     const userTheme = canvas.theme;
     // The first selected widget: its vis-2 CSS `color` (undefined skips the vis-2-style stage) and
     // its stored data, from which the frame is read — under a multi-selection the field data are

@@ -21,7 +21,7 @@ import { createContext, useMemo, type JSX } from 'react';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 
 import useStyles from '../hooks/useStyles';
-import { useCollectionThemeOf } from '../hooks/useCollectionTheme';
+import { useCollectionThemeFrom } from '../hooks/useCollectionTheme';
 import usePickedWidgetData from '../hooks/usePickedWidgetData';
 
 import type { AllCollectionContextProps } from '../types';
@@ -129,7 +129,7 @@ function CollectionProvider({
     // The user theme the canvas shows (the Studio draft, else the stored theme; this widget's own
     // subscription), and the effective theme: host → collection overrides → user theme (user wins).
     const canvas = useCanvasTheme(socket);
-    const _theme = useCollectionThemeOf(canvas, theme, overrides);
+    const _theme = useCollectionThemeFrom(canvas, theme, overrides);
 
     // Stage 4, the last of the Lese-Naht (ADR-0117): an unset frame setting the widget offers reads the
     // Rahmenvorgabe of the Leinwand-Theme — the Studio draft while one is open — else its standard

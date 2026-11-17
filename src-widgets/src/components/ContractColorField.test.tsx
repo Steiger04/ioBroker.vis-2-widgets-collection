@@ -37,7 +37,7 @@ vi.mock('../hooks/useCollectionTheme', async () => {
     const { createTheme } = await import('@mui/material');
     const theme = createTheme({ palette: { primary: { main: '#1976d2' }, text: { primary: '#2f3e51' } } });
     const current = (): unknown => theme;
-    return { default: current, useCollectionTheme: current, useCollectionThemeOf: current };
+    return { default: current, useCollectionTheme: current, useCollectionThemeFrom: current };
 });
 
 import { createTheme } from '@mui/material';
