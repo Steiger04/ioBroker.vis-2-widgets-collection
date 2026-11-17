@@ -32,7 +32,9 @@ import {
     WIDGET_FRAME_SETTING_COUNT,
     WIDGET_FRAME_SETTINGS,
     widgetFramePath,
+    type NumberFrameSetting,
     type WidgetFrameKey,
+    type WidgetFrameSetting,
 } from '../../lib/widgetFrame';
 
 /**
@@ -138,13 +140,9 @@ function FrameControlFrame({
 }
 
 /** A number setting: a slider with its number, the standard while unset. */
-function FrameSliderControl(props: FrameControlProps): React.JSX.Element {
-    const { settingKey, onChange } = props;
-    const setting = WIDGET_FRAME_SETTINGS[settingKey];
+function FrameSliderControl(props: FrameControlProps & { setting: NumberFrameSetting }): React.JSX.Element {
+    const { settingKey, setting, onChange } = props;
     const { path, stored, isSet, error, label } = frameSettingState(props);
-    if (setting.kind !== 'number') {
-        throw new Error(`${settingKey} is no number setting`);
-    }
 
     return (
         <FrameControlFrame
@@ -232,8 +230,9 @@ function WidgetFrameSection({
                     title={Generic.t(group.titleKey)}
                 >
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {runsOf(group.keys).map(run =>
-                            WIDGET_FRAME_SETTINGS[run[0]].kind === 'boolean' ? (
+                        {runsOf(group.keys).map(run => {
+                            const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[run[0]];
+                            return setting.kind === 'boolean' ? (
                                 <SwitchList key={run[0]}>
                                     {run.map(key => (
                                         <FrameSwitchControl
@@ -249,12 +248,13 @@ function WidgetFrameSection({
                                 <FrameSliderControl
                                     key={run[0]}
                                     settingKey={run[0]}
+                                    setting={setting}
                                     theme={theme}
                                     onChange={onChange}
                                     errorFor={errorFor}
                                 />
-                            ),
-                        )}
+                            );
+                        })}
                     </Box>
                 </SubGroup>
             ))}
