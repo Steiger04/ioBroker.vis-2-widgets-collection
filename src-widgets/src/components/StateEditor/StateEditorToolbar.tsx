@@ -41,9 +41,10 @@ import type React from 'react';
 import optionalNumber from '../../lib/helper/optionalNumber';
 import { translate } from '../../lib/translate';
 import { mergeStateRowPatch } from '../../lib/stateRows';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
 import { filterStateRows, focusStateRowList, isStateRowSearchActive, useStateRowSearch } from './stateRowListStore';
 import { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
-import { selectedWidgetDatas, stateEditorSelectionKey, stateRowSummaries } from './useStateEditor';
+import { stateEditorSelectionKey, stateRowSummaries } from './useStateEditor';
 import { stateRowSelectionAfter, useStateRowActions } from './useStateRowActions';
 
 import type { StateRowOperation } from '../../lib/stateRows';
@@ -153,7 +154,7 @@ function StateEditorToolbar({ reorderLocked, ...fieldProps }: StateEditorToolbar
             isStateRowSearchActive(search) &&
             (op.kind === 'add' || op.kind === 'clone' || op.kind === 'delete')
         ) {
-            const next = mergeStateRowPatch(selectedWidgetDatas(fieldProps)[0], patch);
+            const next = mergeStateRowPatch(readSelectedWidgetDatas(fieldProps.data, fieldProps.props)[0], patch);
             const shown = filterStateRows(stateRowSummaries(next, optionalNumber(patch.values_count) ?? 0), search);
             if (op.kind === 'delete') {
                 const visible = shown.find(row => row.n >= op.row) ?? shown.findLast(row => row.n < op.row);

@@ -4,10 +4,10 @@
  *
  * @module components/WidgetFrameField
  * @remarks
- * A frame setting without an own value erbt: the widget renders the Rahmenvorgabe of the collection
- * theme, else the built-in standard (`lib/widgetFrame`). The adapter names that state and the value
- * it yields — read through the same theme hook as the Vertrags-Adapter of the colour fields
- * (`ContractColorField`), so it shows what the widget renders:
+ * A frame setting without an own value erbt: the widget renders the Rahmenvorgabe of the
+ * Leinwand-Theme, else the built-in standard (`lib/widgetFrame`). The adapter names that state and
+ * the value it yields — read from the same Leinwand-Theme as the widget and the Vertrags-Adapter of
+ * the colour fields (`lib/theme/canvasTheme`, no MUI theme built), so it shows what the widget renders:
  * - a boolean as a choice "As theme (on|off)" / "On" / "Off" — "On" and "Off" store the value even
  *   where it equals the inherited one;
  * - a number as a slider with its number, "inherits · Theme: n" (or "Standard: n" without a
@@ -19,11 +19,12 @@
  * "As theme" and × report `null`, which vis-2 turns into deleting the key in every selected widget;
  * a value is reported for every selected widget at once. vis-2 hands a custom field the first
  * selected widget's data (`commonValues`, order dependent) and no `isDifferent`, so the adapter reads
- * each selected widget's own value from the project in its props (`context.views`) and shows a mixed
- * state where they differ — inheriting against an own value included. vis-2 writes the project for
+ * each selected widget's own value from the project (`readSelectedWidgetDatas`) and shows a mixed state
+ * where they differ — inheriting against an own value included. vis-2 writes the project for
  * every patch of a custom field without comparing, so a choice that changes nothing reports nothing.
- * An own value counts by the field's Rückfall-Regel (`lib/usableWidgetData`): a value the widget
- * cannot use reads as inheriting, as the widget reads it.
+ * Each selected widget is read through lib/widgetFrame (`storedFrameSetting`), as the widget renders
+ * it: an own value counts by the setting's Rückfall-Regel, a value the widget cannot use reads as
+ * inheriting.
  *
  * The row renders under the vis-2 HOST theme, in the look of vis-2's own select and slider rows: the
  * attribute panel is a vis-2 surface.
@@ -31,33 +32,30 @@
 
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Input, MenuItem, Select, Slider, ThemeProvider, Typography } from '@mui/material';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
-import useCollectionTheme from '../hooks/useCollectionTheme';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import optionalNumber from '../lib/helper/optionalNumber';
+import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { translate } from '../lib/translate';
-import { fieldRulesOf, usableWidgetData } from '../lib/usableWidgetData';
 import {
     snapToSetting,
-    storedFrameValue,
+    storedFrameSetting,
     WIDGET_FRAME_SETTINGS,
     widgetFramePresetsOf,
     type NumberFrameSetting,
     type WidgetFrameKey,
     type WidgetFrameSetting,
 } from '../lib/widgetFrame';
-import type { ExtendedField } from '../types/field-definitions/extended-field';
+import { readSelectedWidgetDatas } from './selectedWidgets';
 
 /** Props for {@link WidgetFrameField} — the vis-2 custom-field contract plus the setting. */
 export interface WidgetFrameFieldProps {
-    /** The frame setting the field stores (its name may carry a group suffix). */
+    /** The frame setting the field stores; also the field's name (`createWidgetFrameField`). */
     setting: WidgetFrameKey;
-    /** Field definition (name, label, storedValue). */
-    field: ExtendedField;
     /** Current editor data map: the first selected widget's, under multi-selection vis-2's `commonValues`. */
     data: WidgetData;
-    /** Receives one-field patches (`{ [field.name]: value | null }`). */
+    /** Receives one-field patches (`{ [setting]: value | null }`). */
     onDataChange: (patch: WidgetData) => void;
     /** vis-2 editor context (socket, theme, views, selected widgets, …). */
     props: RxWidgetInfoCustomComponentProperties;
@@ -71,23 +69,6 @@ type FrameSelection<V> =
     | { kind: 'own'; value: V }
     /** The selected widgets differ, inheriting against an own value included. */
     | { kind: 'mixed' };
-
-/** The stored data of every selected widget, else the data vis-2 handed the field. */
-function selectedWidgetDatas(data: WidgetData, props: RxWidgetInfoCustomComponentProperties): WidgetData[] {
-    const views = props.context.views as unknown as
-        Record<string, { widgets?: Record<string, { data?: WidgetData }> }> | undefined;
-    const ids = (props.selectedWidgets?.length ? props.selectedWidgets : [props.selectedWidget]) as string[];
-    const datas = ids.map(id => (id ? views?.[props.selectedView]?.widgets?.[id]?.data : undefined));
-    return datas.length > 0 && datas.every(one => one !== undefined) ? datas : [data];
-}
-
-/** A widget's own value as the widget reads it, `undefined` where it erbt (unset, `null`, or unusable). */
-function ownValueOf(setting: WidgetFrameSetting, read: unknown): boolean | number | undefined {
-    if (read === undefined || read === null) {
-        return undefined;
-    }
-    return setting.kind === 'number' ? optionalNumber(read) : (read as boolean);
-}
 
 /** What the selected widgets hold, read through each widget's own value. */
 function selectionOf<V>(owns: readonly (V | undefined)[]): FrameSelection<V> {
@@ -164,34 +145,29 @@ type BooleanChoice = 'inherit' | 'on' | 'off' | 'mixed';
  *
  * @param props - See {@link WidgetFrameFieldProps}.
  * @param props.setting - The frame setting.
- * @param props.field - Field definition.
  * @param props.data - Current editor data map.
  * @param props.onDataChange - Receives one-field patches.
  * @param props.props - vis-2 editor context.
  * @returns The field row under the vis-2 host theme.
  */
-function WidgetFrameField({ setting, field, data, onDataChange, props }: WidgetFrameFieldProps): React.JSX.Element {
-    const name = field.name!;
+function WidgetFrameField({ setting, data, onDataChange, props }: WidgetFrameFieldProps): React.JSX.Element {
     const frameSetting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[setting];
-    const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
-    // The field's Rückfall-Regel: the reading the widget gives its stored value.
-    const rules = useMemo(() => fieldRulesOf([{ name: 'frame', fields: [field] }]), [field]);
-    // What a widget without an own value renders: the Rahmenvorgabe, else the standard.
-    const presets = widgetFramePresetsOf(collectionTheme);
-    const inherited = storedFrameValue({}, setting, rules, presets);
+    const presets = widgetFramePresetsOf(useCanvasTheme(props.context.socket).theme);
 
-    const datas = selectedWidgetDatas(data, props);
-    const stored = datas.map(one => one[name] as unknown);
-    const selection = selectionOf(
-        datas.map(one => ownValueOf(frameSetting, usableWidgetData<WidgetData>(one, rules)[name])),
-    );
+    const datas = readSelectedWidgetDatas(data, props);
+    const stored = datas.map(one => one[setting] as unknown);
+    // Each selected widget read as it renders: its own value, else what it inherits.
+    const readings = datas.map(one => storedFrameSetting(one, setting, presets));
+    // What a widget without an own value renders: the Rahmenvorgabe, else the standard.
+    const { inherited } = readings[0];
+    const selection = selectionOf(readings.map(reading => reading.own));
 
     /** Reports `value` for every selected widget, unless every one stores it already. */
     const report = (value: boolean | number | null): void => {
         if (value === null ? stored.every(one => one === undefined) : stored.every(one => one === value)) {
             return;
         }
-        onDataChange({ [name]: value });
+        onDataChange({ [setting]: value });
     };
 
     return (

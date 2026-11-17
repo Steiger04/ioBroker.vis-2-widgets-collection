@@ -30,7 +30,8 @@ const stubSocket = {
 const noop = (): void => undefined;
 
 /**
- * Assembles the full CollectionContext for a scene.
+ * Assembles the CollectionContext for a scene, as `Generic` does: without the card decision, which
+ * the provider makes from the scene's `hostAllowsCard` and the effective `noCard`.
  */
 export function buildPreviewContext(scene: PreviewScene): AllCollectionContextProps {
     const { values, widget } = scene.context;
@@ -58,6 +59,5 @@ export function buildPreviewContext(scene: PreviewScene): AllCollectionContextPr
         // Host theme: Theme('light') → palette.primary.main #3399CC. CollectionProvider
         // re-merges this through useCollectionTheme.
         theme: Theme(mode) as AllCollectionContextProps['theme'],
-        wrappedContent: scene.context.wrappedContent ?? true,
     } as unknown as AllCollectionContextProps;
 }

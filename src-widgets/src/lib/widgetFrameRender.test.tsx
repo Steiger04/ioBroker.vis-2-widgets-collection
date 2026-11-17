@@ -30,6 +30,7 @@ import { createTestRoot } from './testing/testRoots';
 import { FIXTURES } from './testing/widgetFixtures';
 import type { UserTheme } from './theme/themeTypes';
 import type { WidgetName } from './testing/aiSeams';
+import type { WidgetFrameKey } from './widgetFrame';
 
 // The host base class with what renderWidgetBody reaches (as in Naht 2): props, state, the signal
 // check. Its `t` reads `this` like the host's (see lib/testing/visRxWidgetStub).
@@ -136,6 +137,8 @@ interface MountedWidget {
     hasCard: () => boolean;
     /** The background the frame paints (its outer paper). */
     frameBackground: () => string;
+    /** The shadow of the frame's outer paper (its MUI elevation); null without one (outlined). */
+    frameElevation: () => number | null;
     /** What the frame shows of the other frame settings (ticket 03); null where a part is absent. */
     frame: () => FrameView;
     /** The element the widget renders into (portalled modals live in the document body). */
@@ -239,6 +242,11 @@ async function mountWidget(
         widgetMarkup: () => container.innerHTML.replace(/_r_[0-9a-z]+_/g, '_r_'),
         hasCard,
         frameBackground: () => getComputedStyle(container.querySelector('.BASE-PAPER-0')!).backgroundColor,
+        frameElevation: () => {
+            const paper = container.querySelector('.BASE-PAPER-0');
+            const match = paper && /\bMuiPaper-elevation(\d+)\b/.exec(paper.className);
+            return match ? Number(match[1]) : null;
+        },
         frame: () => {
             const contentBox = container.querySelector('.BASE-BOX-1');
             const header = container.querySelector('.BASE-HEADER');
@@ -277,7 +285,7 @@ const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcv
  * how the frame shows the setting's value (read back from what is visible).
  */
 interface FrameSettingCase {
-    key: string;
+    key: WidgetFrameKey;
     /** The built-in standard: what the field stored as its default before ADR-0117. */
     standard: number | boolean;
     /** A Rahmenvorgabe that differs from the standard. */
@@ -417,6 +425,41 @@ describe('Widget-Render-Naht: the Widget-Rahmen of every placeable widget', () =
                 );
 
                 expect([plain.hasCard(), withPreset.hasCard()]).toEqual([false, false]);
+            });
+        });
+
+        // Ticket 17 (ADR-0117 addendum, decision 5): the shadow of the outer frame surface follows the card.
+        describe('ticket 17: the frame surface casts a shadow only with the card', () => {
+            it('keeps the shadow 1 of the frame surface with the card', async () => {
+                const withCard = await mount(fixture.data);
+
+                expect(withCard.hasCard()).toBe(true);
+                expect(withCard.frameElevation()).toBe(1);
+            });
+
+            it('casts no shadow around the frame surface for an own noCard', async () => {
+                const own = await mount({ ...fixture.data, noCard: true });
+
+                expect(own.frameElevation()).toBe(0);
+            });
+
+            it('casts no shadow around the frame surface for a noCard inherited from the Rahmenvorgabe', async () => {
+                const inherited = await mount(fixture.data, { widgetFrame: { noCard: true } });
+
+                expect(inherited.frameElevation()).toBe(0);
+            });
+
+            it('casts no shadow around the frame surface of an embedded widget', async () => {
+                const embedded = await mountWidget(
+                    widget,
+                    fixture.data,
+                    fixture.values,
+                    undefined,
+                    Theme('light'),
+                    true,
+                );
+
+                expect(embedded.frameElevation()).toBe(0);
             });
         });
 

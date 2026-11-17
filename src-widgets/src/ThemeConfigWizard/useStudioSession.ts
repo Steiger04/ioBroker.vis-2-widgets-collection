@@ -4,8 +4,9 @@
  *
  * @module ThemeConfigWizard/useStudioSession
  * @remarks
- * Owns the draft lifecycle the studio panel only renders: the seed from the last known theme,
- * the stored theme (the background load and, while the session lives, every change made
+ * Owns the draft lifecycle the studio panel only renders: the seed from the last known theme
+ * (the Leinwand-Theme, {@link module:lib/theme/canvasTheme}, which the session's reads and saves
+ * keep), the stored theme (the background load and, while the session lives, every change made
  * elsewhere — both replace the draft only while it is untouched, ADR-0115), the canvas mirror
  * through {@link module:lib/theme/draftThemeStore} with the session's SINGLE throttle (100 ms,
  * leading + trailing — the store itself only guards against tearing), dirty against the stored
@@ -29,8 +30,7 @@ import type { Connection } from '@iobroker/gui-components';
 
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
-import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
-import { followThemeState, parseStoredTheme } from '../lib/theme/storedTheme';
+import { followStoredTheme, lastStoredTheme, noteSavedTheme } from '../lib/theme/canvasTheme';
 import type { ThemeValidationResult, UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
 import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
@@ -99,7 +99,7 @@ interface CanvasMirror {
 export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLElement | null>): StudioSession {
     // Instant open (ADR-0020): the last known theme seeds the draft synchronously; without
     // one the session shows a spinner until the first load answers.
-    const [seed] = useState(getLastKnownTheme);
+    const [seed] = useState(lastStoredTheme);
     const history = useEditorHistory<UserTheme>(seed ?? {});
     const draft = history.present;
     // Latest draft for imperative readers (stored-theme guard, trailing push).
@@ -117,10 +117,9 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
     // The stable history callbacks (the history result object changes identity every render).
     const { set, rebase } = history;
 
-    /** Notes the stored theme: the session's baseline and the seed of the next open. */
+    /** Takes the stored theme as the session's baseline (what `dirty` is measured against). */
     const noteStored = useCallback((stored: UserTheme): void => {
         snapshotRef.current = stored;
-        setLastKnownTheme(stored);
         setSnapshot(stored);
     }, []);
 
@@ -128,8 +127,7 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
     // request, an MCP client, a second browser; ADR-0115). An untouched session takes it over,
     // an edited one keeps its draft and is from now on measured against it.
     const takeStored = useCallback(
-        (raw: unknown): void => {
-            const stored = parseStoredTheme(raw);
+        (stored: UserTheme): void => {
             const replacesDraft = shouldRebase(draftRef.current, snapshotRef.current, stored);
             noteStored(stored);
             if (replacesDraft) {
@@ -141,8 +139,9 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
     );
 
     // The stored theme: the background load revalidates the seed (and ends the spinner), the
-    // subscription follows every later change for as long as the session lives.
-    useEffect(() => followThemeState(socket, takeStored, () => setLoading(false)), [socket, takeStored]);
+    // subscription follows every later change for as long as the session lives. The Leinwand-Theme
+    // notes each read as the last known theme — the seed of the next open.
+    useEffect(() => followStoredTheme(socket, takeStored, () => setLoading(false)), [socket, takeStored]);
 
     const mirrorRef = useRef<CanvasMirror>({ lastPush: 0, timer: null, ended: false, handedOff: false });
     const push = useCallback((value: UserTheme): void => {
@@ -234,6 +233,7 @@ export function useStudioSession(socket: Connection, keyScope?: RefObject<HTMLEl
         push(draft);
         try {
             await socket.setState(THEME_STATE_ID, JSON.stringify(draft));
+            noteSavedTheme(draft);
             noteStored(draft);
             // An edit made while the write was in flight is NOT saved: the session stays open
             // (dirty against the new snapshot) and its end still owns the canvas.

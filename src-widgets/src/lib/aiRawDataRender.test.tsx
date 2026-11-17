@@ -311,7 +311,7 @@ async function renderBodyRaw(fixture: WidgetFixture, rawData: Record<string, unk
     const scene = collectionScene(SLUG, data, undefined);
     const mounted = mountCollectionBody(
         fixture.body,
-        { ...scene, context: { ...scene.context, values: fixture.values, wrappedContent: !data.noCard } },
+        { ...scene, context: { ...scene.context, values: fixture.values, hostAllowsCard: !data.noCard } },
         fixture.extraContext,
     );
     // Flush the theme hook's socket read, as renderWidget does inside its act.

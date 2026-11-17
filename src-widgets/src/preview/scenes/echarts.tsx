@@ -78,7 +78,7 @@ const echartsScene: PreviewScene = {
             [`${OID}.val`]: payload,
         },
         mode: 'light',
-        wrappedContent: true,
+        hostAllowsCard: true,
     },
 };
 

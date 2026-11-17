@@ -22,7 +22,8 @@ import type React from 'react';
 import { translate } from '../../lib/translate';
 import { stateFieldBindable, stateFieldBindingPatch, stateFieldBound } from '../../lib/stateFieldBinding';
 import { stateRowConversion } from '../../lib/stateRows';
-import { selectedWidgetDatas, type StateEditorFieldProps } from './useStateEditor';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
+import type { StateEditorFieldProps } from './useStateEditor';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -56,7 +57,7 @@ export const useStateFieldBinding = (
     name: string | null,
 ): StateFieldBinding => {
     const { spec, data, props, onDataChange } = fieldProps;
-    const datas = selectedWidgetDatas({ data, props });
+    const datas = readSelectedWidgetDatas(data, props);
     const bound = name !== null && stateFieldBound(datas, name);
     const bindingPatch = name === null ? null : stateFieldBindingPatch(datas, name);
     const patch = bindingPatch && { ...bindingPatch, ...stateRowConversion(datas, spec.config) };

@@ -7,14 +7,18 @@
  * card/frame settings, background, etc.). This helper produces those shared fields and supports a suffix
  * mechanism (`groupName`) to generate indexed variants.
  *
+ * The frame settings of the Widget-Rahmen (ADR-0117, lib/widgetFrame) are the exception: a frame
+ * field is always named after its setting (`noCard`, `basePadding` …) and exists only in the full
+ * list without group suffix — the reduced list (`allFields: false`, the Active and per-state
+ * variants) drops it.
+ *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createWidgetFrameField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
-import { knownUserTheme } from './theme/lastKnownTheme';
-import { fieldRulesOf, type FieldRules } from './usableWidgetData';
-import { storedFrameValue, widgetFramePresetsOf } from './widgetFrame';
+import { canvasUserTheme } from './theme/canvasTheme';
+import { isWidgetFrameKey, storedFrameSetting, widgetFramePresetsOf } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -41,14 +45,11 @@ type Settings = {
     markerLayer?: boolean;
 };
 
-/** The field rules of the full shared list, read once on first use (the list is built below). */
-let sharedFieldRules: FieldRules | undefined;
-
 /**
  * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
- * hands the predicate the stored data alone, which is read the widget's way — the Rückfall-Regel
- * by the rules of the shared fields, then the cascade (lib/widgetFrame) over the Rahmenvorgaben of
- * the theme the canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
+ * hands the predicate the stored data alone, which lib/widgetFrame reads the widget's way — the
+ * Rückfall-Regel of the frame setting, then the cascade over the Rahmenvorgaben of the theme the
+ * canvas shows (the Leinwand-Theme, {@link canvasUserTheme}: the Studio draft, else the stored theme).
  *
  * @remarks
  * Before the page knows any theme the built-in standard applies, as on the canvas of a widget
@@ -58,11 +59,8 @@ let sharedFieldRules: FieldRules | undefined;
  */
 const hiddenWhileFrameOn =
     (key: 'noHeader' | 'noFooter'): HiddenPredicate =>
-    data => {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- read lazily, after the module is evaluated
-        sharedFieldRules ??= fieldRulesOf([{ name: 'common', fields: commonFields() }]);
-        return storedFrameValue(data, key, sharedFieldRules, widgetFramePresetsOf(knownUserTheme())) === true;
-    };
+    data =>
+        storedFrameSetting(data, key, widgetFramePresetsOf(canvasUserTheme())).effective;
 
 /**
  * Build the shared editor field list used by most widgets.
@@ -181,11 +179,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         },
         // Frame settings of the Widget-Rahmen (ADR-0117): the Erb-Adapter, no `default`
         // (createWidgetFrameField).
-        createWidgetFrameField('noHeader', { name: `noHeader${groupName}` }),
-        createWidgetFrameField('noHeaderIcon', {
-            name: `noHeaderIcon${groupName}`,
-            hidden: headerOff,
-        }),
+        createWidgetFrameField('noHeader'),
+        createWidgetFrameField('noHeaderIcon', { hidden: headerOff }),
         {
             name: `header${groupName}`,
             label: 'header_text',
@@ -236,7 +231,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             hidden: data => !allFields && footerOff(data),
         },
         // A frame setting of the Widget-Rahmen (ADR-0117), see noHeader.
-        createWidgetFrameField('noFooter', { name: `noFooter${groupName}` }),
+        createWidgetFrameField('noFooter'),
         {
             name: `footer${groupName}`,
             label: 'footer_text',
@@ -259,7 +254,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             component: () => <CollectionDivider dividerText="characteristics" />,
         },
         // A frame setting of the Widget-Rahmen (ADR-0117), see noHeader.
-        createWidgetFrameField('noCard', { name: `noCard${groupName}` }),
+        createWidgetFrameField('noCard'),
         {
             name: `squaredCorner${groupName}`,
             label: 'squared_corner',
@@ -281,8 +276,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             component: () => <CollectionDivider />,
         },
         // Frame settings of the Widget-Rahmen (ADR-0117), see noHeader.
-        createWidgetFrameField('outlined', { name: `outlined${groupName}` }),
-        createWidgetFrameField('outlinedFrame', { name: `outlinedFrame${groupName}` }),
+        createWidgetFrameField('outlined'),
+        createWidgetFrameField('outlinedFrame'),
         {
             label: '',
             name: 'allFieldsDivider',
@@ -293,8 +288,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         // every dropped widget, which could then never follow the Rahmenvorgabe of the theme. Unset,
         // a setting reads the Rahmenvorgabe, else the built-in standard (lib/widgetFrame); the
         // Erb-Adapter names that and takes its slider range from the same table.
-        createWidgetFrameField('basePadding', { name: `basePadding${groupName}` }),
-        createWidgetFrameField('baseElevation', { name: `baseElevation${groupName}` }),
+        createWidgetFrameField('basePadding'),
+        createWidgetFrameField('baseElevation'),
         {
             label: '',
             name: 'allFieldsDivider',
@@ -366,24 +361,17 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
         return fields.filter(obj => !valuesToDelete.includes(obj.name!));
     }
 
+    // The reduced list carries no frame setting: its fields keep the setting's name, whatever the suffix.
     const valuesToDelete = [
         'allFieldsDivider',
-        `noHeader${groupName}`,
-        `noHeaderIcon${groupName}`,
         groupName === 'Active' ? `value${groupName}` : '',
-        `noFooter${groupName}`,
-        `noCard${groupName}`,
         `squaredCorner${groupName}`,
-        `outlined${groupName}`,
-        `outlinedFrame${groupName}`,
-        `basePadding${groupName}`,
-        `baseElevation${groupName}`,
         `square${groupName}`,
         `ellipse${groupName}`,
         `circle${groupName}`,
     ];
 
-    return fields.filter(obj => !valuesToDelete.includes(obj.name!));
+    return fields.filter(obj => !valuesToDelete.includes(obj.name!) && !isWidgetFrameKey(obj.name ?? ''));
 };
 
 export default commonFields;

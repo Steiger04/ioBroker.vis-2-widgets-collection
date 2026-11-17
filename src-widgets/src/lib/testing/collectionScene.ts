@@ -63,7 +63,7 @@ export const collectionScene = (
             widget: { data, style: {} },
             values: { [`${valueOid}.val`]: status },
             mode: 'light',
-            wrappedContent: true,
+            hostAllowsCard: true,
         },
     }) as unknown as PreviewScene;
 
@@ -100,15 +100,16 @@ export interface MountedCollectionBody {
     unmount: () => void;
 }
 
-const CollectionHost: FC<{ context: AllCollectionContextProps; body: FC; contentBox?: ContentBox }> = ({
-    context,
-    body,
-    contentBox,
-}) =>
+const CollectionHost: FC<{
+    context: AllCollectionContextProps;
+    hostAllowsCard: boolean | undefined;
+    body: FC;
+    contentBox?: ContentBox;
+}> = ({ context, hostAllowsCard, body, contentBox }) =>
     createElement(
         InjectedContentBoxContext.Provider,
         { value: contentBox },
-        createElement(CollectionProvider, { context } as never, createElement(body)),
+        createElement(CollectionProvider, { context, hostAllowsCard } as never, createElement(body)),
     );
 
 /**
@@ -134,13 +135,19 @@ export function mountCollectionBody(
         setValue,
     });
 
-    const handle = renderComponent(CollectionHost, { context: contextOf(scene), body, contentBox: scene.contentBox });
+    const propsOf = (next: CollectionScene): Parameters<typeof CollectionHost>[0] => ({
+        context: contextOf(next),
+        hostAllowsCard: next.context.hostAllowsCard,
+        body,
+        contentBox: next.contentBox,
+    });
+
+    const handle = renderComponent(CollectionHost, propsOf(scene));
     return {
         container: handle.container,
         setState,
         setValue,
-        rerender: (next: CollectionScene): void =>
-            handle.rerender({ context: contextOf(next), body, contentBox: next.contentBox }),
+        rerender: (next: CollectionScene): void => handle.rerender(propsOf(next)),
         unmount: handle.unmount,
     };
 }

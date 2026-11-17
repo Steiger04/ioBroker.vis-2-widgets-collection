@@ -5,10 +5,9 @@
  */
 
 import type { JSX } from 'react';
-import CollectionProvider from './CollectionProvider';
+import CollectionProvider, { type CollectionProviderInput } from './CollectionProvider';
 
 import type { CollectionContextProps, AllCollectionContextProps } from '../types';
-import type { WidgetDataReading } from '../lib/pickedWidgetData';
 
 /**
  * Wraps a widget element in a {@link module:components/CollectionProvider.default}.
@@ -16,7 +15,8 @@ import type { WidgetDataReading } from '../lib/pickedWidgetData';
  * @template T - Widget data type from WidgetRegistry
  * @param component - Rendered element(s) to wrap.
  * @param context - Typed collection context.
- * @param reading - What the widget data's reading takes from the widget's fields (see CollectionProvider).
+ * @param input - What the provider reads besides the context: the widget's field reading and the
+ *   host's card permission ({@link CollectionProviderInput}). Absent: none of them.
  * @returns The same element(s) wrapped in a provider.
  * @example
  * ```tsx
@@ -29,12 +29,12 @@ import type { WidgetDataReading } from '../lib/pickedWidgetData';
 function withCollectionProvider<T extends object = object>(
     component: JSX.Element | JSX.Element[] | null,
     context: CollectionContextProps<T>,
-    reading?: WidgetDataReading,
+    input?: CollectionProviderInput,
 ): JSX.Element {
     return (
         <CollectionProvider
+            {...input}
             context={context as AllCollectionContextProps}
-            reading={reading}
         >
             {component}
         </CollectionProvider>

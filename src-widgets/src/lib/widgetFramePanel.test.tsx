@@ -21,7 +21,7 @@
  * words of `en.json`, placeholders filled.
  */
 import { act, useState } from 'react';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The colour fields and dividers come back as rows; their own rendering is covered by their tests.
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -37,14 +37,44 @@ import StateCollectionWidget from '../StateCollectionWidget/StateCollectionWidge
 import SliderCollectionWidget from '../SliderCollectionWidget/SliderCollectionWidget';
 import { THEME_STATE_ID } from './constants';
 import { setDraftTheme } from './theme/draftThemeStore';
-import { setLastKnownTheme } from './theme/lastKnownTheme';
 import { renderComponent, renderHook, type RenderComponentHandle } from './testing/testHarness';
 import type { UserTheme } from './theme/themeTypes';
 import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from './testing/vis2GroupBody';
 
+/**
+ * The modules through which a page knows the theme: the slider whose fields the panel shows (their
+ * predicates read the Leinwand-Theme) and the theme hook of a canvas widget.
+ */
+interface Page {
+    slider: typeof SliderCollectionWidget;
+    useTheme: typeof useCollectionTheme;
+}
+
+/**
+ * This file's page: it knows the theme once a canvas widget or a panel field has read it, for the
+ * rest of its lifetime — the last known theme has no reset.
+ */
+const THIS_PAGE: Page = { slider: SliderCollectionWidget, useTheme: useCollectionTheme };
+
+/** The page the helpers open the panel and mount canvas widgets on; back to this file's after each test. */
+let page: Page = THIS_PAGE;
+
+/**
+ * Moves the helpers to a page that has read no theme yet, for the rest of the test: fresh instances
+ * of the slider and the theme hook, with the modules they share — the last known theme included.
+ */
+const onFreshPage = async (): Promise<void> => {
+    vi.resetModules();
+    const [{ default: slider }, { default: useTheme }] = await Promise.all([
+        import('../SliderCollectionWidget/SliderCollectionWidget'),
+        import('../hooks/useCollectionTheme'),
+    ]);
+    page = { slider, useTheme };
+};
+
 /** The fields of the slider's attribute group `name`. */
 const groupFields = (name: string): readonly Vis2PanelField[] =>
-    (SliderCollectionWidget.getWidgetInfo().visAttrs.find(group => group.name === name)?.fields ??
+    (page.slider.getWidgetInfo().visAttrs.find(group => group.name === name)?.fields ??
         []) as readonly Vis2PanelField[];
 
 /** The fields under Allgemein that hang on the header. */
@@ -128,7 +158,8 @@ const canvasWidget = async (
             handlers.delete(cb);
         },
     } as unknown as Connection;
-    canvases.push(renderHook(() => useCollectionTheme(socket, vis2HostTheme)));
+    const { useTheme } = page;
+    canvases.push(renderHook(() => useTheme(socket, vis2HostTheme)));
     await act(async () => {
         await answer;
     });
@@ -174,11 +205,14 @@ afterEach(async () => {
     for (const canvas of canvases.splice(0)) {
         canvas.unmount();
     }
-    // The page forgets its theme: the next test opens a fresh editor.
-    setLastKnownTheme(null);
+    page = THIS_PAGE;
 });
 
+// The next two blocks need a page that has read no theme yet: each of their tests runs on a fresh
+// one, wherever it runs in this file.
 describe('fix: the header and footer fields follow the value the widget reads', () => {
+    beforeEach(onFreshPage);
+
     it.each([
         ['noHeader', HEADER_FIELDS],
         ['noFooter', FOOTER_FIELDS],
@@ -198,6 +232,34 @@ describe('fix: the header and footer fields follow the value the widget reads', 
         for (const name of names) {
             expect(rows()).not.toContain(name);
         }
+    });
+});
+
+describe('ticket 06: before the editor knows the theme the built-in standard applies (header and footer on)', () => {
+    beforeEach(onFreshPage);
+
+    it('without a canvas widget an unset header shows its fields, a set "off" hides them', () => {
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+        expect(openPanel({ w1: { noHeader: true } })()).not.toContain('header');
+    });
+
+    it('while the canvas widget still waits for the theme, the fields show as on its canvas', async () => {
+        await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
+
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+    });
+
+    it('a theme without Rahmenvorgaben reads the standard', async () => {
+        await canvasWidget({});
+
+        expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
+    });
+
+    it('a widget mounting later keeps what an earlier one read until its own read answers', async () => {
+        await canvasWidget(withPresets({ noHeader: true }));
+        await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
+
+        expect(openPanel({ w1: {} })()).not.toContain('header');
     });
 });
 
@@ -271,32 +333,6 @@ describe('ticket 06: the header and footer fields follow the inherited value', (
             for (const name of HEADER_FIELDS) {
                 expect(rows().includes(name)).toBe(!hidden);
             }
-        });
-    });
-
-    describe('before the editor knows the theme the built-in standard applies (header and footer on)', () => {
-        it('without a canvas widget an unset header shows its fields, a set "off" hides them', () => {
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-            expect(openPanel({ w1: { noHeader: true } })()).not.toContain('header');
-        });
-
-        it('while the canvas widget still waits for the theme, the fields show as on its canvas', async () => {
-            await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
-
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-        });
-
-        it('a theme without Rahmenvorgaben reads the standard', async () => {
-            await canvasWidget({});
-
-            expect(openPanel({ w1: {} })()).toEqual(expect.arrayContaining(HEADER_FIELDS));
-        });
-
-        it('a widget mounting later keeps what an earlier one read until its own read answers', async () => {
-            await canvasWidget(withPresets({ noHeader: true }));
-            await canvasWidget(withPresets({ noHeader: true }), { unanswered: true });
-
-            expect(openPanel({ w1: {} })()).not.toContain('header');
         });
     });
 

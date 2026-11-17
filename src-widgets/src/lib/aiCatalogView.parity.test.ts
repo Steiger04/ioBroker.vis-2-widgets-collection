@@ -388,6 +388,23 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         });
     });
 
+    // The panel predicate of the header and footer and the colour fields' swatch read the frame
+    // settings from stored data without the widget's fields (lib/widgetFrame): they rely on this.
+    describe.each(PLACEABLE_WIDGETS)('%s: the Widget-Rahmen', name => {
+        it('offers all eight frame settings under their own names', () => {
+            expect(widgetFrameKeysOf(infos.get(name)!.visAttrs ?? [])).toEqual([
+                'noHeader',
+                'noHeaderIcon',
+                'noFooter',
+                'noCard',
+                'outlined',
+                'outlinedFrame',
+                'basePadding',
+                'baseElevation',
+            ]);
+        });
+    });
+
     describe.each(PLACEABLE_WIDGETS)('ticket 05: %s — the frame settings as the assistant reads them', name => {
         /** The label each frame setting carried as a vis-2 checkbox or slider, before its Erb-Adapter. */
         const LABELS: Record<string, string> = {
@@ -408,7 +425,6 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 field => field.name !== undefined && isWidgetFrameKey(field.name),
             );
 
-            expect(offered).toHaveLength(8);
             expect(described.map(field => [field.name, field.label, field.default])).toEqual(
                 offered.map(key => [key, (en as Record<string, string>)[LABELS[key]], undefined]),
             );
@@ -636,6 +652,8 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
 
         // The type description shows the frame settings as custom fields without a default (the
         // Erb-Adapter, ticket 05): the KI-Leitfaden names the values an explicit request sets.
+        // The ranges are the one table's (lib/widgetFrame): a changed bound turns this red instead
+        // of leaving the hand-kept sentence behind (ADR-0117 addendum, decision 6).
         it.each(PLACEABLE_WIDGETS)(
             'ticket 05: %s: its KI-Leitfaden names the format of the frame settings for an explicit request',
             name => {
@@ -643,11 +661,12 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                     guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '',
                 );
                 const format = sentences.filter(sentence => sentence.includes('"basePadding" a number'));
+                const { basePadding: padding, baseElevation: elevation } = WIDGET_FRAME_SETTINGS;
 
                 expect(format).toHaveLength(1);
                 expect(format[0]).toContain('the six on/off fields take true or false as their names say');
-                expect(format[0]).toContain('"basePadding" a number from 0 to 10');
-                expect(format[0]).toContain('"baseElevation" a whole number from 0 to 24');
+                expect(format[0]).toContain(`"basePadding" a number from ${padding.min} to ${padding.max}`);
+                expect(format[0]).toContain(`"baseElevation" a whole number from ${elevation.min} to ${elevation.max}`);
                 // It follows the sentence that names all eight and says that unset means the theme.
                 expect(sentences[sentences.indexOf(format[0]) - 1]).toBe(frameSentenceOf(name)[0]);
             },

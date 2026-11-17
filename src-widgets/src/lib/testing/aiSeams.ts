@@ -22,6 +22,7 @@ import commonObjectFields from '../commonObjectFields';
 import delayFields from '../delayFields';
 import { createOnlyDisplayField } from '../fieldFactories';
 import { stateEditorGroup } from '../stateEditorFields';
+import type { WidgetFramePresets } from '../widgetFrame';
 import { widgets } from '../../widgetsRegistry';
 
 import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
@@ -91,8 +92,12 @@ export const isUiOnlyCustomField = (name: string): boolean =>
  * The defaults the vis-2 palette stored for the frame settings on every dropped widget before
  * ADR-0117 — what an existing widget holds. Since then the fields have none (`lib/widgetFrame`), so
  * these are literals: the reference a widget leaving them unset is measured against.
+ *
+ * @remarks
+ * Keyed by the setting, so a setting the one table gains without its old default here is a type
+ * error. The values stay literals, not the table's standards: an independent oracle.
  */
-export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Record<string, unknown>> = {
+export const FRAME_DEFAULTS_BEFORE_ADR_0117: Readonly<Required<WidgetFramePresets>> = {
     noHeader: false,
     noHeaderIcon: false,
     noFooter: false,

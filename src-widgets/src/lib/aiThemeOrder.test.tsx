@@ -31,7 +31,7 @@ import { renderComponent } from './testing/testHarness';
 import { createTestRoot } from './testing/testRoots';
 import { themeStateDescription } from './testing/themeStateDescription';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
-import { getLastKnownTheme, setLastKnownTheme } from './theme/lastKnownTheme';
+import { lastStoredTheme, noteSavedTheme } from './theme/canvasTheme';
 import { applyPreset, THEME_PRESETS } from './theme/presets';
 import type { UserTheme } from './theme/themeTypes';
 import { THEME_CONTROL_RANGES } from './theme/themeUtils';
@@ -894,6 +894,20 @@ describe('ticket 07: Naht „Theme-Auftrag“ — the Rahmenvorgaben', () => {
         });
     });
 
+    // ADR-0117 addendum 2026-11-17, decision 8: the order's fields carry the names of the frame
+    // settings, so the frame stage of the Lese-Naht would fill every one the order leaves unset —
+    // from the Rahmenvorgabe, else the standard — and the order would write it into the theme.
+    it('without frame values writes no Rahmenvorgabe, though the theme has Rahmenvorgaben', async () => {
+        const names = orderFields().map(field => field.name);
+        expect(names).toEqual(expect.arrayContaining([...WIDGET_FRAME_KEYS]));
+
+        expect(await themeAfter({ mode: 'dark' }, WITH_FRAME)).toEqual(withValue(WITH_FRAME, 'palette.mode', 'dark'));
+
+        const { server } = placeOrder({}, { stored: JSON.stringify(WITH_FRAME) });
+        await settle(server);
+        expect(server.received()).toEqual({ reads: 1, writes: 0 });
+    });
+
     it('the same order again leaves the theme it left the first time, and writes nothing', async () => {
         const order = { noCard: true, basePadding: 0.5 };
         const { server, editor } = placeOrder(order, { stored: JSON.stringify(WITH_FRAME) });
@@ -1130,17 +1144,16 @@ describe('Naht „Theme-Auftrag“: orders over time', () => {
 
     // The palette entry of the studio is in the editor beside the view.
     it('leaves the theme it wrote as the one the Theme Studio opens with', async () => {
-        setLastKnownTheme(STORED);
+        noteSavedTheme(STORED);
         const { server } = placeOrder({ mode: 'dark' });
         const PaletteEntry = ThemeWizardButton as unknown as FC<{ socket: Connection; themeType: string }>;
         const entry = renderComponent(PaletteEntry, { socket: server.socket, themeType: 'light' });
         try {
             await settle(server);
 
-            expect(getLastKnownTheme()).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
+            expect(lastStoredTheme()).toEqual({ ...STORED, palette: { ...STORED.palette, mode: 'dark' } });
         } finally {
             entry.unmount();
-            setLastKnownTheme(null);
         }
     });
 

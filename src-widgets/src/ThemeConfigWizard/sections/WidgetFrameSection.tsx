@@ -31,39 +31,47 @@ import {
     WIDGET_FRAME_KEYS,
     WIDGET_FRAME_SETTING_COUNT,
     WIDGET_FRAME_SETTINGS,
+    snapToSetting,
     widgetFramePath,
     type NumberFrameSetting,
     type WidgetFrameKey,
     type WidgetFrameSetting,
 } from '../../lib/widgetFrame';
 
+/** The sub-groups of the section, as Allgemein names them, in the order the section shows them. */
+const GROUPS = {
+    card: { titleKey: 'theme_studio_group_card' },
+    headerFooter: { titleKey: 'theme_studio_group_header_footer' },
+} as const;
+
+/** A sub-group of the section. */
+type FrameGroup = keyof typeof GROUPS;
+
 /**
- * How each frame setting's control presents it: its label, and for a boolean whether the control
- * shows it negated — positively worded ("Header" on), while the theme stores the field's semantics
- * (`noHeader: false`).
+ * How each frame setting's control presents it: its sub-group, its label, and for a boolean whether
+ * the control shows it negated — positively worded ("Header" on), while the theme stores the field's
+ * semantics (`noHeader: false`).
+ *
+ * @remarks
+ * Keyed by the setting, so every setting sits in exactly one group: a setting the one table gains
+ * without a row here is a type error, not a control missing from the section.
  */
-const CONTROLS: Record<WidgetFrameKey, { labelKey: string; negated?: true }> = {
-    noHeader: { labelKey: 'theme_studio_frame_header', negated: true },
-    noHeaderIcon: { labelKey: 'theme_studio_frame_header_icon', negated: true },
-    noFooter: { labelKey: 'theme_studio_frame_footer', negated: true },
-    noCard: { labelKey: 'theme_studio_frame_card', negated: true },
-    outlined: { labelKey: 'theme_studio_frame_outlined' },
-    outlinedFrame: { labelKey: 'theme_studio_frame_outlined_frame' },
-    basePadding: { labelKey: 'theme_studio_frame_padding' },
-    baseElevation: { labelKey: 'theme_studio_frame_elevation' },
+const CONTROLS: Record<WidgetFrameKey, { group: FrameGroup; labelKey: string; negated?: true }> = {
+    noHeader: { group: 'headerFooter', labelKey: 'theme_studio_frame_header', negated: true },
+    noHeaderIcon: { group: 'headerFooter', labelKey: 'theme_studio_frame_header_icon', negated: true },
+    noFooter: { group: 'headerFooter', labelKey: 'theme_studio_frame_footer', negated: true },
+    noCard: { group: 'card', labelKey: 'theme_studio_frame_card', negated: true },
+    outlined: { group: 'card', labelKey: 'theme_studio_frame_outlined' },
+    outlinedFrame: { group: 'card', labelKey: 'theme_studio_frame_outlined_frame' },
+    basePadding: { group: 'card', labelKey: 'theme_studio_frame_padding' },
+    baseElevation: { group: 'card', labelKey: 'theme_studio_frame_elevation' },
 };
 
 /**
- * The sub-groups of the section, as Allgemein names them; inside a group the settings keep the order
- * of their fields there. Consecutive booleans share one switch list.
+ * The settings of a sub-group in the order of their fields under Allgemein (the one table's order).
+ * Consecutive booleans share one switch list.
  */
-const GROUPS: readonly { titleKey: string; keys: readonly WidgetFrameKey[] }[] = [
-    {
-        titleKey: 'theme_studio_group_card',
-        keys: ['noCard', 'outlined', 'outlinedFrame', 'basePadding', 'baseElevation'],
-    },
-    { titleKey: 'theme_studio_group_header_footer', keys: ['noHeader', 'noHeaderIcon', 'noFooter'] },
-];
+const keysOf = (group: FrameGroup): WidgetFrameKey[] => WIDGET_FRAME_KEYS.filter(key => CONTROLS[key].group === group);
 
 type FrameControlProps = Pick<StudioSectionProps, 'theme' | 'onChange' | 'errorFor'> & { settingKey: WidgetFrameKey };
 
@@ -139,7 +147,11 @@ function FrameControlFrame({
     );
 }
 
-/** A number setting: a slider with its number, the standard while unset. */
+/**
+ * A number setting: a slider with its number, the standard while unset. A typed number lands on the
+ * slider's step and bounds, like the field under Allgemein (a shadow of 2.5 stores 3, not a field
+ * error).
+ */
 function FrameSliderControl(props: FrameControlProps & { setting: NumberFrameSetting }): React.JSX.Element {
     const { settingKey, setting, onChange } = props;
     const { path, stored, isSet, error, label } = frameSettingState(props);
@@ -159,7 +171,7 @@ function FrameSliderControl(props: FrameControlProps & { setting: NumberFrameSet
                 max={setting.max}
                 step={setting.step}
                 fallback={setting.standard}
-                onChange={value => onChange(path, value)}
+                onChange={value => onChange(path, value === undefined ? undefined : snapToSetting(setting, value))}
             />
         </FrameControlFrame>
     );
@@ -224,13 +236,13 @@ function WidgetFrameSection({
             expanded={expanded}
             onExpandedChange={onExpandedChange}
         >
-            {GROUPS.map(group => (
+            {(Object.keys(GROUPS) as FrameGroup[]).map(group => (
                 <SubGroup
-                    key={group.titleKey}
-                    title={Generic.t(group.titleKey)}
+                    key={group}
+                    title={Generic.t(GROUPS[group].titleKey)}
                 >
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {runsOf(group.keys).map(run => {
+                        {runsOf(keysOf(group)).map(run => {
                             const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[run[0]];
                             return setting.kind === 'boolean' ? (
                                 <SwitchList key={run[0]}>

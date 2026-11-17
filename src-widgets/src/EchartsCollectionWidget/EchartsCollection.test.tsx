@@ -34,7 +34,7 @@ const sceneOf = (data: Record<string, unknown>): PreviewScene =>
             widget: { data: { noHeader: true, noFooter: true, ...data }, style: {} },
             values: {},
             mode: 'light',
-            wrappedContent: true,
+            hostAllowsCard: true,
         },
     }) as unknown as PreviewScene;
 

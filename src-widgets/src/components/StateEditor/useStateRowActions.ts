@@ -20,12 +20,8 @@ import { useCallback } from 'react';
 
 import optionalNumber from '../../lib/helper/optionalNumber';
 import { applyStateRowOperation, stateRowOperationAllowed } from '../../lib/stateRows';
-import {
-    selectedWidgetDatas,
-    useStateEditor,
-    type StateEditorFieldProps,
-    type StateEditorState,
-} from './useStateEditor';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
+import { useStateEditor, type StateEditorFieldProps, type StateEditorState } from './useStateEditor';
 
 import type { StateRowOperation, StateRowPatch } from '../../lib/stateRows';
 
@@ -95,7 +91,7 @@ export const useStateRowActions = (
     const can = useCallback(
         (kind: StateRowOperation['kind']): boolean =>
             !(kind === 'move' && reorderLocked) &&
-            stateRowOperationAllowed(kind, selectedWidgetDatas({ data, props }), spec.config),
+            stateRowOperationAllowed(kind, readSelectedWidgetDatas(data, props), spec.config),
         [data, props, spec, reorderLocked],
     );
 
@@ -104,7 +100,7 @@ export const useStateRowActions = (
             if (!can(op.kind)) {
                 return null;
             }
-            const patch = applyStateRowOperation(selectedWidgetDatas({ data, props })[0], op, spec.config);
+            const patch = applyStateRowOperation(readSelectedWidgetDatas(data, props)[0], op, spec.config);
             if (!patch) {
                 return null;
             }

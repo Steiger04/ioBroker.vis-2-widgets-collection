@@ -47,7 +47,7 @@ import { THEME_STATE_ID } from '../lib/constants';
 import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { BUNDLED_FONTS, CUSTOM_FONT_VALUE } from '../lib/theme/fontCatalogue';
 import { clearDraftTheme, getDraftTheme } from '../lib/theme/draftThemeStore';
-import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { noteSavedTheme } from '../lib/theme/canvasTheme';
 import { THEME_PRESETS, applyPreset } from '../lib/theme/presets';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
@@ -119,7 +119,7 @@ const mountPanel = async (
     seed: UserTheme,
     themeType: 'dark' | 'light' = 'light',
 ): Promise<{ setState: ReturnType<typeof vi.fn>; socket: Connection }> => {
-    setLastKnownTheme(seed);
+    noteSavedTheme(seed);
     const fake = fakeSocket();
     handle = renderComponent<HostProps>(Host, { mounted: true, socket: fake.socket, themeType });
     await settle();
@@ -923,6 +923,14 @@ describe('ThemeStudioPanel Widget-Rahmen section (ADR-0117)', () => {
         expect(resetButton()).toBeNull();
     });
 
+    it('snaps a typed shadow onto its step, like the field under Allgemein, instead of a field error', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(shadowInput()!, '2.5');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { baseElevation: 3 } });
+        expect(document.body.querySelector('[data-studio-section="widgetFrame"] [data-theme-error]')).toBeNull();
+    });
+
     it('undoes and redoes a preset', async () => {
         await mountPanel({});
         await expandSections(SECTION);
@@ -1132,6 +1140,13 @@ describe('ticket 03: ThemeStudioPanel Widget-Rahmen — padding, outlines, heade
         await typeInto(numberInput(LABEL.basePadding)!, '2.5');
         expect(getDraftTheme()).toEqual({ widgetFrame: { basePadding: 2.5 } });
         expect(numberInput(LABEL.basePadding)?.getAttribute('aria-label')).toBe(LABEL.basePadding);
+    });
+
+    it('snaps a typed padding onto its step of 0.1', async () => {
+        await mountPanel({});
+        await expandSections(SECTION);
+        await typeInto(numberInput(LABEL.basePadding)!, '2.57');
+        expect(getDraftTheme()).toEqual({ widgetFrame: { basePadding: 2.6 } });
     });
 
     it('undoes and redoes a switched preset', async () => {

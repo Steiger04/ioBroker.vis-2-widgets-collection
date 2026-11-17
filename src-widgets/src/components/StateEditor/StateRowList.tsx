@@ -45,12 +45,8 @@ import {
 } from './stateRowListStore';
 import { stateRowDiffersProps, stateRowDiffersSx } from './StateDifferentMark';
 import StateEditorSurface, { STATE_EDITOR_ROW_HEIGHT } from './StateEditorSurface';
-import {
-    selectedWidgetDatas,
-    stateEditorSelectionKey,
-    type StateEditorFieldProps,
-    type StateRowSummary,
-} from './useStateEditor';
+import { readSelectedWidgetDatas } from '../selectedWidgets';
+import { stateEditorSelectionKey, type StateEditorFieldProps, type StateRowSummary } from './useStateEditor';
 import { useStateRowActions } from './useStateRowActions';
 
 /**
@@ -286,7 +282,7 @@ function StateRowList(fieldProps: StateEditorFieldProps): React.JSX.Element {
     const shown = useMemo(() => filterStateRows(rows, search), [rows, search]);
     // Multi-selection (ADR-0104 Nachtrag Ticket 07): rows that differ between the selected widgets are marked —
     // by Feldnummer, so the mark stays on its row while the search filters.
-    const datas = selectedWidgetDatas(fieldProps);
+    const datas = readSelectedWidgetDatas(fieldProps.data, fieldProps.props);
     const canMove = rows.length > 1 && can('move');
     const [visibleRows, setVisibleRows] = useState(readStateRowListRows);
     const [drag, setDrag] = useState<{ from: number; over: number } | null>(null);

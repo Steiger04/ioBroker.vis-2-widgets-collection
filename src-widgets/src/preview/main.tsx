@@ -41,7 +41,10 @@ function SceneView({ scene, mode }: { scene: PreviewScene; mode?: 'light' | 'dar
     // (dark canvas + dark card + visible elevation shadow), not "dark card on white".
     const canvasBg = Theme(effectiveMode).palette.background.default;
     return (
-        <CollectionProvider context={context}>
+        <CollectionProvider
+            context={context}
+            hostAllowsCard={effectiveScene.context.hostAllowsCard}
+        >
             {/* #scene is the screenshot canvas. Inner padding gives the card
                 margin so its elevation shadow isn't clipped at the edge —
                 matching the carded sibling previews (state, gauge, …). */}

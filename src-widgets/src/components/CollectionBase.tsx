@@ -5,7 +5,7 @@
  * @remarks
  * This component renders:
  * - optional header/footer Typography
- * - a framed Paper container
+ * - a framed Paper container, casting its shadow only with the card (ADR-0117)
  * - an inner Paper for the actual widget content, its first element the corner icon
  *   ({@link module:components/CornerIcon}, CONTEXT "Eck-Icon")
  *
@@ -258,6 +258,9 @@ function CollectionBase({
     return (
         <Paper
             className="BASE-PAPER-0"
+            // Without the card (own or inherited noCard, embedded) the transparent frame surface casts
+            // no shadow; with the card it keeps MUI's default 1 (ADR-0117 addendum, decision 5).
+            elevation={wrappedContent ? 1 : 0}
             square={widget.data.squaredCorner}
             variant={widget.data.outlinedFrame ? 'outlined' : 'elevation'}
             sx={paper0Sx}

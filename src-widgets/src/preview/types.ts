@@ -18,8 +18,12 @@ export interface PreviewSceneContext {
     values: Record<string, unknown>;
     /** Theme mode passed to the host `Theme()`. */
     mode?: 'light' | 'dark';
-    /** Whether CollectionBase renders the framed card (matches the runtime default). */
-    wrappedContent?: boolean;
+    /**
+     * Whether the host lets the body carry its framed card — the provider's `hostAllowsCard`, as
+     * `Generic` hands it for a widget that is not embedded (absent: the provider's default, allowed);
+     * an effective `noCard` still takes it away.
+     */
+    hostAllowsCard?: boolean;
 }
 
 /**

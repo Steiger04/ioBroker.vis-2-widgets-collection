@@ -3,31 +3,27 @@
  *
  * @module hooks/useCollectionTheme
  * @remarks
- * Subscribes to the shared user-theme ioBroker state
- * (`vis-2-widgets-collection.0.theme`), reads it through
- * {@link module:lib/theme/storedTheme.parseStoredTheme} (the one reader the Studio session
- * uses too), and resolves it onto the host theme (plus optional caller overrides) via
+ * Reads the user theme the canvas shows — the Leinwand-Theme
+ * ({@link module:lib/theme/canvasTheme.useCanvasTheme}: the Studio draft, else the stored theme of
+ * the shared ioBroker state `vis-2-widgets-collection.0.theme`, subscribed per instance) — and
+ * resolves it onto the host theme (plus optional caller overrides) via
  * {@link module:lib/theme/resolveCollectionTheme.resolveCollectionTheme}.
  *
- * Centralizes the state reading so
+ * Centralizes the theme building so
  * the runtime {@link module:components/CollectionProvider.CollectionProvider} and
  * editor surfaces (which live outside the provider subtree) share one source of
- * truth for the user-configured theme.
- *
- * What it reads it also notes as the page's last known theme
- * ({@link module:lib/theme/lastKnownTheme}), for the readers that cannot take a hook: the attribute
- * panel's visibility predicates (ADR-0117) and the next Studio open.
+ * truth for the user-configured theme. A caller that also reads the Rahmenvorgaben (the provider,
+ * the Vertrags-Adapter) reads the Leinwand-Theme itself and hands it to
+ * {@link useCollectionThemeFrom}, so it subscribes once.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useCanvasTheme, type CanvasTheme } from '../lib/theme/canvasTheme';
 import { clearDraftTheme, getDraftThemeString } from '../lib/theme/draftThemeStore';
 import { bundledFamiliesOf, ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
-import { setLastKnownTheme } from '../lib/theme/lastKnownTheme';
-import { followThemeState, parseStoredTheme } from '../lib/theme/storedTheme';
 import { getNestedValue } from '../lib/theme/themeUtils';
-import useDraftTheme from './useDraftTheme';
 
 import type { Connection } from '@iobroker/gui-components';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
@@ -53,28 +49,22 @@ import type { Theme, ThemeOptions } from '@mui/material/styles';
  * ```
  */
 export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
-    // The theme state's value as it arrived (JSON text; '' when not text; undefined while unread).
-    const [themeJson, setThemeJson] = useState<string>();
+    return useCollectionThemeFrom(useCanvasTheme(socket), hostTheme, overrides);
+}
 
-    useEffect(() => followThemeState(socket, val => setThemeJson(typeof val === 'string' ? val : '')), [socket]);
-
-    // The stored user theme, read by the one reader (never throws; the empty theme when the
-    // state holds none or is still unread).
-    const parsedTheme = useMemo(() => parseStoredTheme(themeJson ?? ''), [themeJson]);
-
-    // Note what was read as the page's last known theme (ADR-0117) — never the empty theme of a
-    // widget that has not read yet, which would hide what an earlier widget read.
-    useEffect(() => {
-        if (themeJson !== undefined) {
-            setLastKnownTheme(parsedTheme);
-        }
-    }, [themeJson, parsedTheme]);
-
-    // In-progress draft from the studio panel (null when the panel is closed).
-    // The draft wins over the persisted theme so canvas widgets preview edits
-    // live; when null, widgets fall back to the persisted theme.
-    const draft = useDraftTheme();
-    const userTheme = draft ?? parsedTheme;
+/**
+ * Builds the effective collection theme from a Leinwand-Theme reading the caller holds already
+ * (see {@link useCollectionTheme}): fonts, the per-widget save handoff and the resolution.
+ *
+ * @param canvas - The caller's reading of the Leinwand-Theme ({@link useCanvasTheme}).
+ * @param hostTheme - The vis-2 host theme to merge onto.
+ * @param overrides - Optional collection-specific overrides (e.g. typography). Editors omit this.
+ * @returns The merged MUI theme.
+ */
+export function useCollectionThemeFrom(canvas: CanvasTheme, hostTheme: Theme, overrides?: ThemeOptions): Theme {
+    // The stored theme as this widget read it, the Studio draft, and the theme the canvas shows
+    // (the draft while the Studio has one, so canvas widgets preview edits live).
+    const { stored: parsedTheme, draft, theme: userTheme } = canvas;
 
     // Inject @font-face rules for Google Fonts stored in the effective theme
     // (the draft while editing, the persisted theme otherwise). Idempotent.

@@ -399,16 +399,16 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
 
     /**
      * Mounts the frame on the scene's widget data, inside its card (`wrappedContent`) or not —
-     * the provider derives `wrappedContent` from the effective `noCard` and the embedding (Generic),
-     * the scene stands in for it.
+     * the provider derives `wrappedContent` from the effective `noCard` and the host's permission
+     * (`hostAllowsCard`, Generic: not embedded), which the scene stands in for.
      */
-    const mountBackgroundFrame = (data: Record<string, unknown>, wrappedContent: boolean): MountedCollectionBody => {
+    const mountBackgroundFrame = (data: Record<string, unknown>, hostAllowsCard: boolean): MountedCollectionBody => {
         const Frame: FC = () => {
             const { data: styleData } = useData('oid');
             return createElement(CollectionBase, { data: styleData }, createElement(PaperProbe));
         };
         const scene = frameScene(data);
-        return mountBody(Frame, { ...scene, context: { ...scene.context, wrappedContent } });
+        return mountBody(Frame, { ...scene, context: { ...scene.context, hostAllowsCard } });
     };
 
     /** The background the content slot (BASE-PAPER-1) paints. */
@@ -441,8 +441,8 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
         expect(getComputedStyle(frame.container.querySelector('.BASE-PAPER-0')!).borderColor).not.toBe(themePaper);
     });
 
-    it.each([true, false])('an explicit frame value paints as set (card: %s)', wrappedContent => {
-        expect(frameSurfaceBackground(mountBackgroundFrame({ frameBackground: '#aa0000' }, wrappedContent))).toBe(
+    it.each([true, false])('an explicit frame value paints as set (card: %s)', hostAllowsCard => {
+        expect(frameSurfaceBackground(mountBackgroundFrame({ frameBackground: '#aa0000' }, hostAllowsCard))).toBe(
             '#aa0000',
         );
     });
@@ -471,7 +471,7 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
         expect(contentBackground(mountBackgroundFrame({ noCard: true }, false))).toBe('transparent');
     });
 
-    it.each([true, false])('an explicit value paints as set (card: %s)', wrappedContent => {
-        expect(contentBackground(mountBackgroundFrame({ background: '#aa0000' }, wrappedContent))).toBe('#aa0000');
+    it.each([true, false])('an explicit value paints as set (card: %s)', hostAllowsCard => {
+        expect(contentBackground(mountBackgroundFrame({ background: '#aa0000' }, hostAllowsCard))).toBe('#aa0000');
     });
 });

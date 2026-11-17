@@ -11,25 +11,26 @@
  * written, with the pick's own derivation ({@link applyObjectPick}), into what the widget reads:
  * - an object whose `_id` is not the id reads as missing (also while it loads, and for an id
  *   without a usable object: the widget shows its OID hint as without an object);
- * - every key the pick writes counts only where the data leaves it unset (`undefined`, `null`):
+ * - every key the pick writes counts only where the data leaves it unset (`isUnset`):
  *   what is set wins — except the row count (`values_count`, `ignoreCommonStates`), which the pick
  *   counts from the stored rows and count together with the rows it supplements, so the stored
  *   value is its input and the pick's own result counts.
  *
  * The same merge reads the palette's defaults (`lib/fieldDefaults`) for the unset keys: the
  * reference of an assistant-inserted widget is the palette's widget with the same data whose id the
- * user picked after the drop, so the picks run over the defaults and win over them.
+ * user picked after the drop, so the picks run over the defaults and win over them. In the Lese-Naht
+ * this is stages 2 (pick) and 3 (defaults), after the Rückfall-Regel and before the frame stage
+ * (`lib/widgetFrame`).
  *
  * The stored data is never written. A field whose object matches its id is not touched, and data
  * without such a field and without an unset key that has a default comes back as the same object.
  */
 import { applyObjectPick, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
-import { NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
+import { isUnset, NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
 import type { PickedObject } from './commonObjectFields';
 import type { FieldDefaults } from './fieldDefaults';
-import type { WidgetFrameKey } from './widgetFrame';
 import type { RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
 /** An id field whose pick runs the shared derivation: its name and the options of its pick. */
@@ -43,20 +44,14 @@ export interface OidPickField {
 }
 
 /**
- * What a widget's data reading takes from its fields, read once per widget class from its
- * `getWidgetInfo()` (`Generic`): the id fields with the shared pick, the palette's defaults and the
- * frame settings the widget offers.
+ * What the pick and the field defaults take from a widget's fields, read once per widget class from
+ * its `getWidgetInfo()` (`Generic`): the id fields with the shared pick and the palette's defaults.
  */
 export interface WidgetDataReading {
     /** The id fields whose pick runs the shared derivation ({@link oidPickFieldsOf}). */
     readonly oidPickFields: readonly OidPickField[];
     /** The defaults the unset keys read as (`lib/fieldDefaults`). */
     readonly defaults: FieldDefaults;
-    /**
-     * The frame settings the widget offers (`lib/widgetFrame`): unset, they read the Rahmenvorgabe of
-     * the collection theme, else the built-in standard. Absent: none.
-     */
-    readonly frameKeys?: readonly WidgetFrameKey[];
 }
 
 /** The keys of a field definition this module reads: the mirrors `createIdField` sets. */
@@ -113,8 +108,6 @@ export const awaitedObjectsOf = (data: WidgetData, fields: readonly OidPickField
         const id = idOf(data, field);
         return id !== undefined && !hasOwnObject(data, field, id) ? [{ field, id }] : [];
     });
-
-const isUnset = (value: unknown): boolean => value === undefined || value === null;
 
 /**
  * The widget data with the picks of its awaited objects read in, over the palette's defaults.
