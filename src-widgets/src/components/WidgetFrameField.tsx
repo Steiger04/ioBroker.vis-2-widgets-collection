@@ -4,10 +4,10 @@
  *
  * @module components/WidgetFrameField
  * @remarks
- * A frame setting without an own value erbt: the widget renders the Rahmenvorgabe of the collection
- * theme, else the built-in standard (`lib/widgetFrame`). The adapter names that state and the value
- * it yields — read through the same theme hook as the Vertrags-Adapter of the colour fields
- * (`ContractColorField`), so it shows what the widget renders:
+ * A frame setting without an own value erbt: the widget renders the Rahmenvorgabe of the
+ * Leinwand-Theme, else the built-in standard (`lib/widgetFrame`). The adapter names that state and
+ * the value it yields — read from the same Leinwand-Theme as the widget and the Vertrags-Adapter of
+ * the colour fields (`lib/theme/canvasTheme`, no MUI theme built), so it shows what the widget renders:
  * - a boolean as a choice "As theme (on|off)" / "On" / "Off" — "On" and "Off" store the value even
  *   where it equals the inherited one;
  * - a number as a slider with its number, "inherits · Theme: n" (or "Standard: n" without a
@@ -34,9 +34,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Input, MenuItem, Select, Slider, ThemeProvider, Typography } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
-import useCollectionTheme from '../hooks/useCollectionTheme';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import optionalNumber from '../lib/helper/optionalNumber';
+import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { translate } from '../lib/translate';
 import {
     snapToSetting,
@@ -152,8 +152,7 @@ type BooleanChoice = 'inherit' | 'on' | 'off' | 'mixed';
  */
 function WidgetFrameField({ setting, data, onDataChange, props }: WidgetFrameFieldProps): React.JSX.Element {
     const frameSetting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[setting];
-    const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
-    const presets = widgetFramePresetsOf(collectionTheme);
+    const presets = widgetFramePresetsOf(useCanvasTheme(props.context.socket).theme);
 
     const datas = readSelectedWidgetDatas(data, props);
     const stored = datas.map(one => one[setting] as unknown);

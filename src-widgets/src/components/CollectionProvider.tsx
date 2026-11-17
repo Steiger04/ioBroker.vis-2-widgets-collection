@@ -7,7 +7,8 @@
  * - `CollectionContext`: the shared runtime context for all collection widgets
  * - the widget data with the editor's OID pick read in for an id field without its object, and the
  *   palette's defaults for the unset keys ({@link module:hooks/usePickedWidgetData}, KI-Integration),
- *   and the Rahmenvorgaben of the collection theme for the unset frame settings ({@link module:lib/widgetFrame})
+ *   and the Rahmenvorgaben of the Leinwand-Theme for the unset frame settings ({@link module:lib/widgetFrame},
+ *   {@link module:lib/theme/canvasTheme})
  * - the card decision (`wrappedContent`): no card where the widget class says it is embedded or the
  *   effective `noCard` — own or inherited — says so
  * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
@@ -19,13 +20,14 @@ import { createContext, useMemo, type JSX } from 'react';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 
 import useStyles from '../hooks/useStyles';
-import useCollectionTheme from '../hooks/useCollectionTheme';
+import { useCollectionThemeOf } from '../hooks/useCollectionTheme';
 import usePickedWidgetData from '../hooks/usePickedWidgetData';
 
 import type { AllCollectionContextProps } from '../types';
 import type { WidgetDataReading } from '../lib/pickedWidgetData';
 import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';
+import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { widgetFramePresetsOf, withWidgetFrame, type WidgetFrameKey } from '../lib/widgetFrame';
 
 /** No frame settings: the data reads as it is. */
@@ -100,16 +102,19 @@ function CollectionProvider({
         [fontStyles, textStyles],
     );
 
-    // Effective theme: host → collection overrides → user theme (user wins).
-    const _theme = useCollectionTheme(socket, theme, overrides);
+    // The user theme the canvas shows (the Studio draft, else the stored theme; this widget's own
+    // subscription), and the effective theme: host → collection overrides → user theme (user wins).
+    const canvas = useCanvasTheme(socket);
+    const _theme = useCollectionThemeOf(canvas, theme, overrides);
 
     // The last step of the reading (ADR-0117): an unset frame setting the widget offers reads the
-    // Rahmenvorgabe the collection theme carries — the Studio draft while one is open — else its
-    // standard (lib/widgetFrame). The one cascade every reader of the widget data sees.
+    // Rahmenvorgabe of the Leinwand-Theme — the Studio draft while one is open — else its standard
+    // (lib/widgetFrame). The one cascade every reader of the widget data sees.
     const frameKeys = reading?.frameKeys ?? NO_FRAME_KEYS;
+    const userTheme = canvas.theme;
     const data = useMemo(
-        () => withWidgetFrame(picked, frameKeys, widgetFramePresetsOf(_theme)),
-        [picked, frameKeys, _theme],
+        () => withWidgetFrame(picked, frameKeys, widgetFramePresetsOf(userTheme)),
+        [picked, frameKeys, userTheme],
     );
     const widget = data === context.widget.data ? context.widget : { ...context.widget, data };
 

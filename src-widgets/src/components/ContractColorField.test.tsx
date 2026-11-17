@@ -24,15 +24,20 @@ vi.mock(
     'react-best-gradient-color-picker',
     async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
 );
-// The collection theme the panel reads; a test may hand it Rahmenvorgaben (`widgetFrame`), which the
-// collection theme carries as a custom theme variable (lib/widgetFrame).
-const collectionThemeHolder = vi.hoisted(() => ({ widgetFrame: undefined as object | undefined }));
+// The Leinwand-Theme the panel reads; a test may hand it Rahmenvorgaben (`widgetFrame`).
+const canvasThemeHolder = vi.hoisted(() => ({ widgetFrame: undefined as object | undefined }));
+vi.mock('../lib/theme/canvasTheme', () => ({
+    useCanvasTheme: () => {
+        const theme = canvasThemeHolder.widgetFrame ? { widgetFrame: canvasThemeHolder.widgetFrame } : {};
+        return { theme, stored: theme, draft: null };
+    },
+}));
+// The collection theme resolved from it, which gives the colours.
 vi.mock('../hooks/useCollectionTheme', async () => {
     const { createTheme } = await import('@mui/material');
     const theme = createTheme({ palette: { primary: { main: '#1976d2' }, text: { primary: '#2f3e51' } } });
-    const current = (): unknown =>
-        collectionThemeHolder.widgetFrame ? { ...theme, widgetFrame: collectionThemeHolder.widgetFrame } : theme;
-    return { default: current, useCollectionTheme: current };
+    const current = (): unknown => theme;
+    return { default: current, useCollectionTheme: current, useCollectionThemeOf: current };
 });
 
 import { createTheme } from '@mui/material';
@@ -75,7 +80,7 @@ afterEach(() => {
     handle?.unmount();
     handle = null;
     vi.unstubAllGlobals();
-    collectionThemeHolder.widgetFrame = undefined;
+    canvasThemeHolder.widgetFrame = undefined;
 });
 
 const mount = (
@@ -165,7 +170,7 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         });
 
         it.each(surfaces)('%s shows the checkerboard under the Rahmenvorgabe "without card"', (_name, field) => {
-            collectionThemeHolder.widgetFrame = { noCard: true };
+            canvasThemeHolder.widgetFrame = { noCard: true };
             const { container } = mount(field, {});
             expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
         });
@@ -175,7 +180,7 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
             expect(getComputedSwatch(unset.container)).not.toMatch(/^(transparent|)$/);
             handle?.unmount();
 
-            collectionThemeHolder.widgetFrame = { noCard: true };
+            canvasThemeHolder.widgetFrame = { noCard: true };
             const ownCard = mount(field, { noCard: false });
             expect(getComputedSwatch(ownCard.container)).not.toMatch(/^(transparent|)$/);
         });
@@ -207,13 +212,13 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         });
 
         it('shows the paper when the first selected widget inherits the card', () => {
-            collectionThemeHolder.widgetFrame = { noCard: false };
+            canvasThemeHolder.widgetFrame = { noCard: false };
             const { container } = mount(surface, { noCard: null }, twoWidgets({}, { noCard: true }));
             expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
         });
 
         it('shows the paper when the first selected widget has a card under the Rahmenvorgabe "without card"', () => {
-            collectionThemeHolder.widgetFrame = { noCard: true };
+            canvasThemeHolder.widgetFrame = { noCard: true };
             const { container } = mount(surface, { noCard: null }, twoWidgets({ noCard: false }, {}));
             expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
         });
@@ -235,7 +240,7 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         });
 
         it('noCard "false" (text) shows the checkerboard under the Rahmenvorgabe "without card"', () => {
-            collectionThemeHolder.widgetFrame = { noCard: true };
+            canvasThemeHolder.widgetFrame = { noCard: true };
             const { container } = mount(surface, { noCard: 'false' });
             expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
         });

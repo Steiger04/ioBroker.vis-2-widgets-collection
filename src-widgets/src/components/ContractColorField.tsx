@@ -6,7 +6,8 @@
  * The one place that resolves the Auflösungskaskade for the editor (ADR-0004, ADR-0102): the
  * effective colour comes from the shared resolver (`resolveEffectiveColor`, stages at
  * `cascadeCandidates`) over the widget data, the Collection theme (the theme the widget runs
- * under, whose Rahmenvorgaben an unset frame setting reads, ADR-0117) and the vis-2 widget style
+ * under), the Rahmenvorgaben of the Leinwand-Theme an unset frame setting reads (ADR-0117,
+ * `lib/theme/canvasTheme`) and the vis-2 widget style
  * of the first selected widget (`readSelectedWidgets`), whose stored data also give the frame
  * (noCard …) under a multi-selection. It hands the stored value, that effective colour and the
  * translated field name (Farbwähler title) to the Textfeld-Zeile (`ColorTextFieldRow`, variant
@@ -22,8 +23,9 @@ import { ThemeProvider } from '@mui/material';
 import { useMemo } from 'react';
 import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
-import useCollectionTheme from '../hooks/useCollectionTheme';
+import { useCollectionThemeOf } from '../hooks/useCollectionTheme';
 import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
+import { useCanvasTheme } from '../lib/theme/canvasTheme';
 import { storedWidgetFrame, WIDGET_FRAME_KEYS, widgetFramePresetsOf } from '../lib/widgetFrame';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
@@ -55,7 +57,11 @@ export interface ContractColorFieldProps {
 function ContractColorField({ field, data, onDataChange, props }: ContractColorFieldProps): React.JSX.Element {
     const { value, title, onChange } = useColorFieldBinding(field, data, onDataChange);
     const hostTheme = props.context.theme;
-    const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
+    // One subscription: the Leinwand-Theme gives the Rahmenvorgaben, the collection theme resolved
+    // from it the colours.
+    const canvas = useCanvasTheme(props.context.socket);
+    const collectionTheme = useCollectionThemeOf(canvas, props.context.theme) as VisTheme;
+    const userTheme = canvas.theme;
     // The first selected widget: its vis-2 CSS `color` (undefined skips the vis-2-style stage) and
     // its stored data, from which the frame is read — under a multi-selection the field data are
     // vis-2's `commonValues`, where a differing noCard is null and would read as inherited.
@@ -64,19 +70,19 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
 
     // The cascade reads the frame as the widget renders it (ADR-0117): noCard — the terminal
     // without card — by the Rückfall-Regel (ADR-0114), and an unset one reads the Rahmenvorgabe of
-    // the collection theme, else its standard, through the widget's own cascade. Every placeable
+    // the Leinwand-Theme, else its standard, through the widget's own cascade. Every placeable
     // widget offers all eight frame settings of Allgemein (pinned by `aiCatalogView.parity.test`,
     // "offers all eight frame settings"), so the adapter, which does not know the widget's fields,
     // reads them all. Only the frame comes from the first selected widget; the field's own value
     // and its fallback fields stay those of the field data, which the text field shows.
     const effectiveColor = useMemo(() => {
-        const frame = storedWidgetFrame(firstSelected.data, widgetFramePresetsOf(collectionTheme));
+        const frame = storedWidgetFrame(firstSelected.data, widgetFramePresetsOf(userTheme));
         const framed: Record<string, unknown> = { ...data };
         for (const key of WIDGET_FRAME_KEYS) {
             framed[key] = frame[key];
         }
         return resolveEffectiveColor(field, framed, collectionTheme, styleColor);
-    }, [field, data, firstSelected, collectionTheme, styleColor]);
+    }, [field, data, firstSelected, userTheme, collectionTheme, styleColor]);
 
     return (
         <ThemeProvider theme={hostTheme}>
