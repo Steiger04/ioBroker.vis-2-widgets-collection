@@ -31,11 +31,9 @@ import {
     WIDGET_FRAME_KEYS,
     WIDGET_FRAME_SETTING_COUNT,
     WIDGET_FRAME_SETTINGS,
+    widgetFramePath,
     type WidgetFrameKey,
 } from '../../lib/widgetFrame';
-
-/** The theme path of a frame setting's Rahmenvorgabe. */
-export const widgetFramePath = (key: WidgetFrameKey): string => `widgetFrame.${key}`;
 
 /**
  * How each frame setting's control presents it: its label, and for a boolean whether the control

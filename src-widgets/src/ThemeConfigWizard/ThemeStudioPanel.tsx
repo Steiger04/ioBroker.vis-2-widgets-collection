@@ -68,7 +68,7 @@ import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import { isTargetInside } from '../lib/useEditorHistory';
-import { WIDGET_FRAME_KEYS } from '../lib/widgetFrame';
+import { WIDGET_FRAME_KEYS, widgetFramePath } from '../lib/widgetFrame';
 import PresetCards, { presetsSummary } from './PresetCards';
 import type { StudioHostProps } from './studioHost';
 import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
@@ -77,7 +77,7 @@ import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
 import StatusTextSection from './sections/StatusTextSection';
 import TypographySection from './sections/TypographySection';
-import WidgetFrameSection, { widgetFramePath } from './sections/WidgetFrameSection';
+import WidgetFrameSection from './sections/WidgetFrameSection';
 
 /** localStorage key for the panel geometry (codebase namespacing idiom, cf. RAIL_STORAGE_KEY). */
 export const STUDIO_GEOMETRY_KEY = 'vis-2-widgets-collection:theme-studio:geometry';

@@ -40,7 +40,13 @@ import type { UserTheme } from '../lib/theme/themeTypes';
 import type { ThemeOrderFieldsRxData } from '../types';
 import { setNestedValue, THEME_CONTROL_RANGES, THEME_MODES } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
-import { isUsableFramePreset, WIDGET_FRAME_KEYS, WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from '../lib/widgetFrame';
+import {
+    isUsableFramePreset,
+    WIDGET_FRAME_KEYS,
+    WIDGET_FRAME_SETTINGS,
+    widgetFramePath,
+    type WidgetFrameKey,
+} from '../lib/widgetFrame';
 import { STUDIO_COLOR_FIELDS } from './studioColorFields';
 
 /** How the assistant fills a setting: the kind of field, and for a selection its values. */
@@ -140,7 +146,7 @@ const frameSetting = (key: WidgetFrameKey): ThemeOrderSetting => {
         input: { type: isNumber ? 'number' : 'checkbox' },
         apply: (theme, value) => {
             const preset = isNumber ? numberOf(value) : value;
-            return isUsableFramePreset(key, preset) ? setNestedValue(theme, `widgetFrame.${key}`, preset) : undefined;
+            return isUsableFramePreset(key, preset) ? setNestedValue(theme, widgetFramePath(key), preset) : undefined;
         },
     };
 };

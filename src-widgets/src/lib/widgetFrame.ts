@@ -97,6 +97,9 @@ export type WidgetFramePresets = {
     [K in WidgetFrameKey]?: FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
 };
 
+/** The theme path of a frame setting's Rahmenvorgabe (`widgetFrame.<key>`). */
+export const widgetFramePath = (key: WidgetFrameKey): string => `widgetFrame.${key}`;
+
 /** Whether `key` names a frame setting. */
 export const isWidgetFrameKey = (key: string): key is WidgetFrameKey => Object.hasOwn(WIDGET_FRAME_SETTINGS, key);
 
