@@ -18,8 +18,7 @@ import CollectionDivider from '../components/CollectionDivider';
 import { createColorField, createWidgetFrameField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
 import { knownUserTheme } from './theme/lastKnownTheme';
-import { fieldRulesOf, type FieldRules } from './usableWidgetData';
-import { isWidgetFrameKey, storedFrameValue, widgetFramePresetsOf } from './widgetFrame';
+import { isWidgetFrameKey, storedFrameSetting, widgetFramePresetsOf } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -46,14 +45,11 @@ type Settings = {
     markerLayer?: boolean;
 };
 
-/** The field rules of the full shared list, read once on first use (the list is built below). */
-let sharedFieldRules: FieldRules | undefined;
-
 /**
  * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
- * hands the predicate the stored data alone, which is read the widget's way — the Rückfall-Regel
- * by the rules of the shared fields, then the cascade (lib/widgetFrame) over the Rahmenvorgaben of
- * the theme the canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
+ * hands the predicate the stored data alone, which lib/widgetFrame reads the widget's way — the
+ * Rückfall-Regel of the frame setting, then the cascade over the Rahmenvorgaben of the theme the
+ * canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
  *
  * @remarks
  * Before the page knows any theme the built-in standard applies, as on the canvas of a widget
@@ -63,11 +59,8 @@ let sharedFieldRules: FieldRules | undefined;
  */
 const hiddenWhileFrameOn =
     (key: 'noHeader' | 'noFooter'): HiddenPredicate =>
-    data => {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- read lazily, after the module is evaluated
-        sharedFieldRules ??= fieldRulesOf([{ name: 'common', fields: commonFields() }]);
-        return storedFrameValue(data, key, sharedFieldRules, widgetFramePresetsOf(knownUserTheme())) === true;
-    };
+    data =>
+        storedFrameSetting(data, key, widgetFramePresetsOf(knownUserTheme())).effective;
 
 /**
  * Build the shared editor field list used by most widgets.

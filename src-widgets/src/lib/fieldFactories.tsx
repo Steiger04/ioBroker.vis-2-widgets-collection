@@ -320,10 +320,9 @@ export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetF
         type: 'custom',
         storedValue: frameStoredValue(setting),
         ...(kind === 'boolean' ? { noBinding: true } : {}),
-        component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+        component: guardWidgetData((_field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
             <WidgetFrameField
                 setting={setting}
-                field={field}
                 data={data}
                 onDataChange={onDataChange}
                 props={props}

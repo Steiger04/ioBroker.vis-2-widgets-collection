@@ -76,9 +76,10 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
 
     // The cascade reads the frame as the widget renders it (ADR-0117): noCard — the terminal
     // without card — by the Rückfall-Regel (ADR-0114), and an unset one reads the Rahmenvorgabe of
-    // the collection theme, else its standard, through the widget's own cascade. Every widget
-    // offers the frame settings of Allgemein, so the adapter, which does not know the widget's
-    // fields, reads them all.
+    // the collection theme, else its standard, through the widget's own cascade. Every placeable
+    // widget offers all eight frame settings of Allgemein (pinned by `aiCatalogView.parity.test`,
+    // "offers all eight frame settings"), so the adapter, which does not know the widget's fields,
+    // reads them all.
     const effectiveColor = useMemo(
         () =>
             resolveEffectiveColor(

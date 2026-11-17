@@ -23,6 +23,7 @@
  * Nothing is written: the cascade fills a copy, and data without an unset frame setting comes
  * back as the same object.
  */
+import optionalNumber from './helper/optionalNumber';
 import { usableWidgetData, type FieldRules, type StoredValue } from './usableWidgetData';
 
 /** A frame setting with a bounded number (the field's slider). */
@@ -217,29 +218,6 @@ export function withWidgetFrame<T extends object>(
 }
 
 /**
- * The value a widget renders for one frame setting, read from its stored data — for a reader that
- * has only the stored data at hand, as vis-2 hands it to an attribute-panel predicate.
- *
- * @remarks
- * The same reading as the widget's: the Rückfall-Regel first (an unusable stored value reads as
- * unset, ADR-0114), then the cascade of {@link withWidgetFrame}. The widget's pick and field
- * defaults do not apply: a frame setting has neither.
- * @param stored - The widget data as stored in the project; never changed.
- * @param key - The frame setting.
- * @param rules - The field rules of the widget's fields (`fieldRulesOf`, lib/usableWidgetData).
- * @param presets - The usable Rahmenvorgaben ({@link widgetFramePresetsOf}).
- */
-export function storedFrameValue<K extends WidgetFrameKey>(
-    stored: object,
-    key: K,
-    rules: FieldRules,
-    presets: WidgetFramePresets,
-): FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]> {
-    const read = withWidgetFrame(usableWidgetData(stored, rules), [key], presets) as Record<string, unknown>;
-    return read[key] as FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
-}
-
-/**
  * The stored value a frame setting's field declares (`storedValue`, the Rückfall-Regel of
  * lib/usableWidgetData): a boolean; a number; for a setting of whole numbers (the shadow) a whole
  * number within its bounds — MUI draws a shadow for no other, as for a Rahmenvorgabe
@@ -264,13 +242,58 @@ const FRAME_RULES: FieldRules = {
     emptiedReadsUnset: new Set(),
 };
 
+/** One frame setting read from stored data ({@link storedFrameSetting}). */
+export interface StoredFrameSetting<V extends boolean | number> {
+    /** The widget's own value after the Rückfall-Regel; `undefined` where it erbt (unset, cleared, unusable). */
+    readonly own: V | undefined;
+    /** What the widget renders without an own value: the Rahmenvorgabe, else the built-in standard. */
+    readonly inherited: V;
+    /** What the widget renders: `own ?? inherited`. */
+    readonly effective: V;
+}
+
+/**
+ * One frame setting read from a widget's stored data, as the widget renders it — for a reader that
+ * has only the stored data at hand, as vis-2 hands it to an attribute-panel predicate or a custom
+ * field (the panel predicate of the header and footer, the Erb-Adapter).
+ *
+ * @remarks
+ * The same reading as the widget's: the Rückfall-Regel of the frame setting first (an unusable
+ * stored value reads as unset, ADR-0114; a number stored as text reads as its number), then the
+ * cascade of {@link withWidgetFrame}. The widget's pick and field defaults do not apply: a frame
+ * setting has neither. The reader needs no field rules: every placeable widget offers all eight
+ * settings under their own names (pinned by `aiCatalogView.parity.test`, "offers all eight frame
+ * settings").
+ * @param stored - The widget data as stored in the project; never changed.
+ * @param key - The frame setting.
+ * @param presets - The usable Rahmenvorgaben ({@link widgetFramePresetsOf}).
+ */
+export function storedFrameSetting<K extends WidgetFrameKey>(
+    stored: object,
+    key: K,
+    presets: WidgetFramePresets,
+): StoredFrameSetting<FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>> {
+    type V = FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
+    const read: unknown = (usableWidgetData(stored, FRAME_RULES) as Record<string, unknown>)[key];
+    const own = (
+        read === undefined || read === null
+            ? undefined
+            : WIDGET_FRAME_SETTINGS[key].kind === 'number'
+              ? optionalNumber(read)
+              : read
+    ) as V | undefined;
+    const inherited = (withWidgetFrame({}, [key], presets) as Record<string, unknown>)[key] as V;
+    return { own, inherited, effective: own ?? inherited };
+}
+
 /**
  * The stored data with every frame setting read as the widget renders it — for a reader that has
  * only the stored data at hand and does not know the widget's fields, as the colour fields' swatch
- * in the attribute panel (every widget offers the frame settings of Allgemein).
+ * in the attribute panel: every placeable widget offers all eight settings of Allgemein (pinned by
+ * `aiCatalogView.parity.test`, "offers all eight frame settings").
  *
  * @remarks
- * The reading of {@link storedFrameValue} for all settings at once: the Rückfall-Regel of the
+ * The reading of {@link storedFrameSetting} for all settings at once: the Rückfall-Regel of the
  * frame settings first, then the cascade of {@link withWidgetFrame}; the other keys stay as stored.
  * @param stored - The widget data as stored in the project; never changed.
  * @param presets - The usable Rahmenvorgaben ({@link widgetFramePresetsOf}).
