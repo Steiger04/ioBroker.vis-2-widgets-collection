@@ -23,7 +23,7 @@ import type React from 'react';
 import type { RxWidgetInfoCustomComponentProperties, VisTheme, WidgetData } from '@iobroker/types-vis-2';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 import { resolveEffectiveColor, type StyleColor } from '../lib/helper/resolveEffectiveColor';
-import { WIDGET_FRAME_KEYS, widgetFramePresetsOf, withWidgetFrame } from '../lib/widgetFrame';
+import { storedWidgetFrame, widgetFramePresetsOf } from '../lib/widgetFrame';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ColorTextFieldRow from './ColorTextFieldRow';
 import { useColorFieldBinding } from './useColorFieldBinding';
@@ -74,15 +74,16 @@ function ContractColorField({ field, data, onDataChange, props }: ContractColorF
     const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
     const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
 
-    // The cascade reads the frame as the widget renders it (ADR-0117): an unset noCard — the
-    // terminal without card — reads the Rahmenvorgabe of the collection theme, else its standard,
-    // through the widget's own cascade. Every widget offers the frame settings of Allgemein, so
-    // the adapter, which does not know the widget's fields, reads them all.
+    // The cascade reads the frame as the widget renders it (ADR-0117): noCard — the terminal
+    // without card — by the Rückfall-Regel (ADR-0114), and an unset one reads the Rahmenvorgabe of
+    // the collection theme, else its standard, through the widget's own cascade. Every widget
+    // offers the frame settings of Allgemein, so the adapter, which does not know the widget's
+    // fields, reads them all.
     const effectiveColor = useMemo(
         () =>
             resolveEffectiveColor(
                 field,
-                withWidgetFrame(data, WIDGET_FRAME_KEYS, widgetFramePresetsOf(collectionTheme)),
+                storedWidgetFrame(data, widgetFramePresetsOf(collectionTheme)),
                 collectionTheme,
                 styleColor,
             ),

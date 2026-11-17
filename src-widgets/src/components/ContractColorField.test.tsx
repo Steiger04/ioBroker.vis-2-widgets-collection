@@ -181,6 +181,28 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         });
     });
 
+    // The Rückfall-Regel (ADR-0114) before the cascade: a stored noCard the widget cannot use — the
+    // text the vis-2 assistant writes into a boolean — reads as unset, as the widget and the panel
+    // read it, so the swatch follows the Rahmenvorgabe, else the card.
+    describe('review: an unusable stored noCard', () => {
+        const surface: Partial<ExtendedField> = {
+            name: 'frameBackground',
+            terminal: 'paper',
+            terminalWithoutCard: 'transparent',
+        };
+
+        it.each(['true', 'false'])('noCard "%s" (text) shows the paper of the card', text => {
+            const { container } = mount(surface, { noCard: text });
+            expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
+        });
+
+        it('noCard "false" (text) shows the checkerboard under the Rahmenvorgabe "without card"', () => {
+            collectionThemeHolder.widgetFrame = { noCard: true };
+            const { container } = mount(surface, { noCard: 'false' });
+            expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
+        });
+    });
+
     it('shows a fallback field before the terminal', () => {
         const { container } = mount(
             { terminal: 'primary', fallbackFields: ['textColor'] },

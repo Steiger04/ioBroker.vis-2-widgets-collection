@@ -216,3 +216,28 @@ export function storedFrameValue<K extends WidgetFrameKey>(
     const read = withWidgetFrame(usableWidgetData(stored, rules), [key], presets) as Record<string, unknown>;
     return read[key] as FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
 }
+
+/**
+ * The Rückfall-Regel of every frame setting under its own name: the stored value of its kind, as
+ * its field declares it (`storedValue`, `createWidgetFrameField`).
+ */
+const FRAME_RULES: FieldRules = {
+    named: new Map(WIDGET_FRAME_KEYS.map(key => [key, WIDGET_FRAME_SETTINGS[key].kind])),
+    perRow: new Map(),
+    emptiedReadsUnset: new Set(),
+};
+
+/**
+ * The stored data with every frame setting read as the widget renders it — for a reader that has
+ * only the stored data at hand and does not know the widget's fields, as the colour fields' swatch
+ * in the attribute panel (every widget offers the frame settings of Allgemein).
+ *
+ * @remarks
+ * The reading of {@link storedFrameValue} for all settings at once: the Rückfall-Regel of the
+ * frame settings first, then the cascade of {@link withWidgetFrame}; the other keys stay as stored.
+ * @param stored - The widget data as stored in the project; never changed.
+ * @param presets - The usable Rahmenvorgaben ({@link widgetFramePresetsOf}).
+ * @returns `stored` itself when every frame setting holds a usable value, else a read copy.
+ */
+export const storedWidgetFrame = <T extends object>(stored: T, presets: WidgetFramePresets): T =>
+    withWidgetFrame(usableWidgetData(stored, FRAME_RULES), WIDGET_FRAME_KEYS, presets);
