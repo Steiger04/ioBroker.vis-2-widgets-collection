@@ -120,6 +120,19 @@ describe('parseStoredTheme: an unusable value falls away, the rest holds', () =>
         expect(read({ corners: { topLeft: -1 }, direction: 'up' })).toEqual({});
     });
 
+    // ADR-0117: a broken Rahmenvorgabe neither takes the others nor the rest of the theme along.
+    it('drops an unusable Rahmenvorgabe alone', () => {
+        expect(read({ widgetFrame: { baseElevation: 25 }, spacing: 4 })).toEqual({ spacing: 4 });
+        expect(read({ widgetFrame: { baseElevation: 'deep' }, corners: { topLeft: 8 } })).toEqual({
+            corners: { topLeft: 8 },
+        });
+    });
+
+    it('keeps a usable Rahmenvorgabe', () => {
+        expect(read({ widgetFrame: { baseElevation: 0 } })).toEqual({ widgetFrame: { baseElevation: 0 } });
+        expect(read({ widgetFrame: { baseElevation: 24 } })).toEqual({ widgetFrame: { baseElevation: 24 } });
+    });
+
     it('finds a value below a key that contains a dot', () => {
         expect(
             read({
@@ -129,6 +142,39 @@ describe('parseStoredTheme: an unusable value falls away, the rest holds', () =>
             }),
         ).toEqual({
             components: { MuiButton: { styleOverrides: { root: { '&.Mui-disabled': { opacity: 0.4 } } } } },
+        });
+    });
+});
+
+describe('ticket 03: parseStoredTheme — the boolean and padding Rahmenvorgaben', () => {
+    it('keeps usable switch and padding presets, false included', () => {
+        const widgetFrame = { noHeader: true, noHeaderIcon: false, noFooter: true, outlined: false, basePadding: 0 };
+        expect(read({ widgetFrame })).toEqual({ widgetFrame });
+        expect(read({ widgetFrame: { outlinedFrame: true, basePadding: 10 } })).toEqual({
+            widgetFrame: { outlinedFrame: true, basePadding: 10 },
+        });
+    });
+
+    it('drops an unusable switch or padding alone: the other presets and the rest hold', () => {
+        expect(read({ widgetFrame: { noFooter: 'yes', outlined: true }, spacing: 4 })).toEqual({
+            widgetFrame: { outlined: true },
+            spacing: 4,
+        });
+        expect(read({ widgetFrame: { basePadding: 10.5, noHeader: false } })).toEqual({
+            widgetFrame: { noHeader: false },
+        });
+    });
+});
+
+// MUI draws a shadow only for a whole elevation: a shadow preset that is no whole number falls away alone.
+describe('ticket 07: parseStoredTheme — a shadow preset that is no whole number', () => {
+    it('drops the shadow and keeps the other presets', () => {
+        expect(read({ widgetFrame: { baseElevation: 2.5, noCard: true }, spacing: 4 })).toEqual({
+            widgetFrame: { noCard: true },
+            spacing: 4,
+        });
+        expect(read({ widgetFrame: { baseElevation: 24, basePadding: 0.5 } })).toEqual({
+            widgetFrame: { baseElevation: 24, basePadding: 0.5 },
         });
     });
 });

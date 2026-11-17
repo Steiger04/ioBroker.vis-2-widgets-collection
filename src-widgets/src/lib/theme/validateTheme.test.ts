@@ -57,6 +57,94 @@ describe('validateThemeOptions: radius range', () => {
     });
 });
 
+// ADR-0117: the Rahmenvorgaben are a known key; the bounds are the shadow field's (0–24), literals
+// from the field definition before it lost its default.
+describe('validateThemeOptions: the Rahmenvorgaben', () => {
+    it('knows the key and accepts a shadow from 0 to 24', () => {
+        for (const baseElevation of [0, 4, 24]) {
+            const result = validateThemeOptions({ widgetFrame: { baseElevation } });
+            expect(result.issues).toEqual([]);
+            expect(result.isValid).toBe(true);
+        }
+    });
+
+    it.each<[unknown, string, string[] | undefined]>([
+        [25, 'number-out-of-range', ['0', '24']],
+        [-1, 'number-out-of-range', ['0', '24']],
+        ['deep', 'invalid-number', undefined],
+    ])('reports the shadow %j at its field', (baseElevation, code, params) => {
+        const result = validateThemeOptions({ widgetFrame: { baseElevation } });
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.baseElevation',
+                keys: ['widgetFrame', 'baseElevation'],
+                severity: 'error',
+                code,
+                ...(params ? { params } : {}),
+            }),
+        ]);
+    });
+});
+
+// The padding bounds are the field's before it lost its default (0–10); the five switches take a boolean.
+describe('ticket 03: validateThemeOptions — the boolean and padding Rahmenvorgaben', () => {
+    it('accepts the five switches as booleans and a padding from 0 to 10', () => {
+        const result = validateThemeOptions({
+            widgetFrame: {
+                noHeader: true,
+                noHeaderIcon: false,
+                noFooter: true,
+                outlined: false,
+                outlinedFrame: true,
+                basePadding: 0,
+            },
+        });
+        expect(result.issues).toEqual([]);
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 10 } }).issues).toEqual([]);
+    });
+
+    it.each(['noHeader', 'noHeaderIcon', 'noFooter', 'outlined', 'outlinedFrame'])(
+        'reports a %s that is no boolean at its field',
+        key => {
+            const result = validateThemeOptions({ widgetFrame: { [key]: 'false' } });
+            expect(result.isValid).toBe(false);
+            expect(result.issues).toEqual([
+                expect.objectContaining({
+                    path: `widgetFrame.${key}`,
+                    keys: ['widgetFrame', key],
+                    severity: 'error',
+                }),
+            ]);
+        },
+    );
+
+    it('reports a padding beyond 10 at its field', () => {
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 11 } }).issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.basePadding',
+                code: 'number-out-of-range',
+                params: ['0', '10'],
+            }),
+        ]);
+    });
+});
+
+// MUI's shadows are a list: only a whole elevation draws one (Paper warns about any other).
+describe('ticket 07: validateThemeOptions — a shadow preset that is no whole number', () => {
+    it('reports the shadow 2.5 at its field; a padding of 0.5 stays valid', () => {
+        expect(validateThemeOptions({ widgetFrame: { baseElevation: 2.5 } }).issues).toEqual([
+            expect.objectContaining({
+                path: 'widgetFrame.baseElevation',
+                keys: ['widgetFrame', 'baseElevation'],
+                severity: 'error',
+                code: 'number-not-integer',
+            }),
+        ]);
+        expect(validateThemeOptions({ widgetFrame: { basePadding: 0.5 } }).issues).toEqual([]);
+    });
+});
+
 describe('validateThemeOptions: a colour of the palette', () => {
     it('reports a colour MUI cannot compute with, at its value', () => {
         const result = validateThemeOptions({ palette: { text: { primary: 'white' }, divider: '#101010' } });

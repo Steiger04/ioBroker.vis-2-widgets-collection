@@ -21,6 +21,12 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
+import {
+    isWholeNumberSetting,
+    WIDGET_FRAME_KEYS,
+    WIDGET_FRAME_SETTINGS,
+    type WidgetFrameSetting,
+} from '../widgetFrame';
 import { CORNER_RADIUS_MAX, THEME_MODES } from './themeUtils';
 
 /** How to treat keys not declared in an `object` schema node's `properties`. */
@@ -42,7 +48,13 @@ type SchemaNodeVariant =
           allowUnknown?: UnknownKeyPolicy;
       }
     | { kind: 'string' }
-    | { kind: 'number'; min?: number; max?: number }
+    | {
+          kind: 'number';
+          min?: number;
+          max?: number;
+          /** `true`: only a whole number is valid. */
+          integer?: boolean;
+      }
     | { kind: 'boolean' }
     | { kind: 'color' }
     | { kind: 'literal'; values: readonly (string | number)[] }
@@ -276,6 +288,33 @@ const componentsSchema: SchemaNode = {
     },
 };
 
+/**
+ * The Rahmenvorgaben (`widgetFrame`, ADR-0117): one value per frame setting, of its kind — a number
+ * in the bounds of its field (a whole one for the shadow), or a boolean (lib/widgetFrame). Each value stands for itself: an
+ * unusable one falls away alone.
+ */
+const widgetFrameSchema: SchemaNode = {
+    kind: 'object',
+    optional: true,
+    allowUnknown: 'warn',
+    properties: Object.fromEntries(
+        WIDGET_FRAME_KEYS.map(key => {
+            const setting: WidgetFrameSetting = WIDGET_FRAME_SETTINGS[key];
+            const node: SchemaNode =
+                setting.kind === 'boolean'
+                    ? { kind: 'boolean', optional: true }
+                    : {
+                          kind: 'number',
+                          optional: true,
+                          min: setting.min,
+                          max: setting.max,
+                          integer: isWholeNumberSetting(setting),
+                      };
+            return [key, node];
+        }),
+    ),
+};
+
 /** A permissive object whose keys are all ignored (accepts any plain object). */
 const permissiveObject: SchemaNode = { kind: 'object', optional: true, allowUnknown: 'ignore', properties: {} };
 
@@ -355,6 +394,8 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
                 bottomLeft: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
             },
         },
+        // Non-MUI extension: the Rahmenvorgaben of the Widget-Rahmen (see WidgetFramePresets).
+        widgetFrame: widgetFrameSchema,
         unstable_strictMode: { kind: 'boolean', optional: true },
         modularCssLayers: {
             kind: 'union',

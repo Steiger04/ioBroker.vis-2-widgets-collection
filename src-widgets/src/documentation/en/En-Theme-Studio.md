@@ -4,7 +4,7 @@
 
 ## Description
 
-The Theme Studio is the widget collection's collection-wide theme editor: it styles colors, typography, shapes and spacing of **every** widget in this collection (State, Switch, …, ECharts) at once, live on the open vis-2 view.
+The Theme Studio is the widget collection's collection-wide theme editor: it styles colors, typography, shapes, spacing and the widget frame of **every** widget in this collection (State, Switch, …, ECharts) at once, live on the open vis-2 view.
 
 It is **not a widget**: you do not drop it onto the canvas. In the vis-2 edit mode you open it via the **Theme Studio** button in the widget palette (group "Widget collection"). It appears as a floating, draggable and resizable window. The window itself follows the light/dark mode of the vis-2 editor, not the theme being edited.
 
@@ -18,7 +18,7 @@ The finished theme is stored as JSON in the state `vis-2-widgets-collection.0.th
 - **Title bar:** drag to move; a dot next to the title marks unsaved changes. **Undo/Redo** (up to 50 steps; `Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+Y`; consecutive changes of the same setting less than 800 ms apart, e.g. one slider drag, form a single step) and **Close** (same as Cancel; also `Esc`). The shortcuts only act while the focus is inside the studio; outside it, `Esc` and undo stay with the vis-2 editor. In an input field, undo and redo behave as that field does.
 - **Size:** eight edge and corner grips resize it like an operating-system window (edges by arrow keys ±16 px, with `Shift` ±64 px, `Home`/`End` for minimum/maximum, double-click resets; corners pointer-only). The window starts at the top right, 380 px wide; the width ranges from 320 px to window width − 48 px, the height from 240 px to window height − 48 px. By default the height follows the content (**Auto**, up to 80 % of the window height); the first vertical grip fixes it, a double-click on a horizontal edge restores Auto. Position and size persist per browser across sessions (localStorage).
 - **Footer:**
-    - **Reset all to default** — empties **every** value, including loaded Google fonts and CSS variables (`{}` = everything inherits; one undo step, so it is reversible). Inactive while the draft is empty
+    - **Reset all to default** — empties **every** value, including loaded Google fonts, CSS variables and the frame presets (`{}` = everything inherits; one undo step, so it is reversible). Inactive while the draft is empty
     - **"1 problem" / "%s problems"** — appears on validation errors; a click expands the affected section and scrolls to the first error
     - **Cancel** — discards the changes (with a confirmation while unsaved changes are open) and closes the studio
     - **Save** — writes the data point once and closes the studio; enabled only when there is something to save and blocked while validation errors are open. A connection failure shows a message and keeps the studio open. A change made during the write is not saved; the studio stays open then as well
@@ -30,7 +30,7 @@ A collapsible section (closed on open). Its summary names the active preset ("Gr
 
 Nine curated color themes as cards — **Graphite, Sunset, Daylight, Sage, Mono, Emerald, Amethyst, Ruby, Amber** — with mini color swatches (base surface, widget surface, primary, secondary) and a light/dark icon. Daylight and Sage are light, the others dark. The card marked active is the one whose five values (color mode, primary color, secondary color, base surface, widget surface) all apply; the case of hex values does not matter.
 
-**Colors only:** applying a preset sets **only these five values**. A set divider, status and text colors as well as typography, corner radii, spacing unit and the CSS-variables settings survive. Applying a preset is one undo step.
+**Colors only:** applying a preset sets **only these five values**. A set divider, status and text colors as well as typography, corner radii, frame presets, spacing unit and the CSS-variables settings survive. Applying a preset is one undo step.
 
 ## Color fields
 
@@ -72,6 +72,29 @@ Groups: **Accents** (primary, secondary) and **Surfaces** (base surface, widget 
 
 Only **Undo** or **Reset all to default** clears a single slider value (font size, border radius, line height). The summary shows font, size and corner radius (`r=12`, unequal corners as top left/top right/bottom right/bottom left).
 
+## Widget frame section
+
+The **widget frame** is what every collection widget draws around its content: card, outlines, padding, shadow, header, header icon and footer. In the attribute panel these are eight settings in the **Common** group (see [Widget frame](En-Home.md#widget-frame)). Here you set a **frame preset** for each of them that applies to all collection widgets: a widget follows it wherever it has no own value for the setting.
+
+| Setting          | Theme path                  | Description                                                                                                                                                           |
+| ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Card             | `widgetFrame.noCard`        | Switch. Off shows the widgets without card, like Without border `noCard` in the panel: the frame area fills the widget without the surrounding gap. Off stores `true` |
+| Content outlined | `widgetFrame.outlined`      | Switch. On draws the content area with a line instead of a shadow; Shadow then has no effect                                                                          |
+| Frame outlined   | `widgetFrame.outlinedFrame` | Switch. On draws the frame area with a line instead of a shadow                                                                                                       |
+| Padding          | `widgetFrame.basePadding`   | Slider and number field, 0–10 in steps of 0.1: gap between frame and content area in spacing units. At 0 the content area has square corners                          |
+| Shadow           | `widgetFrame.baseElevation` | Slider and number field, 0–24, whole numbers only: MUI elevation of the content area                                                                                  |
+| Header           | `widgetFrame.noHeader`      | Switch. Off hides the frame header. Off stores `true`                                                                                                                 |
+| Header icon      | `widgetFrame.noHeaderIcon`  | Switch. Off hides the corner icon. Off stores `true`                                                                                                                  |
+| Footer           | `widgetFrame.noFooter`      | Switch. Off hides the frame footer. Off stores `true`                                                                                                                 |
+
+Groups: **Card** and **Header & footer**, in the order of the panel. The switches are worded positively ("Header" on = header shown), while the theme stores the meaning of the widget field (`noHeader: false`). The summary counts the set frame presets ("x of 8 preset").
+
+- **Standard:** without a frame preset a setting shows the built-in standard and says so in the label ("· standard"): card, header, header icon and footer on, both outlines off, padding 1, shadow 4. That is the look of the widgets without the Theme Studio. Unlike the other sliders, a set frame preset has a trash-can button **Reset to standard** that removes this one value.
+- **Inheritance:** a widget takes its own value, without one the frame preset, without that the built-in standard. You set an own value in the **Common** group; there "As theme" (on/off settings) or × (Padding, Elevation) removes it again, for several selected widgets at once.
+- **New and existing widgets:** a newly placed widget stores none of the eight settings and follows the frame presets from the start. A widget placed from the palette before the frame presets existed stored the defaults of that time as own values: it looks unchanged, and a frame preset reaches it only once you set the setting to "As theme" in the panel. The info box of the section says the same.
+- **Like every studio value:** a frame preset takes effect live on every inheriting widget of the canvas and counts for undo/redo, **Save** and **Cancel**. A preset sets only colors and leaves the frame presets; **Reset all to default** clears them.
+- **Exceptions:** a widget embedded in another widget never shows a card, whatever the frame preset says. A setting a widget does not use stays without effect there, such as the header icon in the ECharts widget and in the view frame of the Dialog widget.
+
 ## Status & text section
 
 | Setting          | Theme path               | Where it takes effect                                                                                                                                     |
@@ -99,7 +122,7 @@ Here too, only **Undo** or **Reset all to default** clears a single slider value
 
 ## The theme in the datapoint
 
-The studio saves into the state **`vis-2-widgets-collection.0.theme`** (type `string`): the theme as JSON text. It is a **partial MUI `ThemeOptions` object** plus two custom extensions (`corners`, `googleFonts`). Every collection widget reads and validates the state on start and on every change. A single invalid value is dropped, the rest of the theme applies. If the state is empty, not valid JSON or not an object, the theme counts as `{}` and the widget theme stays at the host default.
+The studio saves into the state **`vis-2-widgets-collection.0.theme`** (type `string`): the theme as JSON text. It is a **partial MUI `ThemeOptions` object** plus three custom extensions (`corners`, `googleFonts`, `widgetFrame`). Every collection widget reads and validates the state on start and on every change. A single invalid value is dropped, the rest of the theme applies. If the state is empty, not valid JSON or not an object, the theme counts as `{}` and the widget theme stays at the host default.
 
 Compact example (dark, own accents, Inter, corner radius):
 
@@ -126,9 +149,10 @@ Rules and notes for script authors:
 - **Invalid values in the state:** if a state written via script holds an invalid value, a color name for instance, only that value is dropped: the widgets show the rest of the theme, and the studio opens with the rest; the next save writes the state without it. For primary, secondary and the status colors an invalid main color (`main`) drops the color as a whole, an invalid variant (`light`, `dark`, `contrastText`) only itself; in a list (`shadows`, the faces of a Google font) the whole list. If the state is not valid JSON or not an object, the studio opens with the empty theme.
 - **Studio stricter than the widgets:** the widgets replace the prefix `mui` for CSS variables by `vis2c`; the rest of the theme still applies. The studio shows it as an error and saves only after the correction.
 - **Writing directly** works: `setState('vis-2-widgets-collection.0.theme', JSON.stringify(theme), true)` — the studio reads the state on open and follows it while it is open. An open studio without unsaved changes takes the written value over, the canvas shows it, and the undo history is empty afterwards. With unsaved changes the draft stays in the studio and on the canvas; it still counts as changed, now measured against the written value, and saving overwrites it.
+- **`widgetFrame`** holds the frame presets under the names of the widget fields: `noCard`, `outlined`, `outlinedFrame`, `noHeader`, `noHeaderIcon` and `noFooter` take `true` or `false` in the meaning of the field (`"noCard": true` = without card), `basePadding` a number from 0 to 10, `baseElevation` a whole number from 0 to 24 (otherwise "must be a whole number"). A missing value means no frame preset, the built-in standard applies; an invalid value is dropped alone.
 - **`googleFonts`** (a map of font name → list of `weight`, with a variable font `weightMax`, and `data`, the embedded woff2 data URI) is managed by the studio alone when loading a Google font; do not edit by hand (large base64 blobs).
 
 ## Related pages
 
-- [Home](En-Home.md) — common settings of all widgets
+- [Home](En-Home.md) — common settings of all widgets; [Widget frame](En-Home.md#widget-frame) explains own value and "As theme" in the panel
 - [ECharts Widget](En-Echarts-Widget.md) — its Colors section uses this theme as the palette source "Theme (auto)"

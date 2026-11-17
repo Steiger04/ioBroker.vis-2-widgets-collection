@@ -176,7 +176,7 @@ The UI component applies only in the color view, not with dimmer. It changes the
 - Replaces the UI component with a single vertical slider from black to white, whatever `colorLightUIComponent` says
 - The slider fills the height of the widget, its width is `colorLightSliderWidth`
 - Beside it the power button, no view switch
-- In button mode a long press opens the same slider in the modal. Without `colorLightModalWidth` the modal is as wide as its content: 2 × [Padding `basePadding`](En-Home.md#characteristics) + 43 px power button column + 2 × `colorLightPadding` + slider width, one padding unit equals 8 px. With the default values that is 103 px
+- In button mode a long press opens the same slider in the modal. Without `colorLightModalWidth` the modal is as wide as its content: 2 × [Padding `basePadding`](En-Home.md#characteristics) + 43 px power button column + 2 × `colorLightPadding` + slider width + 2 px for each outline (`outlinedFrame`, `outlined`), one padding unit equals 8 px. `basePadding` and the outlines count as the widget shows them, inherited ones included. With the standard values (padding 1, no outline) that is 103 px
 
 ## OID Detection
 

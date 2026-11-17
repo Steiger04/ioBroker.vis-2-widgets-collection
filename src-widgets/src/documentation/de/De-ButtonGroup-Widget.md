@@ -92,7 +92,7 @@ Im ButtonGroup Widget färben `background`, `background{n}` und `backgroundActiv
 
 ### Gruppenenden
 
-Mit `basePadding` `0` oder ohne Wert sind die Enden der Gruppe eckig, sonst abgerundet.
+Mit einem `basePadding` von `0` sind die Enden der Gruppe eckig, sonst abgerundet. Ohne eigenen Wert gilt die Rahmenvorgabe oder der Standard `1`, siehe [Widget-Rahmen](De-Home.md#widget-rahmen).
 
 ## Datentypen
 

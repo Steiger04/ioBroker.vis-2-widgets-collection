@@ -24,10 +24,15 @@ vi.mock(
     'react-best-gradient-color-picker',
     async () => (await import('./colorPicker/testing/fakeColorPickerLibrary')).fakeColorPickerLibrary,
 );
+// The collection theme the panel reads; a test may hand it Rahmenvorgaben (`widgetFrame`), which the
+// collection theme carries as a custom theme variable (lib/widgetFrame).
+const collectionThemeHolder = vi.hoisted(() => ({ widgetFrame: undefined as object | undefined }));
 vi.mock('../hooks/useCollectionTheme', async () => {
     const { createTheme } = await import('@mui/material');
     const theme = createTheme({ palette: { primary: { main: '#1976d2' }, text: { primary: '#2f3e51' } } });
-    return { default: (): unknown => theme, useCollectionTheme: (): unknown => theme };
+    const current = (): unknown =>
+        collectionThemeHolder.widgetFrame ? { ...theme, widgetFrame: collectionThemeHolder.widgetFrame } : theme;
+    return { default: current, useCollectionTheme: current };
 });
 
 import { createTheme } from '@mui/material';
@@ -38,6 +43,7 @@ import { renderComponent, type RenderComponentHandle } from '../lib/testing/test
 import { lastLibraryProps, resetFakeLibrary } from './colorPicker/testing/fakeColorPickerLibrary';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import ContractColorField from './ContractColorField';
+import commonFields from '../lib/commonFields';
 
 type Props = ComponentProps<typeof ContractColorField>;
 
@@ -69,6 +75,7 @@ afterEach(() => {
     handle?.unmount();
     handle = null;
     vi.unstubAllGlobals();
+    collectionThemeHolder.widgetFrame = undefined;
 });
 
 const mount = (
@@ -143,6 +150,56 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         it('shows the set colour under noCard', () => {
             const { container } = mount(surface, { noCard: true, frameBackground: '#336699' });
             expect(getComputedSwatch(container).toLowerCase()).toMatch(/#336699|rgb\(51, 102, 153\)/);
+        });
+    });
+
+    // Ein effektiver Wert (ADR-0117): the swatch sees noCard as the widget renders it — an unset
+    // noCard reads the Rahmenvorgabe of the collection theme, else the built-in standard (card).
+    describe('ticket 04: an inherited noCard', () => {
+        const surfaces = (['background', 'frameBackground'] as const).map(name => {
+            const field = commonFields().find(candidate => candidate.name === name);
+            if (!field) {
+                throw new Error(`commonFields declares no ${name}`);
+            }
+            return [name, field] as const;
+        });
+
+        it.each(surfaces)('%s shows the checkerboard under the Rahmenvorgabe "without card"', (_name, field) => {
+            collectionThemeHolder.widgetFrame = { noCard: true };
+            const { container } = mount(field, {});
+            expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
+        });
+
+        it.each(surfaces)('%s shows the paper without a Rahmenvorgabe, and for an own card', (_name, field) => {
+            const unset = mount(field, {});
+            expect(getComputedSwatch(unset.container)).not.toMatch(/^(transparent|)$/);
+            handle?.unmount();
+
+            collectionThemeHolder.widgetFrame = { noCard: true };
+            const ownCard = mount(field, { noCard: false });
+            expect(getComputedSwatch(ownCard.container)).not.toMatch(/^(transparent|)$/);
+        });
+    });
+
+    // The Rückfall-Regel (ADR-0114) before the cascade: a stored noCard the widget cannot use — the
+    // text the vis-2 assistant writes into a boolean — reads as unset, as the widget and the panel
+    // read it, so the swatch follows the Rahmenvorgabe, else the card.
+    describe('review: an unusable stored noCard', () => {
+        const surface: Partial<ExtendedField> = {
+            name: 'frameBackground',
+            terminal: 'paper',
+            terminalWithoutCard: 'transparent',
+        };
+
+        it.each(['true', 'false'])('noCard "%s" (text) shows the paper of the card', text => {
+            const { container } = mount(surface, { noCard: text });
+            expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
+        });
+
+        it('noCard "false" (text) shows the checkerboard under the Rahmenvorgabe "without card"', () => {
+            collectionThemeHolder.widgetFrame = { noCard: true };
+            const { container } = mount(surface, { noCard: 'false' });
+            expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
         });
     });
 

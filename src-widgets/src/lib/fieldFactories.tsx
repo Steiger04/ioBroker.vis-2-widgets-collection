@@ -6,6 +6,7 @@
  * Provides the deep building blocks used across every `*Fields.tsx` file:
  * - color field factories (`createColorField`, `createColorFields`) and
  *   the Schlichtes-Farbfeld factory (`createPlainColorField`)
+ * - the frame-setting factory (`createWidgetFrameField`, the Erb-Adapter of the Widget-Rahmen)
  * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`, `alwaysHidden`)
  * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
  * - `createDivider` for section dividers
@@ -45,6 +46,8 @@
 import ContractColorField from '../components/ContractColorField';
 import PlainColorField from '../components/PlainColorField';
 import CollectionDivider from '../components/CollectionDivider';
+import WidgetFrameField from '../components/WidgetFrameField';
+import { frameStoredValue, WIDGET_FRAME_SETTINGS, type WidgetFrameKey } from './widgetFrame';
 import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type {
     RxWidgetInfoAttributesField,
@@ -273,6 +276,61 @@ export function createPlainColorField(options: PlainColorFieldOptions): Extended
     if (defaultValue !== undefined) {
         (field as Record<string, unknown>).default = defaultValue;
     }
+
+    if (hidden !== undefined) {
+        // Cast to bypass the readonly restriction, matching createColorField.
+        (field as Record<string, unknown>).hidden = hidden;
+    }
+
+    return field;
+}
+
+/** Options for {@link createWidgetFrameField}. */
+export interface WidgetFrameFieldOptions {
+    /** Field name; the setting's name by default (`commonFields` adds its group suffix). */
+    name?: string;
+    /** Label translation key; the setting's label under Allgemein (`lib/widgetFrame`) by default. */
+    label?: string;
+    /** Hidden condition (vis-2 hands a predicate the raw widget data). */
+    hidden?: string | HiddenPredicate;
+}
+
+/**
+ * Creates a frame setting of the Widget-Rahmen (ADR-0117): a custom field rendered by the
+ * Erb-Adapter (`components/WidgetFrameField`), which names whether the widget erbt and which value
+ * it renders then, and stores an own value or removes it (`null`).
+ *
+ * @remarks
+ * No `default`: vis-2 stores a field's default on every dropped widget, which could then never
+ * follow the Rahmenvorgabe. `storedValue` keeps the Rückfall-Regel of the former vis-2 field (a
+ * boolean, like a checkbox; a number, like a slider — `lib/usableWidgetData`), the shadow narrowed
+ * to the whole numbers MUI draws (`frameStoredValue`). A boolean has no
+ * binding, like vis-2's checkbox; a number keeps the binding vis-2's slider offers (a bound field
+ * shows vis-2's binding input instead of the adapter).
+ * @param setting - The frame setting (`lib/widgetFrame`).
+ * @param options - Name, label and hidden condition.
+ * @returns A fresh field definition per call.
+ * @example createWidgetFrameField('noCard', { name: `noCard${groupName}` })
+ */
+export function createWidgetFrameField(setting: WidgetFrameKey, options: WidgetFrameFieldOptions): ExtendedField {
+    const { name = setting, label = WIDGET_FRAME_SETTINGS[setting].label, hidden } = options;
+    const kind = WIDGET_FRAME_SETTINGS[setting].kind;
+    const field: ExtendedField = {
+        name,
+        label,
+        type: 'custom',
+        storedValue: frameStoredValue(setting),
+        ...(kind === 'boolean' ? { noBinding: true } : {}),
+        component: guardWidgetData((field: ExtendedField, data, onDataChange, props): React.JSX.Element => (
+            <WidgetFrameField
+                setting={setting}
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        )),
+    };
 
     if (hidden !== undefined) {
         // Cast to bypass the readonly restriction, matching createColorField.

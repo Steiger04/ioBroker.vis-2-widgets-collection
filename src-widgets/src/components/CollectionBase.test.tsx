@@ -399,7 +399,8 @@ describe('CollectionBase content background (ADR-0004, ticket 12)', () => {
 
     /**
      * Mounts the frame on the scene's widget data, inside its card (`wrappedContent`) or not —
-     * Generic derives `wrappedContent` from `noCard` / embedding, the scene stands in for it.
+     * the provider derives `wrappedContent` from the effective `noCard` and the embedding (Generic),
+     * the scene stands in for it.
      */
     const mountBackgroundFrame = (data: Record<string, unknown>, wrappedContent: boolean): MountedCollectionBody => {
         const Frame: FC = () => {

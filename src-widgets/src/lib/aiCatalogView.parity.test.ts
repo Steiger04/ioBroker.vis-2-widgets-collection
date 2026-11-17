@@ -51,6 +51,13 @@ import {
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
+import {
+    isWidgetFrameKey,
+    WIDGET_FRAME_KEYS,
+    WIDGET_FRAME_SETTINGS,
+    widgetFrameKeysOf,
+    type WidgetFrameKey,
+} from './widgetFrame';
 
 vi.mock('../Generic', () => ({ default: class {} }));
 vi.mock('../components/ContractColorField', () => ({ default: () => null }));
@@ -317,7 +324,9 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                     field =>
                         field.name &&
                         (field.type === 'custom' || isJsonRule(rules.named.get(field.name))) &&
-                        !isUiOnlyCustomField(field.name),
+                        !isUiOnlyCustomField(field.name) &&
+                        // A frame setting has no default on purpose (ADR-0117); see its own block.
+                        !isWidgetFrameKey(field.name),
                 )
                 .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
@@ -353,7 +362,10 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
         it('shows a strukturiert-leerer default for every data-bearing custom field, or lists it as UI only', () => {
             const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
             const missing = sharedFields()
-                .filter(field => field.type === 'custom' && !isUiOnlyCustomField(field.name!))
+                .filter(
+                    field =>
+                        field.type === 'custom' && !isUiOnlyCustomField(field.name!) && !isWidgetFrameKey(field.name!),
+                )
                 .filter(field => !isShapedDefault(rules.named.get(field.name!), field.default))
                 .map(field => `${field.name} (default ${JSON.stringify(field.default)})`);
 
@@ -373,6 +385,48 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
 
             expect(sharedFields().length).toBeGreaterThan(0);
             expect(dropped).toEqual([]);
+        });
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('ticket 05: %s — the frame settings as the assistant reads them', name => {
+        /** The label each frame setting carried as a vis-2 checkbox or slider, before its Erb-Adapter. */
+        const LABELS: Record<string, string> = {
+            noHeader: 'no_header',
+            noHeaderIcon: 'no_header_icon',
+            noFooter: 'no_footer',
+            noCard: 'without_card',
+            outlined: 'outlined',
+            outlinedFrame: 'outlined_frame',
+            basePadding: 'base_padding',
+            baseElevation: 'base_elevation',
+        };
+
+        it('describes all eight under their name and translated label, without a default', () => {
+            const info = infos.get(name)!;
+            const offered = widgetFrameKeysOf(info.visAttrs ?? []);
+            const described = describedFields(info, I18N_PREFIX).filter(
+                field => field.name !== undefined && isWidgetFrameKey(field.name),
+            );
+
+            expect(offered).toHaveLength(8);
+            expect(described.map(field => [field.name, field.label, field.default])).toEqual(
+                offered.map(key => [key, (en as Record<string, string>)[LABELS[key]], undefined]),
+            );
+        });
+
+        // The shadow narrows the slider's rule to the shadows MUI draws: whole numbers from 0 to 24.
+        it('keeps the rule of the former field: a boolean like a checkbox, a number like a slider', () => {
+            const rules = fieldRulesOf(infos.get(name)!.visAttrs ?? []);
+
+            for (const key of widgetFrameKeysOf(infos.get(name)!.visAttrs ?? [])) {
+                expect(rules.named.get(key), key).toEqual(
+                    WIDGET_FRAME_SETTINGS[key].kind === 'boolean'
+                        ? 'boolean'
+                        : key === 'baseElevation'
+                          ? { whole: { min: 0, max: 24 } }
+                          : 'number',
+                );
+            }
         });
     });
 
@@ -504,7 +558,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             ]);
         });
 
-        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing', () => {
+        it('describes nothing else: reset, preset, mode, eleven colours, font, size, radius, spacing, eight Rahmenvorgaben', () => {
             const names = settings().map(field => field.name);
 
             // The names are what an order's data is keyed by: the wiki and every stored example use them.
@@ -527,9 +581,96 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 'fontSize',
                 'cornerRadius',
                 'spacing',
+                'noHeader',
+                'noHeaderIcon',
+                'noFooter',
+                'noCard',
+                'outlined',
+                'outlinedFrame',
+                'basePadding',
+                'baseElevation',
             ]);
-            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4);
+            expect(names).toHaveLength(3 + STUDIO_COLOR_FIELDS.length + 4 + 8);
         });
+    });
+
+    // ADR-0117: a widget's frame settings have no default, so vis-2 stores nothing and they erben;
+    // the order sets the Rahmenvorgaben under the same names (addendum ADR-0115).
+    describe('ticket 07: the Widget-Rahmen in the assistant’s view', () => {
+        /** The frame settings a widget's type description shows, by name. */
+        const frameFieldsOf = (name: WidgetName): DescribedField[] =>
+            describedFields(infos.get(name)!, I18N_PREFIX).filter(field =>
+                (WIDGET_FRAME_KEYS as readonly (string | undefined)[]).includes(field.name),
+            );
+
+        it.each(PLACEABLE_WIDGETS)('%s describes the eight frame settings, none with a default', name => {
+            const fields = frameFieldsOf(name);
+
+            expect(fields.map(field => field.name).sort()).toEqual([...WIDGET_FRAME_KEYS].sort());
+            expect(fields.filter(field => field.default !== undefined).map(field => field.name)).toEqual([]);
+            expect(Object.keys(paletteInsertData(infos.get(name)!.visAttrs ?? []))).not.toEqual(
+                expect.arrayContaining([expect.stringMatching(/^(noCard|basePadding|baseElevation)$/)]),
+            );
+        });
+
+        /** The sentence of a widget's KI-Leitfaden that names the frame settings. */
+        const frameSentenceOf = (name: WidgetName): string[] =>
+            sentencesOf(guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '').filter(
+                sentence => WIDGET_FRAME_KEYS.every(key => sentence.includes(`"${key}"`)),
+            );
+
+        it.each(PLACEABLE_WIDGETS)(
+            '%s: its KI-Leitfaden says to set the frame settings only on an explicit request for this widget',
+            name => {
+                const sentences = frameSentenceOf(name);
+
+                expect(sentences).toHaveLength(1);
+                expect(sentences[0]).toContain('only when the user explicitly asks for them on this widget');
+                expect(sentences[0]).toContain('follow the theme');
+            },
+        );
+
+        it('words the frame sentence alike in every widget’s KI-Leitfaden', () => {
+            expect(new Set(PLACEABLE_WIDGETS.flatMap(frameSentenceOf)).size).toBe(1);
+        });
+
+        // The type description shows the frame settings as custom fields without a default (the
+        // Erb-Adapter, ticket 05): the KI-Leitfaden names the values an explicit request sets.
+        it.each(PLACEABLE_WIDGETS)(
+            'ticket 05: %s: its KI-Leitfaden names the format of the frame settings for an explicit request',
+            name => {
+                const sentences = sentencesOf(
+                    guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '',
+                );
+                const format = sentences.filter(sentence => sentence.includes('"basePadding" a number'));
+
+                expect(format).toHaveLength(1);
+                expect(format[0]).toContain('the six on/off fields take true or false as their names say');
+                expect(format[0]).toContain('"basePadding" a number from 0 to 10');
+                expect(format[0]).toContain('"baseElevation" a whole number from 0 to 24');
+                // It follows the sentence that names all eight and says that unset means the theme.
+                expect(sentences[sentences.indexOf(format[0]) - 1]).toBe(frameSentenceOf(name)[0]);
+            },
+        );
+
+        it.each(Object.keys(ORDER_TYPES) as WidgetName[])(
+            '%s describes each Rahmenvorgabe like the widget field it stands in for: name, type and label',
+            name => {
+                const settings = describedFields(infos.get(name)!, I18N_PREFIX).filter(field =>
+                    (WIDGET_FRAME_KEYS as readonly (string | undefined)[]).includes(field.name),
+                );
+                const widgetField = (key: string): DescribedField | undefined =>
+                    frameFieldsOf('StateCollectionWidget').find(field => field.name === key);
+
+                expect(settings.map(field => field.name)).toEqual([...WIDGET_FRAME_KEYS]);
+                for (const setting of settings) {
+                    const { kind } = WIDGET_FRAME_SETTINGS[setting.name as keyof typeof WIDGET_FRAME_SETTINGS];
+                    expect(setting.type, setting.name).toBe(kind === 'boolean' ? 'checkbox' : 'number');
+                    expect(setting.label, setting.name).toBe(widgetField(setting.name!)?.label);
+                    expect(setting.default, setting.name).toBeUndefined();
+                }
+            },
+        );
     });
 
     it('lists only UI-only exceptions that some widget still has', () => {
@@ -633,17 +774,24 @@ const heightOfRows = (rows: number): number => rows * GRID_ROW_HEIGHT + (rows - 
 const BODY2_LINE = 20;
 
 /**
+ * A frame setting in the standard configuration: the definition's default, or — the frame settings
+ * have none since ADR-0117 — the built-in standard an unset setting reads without a Rahmenvorgabe.
+ */
+const frameSettingOf = (info: RxWidgetInfo, key: WidgetFrameKey): unknown =>
+    fieldDefaultOf(info, key) ?? WIDGET_FRAME_SETTINGS[key].standard;
+
+/**
  * The frame around the control in the standard configuration (the defaults of the definition,
- * as a palette insert sets them; with an OID its name heads the frame and its value foots it):
- * the card's inset (`Generic.wrapContent`, `calc(100% - 8px)`), the header and the footer line
- * (`CollectionBase`; their ± half padding margins cancel out) and the base padding on both sides
- * (MUI spacing: 8 px per unit).
+ * as a palette insert sets them, and the standard of the frame settings; with an OID its name
+ * heads the frame and its value foots it): the card's inset (`Generic.wrapContent`,
+ * `calc(100% - 8px)`), the header and the footer line (`CollectionBase`; their ± half padding
+ * margins cancel out) and the base padding on both sides (MUI spacing: 8 px per unit).
  */
 const frameHeightOf = (info: RxWidgetInfo): number =>
-    (fieldDefaultOf(info, 'noCard') ? 0 : 8) +
-    (fieldDefaultOf(info, 'noHeader') ? 0 : BODY2_LINE) +
-    (fieldDefaultOf(info, 'noFooter') ? 0 : BODY2_LINE) +
-    2 * 8 * Number(fieldDefaultOf(info, 'basePadding') ?? 0);
+    (frameSettingOf(info, 'noCard') ? 0 : 8) +
+    (frameSettingOf(info, 'noHeader') ? 0 : BODY2_LINE) +
+    (frameSettingOf(info, 'noFooter') ? 0 : BODY2_LINE) +
+    2 * 8 * Number(frameSettingOf(info, 'basePadding'));
 
 /**
  * The least height the control of each widget needs in its standard configuration, in px, with

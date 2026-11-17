@@ -31,6 +31,7 @@ const groups = [
             { name: 'color', type: 'custom', storedValue: 'string' },
             { name: 'config', type: 'custom', storedValue: { json: 'object' } },
             { name: 'rows', type: 'custom', storedValue: { json: 'array' } },
+            { name: 'shadow', type: 'custom', storedValue: { whole: { min: 0, max: 24 } } },
             { name: 'button', type: 'custom' },
             { type: 'custom' },
         ],
@@ -61,6 +62,11 @@ describe('usableWidgetData: an unusable stored value reads as unset', () => {
         ['a JSON list field holding an object', 'rows', '{}'],
         ['a JSON field with an object instead of its text', 'config', { a: 1 }],
         ['a JSON field with a number', 'rows', 5],
+        ['a whole-number field with a fraction', 'shadow', 2.5],
+        ['a whole-number field with a fraction as text', 'shadow', '2.5'],
+        ['a whole-number field above its bounds', 'shadow', 25],
+        ['a whole-number field below its bounds', 'shadow', -1],
+        ['a whole-number field with a boolean', 'shadow', true],
     ])('drops %s', (_case, name, value) => {
         const data = { [name]: value, label: 'kept' };
 
@@ -87,6 +93,8 @@ describe('usableWidgetData: usable values stay as stored', () => {
         ['a JSON object', 'config', '{"a":1}'],
         ['a JSON object as blob', 'config', encodeBlob('{"a":1}')],
         ['a JSON list', 'rows', '[{"a":1}]'],
+        ['a whole number within its bounds', 'shadow', 24],
+        ['a whole number within its bounds as text', 'shadow', '0'],
         ['any value of an undeclared custom field', 'button', 5],
         ['any value of a text field', 'label', 5],
         ['any key without a field', 'unknownKey', { a: 1 }],

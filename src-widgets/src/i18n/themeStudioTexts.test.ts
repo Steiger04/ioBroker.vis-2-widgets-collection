@@ -43,9 +43,10 @@ const SAME_AS_ENGLISH: { reason: string; keys: (key: string) => boolean }[] = [
             ].includes(key),
     },
     {
-        reason: 'words spelled alike in some languages (Layout, Text, Accents, Surfaces, Auto, Bold, 1 problem)',
+        reason: 'words spelled alike in some languages (Layout, Text, Accents, Surfaces, Auto, Bold, 1 problem, standard)',
         keys: key =>
             [
+                'theme_studio_frame_standard',
                 'theme_studio_group_accents',
                 'theme_studio_group_layout',
                 'theme_studio_group_surface',

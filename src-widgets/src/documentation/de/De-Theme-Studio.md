@@ -4,7 +4,7 @@
 
 ## Beschreibung
 
-Das Theme-Studio ist der collection-weite Theme-Editor der Widget Collection: Es gestaltet Farben, Schrift, Formen und Abstände **aller** Widgets dieser Sammlung (State, Switch, …, ECharts) gleichzeitig, live auf der offenen vis-2-Ansicht.
+Das Theme-Studio ist der collection-weite Theme-Editor der Widget Collection: Es gestaltet Farben, Schrift, Formen, Abstände und den Widget-Rahmen **aller** Widgets dieser Sammlung (State, Switch, …, ECharts) gleichzeitig, live auf der offenen vis-2-Ansicht.
 
 Es ist **kein Widget**: Man zieht es nicht auf die Canvas, sondern öffnet es im vis-2-Edit-Modus über den Button **Theme-Studio** in der Widget-Palette (Gruppe „Widget-Sammlung“). Es erscheint als schwebendes, verschieb- und größenänderbares Fenster. Das Fenster selbst folgt dem Hell/Dunkel-Modus des vis-2-Editors, nicht dem bearbeiteten Theme.
 
@@ -18,7 +18,7 @@ Das fertige Theme wird als JSON im Datenpunkt `vis-2-widgets-collection.0.theme`
 - **Titelleiste:** Ziehen zum Verschieben, ein Punkt neben dem Titel zeigt ungespeicherte Änderungen an. **Rückgängig/Wiederholen** (bis 50 Schritte; `Strg+Z` / `Strg+Umschalt+Z` / `Strg+Y`; aufeinanderfolgende Änderungen derselben Einstellung im Abstand unter 800 ms, z. B. ein Slider-Zug, ergeben einen Schritt) und **Schließen** (wie Abbrechen; auch `Esc`). Die Tastenkürzel wirken nur, solange der Fokus im Studio liegt; außerhalb bleiben `Esc` und Rückgängig dem vis-2-Editor. In einem Eingabefeld gilt für Rückgängig und Wiederholen das Verhalten des Felds.
 - **Größe:** Acht Kanten- und Ecken-Griffe ändern die Größe wie ein Fenster des Betriebssystems (Kanten per Pfeiltasten ±16 px, mit `Umschalt` ±64 px, `Pos1`/`Ende` für Minimum/Maximum, Doppelklick = zurücksetzen; Ecken per Maus). Das Fenster startet oben rechts mit 380 px Breite; die Breite reicht von 320 px bis Fensterbreite − 48 px, die Höhe von 240 px bis Fensterhöhe − 48 px. Die Höhe folgt standardmäßig dem Inhalt (**Auto**, bis 80 % der Fensterhöhe); der erste Höhen-Griff fixiert sie, ein Doppelklick auf eine waagerechte Kante stellt Auto wieder her. Position und Größe bleiben je Browser über Sitzungen erhalten (localStorage).
 - **Fußleiste:**
-    - **Alles auf Standard** — leert **alle** Angaben, auch geladene Google-Schriften und CSS-Variablen (`{}` = alles erbt; ein Undo-Schritt, also umkehrbar). Inaktiv, solange der Entwurf leer ist
+    - **Alles auf Standard** — leert **alle** Angaben, auch geladene Google-Schriften, CSS-Variablen und die Rahmenvorgaben (`{}` = alles erbt; ein Undo-Schritt, also umkehrbar). Inaktiv, solange der Entwurf leer ist
     - **„1 Problem“ / „%s Probleme“** — erscheint bei Validierungsfehlern; ein Klick klappt die betroffene Sektion auf und springt zum ersten Fehler
     - **Abbrechen** — verwirft die Änderungen (mit Rückfrage, solange ungespeicherte Änderungen offen sind) und schließt das Studio
     - **Speichern** — schreibt den Datenpunkt einmal und schließt das Studio; erst aktiv, wenn es etwas zu speichern gibt, und gesperrt, solange Validierungsfehler offen sind. Bei einem Verbindungsfehler erscheint eine Meldung und das Studio bleibt offen. Eine Änderung während des Schreibens ist nicht gespeichert; auch dann bleibt das Studio offen
@@ -30,7 +30,7 @@ Einklappbare Sektion (beim Öffnen zu). Die Zusammenfassung zeigt die aktive Vor
 
 Neun kuratierte Farb-Themes als Karten — **Graphit, Abendrot, Tageslicht, Salbei, Mono, Smaragd, Amethyst, Rubin, Bernstein** — mit Mini-Farbmustern (Grundfläche, Widget-Fläche, Primär, Sekundär) und Hell/Dunkel-Icon. Hell sind Tageslicht und Salbei, die übrigen dunkel. Als aktiv markiert ist die Karte, deren fünf Werte (Farbmodus, Primärfarbe, Sekundärfarbe, Grundfläche, Widget-Fläche) alle gelten; die Groß- und Kleinschreibung von Hex-Werten zählt dabei nicht.
 
-**Nur die Farben:** Eine Vorlage setzt **nur diese fünf Werte**. Gesetzte Trennlinie, Status- und Textfarben sowie Schrift, Eckradien, Abstandseinheit und CSS-Variablen-Einstellungen bleiben erhalten. Eine Vorlage anwenden ist ein Undo-Schritt.
+**Nur die Farben:** Eine Vorlage setzt **nur diese fünf Werte**. Gesetzte Trennlinie, Status- und Textfarben sowie Schrift, Eckradien, Rahmenvorgaben, Abstandseinheit und CSS-Variablen-Einstellungen bleiben erhalten. Eine Vorlage anwenden ist ein Undo-Schritt.
 
 ## Farbfelder
 
@@ -72,6 +72,29 @@ Gruppen: **Akzente** (Primär, Sekundär) und **Flächen** (Grundfläche, Widget
 
 Einen einzelnen Slider-Wert (Schriftgröße, Eckradius, Zeilenhöhe) leert nur **Rückgängig** oder **Alles auf Standard**. Die Zusammenfassung zeigt Schrift, Größe und Eckradius (`r=12`, ungleiche Ecken als oben links/oben rechts/unten rechts/unten links).
 
+## Sektion Widget-Rahmen
+
+Der **Widget-Rahmen** ist das, was jedes Collection-Widget um seinen Inhalt zeichnet: Karte, Umrandungen, Innenabstand, Schatten, Kopfzeile, Kopf-Icon und Fußzeile. Im Attribut-Panel sind das acht Einstellungen in der Gruppe **Allgemein** (siehe [Widget-Rahmen](De-Home.md#widget-rahmen)). Hier setzt du für jede eine **Rahmenvorgabe**, die für alle Collection-Widgets gilt: Ein Widget folgt ihr überall dort, wo es für die Einstellung keinen eigenen Wert hat.
+
+| Einstellung     | Theme-Pfad                  | Beschreibung                                                                                                                                                      |
+| --------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Karte           | `widgetFrame.noCard`        | Schalter. Aus zeigt die Widgets ohne Karte, wie Ohne Rand `noCard` im Panel: Die Rahmenfläche füllt das Widget ohne den umlaufenden Abstand. Aus speichert `true` |
+| Inhalt umrandet | `widgetFrame.outlined`      | Schalter. An zeichnet die Inhaltsfläche mit Linie statt Schatten; Schatten wirkt dann nicht                                                                       |
+| Rahmen umrandet | `widgetFrame.outlinedFrame` | Schalter. An zeichnet die Rahmenfläche mit Linie statt Schatten                                                                                                   |
+| Innenabstand    | `widgetFrame.basePadding`   | Slider und Zahlenfeld, 0–10 in Schritten von 0,1: Abstand zwischen Rahmen- und Inhaltsfläche in Spacing-Einheiten. Bei 0 ist die Inhaltsfläche eckig              |
+| Schatten        | `widgetFrame.baseElevation` | Slider und Zahlenfeld, 0–24, nur ganze Zahlen: MUI-Elevation der Inhaltsfläche                                                                                    |
+| Kopfzeile       | `widgetFrame.noHeader`      | Schalter. Aus blendet die Kopfzeile aus. Aus speichert `true`                                                                                                     |
+| Kopf-Icon       | `widgetFrame.noHeaderIcon`  | Schalter. Aus blendet das Eck-Icon aus. Aus speichert `true`                                                                                                      |
+| Fußzeile        | `widgetFrame.noFooter`      | Schalter. Aus blendet die Fußzeile aus. Aus speichert `true`                                                                                                      |
+
+Gruppen: **Karte** und **Kopf & Fuß**, in der Reihenfolge des Panels. Die Schalter sind positiv formuliert („Kopfzeile“ an = Kopfzeile sichtbar), das Theme speichert die Bedeutung des Widget-Felds (`noHeader: false`). Die Zusammenfassung zählt die gesetzten Rahmenvorgaben („x von 8 vorgegeben“).
+
+- **Standard:** Ohne Rahmenvorgabe zeigt eine Einstellung den eingebauten Standard und sagt das im Label („· Standard“): Karte, Kopfzeile, Kopf-Icon und Fußzeile an, beide Umrandungen aus, Innenabstand 1, Schatten 4. Das ist das Aussehen der Widgets ohne Theme-Studio. Anders als bei den übrigen Slidern hat eine gesetzte Rahmenvorgabe einen Papierkorb-Button **Auf Standard zurücksetzen**, der diesen einen Wert entfernt.
+- **Erben:** Ein Widget nimmt seinen eigenen Wert, ohne ihn die Rahmenvorgabe, ohne diese den eingebauten Standard. Einen eigenen Wert setzt du in der Gruppe **Allgemein**; dort entfernt ihn „Wie Theme“ (An/Aus-Einstellungen) oder × (Padding, Elevation) wieder, für mehrere ausgewählte Widgets auf einmal.
+- **Neue und bestehende Widgets:** Ein neu abgelegtes Widget speichert keine der acht Einstellungen und folgt den Rahmenvorgaben von Anfang an. Ein Widget, das vor den Rahmenvorgaben aus der Palette abgelegt wurde, hat die damaligen Standardwerte als eigene Werte gespeichert: Es sieht unverändert aus, und eine Rahmenvorgabe erreicht es erst, wenn du die Einstellung im Panel auf „Wie Theme“ stellst. Die InfoBox der Sektion sagt dasselbe.
+- **Wie jeder Studio-Wert:** Eine Rahmenvorgabe wirkt live auf jedes erbende Widget der Canvas und zählt für Rückgängig/Wiederholen, **Speichern** und **Abbrechen**. Eine Vorlage setzt nur Farben und lässt die Rahmenvorgaben stehen; **Alles auf Standard** leert sie.
+- **Ausnahmen:** Ein in ein anderes Widget eingebettetes Widget zeigt nie eine Karte, gleich was die Rahmenvorgabe sagt. Eine Einstellung, die ein Widget nicht nutzt, bleibt dort wirkungslos, etwa das Kopf-Icon im ECharts-Widget und im Ansichtsrahmen des Dialog-Widgets.
+
 ## Sektion Status & Text
 
 | Einstellung     | Theme-Pfad               | Wirkort                                                                                                                                            |
@@ -99,7 +122,7 @@ Einen einzelnen Slider-Wert leert auch hier nur **Rückgängig** oder **Alles au
 
 ## Das Theme im Datenpunkt
 
-Das Studio speichert in den State **`vis-2-widgets-collection.0.theme`** (Typ `string`): das Theme als JSON-Text. Es ist ein **partielles MUI-`ThemeOptions`-Objekt** plus zwei eigene Erweiterungen (`corners`, `googleFonts`). Jedes Collection-Widget liest und validiert den State beim Start und bei jeder Änderung. Ein einzelner ungültiger Wert fällt weg, der Rest des Themes gilt. Ist der State leer, kein gültiges JSON oder kein Objekt, gilt das Theme als `{}` und das Widget-Theme bleibt beim Host-Standard.
+Das Studio speichert in den State **`vis-2-widgets-collection.0.theme`** (Typ `string`): das Theme als JSON-Text. Es ist ein **partielles MUI-`ThemeOptions`-Objekt** plus drei eigene Erweiterungen (`corners`, `googleFonts`, `widgetFrame`). Jedes Collection-Widget liest und validiert den State beim Start und bei jeder Änderung. Ein einzelner ungültiger Wert fällt weg, der Rest des Themes gilt. Ist der State leer, kein gültiges JSON oder kein Objekt, gilt das Theme als `{}` und das Widget-Theme bleibt beim Host-Standard.
 
 Kompaktes Beispiel (dunkel, eigene Akzente, Inter, Eckradius):
 
@@ -126,9 +149,10 @@ Regeln und Hinweise für Skript-Autoren:
 - **Ungültige Werte im State:** Steht in einem per Skript geschriebenen State ein ungültiger Wert, etwa ein Farbname, fällt nur dieser weg: Die Widgets zeigen den Rest des Themes, und das Studio öffnet mit dem Rest; das nächste Speichern schreibt den State ohne ihn. Bei Primär, Sekundär und den Statusfarben fällt mit einer ungültigen Hauptfarbe (`main`) die Farbe als Ganzes weg, eine ungültige Abstufung (`light`, `dark`, `contrastText`) allein; in einer Liste (`shadows`, die Schnitte einer Google-Schrift) die ganze Liste. Ist der State kein gültiges JSON oder kein Objekt, öffnet das Studio mit dem leeren Theme.
 - **Studio strenger als die Widgets:** Das Präfix `mui` für CSS-Variablen ersetzen die Widgets durch `vis2c`; der Rest des Themes gilt weiter. Das Studio zeigt es als Fehler und speichert erst nach der Korrektur.
 - **Direkt schreiben** geht: `setState('vis-2-widgets-collection.0.theme', JSON.stringify(theme), true)` — das Studio liest den State beim Öffnen und folgt ihm, solange es offen ist. Ein offenes Studio ohne ungespeicherte Änderungen übernimmt den geschriebenen Wert, die Canvas zeigt ihn, und der Verlauf für Rückgängig ist danach leer. Mit ungespeicherten Änderungen bleibt der Entwurf im Studio und auf der Canvas stehen; er gilt weiter als geändert, jetzt gemessen am geschriebenen Wert, und Speichern überschreibt diesen.
+- **`widgetFrame`** hält die Rahmenvorgaben unter den Namen der Widget-Felder: `noCard`, `outlined`, `outlinedFrame`, `noHeader`, `noHeaderIcon` und `noFooter` nehmen `true` oder `false` in der Bedeutung des Felds (`"noCard": true` = ohne Karte), `basePadding` eine Zahl von 0 bis 10, `baseElevation` eine ganze Zahl von 0 bis 24 (sonst „muss eine ganze Zahl sein“). Ein fehlender Wert heißt keine Rahmenvorgabe, es gilt der eingebaute Standard; ein ungültiger Wert fällt allein weg.
 - **`googleFonts`** (Map aus Schriftname → Liste aus `weight`, bei einer variablen Schrift `weightMax`, und `data`, der eingebetteten woff2-Data-URI) verwaltet das Studio allein beim Laden einer Google-Schrift; nicht von Hand editieren (große Base64-Blöcke).
 
 ## Verwandte Seiten
 
-- [Home](De-Home.md) — Common-Einstellungen aller Widgets
+- [Home](De-Home.md) — Common-Einstellungen aller Widgets; [Widget-Rahmen](De-Home.md#widget-rahmen) erklärt eigenen Wert und „Wie Theme“ im Panel
 - [ECharts Widget](De-Echarts-Widget.md) — dessen Sektion Farben nutzt dieses Theme als Palette-Quelle „Theme (auto)“

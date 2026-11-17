@@ -176,7 +176,7 @@ Die UI-Komponente gilt nur in der Farbansicht, nicht bei dimmer. Sie wechselt di
 - Ersetzt die UI-Komponente durch einen einzelnen senkrechten Regler von Schwarz nach Weiß, unabhängig von `colorLightUIComponent`
 - Der Regler füllt die Höhe des Widgets, seine Breite ist `colorLightSliderWidth`
 - Daneben der Power-Button, kein Ansichtswechsel
-- Im Button-Modus öffnet ein langer Druck denselben Regler im Modal. Ohne `colorLightModalWidth` ist das Modal so breit wie sein Inhalt: 2 × [Padding `basePadding`](De-Home.md#ausprägungen) + 43 px Power-Button-Spalte + 2 × `colorLightPadding` + Reglerbreite, eine Padding-Einheit entspricht 8 px. Mit den Standardwerten sind das 103 px
+- Im Button-Modus öffnet ein langer Druck denselben Regler im Modal. Ohne `colorLightModalWidth` ist das Modal so breit wie sein Inhalt: 2 × [Padding `basePadding`](De-Home.md#ausprägungen) + 43 px Power-Button-Spalte + 2 × `colorLightPadding` + Reglerbreite + 2 px je Umrandung (`outlinedFrame`, `outlined`), eine Padding-Einheit entspricht 8 px. `basePadding` und die Umrandungen zählen so, wie das Widget sie zeigt, geerbte eingeschlossen. Mit den Standardwerten (Padding 1, keine Umrandung) sind das 103 px
 
 ## OID-Erkennung
 

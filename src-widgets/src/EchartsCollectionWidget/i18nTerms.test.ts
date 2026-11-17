@@ -11,6 +11,9 @@ import en from '../i18n/en.json';
  *
  * Add a pattern when a new term is pinned; each entry names the replacement so a red
  * run says what to write instead.
+ *
+ * The KI-Leitfaden (`*_ai_guide`) is skipped: it is English in every language file by design
+ * (ADR-0114) and quotes field names like "basePadding", so the German UI terms do not apply.
  */
 interface Banned {
     pattern: RegExp;
@@ -41,7 +44,7 @@ const BANNED: Record<'de' | 'en', Banned[]> = {
 function hits(dict: Record<string, string>, banned: Banned[]): string[] {
     const out: string[] = [];
     for (const [key, value] of Object.entries(dict)) {
-        if (!key.startsWith('echarts_')) {
+        if (!key.startsWith('echarts_') || key.endsWith('_ai_guide')) {
             continue;
         }
         for (const { pattern, use } of banned) {
@@ -65,5 +68,9 @@ describe('echarts_* texts — banned synonyms (C2 term drift)', () => {
     it('the guard itself fires on a banned synonym', () => {
         expect(hits({ echarts_probe: 'Spalten des Dokuments' }, BANNED.de)).toHaveLength(1);
         expect(hits({ other_probe: 'Spalten des Dokuments' }, BANNED.de)).toHaveLength(0);
+    });
+
+    it('skips the KI-Leitfaden, which is English in every language file', () => {
+        expect(hits({ echarts_probe_ai_guide: 'Set "basePadding" only when asked.' }, BANNED.de)).toHaveLength(0);
     });
 });

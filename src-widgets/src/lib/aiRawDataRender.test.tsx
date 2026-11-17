@@ -26,7 +26,7 @@
  * What a follow-up ticket adds: widget-specific cases below the generic ones where a field needs
  * them (inner JSON structure, `''`, bindings).
  */
-import { act, type FC } from 'react';
+import { act } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Theme, type Connection } from '@iobroker/gui-components';
@@ -43,12 +43,26 @@ import { encodeBlob, utf8ToBase64 } from './encoding';
 import { fieldRulesOf, type FieldRule, type FieldRules } from './usableWidgetData';
 import type { Kind } from './usableJson';
 import { collectionScene, installInertResizeObserver, mountCollectionBody } from './testing/collectionScene';
-import { paletteInsertData, PLACEABLE_WIDGETS, SHARED_FIELD_NAMES, type WidgetName } from './testing/aiSeams';
+import {
+    FRAME_DEFAULTS_BEFORE_ADR_0117,
+    paletteInsertData,
+    PLACEABLE_WIDGETS,
+    SHARED_FIELD_NAMES,
+    type WidgetName,
+} from './testing/aiSeams';
 import { createTestRoot } from './testing/testRoots';
-import ButtonGroupCollection from '../ButtonGroupCollectionWidget/ButtonGroupCollection';
-import CheckboxCollection from '../CheckboxCollectionWidget/CheckboxCollection';
-import DialogCollection from '../DialogCollectionWidget/DialogCollection';
-import EchartsCollection from '../EchartsCollectionWidget/EchartsCollection';
+import { THEME_STATE_ID } from './constants';
+import { WIDGET_FRAME_KEYS, type WidgetFramePresets } from './widgetFrame';
+import {
+    CHART_OID,
+    CHROME,
+    DIALOG_OID,
+    FIXTURES,
+    NUMBER_OID,
+    SWITCH_OID,
+    TABLE_OID,
+    type WidgetFixture,
+} from './testing/widgetFixtures';
 import {
     AXIS_KINDS,
     CHART_CONFIG_KINDS,
@@ -59,15 +73,6 @@ import {
     TOOLBOX_KINDS,
     X_AXIS_KINDS,
 } from '../EchartsCollectionWidget/storedConfig';
-import GaugeCollection from '../GaugeCollectionWidget/GaugeCollection';
-import InputCollection from '../InputCollectionWidget/InputCollection';
-import JsonTableCollection from '../JsonTableCollectionWidget/JsonTableCollection';
-import Light2Collection from '../Light2CollectionWidget/Light2Collection';
-import RadioGroupCollection from '../RadioGroupCollectionWidget/RadioGroupCollection';
-import SelectCollection from '../SelectCollectionWidget/SelectCollection';
-import SliderCollection from '../SliderCollectionWidget/SliderCollection';
-import StateCollection from '../StateCollectionWidget/StateCollection';
-import SwitchCollection from '../SwitchCollectionWidget/SwitchCollection';
 
 // The host base class with what renderWidgetBody reaches: props, state, the signal check. Its `t`
 // reads `this` like the host's (see lib/testing/visRxWidgetStub).
@@ -127,147 +132,16 @@ vi.mock('../EchartsCollectionWidget/EChart', () => ({
 
 installInertResizeObserver();
 
-/** What a widget needs to show its content: the reference body and minimal valid data. */
-interface WidgetFixture {
-    /** The widget's React body, rendered over the raw data as the reference. */
-    body: FC;
-    /** Minimal stored data under which the widget shows its content. */
-    data: Record<string, unknown>;
-    /** The state values the widget subscribes to. */
-    values: Record<string, unknown>;
-    /** Context entries the widget class adds in `renderWithProvider` (the Dialog's view renderer). */
-    extraContext?: Record<string, unknown>;
-}
-
-/** What every fixture shows of the common block: a header and a footer the size fields act on. */
-const CHROME = { header: 'Head', footer: 'Foot' };
-
-/**
- * Two authored Zustandszeilen of a number OID, the first active; the OID declares a third state,
- * whose row is filled but beyond `values_count` — it shows only while the states govern.
- */
-const numberRows = (oid: string): Record<string, unknown> => ({
-    oid,
-    oidObject: { _id: oid, type: 'number', write: true, commonStates: { 0: 'OFF', 1: 'ON', 2: 'AUTO' } },
-    ignoreCommonStates: false,
-    values_count: 2,
-    value1: '1',
-    alias1: 'ON',
-    value2: '0',
-    alias2: 'OFF',
-    value3: '2',
-    alias3: 'AUTO',
-});
-
-/** The two fixed Zustandszeilen of a boolean OID, the first active. */
-const booleanRows = (property: string, oid: string): Record<string, unknown> => ({
-    [property]: oid,
-    [`${property}Object`]: { _id: oid, type: 'boolean', write: true },
-    ignoreCommonStates: false,
-    values_count: 2,
-    value1: true,
-    alias1: 'ON',
-    value2: false,
-    alias2: 'OFF',
-});
-
-const NUMBER_OID = 'demo.0.level';
-const SWITCH_OID = 'demo.0.power';
-const DIALOG_OID = 'demo.0.dialog';
-const TABLE_OID = 'demo.0.table';
-const CHART_OID = 'demo.0.chart';
-
-/** One entry per placeable widget. */
-const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
-    StateCollectionWidget: {
-        body: StateCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    SliderCollectionWidget: {
-        body: SliderCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID), minValue: 0, maxValue: 2, marks: true },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    InputCollectionWidget: {
-        body: InputCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    ButtonGroupCollectionWidget: {
-        body: ButtonGroupCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    SwitchCollectionWidget: {
-        body: SwitchCollection,
-        data: { ...CHROME, ...booleanRows('oid', SWITCH_OID) },
-        values: { [`${SWITCH_OID}.val`]: true },
-    },
-    CheckboxCollectionWidget: {
-        body: CheckboxCollection,
-        data: { ...CHROME, ...booleanRows('oid', SWITCH_OID) },
-        values: { [`${SWITCH_OID}.val`]: true },
-    },
-    DialogCollectionWidget: {
-        body: DialogCollection,
-        data: { ...CHROME, dialogId: DIALOG_OID, dialogIdObject: { _id: DIALOG_OID, type: 'boolean', write: true } },
-        values: { [`${DIALOG_OID}.val`]: false },
-        extraContext: { getWidgetView: (): null => null },
-    },
-    SelectCollectionWidget: {
-        body: SelectCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    RadioGroupCollectionWidget: {
-        body: RadioGroupCollection,
-        data: { ...CHROME, ...numberRows(NUMBER_OID) },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    GaugeCollectionWidget: {
-        body: GaugeCollection,
-        // The object range the OID picker stores: an unset gaugeMinValue/gaugeMaxValue falls back to it.
-        data: { ...CHROME, ...numberRows(NUMBER_OID), minValue: -10, maxValue: 50 },
-        values: { [`${NUMBER_OID}.val`]: 1 },
-    },
-    Light2CollectionWidget: {
-        body: Light2Collection,
-        data: { ...CHROME, ...booleanRows('colorLightSwitchOid', SWITCH_OID), colorLightType: 'rgb' },
-        values: { [`${SWITCH_OID}.val`]: true },
-    },
-    JsonTableCollectionWidget: {
-        body: JsonTableCollection,
-        data: { ...CHROME, oid: TABLE_OID, oidObject: { _id: TABLE_OID, type: 'string' } },
-        values: { [`${TABLE_OID}.val`]: '[{"name":"a","value":1}]' },
-    },
-    EchartsCollectionWidget: {
-        body: EchartsCollection,
-        // The JSON table family: rows from the payload state, one series bound by the series configuration.
-        data: {
-            ...CHROME,
-            mode: 'json',
-            jsonKind: 'table',
-            jsonOid: CHART_OID,
-            jsonXPath: 'x',
-            series_count: 1,
-            seriesConfig: encodeBlob(JSON.stringify([{ name: 'A', yPath: 'a' }])),
-        },
-        values: {
-            [`${CHART_OID}.val`]: JSON.stringify([
-                { x: 1, a: 2 },
-                { x: 2, a: 3 },
-            ]),
-        },
-    },
-};
-
 /** Values the assistant may write that the rule must read as unset. */
 const brokenValuesOf = (rule: FieldRule): unknown[] => {
     if (typeof rule === 'object') {
-        return 'options' in rule
-            ? ['__not_an_option__', { value: rule.options[0] }]
-            : ['{"oops', rule.json === 'array' ? '{}' : '[]', 5];
+        if ('options' in rule) {
+            return ['__not_an_option__', { value: rule.options[0] }];
+        }
+        if ('whole' in rule) {
+            return ['abc', true, rule.whole.min + 0.5, String(rule.whole.min + 0.5), rule.whole.max + 1];
+        }
+        return ['{"oops', rule.json === 'array' ? '{}' : '[]', 5];
     }
     switch (rule) {
         case 'number':
@@ -286,6 +160,9 @@ const brokenValuesOf = (rule: FieldRule): unknown[] => {
  */
 const usableValuesOf = (rule: FieldRule): unknown[] => {
     if (typeof rule === 'object') {
+        if ('whole' in rule) {
+            return [rule.whole.min, String(rule.whole.max), ''];
+        }
         return 'options' in rule ? [...rule.options] : [''];
     }
     switch (rule) {
@@ -380,15 +257,17 @@ async function markupOf(element: React.JSX.Element, read: (container: HTMLElemen
  * @param values - The subscribed state values.
  * @param stored - The data as stored in the project (`props.widget.data`); defaults to `data`, i.e.
  *   no attribute bound.
+ * @param socket - The socket the widget talks to; defaults to one without a stored theme.
  */
 function widgetElement(
     widget: WidgetClass,
     data: Record<string, unknown>,
     values: Record<string, unknown>,
     stored: Record<string, unknown> = data,
+    socket: object = stubSocket,
 ): React.JSX.Element {
     const instance = new widget({
-        context: { socket: stubSocket, themeType: 'light', lang: 'en', theme: Theme('light') },
+        context: { socket, themeType: 'light', lang: 'en', theme: Theme('light') },
     });
     instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
     return instance.renderWidgetBody({
@@ -422,8 +301,13 @@ function renderWidget(
     });
 }
 
-/** Renders the body directly over the raw data (no rule): the reading of stored data before it. */
-async function renderBodyRaw(fixture: WidgetFixture, data: Record<string, unknown>): Promise<string> {
+/**
+ * Renders the body directly over the raw data (no rule): the reading of stored data before it. A
+ * frame setting the data leaves out reads as the palette stored it then (Bestandsgarantie, ADR-0117):
+ * the frame settings lost their defaults, the widget reads the built-in standard for them instead.
+ */
+async function renderBodyRaw(fixture: WidgetFixture, rawData: Record<string, unknown>): Promise<string> {
+    const data = { ...FRAME_DEFAULTS_BEFORE_ADR_0117, ...rawData };
     const scene = collectionScene(SLUG, data, undefined);
     const mounted = mountCollectionBody(
         fixture.body,
@@ -2168,18 +2052,20 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 },
             );
 
-            // A flag the assistant writes as text ("false") is no boolean: it reads as unset, which is the
-            // palette's default here — the frame keeps its header (Abnahme, MCP path).
+            // A flag the assistant writes as text ("false") is no boolean: it reads as unset — since
+            // ADR-0117 the palette stores no noHeader either, and unset reads the built-in standard false
+            // (lib/widgetFrame) — so the frame keeps its header, like the palette's widget and like one
+            // that stored the old default false (Abnahme, MCP path).
             it('renders a Checkbox with noHeader written as "false" like its palette counterpart', async () => {
                 const widget = await load('CheckboxCollectionWidget');
                 const required = requiredData('CheckboxCollectionWidget');
                 const counterpart = await paletteCounterpart('CheckboxCollectionWidget', widget, required);
                 const { values } = FIXTURES.CheckboxCollectionWidget!;
 
-                expect(counterpart.noHeader).toBe(false);
-                expect(await renderWidget(widget, { ...required, noHeader: 'false' }, values)).toBe(
-                    await renderWidget(widget, counterpart, values),
-                );
+                expect(counterpart.noHeader).toBeUndefined();
+                const asText = await renderWidget(widget, { ...required, noHeader: 'false' }, values);
+                expect(asText).toBe(await renderWidget(widget, counterpart, values));
+                expect(asText).toBe(await renderWidget(widget, { ...counterpart, noHeader: false }, values));
             });
 
             // The assistant's flat update sets the id of a widget the palette inserted (as does vis-2's
@@ -2230,6 +2116,73 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                     }
                 },
             );
+        });
+    });
+});
+
+/**
+ * The KI-Lesenaht of the Widget-Rahmen (ADR-0117): the assistant inserts a widget without its frame
+ * settings, as its KI-Leitfaden tells it to. The widget reads each of them through the cascade —
+ * the Rahmenvorgabe of the stored theme, else the built-in standard — exactly like a widget that
+ * stores these values itself, read raw.
+ */
+describe('ticket 07: an assistant-inserted widget without frame settings', () => {
+    /** Rahmenvorgaben that differ from the standard in every one of the eight settings. */
+    const PRESETS: Required<WidgetFramePresets> = {
+        noHeader: true,
+        noHeaderIcon: true,
+        noFooter: true,
+        noCard: true,
+        outlined: true,
+        outlinedFrame: true,
+        basePadding: 2.5,
+        baseElevation: 9,
+    };
+
+    /** The stub socket, its theme state holding `widgetFrame` as the Rahmenvorgaben. */
+    const socketWithPresets = (widgetFrame: WidgetFramePresets): object => ({
+        ...stubSocket,
+        getState: (id: string): Promise<unknown> =>
+            Promise.resolve(id === THEME_STATE_ID ? { val: JSON.stringify({ widgetFrame }) } : null),
+    });
+
+    it('sets every frame setting in the presets', () => {
+        expect(Object.keys(PRESETS).sort()).toEqual([...WIDGET_FRAME_KEYS].sort());
+    });
+
+    describe.each(PLACEABLE_WIDGETS)('%s', name => {
+        const fixture = FIXTURES[name]!;
+        let widget: WidgetClass;
+
+        beforeAll(async () => {
+            widget = ((await import(`../${name}/${name}.tsx`)) as { default: WidgetClass }).default;
+        }, 60_000);
+
+        /** The assistant's data: the fixture holds no frame setting. */
+        const inserted = (): Record<string, unknown> => {
+            expect(WIDGET_FRAME_KEYS.filter(key => key in fixture.data)).toEqual([]);
+            return fixture.data;
+        };
+
+        // The reference is the same data with the frame settings stored — what a person's widget
+        // holds — rendered with no theme: a stored value never reads the cascade.
+        it('reads the built-in standard without a Rahmenvorgabe, like the old defaults stored', async () => {
+            expect(await renderWidget(widget, inserted(), fixture.values)).toBe(
+                await renderWidget(widget, { ...inserted(), ...FRAME_DEFAULTS_BEFORE_ADR_0117 }, fixture.values),
+            );
+        });
+
+        it('reads the Rahmenvorgaben of the stored theme, like these values stored', async () => {
+            const data = inserted();
+            const html = await markupOf(
+                widgetElement(widget, data, fixture.values, data, socketWithPresets(PRESETS)),
+                container =>
+                    container.querySelector('.GENERIC-1')?.innerHTML ?? `<no widget body: ${container.innerHTML}>`,
+            );
+
+            expect(html).toBe(await renderWidget(widget, { ...data, ...PRESETS }, fixture.values));
+            // The presets show: the widget does not look as it does with the standard.
+            expect(html).not.toBe(await renderWidget(widget, data, fixture.values));
         });
     });
 });

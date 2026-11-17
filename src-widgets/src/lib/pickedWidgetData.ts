@@ -29,6 +29,7 @@ import { NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 import type { AllowedType } from './allowedOidTypes';
 import type { PickedObject } from './commonObjectFields';
 import type { FieldDefaults } from './fieldDefaults';
+import type { WidgetFrameKey } from './widgetFrame';
 import type { RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
 /** An id field whose pick runs the shared derivation: its name and the options of its pick. */
@@ -43,13 +44,19 @@ export interface OidPickField {
 
 /**
  * What a widget's data reading takes from its fields, read once per widget class from its
- * `getWidgetInfo()` (`Generic`): the id fields with the shared pick and the palette's defaults.
+ * `getWidgetInfo()` (`Generic`): the id fields with the shared pick, the palette's defaults and the
+ * frame settings the widget offers.
  */
 export interface WidgetDataReading {
     /** The id fields whose pick runs the shared derivation ({@link oidPickFieldsOf}). */
     readonly oidPickFields: readonly OidPickField[];
     /** The defaults the unset keys read as (`lib/fieldDefaults`). */
     readonly defaults: FieldDefaults;
+    /**
+     * The frame settings the widget offers (`lib/widgetFrame`): unset, they read the Rahmenvorgabe of
+     * the collection theme, else the built-in standard. Absent: none.
+     */
+    readonly frameKeys?: readonly WidgetFrameKey[];
 }
 
 /** The keys of a field definition this module reads: the mirrors `createIdField` sets. */

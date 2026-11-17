@@ -10,7 +10,7 @@ Die Collection bringt **keine eigene KI** mit: Sie ruft kein Sprachmodell auf un
 - **Anleitung für die KI:** Jedes Widget bringt außerdem eine Anleitung zu seinen Feldern und zum Format seiner Konfigurator-Felder mit. Die KI liest sie in der Typbeschreibung des Widgets; für Menschen ist sie nicht sichtbar.
 - **Geformte Startwerte:** Konfigurator-Felder, die bisher leer starteten, tragen als Standardwert ein leeres, aber korrekt geformtes Gerüst. Daran erkennt die KI die erwartete Struktur. Am Verhalten des Widgets ändert das nichts.
 - **Robust gegen KI-Daten:** Fügt die KI ein Widget ein, setzt der Host keine Standardwerte und prüft nichts; beim Ändern ersetzt er Feldwerte ungeprüft. Ein unbrauchbarer Wert (falscher Typ, kein gültiges JSON, falsche Form) gilt im Widget deshalb als ungesetzt: Das Widget rendert so, als fehle der Wert, ohne Fehlermeldung. Der gespeicherte Wert bleibt, bis du ihn im Konfigurator korrigierst.
-- **Theme per KI:** Der Assistent kann auch das Theme der Collection ändern, also Farben, Schrift und Form aller Collection-Widgets (siehe [Theme per KI](#theme-per-ki)).
+- **Theme per KI:** Der Assistent kann auch das Theme der Collection ändern, also Farben, Schrift, Form und Widget-Rahmen aller Collection-Widgets (siehe [Theme per KI](#theme-per-ki)).
 
 ## Zugangswege
 
@@ -63,7 +63,7 @@ Liest der Assistent eine View, gibt der Host die gesetzten Daten jedes Widgets v
 
 ## Theme per KI
 
-Der Assistent von vis-2 kann das Theme der Collection ändern: Farben, Schrift und Form aller Collection-Widgets, ohne dass du das [Theme-Studio](De-Theme-Studio.md) öffnest. Er bearbeitet dasselbe Theme wie das Studio. Das Theme gilt **für die ganze Installation**, nicht je Projekt oder View: Eine Änderung wirkt in jedem Projekt.
+Der Assistent von vis-2 kann das Theme der Collection ändern: Farben, Schrift, Form und Widget-Rahmen aller Collection-Widgets, ohne dass du das [Theme-Studio](De-Theme-Studio.md) öffnest. Er bearbeitet dasselbe Theme wie das Studio. Das Theme gilt **für die ganze Installation**, nicht je Projekt oder View: Eine Änderung wirkt in jedem Projekt.
 
 ### Was du ändern lassen kannst
 
@@ -72,18 +72,23 @@ Der Assistent von vis-2 kann das Theme der Collection ändern: Farben, Schrift u
 - **Einzelne Farben:** Primärfarbe, Sekundärfarbe, Fehler-, Warn-, Info- und Erfolgsfarbe, Text (primär), Text (sekundär), Grundfläche, Widget-Fläche und Trennlinie. Eine genannte Farbe liegt über einer Vorlage aus derselben Anfrage.
 - **Schrift:** eine Schriftfamilie aus der Auswahl des Theme-Studios (mitgeliefert oder System, siehe [Sektion Schrift & Form](De-Theme-Studio.md#sektion-schrift--form)) und die Basis-Schriftgröße (8–24 px).
 - **Form:** der Eckradius für alle vier Ecken (0–96 px) und die Abstandseinheit (0–16 px).
-- **Zurücksetzen:** das ganze Theme auf den Standard. Das leert alle Angaben, auch geladene Google-Schriften und CSS-Variablen. Zusammen mit neuen Werten beginnt das Theme beim Standard und bekommt dann diese Werte.
+- **Widget-Rahmen:** die [Rahmenvorgaben](De-Theme-Studio.md#sektion-widget-rahmen) des Theme-Studios, etwa alle Widgets ohne Karte oder ohne Fußzeile: ohne Karte, ohne Kopfzeile, ohne Kopf-Icon, ohne Fußzeile, Inhalt umrandet, Rahmen umrandet (je an oder aus), Innenabstand (0–10) und Schatten (0–24, ganze Zahlen). Sie gelten für jedes Widget ohne eigenen Wert für die Einstellung; ein Widget mit eigenem Wert behält ihn (siehe [Widget-Rahmen](De-Home.md#widget-rahmen)).
+- **Zurücksetzen:** das ganze Theme auf den Standard. Das leert alle Angaben, auch geladene Google-Schriften, CSS-Variablen und die Rahmenvorgaben. Zusammen mit neuen Werten beginnt das Theme beim Standard und bekommt dann diese Werte.
 
-Es ändert sich nur, was du nennst; alles andere bleibt, wie es war. Ein Wert, den das Theme nicht annimmt, wird übersprungen, der Rest gilt. Nicht einstellen kann der Assistent Google-Schriften, je Ecke verschiedene Radien, Schriftstärken, Zeilenhöhe und CSS-Variablen. Ohne Zurücksetzen bleiben diese Angaben erhalten; ein neuer Eckradius ersetzt alle vier Ecken. Einen einzelnen Wert leeren, etwa den Farbmodus zurück auf „Automatisch“ stellen, kann er nicht; das geht im Theme-Studio.
+Es ändert sich nur, was du nennst; alles andere bleibt, wie es war. Ein Wert, den das Theme nicht annimmt, wird übersprungen, der Rest gilt. Nicht einstellen kann der Assistent Google-Schriften, je Ecke verschiedene Radien, Schriftstärken, Zeilenhöhe und CSS-Variablen. Ohne Zurücksetzen bleiben diese Angaben erhalten; ein neuer Eckradius ersetzt alle vier Ecken. Einen einzelnen Wert leeren, etwa den Farbmodus zurück auf „Automatisch“ stellen oder eine einzelne Rahmenvorgabe entfernen, kann er nicht; das geht im Theme-Studio.
+
+An einem einzelnen Widget soll der Assistent die Rahmen-Einstellungen laut seinem Leitfaden nur setzen, wenn du sie für dieses Widget verlangst, etwa „zeig diesen Schalter ohne Karte“. Ein Widget, das er ohne sie einfügt, folgt den Rahmenvorgaben wie ein von Hand abgelegtes Widget.
 
 ### Beispiel-Prompts für das Theme
 
 - „Stelle das Theme der Widget-Sammlung auf das Preset Graphit. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Mach die Primärfarbe orange und die Ecken runder, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Setze das Theme auf den Standard zurück. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Stelle im Theme der Widget-Sammlung ein, dass alle Widgets ohne Karte erscheinen. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
+- „Blende im Theme der Widget-Sammlung bei allen Widgets die Fußzeile aus, der Rest bleibt. Den Eintrag dafür findest du im Set `vis-2-widgets-collection`.“
 - „Stell das vorherige Theme wieder her.“ (im selben Gespräch nach einer Änderung; den Eintrag kennt der Assistent dann schon)
 
-Nenne das Set in der Anfrage, wie unter [Das Set nennen](#das-set-nennen) beschrieben: Der Eintrag für das Theme steht im Set `vis-2-widgets-collection`, und der Assistent sucht ihn dort meist nur, wenn du es sagst. Ohne den zweiten Satz blieb das Theme in der Prüfung mit Claude Haiku und Claude Sonnet in fünf von sechs Anfragen unverändert; der Assistent antwortete meist, er habe dafür kein Werkzeug. Mit dem Satz setzte er den Auftrag in jeder geprüften Sitzung richtig. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio (geprüft mit Graphit und Rubin).
+Nenne das Set in der Anfrage, wie unter [Das Set nennen](#das-set-nennen) beschrieben: Der Eintrag für das Theme steht im Set `vis-2-widgets-collection`, und der Assistent sucht ihn dort meist nur, wenn du es sagst. Ohne den zweiten Satz blieb das Theme in der Prüfung mit Claude Haiku und Claude Sonnet in fünf von sechs Anfragen unverändert; der Assistent antwortete meist, er habe dafür kein Werkzeug. Mit dem Satz setzte er den Auftrag in jeder geprüften Sitzung richtig. Vorlagen nennst du mit ihrem Namen aus dem Theme-Studio (geprüft mit Graphit und Rubin). Für den Widget-Rahmen nenne das Theme ausdrücklich: Auf „Stell alle Widgets der Widget-Sammlung ohne Karte dar“ änderte der Assistent in der Prüfung mit Claude Sonnet jedes Widget einzeln oder legte sogar je ein neues Widget jedes Typs an; mit „im Theme“ setzte er die Rahmenvorgabe, und ein zweiter Auftrag ergänzte sie, ohne die erste zu verlieren.
 
 ### Was dabei geschieht
 
@@ -145,6 +150,11 @@ Any other stack needs the font on the device.
 typography.fontSize: number from 8 to 24 (px).
 corners.topLeft, corners.topRight, corners.bottomRight and corners.bottomLeft: each a number from 0 to 96 (px); set all four.
 spacing: number from 0 to 16 (px).
+widgetFrame: the frame of all widgets that have no value of their own for a setting; a widget's own value wins.
+widgetFrame.noHeader, widgetFrame.noHeaderIcon, widgetFrame.noFooter, widgetFrame.noCard, widgetFrame.outlined and widgetFrame.outlinedFrame: true or false, meaning what the name says (noCard true: no card).
+widgetFrame.basePadding: number from 0 to 10 (spacing units).
+widgetFrame.baseElevation: whole number from 0 to 24 (shadow).
+Without a value the frame uses padding 1, elevation 4 and false for the rest.
 Example: {"palette":{"mode":"dark","primary":{"main":"#38bdf8"},"secondary":{"main":"#818cf8"},"error":{"main":"#f44336"},"warning":{"main":"#ffa726"},"info":{"main":"#29b6f6"},"success":{"main":"#66bb6a"},"text":{"primary":"#e6edf3","secondary":"#9aa7b4"},"background":{"default":"#0f1216","paper":"#181c23"},"divider":"#2a313c"},"typography":{"fontFamily":"'Inter', system-ui, sans-serif","fontSize":14},"corners":{"topLeft":8,"topRight":8,"bottomRight":8,"bottomLeft":8},"spacing":8}
 ```
 

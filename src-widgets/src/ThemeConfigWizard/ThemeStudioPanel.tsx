@@ -68,6 +68,7 @@ import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import type { ThemeValidationIssue } from '../lib/theme/themeTypes';
 import { getNestedValue } from '../lib/theme/themeUtils';
 import { isTargetInside } from '../lib/useEditorHistory';
+import { WIDGET_FRAME_KEYS, widgetFramePath } from '../lib/widgetFrame';
 import PresetCards, { presetsSummary } from './PresetCards';
 import type { StudioHostProps } from './studioHost';
 import { STUDIO_COLOR_FIELDS, colorFieldForIssuePath, colorSectionForPath } from './studioColorFields';
@@ -76,6 +77,7 @@ import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
 import StatusTextSection from './sections/StatusTextSection';
 import TypographySection from './sections/TypographySection';
+import WidgetFrameSection from './sections/WidgetFrameSection';
 
 /** localStorage key for the panel geometry (codebase namespacing idiom, cf. RAIL_STORAGE_KEY). */
 export const STUDIO_GEOMETRY_KEY = 'vis-2-widgets-collection:theme-studio:geometry';
@@ -90,7 +92,7 @@ type ThemeStudioPanelProps = StudioHostProps & {
 const FOOTER_BUTTON_SX = { whiteSpace: 'nowrap', flexShrink: 0 } as const;
 
 /** Section ids for controlled expansion (scroll-to-error). */
-type SectionKey = 'presets' | 'palette' | 'typography' | 'statusText' | 'erweitert';
+type SectionKey = 'presets' | 'palette' | 'typography' | 'widgetFrame' | 'statusText' | 'erweitert';
 
 /**
  * Maps a theme path to the section that renders a field for it: colour paths by the field
@@ -107,11 +109,17 @@ function sectionForPath(path: string): SectionKey {
     if (path.startsWith('typography.') || path.startsWith('corners')) {
         return 'typography';
     }
+    if (path.startsWith('widgetFrame')) {
+        return 'widgetFrame';
+    }
     return 'erweitert';
 }
 
 /** Non-colour paths whose errors render at their own field (not in the bottom alert). */
-const FIELD_ERROR_PATHS: ReadonlySet<string> = new Set(['cssVariables.cssVarPrefix']);
+const FIELD_ERROR_PATHS: ReadonlySet<string> = new Set([
+    'cssVariables.cssVarPrefix',
+    ...WIDGET_FRAME_KEYS.map(widgetFramePath),
+]);
 
 /** Whether an issue at `path` renders at a field: a colour field or a listed non-colour field. */
 const hasFieldHome = (path: string): boolean => Boolean(colorFieldForIssuePath(path)) || FIELD_ERROR_PATHS.has(path);
@@ -123,6 +131,7 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
     'reserved-css-var-prefix': 'theme_studio_valid_css_var_prefix',
     'invalid-number': 'theme_studio_valid_number',
     'number-out-of-range': 'theme_studio_valid_range',
+    'number-not-integer': 'theme_studio_valid_integer',
     'invalid-type': 'theme_studio_valid_type',
     'unknown-key': 'theme_studio_valid_unknown',
     'invalid-shape': 'theme_studio_valid_shape',
@@ -431,6 +440,14 @@ function ThemeStudioPanel({ onClose, socket, themeType }: ThemeStudioPanelProps)
                                     onChange={edit}
                                     onApply={apply}
                                     {...sectionProps('typography')}
+                                />
+                            </Box>
+                            <Box data-studio-section="widgetFrame">
+                                <WidgetFrameSection
+                                    theme={themeObj}
+                                    onChange={edit}
+                                    errorFor={errorFor}
+                                    {...sectionProps('widgetFrame')}
                                 />
                             </Box>
                             <Box data-studio-section="statusText">

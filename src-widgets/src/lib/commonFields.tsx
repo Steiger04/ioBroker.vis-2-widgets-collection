@@ -10,8 +10,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import { createColorField, hiddenWhenTruthy } from './fieldFactories';
+import { createColorField, createWidgetFrameField, hiddenWhenTruthy, type HiddenPredicate } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
+import { knownUserTheme } from './theme/lastKnownTheme';
+import { fieldRulesOf, type FieldRules } from './usableWidgetData';
+import { storedFrameValue, widgetFramePresetsOf } from './widgetFrame';
 
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -38,6 +41,29 @@ type Settings = {
     markerLayer?: boolean;
 };
 
+/** The field rules of the full shared list, read once on first use (the list is built below). */
+let sharedFieldRules: FieldRules | undefined;
+
+/**
+ * Hides a field while the frame setting `key` is on as the widget renders it (ADR-0117): vis-2
+ * hands the predicate the stored data alone, which is read the widget's way — the Rückfall-Regel
+ * by the rules of the shared fields, then the cascade (lib/widgetFrame) over the Rahmenvorgaben of
+ * the theme the canvas shows ({@link knownUserTheme}: the Studio draft, else the stored theme).
+ *
+ * @remarks
+ * Before the page knows any theme the built-in standard applies, as on the canvas of a widget
+ * that has not read the theme yet. vis-2 re-runs the predicate on every render of the attribute
+ * panel, not on a change of the theme: a changed Rahmenvorgabe shows with the panel's next render.
+ * @param key - The boolean frame setting the field hangs on (`noHeader`, `noFooter`).
+ */
+const hiddenWhileFrameOn =
+    (key: 'noHeader' | 'noFooter'): HiddenPredicate =>
+    data => {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- read lazily, after the module is evaluated
+        sharedFieldRules ??= fieldRulesOf([{ name: 'common', fields: commonFields() }]);
+        return storedFrameValue(data, key, sharedFieldRules, widgetFramePresetsOf(knownUserTheme())) === true;
+    };
+
 /**
  * Build the shared editor field list used by most widgets.
  *
@@ -45,6 +71,9 @@ type Settings = {
  */
 const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true, perState = false, markerLayer = false } = settings || {};
+    // The header and footer fields of every list hang on the widget's own header and footer.
+    const headerOff = hiddenWhileFrameOn('noHeader');
+    const footerOff = hiddenWhileFrameOn('noFooter');
 
     /**
      * The fallback fields of the colour field `base{groupName}` — the variant inherits what the
@@ -148,27 +177,21 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="header" />,
-            hidden: (data, _i) => data.noHeader && !allFields,
+            hidden: data => !allFields && headerOff(data),
         },
-        {
-            name: `noHeader${groupName}`,
-            type: 'checkbox',
-            label: 'no_header',
-            default: false,
-        },
-        {
+        // Frame settings of the Widget-Rahmen (ADR-0117): the Erb-Adapter, no `default`
+        // (createWidgetFrameField).
+        createWidgetFrameField('noHeader', { name: `noHeader${groupName}` }),
+        createWidgetFrameField('noHeaderIcon', {
             name: `noHeaderIcon${groupName}`,
-            type: 'checkbox',
-            label: 'no_header_icon',
-            default: false,
-            hidden: hiddenWhenTruthy('noHeader'),
-        },
+            hidden: headerOff,
+        }),
         {
             name: `header${groupName}`,
             label: 'header_text',
             type: 'html',
             default: '',
-            hidden: hiddenWhenTruthy('noHeader'),
+            hidden: headerOff,
         },
         {
             name: `headerSize${groupName}`,
@@ -177,7 +200,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: hiddenWhenTruthy('noHeader'),
+            hidden: headerOff,
         },
         {
             label: '',
@@ -210,20 +233,16 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="footer" />,
-            hidden: (data, _i) => data.noFooter && !allFields,
+            hidden: data => !allFields && footerOff(data),
         },
-        {
-            name: `noFooter${groupName}`,
-            label: 'no_footer',
-            type: 'checkbox',
-            default: false,
-        },
+        // A frame setting of the Widget-Rahmen (ADR-0117), see noHeader.
+        createWidgetFrameField('noFooter', { name: `noFooter${groupName}` }),
         {
             name: `footer${groupName}`,
             label: 'footer_text',
             type: 'html',
             default: '',
-            hidden: hiddenWhenTruthy('noFooter'),
+            hidden: footerOff,
         },
         {
             name: `footerSize${groupName}`,
@@ -232,19 +251,15 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             min: 0,
             max: 500,
             step: 1,
-            hidden: hiddenWhenTruthy('noFooter'),
+            hidden: footerOff,
         },
         {
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="characteristics" />,
         },
-        {
-            name: `noCard${groupName}`,
-            label: 'without_card',
-            type: 'checkbox',
-            default: false,
-        },
+        // A frame setting of the Widget-Rahmen (ADR-0117), see noHeader.
+        createWidgetFrameField('noCard', { name: `noCard${groupName}` }),
         {
             name: `squaredCorner${groupName}`,
             label: 'squared_corner',
@@ -265,42 +280,21 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider />,
         },
-        {
-            name: `outlined${groupName}`,
-            label: 'outlined',
-            type: 'checkbox',
-            default: false,
-        },
-        {
-            name: `outlinedFrame${groupName}`,
-            label: 'outlined_frame',
-            type: 'checkbox',
-            default: false,
-        },
+        // Frame settings of the Widget-Rahmen (ADR-0117), see noHeader.
+        createWidgetFrameField('outlined', { name: `outlined${groupName}` }),
+        createWidgetFrameField('outlinedFrame', { name: `outlinedFrame${groupName}` }),
         {
             label: '',
             name: 'allFieldsDivider',
             type: 'custom',
             component: () => <CollectionDivider />,
         },
-        {
-            name: `basePadding${groupName}`,
-            label: 'base_padding',
-            type: 'slider',
-            min: 0,
-            max: 10,
-            step: 0.1,
-            default: 1,
-        },
-        {
-            name: `baseElevation${groupName}`,
-            label: 'base_elevation',
-            type: 'slider',
-            min: 0,
-            max: 24,
-            step: 1,
-            default: 4,
-        },
+        // Frame settings of the Widget-Rahmen (ADR-0117): no `default` — vis-2 would store it on
+        // every dropped widget, which could then never follow the Rahmenvorgabe of the theme. Unset,
+        // a setting reads the Rahmenvorgabe, else the built-in standard (lib/widgetFrame); the
+        // Erb-Adapter names that and takes its slider range from the same table.
+        createWidgetFrameField('basePadding', { name: `basePadding${groupName}` }),
+        createWidgetFrameField('baseElevation', { name: `baseElevation${groupName}` }),
         {
             label: '',
             name: 'allFieldsDivider',

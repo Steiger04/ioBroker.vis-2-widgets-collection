@@ -12,18 +12,21 @@
  * - the entry of the widget data into the `CollectionContext`, read through the Rückfall-Regel
  *   (`lib/usableWidgetData`, ADR-0114) with the field rules of the widget's own `getWidgetInfo()`;
  *   an id field without its object reads the editor's OID pick (`lib/pickedWidgetData`), an unset
- *   key the palette's default (`lib/fieldDefaults`)
+ *   key the palette's default (`lib/fieldDefaults`), an unset frame setting the Rahmenvorgabe of the
+ *   collection theme or the built-in standard (`lib/widgetFrame`, inside the provider)
  */
-import type { JSX } from 'react';
+import { useContext, type JSX } from 'react';
 import { Box } from '@mui/material';
 
 import type { VisRxWidgetState, RxRenderWidgetProps, RxWidgetInfo } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import withCollectionProvider from './components/withCollectionProvider';
+import { CollectionContext } from './components/CollectionProvider';
 import { I18N_PREFIX } from './lib/translate';
 import { fieldRulesOf, usableWidgetData } from './lib/usableWidgetData';
 import { oidPickFieldsOf } from './lib/pickedWidgetData';
 import { fieldDefaultsOf } from './lib/fieldDefaults';
+import { widgetFrameKeysOf } from './lib/widgetFrame';
 
 import type { FieldRules } from './lib/usableWidgetData';
 import type { WidgetDataReading } from './lib/pickedWidgetData';
@@ -50,12 +53,39 @@ const fieldReadingOf = (widgetClass: WidgetClass): FieldReading => {
         const visAttrs = widgetClass.getWidgetInfo().visAttrs ?? [];
         reading = {
             rules: fieldRulesOf(visAttrs),
-            dataReading: { oidPickFields: oidPickFieldsOf(visAttrs), defaults: fieldDefaultsOf(visAttrs) },
+            dataReading: {
+                oidPickFields: oidPickFieldsOf(visAttrs),
+                defaults: fieldDefaultsOf(visAttrs),
+                frameKeys: widgetFrameKeysOf(visAttrs),
+            },
         };
         fieldReadingByClass.set(widgetClass, reading);
     }
     return reading;
 };
+
+/**
+ * The box the widget body sits in: inset by the card's margin while the widget shows its card.
+ *
+ * @remarks
+ * Rendered inside the provider, it reads the provider's card decision (`wrappedContent`), made from
+ * the effective `noCard` — an inherited one included — so the outer size follows the same value as
+ * the frame (ADR-0117).
+ */
+function CardInset({ children }: { children: JSX.Element | JSX.Element[] }): JSX.Element {
+    const { wrappedContent } = useContext(CollectionContext);
+    return (
+        <Box
+            className="GENERIC-1"
+            sx={{
+                width: wrappedContent ? 'calc(100% - 8px)' : '100%',
+                height: wrappedContent ? 'calc(100% - 8px)' : '100%',
+            }}
+        >
+            {children}
+        </Box>
+    );
+}
 
 /**
  * Base class for all Collection widgets.
@@ -73,8 +103,6 @@ class Generic<
     RxData extends Record<string, any>,
     State extends Partial<VisRxWidgetState> = VisRxWidgetState,
 > extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
-    protected wrappedCollectionContent = true;
-
     /** Returns the translation prefix used by this widget set. */
     static getI18nPrefix(): string {
         return I18N_PREFIX;
@@ -115,15 +143,15 @@ class Generic<
     };
 
     /**
-     * Builds the collection context, tracks `wrappedCollectionContent` and wraps
-     * the widget body in the CollectionProvider — the shared tail of every
-     * widget's `renderWidgetBody`.
+     * Builds the collection context and wraps the widget body in the CollectionProvider — the
+     * shared tail of every widget's `renderWidgetBody`.
      *
      * @remarks
-     * `wrappedCollectionContent` is assigned BEFORE the context is built so the
-     * context carries the current render's value (not the previous one);
-     * `wrapContent` reads it at render time too. The internal cast mirrors what
-     * every widget class used to spell out as `as XxxCollectionContextProps`.
+     * Whether the widget shows its card is decided across the seam to the provider: here only
+     * what the host says — an embedded widget (`usedInWidget`) never does —, in the provider the
+     * effective `noCard`, which only there reads the Rahmenvorgabe of the collection theme
+     * (ADR-0117). The internal cast mirrors what every widget class used to spell out as
+     * `as XxxCollectionContextProps`.
      * @param component - The widget's React body.
      * @param props - The render props vis-2 passed to `renderWidgetBody`.
      * @param extraContext - Optional per-widget context additions (e.g. Dialog's
@@ -140,12 +168,6 @@ class Generic<
         // the project's stored data: an attribute the host substitutes (a binding) stays unchecked.
         const { rules, dataReading } = fieldReadingOf(this.constructor as unknown as WidgetClass);
         const data = usableWidgetData(this.state.rxData, rules, props.widget.data);
-
-        if (data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
 
         const collectionContext = {
             id: props.id,
@@ -164,12 +186,15 @@ class Generic<
             socket: this.props.context.socket,
             lang: this.props.context.lang,
             theme: this.props.context.theme,
-            wrappedContent: this.wrappedCollectionContent,
+            // Embedded, no card; otherwise the provider decides from the effective noCard.
+            wrappedContent: !props.widget.usedInWidget,
             ...extraContext,
         } as CollectionContextProps<RxData>;
 
         // Inside the provider an id without its object reads the editor's pick, an unset key the
         // palette's default (lib/pickedWidgetData): an assistant-inserted widget reads like the palette's.
+        // There, too, an unset frame setting reads the Rahmenvorgabe of the collection theme, which only
+        // the provider knows, else its standard (lib/widgetFrame, ADR-0117).
         return withCollectionProvider(this.wrapContent(component), collectionContext, dataReading);
     }
 
@@ -233,15 +258,7 @@ class Generic<
                         alignItems: 'center',
                     }}
                 >
-                    <Box
-                        className="GENERIC-1"
-                        sx={{
-                            width: this.wrappedCollectionContent ? 'calc(100% - 8px)' : '100%',
-                            height: this.wrappedCollectionContent ? 'calc(100% - 8px)' : '100%',
-                        }}
-                    >
-                        {content}
-                    </Box>
+                    <CardInset>{content}</CardInset>
                 </Box>
             </>
         );

@@ -37,6 +37,7 @@ import { renderComponent, type RenderComponentHandle } from '../../lib/testing/t
 import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../../lib/testing/vis2GroupBody';
 import type { StateEditorParams } from '../../lib/stateEditorConfig';
 import { stateEditorGroup } from '../../lib/stateEditorFields';
+import { setLastKnownTheme } from '../../lib/theme/lastKnownTheme';
 import { resetStateRowSelection } from './stateRowSelection';
 
 /** What the fake reads of the field vis-2's Editor gets. */
@@ -470,5 +471,24 @@ describe('multi-selection — fields whose values differ are marked "different"'
         const { container } = mount({ ...THREE_ROWS, footer1: 'x' });
 
         expect(differing(container)).toEqual([]);
+    });
+});
+
+describe('ticket 06: the header and footer sections follow the inherited value', () => {
+    afterEach(() => setLastKnownTheme(null));
+
+    it('an inherited "no header" from the stored theme hides the header section, the footer stays', () => {
+        setLastKnownTheme({ widgetFrame: { noHeader: true } });
+        const { container } = mount(THREE_ROWS);
+
+        expect(detailLabels(container)).not.toContain('header_text');
+        expect(detailLabels(container)).toContain('footer_text');
+    });
+
+    it('a set header beats the inherited "no header"', () => {
+        setLastKnownTheme({ widgetFrame: { noHeader: true } });
+        const { container } = mount({ ...THREE_ROWS, noHeader: false });
+
+        expect(detailLabels(container)).toContain('header_text');
     });
 });
