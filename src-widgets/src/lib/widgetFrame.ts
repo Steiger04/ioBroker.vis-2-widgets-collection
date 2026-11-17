@@ -288,11 +288,7 @@ export function storedFrameSetting<K extends WidgetFrameKey>(
     type V = FrameValue<(typeof WIDGET_FRAME_SETTINGS)[K]>;
     const read: unknown = (usableWidgetData(stored, FRAME_RULES) as Record<string, unknown>)[key];
     const own = (
-        read === undefined || read === null
-            ? undefined
-            : WIDGET_FRAME_SETTINGS[key].kind === 'number'
-              ? optionalNumber(read)
-              : read
+        isUnset(read) ? undefined : WIDGET_FRAME_SETTINGS[key].kind === 'number' ? optionalNumber(read) : read
     ) as V | undefined;
     const inherited = (withWidgetFrame({}, [key], presets) as Record<string, unknown>)[key] as V;
     return { own, inherited, effective: own ?? inherited };
