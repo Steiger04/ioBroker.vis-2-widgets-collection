@@ -93,6 +93,13 @@ reads them from there.
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+- (steiger04) Theme Studio: new section "Widget frame" sets card, outlines, padding, shadow, header, header icon and footer for all widgets; a widget's own value still wins
+- (steiger04) Attribute panel: the frame settings show the inherited value ("As theme (on)", "inherits · Theme: 4"); "As theme" or × lets a widget follow the theme again, also for several selected widgets
+- (steiger04) Existing widgets keep their stored frame settings and look unchanged; new widgets follow the Theme Studio
+- (steiger04) The vis-2 AI assistant can set the widget frame of all widgets with the theme
+
 ### 3.2.0 (2026-11-15)
 
 - (steiger04) Node.js 22 or newer is required
