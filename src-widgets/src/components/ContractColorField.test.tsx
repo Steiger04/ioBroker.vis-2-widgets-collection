@@ -181,6 +181,44 @@ describe('ContractColorField resolves the Auflösungskaskade for the swatch', ()
         });
     });
 
+    // Under a multi-selection vis-2 hands the field its `commonValues`, where a differing noCard is
+    // null and would read as inherited: the swatch reads the frame of the first selected widget, as
+    // it does the vis-2 style colour (ADR-0117, addendum 2026-11-17).
+    describe('ticket 13: a multi-selection with differing noCard', () => {
+        const surface: Partial<ExtendedField> = {
+            name: 'frameBackground',
+            terminal: 'paper',
+            terminalWithoutCard: 'transparent',
+        };
+        const twoWidgets = (first: WidgetData, second: WidgetData): RxWidgetInfoCustomComponentProperties =>
+            ({
+                context: {
+                    theme: hostTheme,
+                    socket: {},
+                    views: { v: { widgets: { w1: { data: first, style: {} }, w2: { data: second, style: {} } } } },
+                },
+                selectedView: 'v',
+                selectedWidgets: ['w1', 'w2'],
+            }) as unknown as RxWidgetInfoCustomComponentProperties;
+
+        it('shows the checkerboard when the first selected widget has no card of its own', () => {
+            const { container } = mount(surface, { noCard: null }, twoWidgets({ noCard: true }, {}));
+            expect(getComputedSwatch(container)).toMatch(/^(transparent|)$/);
+        });
+
+        it('shows the paper when the first selected widget inherits the card', () => {
+            collectionThemeHolder.widgetFrame = { noCard: false };
+            const { container } = mount(surface, { noCard: null }, twoWidgets({}, { noCard: true }));
+            expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
+        });
+
+        it('shows the paper when the first selected widget has a card under the Rahmenvorgabe "without card"', () => {
+            collectionThemeHolder.widgetFrame = { noCard: true };
+            const { container } = mount(surface, { noCard: null }, twoWidgets({ noCard: false }, {}));
+            expect(getComputedSwatch(container)).not.toMatch(/^(transparent|)$/);
+        });
+    });
+
     // The Rückfall-Regel (ADR-0114) before the cascade: a stored noCard the widget cannot use — the
     // text the vis-2 assistant writes into a boolean — reads as unset, as the widget and the panel
     // read it, so the swatch follows the Rahmenvorgabe, else the card.
