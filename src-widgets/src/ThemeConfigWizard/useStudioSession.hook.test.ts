@@ -109,9 +109,27 @@ const settle = (): void => {
 
 let session: RenderHookHandle<StudioSession> | null = null;
 
-const start = (socket: Connection): RenderHookHandle<StudioSession> => {
-    session = renderHook(() => useStudioSession(socket));
+/**
+ * Opens a session over `socket`.
+ *
+ * @param socket - The socket.
+ * @param useSession - The session hook of the page it opens on (default: this file's).
+ */
+const start = (
+    socket: Connection,
+    useSession: typeof useStudioSession = useStudioSession,
+): RenderHookHandle<StudioSession> => {
+    session = renderHook(() => useSession(socket));
     return session;
+};
+
+/**
+ * The session hook of a page that knows no theme yet: a fresh instance with the modules it shares —
+ * the last known theme included, which keeps its value for the page's lifetime (no reset).
+ */
+const sessionOnFreshPage = async (): Promise<typeof useStudioSession> => {
+    vi.resetModules();
+    return (await import('./useStudioSession')).default;
 };
 
 beforeEach(() => {
@@ -130,11 +148,12 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
-// First in the file, which is one page: nothing here has read or saved a theme yet.
+// The test file is one page, which keeps what it has read or saved: this block opens its session on
+// a fresh one, wherever it runs.
 describe('useStudioSession on a page that knows no theme yet', () => {
     it('waits for the stored theme when there is no seed', async () => {
         const fake = fakeSocket();
-        const { result } = start(fake.socket);
+        const { result } = start(fake.socket, await sessionOnFreshPage());
         expect(result.current.loading).toBe(true);
 
         await fake.resolveState(JSON.stringify(STORED));
