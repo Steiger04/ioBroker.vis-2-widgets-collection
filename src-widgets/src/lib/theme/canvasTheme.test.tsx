@@ -8,7 +8,9 @@
  * reading, and that it learns the stored theme only on its occasions — a reading instance's read,
  * a subscription's read, the Studio session's save.
  *
- * The test file is one page: the first block runs before anything here has read a theme.
+ * The test file is one page, which keeps the stored theme as last known for its lifetime (there is
+ * no reset): a block that needs a page that has read nothing yet reads a fresh instance of the
+ * module ({@link freshPage}), so it holds wherever it runs.
  */
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -68,16 +70,28 @@ const DRAFT: UserTheme = { widgetFrame: { noHeader: false } };
 
 const mounted: Pick<RenderHookHandle<unknown>, 'unmount'>[] = [];
 
-/** Mounts a reading instance (a widget, an editor field) over `socket` and waits for its read. */
+/**
+ * Mounts a reading instance (a widget, an editor field) over `socket` and waits for its read.
+ *
+ * @param fake - The socket.
+ * @param useReading - The hook reading of the page the instance sits on (default: this file's).
+ */
 const reader = async (
     fake: ReturnType<typeof themeSocket>,
+    useReading: typeof useCanvasTheme = useCanvasTheme,
 ): Promise<RenderHookHandle<ReturnType<typeof useCanvasTheme>>> => {
-    const handle = renderHook(() => useCanvasTheme(fake.socket));
+    const handle = renderHook(() => useReading(fake.socket));
     mounted.push(handle);
     await act(async () => {
         await fake.answered;
     });
     return handle;
+};
+
+/** A page that has read no theme yet: a fresh instance of the module, with its own last known theme. */
+const freshPage = async (): Promise<typeof canvasThemeModule> => {
+    vi.resetModules();
+    return import('./canvasTheme');
 };
 
 afterEach(async () => {
@@ -89,13 +103,14 @@ afterEach(async () => {
 
 describe('before the page has read a theme', () => {
     it('is empty in both readings', async () => {
-        expect(canvasUserTheme()).toBeNull();
-        expect(lastStoredTheme()).toBeNull();
+        const page = await freshPage();
+        expect(page.canvasUserTheme()).toBeNull();
+        expect(page.lastStoredTheme()).toBeNull();
 
         // A reading instance whose read has no answer yet renders the empty theme and teaches nothing.
-        const pending = await reader(themeSocket(JSON.stringify(STORED), { answer: false }));
+        const pending = await reader(themeSocket(JSON.stringify(STORED), { answer: false }), page.useCanvasTheme);
         expect(pending.result.current).toEqual({ theme: {}, stored: {}, draft: null });
-        expect(canvasUserTheme()).toBeNull();
+        expect(page.canvasUserTheme()).toBeNull();
     });
 });
 
