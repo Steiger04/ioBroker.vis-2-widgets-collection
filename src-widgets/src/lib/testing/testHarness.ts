@@ -10,9 +10,12 @@
  * behaviour is driven with vitest fake timers by the TESTS; the harness only owns mount /
  * rerender / unmount. `rerender` takes the NEXT hook callback (renderHook) resp. the NEXT
  * props (renderComponent) so effect dependencies change exactly as in a real component.
+ * Every mount sits on a {@link createTestRoot} root, so a test that never calls `unmount` still
+ * leaves nothing mounted for the next test (or past the file's happy-dom teardown).
  */
 import { act, createElement, type FC, type ReactElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import type { Root } from 'react-dom/client';
+import { createTestRoot } from './testRoots';
 
 // React 18 requires the act-environment flag when driving updates outside react-dom/test-utils.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -35,7 +38,7 @@ export function renderHook<T>(initialCallback: () => T): RenderHookHandle<T> {
     document.body.appendChild(container);
     const result: { current: T } = { current: undefined as unknown as T };
     let callback = initialCallback;
-    let root: Root | null = createRoot(container);
+    let root: Root | null = createTestRoot(container);
     const Probe = (): null => {
         result.current = callback();
         return null;
@@ -81,7 +84,7 @@ export function renderComponent<P extends object>(type: FC<P>, initialProps: P):
     const container = document.createElement('div');
     document.body.appendChild(container);
     let props = initialProps;
-    let root: Root | null = createRoot(container);
+    let root: Root | null = createTestRoot(container);
     // createElement's overloads refuse a naked generic FC<P> — the arrow cast keeps the
     // call-site typing while matching the FunctionComponent overload inside.
     const element = (p: P): ReactElement => createElement(type as (props: P) => ReactElement, p);

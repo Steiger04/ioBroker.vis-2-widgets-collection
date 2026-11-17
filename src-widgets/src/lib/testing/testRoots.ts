@@ -9,7 +9,8 @@
  * throws `window is not defined` outside any test, which fails the whole vitest run although every
  * test passed (the v3.0.1 release run). Importing this module registers the `afterEach` on the
  * importing test file — the dom project isolates per file, so each file gets its own registry.
- * The {@link module:lib/testing/testHarness} handles keep their explicit `unmount`.
+ * The {@link module:lib/testing/testHarness} mounts sit on these roots too and keep their explicit
+ * `unmount`.
  */
 import { afterEach } from 'vitest';
 import { act } from 'react';
