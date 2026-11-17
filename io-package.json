@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "3.2.0",
+    "version": "3.3.0",
     "news": {
+      "3.3.0": {
+        "en": "Theme Studio: the new \"Widget frame\" section sets the frame of all widgets at once\nAttribute panel: frame settings show the value they inherit from the theme\nExisting widgets keep their frame settings and look unchanged\nThe vis-2 AI assistant can set the widget frame of all widgets with the theme\nA widget without card no longer shows a shadow",
+        "de": "Theme Studio: Der neue Bereich „Widget-Rahmen“ legt den Rahmen aller Widgets auf einmal fest\nAttributpanel: Rahmen-Einstellungen zeigen den Wert, den sie vom Theme erben\nBestehende Widgets behalten ihre Rahmen-Einstellungen und sehen unverändert aus\nDer KI-Assistent von vis-2 kann den Widget-Rahmen aller Widgets über das Theme setzen\nEin Widget ohne Karte zeigt keinen Schatten mehr",
+        "ru": "Theme Studio: новый раздел «Рамка виджета» задает рамку всех виджетов одновременно\nПанель атрибутов: в настройках фрейма отображается значение, которое они унаследовали от темы\nСуществующие виджеты сохраняют настройки фрейма и выглядят без изменений\nПомощник vis-2 AI может устанавливать рамку виджетов всех виджетов с темой\nВиджет без карты больше не показывает тень",
+        "pt": "Theme Studio: a nova seção “Widget frame” define todos os widgets de uma vez\nPainel de atributos: os ajustes do frame mostram o valor herdado do tema\nOs widgets atuais mantêm a moldura e o aspeto inalterados\nO assistente vis-2 AI pode definir o quadro de todos os widgets com o tema\nUm widget sem cartão não mostra mais sombra",
+        "nl": "Theme Studio: in de nieuwe sectie „Widgetframe” wordt het frame van alle widgets tegelijk ingesteld\nAttributenpaneel: de frame-instellingen tonen de waarde die ze van het thema hebben geërfd\nBestaande widgets behouden hun frame-instellingen en zien er ongewijzigd uit\nDe vis-2 AI-assistent kan het widgetframe instellen van alle widgets met het thema\nEen widget zonder kaart toont niet langer een schaduw",
+        "fr": "Theme Studio : la nouvelle section « Cadre des widgets » définit le cadre de tous les widgets\nPanneau d'attributs : les paramètres du cadre indiquent la valeur héritée du thème\nLes widgets existants conservent leur cadre et leur apparence\nL'assistant IA Vis-2 peut définir le cadre de tous les widgets ayant ce thème\nUn widget sans carte n'affiche plus d'ombre",
+        "it": "Theme Studio: la nuova sezione «Widget frame» include tutti i widget\nPannello attributi: i frame mostrano il valore ereditato dal tema\nI widget esistenti mantengono i frame e l'aspetto invariati\nL'assistente vis-2 AI può impostare la cornice di tutti i widget a tema\nUn widget senza carta non mostra più ombre",
+        "es": "Theme Studio: la nueva sección «Marco de widgets» marca todos los widgets a la vez\nPanel de atributos: los ajustes del marco muestran el valor que heredan del tema\nLos widgets existentes mantienen sus ajustes de marco y su aspecto\nEl asistente de IA del vis-2 puede configurar el marco de todos los widgets con el tema\nUn widget sin tarjeta ya no muestra sombras",
+        "pl": "Theme Studio: nowa sekcja „Ramka widżetu” ustawia ramkę wszystkich widżetów jednocześnie\nPanel atrybutów: ustawienia ramki pokazują wartość, którą dziedziczą z motywu\nIstniejące widżety zachowują ustawienia ramek i wyglądają na niezmienione\nAsystent vis-2 AI może ustawić ramkę widżetu wszystkich widżetów z motywem\nWidżet bez karty nie pokazuje już cienia",
+        "uk": "Тематична студія: новий розділ «Рамка віджетів» встановлює кадр всіх віджетів відразу\nПанель атрибутів: налаштування кадру показують значення, яке вони успадковують від теми\nІснуючі віджети зберігають налаштування кадру і виглядають незмінними\nАсистент vis-2 AI може встановити кадр віджетів всіх віджетів з темою\nВіджет без картки більше не показує тінь",
+        "zh-cn": "主题工作室：新的 “控件框架” 部分同时设置了所有小部件的框架\n属性面板：帧设置显示它们从主题继承的值\n现有小部件保持其框架设置且外观不变\nvis-2 AI 助手可以设置所有带有主题的小部件的控件框架\n没有卡片的小部件不再显示阴影"
+      },
       "3.2.0": {
         "en": "Node.js 22 or newer is required\nLight: new light type `dimmer` for lamps that only dim (#22)",
         "de": "Node.js 22 oder neuer ist nötig\nLicht: neuer Dimmer für Lampen, die nur dimmen (#22)",

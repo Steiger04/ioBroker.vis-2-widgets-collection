@@ -93,7 +93,7 @@ reads them from there.
 
 ## Changelog
 
-### **WORK IN PROGRESS**
+### 3.3.0 (2026-11-17)
 
 - (steiger04) Theme Studio: the new "Widget frame" section sets the frame of all widgets at once
 - (steiger04) Attribute panel: frame settings show the value they inherit from the theme
@@ -123,16 +123,6 @@ reads them from there.
 ### 3.0.1 (2026-11-10)
 
 - (steiger04) Same content as 3.0.0, whose release build failed before it reached npm
-
-### 3.0.0 (2026-11-10)
-
-- (steiger04) **BREAKING** vis-2 2.20.0 or newer is required: the widgets now use the MUI 9 shared by the vis-2 host; older hosts are rejected at installation
-- (steiger04) **BREAKING** the collection theme's CSS variables are named `--vis2c-*` instead of `--mui-*`; custom CSS must switch to `--vis2c-palette-*`
-- (steiger04) **BREAKING** Dialog: without an own background color the dialog area is now transparent; set the color to keep an opaque surface
-- (steiger04) New ECharts widget: line, bar, scatter and pie/donut charts from history or JSON data, set up in its own configurator
-- (steiger04) New color picker for all color fields (any CSS color, theme presets, inherited colors visible) and a new state editor for the value rows (search, drag-and-drop, several widgets at once)
-- (steiger04) Theme studio reworked: resizable panel, hex input next to each swatch, rounded corners set per corner in a 2×2 layout, presets in their own section
-- (steiger04) Many fixes across all widgets
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
