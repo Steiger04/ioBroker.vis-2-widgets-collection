@@ -43,6 +43,7 @@ import {
     storedFrameValue,
     WIDGET_FRAME_SETTINGS,
     widgetFramePresetsOf,
+    type NumberFrameSetting,
     type WidgetFrameKey,
     type WidgetFrameSetting,
 } from '../lib/widgetFrame';
@@ -206,9 +207,7 @@ function WidgetFrameField({ setting, field, data, onDataChange, props }: WidgetF
                     selection={selection as FrameSelection<number>}
                     inherited={inherited as number}
                     fromTheme={presets[setting] !== undefined}
-                    min={frameSetting.min}
-                    max={frameSetting.max}
-                    step={frameSetting.step}
+                    setting={frameSetting}
                     onChange={report}
                 />
             )}
@@ -292,9 +291,7 @@ function BooleanFrameChoice({
  * @param props.selection - What the selected widgets hold.
  * @param props.inherited - The value an inheriting widget renders.
  * @param props.fromTheme - Whether the inherited value is a Rahmenvorgabe (else the standard).
- * @param props.min - Lower bound.
- * @param props.max - Upper bound.
- * @param props.step - Slider step.
+ * @param props.setting - The number setting: its bounds and step.
  * @param props.onChange - Receives a value to store, or `null` (×).
  * @returns The slider row.
  */
@@ -302,17 +299,13 @@ function NumberFrameSlider({
     selection,
     inherited,
     fromTheme,
-    min,
-    max,
-    step,
+    setting,
     onChange,
 }: {
     selection: FrameSelection<number>;
     inherited: number;
     fromTheme: boolean;
-    min: number;
-    max: number;
-    step: number;
+    setting: NumberFrameSetting;
     onChange: (value: number | null) => void;
 }): React.JSX.Element {
     // The typed text while the number field has focus; null shows the stored value.
@@ -322,6 +315,7 @@ function NumberFrameSlider({
     const delayed = useDelayedReport(onChange);
     const own = selection.kind === 'own' ? selection.value : undefined;
     const shown = moving ?? own;
+    const { min, max, step } = setting;
     const caption =
         selection.kind === 'mixed'
             ? translate('frame_field_mixed')
@@ -363,7 +357,7 @@ function NumberFrameSlider({
                         const typed = optionalNumber(event.target.value);
                         if (typed !== undefined) {
                             // On the slider's step: a shadow of 2.5 would draw none.
-                            onChange(snapToSetting({ min, max, step }, typed));
+                            onChange(snapToSetting(setting, typed));
                         }
                     }}
                     inputProps={{ type: 'number', step, min, max }}

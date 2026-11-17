@@ -26,7 +26,7 @@
 import { usableWidgetData, type FieldRules, type StoredValue } from './usableWidgetData';
 
 /** A frame setting with a bounded number (the field's slider). */
-interface NumberFrameSetting {
+export interface NumberFrameSetting {
     readonly kind: 'number';
     /** The built-in standard: the field's default before ADR-0117, so stored widgets look the same. */
     readonly standard: number;
@@ -84,7 +84,7 @@ type FrameValue<S extends WidgetFrameSetting> = S extends BooleanFrameSetting ? 
  * @param setting - The number setting (its bounds and step).
  * @param value - Any finite number.
  */
-export function snapToSetting(setting: Pick<NumberFrameSetting, 'min' | 'max' | 'step'>, value: number): number {
+export function snapToSetting(setting: NumberFrameSetting, value: number): number {
     const { min, max, step } = setting;
     // The step's decimals, so the float error of `n * 0.1` does not reach the stored value.
     const decimals = String(step).split('.')[1]?.length ?? 0;
