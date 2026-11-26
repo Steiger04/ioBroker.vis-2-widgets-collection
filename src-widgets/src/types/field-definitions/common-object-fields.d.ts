@@ -58,10 +58,10 @@ export interface OidObjectMeta {
     /** Display-only mode */
     onlyDisplay?: boolean;
 
-    /** Minimum value */
+    /** Minimum value; seeded with 0, except on a non-main id field with `inventRange: false` (real bound only) */
     minValue?: number;
 
-    /** Maximum value */
+    /** Maximum value; seeded with 100, except on a non-main id field with `inventRange: false` (real bound only) */
     maxValue?: number;
 
     /** `common.step` of the object; only on a pick of an object that has one (ADR-0110 Nr. 12) */
