@@ -8,7 +8,8 @@
  * keys (`lib/commonObjectFields`). The vis-2 assistant sets the id without running it, and its flat
  * update leaves an older object with a foreign `_id` behind. For such a field the widget reads the
  * object itself; this module decides which fields wait for one and merges what the pick would have
- * written, with the pick's own derivation ({@link applyObjectPick}), into what the widget reads:
+ * written, with the pick's own derivation ({@link applyObjectPick}) — a field's own
+ * `pickDerivation` included (e.g. a missing Wertezuordnung, ADR-0120) — into what the widget reads:
  * - an object whose `_id` is not the id reads as missing (also while it loads, and for an id
  *   without a usable object: the widget shows its OID hint as without an object);
  * - every key the pick writes counts only where the data leaves it unset (`isUnset`):
@@ -29,7 +30,7 @@ import { applyObjectPick, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
 import { isUnset, NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
-import type { PickedObject } from './commonObjectFields';
+import type { PickDerivation, PickedObject } from './commonObjectFields';
 import type { FieldDefaults } from './fieldDefaults';
 import type { RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
@@ -39,8 +40,10 @@ export interface OidPickField {
     readonly name: string;
     /** Allowed JS types of the picked state. */
     readonly allowedTypes: readonly AllowedType[];
-    /** Whether a main-OID pick seeds a missing bound of the root range. */
+    /** Whether a missing bound is seeded (`createIdField`'s `inventRange`). */
     readonly inventRange: boolean;
+    /** The field's own pick derivation (`createIdField`'s `pickDerivation`), if it has one. */
+    readonly pickDerivation?: PickDerivation;
 }
 
 /**
@@ -60,11 +63,12 @@ interface PickFieldMirror {
     type?: string;
     allowedTypes?: unknown;
     inventRange?: unknown;
+    pickDerivation?: unknown;
 }
 
 /**
  * The id fields of a widget whose pick runs the shared derivation: the fields `createIdField`
- * builds, recognised by their `allowedTypes` mirror.
+ * builds, recognised by their `allowedTypes` mirror, with their `inventRange` and `pickDerivation`.
  *
  * @param visAttrs - The widget's `getWidgetInfo().visAttrs`.
  * @returns The fields in declaration order.
@@ -72,9 +76,18 @@ interface PickFieldMirror {
 export const oidPickFieldsOf = (visAttrs: readonly RxWidgetInfoGroup[]): OidPickField[] =>
     visAttrs.flatMap(group =>
         (group.fields ?? []).flatMap(field => {
-            const { name, type, allowedTypes, inventRange } = field as PickFieldMirror;
+            const { name, type, allowedTypes, inventRange, pickDerivation } = field as PickFieldMirror;
             return type === 'id' && name && Array.isArray(allowedTypes)
-                ? [{ name, allowedTypes: allowedTypes as AllowedType[], inventRange: inventRange !== false }]
+                ? [
+                      {
+                          name,
+                          allowedTypes: allowedTypes as AllowedType[],
+                          inventRange: inventRange !== false,
+                          ...(typeof pickDerivation === 'function'
+                              ? { pickDerivation: pickDerivation as PickDerivation }
+                              : {}),
+                      },
+                  ]
                 : [];
         }),
     );
