@@ -61,6 +61,9 @@ const DOM_TS_TESTS = [
     'src/EchartsCollectionWidget/stackModeAcrossModes.test.ts',
     // Calls the moment-header tooltip with a hovered axisValue — the time header reads `window`.
     'src/EchartsCollectionWidget/tooltipPercentGap.test.ts',
+    // Loads the heating widget modules to tie each type's visSet to its io-package entry (Generic
+    // extends window.visRxWidget, the dom project's stub).
+    'src/widgetsRegistry.test.ts',
 ];
 
 export default defineConfig({

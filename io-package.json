@@ -170,11 +170,20 @@
           "EchartsCollectionWidget",
           "ThemeConfigWizard"
         ]
+      },
+      "vis-2-widgets-collection-heating": {
+        "i18n": "component",
+        "name": "vis2CollectionWidget",
+        "url": "vis-2-widgets-collection/customWidgets.js",
+        "bundlerType": "module",
+        "components": [
+          "HeatingThermostatCollectionWidget"
+        ]
       }
     },
     "dependencies": [
       {
-        "vis-2": ">=2.20.0"
+        "vis-2": ">=2.20.5"
       }
     ],
     "restartAdapters": [

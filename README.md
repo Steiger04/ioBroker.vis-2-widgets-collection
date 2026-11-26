@@ -93,6 +93,10 @@ reads them from there.
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+- (steiger04) vis-2 2.20.5 or newer is required
+
 ### 3.3.1 (2026-11-17)
 
 - (steiger04) Same content as 3.3.0, whose release build failed before it reached npm

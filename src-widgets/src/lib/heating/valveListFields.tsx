@@ -24,6 +24,7 @@ import { guardWidgetData } from '../fieldFactories';
 import { VALVE_LIST } from './meaningCatalog';
 import ValveList from './ValveList';
 
+import type { ExtendedField } from '../../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 /**
@@ -38,6 +39,11 @@ export function heatingValveListFields(): RxWidgetInfoAttributesField[] {
             name: VALVE_LIST.counter,
             type: 'custom',
             label: VALVE_LIST.listLabel,
+            noBinding: true,
+            // The counter: a whole number within the host's digit rule; anything else reads as unset,
+            // i.e. no valve (lib/usableWidgetData).
+            default: 0,
+            storedValue: { whole: { min: 0, max: VALVE_LIST.max } },
             component: guardWidgetData((_field: unknown, data, onDataChange, props) => (
                 <ValveList
                     data={data}
@@ -45,6 +51,6 @@ export function heatingValveListFields(): RxWidgetInfoAttributesField[] {
                     props={props}
                 />
             )),
-        },
+        } as ExtendedField,
     ];
 }
