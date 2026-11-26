@@ -46,14 +46,13 @@ const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): 
 /** The Zustandszeilen of the main OID (`oid`): the row keys every state widget carries. */
 const MAIN_STATE_ROWS = stateEditorSpec().config;
 
-/** Drops this field's object; the control ID's suggestion follows the fallback to the main OID (ADR-0090). */
+/**
+ * Drops this field's object, nothing else (ADR-0111 Nr. 1); the control ID's suggestion follows
+ * the fallback to the main OID (ADR-0090). Exactly `<name>Object`: a field name may prefix another
+ * id field's (`boost`/`boostBeenden`, `ventil1`/`ventil10`), whose object stays.
+ */
 const dropFieldObject = (data: WidgetData, oid: string): void => {
-    // Clear only fields that start with the given OID and end with 'Object'
-    Object.keys(data).forEach(key => {
-        if (key.startsWith(oid) && key.endsWith('Object')) {
-            delete data[key];
-        }
-    });
+    delete data[`${oid}Object`];
 
     if (oidRole(oid) === 'control') {
         data.onlyDisplay = writeTargetDeniesWrite(data);
