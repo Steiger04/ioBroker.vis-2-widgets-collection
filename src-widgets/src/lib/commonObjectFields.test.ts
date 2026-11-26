@@ -773,3 +773,38 @@ describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
         });
     });
 });
+
+describe('oidChangeHandlerAsync — a field name that prefixes another id field (ADR-0111 Nr. 1)', () => {
+    /** Each pair: the field whose object goes, and a sibling id field whose name it prefixes. */
+    const PREFIXED = [
+        { name: 'boost', sibling: 'boostBeenden' },
+        { name: 'ventil1', sibling: 'ventil10' },
+    ];
+
+    beforeEach(() => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    describe.each(PREFIXED)('$name beside $sibling', ({ name, sibling }) => {
+        const siblingPicked = { [sibling]: STATUS, [`${sibling}Object`]: { _id: STATUS, type: 'number' } };
+
+        it('clearing it keeps the sibling object', async () => {
+            const picked = await pick(name, { ...siblingPicked, [name]: COMMAND });
+
+            expect(await pick(name, { ...picked, [name]: '' })).toEqual({ ...siblingPicked, [name]: '' });
+        });
+
+        it('a pick without a usable object keeps the sibling object', async () => {
+            const picked = await pick(name, { ...siblingPicked, [name]: COMMAND });
+
+            expect(await pick(name, { ...picked, [name]: 'zigbee.0.la' })).toEqual({
+                ...siblingPicked,
+                [name]: 'zigbee.0.la',
+            });
+        });
+    });
+});
