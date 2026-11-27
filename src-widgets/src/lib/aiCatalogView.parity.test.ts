@@ -36,6 +36,8 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THERMOSTAT_THRESHOLDS } from '../HeatingThermostatCollectionWidget/thermostatStages';
+import { HINT_TABLE } from './heating/hintTable';
+import { ROLE_TABLE } from './heating/roleTable';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { THEME_PRESETS } from './theme/presets';
 import { decodeBlob } from './encoding';
@@ -747,7 +749,7 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
-describe('Raumthermostat: the valve list in the assistant’s view (ADR-0121)', () => {
+describe('Raumthermostat: valve list and operating mode in the assistant’s view', () => {
     const name: WidgetName = 'HeatingThermostatCollectionWidget';
     const fieldIn = (language: Translate, field: string): DescribedField | undefined =>
         describedFields(infos.get(name)!, I18N_PREFIX, language).find(one => one.name === field);
@@ -765,6 +767,18 @@ describe('Raumthermostat: the valve list in the assistant’s view (ADR-0121)', 
 
         expect(guide).toContain('"ventil1", "ventil2" and so on, with their number in "ventilAnzahl"');
         expect(guide).toContain('the base field "ventil" itself stays empty');
+    });
+
+    it('names the operating-mode pair as the role table and the hint table bind it', () => {
+        const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
+        const role = ROLE_TABLE.find(entry => entry.meaning === 'betriebsart')!.roles[0];
+        // HmIP (hint table): the read state SET_POINT_MODE carries that role, the write-only
+        // CONTROL_MODE is a second mode state of the same channel with another role.
+        const hmip = (meaning: string): string | undefined => HINT_TABLE.find(entry => entry.meaning === meaning)?.name;
+        expect([hmip('betriebsart'), hmip('betriebsartSetzen')]).toEqual(['SET_POINT_MODE', 'CONTROL_MODE']);
+
+        expect(guide).toContain(`take the state with the role "${role}" as "betriebsart"`);
+        expect(guide).toContain('"betriebsartSetzen" only a second, writable mode state of the same device with another role');
     });
 
     it.each(LANGUAGE_FILES)('words the base field for the assistant in English in %s, like the KI-Leitfaden', file => {
