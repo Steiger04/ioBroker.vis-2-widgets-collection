@@ -350,3 +350,67 @@ describe('resolveCollectionTheme — a user mode other than the host mode', () =
         expect(theme.palette.divider).toBe('#abcdef');
     });
 });
+
+describe('resolveCollectionTheme — user surfaces over the host neutrals', () => {
+    /** The vis-2 modernDark host: opaque navy divider, slate secondary text, blue selection. */
+    const modernDarkHost = (): Theme =>
+        createTheme({
+            palette: {
+                mode: 'dark',
+                primary: { main: '#137BF8' },
+                divider: '#1E2837',
+                text: { primary: '#E8EDF5', secondary: '#8B97A8', disabled: '#586576' },
+                action: { hover: 'rgba(255, 255, 255, 0.05)', selected: 'rgba(19, 123, 248, 0.16)' },
+                background: { default: '#0A121D', paper: '#121A26' },
+            },
+        });
+    /** The Bernstein preset: same mode as the host, its own surfaces. */
+    const bernstein: UserTheme = {
+        palette: {
+            mode: 'dark',
+            primary: { main: '#fbbf24' },
+            background: { default: '#18140a', paper: '#221c11' },
+        },
+    };
+
+    it('lets a preset with its own surfaces take the neutrals of its mode instead of the host ones', () => {
+        const theme = resolveCollectionTheme(modernDarkHost(), {}, bernstein);
+        const darkDefaults = createTheme({ palette: { mode: 'dark' } }).palette;
+        expect(theme.palette.divider).toBe(darkDefaults.divider);
+        expect(theme.palette.text.secondary).toBe(darkDefaults.text.secondary);
+        expect(theme.palette.text.disabled).toBe(darkDefaults.text.disabled);
+        expect(theme.palette.action.hover).toBe(darkDefaults.action.hover);
+        expect(theme.palette.action.selected).toBe(darkDefaults.action.selected);
+        expect(theme.palette.background.paper).toBe('#221c11');
+        expect(theme.palette.text.primary).toBe('#fbbf24');
+    });
+
+    it('keeps the host surface the user does not set', () => {
+        const theme = resolveCollectionTheme(
+            modernDarkHost(),
+            {},
+            {
+                palette: { background: { paper: '#221c11' } },
+            },
+        );
+        expect(theme.palette.background.default).toBe('#0A121D');
+        expect(theme.palette.divider).toBe(createTheme({ palette: { mode: 'dark' } }).palette.divider);
+    });
+
+    it('keeps the host neutrals while the user sets no surface', () => {
+        const theme = resolveCollectionTheme(modernDarkHost(), {}, { palette: { primary: { main: '#fbbf24' } } });
+        expect(theme.palette.divider).toBe('#1E2837');
+        expect(theme.palette.text.secondary).toBe('#8B97A8');
+    });
+
+    it('keeps a neutral the user sets next to the surfaces', () => {
+        const theme = resolveCollectionTheme(
+            modernDarkHost(),
+            {},
+            {
+                palette: { ...bernstein.palette, divider: '#3a2f1a' },
+            },
+        );
+        expect(theme.palette.divider).toBe('#3a2f1a');
+    });
+});

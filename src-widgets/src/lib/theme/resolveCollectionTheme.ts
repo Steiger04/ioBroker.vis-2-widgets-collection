@@ -211,26 +211,40 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
     return cleaned === palette ? theme : { ...theme, palette: cleaned };
 }
 
-/** Host palette keys whose values belong to the host's mode (neutrals, surfaces, states). */
-const MODE_BOUND_PALETTE_KEYS = ['text', 'background', 'divider', 'action'] as const;
+/** Host palette keys tuned to the host's surfaces (neutral text, lines, state shades). */
+const SURFACE_BOUND_PALETTE_KEYS = ['text', 'divider', 'action'] as const;
 
 /**
- * Drops the host's mode-bound palette neutrals when the user theme switches the mode.
+ * Drops the host's palette neutrals that belong to surfaces the user theme replaces.
  *
  * @remarks
- * A light preset over the dark vis-2 host would otherwise keep the host's white secondary
- * text, dark surfaces and dark-mode action shades; without them MUI generates the neutrals
- * of the user's mode. Accents, typography and the rest of the host DNA stay (ADR-0078 no. 2).
+ * The host neutrals are tuned to the host's surfaces: modernDark carries an opaque navy
+ * divider and slate secondary text, the standard dark theme white secondary text. Under a
+ * user theme with its own surfaces or the other mode they clash or vanish (a light preset
+ * kept white labels, Bernstein kept a navy line on warm paper). Without them MUI generates
+ * the translucent neutrals of the effective mode, which take on the hue of any paper. A
+ * mode switch drops the host surfaces as well. Neutrals the user sets win; accents,
+ * typography and the rest of the host DNA stay (ADR-0078 no. 2).
  */
-function withoutHostModeNeutrals(host: ThemeOptions, userTheme: UserTheme): ThemeOptions {
-    const userMode = getNestedValue<string>(userTheme, 'palette.mode');
+function withoutReplacedHostNeutrals(host: ThemeOptions, userTheme: UserTheme): ThemeOptions {
     const { palette } = host;
-    if (!userMode || !isPlainObject(palette) || palette.mode === userMode) {
+    if (!isPlainObject(palette)) {
+        return host;
+    }
+    const userMode = getNestedValue<string>(userTheme, 'palette.mode');
+    const switchesMode = !!userMode && palette.mode !== userMode;
+    const setsSurface =
+        !!getNestedValue<string>(userTheme, 'palette.background.paper') ||
+        !!getNestedValue<string>(userTheme, 'palette.background.default');
+    if (!switchesMode && !setsSurface) {
         return host;
     }
     const cleaned: Record<string, unknown> = { ...palette };
-    for (const key of MODE_BOUND_PALETTE_KEYS) {
+    for (const key of SURFACE_BOUND_PALETTE_KEYS) {
         delete cleaned[key];
+    }
+    if (switchesMode) {
+        delete cleaned.background;
     }
     return { ...host, palette: cleaned };
 }
@@ -249,8 +263,8 @@ export function resolveCollectionTheme(
     userTheme: UserTheme,
 ): Theme {
     // Reduce the host to inheritable DNA (no cssVars machinery, no component skin); a user
-    // theme in the other mode does not inherit the host's mode-bound neutrals.
-    const hostSanitized = withoutHostModeNeutrals(sanitizeHostTheme(hostTheme), userTheme);
+    // theme with its own surfaces or the other mode does not inherit the host's neutrals.
+    const hostSanitized = withoutReplacedHostNeutrals(sanitizeHostTheme(hostTheme), userTheme);
     // Text follows the effective primary (user override wins, else the host primary), so body
     // text stays consistent with the chosen accent.
     const hostPrimary = getNestedValue<string>(hostSanitized, 'palette.primary.main');
