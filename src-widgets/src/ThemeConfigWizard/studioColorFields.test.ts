@@ -223,6 +223,17 @@ describe('field texts', () => {
         expect(hints.every(key => key.startsWith('theme_studio_hint_'))).toBe(true);
     });
 
+    // ADR-0124 no. 7: whoever changes a status colour learns that the heating widgets take it.
+    it.each([
+        { path: 'palette.error.main', meaning: 'faults and notices' },
+        { path: 'palette.warning.main', meaning: 'heating (warmth), not a warning' },
+        { path: 'palette.info.main', meaning: 'cool, e.g. window open' },
+    ])('names what $path means in the heating widgets', ({ path, meaning }) => {
+        const hint = (en as Record<string, string>)[STUDIO_COLOR_FIELDS.find(entry => entry.path === path)!.hintKey];
+
+        expect(hint).toContain(`In the heating widgets: ${meaning}.`);
+    });
+
     it.each([
         ['en', en as Record<string, string>],
         ['de', de as Record<string, string>],
