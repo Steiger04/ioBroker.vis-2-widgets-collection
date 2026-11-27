@@ -4,15 +4,16 @@
  *
  * @module HeatingThermostatCollectionWidget/ThermostatStage
  * @remarks
- * The content hands over all of its parts, whatever the arrangement; the plan of the box
- * (`thermostatPlan`) names the arrangement and its sizes, and the placement here alone decides which
- * part stands where. The Kartenkopf and the hint line stand while the middle scrolls. A place
- * without content draws nothing.
+ * The content hands over all of its parts, drawn at the plan's sizes, whatever the arrangement; the
+ * plan of the box (`thermostatPlan`) names the arrangement and its sizes, and the placement here
+ * alone decides which part stands where — its gaps and Groß's column from the plan too. The
+ * Kartenkopf and the hint line stand while the middle scrolls. A place without content draws
+ * nothing.
  * - Groß: Kartenkopf (row, with symbol and Unterzeile); dial; hint line; pills, operating-mode
  *   segment, readings.
  * - Mittel: Kartenkopf (row); dial; the hint line only for a Meldung.
  * - Quer: Kartenkopf (stacked) with a Meldung, else the actual temperature, beside the big
- *   set-point; the operating-mode segment below, from sufficient height.
+ *   set-point in the theme's h3; the operating-mode segment below, from sufficient height.
  * - Kompakt: Kartenkopf (row); big set-point sized to its row; a Meldung, else the actual
  *   temperature.
  * - The tile: the set-point sized to the tile, ± and the footer line (a Meldung, else the actual
@@ -21,22 +22,22 @@
 import { Box } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import type { ThermostatDial, ThermostatStagePlan, ThermostatTilePlan } from './thermostatStages';
+import type { SetpointFont, ThermostatDial, ThermostatStagePlan, ThermostatTilePlan } from './thermostatStages';
 import type { KartenkopfForm } from '../lib/heating/Kartenkopf';
 import type { TileContent } from '../lib/heating/SizeStages';
 import type { HintLineProps } from './HintLine';
 
-/** How the Meldung's hint line looks in a place. */
-export type MessageLook = Omit<HintLineProps, 'hint'>;
+/** How the Meldung's hint line looks in a place (its sizes come with the parts). */
+export type MessageLook = Omit<HintLineProps, 'hint' | 'sizes'>;
 
-/** All parts of the Raumthermostat's content, for every arrangement alike. */
+/** All parts of the Raumthermostat's content at the plan's sizes, for every arrangement alike. */
 export interface ThermostatParts {
     /** The Kartenkopf in a form; `full` adds the type symbol and the Unterzeile. */
     head: (form: KartenkopfForm, full?: boolean) => ReactNode;
     /** The dial in the plan's size. */
     dial: (dial: ThermostatDial) => ReactNode;
-    /** The big set-point with its ±, in the theme's h3 or at a font size of the plan. */
-    setpoint: (font?: number) => ReactNode;
+    /** The big set-point with its ±, at the plan's font (px or the theme's h3 at a factor). */
+    setpoint: (font: SetpointFont) => ReactNode;
     /** The pills Absenk / Komfort / Aus. */
     pills: ReactNode;
     /** The operating-mode segment. */
@@ -64,6 +65,7 @@ export interface ThermostatParts {
 export interface ThermostatStageProps {
     /** The plan of a drawn stage. */
     plan: ThermostatStagePlan;
+    /** The parts at the plan's sizes. */
     parts: ThermostatParts;
 }
 
@@ -84,18 +86,25 @@ const slot = (name: string, content: ReactNode): ReactNode =>
         </Box>
     );
 
-/** A region that stands while the middle scrolls. */
-const fixedRegion = (name: string, children: ReactNode): ReactElement => (
+/** A region that stands while the middle scrolls, `gap` spacing units between its places; a column narrows it. */
+const fixedRegion = (name: string, gap: number, children: ReactNode, column: number | null = null): ReactElement => (
     <Box
         data-heating-region={name}
-        sx={{ flex: 'none', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+        sx={{
+            flex: 'none',
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap,
+            ...(column === null ? {} : { width: column, maxWidth: '100%', alignSelf: 'center' }),
+        }}
     >
         {children}
     </Box>
 );
 
-/** The middle region: takes the rest and scrolls. */
-const middleRegion = (children: ReactNode, centred = true): ReactElement => (
+/** The middle region: takes the rest and scrolls, `gap` spacing units between its places. */
+const middleRegion = (gap: number, children: ReactNode, centred = true): ReactElement => (
     <Box
         data-heating-region="middle"
         sx={{
@@ -107,7 +116,7 @@ const middleRegion = (children: ReactNode, centred = true): ReactElement => (
             flexDirection: 'column',
             justifyContent: centred ? 'center' : 'flex-start',
             alignItems: 'stretch',
-            gap: 1.5,
+            gap,
         }}
     >
         {children}
@@ -124,21 +133,24 @@ const middleRegion = (children: ReactNode, centred = true): ReactElement => (
  */
 export default function ThermostatStage({ plan, parts }: ThermostatStageProps): ReactElement {
     let regions: ReactNode;
+    const { gaps } = plan.sizes;
 
     switch (plan.arrangement) {
         case 'gross':
             regions = (
                 <>
-                    {fixedRegion('head', slot('head', parts.head('zeile', true)))}
-                    {middleRegion(slot('dial', parts.dial(plan.dial)))}
-                    {fixedRegion('hint', slot('hint', parts.hint))}
+                    {fixedRegion('head', gaps.region, slot('head', parts.head('zeile', true)))}
+                    {middleRegion(gaps.region, slot('dial', parts.dial(plan.dial)))}
+                    {fixedRegion('hint', gaps.region, slot('hint', parts.hint))}
                     {fixedRegion(
                         'controls',
+                        gaps.region,
                         <>
                             {slot('pills', parts.pills)}
                             {slot('modes', parts.modes)}
                             {slot('readings', parts.readings)}
                         </>,
+                        plan.column,
                     )}
                 </>
             );
@@ -146,9 +158,9 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
         case 'mittel':
             regions = (
                 <>
-                    {fixedRegion('head', slot('head', parts.head('zeile')))}
-                    {middleRegion(slot('dial', parts.dial(plan.dial)))}
-                    {fixedRegion('hint', slot('hint', parts.message()))}
+                    {fixedRegion('head', gaps.region, slot('head', parts.head('zeile')))}
+                    {middleRegion(gaps.region, slot('dial', parts.dial(plan.dial)))}
+                    {fixedRegion('hint', gaps.region, slot('hint', parts.message()))}
                 </>
             );
             break;
@@ -157,9 +169,17 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                 <>
                     <Box
                         data-heating-region="head"
-                        sx={{ flex: 'none', minWidth: 0, display: 'flex', alignItems: 'center', gap: 2 }}
+                        sx={{ flex: 'none', minWidth: 0, display: 'flex', alignItems: 'center', gap: gaps.querHead }}
                     >
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minWidth: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: gaps.querText,
+                            }}
+                        >
                             {slot('head', parts.head('gestapelt'))}
                             <Box
                                 data-heating-region="hint"
@@ -168,19 +188,18 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                                 {slot('hint', parts.message({ align: 'start' }) ?? parts.actual)}
                             </Box>
                         </Box>
-                        {/* Quer keeps the set-point in the theme's h3. */}
-                        {slot('setpoint', parts.setpoint())}
+                        {slot('setpoint', parts.setpoint(plan.setpointFont))}
                     </Box>
-                    {middleRegion(plan.modes ? slot('modes', parts.modes) : null, false)}
+                    {middleRegion(gaps.region, plan.modes ? slot('modes', parts.modes) : null, false)}
                 </>
             );
             break;
         default:
             regions = (
                 <>
-                    {fixedRegion('head', slot('head', parts.head('zeile')))}
-                    {middleRegion(slot('setpoint', parts.setpoint(plan.setpointFont)))}
-                    {fixedRegion('hint', slot('hint', parts.message({ align: 'center' }) ?? parts.actual))}
+                    {fixedRegion('head', gaps.region, slot('head', parts.head('zeile')))}
+                    {middleRegion(gaps.region, slot('setpoint', parts.setpoint(plan.setpointFont)))}
+                    {fixedRegion('hint', gaps.region, slot('hint', parts.message({ align: 'center' }) ?? parts.actual))}
                 </>
             );
     }
@@ -195,7 +214,7 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                 minHeight: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1.5,
+                gap: gaps.region,
             }}
         >
             {regions}
@@ -206,7 +225,7 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
 /**
  * The Raumthermostat tile by its plan: the set-point, ± and the footer line where they fit.
  *
- * @param parts - The content's parts.
+ * @param parts - The content's parts at the tile plan's sizes.
  * @param tile - The tile's plan.
  * @returns What the tile hull shows below its head.
  */
@@ -215,6 +234,6 @@ export function thermostatTileContent(parts: ThermostatParts, tile: ThermostatTi
         main: parts.tile.main(tile.setpointFont),
         start: tile.buttons ? parts.tile.decrease : null,
         end: tile.buttons ? parts.tile.increase : null,
-        line: tile.footer ? (parts.message({ size: 'tile', align: 'start' }) ?? parts.actual) : null,
+        line: tile.footer ? (parts.message({ align: 'start' }) ?? parts.actual) : null,
     };
 }

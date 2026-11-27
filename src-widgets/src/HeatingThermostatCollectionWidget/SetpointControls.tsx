@@ -30,6 +30,8 @@ export interface StepButtonProps {
     readonly disabled: boolean;
     /** Edge length in px. */
     readonly size: number;
+    /** The symbol's size in px, drawn in the theme's rem. */
+    readonly iconSize: number;
     readonly onClick: () => void;
 }
 
@@ -40,12 +42,15 @@ export interface StepButtonProps {
  * @param props.direction - − or +.
  * @param props.disabled - Whether it is disabled.
  * @param props.size - Edge length in px.
+ * @param props.iconSize - The symbol's size in px.
  * @param props.onClick - Steps the set-point.
  * @returns The button.
  */
-export function StepButton({ direction, disabled, size, onClick }: StepButtonProps): ReactElement {
+export function StepButton({ direction, disabled, size, iconSize, onClick }: StepButtonProps): ReactElement {
     const reducedMotion = useReducedMotion();
-    const accent = accentColors(useTheme());
+    const theme = useTheme();
+    const accent = accentColors(theme);
+    const iconSx = { fontSize: theme.typography.pxToRem(iconSize) };
     return (
         <IconButton
             data-heating-step={direction}
@@ -65,7 +70,7 @@ export function StepButton({ direction, disabled, size, onClick }: StepButtonPro
                 '&:hover': { bgcolor: accent.hover },
             }}
         >
-            {direction === 'up' ? <Add /> : <Remove />}
+            {direction === 'up' ? <Add sx={iconSx} /> : <Remove sx={iconSx} />}
         </IconButton>
     );
 }
@@ -128,6 +133,8 @@ export interface SetpointDialProps {
     readonly children: ReactNode;
     /** The ± below the centre; none for a set-point that is not writable. */
     readonly buttons: ReactNode;
+    /** The gap between set-point and actual temperature in the centre, in spacing units. */
+    readonly gap: number;
 }
 
 /**
@@ -143,6 +150,7 @@ export interface SetpointDialProps {
  * @param props.onStep - Steps like ±.
  * @param props.children - The centre.
  * @param props.buttons - The ± below the centre.
+ * @param props.gap - The gap in the centre.
  * @returns The dial.
  */
 export function SetpointDial({
@@ -155,6 +163,7 @@ export function SetpointDial({
     onStep,
     children,
     buttons,
+    gap,
 }: SetpointDialProps): ReactElement {
     const theme = useTheme();
     const quiet = neutralColors(theme);
@@ -350,7 +359,7 @@ export function SetpointDial({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 0.5,
+                    gap,
                     pointerEvents: 'none',
                 }}
             >

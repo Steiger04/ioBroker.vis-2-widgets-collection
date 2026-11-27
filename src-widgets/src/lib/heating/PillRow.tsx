@@ -10,7 +10,8 @@
  * quiet in the Neutralstufe — its line, its label and a faint surface (Nachtrag 2). The caller
  * decides which pills
  * exist — only those with a writable target — and what a tap writes; a pill without an action only
- * shows a state (disabled, still lit). An empty row draws nothing.
+ * shows a state (disabled, still lit) — and the row's sizes (`lib/heating/partSizes`, from the
+ * type's plan). An empty row draws nothing.
  * Under `prefers-reduced-motion` there is no ripple and no transition.
  */
 import { Box, ButtonBase, useTheme } from '@mui/material';
@@ -18,6 +19,7 @@ import type { ReactElement } from 'react';
 
 import { useReducedMotion } from './motion';
 import { accentColors, neutralColors } from './tones';
+import type { PillSizes } from './partSizes';
 
 /** One pill of the row. */
 export interface Pill {
@@ -39,6 +41,8 @@ export interface PillRowProps {
     readonly pills: readonly Pill[];
     /** The accessible name of the row as a group; none for an unnamed row. */
     readonly label?: string;
+    /** Its sizes, from the type's plan. */
+    readonly sizes: PillSizes;
 }
 
 /**
@@ -47,9 +51,10 @@ export interface PillRowProps {
  * @param props - Component props.
  * @param props.pills - The pills, in display order.
  * @param props.label - The accessible name of the row as a group.
+ * @param props.sizes - Its sizes.
  * @returns The row; `null` without a pill.
  */
-export default function PillRow({ pills, label }: PillRowProps): ReactElement | null {
+export default function PillRow({ pills, label, sizes }: PillRowProps): ReactElement | null {
     const theme = useTheme();
     const reducedMotion = useReducedMotion();
     if (!pills.length) {
@@ -62,7 +67,11 @@ export default function PillRow({ pills, label }: PillRowProps): ReactElement | 
         <Box
             data-heating-pills=""
             {...(label ? { role: 'group', 'aria-label': label } : {})}
-            sx={{ display: 'grid', gridTemplateColumns: `repeat(${pills.length}, minmax(0, 1fr))`, gap: 1 }}
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${pills.length}, minmax(0, 1fr))`,
+                gap: sizes.rowGapUnits,
+            }}
         >
             {pills.map(pill => (
                 <ButtonBase
@@ -74,15 +83,15 @@ export default function PillRow({ pills, label }: PillRowProps): ReactElement | 
                     onClick={pill.onClick}
                     sx={{
                         minWidth: 0,
-                        height: 44,
-                        gap: '7px',
-                        px: 1,
-                        borderRadius: '14px',
+                        height: sizes.height,
+                        gap: `${sizes.gap}px`,
+                        px: sizes.padUnits,
+                        borderRadius: `${sizes.radius}px`,
                         border: 1,
                         borderColor: pill.active ? 'transparent' : quiet.line,
                         bgcolor: pill.active ? lit.surface : quiet.surface,
                         color: pill.active ? lit.text : quiet.label,
-                        fontSize: 13.5,
+                        fontSize: sizes.font,
                         fontWeight: 500,
                         whiteSpace: 'nowrap',
                         transition: reducedMotion ? 'none' : 'background-color 150ms, color 150ms',

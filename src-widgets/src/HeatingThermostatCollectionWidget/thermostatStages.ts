@@ -16,9 +16,15 @@
  * one stage down.
  *
  * The content draws by one plan (`thermostatPlan`): the helpers below are its pieces, each size
- * computed once there.
+ * computed once there. The plan names the arrangement's Maßstab (ADR-0122 Nachtrag „Maßstab und
+ * Anordnungswahl“, `lib/heating/scaleRule`) and the sizes of every part from it
+ * (`thermostatSizes`): ±, set-point, actual temperature, Kartenkopf and hint line (damped), pills,
+ * readings and gaps; the parts set no size of their own. Every arrangement draws at Maßstab 1 for
+ * now — the design's sizes.
  */
 
+import { kartenkopfSizes, pillSizes, type KartenkopfSizes, type PillSizes } from '../lib/heating/partSizes';
+import { headScale, scaled } from '../lib/heating/scaleRule';
 import type { TileArea } from '../lib/heating/SizeStages';
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
 
@@ -54,6 +60,99 @@ export const SETPOINT_FIT = {
     dialPadding: 26,
     dialBelow: 4 + 28,
 } as const;
+
+/** The Raumthermostat's own parts' design measures (`…Units` in the theme's spacing units, else px). */
+export const THERMOSTAT_DESIGN = {
+    /** The ± edge: beside the big set-point and below the dial, and in the tile. */
+    step: { stage: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile },
+    /** The ± symbol: the theme's icon size (24 px of the standard theme, in rem). */
+    stepIcon: 24,
+    /** The actual temperature: the surrounding text's size, in em. */
+    actual: 1,
+    /** The hint line: its own and the tile footer's smaller one. */
+    hint: {
+        line: { font: 13, sign: 16, gapUnits: 0.75, padXUnits: 1.25, padYUnits: 0.5, radius: 10 },
+        tile: { font: 12, sign: 14, gapUnits: 0.75, padXUnits: 0.75, padYUnits: 0.25, radius: 10 },
+    },
+    /** The readings bar: value, icon and label fonts, its gaps, the top padding above the line. */
+    readings: {
+        value: 16,
+        icon: 16,
+        label: 11.5,
+        gapUnits: 1,
+        topUnits: 1.75,
+        itemGapUnits: 0.375,
+        valueGapUnits: 0.75,
+        markPadUnits: 1,
+    },
+    /**
+     * The gaps: between the regions, ± beside the set-point (`SETPOINT_FIT.flatGap` in the standard
+     * theme), in Quer between the head column and the set-point and below the head, between the
+     * operating-mode segment and the Urlaub row, between the dial's set-point and actual line, between
+     * the word „Ist“ and the actual temperature.
+     */
+    gaps: { region: 1.5, step: 1.5, querHead: 2, querText: 1, modes: 1, dial: 0.5, actual: 1 },
+} as const;
+
+/** The hint line's sizes. */
+export type HintLineSizes = { readonly [Key in keyof typeof THERMOSTAT_DESIGN.hint.line]: number };
+
+/** The readings bar's sizes. */
+export type ReadingSizes = { readonly [Key in keyof typeof THERMOSTAT_DESIGN.readings]: number };
+
+/** The gaps between the parts, in the theme's spacing units. */
+export type ThermostatGaps = { readonly [Key in keyof typeof THERMOSTAT_DESIGN.gaps]: number };
+
+/** Where the parts stand: an arrangement of Voll or Einfach, or the tile. */
+type SizePlace = 'stage' | 'tile';
+
+/** The sizes of all parts the Raumthermostat draws with, at one Maßstab. */
+export interface ThermostatSizes {
+    /** The Maßstab: the factor relative to the design. */
+    readonly scale: number;
+    /** The ± edge in px. */
+    readonly step: number;
+    /** The ± symbol in px (drawn in the theme's rem). */
+    readonly stepIcon: number;
+    /** The actual temperature's size in em of the surrounding text. */
+    readonly actual: number;
+    /** The Kartenkopf, damped. */
+    readonly head: KartenkopfSizes;
+    /** The hint line: damped beside the arrangement, at the Maßstab in the tile's footer. */
+    readonly hint: HintLineSizes;
+    readonly pills: PillSizes;
+    readonly readings: ReadingSizes;
+    readonly gaps: ThermostatGaps;
+}
+
+/**
+ * The sizes of all parts at a Maßstab: the instrument (±, set-point, actual temperature), pills,
+ * readings and gaps at the Maßstab, the Kartenkopf and the hint line damped (`headScale`) — the
+ * tile's footer line grows with the Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 1,
+ * 9).
+ *
+ * @param scale - The Maßstab.
+ * @param place - An arrangement of Voll or Einfach, or the tile.
+ * @returns The sizes.
+ */
+export function thermostatSizes(scale: number, place: SizePlace): ThermostatSizes {
+    const design = THERMOSTAT_DESIGN;
+    const head = headScale(scale);
+    return {
+        scale,
+        step: design.step[place] * scale,
+        stepIcon: design.stepIcon * scale,
+        actual: design.actual * scale,
+        head: kartenkopfSizes(head),
+        hint: place === 'tile' ? scaled(design.hint.tile, scale) : scaled(design.hint.line, head),
+        pills: pillSizes(scale),
+        readings: scaled(design.readings, scale),
+        gaps: scaled(design.gaps, scale),
+    };
+}
+
+/** The Maßstab every arrangement draws at for now: the design's. */
+const DESIGN_SCALE = 1;
 
 /** The design's outer thresholds, converted to the Content-Box. */
 export const THERMOSTAT_THRESHOLDS = {
@@ -238,14 +337,36 @@ export interface ThermostatTilePlan extends ThermostatTileParts {
     readonly setpointFont: number;
 }
 
+/** A font of the theme's typography at a factor. */
+export interface ThemeFont {
+    readonly variant: 'h3';
+    readonly factor: number;
+}
+
+/** The set-point's font: px, or the theme's typography at a factor. */
+export type SetpointFont = number | ThemeFont;
+
+/** What every plan names: the sizes of its parts at its Maßstab. */
+interface SizedPlan {
+    readonly sizes: ThermostatSizes;
+}
+
 /** The plan of a drawn stage: an arrangement of Voll or Einfach and the sizes it draws with. */
-export type ThermostatStagePlan =
-    | { readonly arrangement: 'gross' | 'mittel'; readonly dial: ThermostatDial }
-    | { readonly arrangement: 'quer'; readonly modes: boolean }
-    | { readonly arrangement: 'kompakt'; readonly setpointFont: number };
+export type ThermostatStagePlan = SizedPlan &
+    (
+        | {
+              readonly arrangement: 'gross';
+              readonly dial: ThermostatDial;
+              /** The column of pills, operating modes and readings in px; `null`: the whole width. */
+              readonly column: number | null;
+          }
+        | { readonly arrangement: 'mittel'; readonly dial: ThermostatDial }
+        | { readonly arrangement: 'quer'; readonly modes: boolean; readonly setpointFont: ThemeFont }
+        | { readonly arrangement: 'kompakt'; readonly setpointFont: number }
+    );
 
 /** The plan of the Mini stage: the tile. */
-export interface ThermostatMiniPlan {
+export interface ThermostatMiniPlan extends SizedPlan {
     readonly arrangement: 'mini';
     readonly tile: ThermostatTilePlan;
 }
@@ -258,8 +379,9 @@ export type ThermostatPlan = ThermostatStagePlan | ThermostatMiniPlan;
 
 /**
  * The Raumthermostat's arrangement plan (ADR-0122 Nachtrag K7): from the effective stage, the box
- * and whether the set-point is writable to the arrangement, the operating-mode segment in Quer, the
- * dial's size and font, the set-point's font and the tile's parts.
+ * and whether the set-point is writable to the arrangement, its Maßstab and the sizes of all parts,
+ * the operating-mode segment in Quer, the dial's size and font, the set-point's font, the column of
+ * Groß and the tile's parts.
  *
  * @param stage - The effective stage (Mini for the tile).
  * @param box - The measured Content-Box; for the tile the area the hull leaves it.
@@ -274,19 +396,27 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
         const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
+            sizes: thermostatSizes(DESIGN_SCALE, 'tile'),
             tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile) },
         };
     }
     const arrangement = thermostatArrangement(stage, box);
+    const sizes = thermostatSizes(DESIGN_SCALE, 'stage');
+    const dialOf = (size: number): ThermostatDial => ({ size, font: thermostatDialFont(size) });
     switch (arrangement) {
         case 'gross':
-        case 'mittel': {
-            const size = thermostatDialSize(arrangement, box);
-            return { arrangement, dial: { size, font: thermostatDialFont(size) } };
-        }
+            return { arrangement, sizes, dial: dialOf(thermostatDialSize(arrangement, box)), column: null };
+        case 'mittel':
+            return { arrangement, sizes, dial: dialOf(thermostatDialSize(arrangement, box)) };
         case 'quer':
-            return { arrangement, modes: thermostatQuerModes(box) };
+            return {
+                arrangement,
+                sizes,
+                modes: thermostatQuerModes(box),
+                // Quer keeps the set-point in the theme's h3.
+                setpointFont: { variant: 'h3', factor: sizes.scale },
+            };
         default:
-            return { arrangement, setpointFont: thermostatSetpointFont('kompakt', box, writable) };
+            return { arrangement, sizes, setpointFont: thermostatSetpointFont('kompakt', box, writable) };
     }
 }

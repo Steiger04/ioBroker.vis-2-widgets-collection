@@ -6,7 +6,9 @@
  * @remarks
  * Interface: the name, an optional second line (sub-line or summary), zero or more chips as
  * {text, tone}, the form (`zeile` | `gestapelt`) and — in a type's full arrangement — its fixed
- * type symbol. The type chooses what it hands over per size stage; the status logic stays with it.
+ * type symbol, and its sizes (`lib/heating/partSizes`: the type's plan scales them with the damped
+ * Maßstab, ADR-0122 Nachtrag „Maßstab und Anordnungswahl“). The type chooses what it hands over per
+ * size stage; the status logic stays with it.
  *
  * Hidden behind it: the arrangement (row: symbol, name over second line, chips at the end;
  * stacked: name, second line, chips below), the truncation (name and second line end with an
@@ -21,6 +23,7 @@ import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
 import { accentColors, neutralColors, toneColors, type HeatingTone } from './tones';
+import type { KartenkopfSizes } from './partSizes';
 
 /** The form of the Kartenkopf. */
 export type KartenkopfForm = 'zeile' | 'gestapelt';
@@ -43,8 +46,10 @@ export interface KartenkopfProps {
     chips: readonly KartenkopfChip[];
     /** Row or stacked. */
     form: KartenkopfForm;
-    /** The type's fixed symbol (an icon) in its full arrangement; none elsewhere. */
+    /** The type's fixed symbol (an icon at `sizes.icon`) in its full arrangement; none elsewhere. */
     symbol?: ReactNode;
+    /** Its sizes, from the type's plan. */
+    sizes: KartenkopfSizes;
 }
 
 /**
@@ -53,9 +58,10 @@ export interface KartenkopfProps {
  *
  * @param props - Component props.
  * @param props.chip - The chip.
+ * @param props.sizes - The Kartenkopf's sizes.
  * @returns The chip.
  */
-function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
+function Chip({ chip, sizes }: { chip: KartenkopfChip; sizes: KartenkopfSizes }): ReactElement {
     const theme = useTheme();
     const quiet = chip.tone === 'neutral';
     const colors = toneColors(theme, chip.tone);
@@ -69,12 +75,12 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
                 display: 'inline-flex',
                 flex: 'none',
                 alignItems: 'center',
-                gap: '7px',
-                height: 30,
+                gap: `${sizes.chipGap}px`,
+                height: sizes.chipHeight,
                 // Without a capsule the quiet text needs no inner padding: it lines up with the name.
-                px: quiet ? 0 : 1.5,
+                px: quiet ? 0 : sizes.chipPadUnits,
                 borderRadius: 999,
-                fontSize: 12.5,
+                fontSize: sizes.chipFont,
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
                 ...(quiet ? { color: neutralColors(theme).label } : { bgcolor: colors.surface, color: colors.text }),
@@ -85,7 +91,12 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
                     component="span"
                     aria-hidden
                     data-heating-chip-sign="triangle"
-                    sx={{ width: 9, height: 8, bgcolor: 'currentColor', clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }}
+                    sx={{
+                        width: sizes.chipMarkWidth,
+                        height: sizes.chipMarkHeight,
+                        bgcolor: 'currentColor',
+                        clipPath: 'polygon(50% 0, 100% 100%, 0 100%)',
+                    }}
                 />
             ) : null}
             <span>{chip.text}</span>
@@ -102,9 +113,10 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
  * @param props.chips - The chips.
  * @param props.form - Row or stacked.
  * @param props.symbol - The type's fixed symbol.
+ * @param props.sizes - Its sizes.
  * @returns The head.
  */
-export default function Kartenkopf({ name, secondLine, chips, form, symbol }: KartenkopfProps): ReactElement {
+export default function Kartenkopf({ name, secondLine, chips, form, symbol, sizes }: KartenkopfProps): ReactElement {
     const theme = useTheme();
     const accent = accentColors(theme);
     const quiet = neutralColors(theme);
@@ -114,7 +126,7 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
             data-heating-head-name=""
             component="div"
             noWrap
-            sx={{ maxWidth: '100%', fontSize: 19, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.3 }}
+            sx={{ maxWidth: '100%', fontSize: sizes.name, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.3 }}
         >
             {name}
         </Typography>
@@ -124,17 +136,18 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
             data-heating-head-second=""
             component="div"
             noWrap
-            sx={{ maxWidth: '100%', fontSize: 12.5, color: quiet.label }}
+            sx={{ maxWidth: '100%', fontSize: sizes.second, color: quiet.label }}
         >
             {secondLine}
         </Typography>
     ) : null;
     const chipRow = chips.length ? (
-        <Box sx={{ display: 'flex', flex: 'none', flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', flex: 'none', flexWrap: 'wrap', gap: sizes.chipRowGapUnits }}>
             {chips.map(chip => (
                 <Chip
                     key={`${chip.tone}:${chip.text}`}
                     chip={chip}
+                    sizes={sizes}
                 />
             ))}
         </Box>
@@ -147,7 +160,7 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
                 display: 'flex',
                 flexDirection: stacked ? 'column' : 'row',
                 alignItems: stacked ? 'flex-start' : 'center',
-                gap: stacked ? 1.25 : 1.5,
+                gap: stacked ? sizes.stackGapUnits : sizes.rowGapUnits,
                 minWidth: 0,
             }}
         >
@@ -156,8 +169,8 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
                     data-heating-head-symbol=""
                     aria-hidden
                     sx={{
-                        width: 44,
-                        height: 44,
+                        width: sizes.symbol,
+                        height: sizes.symbol,
                         flex: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -176,7 +189,7 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
                         minWidth: 0,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 0.25,
+                        gap: sizes.textGapUnits,
                     }}
                 >
                     {nameLine}
