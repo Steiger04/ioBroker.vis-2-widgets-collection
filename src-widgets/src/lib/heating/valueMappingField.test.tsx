@@ -566,14 +566,21 @@ describe('Wertezuordnung in the panel — the effective value of a mapping the p
         expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).toBeNull();
     });
 
-    it('keeps the InfoBox for a widget with its own object but no mapping: the widget reads none either', async () => {
+    it('shows the derived mapping for a widget with its own object but no mapping, like the widget reads it', async () => {
+        // E.g. after the user removed the last chip: the key is gone, the object stays.
         const container = await mountRead({
             w1: {
                 fenster: NEUTRAL_WINDOW,
-                fensterObject: { _id: NEUTRAL_WINDOW, type: 'number', commonStates: { 0: 'CLOSED', 2: 'OPEN' } },
+                fensterObject: {
+                    _id: NEUTRAL_WINDOW,
+                    type: 'number',
+                    commonStates: { 0: 'CLOSED', 1: 'TILTED', 2: 'OPEN' },
+                },
             },
         });
 
-        expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).not.toBeNull();
+        expect(chipsOf(neutralRow(container, 'fenster', 'offen'))).toEqual(['OPEN', 'TILTED']);
+        expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).toBeNull();
+        expect(patches).toEqual([]);
     });
 });

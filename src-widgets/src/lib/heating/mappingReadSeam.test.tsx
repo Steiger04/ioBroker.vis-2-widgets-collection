@@ -90,6 +90,20 @@ describe('Lese-Naht — a bound Bedeutung without its Wertezuordnung', () => {
         expect(Object.keys(read).sort()).toEqual(['betriebsart', 'betriebsartObject', 'betriebsartZuordnung']);
     });
 
+    it('reads the derived mapping for a Bedeutung with its own object but no mapping, keeping the object', async () => {
+        // E.g. after the user removed the last chip of a picked Bedeutung: the key is gone.
+        const own = Object.freeze({ _id: MODE, type: 'number', commonStates: { 0: 'AUTO-MODE' } });
+        const stored = Object.freeze({ betriebsart: MODE, betriebsartObject: own });
+        const socket = fakeSocket();
+
+        const read = await readThrough(stored, socket);
+
+        expect(read.betriebsartZuordnung).toEqual({ auto: [0], manuell: [1], urlaub: [2] });
+        expect(read.betriebsartObject).toBe(own);
+        expect(socket.setObject).not.toHaveBeenCalled();
+        expect(socket.setState).not.toHaveBeenCalled();
+    });
+
     it('keeps a stored mapping', async () => {
         const own = { auto: [1], manuell: [0] };
 

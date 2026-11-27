@@ -339,13 +339,17 @@ describe('HeatingThermostatCollectionWidget: window', () => {
         expect(shownWindow(await windowAt(7))).toEqual(['7', null]);
     });
 
-    it('shows the commonStates label of a value whose own object carries no mapping (no read-seam derivation)', async () => {
+    it('reads a missing mapping through the read seam also while the window holds its own object', async () => {
+        // E.g. after the user removed the last chip of the picked window: its object stays.
         const fensterObject = {
             _id: neutral('fenster'),
             type: 'number',
             commonStates: { 0: 'CLOSED', 1: 'TILTED', 2: 'OPEN' },
         };
-        expect(shownWindow(await windowAt(2, { fensterZuordnung: undefined, fensterObject }))).toEqual(['OPEN', null]);
+        expect(shownWindow(await windowAt(2, { fensterZuordnung: undefined, fensterObject }))).toEqual([
+            'heating_neutral_offen',
+            'kühl',
+        ]);
     });
 
     it('reads a missing mapping through the read seam like a pick of the window would store it', async () => {

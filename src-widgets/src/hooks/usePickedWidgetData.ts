@@ -10,8 +10,9 @@
  * derivation; a missing object, a type the field does not take and a socket error read as no usable
  * object (a missing or unreadable channel as none: the derivation reads it as missing). A result
  * stays with its field and id, so a changed id neither loses nor mixes up a read still running.
- * Nothing is written: no widget data, no state. Data whose id fields all carry their own object
- * reads no object; with no unset key that has a default it comes back unchanged.
+ * Nothing is written: no widget data, no state. Data whose id fields all carry their own object,
+ * none with its own derivation leaving a key unset, reads no object; with no unset key that has a
+ * default it comes back unchanged.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 

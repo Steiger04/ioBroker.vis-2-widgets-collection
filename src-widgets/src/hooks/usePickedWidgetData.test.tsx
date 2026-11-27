@@ -15,7 +15,7 @@ import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
 
 import { ANY_VALUE_TYPES } from '../lib/allowedOidTypes';
-import { createIdField } from '../lib/commonObjectFields';
+import { createIdField, type PickedObject } from '../lib/commonObjectFields';
 import { NO_FIELD_DEFAULTS } from '../lib/fieldDefaults';
 import { oidPickFieldsOf, type WidgetDataReading } from '../lib/pickedWidgetData';
 import { createTestRoot } from '../lib/testing/testRoots';
@@ -50,8 +50,11 @@ const PROBE: RxWidgetInfoGroup[] = [
         name: 'common',
         fields: [
             createIdField('probe', ANY_VALUE_TYPES, {
-                pickDerivation: ({ channel }) =>
-                    channel ? { probeZuordnung: { channelType: channel.native.TYPE as unknown } } : undefined,
+                pickDerivation: Object.assign(
+                    ({ channel }: PickedObject) =>
+                        channel ? { probeZuordnung: { channelType: channel.native.TYPE as unknown } } : undefined,
+                    { keys: ['probeZuordnung'] },
+                ),
             }),
         ],
     },

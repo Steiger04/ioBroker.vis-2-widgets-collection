@@ -24,7 +24,7 @@ import { ROLE_TABLE } from './roleTable';
 import { booleanMapping } from './valueMapping';
 
 import type { OidType } from '../../types';
-import type { PickDerivation } from '../commonObjectFields';
+import type { PickDerivation, PickedObject } from '../commonObjectFields';
 import type { MeaningField, NeutralKey } from './meaningCatalog';
 import type { RoleEncoding } from './roleTable';
 import type { DeviceValue, ValueMapping } from './valueMapping';
@@ -151,11 +151,15 @@ export function recogniseState(object: ioBroker.Object, channel?: ioBroker.Objec
  * @returns The derivation: `{ <bedeutung>Zuordnung: mapping }` or nothing. The pick chain fills it
  *   only into an unset key, so a set mapping stays.
  */
-export const mappingPickDerivation =
-    (field: MeaningField, entry?: number): PickDerivation =>
-    ({ object, channel }) => {
-        const recognised = recogniseState(object, channel);
-        return recognised?.meaning === field && recognised.mapping
-            ? { [meaningKeys(field, entry).mapping]: recognised.mapping }
-            : undefined;
-    };
+export const mappingPickDerivation = (field: MeaningField, entry?: number): PickDerivation => {
+    const mappingKey = meaningKeys(field, entry).mapping;
+    return Object.assign(
+        ({ object, channel }: PickedObject) => {
+            const recognised = recogniseState(object, channel);
+            return recognised?.meaning === field && recognised.mapping
+                ? { [mappingKey]: recognised.mapping }
+                : undefined;
+        },
+        { keys: [mappingKey] },
+    );
+};

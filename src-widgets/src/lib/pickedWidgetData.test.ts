@@ -98,10 +98,13 @@ describe('pickedWidgetData — a field with its own pick derivation', () => {
      */
     const visAttrs = visAttrsOf(
         createIdField('probe', ANY_VALUE_TYPES, {
-            pickDerivation: ({ object, channel }) =>
-                channel
-                    ? { probeZuordnung: { role: object.common.role, channelType: channel.native.TYPE as unknown } }
-                    : undefined,
+            pickDerivation: Object.assign(
+                ({ object, channel }: PickedObject) =>
+                    channel
+                        ? { probeZuordnung: { role: object.common.role, channelType: channel.native.TYPE as unknown } }
+                        : undefined,
+                { keys: ['probeZuordnung'] },
+            ),
         }),
     );
     const DERIVED = { role: 'level.temperature', channelType: 'HEATING_CLIMATECONTROL_TRANSCEIVER' };
@@ -142,9 +145,36 @@ describe('pickedWidgetData — a field with its own pick derivation', () => {
         expect(readFor(visAttrs, { probe: SETPOINT }, null)).not.toHaveProperty('probeZuordnung');
     });
 
-    it('derives nothing for a field whose object belongs to its id', () => {
-        const stored = { probe: SETPOINT, probeObject: { _id: SETPOINT } };
+    it('reads its derivation for a field whose object belongs to its id but whose derived key is unset', () => {
+        const own = { _id: SETPOINT, type: 'number' };
+        const stored = frozen({ probe: SETPOINT, probeObject: own });
 
+        const read = readFor(visAttrs, stored, picked);
+
+        expect(read.probeZuordnung).toEqual(DERIVED);
+        expect(read.probeObject).toBe(own);
+        expect(stored).toEqual({ probe: SETPOINT, probeObject: own });
+    });
+
+    it('keeps its own object when the object read finds no usable object', () => {
+        const own = { _id: SETPOINT, type: 'number' };
+        const read = readFor(visAttrs, { probe: SETPOINT, probeObject: own }, null);
+
+        expect(read.probeObject).toBe(own);
+        expect(read).not.toHaveProperty('probeZuordnung');
+    });
+
+    it('awaits nothing for a field whose object belongs to its id and whose derived keys are set', () => {
+        const stored = { probe: SETPOINT, probeObject: { _id: SETPOINT }, probeZuordnung: { an: [true] } };
+
+        expect(awaitedObjectsOf(stored, oidPickFieldsOf(visAttrs))).toEqual([]);
         expect(readFor(visAttrs, stored, picked)).toBe(stored);
+    });
+
+    it('awaits nothing for a field without a derivation whose object belongs to its id', () => {
+        const plain = visAttrsOf(createIdField('soll', ANY_VALUE_TYPES, { inventRange: false }));
+        const stored = { soll: SETPOINT, sollObject: { _id: SETPOINT } };
+
+        expect(awaitedObjectsOf(stored, oidPickFieldsOf(plain))).toEqual([]);
     });
 });

@@ -12,10 +12,12 @@
  * conversion). Taking the last chip out takes the neutral value out („noch nicht zugeordnet“).
  *
  * The rows show the effective mapping — what the widget reads: the stored one, else for a bound
- * Bedeutung without its stored object (inserted by the AI assistant) the one the pick of that field
- * derives (the Lese-Naht, read through the same hook as the widget, `hooks/usePickedWidgetData`;
- * its derived object supplies the value list). Showing it writes nothing; the first change stores
- * the whole effective mapping.
+ * Bedeutung without its stored mapping (inserted by the AI assistant, or its last chip taken out)
+ * the one the pick of that field derives (the Lese-Naht, read through the same hook as the widget,
+ * `hooks/usePickedWidgetData`; without a stored object its derived object supplies the value list).
+ * Showing it writes nothing; the first change stores the whole effective mapping. Taking the last
+ * chip out therefore shows the derived mapping again; „nicht vorhanden“ stays the way to map a
+ * neutral value to nothing.
  *
  * Every change reports the whole `<bedeutung>Zuordnung` in one patch (`null` for an emptied one):
  * vis-2 keeps a missing key's old value. Under a multi-selection the field reads the first selected

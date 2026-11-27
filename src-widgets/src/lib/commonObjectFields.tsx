@@ -139,12 +139,38 @@ interface OidPickOptions {
  * An id field's own pick derivation: further keys its pick takes from the picked object (and its
  * channel), beyond what the shared derivation writes — e.g. the Wertezuordnung of a heating
  * Bedeutung (ADR-0120). Its keys fill only keys the data leaves unset, in the editor pick and in
- * the Lese-Naht alike (`lib/pickedWidgetData`).
- *
- * @param picked - What {@link loadPickedObjectAsync} read, the channel included.
- * @returns The derived keys; `undefined` or `{}` for none.
+ * the Lese-Naht alike (`lib/pickedWidgetData`) — there also for a field that holds its own object
+ * while one of its {@link PickDerivation.keys} is unset.
  */
-export type PickDerivation = (picked: PickedObject) => Readonly<Record<string, unknown>> | undefined;
+export interface PickDerivation {
+    /**
+     * @param picked - What {@link loadPickedObjectAsync} read, the channel included.
+     * @returns The derived keys; `undefined` or `{}` for none.
+     */
+    (picked: PickedObject): Readonly<Record<string, unknown>> | undefined;
+    /** Every key the derivation may write. */
+    readonly keys: readonly string[];
+}
+
+/**
+ * Fills `data` with what a field's own derivation takes from `picked`, only into unset keys: what
+ * is set wins.
+ *
+ * @param data - The widget data, changed in place (top-level keys only).
+ * @param picked - What {@link loadPickedObjectAsync} read.
+ * @param pickDerivation - The field's own derivation; none: nothing changes.
+ */
+export const applyPickDerivation = (
+    data: WidgetData,
+    picked: PickedObject,
+    pickDerivation: PickDerivation | undefined,
+): void => {
+    for (const [key, value] of Object.entries(pickDerivation?.(picked) ?? {})) {
+        if (!isUnset(value) && isUnset(data[key])) {
+            data[key] = value;
+        }
+    }
+};
 
 /**
  * Stores a bound the object really has in a root field and removes the field otherwise.
@@ -331,11 +357,7 @@ export const applyObjectPick = (
     }
 
     // The field's own derivation fills only what the data leaves unset: what is set wins.
-    for (const [key, value] of Object.entries(pickDerivation?.(picked) ?? {})) {
-        if (!isUnset(value) && isUnset(data[key])) {
-            data[key] = value;
-        }
-    }
+    applyPickDerivation(data, picked, pickDerivation);
 };
 
 /**

@@ -12,7 +12,7 @@ import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 import { ANY_VALUE_TYPES, JSON_TABLE_TYPES } from './allowedOidTypes';
-import commonObjectFields, { createIdField, oidChangeHandlerAsync } from './commonObjectFields';
+import commonObjectFields, { createIdField, oidChangeHandlerAsync, type PickedObject } from './commonObjectFields';
 
 const STATUS = 'zigbee.0.lamp.mode_status';
 const COMMAND = 'zigbee.0.lamp.mode_set';
@@ -275,8 +275,11 @@ describe('createIdField — an auxiliary ID with { inventRange: false } copies o
 describe('createIdField — a field with its own pick derivation', () => {
     /** Stand-in field: derives `probeZuordnung` from the state's role and its channel's id. */
     const probeField = createIdField('probe', ANY_VALUE_TYPES, {
-        pickDerivation: ({ object, channel }) =>
-            channel ? { probeZuordnung: { role: object.common.role, channel: channel._id } } : undefined,
+        pickDerivation: Object.assign(
+            ({ object, channel }: PickedObject) =>
+                channel ? { probeZuordnung: { role: object.common.role, channel: channel._id } } : undefined,
+            { keys: ['probeZuordnung'] },
+        ),
     });
     const pickProbe = (data: WidgetData, socket?: Connection): Promise<WidgetData> =>
         pick('probe', data, (probeField as { onChange: RxWidgetInfoFieldChangeHandler }).onChange, socket);
