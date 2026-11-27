@@ -211,6 +211,30 @@ function withoutUnusableColors(theme: UserTheme): UserTheme {
     return cleaned === palette ? theme : { ...theme, palette: cleaned };
 }
 
+/** Host palette keys whose values belong to the host's mode (neutrals, surfaces, states). */
+const MODE_BOUND_PALETTE_KEYS = ['text', 'background', 'divider', 'action'] as const;
+
+/**
+ * Drops the host's mode-bound palette neutrals when the user theme switches the mode.
+ *
+ * @remarks
+ * A light preset over the dark vis-2 host would otherwise keep the host's white secondary
+ * text, dark surfaces and dark-mode action shades; without them MUI generates the neutrals
+ * of the user's mode. Accents, typography and the rest of the host DNA stay (ADR-0078 no. 2).
+ */
+function withoutHostModeNeutrals(host: ThemeOptions, userTheme: UserTheme): ThemeOptions {
+    const userMode = getNestedValue<string>(userTheme, 'palette.mode');
+    const { palette } = host;
+    if (!userMode || !isPlainObject(palette) || palette.mode === userMode) {
+        return host;
+    }
+    const cleaned: Record<string, unknown> = { ...palette };
+    for (const key of MODE_BOUND_PALETTE_KEYS) {
+        delete cleaned[key];
+    }
+    return { ...host, palette: cleaned };
+}
+
 /**
  * Resolves the effective collection theme.
  *
@@ -224,8 +248,9 @@ export function resolveCollectionTheme(
     overrides: ThemeOptions | undefined,
     userTheme: UserTheme,
 ): Theme {
-    // Reduce the host to inheritable DNA (no cssVars machinery, no component skin).
-    const hostSanitized = sanitizeHostTheme(hostTheme);
+    // Reduce the host to inheritable DNA (no cssVars machinery, no component skin); a user
+    // theme in the other mode does not inherit the host's mode-bound neutrals.
+    const hostSanitized = withoutHostModeNeutrals(sanitizeHostTheme(hostTheme), userTheme);
     // Text follows the effective primary (user override wins, else the host primary), so body
     // text stays consistent with the chosen accent.
     const hostPrimary = getNestedValue<string>(hostSanitized, 'palette.primary.main');

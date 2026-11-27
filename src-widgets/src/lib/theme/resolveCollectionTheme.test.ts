@@ -286,3 +286,67 @@ describe('resolveCollectionTheme — CSS variables prefix (spec B17)', () => {
         expect(primaryVar({})).toBeUndefined();
     });
 });
+
+describe('resolveCollectionTheme — a user mode other than the host mode', () => {
+    /** The vis-2 standard dark host: white secondary text, dark surfaces. */
+    const darkHost = (): Theme =>
+        createTheme({
+            palette: {
+                mode: 'dark',
+                primary: { main: '#4dabf5' },
+                text: { primary: '#ffffff', secondary: '#ffffff' },
+                background: { default: '#121212', paper: '#121212' },
+            },
+        });
+    /** A light theme the user picked over the dark host (the Daylight preset). */
+    const lightPreset: UserTheme = {
+        palette: {
+            mode: 'light',
+            primary: { main: '#2563eb' },
+            background: { default: '#f8fafc', paper: '#ffffff' },
+        },
+    };
+
+    it("drops the host's mode-bound neutrals, so a light preset over a dark host stays readable", () => {
+        const theme = resolveCollectionTheme(darkHost(), {}, lightPreset);
+        const lightDefaults = createTheme({ palette: { mode: 'light' } }).palette;
+        expect(theme.palette.mode).toBe('light');
+        expect(theme.palette.text.secondary).toBe(lightDefaults.text.secondary);
+        expect(theme.palette.text.disabled).toBe(lightDefaults.text.disabled);
+        expect(theme.palette.divider).toBe(lightDefaults.divider);
+        expect(theme.palette.action.hover).toBe(lightDefaults.action.hover);
+        expect(theme.palette.background.paper).toBe('#ffffff');
+        expect(theme.palette.text.primary).toBe('#2563eb');
+    });
+
+    it("takes the new mode's surfaces when the user sets only the mode", () => {
+        const theme = resolveCollectionTheme(darkHost(), {}, { palette: { mode: 'light' } });
+        const lightDefaults = createTheme({ palette: { mode: 'light' } }).palette;
+        expect(theme.palette.background.paper).toBe(lightDefaults.background.paper);
+        expect(theme.palette.background.default).toBe(lightDefaults.background.default);
+        // The host accent stays the inherited DNA (ADR-0078 no. 2).
+        expect(theme.palette.primary.main).toBe('#4dabf5');
+    });
+
+    it('keeps the host neutrals when the user mode matches the host mode', () => {
+        const theme = resolveCollectionTheme(
+            darkHost(),
+            {},
+            { palette: { mode: 'dark', primary: { main: '#34d399' } } },
+        );
+        expect(theme.palette.text.secondary).toBe('#ffffff');
+        expect(theme.palette.background.paper).toBe('#121212');
+    });
+
+    it('keeps a neutral the user sets explicitly', () => {
+        const theme = resolveCollectionTheme(
+            darkHost(),
+            {},
+            {
+                palette: { mode: 'light', text: { secondary: '#445566' }, divider: '#abcdef' },
+            },
+        );
+        expect(theme.palette.text.secondary).toBe('#445566');
+        expect(theme.palette.divider).toBe('#abcdef');
+    });
+});
