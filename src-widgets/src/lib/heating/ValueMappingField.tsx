@@ -11,19 +11,28 @@
  * free input; a value is stored in the data point's type (`convertToOidType`, the write chain's
  * conversion). Taking the last chip out takes the neutral value out („noch nicht zugeordnet“).
  *
+ * The rows show the effective mapping — what the widget reads: the stored one, else for a bound
+ * Bedeutung without its stored object (inserted by the AI assistant) the one the pick of that field
+ * derives (the Lese-Naht, read through the same hook as the widget, `hooks/usePickedWidgetData`;
+ * its derived object supplies the value list). Showing it writes nothing; the first change stores
+ * the whole effective mapping.
+ *
  * Every change reports the whole `<bedeutung>Zuordnung` in one patch (`null` for an emptied one):
  * vis-2 keeps a missing key's old value. Under a multi-selection the field reads the first selected
  * widget, as the other custom fields do, and its patch goes into every selected widget.
  */
 import { Autocomplete, Box, FormControlLabel, Switch, TextField } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type React from 'react';
 
 import { InfoBox } from '../../components/controls';
 import { readSelectedWidgetDatas } from '../../components/selectedWidgets';
+import usePickedWidgetData from '../../hooks/usePickedWidgetData';
 import { convertToOidType } from '../../hooks/useValueState';
+import { NO_FIELD_DEFAULTS } from '../fieldDefaults';
 import { translate } from '../translate';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { meaningPickField } from './meaningPick';
 import {
     booleanMapping,
     isInvertedMapping,
@@ -38,6 +47,7 @@ import {
 import type { MappingShape, MeaningField, NeutralKey } from './meaningCatalog';
 import type { DeviceValue, MappingAdditionValue, ValueMapping } from './valueMapping';
 import type { OidType } from '../../types';
+import type { WidgetDataReading } from '../pickedWidgetData';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 
 /** The stored object of a Bedeutung's pick, as far as the field reads it. */
@@ -345,13 +355,19 @@ function ValueMappingField({
     props,
 }: ValueMappingFieldProps): React.JSX.Element | null {
     const shape = MEANINGS[field].mapping;
+    const keys = meaningKeys(field, entry);
+    const widget = readSelectedWidgetDatas(data, props)[0];
+    // The Lese-Naht of this one field, as the widget runs it: no defaults, only its own pick.
+    const reading = useMemo<WidgetDataReading>(
+        () => ({ oidPickFields: [meaningPickField(field, entry)], defaults: NO_FIELD_DEFAULTS }),
+        [field, entry],
+    );
+    const effective = usePickedWidgetData(widget, reading, props.context.socket);
     if (!shape) {
         return null;
     }
-    const keys = meaningKeys(field, entry);
-    const widget = readSelectedWidgetDatas(data, props)[0];
-    const object = widget[keys.object] as StoredObject;
-    const mapping = readValueMapping(widget[keys.mapping], shape);
+    const object = effective[keys.object] as StoredObject;
+    const mapping = readValueMapping(effective[keys.mapping], shape);
     const rowProps: RowProps = {
         shape,
         mapping,
