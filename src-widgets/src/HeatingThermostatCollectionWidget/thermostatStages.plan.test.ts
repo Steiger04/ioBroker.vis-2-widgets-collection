@@ -160,6 +160,20 @@ describe('thermostatPlan: Einfach', () => {
         expect(themed.sizes.scale).toBeLessThan(standard.sizes.scale);
     });
 
+    it.each([
+        ['the standard theme (text 16 px): ± bind', 16, 40 / 52],
+        ['a theme with 14 px of text: the actual temperature binds', 14, 11 / 14],
+    ])('keeps the actual temperature at 11 px or more at the least Maßstab in %s', (_case, text, least) => {
+        // A box too small for Einfach — floored in the dialog — draws at the least Maßstab.
+        const plan = thermostatPlan('einfach', { width: 156, height: 66 }, true, {
+            measures: { spacing: 8, text, textLine: 1.5, h3: 48 },
+        });
+
+        expect(plan.sizes.scale).toBeCloseTo(least, 6);
+        expect(plan.sizes.actual).toBeCloseTo(text * least, 6);
+        expect(plan.sizes.actual).toBeGreaterThanOrEqual(11 - 1e-9);
+    });
+
     it('caps the Maßstab at 2.0', () => {
         expect(thermostatPlan('einfach', { width: 2000, height: 1000 }, true).sizes.scale).toBe(2);
     });
@@ -256,7 +270,7 @@ const DESIGN_SIZES = {
     scale: 1,
     step: 52,
     stepIcon: 24,
-    actual: 1,
+    actual: 16,
     head: {
         name: 19,
         second: 12.5,

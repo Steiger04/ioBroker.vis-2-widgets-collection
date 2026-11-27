@@ -91,8 +91,6 @@ export const THERMOSTAT_DESIGN = {
     step: { stage: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile },
     /** The ± symbol: the theme's icon size (24 px of the standard theme, in rem). */
     stepIcon: 24,
-    /** The actual temperature: the surrounding text's size, in em. */
-    actual: 1,
     /** The hint line: its own and the tile footer's smaller one. */
     hint: {
         line: { font: 13, sign: 16, gapUnits: 0.75, padXUnits: 1.25, padYUnits: 0.5, radius: 10 },
@@ -122,6 +120,12 @@ export const THERMOSTAT_DESIGN = {
     gaps: { region: 1.5, step: 1.5, querHead: 2, querText: 1, modes: 1, dial: 0.5, actual: 1 },
 } as const;
 
+/**
+ * The actual temperature's value in em of its line, whose word „Ist“ stands in the theme's text at
+ * the Maßstab (`ThermostatSizes.actual`).
+ */
+export const ACTUAL_VALUE_EM = 1.15;
+
 /** The hint line's sizes. */
 export type HintLineSizes = { readonly [Key in keyof typeof THERMOSTAT_DESIGN.hint.line]: number };
 
@@ -142,7 +146,7 @@ export interface ThermostatSizes {
     readonly step: number;
     /** The ± symbol in px (drawn in the theme's rem). */
     readonly stepIcon: number;
-    /** The actual temperature's size in em of the surrounding text. */
+    /** The actual temperature's line in px: the theme's text at the Maßstab. */
     readonly actual: number;
     /** The Kartenkopf, damped. */
     readonly head: KartenkopfSizes;
@@ -161,16 +165,21 @@ export interface ThermostatSizes {
  *
  * @param scale - The Maßstab.
  * @param place - An arrangement of Voll or Einfach, or the tile.
+ * @param measures - The theme's measures: the actual temperature stands in its text.
  * @returns The sizes.
  */
-export function thermostatSizes(scale: number, place: SizePlace): ThermostatSizes {
+export function thermostatSizes(
+    scale: number,
+    place: SizePlace,
+    measures: ThemeMeasures = STANDARD_THEME_MEASURES,
+): ThermostatSizes {
     const design = THERMOSTAT_DESIGN;
     const head = headScale(scale);
     return {
         scale,
         step: design.step[place] * scale,
         stepIcon: design.stepIcon * scale,
-        actual: design.actual * scale,
+        actual: measures.text * scale,
         head: kartenkopfSizes(head),
         hint: place === 'tile' ? scaled(design.hint.tile, scale) : scaled(design.hint.line, head),
         pills: pillSizes(scale),
@@ -212,16 +221,24 @@ const NAME_LINE = 1.3;
 export const EINFACH_FIT = { querColumn: 140, line: 28 } as const;
 
 /**
- * The least Maßstab of Einfach: ± keep 40 px. The damped texts (the Kartenkopf's 12.5 px, the hint
- * line's 13 px) stay above 11 px there; the set-point is far larger.
+ * The least Maßstab of Einfach: ± keep 40 px and the actual temperature — the theme's text at the
+ * Maßstab — 11 px. The damped texts (the Kartenkopf's 12.5 px, the hint line's 13 px) stay above
+ * 11 px there; the set-point is far larger.
+ *
+ * @param measures - The theme's measures.
+ * @returns The least Maßstab.
  */
-export const EINFACH_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [] });
+const einfachLeast = (measures: ThemeMeasures): number =>
+    leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [measures.text] });
 
-/** The least Maßstab of Quer with the operating-mode segment: its pills' 13.5 px keep 11 px as well. */
-export const QUER_MODES_LEAST = leastScale({
-    controls: [THERMOSTAT_DESIGN.step.stage],
-    texts: [PILL_DESIGN.font],
-});
+/**
+ * The least Maßstab of Quer with the operating-mode segment: its pills' 13.5 px keep 11 px as well.
+ *
+ * @param measures - The theme's measures.
+ * @returns The least Maßstab.
+ */
+const querModesLeast = (measures: ThemeMeasures): number =>
+    leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [measures.text, PILL_DESIGN.font] });
 
 /**
  * The big set-point's row at a Maßstab: the set-point at the theme's h3, ± with their gap beside it
@@ -327,12 +344,14 @@ export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean, sha
     const quer = fittingScale(scale => fits(querNeed(scale, writable, false, measures)));
     const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable, measures)));
     // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
-    if (fits(querNeed(EINFACH_LEAST, writable, false, measures)) && quer >= kompakt) {
-        const modes = fits(querNeed(QUER_MODES_LEAST, writable, true, measures));
+    const least = einfachLeast(measures);
+    if (fits(querNeed(least, writable, false, measures)) && quer >= kompakt) {
+        const modesLeast = querModesLeast(measures);
+        const modes = fits(querNeed(modesLeast, writable, true, measures));
         const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true, measures))) : quer;
-        return { arrangement: 'quer', modes, scale: Math.max(modes ? QUER_MODES_LEAST : EINFACH_LEAST, scale) };
+        return { arrangement: 'quer', modes, scale: Math.max(modes ? modesLeast : least, scale) };
     }
-    return { arrangement: 'kompakt', scale: Math.max(EINFACH_LEAST, kompakt) };
+    return { arrangement: 'kompakt', scale: Math.max(least, kompakt) };
 }
 
 /**
@@ -346,7 +365,8 @@ export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean, sha
 export function thermostatEinfachHolds(box: MeasuredBox, shape: ThermostatShape): boolean {
     const fits = holds(box);
     const { measures } = shape;
-    return fits(querNeed(EINFACH_LEAST, true, false, measures)) || fits(kompaktNeed(EINFACH_LEAST, true, measures));
+    const least = einfachLeast(measures);
+    return fits(querNeed(least, true, false, measures)) || fits(kompaktNeed(least, true, measures));
 }
 
 /** An arrangement of Voll. */
@@ -412,6 +432,16 @@ export function thermostatArrangement(
 
 /** The design's dial edge in px (the ring's 320-unit box at Maßstab 1). */
 const DIAL_DESIGN = 320;
+
+/**
+ * The least factor of the dial's instrument: its ± keep 40 px and its actual temperature — the
+ * theme's text at the dial's factor — 11 px (its set-point stays at 12 px or more).
+ *
+ * @param measures - The theme's measures.
+ * @returns The least factor of the dial over the design.
+ */
+const dialLeast = (measures: ThemeMeasures): number =>
+    leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [measures.text] });
 
 /**
  * The design width of Groß's column of pills, operating modes and readings in px: the content width
@@ -513,8 +543,9 @@ interface VollNeed extends LeastBox {
  * @returns The need.
  */
 function vollNeed(arrangement: VollArrangement, scale: number, shape: ThermostatShape): VollNeed {
-    const part = partHeights(thermostatSizes(scale, 'stage'), shape.measures);
-    const dial = DIAL_DESIGN * scale;
+    const part = partHeights(thermostatSizes(scale, 'stage', shape.measures), shape.measures);
+    // At 320 px × Maßstab, never smaller than its instrument holds.
+    const dial = DIAL_DESIGN * Math.max(scale, dialLeast(shape.measures));
     const column = VOLL_COLUMN * scale;
     // The whole content beside the dial: Kartenkopf, hint line, pills, modes, readings.
     const content = part.headFull + part.hint + part.pills + part.modes + part.readings;
@@ -627,9 +658,10 @@ function vollArrangement(box: MeasuredBox, shape: ThermostatShape): { arrangemen
  *
  * @param need - The arrangement's need at its Maßstab.
  * @param box - The box.
+ * @param measures - The theme's measures.
  * @returns The dial.
  */
-function vollDial(need: VollNeed, box: MeasuredBox): ThermostatDial {
+function vollDial(need: VollNeed, box: MeasuredBox, measures: ThemeMeasures): ThermostatDial {
     const room = need.dialRoom(box);
     // Not rounded: a dial rounded down would draw ± below 40 px at the least Maßstab.
     const size = Math.min(room.width, room.height, SCALE_BOUNDS.max * DIAL_DESIGN);
@@ -640,7 +672,7 @@ function vollDial(need: VollNeed, box: MeasuredBox): ThermostatDial {
         font: thermostatDialFont(size),
         step: design.step.stage * k,
         stepIcon: design.stepIcon * k,
-        actual: design.actual * k,
+        actual: measures.text * k,
         gap: design.gaps.dial * k,
         actualGap: design.gaps.actual * k,
         // Exactly at the least factor: the dial's size is not rounded.
@@ -657,8 +689,8 @@ function vollDial(need: VollNeed, box: MeasuredBox): ThermostatDial {
  */
 function vollPlan(box: MeasuredBox, shape: ThermostatShape): ThermostatVollPlan {
     const { arrangement, scale } = vollArrangement(box, shape);
-    const sizes = thermostatSizes(scale, 'stage');
-    const dial = vollDial(vollNeed(arrangement, scale, shape), box);
+    const sizes = thermostatSizes(scale, 'stage', shape.measures);
+    const dial = vollDial(vollNeed(arrangement, scale, shape), box, shape.measures);
     return arrangement === 'mittel'
         ? { arrangement, sizes, dial }
         : { arrangement, sizes, dial, column: VOLL_COLUMN * scale };
@@ -789,7 +821,7 @@ export interface ThermostatDial {
     readonly step: number;
     /** The ± symbol in px (drawn in the theme's rem). */
     readonly stepIcon: number;
-    /** The actual temperature in em of the surrounding text. */
+    /** The actual temperature's line in px: the theme's text at the dial's factor. */
     readonly actual: number;
     /** Between set-point and actual line, in spacing units. */
     readonly gap: number;
@@ -893,7 +925,7 @@ export function thermostatPlan(
         const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
-            sizes: thermostatSizes(tile.scale, 'tile'),
+            sizes: thermostatSizes(tile.scale, 'tile', shape.measures),
             tile: {
                 buttons: tile.buttons,
                 footer: tile.footer,
@@ -919,7 +951,7 @@ export function thermostatPlan(
  */
 function thermostatEinfachPlan(box: MeasuredBox, writable: boolean, shape: ThermostatShape): ThermostatStagePlan {
     const choice = thermostatEinfachChoice(box, writable, shape);
-    const sizes = thermostatSizes(choice.scale, 'stage');
+    const sizes = thermostatSizes(choice.scale, 'stage', shape.measures);
     const setpointFont = shape.measures.h3 * choice.scale;
     return choice.arrangement === 'quer'
         ? { arrangement: 'quer', sizes, modes: choice.modes, setpointFont }

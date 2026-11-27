@@ -143,6 +143,17 @@ describe('Größenstufen: the thresholds of the rule', () => {
     });
 });
 
+describe('Größenstufen: the actual temperature in the least Maßstab', () => {
+    it("holds Einfach only while the actual temperature keeps 11 px in the theme's text", () => {
+        const measures = { spacing: 8, text: 14, textLine: 1.5, h3: 48 };
+
+        // Quer's least box of the standard theme (± bind at 0.769): the actual temperature in 14 px
+        // of text would fall to 10.8 px there.
+        expect(thermostatStage({ width: 371, height: 91 }, {})).toBe('einfach');
+        expect(thermostatStage({ width: 371, height: 91 }, { measures })).toBe('mini');
+    });
+});
+
 describe('Anordnungen: the arrangement within a stage', () => {
     it.each([
         // Groß at its least Maßstab (the readings label's 12 px keep 11 px: 0.917): its column

@@ -424,6 +424,17 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
         expect(container.querySelector('[data-heating-slot="readings"]') !== null).toBe(bar);
     });
 
+    it.each([
+        ['Kompakt', { width: 280, height: 180 }],
+        ['Quer', { width: 500, height: 150 }],
+    ])("%s: draws the actual temperature in px of the plan, the theme's text at the Maßstab", async (_case, box) => {
+        const container = await mount(neutralData(), allValues(), box);
+        const plan = thermostatPlan('einfach', box, true);
+        const actual = container.querySelector<HTMLElement>('[data-heating-actual]')!;
+
+        expect(parseFloat(getComputedStyle(actual).fontSize)).toBeCloseTo(16 * plan.sizes.scale, 3);
+    });
+
     it('leaves the actual temperature out while `ist` is unbound, and the bar while nothing of it is bound', async () => {
         const container = await mount(
             {
