@@ -10,8 +10,9 @@
  * the Content-Box it finds — the frame's, or the dialog's own box, where the module's dialog
  * context gives the dialog's stage (never below Einfach, no dialog in the dialog): the type's rule
  * (`thermostatStages`) gives Voll, Einfach or Mini, the plan of the box (`thermostatPlan`) the
- * arrangement and its sizes; the content hands over all of its parts alike and the arrangements
- * (`ThermostatStage`) alone place them, Mini is the module's tile filled with the set-point. The parts: the Kartenkopf
+ * arrangement, its Maßstab and the sizes of every part; the content draws all of its parts at those
+ * sizes alike — none sets a size of its own — and the arrangements (`ThermostatStage`) alone place
+ * them, Mini is the module's tile filled with the set-point. The parts: the Kartenkopf
  * (`lib/heating/Kartenkopf`: symbol, Bezeichnung, Unterzeile and status chip in Groß; name and chip
  * in Mittel and Kompakt; stacked in Quer), the set-point in the dial and big set-point places, the
  * actual temperature below it in the dial, the hint line (`HintLine`: always in Groß, only for a
@@ -32,7 +33,7 @@
  * The segment stands in Groß and in Quer from sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { useContext, useState, type ReactElement, type ReactNode } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';
@@ -43,7 +44,7 @@ import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingForm
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
 import { setpointScale } from '../lib/heating/setpointScale';
-import SizeStages from '../lib/heating/SizeStages';
+import SizeStages, { themeMeasures } from '../lib/heating/SizeStages';
 import { readZone } from '../lib/heating/zoneReading';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
@@ -53,7 +54,13 @@ import { SetpointDial, StepButton } from './SetpointControls';
 import { thermostatActions, type StepKey, type ThermostatAction } from './thermostatActions';
 import { thermostatStatus } from './thermostatStatus';
 import { useThermostatWrites } from './useThermostatWrites';
-import { thermostatPlan, thermostatStage, SETPOINT_FIT } from './thermostatStages';
+import {
+    thermostatPlan,
+    thermostatStage,
+    SETPOINT_FIT,
+    type ThermostatShape,
+    type ThermostatSizes,
+} from './thermostatStages';
 import type { HeatingThermostatCollectionContextProps } from '../types';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
@@ -81,9 +88,6 @@ const FULL_SIZE = { width: 420, height: 700 } as const;
 /** The opacity of an unreachable device's set-point and dial (the design's dimming). */
 const DIMMED_OPACITY = 0.4;
 
-/** The ± edge length beside the big set-point and in the tile (the design's). */
-const STEP_BUTTON = { flat: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile } as const;
-
 /**
  * The Raumthermostat-Inhalt of one Heizzone.
  *
@@ -98,6 +102,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
         lang,
     } = useContext(CollectionContext) as HeatingThermostatCollectionContextProps;
     const widgetData = rxData as WidgetData;
+    const theme = useTheme();
 
     // The zone's data, read once for the entry number (ADR-0121 Nachtrag 2026-11-27).
     const zone = readZone(widgetData, values, entry);
@@ -116,23 +121,19 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     const [preview, setPreview] = useState<number | undefined>(undefined);
     const shown = preview ?? reported;
 
-    // The set-point in the theme's h3; a place that sizes it by its box passes the font size.
-    const setpointAt = (fontSize?: number): ReactElement => (
+    // The set-point in the theme's h3 at the plan's font size in px.
+    const setpointAt = (font: number): ReactElement => (
         <Typography
             variant="h3"
             component="span"
             data-heating-setpoint=""
-            sx={{
-                whiteSpace: 'nowrap',
-                ...(fontSize === undefined ? {} : { fontSize: `${fontSize}px`, lineHeight: SETPOINT_FIT.lineHeight }),
-            }}
+            sx={{ whiteSpace: 'nowrap', fontSize: `${font}px`, lineHeight: SETPOINT_FIT.lineHeight }}
         >
             {shown === undefined ? NO_VALUE : formatReading(shown, 'temperature', lang, unit)}
         </Typography>
     );
 
     const actualText = actualTemperatureText(zone, lang);
-    const actual = actualText === undefined ? null : <ActualTemperature text={actualText} />;
     const readings = thermostatReadings(zone, lang);
 
     // The Boost remaining time counts on between two reports: every second while it shows.
@@ -182,11 +183,15 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             writes[ring.field](next, { immediate: true });
         }
     };
-    const stepButton = (direction: StepKey, size: number): ReactNode =>
+    const stepButton = (
+        direction: StepKey,
+        { step: size, stepIcon }: Pick<ThermostatSizes, 'step' | 'stepIcon'>,
+    ): ReactNode =>
         steps ? (
             <StepButton
                 direction={direction}
                 size={size}
+                iconSize={stepIcon}
                 disabled={steps[direction].locked}
                 onClick={() => step(direction)}
             />
@@ -222,94 +227,150 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     );
     const holidayPills = modePills.filter(pill => pill.key === 'urlaub');
     const segmentPills = modePills.filter(pill => pill.key !== 'urlaub');
-    const modes =
-        modePills.length > 0 ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <PillRow
-                    pills={segmentPills}
-                    label={translate('heating_betriebsart')}
-                />
-                <PillRow pills={holidayPills} />
-            </Box>
-        ) : null;
 
-    // All parts for every arrangement alike: the plan of the box sizes them, the arrangement
+    // All parts for every arrangement alike, at the sizes of the plan of the box; the arrangement
     // (`ThermostatStage`) alone decides which part stands where (ADR-0122 Nachtrag K7).
-    const parts: ThermostatParts = {
-        head: (form, full) => (
-            <Kartenkopf
-                form={form}
-                name={name}
-                chips={status.chip ? [status.chip] : []}
-                // The full arrangement: the fixed type symbol and the Unterzeile (ADR-0123 Nr. 1, 7).
-                {...(full ? { symbol: <ThermostatOutlined sx={{ fontSize: 22 }} />, secondLine: subLine } : {})}
-            />
-        ),
-        dial: ({ size, font }) =>
-            dimmed(
-                <SetpointDial
+    const partsAt = (sizes: ThermostatSizes): ThermostatParts => {
+        const actualAt = (size: number, gap: number): ReactNode =>
+            actualText === undefined ? null : (
+                <ActualTemperature
+                    text={actualText}
                     size={size}
-                    scale={scale}
-                    value={shown}
-                    disabled={!ring || ring.locked}
-                    onPreview={setPreview}
-                    onCommit={commit}
-                    onStep={step}
-                    buttons={
-                        steps ? (
-                            <>
-                                {stepButton('down', STEP_BUTTON.flat)}
-                                {stepButton('up', STEP_BUTTON.flat)}
-                            </>
-                        ) : null
-                    }
-                >
-                    {setpointAt(font)}
-                    {actual}
-                </SetpointDial>,
+                    gap={gap}
+                />
+            );
+        const actual = actualAt(sizes.actual, sizes.gaps.actual);
+        return {
+            head: (form, full) => (
+                <Kartenkopf
+                    form={form}
+                    name={name}
+                    chips={status.chip ? [status.chip] : []}
+                    sizes={sizes.head}
+                    // The full arrangement: the fixed type symbol and the Unterzeile (ADR-0123 Nr. 1, 7).
+                    {...(full
+                        ? { symbol: <ThermostatOutlined sx={{ fontSize: sizes.head.icon }} />, secondLine: subLine }
+                        : {})}
+                />
             ),
-        setpoint: font =>
-            dimmed(
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-                    {stepButton('down', STEP_BUTTON.flat)}
-                    {setpointAt(font)}
-                    {stepButton('up', STEP_BUTTON.flat)}
-                </Box>,
+            // The dial's instrument (set-point, ±, actual temperature) follows the dial's own factor.
+            dial: dial =>
+                dimmed(
+                    <SetpointDial
+                        size={dial.size}
+                        gap={dial.gap}
+                        labels={dial.labels}
+                        layout={dial}
+                        scale={scale}
+                        value={shown}
+                        disabled={!ring || ring.locked}
+                        onPreview={setPreview}
+                        onCommit={commit}
+                        onStep={step}
+                        buttons={
+                            steps ? (
+                                <>
+                                    {stepButton('down', dial)}
+                                    {stepButton('up', dial)}
+                                </>
+                            ) : null
+                        }
+                    >
+                        {setpointAt(dial.font)}
+                        {actualAt(dial.actual, dial.actualGap)}
+                    </SetpointDial>,
+                ),
+            setpoint: font =>
+                dimmed(
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: sizes.gaps.step }}>
+                        {stepButton('down', sizes)}
+                        {setpointAt(font)}
+                        {stepButton('up', sizes)}
+                    </Box>,
+                ),
+            pills: (
+                <PillRow
+                    pills={pills}
+                    sizes={sizes.pills}
+                />
             ),
-        pills: <PillRow pills={pills} />,
-        modes,
-        readings: readings.length ? <ReadingsBar readings={readings} /> : null,
-        hint: status.hint ? <HintLine hint={status.hint} /> : null,
-        message: look =>
-            message ? (
-                <HintLine
-                    hint={message}
-                    {...look}
+            modes:
+                modePills.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: sizes.gaps.modes }}>
+                        <PillRow
+                            pills={segmentPills}
+                            label={translate('heating_betriebsart')}
+                            sizes={sizes.pills}
+                        />
+                        <PillRow
+                            pills={holidayPills}
+                            sizes={sizes.pills}
+                        />
+                    </Box>
+                ) : null,
+            readings: readings.length ? (
+                <ReadingsBar
+                    readings={readings}
+                    sizes={sizes.readings}
                 />
             ) : null,
-        actual,
-        tile: {
-            main: font => dimmed(setpointAt(font)),
-            decrease: stepButton('down', STEP_BUTTON.tile),
-            increase: stepButton('up', STEP_BUTTON.tile),
-        },
+            hint: status.hint ? (
+                <HintLine
+                    hint={status.hint}
+                    sizes={sizes.hint}
+                />
+            ) : null,
+            message: look =>
+                message ? (
+                    <HintLine
+                        hint={message}
+                        sizes={sizes.hint}
+                        {...look}
+                    />
+                ) : null,
+            actual,
+            tile: {
+                main: font => dimmed(setpointAt(font)),
+                decrease: stepButton('down', sizes),
+                increase: stepButton('up', sizes),
+            },
+        };
     };
     // Whether the set-point is writable, as the Heizzonen-Lesung reads it (ADR-0118 Nachtrag K4).
     const { writable } = setpointReading;
+    // What the rule and the plan read beyond the box: the measures of the theme the parts draw in
+    // and the parts the content shows (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 3).
+    const shape: ThermostatShape = {
+        measures: themeMeasures(theme),
+        shown: {
+            hint: status.hint ? (message ? 'message' : 'line') : 'none',
+            actual: actualText !== undefined,
+            pills: pills.length > 0,
+            modes: segmentPills.length > 0,
+            holiday: holidayPills.length > 0,
+            readings: readings.length > 0,
+        },
+    };
 
     return (
         <SizeStages
             rule={thermostatStage}
-            data={widgetData}
+            data={shape}
             ansicht={widgetData.ansicht}
             inset={widgetData.inhaltsabstand}
-            renderStage={(stage, box) => (
-                <ThermostatStage
-                    plan={thermostatPlan(stage, box, writable)}
-                    parts={parts}
-                />
-            )}
-            renderTile={area => thermostatTileContent(parts, thermostatPlan('mini', area, writable).tile)}
+            renderStage={(stage, box) => {
+                const plan = thermostatPlan(stage, box, writable, shape);
+                return (
+                    <ThermostatStage
+                        plan={plan}
+                        parts={partsAt(plan.sizes)}
+                    />
+                );
+            }}
+            renderTile={area => {
+                const plan = thermostatPlan('mini', area, writable, shape);
+                return thermostatTileContent(partsAt(plan.sizes), plan.tile);
+            }}
             name={name}
             typeName={translate('heating_thermostat_collection_widget')}
             status={status.tile}

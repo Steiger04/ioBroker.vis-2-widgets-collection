@@ -21,6 +21,7 @@ import { useReducedMotion } from '../lib/heating/motion';
 import { fractionOf, RING_START, RING_SWEEP, valueAtAngle, type SetpointScale } from '../lib/heating/setpointScale';
 import { accentColors, neutralColors } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
+import { DIAL_LABEL } from './thermostatStages';
 
 /** Props of {@link StepButton}. */
 export interface StepButtonProps {
@@ -30,6 +31,8 @@ export interface StepButtonProps {
     readonly disabled: boolean;
     /** Edge length in px. */
     readonly size: number;
+    /** The symbol's size in px, drawn in the theme's rem. */
+    readonly iconSize: number;
     readonly onClick: () => void;
 }
 
@@ -40,12 +43,15 @@ export interface StepButtonProps {
  * @param props.direction - − or +.
  * @param props.disabled - Whether it is disabled.
  * @param props.size - Edge length in px.
+ * @param props.iconSize - The symbol's size in px.
  * @param props.onClick - Steps the set-point.
  * @returns The button.
  */
-export function StepButton({ direction, disabled, size, onClick }: StepButtonProps): ReactElement {
+export function StepButton({ direction, disabled, size, iconSize, onClick }: StepButtonProps): ReactElement {
     const reducedMotion = useReducedMotion();
-    const accent = accentColors(useTheme());
+    const theme = useTheme();
+    const accent = accentColors(theme);
+    const iconSx = { fontSize: theme.typography.pxToRem(iconSize) };
     return (
         <IconButton
             data-heating-step={direction}
@@ -65,7 +71,7 @@ export function StepButton({ direction, disabled, size, onClick }: StepButtonPro
                 '&:hover': { bgcolor: accent.hover },
             }}
         >
-            {direction === 'up' ? <Add /> : <Remove />}
+            {direction === 'up' ? <Add sx={iconSx} /> : <Remove sx={iconSx} />}
         </IconButton>
     );
 }
@@ -128,6 +134,12 @@ export interface SetpointDialProps {
     readonly children: ReactNode;
     /** The ± below the centre; none for a set-point that is not writable. */
     readonly buttons: ReactNode;
+    /** The gap between set-point and actual temperature in the centre, in spacing units. */
+    readonly gap: number;
+    /** Whether the scale labels show (the plan's: while they keep 11 px). */
+    readonly labels: boolean;
+    /** The plan's layout in px: the centre's bottom padding, ± from the bottom edge and their gap. */
+    readonly layout: { readonly padding: number; readonly stepsBottom: number; readonly stepsGap: number };
 }
 
 /**
@@ -143,6 +155,9 @@ export interface SetpointDialProps {
  * @param props.onStep - Steps like ±.
  * @param props.children - The centre.
  * @param props.buttons - The ± below the centre.
+ * @param props.gap - The gap in the centre.
+ * @param props.labels - Whether the scale labels show.
+ * @param props.layout - The plan's layout of centre and ±.
  * @returns The dial.
  */
 export function SetpointDial({
@@ -155,6 +170,9 @@ export function SetpointDial({
     onStep,
     children,
     buttons,
+    gap,
+    labels,
+    layout,
 }: SetpointDialProps): ReactElement {
     const theme = useTheme();
     const quiet = neutralColors(theme);
@@ -231,7 +249,6 @@ export function SetpointDial({
     const shown = value === undefined ? undefined : fractionOf(value, scale);
     const [hx, hy] = value === undefined ? [0, 0] : pointAt(angleOf(value, scale), RADIUS);
     const transition = reducedMotion ? 'none' : 'stroke 0.3s';
-    const k = size / VIEW;
 
     return (
         <Box
@@ -282,14 +299,15 @@ export function SetpointDial({
                         strokeLinecap: 'round',
                     }}
                 />
-                {ticks.labels.map(([degree, x, y]) => (
+                {(labels ? ticks.labels : []).map(([degree, x, y]) => (
                     <text
                         key={degree}
                         x={x}
                         y={y}
                         style={{
                             fill: quiet.label,
-                            fontSize: `${Math.min(16, 11.5 / k).toFixed(1)}px`,
+                            // In the ring's units: the labels grow and shrink with the dial.
+                            fontSize: `${DIAL_LABEL}px`,
                             textAnchor: 'middle',
                             dominantBaseline: 'central',
                         }}
@@ -345,12 +363,12 @@ export function SetpointDial({
                 sx={{
                     position: 'absolute',
                     inset: 0,
-                    pb: `${Math.round(26 * k)}px`,
+                    pb: `${layout.padding}px`,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 0.5,
+                    gap,
                     pointerEvents: 'none',
                 }}
             >
@@ -362,10 +380,10 @@ export function SetpointDial({
                         position: 'absolute',
                         left: 0,
                         right: 0,
-                        bottom: 2,
+                        bottom: `${layout.stepsBottom}px`,
                         display: 'flex',
                         justifyContent: 'center',
-                        gap: `${Math.round(20 * k)}px`,
+                        gap: `${layout.stepsGap}px`,
                     }}
                 >
                     {buttons}

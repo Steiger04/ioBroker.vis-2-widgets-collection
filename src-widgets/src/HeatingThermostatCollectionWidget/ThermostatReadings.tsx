@@ -10,6 +10,7 @@
  * neutral value through the stored Wertezuordnung, open toned `kühl`; a device value without a
  * mapping its `commonStates` label, else the raw value, without a neutral state). The battery shows
  * its level with the object's unit, marked as a Hinweis while `batterieSchwach` reads `schwach`.
+ * The bar and the actual temperature draw at the plan's sizes (`thermostatSizes`).
  */
 import BatteryStdOutlined from '@mui/icons-material/BatteryStdOutlined';
 import SpeedOutlined from '@mui/icons-material/SpeedOutlined';
@@ -22,6 +23,7 @@ import { formatReading, NO_VALUE, type ReadingKind } from '../lib/heating/readin
 import { neutralColors, toneColors, type HeatingTone } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
 import type { MeaningReading, ZoneReading } from '../lib/heating/zoneReading';
+import { ACTUAL_VALUE_EM, type ReadingSizes } from './thermostatStages';
 
 /** What an element of the readings bar shows: a Bedeutung, or `ventil` for the valve mean. */
 export type ReadingMeaning = 'luftfeuchte' | 'ventil' | 'fenster' | 'batteriestand';
@@ -102,9 +104,16 @@ const ELEMENTS: Readonly<Record<ReadingMeaning, { icon: typeof SpeedOutlined; la
  *
  * @param props - Component props.
  * @param props.readings - Its elements.
+ * @param props.sizes - Its sizes, from the plan.
  * @returns The bar.
  */
-export function ReadingsBar({ readings }: { readings: readonly ThermostatReading[] }): ReactElement {
+export function ReadingsBar({
+    readings,
+    sizes,
+}: {
+    readings: readonly ThermostatReading[];
+    sizes: ReadingSizes;
+}): ReactElement {
     const theme = useTheme();
     const quiet = neutralColors(theme);
     return (
@@ -112,8 +121,8 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
             sx={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${readings.length}, minmax(0, 1fr))`,
-                gap: 1,
-                pt: 1.75,
+                gap: sizes.gapUnits,
+                pt: sizes.topUnits,
                 borderTop: 1,
                 borderColor: quiet.line,
             }}
@@ -126,13 +135,19 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                     <Box
                         key={meaning}
                         data-heating-reading={meaning}
-                        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.375, minWidth: 0 }}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: sizes.itemGapUnits,
+                            minWidth: 0,
+                        }}
                     >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: sizes.valueGapUnits, minWidth: 0 }}>
                             <Icon
                                 aria-hidden
                                 sx={{
-                                    fontSize: 16,
+                                    fontSize: sizes.icon,
                                     color: tone === 'kühl' ? colors?.text : quiet.label,
                                 }}
                             />
@@ -141,12 +156,14 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                                 data-heating-reading-value=""
                                 {...(tone ? { 'data-tone': tone } : {})}
                                 sx={{
-                                    fontSize: 16,
+                                    fontSize: sizes.value,
                                     fontWeight: 500,
                                     fontVariantNumeric: 'tabular-nums',
                                     whiteSpace: 'nowrap',
                                     color: colors?.text,
-                                    ...(marked ? { px: 1, borderRadius: 999, bgcolor: colors?.surface } : {}),
+                                    ...(marked
+                                        ? { px: sizes.markPadUnits, borderRadius: 999, bgcolor: colors?.surface }
+                                        : {}),
                                 }}
                             >
                                 {text}
@@ -154,7 +171,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                         </Box>
                         <Typography
                             component="span"
-                            sx={{ fontSize: 11.5, color: quiet.label, whiteSpace: 'nowrap' }}
+                            sx={{ fontSize: sizes.label, color: quiet.label, whiteSpace: 'nowrap' }}
                         >
                             {translate(label)}
                         </Typography>
@@ -174,15 +191,17 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
  * theme, the Mini-Dialog portal included), else the theme's text colour it inherits.
  * @param props - Component props.
  * @param props.text - The formatted actual temperature, or „–“.
+ * @param props.size - Its size in px (the theme's text at the Maßstab), from the plan.
+ * @param props.gap - The gap between the word and the value in spacing units, from the plan.
  * @returns The line.
  */
-export function ActualTemperature({ text }: { text: string }): ReactNode {
+export function ActualTemperature({ text, size, gap }: { text: string; size: number; gap: number }): ReactNode {
     const quiet = neutralColors(useTheme());
     return (
         <Box
             data-heating-actual=""
             component="span"
-            sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, minWidth: 0 }}
+            sx={{ display: 'inline-flex', alignItems: 'baseline', gap, minWidth: 0, fontSize: `${size}px` }}
         >
             <Box
                 component="span"
@@ -194,7 +213,7 @@ export function ActualTemperature({ text }: { text: string }): ReactNode {
                 component="span"
                 data-heating-actual-value=""
                 sx={{
-                    fontSize: '1.15em',
+                    fontSize: `${ACTUAL_VALUE_EM}em`,
                     fontWeight: 500,
                     fontVariantNumeric: 'tabular-nums',
                     whiteSpace: 'nowrap',

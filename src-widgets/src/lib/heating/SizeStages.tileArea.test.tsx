@@ -23,7 +23,7 @@ import {
 } from '../testing/collectionScene';
 import CollectionBase from '../../components/CollectionBase';
 import useData from '../../hooks/useData';
-import SizeStages, { type TileArea } from './SizeStages';
+import SizeStages, { themeMeasures, type TileArea } from './SizeStages';
 import type { MeasuredBox } from './stageRule';
 
 installInertResizeObserver();
@@ -78,13 +78,14 @@ describe('SizeStages: the area of the tile content', () => {
         ['a tile-sized box', { width: 156, height: 66 }, { width: 156, height: 42 }],
         ['a large tile', { width: 260, height: 140 }, { width: 260, height: 116 }],
     ])('is the box minus the head row and its gap for %s', (_case, box, rest) => {
-        expect(areaFor(box)).toEqual({ ...rest, rowGap: 4, controlGap: 6 });
+        expect(areaFor(box)).toEqual({ ...rest, head: 20, rowGap: 4, controlGap: 6 });
     });
 
     it('takes the measures of the standard theme: head row 20 px, gaps 4 and 6 px', () => {
         expect(areaFor({ width: 260, height: 140 }, {})).toEqual({
             width: 260,
             height: 116,
+            head: 20,
             rowGap: 4,
             controlGap: 6,
         });
@@ -95,6 +96,7 @@ describe('SizeStages: the area of the tile content', () => {
         expect(areaFor({ width: 260, height: 140 }, { spacing: 16 })).toEqual({
             width: 260,
             height: 112,
+            head: 20,
             rowGap: 8,
             controlGap: 12,
         });
@@ -105,6 +107,7 @@ describe('SizeStages: the area of the tile content', () => {
         expect(areaFor({ width: 260, height: 140 }, { spacing: 16, cssVariables: { cssVarPrefix: 'vis2c' } })).toEqual({
             width: 260,
             height: 112,
+            head: 20,
             rowGap: 8,
             controlGap: 12,
         });
@@ -115,6 +118,7 @@ describe('SizeStages: the area of the tile content', () => {
         expect(areaFor({ width: 260, height: 140 }, { spacing: '0.75rem', cssVariables: true })).toEqual({
             width: 260,
             height: 114,
+            head: 20,
             rowGap: 6,
             controlGap: 9,
         });
@@ -125,6 +129,7 @@ describe('SizeStages: the area of the tile content', () => {
         expect(areaFor({ width: 260, height: 140 }, { typography: { fontSize: 21 } })).toEqual({
             width: 260,
             height: 106,
+            head: 30,
             rowGap: 4,
             controlGap: 6,
         });
@@ -141,6 +146,7 @@ describe('SizeStages: the tile area inside half the Inhaltsabstand (ADR-0122 Nac
         expect(areaFor({ width: 260, height: 140 }, undefined, 2)).toEqual({
             width: 244,
             height: 100,
+            head: 20,
             rowGap: 4,
             controlGap: 6,
         });
@@ -151,8 +157,31 @@ describe('SizeStages: the tile area inside half the Inhaltsabstand (ADR-0122 Nac
         expect(areaFor({ width: 260, height: 140 }, { spacing: 16 }, 1)).toEqual({
             width: 244,
             height: 96,
+            head: 20,
             rowGap: 8,
             controlGap: 12,
         });
+    });
+});
+
+describe('SizeStages: the theme measures a type plans with', () => {
+    it.each([
+        ['the standard theme', {}, { spacing: 8, text: 16, textLine: 1.5, h3: 48 }],
+        [
+            'a larger spacing unit and h3',
+            { spacing: 10, typography: { h3: { fontSize: '3.5rem' } } },
+            { spacing: 10, text: 16, textLine: 1.5, h3: 56 },
+        ],
+        [
+            'the spacing with CSS variables on',
+            { spacing: 16, cssVariables: { cssVarPrefix: 'vis2c' } },
+            { spacing: 16, text: 16, textLine: 1.5, h3: 48 },
+        ],
+        // A base size of 21 px: body1 16 × 21 / 14 = 24 px, h3 48 × 21 / 14 = 72 px.
+        ['a larger type size', { typography: { fontSize: 21 } }, { spacing: 8, text: 24, textLine: 1.5, h3: 72 }],
+        // A line height that does not read as a factor stands in for the standard one.
+        ['a body1 line in em', { typography: { body1: { lineHeight: '1.6em' } } }, { textLine: 1.5 }],
+    ] as [string, ThemeOptions, object][])('reads %s', (_case, options, measures) => {
+        expect(themeMeasures(createTheme(options))).toMatchObject(measures);
     });
 });

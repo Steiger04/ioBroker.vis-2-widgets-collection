@@ -23,6 +23,7 @@ import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
 import { createTestRoot } from '../lib/testing/testRoots';
 import HeatingThermostatCollectionWidget from './HeatingThermostatCollectionWidget';
+import { thermostatPlan, vollLeastBox } from './thermostatStages';
 
 // The host base class with what renderWidgetBody reaches (as in lib/aiRawDataRender.test). Its `t`
 // reads `this` like the host's and returns the key, with its arguments in brackets.
@@ -412,7 +413,7 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
     it.each([
         ['Groß', START_BOX, 'dial', true],
         ['Mittel', { width: 296, height: 400 }, 'dial', false],
-        ['Quer', { width: 500, height: 150 }, 'hint', false],
+        ['Quer', { width: 600, height: 100 }, 'hint', false],
         ['Kompakt', { width: 280, height: 180 }, 'hint', false],
         ['the tile with its footer', { width: 156, height: 80 }, 'tile', false],
     ])('%s: actual temperature in its place, the readings bar only in Groß', async (_case, box, place, bar) => {
@@ -421,6 +422,17 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
         expect(actualPlace(container)).toBe(place);
         expect(container.querySelector('[data-heating-actual-value]')?.textContent).toBe('20.5 °C');
         expect(container.querySelector('[data-heating-slot="readings"]') !== null).toBe(bar);
+    });
+
+    it.each([
+        ['Kompakt', { width: 280, height: 180 }],
+        ['Quer', { width: 600, height: 100 }],
+    ])("%s: draws the actual temperature in px of the plan, the theme's text at the Maßstab", async (_case, box) => {
+        const container = await mount(neutralData(), allValues(), box);
+        const plan = thermostatPlan('einfach', box, true);
+        const actual = container.querySelector<HTMLElement>('[data-heating-actual]')!;
+
+        expect(parseFloat(getComputedStyle(actual).fontSize)).toBeCloseTo(16 * plan.sizes.scale, 3);
     });
 
     it('leaves the actual temperature out while `ist` is unbound, and the bar while nothing of it is bound', async () => {
@@ -723,7 +735,7 @@ describe('HeatingThermostatCollectionWidget: hint line', () => {
 
     it.each([
         ['Mittel', { width: 296, height: 400 }],
-        ['Quer', { width: 500, height: 150 }],
+        ['Quer', { width: 600, height: 100 }],
         ['Kompakt', { width: 280, height: 180 }],
     ])(
         '%s: a Meldung takes the hint place; without one Mittel shows none and Einfach the actual temperature',
@@ -741,7 +753,8 @@ describe('HeatingThermostatCollectionWidget: hint line', () => {
     );
 
     it('the tile footer shows a Meldung instead of the actual temperature', async () => {
-        const box = { width: 156, height: 80 };
+        // The Meldung's padded line at its least Maßstab fits from 84 px of height.
+        const box = { width: 156, height: 84 };
         const footer = (container: HTMLElement): Element | null =>
             container.querySelector(
                 '[data-heating-tile] [data-heating-hint], [data-heating-tile] [data-heating-actual]',
@@ -801,6 +814,17 @@ describe('HeatingThermostatCollectionWidget: not reachable', () => {
         expect(button.disabled).toBe(false);
         act(() => button.click());
         expect(button.getAttribute('aria-expanded')).toBe('true');
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the Mini-Dialog keeps its size (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    it('opens the tile in a dialog of 420 px width with a box of 700 px height, whatever the plan', async () => {
+        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 66 });
+        act(() => tile.querySelector<HTMLButtonElement>('[data-heating-tile] button')!.click());
+        const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+
+        expect(getComputedStyle(dialog).width).toBe('420px');
+        expect(getComputedStyle(dialog.querySelector<HTMLElement>('[data-heating-dialog-box]')!).height).toBe('700px');
     });
 });
 
@@ -1058,13 +1082,13 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         for (const box of [
             { width: 456, height: 120 },
             { width: 256, height: 150 },
-            { width: 196, height: 68 },
+            { width: 197, height: 64 },
         ]) {
             const container = await mount(statusData(), reporting({ soll: 21 }), box);
             expect([stepButton(container, 'down'), stepButton(container, 'up')]).not.toContain(null);
         }
 
-        const narrowTile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 68 });
+        const narrowTile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 64 });
         expect(stepButton(narrowTile, 'up')).toBeNull();
     });
 
@@ -1074,27 +1098,44 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
             '[data-heating-slot="setpoint"] [data-heating-setpoint]',
         )!;
         const font = parseFloat(getComputedStyle(setpoint).fontSize);
+        const step = parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
 
-        // „21,0 °C“ measured 161 px wide at 48 px of font; ± 52 px with 12 px of gap on both sides.
-        expect(font * (161 / 48) + 2 * 52 + 2 * 12).toBeLessThanOrEqual(274);
+        // „21,0 °C“ measured 161 px wide at 48 px of font; ± with 12 px of gap at the design, both at
+        // the set-point's Maßstab (font / 48).
+        expect(step).toBeGreaterThanOrEqual(40);
+        expect(font * (161 / 48) + 2 * step + 2 * 12 * (font / 48)).toBeLessThanOrEqual(274);
     });
 
-    it('draws the set-point of the tile so that ± and the footer fit (240 × 110 and 220 × 110 px outer)', async () => {
-        // „21,0 °C“ measured 161 px wide at 48 px of font, its line 1.2 × the font; ± 44 px with 6 px
-        // of gap; head row 20 px, footer line 28 px, 4 px between the rows.
+    it('draws the set-point of the tile so that ± and the footer fit (240 × 110 and 240 × 130 px outer)', async () => {
+        // „21,0 °C“ measured 161 px wide at 48 px of font, its line 1.2 × the font; ± with 6 px of gap;
+        // head row 20 px, the footer line 28 px at the design, 4 px between the rows.
         const fontOf = (container: HTMLElement): number =>
             parseFloat(
                 getComputedStyle(container.querySelector<HTMLElement>('[data-heating-tile] [data-heating-setpoint]')!)
                     .fontSize,
             );
+        const stepOf = (container: HTMLElement): number =>
+            parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
 
         const withButtons = await mount(statusData(), reporting({ soll: 21 }), { width: 214, height: 84 });
-        expect(stepButton(withButtons, 'up')).not.toBeNull();
-        expect(fontOf(withButtons) * (161 / 48) + 2 * 44 + 2 * 6).toBeLessThanOrEqual(214);
+        expect(stepOf(withButtons)).toBeGreaterThanOrEqual(40);
+        expect(fontOf(withButtons) * (161 / 48) + 2 * stepOf(withButtons) + 2 * 6).toBeLessThanOrEqual(214);
 
-        const withFooter = await mount(statusData(), reporting({ soll: 21 }), { width: 194, height: 84 });
+        const withFooter = await mount(statusData(), reporting({ soll: 21 }), { width: 214, height: 104 });
+        const scale = stepOf(withFooter) / 44;
         expect(withFooter.querySelector('[data-heating-tile] [data-heating-actual]')).not.toBeNull();
-        expect(20 + 4 + 1.2 * fontOf(withFooter) + 4 + 28).toBeLessThanOrEqual(84);
+        expect(20 + 4 + Math.max(44 * scale, 1.2 * fontOf(withFooter)) + 4 + 28 * scale).toBeLessThanOrEqual(104);
+    });
+
+    it("grows the tile's ± with the plan's Maßstab", async () => {
+        const stepOf = async (box: ContentBox): Promise<number> =>
+            parseFloat(
+                getComputedStyle(stepButton(await mount(statusData(), reporting({ soll: 21 }), box), 'up')!).width,
+            );
+
+        // The plan: 0.909 at the least box of ±, 1.072 in a tile of 230 × 130 px.
+        expect(await stepOf({ width: 197, height: 64 })).toBeCloseTo(40, 3);
+        expect(await stepOf({ width: 230, height: 130 })).toBeCloseTo(44 * 1.072, 3);
     });
 
     it('keeps the set-point of the dial inside the ring in Mittel (330 × 450 px outer)', async () => {
@@ -1111,12 +1152,87 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
     });
 
     it('steps from the tile', async () => {
-        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 68 });
+        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 197, height: 68 });
 
         await press(stepButton(tile, 'down'));
         await debounced();
         expect(writes()).toEqual([[neutral('soll'), 20.5]]);
         expect(tile.querySelector('[data-heating-tile] button[aria-expanded="true"]')).toBeNull();
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Voll draws at its Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    /** The rendered px of a style property. */
+    const px = (element: Element | null, property: 'width' | 'height' | 'fontSize'): number =>
+        parseFloat(getComputedStyle(element as HTMLElement)[property]);
+
+    it.each([
+        ['Mittel, tall and narrow (380 × 800 px outer)', { width: 332, height: 752 }],
+        ['Groß, its column narrower than the ring', { width: 370, height: 900 }],
+        ['Groß at the start box', { width: 396, height: 636 }],
+        ['Mittel in the narrowest grid section', { width: 272, height: 608 }],
+        ['Groß in a very large box', { width: 2000, height: 2000 }],
+    ])('%s: ring, ± and the set-point as the plan names them', async (_case, box) => {
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21 }), box);
+        const dial = container.querySelector('[data-heating-dial]');
+
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            plan.arrangement,
+        );
+        expect(px(dial, 'width')).toBeCloseTo(plan.dial.size, 1);
+        expect(px(stepButton(container, 'up'), 'width')).toBeCloseTo(plan.dial.step, 1);
+        expect(px(dial!.querySelector('[data-heating-setpoint]'), 'fontSize')).toBe(plan.dial.font);
+    });
+
+    it("leaves the ring's scale labels out while they would fall below 11 px", async () => {
+        const labels = async (box: { width: number; height: number }): Promise<number> =>
+            (await mount(statusData(), reporting({ soll: 21 }), box)).querySelectorAll('[data-heating-dial] text')
+                .length;
+
+        // The narrowest grid section: a ring of 272 px, its 12 px labels at 10.2 px.
+        expect(await labels({ width: 272, height: 608 })).toBe(0);
+        expect(await labels({ width: 396, height: 636 })).toBeGreaterThan(0);
+    });
+
+    it('fills a tall, narrow box with the ring: 332 px instead of 280 px', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }), { width: 332, height: 752 });
+
+        expect(px(container.querySelector('[data-heating-dial]'), 'width')).toBe(332);
+    });
+
+    it('lays a wide, low box out as Breit: the ring, and beside it the whole rest of Groß', async () => {
+        const box = { width: 752, height: 472 };
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21, betriebsart: 0, ventil: 35 }), box);
+        const breit = container.querySelector('[data-heating-region="breit"]')!;
+        const side = breit.querySelector('[data-heating-region="side"]')!;
+
+        expect(plan.arrangement).toBe('breit');
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'breit',
+        );
+        expect(breit.querySelector(':scope > [data-heating-slot="dial"] [data-heating-dial]')).not.toBeNull();
+        expect(
+            ['head', 'hint', 'pills', 'modes', 'readings'].map(
+                name => side.querySelector(`[data-heating-slot="${name}"]`) !== null,
+            ),
+        ).toEqual([true, true, true, true, true]);
+        expect(side.querySelector('[data-heating-head-symbol]')).not.toBeNull();
+        expect(px(side, 'width')).toBeCloseTo((plan as { column: number }).column, 1);
+        expect(px(breit.querySelector('[data-heating-dial]'), 'width')).toBeCloseTo(plan.dial.size, 1);
+        expect(px(stepButton(container, 'up'), 'width')).toBeCloseTo(plan.dial.step, 1);
+    });
+
+    it("keeps Groß's pills, operating modes and readings in the plan's column", async () => {
+        const box = { width: 900, height: 800 };
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21 }), box);
+        const column = container.querySelector('[data-heating-region="controls"]');
+
+        expect(plan.arrangement).toBe('gross');
+        expect(px(column, 'width')).toBeCloseTo((plan as { column: number }).column, 1);
+        expect(column?.querySelector('[data-heating-pills]')).not.toBeNull();
     });
 });
 
@@ -1262,7 +1378,7 @@ describe('HeatingThermostatCollectionWidget: set-point not writable', () => {
 
         for (const box of [
             { width: 456, height: 120 },
-            { width: 196, height: 68 },
+            { width: 214, height: 84 },
         ]) {
             expect(stepButton(await mount(data, values, box), 'up')).toBeNull();
         }
@@ -1356,10 +1472,81 @@ describe('HeatingThermostatCollectionWidget: operating mode', () => {
         const at = async (box: ContentBox): Promise<string[]> =>
             modeKeys(await mount(statusData(), reporting({ betriebsart: 0 }), box));
 
-        expect(await at({ width: 456, height: 240 })).toEqual(['auto', 'manuell', 'boost']);
-        expect(await at({ width: 456, height: 200 })).toEqual([]);
+        expect(await at({ width: 741, height: 194 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 741, height: 135 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 741, height: 134 })).toEqual([]);
         expect(await at({ width: 300, height: 400 })).toEqual([]);
         expect(await at({ width: 256, height: 150 })).toEqual([]);
+    });
+
+    it('stays in Quer with the segment where Kompakt would draw larger (789 × 290 px outer: 741 × 242 px)', async () => {
+        const container = await mount(statusData(), reporting({ betriebsart: 0 }), { width: 741, height: 242 });
+
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'quer',
+        );
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+        // The segment stands in the middle below the head row.
+        expect(container.querySelector('[data-heating-region="middle"] [data-heating-slot="modes"]')).not.toBeNull();
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the plan counts what the content shows', () => {
+    const arrangementOf = (container: HTMLElement): string | null | undefined =>
+        container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement');
+
+    it('counts a Meldung in the need of Voll only while it shows', async () => {
+        // Groß's least box without a Meldung; the Meldung's padded hint line needs a few px more.
+        const box = vollLeastBox('gross');
+
+        expect(arrangementOf(await mount(statusData(), reporting({ soll: 21 }), box))).toBe('gross');
+        expect(arrangementOf(await mount(statusData(), reporting({ soll: 21, batterieSchwach: true }), box))).toBe(
+            'mittel',
+        );
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Quer at its Maßstab', () => {
+    /** The Raumthermostat in a box that draws Quer. */
+    const querAt = async (box: ContentBox): Promise<HTMLElement> => {
+        const container = await mount(statusData(), reporting({ soll: 21, betriebsart: 0 }), box);
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'quer',
+        );
+        return container;
+    };
+    const stepOf = (container: HTMLElement): number => parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
+    const setpointSize = (container: HTMLElement): number =>
+        parseFloat(
+            getComputedStyle(
+                container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!,
+            ).fontSize,
+        );
+
+    it('stands the head block at the top and the operating-mode segment flush at the bottom', async () => {
+        const container = await querAt({ width: 741, height: 194 });
+        const head = container.querySelector('[data-heating-region="head"]')!;
+        const middle = container.querySelector('[data-heating-region="middle"]')!;
+        const modes = middle.querySelector<HTMLElement>('[data-heating-slot="modes"]')!;
+
+        expect(head.nextElementSibling).toBe(middle);
+        expect(head.contains(container.querySelector('[data-heating-slot="setpoint"]'))).toBe(true);
+        // The rest of the height above the segment: it stands at the bottom, and scrolls from the top
+        // when the box is too low.
+        expect(getComputedStyle(modes).marginTop).toBe('auto');
+        expect(getComputedStyle(middle).justifyContent).toBe('flex-start');
+    });
+
+    it('draws the set-point and ± larger with more height', async () => {
+        const low = await querAt({ width: 741, height: 160 });
+        const high = await querAt({ width: 741, height: 194 });
+
+        // 741 × 160: Maßstab 1.031 with the segment; 741 × 194: 1.33.
+        expect(stepOf(low)).toBeCloseTo(52 * 1.031, 3);
+        expect(stepOf(high)).toBeCloseTo(52 * 1.33, 3);
+        // The theme's h3 (48 px in the standard theme) at the Maßstab.
+        expect(setpointSize(low)).toBeCloseTo(48 * 1.031, 3);
+        expect(setpointSize(high)).toBeCloseTo(48 * 1.33, 3);
     });
 });
 
@@ -1834,9 +2021,15 @@ describe('HeatingThermostatCollectionWidget: the Inhaltsabstand (ADR-0122 Nachtr
     });
 
     it('drops a stage when a large Inhaltsabstand leaves the content too little room', async () => {
-        const container = await mount({ ...statusData(), inhaltsabstand: 4 }, reporting({}), START_BOX);
+        const box = { width: 360, height: 636 };
+        expect(
+            (await mount(statusData(), reporting({}), box))
+                .querySelector('[data-heating-arrangement]')
+                ?.getAttribute('data-heating-arrangement'),
+        ).toBe('gross');
+        const container = await mount({ ...statusData(), inhaltsabstand: 4 }, reporting({}), box);
 
-        // 396 − 2 × 32 = 332 < 376: Mittel instead of Groß.
+        // 360 − 2 × 32 = 296 px < Groß's least width of 302 px: Mittel instead of Groß.
         expect(insetOf(container)).toBe('32px');
         expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
             'mittel',

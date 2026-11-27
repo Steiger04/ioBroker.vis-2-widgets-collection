@@ -7,7 +7,11 @@
  * Interface: a type hands over its pure rule `(box, own data) → stage`, draws Voll and Einfach itself
  * (`renderStage`) and fills the tile (`renderTile`: main value, line, optional controls) in the area
  * the hull leaves it (`TileArea`: the box below the head row and its gap, with the gaps the hull
- * sets between the type's parts — computed, not measured again; Nachtrag K3). It names
+ * sets between the type's parts and the head row's height — computed, not measured again; Nachtrag
+ * K3). The type may name a damped factor for the head row (`TileContent.headScale`, ADR-0122
+ * Nachtrag „Maßstab und Anordnungswahl“ Nr. 9): the hull draws name, open symbol and status sign at
+ * it; the area stays the one at the design's head, so the type counts the head's growth in its own
+ * fit (`TileArea.head`). It names
  * itself (`typeName`, `name`), its status (`status`: the chip's tone or a Meldung) and its Voll
  * design size (`fullSize`) for the Mini-Dialog.
  *
@@ -59,6 +63,9 @@ const TILE_GAP_UNITS = { row: 0.5, control: 0.75 } as const;
 /** The open symbol's size in px: the head row is never lower. */
 const OPEN_SYMBOL_SIZE = 16;
 
+/** The status sign's triangle in px. */
+const STATUS_SIGN = { width: 10, height: 9 } as const;
+
 /** The tile hull's drawn sizes in px: the head row and the two gaps it sets. */
 export interface TileHullMeasures {
     readonly head: number;
@@ -89,6 +96,23 @@ const pxOf = (value: unknown, rootPx: number): number | undefined => {
         return undefined;
     }
     return parseFloat(match[1]) * (match[2] === 'rem' ? rootPx : 1);
+};
+
+/**
+ * The name's font at the head row's factor: the theme's `body2` at 1 (its own rules included), else
+ * its size times the factor — the line height follows.
+ *
+ * @param theme - The theme.
+ * @param factor - The head row's factor.
+ * @returns The `sx` font size, if any.
+ */
+const headFontSize = (theme: Theme, factor: number): { fontSize?: string } => {
+    if (factor === 1) {
+        return {};
+    }
+    const size = theme.typography.body2.fontSize;
+    const px = pxOf(size, theme.typography.htmlFontSize ?? 16);
+    return { fontSize: px === undefined ? `calc(${size} * ${factor})` : `${px * factor}px` };
 };
 
 /**
@@ -202,8 +226,61 @@ export function tileHullMeasures(theme: Theme): TileHullMeasures {
     return measures;
 }
 
+/**
+ * The theme's measures a type's plan counts with (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“:
+ * theme typography and spacing stay the basis): one spacing unit, the `body1` text's size and line
+ * height, the `h3` size — all in px but the line height, a factor of the font.
+ */
+export interface ThemeMeasures {
+    readonly spacing: number;
+    readonly text: number;
+    readonly textLine: number;
+    readonly h3: number;
+}
+
+/**
+ * The standard theme's measures — also what a theme value stands in for that does not read as px
+ * (e.g. a size in em or a CSS variable without the theme's value).
+ */
+export const STANDARD_THEME_MEASURES: ThemeMeasures = { spacing: 8, text: 16, textLine: 1.5, h3: 48 };
+
+/** The measures per theme: a theme with CSS variables builds its style sheets to answer. */
+const themeMeasuresCache = new WeakMap<Theme, ThemeMeasures>();
+
+/**
+ * The theme's measures a type's plan counts with, read as the theme draws them.
+ *
+ * @param theme - The theme the type draws in.
+ * @returns The measures; the standard one for a value that does not read as px.
+ */
+export function themeMeasures(theme: Theme): ThemeMeasures {
+    const cached = themeMeasuresCache.get(theme);
+    if (cached) {
+        return cached;
+    }
+    const rootPx = theme.typography.htmlFontSize ?? 16;
+    const { fontSize, lineHeight } = theme.typography.body1;
+    const standard = STANDARD_THEME_MEASURES;
+    const measures: ThemeMeasures = {
+        spacing: spacingPxOf(theme, 1, rootPx) ?? standard.spacing,
+        text: pxOf(fontSize, rootPx) ?? standard.text,
+        textLine:
+            typeof lineHeight === 'number' || /^\s*\d*\.?\d+\s*$/.test(String(lineHeight))
+                ? Number(lineHeight)
+                : standard.textLine,
+        h3: pxOf(theme.typography.h3.fontSize, rootPx) ?? standard.h3,
+    };
+    themeMeasuresCache.set(theme, measures);
+    return measures;
+}
+
 /** The area a type fills in its tile, below the hull's head row and the gap under it. */
 export interface TileArea extends MeasuredBox {
+    /**
+     * The head row's height in px at the design: a type that grows the head (`TileContent.headScale`)
+     * takes the growth off this area.
+     */
+    readonly head: number;
     /** The gap the hull sets between the main row and the footer line, in px. */
     readonly rowGap: number;
     /** The gap the hull sets between a control and the main value, in px. */
@@ -223,6 +300,7 @@ export function tileArea(box: MeasuredBox, hull: TileHullMeasures = STANDARD_TIL
     return {
         width: box.width,
         height: Math.max(0, box.height - hull.head - hull.rowGap),
+        head: hull.head,
         rowGap: hull.rowGap,
         controlGap: hull.controlGap,
     };
@@ -238,6 +316,8 @@ export interface TileContent {
     start?: ReactNode;
     /** A control after the main value, raised above the tile's button. */
     end?: ReactNode;
+    /** The factor of the head row — name, open symbol and status sign —, damped; 1 by default. */
+    headScale?: number;
 }
 
 /** Props of {@link SizeStages}. */
@@ -270,9 +350,10 @@ export interface SizeStagesProps<Data> {
  *
  * @param props - Component props.
  * @param props.status - The type's status.
+ * @param props.factor - The head row's factor.
  * @returns The triangle in the Meldungsfarbe, else nothing.
  */
-function StatusSign({ status }: { status: TileStatus }): ReactElement | null {
+function StatusSign({ status, factor }: { status: TileStatus; factor: number }): ReactElement | null {
     const theme = useTheme();
 
     if (status.message) {
@@ -284,8 +365,8 @@ function StatusSign({ status }: { status: TileStatus }): ReactElement | null {
                 data-heating-status="triangle"
                 data-tone={status.message}
                 sx={{
-                    width: 10,
-                    height: 9,
+                    width: STATUS_SIGN.width * factor,
+                    height: STATUS_SIGN.height * factor,
                     flex: 'none',
                     // A Störung fills the triangle, a Hinweis tints it.
                     bgcolor: status.message === 'störung' ? colors.surface : colors.text,
@@ -326,7 +407,9 @@ interface TileProps {
  */
 function Tile({ content, name, typeName, status, inset, open, onOpen, buttonRef }: TileProps): ReactElement {
     const reducedMotion = useReducedMotion();
-    const quiet = neutralColors(useTheme());
+    const theme = useTheme();
+    const quiet = neutralColors(theme);
+    const factor = content.headScale ?? 1;
     const label = [name || typeName, status.label].filter(Boolean).join(', ');
     const raised = (node: ReactNode): ReactNode =>
         node == null ? null : <Box sx={{ position: 'relative', zIndex: 1, display: 'flex' }}>{node}</Box>;
@@ -351,13 +434,16 @@ function Tile({ content, name, typeName, status, inset, open, onOpen, buttonRef 
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <StatusSign status={status} />
+                <StatusSign
+                    status={status}
+                    factor={factor}
+                />
                 {name ? (
                     <Typography
                         data-heating-tile-name=""
                         variant="body2"
                         noWrap
-                        sx={{ flex: 1, minWidth: 0, fontWeight: 500 }}
+                        sx={{ flex: 1, minWidth: 0, fontWeight: 500, ...headFontSize(theme, factor) }}
                     >
                         {name}
                     </Typography>
@@ -367,7 +453,7 @@ function Tile({ content, name, typeName, status, inset, open, onOpen, buttonRef 
                 <OpenInFull
                     data-heating-open=""
                     aria-hidden
-                    sx={{ fontSize: OPEN_SYMBOL_SIZE, flex: 'none', color: quiet.label }}
+                    sx={{ fontSize: OPEN_SYMBOL_SIZE * factor, flex: 'none', color: quiet.label }}
                 />
             </Box>
             <Box

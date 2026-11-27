@@ -169,7 +169,7 @@ Nur Störung und Hinweis (1 und 2) färben die Zeile und tragen das Warndreieck.
 ### Messwerte
 
 - **Ist-Temperatur** unter dem Sollwert im Ring, in der einfachen Stufe statt der Hinweiszeile, in der Kachel in der Fußzeile. Eine Störung oder ein Hinweis ersetzt sie dort.
-- **Messwertleiste** (nur in der Anordnung Groß): Luftfeuchte, Ventil (Mittel der Ventile), Fenster (Zu/Offen, offen kühl gefärbt) und Batteriestand (bei „Batterie schwach“ als Hinweis gefärbt). Das Batterie-Element erscheint nur mit gebundenem `batteriestand`.
+- **Messwertleiste** (nur in den Anordnungen Groß und Breit): Luftfeuchte, Ventil (Mittel der Ventile), Fenster (Zu/Offen, offen kühl gefärbt) und Batteriestand (bei „Batterie schwach“ als Hinweis gefärbt). Das Batterie-Element erscheint nur mit gebundenem `batteriestand`.
 - **Format:** Temperaturen mit einer Nachkommastelle, Luftfeuchte und Ventil ganzzahlig, in der Sprache von vis-2, mit der Einheit des Datenpunkts (ohne Einheit °C bzw. %). Der Batteriestand steht wie gemeldet mit höchstens zwei Nachkommastellen und nur mit der Einheit des Datenpunkts.
 - **Noch nicht gemeldet:** Ein gebundener Datenpunkt ohne Wert, mit dem Qualitätskennzeichen `0x20` oder mit dem Platzhalter des Hosts für einen State ohne Wert zeigt „–“, nie einen Ersatzwert des Geräts. Ein Alter oder eine Schwelle für veraltete Werte gibt es nicht.
 - **Nicht erreichbar:** Sollwert und Ring erscheinen gedimmt und bleiben bedienbar.
@@ -185,7 +185,7 @@ Jede Aktion schreibt genau einen Datenpunkt, über die Schreibkette der Collecti
 - **Aus** schreibt den zugeordneten Wert „Aus“ von `betriebsartSetzen`, ist dieses Feld ungebunden, den von `betriebsart`. Ohne zugeordnetes „Aus“ schreibt es das echte Minimum des Sollwert-Datenpunkts; gibt es keines, fehlt die Pill.
 - **Betriebsart-Segment:** Auto und Manuell schreiben in `betriebsartSetzen`, ist es ungebunden, in `betriebsart`, soweit dort zugeordnet; sie leuchten nach der gelesenen Betriebsart. Boost schreibt `boost` = an; bei laufendem Boost schreibt ein Tipp `boostBeenden` = beenden, ohne dieses Feld `boost` = aus. Ist die nächste Aktion nicht schreibbar, fehlt die Boost-Pill.
 - **Urlaub:** Eine eigene Zeile „Urlaub bis …“ erscheint nur, solange Urlaub läuft. Auto oder Manuell beenden ihn; ist `urlaub` schreibbar, schreibt ein Tipp auf die Zeile dort aus.
-- **Ort:** Pills Absenk, Komfort und Aus nur in der Anordnung Groß, das Betriebsart-Segment in Groß und in Quer ab ausreichender Höhe, ± im Ring, neben dem großen Sollwert und in der Kachel.
+- **Ort:** Pills Absenk, Komfort und Aus nur in den Anordnungen Groß und Breit, das Betriebsart-Segment in Groß, Breit und in Quer ab ausreichender Höhe, ± im Ring, neben dem großen Sollwert und in der Kachel.
 
 ## Größenstufen
 
@@ -193,15 +193,37 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 
 ### Stufen und Anordnungen
 
-| Stufe   | Anordnung | ab Inhaltsfläche | Inhalt                                                                                                                                          |
-| ------- | --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Voll    | Groß      | 376 × 576 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
-| Voll    | Mittel    | 272 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
-| Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
-| Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
-| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
+| Stufe   | Anordnung | ab Inhaltsfläche | Inhalt                                                                                                                                               |
+| ------- | --------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Voll    | Groß      | 360 × 500 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste      |
+| Voll    | Breit     | 617 × 247 px     | Ring mit Sollwert, Ist und ± auf einer Seite; daneben Kartenkopf, Hinweiszeile, Pills, Betriebsart-Segment und Messwertleiste wie in Groß            |
+| Voll    | Mittel    | 247 × 292 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                               |
+| Einfach | Quer      | 371 × 86 px      | Kopfblock oben (Kopf gestapelt mit Hinweiszeile, ± und großer Sollwert); Betriebsart-Segment unten, sobald es passt (ab 388 × 135 px)                |
+| Einfach | Kompakt   | 232 × 112 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                             |
+| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 197 × 64 px; Fußzeile mit Ist ab 74 px Höhe, mit Meldung ab 84 px, neben ± ab 197 × 94 px |
 
-Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
+Die Schwellen gelten für den Standard-Inhalt ohne Meldung; was der Inhalt zusätzlich zeigt, etwa eine Meldung oder die Urlaubszeile, hebt sie an (siehe [Maßstab](#maßstab)). Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Der Sollwert wächst und schrumpft im Ring mit dem Ring, in Quer und Kompakt mit dem Maßstab; in der Kachel füllt er seine Zeile neben ± und über der Fußzeile (siehe [Maßstab](#maßstab)). Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
+
+### Maßstab
+
+Jede Anordnung zeichnet ihre Teile mit einem stufenlosen Maßstab relativ zum Entwurf, abgeleitet aus dem Platz ihrer Fläche: Ring, Sollwert, Ist, ±, Abstände, Pills, Betriebsart und Messwerte wachsen und schrumpfen gemeinsam. Kartenkopf und Hinweiszeile folgen gedämpft (beim doppelten Maßstab etwa 1,3-fach), damit benachbarte Widgets ähnlich große Namen behalten. Der Maßstab reicht bis 2,0; nach unten endet er für jede Anordnung dort, wo ihre ± noch 40 px groß sind und keine ihrer Schriften kleiner als 11 px wird, Kartenkopf und Hinweiszeile gedämpft gerechnet. In Groß und Breit bindet die Beschriftung der Messwerte (12 px), in Mittel binden die ±. Die Zahlen am Ring erscheinen nur, solange sie 11 px groß bleiben, ab etwa 293 px Ring. Passt der ganze Inhalt einer Anordnung auch dann nicht, nimmt das Widget eine kleinere; die Schwellen in der Tabelle sind genau diese Stellen.
+
+In Voll gewinnt unter Groß und Breit die Anordnung mit dem größeren Maßstab; Mittel erscheint nur, wenn keine der beiden passt. Der Ring füllt den Platz, den die übrigen Teile lassen (höchstens das Doppelte des Entwurfs, 640 px); Sollwert, Ist und ± im Ring wachsen mit ihm. Er ist mindestens so groß wie die Untergrenze des Entwurfs × Maßstab (Groß und Breit 240 px, Mittel 200 px), aber nie kleiner, als ± mit 40 px und Ist mit 11 px brauchen (etwa 246 px). Groß stellt Pills, Betriebsart und Messwerte in eine mittige Spalte von 392 px × Maßstab, Breit dieselbe Spalte samt Kartenkopf und Hinweiszeile neben den Ring. Gezählt wird, was der Inhalt gerade zeigt: eine Meldung oder die Urlaubszeile erst, wenn sie erscheinen. Dann kann das Widget den Maßstab oder die Anordnung wechseln.
+
+Beispiele mit dem Standard-Rahmen und dem Standard-Inhaltsabstand:
+
+| Widget        | Anordnung | Maßstab | Ring   |
+| ------------- | --------- | ------- | ------ |
+| 320 × 700 px  | Mittel    | 1,36    | 272 px |
+| 380 × 800 px  | Mittel    | 1,66    | 332 px |
+| 440 × 700 px  | Groß      | 1,00    | 339 px |
+| 600 × 900 px  | Groß      | 1,41    | 446 px |
+| 800 × 520 px  | Breit     | 1,17    | 281 px |
+| 1200 × 600 px | Breit     | 1,79    | 430 px |
+
+In Einfach zeichnen Quer und Kompakt ihre Teile im Maßstab: Sollwert, ± und Abstände wachsen mit der Fläche bis zum Doppelten des Entwurfs, Kartenkopf und Hinweiszeile gedämpft. Quer mit Betriebsart-Segment hat Vorrang, sobald es beim kleinsten Maßstab hineinpasst (ab 388 × 135 px), auch wenn Kompakt größer zeichnen könnte; so verschwindet beim Vergrößern kein Bedienteil. Dann teilen sich Kopfblock und Segment die Höhe, und Sollwert und ± wachsen mit der Höhe dazwischen. Sonst gewinnt unter Quer ohne Segment und Kompakt die Anordnung, die größer zeichnen kann — ein flaches, breites Widget zeigt Quer, ein schmales Kompakt. Kompakt richtet Sollwert und ± nach Breite und Höhe. Unter den genannten Flächen wären die ± kleiner als 40 px; dann zeigt das Widget die Kachel.
+
+Die Kachel folgt derselben Regel: Sobald ± mit 40 px hineinpassen, erscheinen sie, danach die Fußzeile, sobald ihr Text 11 px behält (Ist in der Schrift des Themes, Meldung 12 px); dann wachsen ±, Sollwert und Fußzeile mit der Fläche, Name und Öffnen-Symbol gedämpft. Die Kachel-Werte gelten für die Fläche nach dem halben Inhaltsabstand.
 
 ### Ansicht
 
@@ -209,7 +231,7 @@ Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px
 
 ### Rahmen und Größenstufe
 
-Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele: Mit dem Standard-Inhaltsabstand zeigt ein Widget von etwa 420 px Breite Mittel statt Groß. Die schmalste Raster-Sektion (320 px) hält mit dem Standard-Inhaltsabstand gerade noch Mittel, mit einem größeren zeigt sie Kompakt.
+Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele: Mit dem Standard-Inhaltsabstand zeigt ein Widget unter etwa 408 px Breite Mittel statt Groß. Die schmalste Raster-Sektion (320 px) zeigt mit dem Standard-Inhaltsabstand Mittel mit einem Ring von 272 px, ohne Zahlen am Ring.
 
 ## Mini-Dialog
 

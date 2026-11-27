@@ -100,11 +100,13 @@ interface StandIn {
     ansicht?: unknown;
     /** The stored Inhaltsabstand; 0 keeps the boxes of the tests that do not look at it. */
     inset?: unknown;
+    /** The factor the type names for the tile's head row; none by default. */
+    headScale?: number;
 }
 
 /** A stand-in type body in its frame. */
 const standIn = (props: StandIn = {}): FC => {
-    const { status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 'voll' } = props;
+    const { status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 'voll', headScale } = props;
     // An explicit `inset: undefined` stays unset; a test that leaves it out gets 0.
     const inset = Object.hasOwn(props, 'inset') ? props.inset : 0;
     return function StandInBody() {
@@ -120,7 +122,10 @@ const standIn = (props: StandIn = {}): FC => {
                     ansicht={ansicht}
                     inset={inset}
                     renderStage={stage => <StandInStage stage={stage} />}
-                    renderTile={() => ({ main: <span data-stand-in="main">21°</span> })}
+                    renderTile={() => ({
+                        main: <span data-stand-in="main">21°</span>,
+                        ...(headScale === undefined ? {} : { headScale }),
+                    })}
                     name={name}
                     typeName="Raumthermostat"
                     status={status}
@@ -265,6 +270,25 @@ describe('SizeStages: the tile hull', () => {
         const { container } = mountBody(standIn({ status }), scene(MINI));
 
         expect(statusSign(container)).toEqual(sign);
+    });
+
+    it("draws its head row — name, open symbol and status sign — at the type's factor", () => {
+        const status: TileStatus = { tone: 'neutral', message: 'störung' };
+        const plain = mountBody(standIn({ status }), scene(MINI)).container;
+        const grown = mountBody(standIn({ status, headScale: 1.25 }), scene(MINI)).container;
+        const style = (container: HTMLElement, selector: string): CSSStyleDeclaration =>
+            getComputedStyle(container.querySelector<HTMLElement>(selector)!);
+
+        // The design: the theme's body2, a 16 px open symbol, a 10 × 9 px triangle.
+        expect(style(plain, '[data-heating-tile-name]').fontSize).toBe('14px');
+        expect(style(plain, '[data-heating-open]').fontSize).toBe('16px');
+        expect(style(plain, '[data-heating-status]').width).toBe('10px');
+        expect(style(grown, '[data-heating-tile-name]').fontSize).toBe('17.5px');
+        expect(style(grown, '[data-heating-open]').fontSize).toBe('20px');
+        expect([style(grown, '[data-heating-status]').width, style(grown, '[data-heating-status]').height]).toEqual([
+            '12.5px',
+            '11.25px',
+        ]);
     });
 });
 

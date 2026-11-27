@@ -83,7 +83,6 @@ describe('HeatingThermostatCollection: stage and arrangement', () => {
     it.each([
         ['Groß', START_BOX, 'voll', 'gross'],
         ['Mittel', { width: 296, height: 400 }, 'voll', 'mittel'],
-        ['Quer', { width: 500, height: 150 }, 'einfach', 'quer'],
         ['Kompakt', { width: 280, height: 180 }, 'einfach', 'kompakt'],
     ])(
         'draws %s with its fixed Kartenkopf and hint-line places around a scrolling middle',
@@ -101,10 +100,20 @@ describe('HeatingThermostatCollection: stage and arrangement', () => {
         },
     );
 
+    it('draws Quer without the segment as its head row alone: no empty middle and no gap the plan does not count', () => {
+        const { container } = mountBody(HeatingThermostatCollection, scene({}, { width: 600, height: 100 }));
+
+        expect(attribute(container, 'data-heating-arrangement')).toBe('quer');
+        const regions = [...container.querySelectorAll('[data-heating-region]')].map(region =>
+            region.getAttribute('data-heating-region'),
+        );
+        expect(regions).toEqual(['head', 'hint']);
+    });
+
     it.each([
         ['Groß', START_BOX, 'dial', ['pills']],
         ['Mittel', { width: 296, height: 400 }, 'dial', []],
-        ['Quer', { width: 500, height: 150 }, 'setpoint', []],
+        ['Quer', { width: 600, height: 100 }, 'setpoint', []],
         ['Kompakt', { width: 280, height: 180 }, 'setpoint', []],
     ])(
         'shows the set-point in the place of %s — besides the Kartenkopf (and the pills of Groß) the other places stay empty until filled',
@@ -183,7 +192,7 @@ describe('HeatingThermostatCollection: the Kartenkopf per arrangement', () => {
     it.each([
         ['Groß: symbol, Bezeichnung, Unterzeile and chip', START_BOX, 'zeile', true, 'Heizkörper Fensterseite'],
         ['Mittel: name and chip', { width: 296, height: 400 }, 'zeile', false, null],
-        ['Quer: stacked', { width: 500, height: 150 }, 'gestapelt', false, null],
+        ['Quer: stacked', { width: 600, height: 100 }, 'gestapelt', false, null],
         ['Kompakt: a row', { width: 280, height: 180 }, 'zeile', false, null],
     ])('%s', (_case, box, form, symbol, second) => {
         const { container } = mountBody(
