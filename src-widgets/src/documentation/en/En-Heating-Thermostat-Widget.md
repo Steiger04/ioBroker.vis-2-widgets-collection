@@ -193,37 +193,37 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 
 ### Stages and Arrangements
 
-| Stage  | Arrangement | from content area | Content                                                                                                                                                 |
-| ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Full   | Large       | 360 × 603 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar               |
-| Full   | Broad       | 664 × 299 px      | Ring with set point, actual and ± on one side; beside it card head, hint line, pills, operating-mode segment and readings bar as in Large               |
-| Full   | Medium      | 247 × 317 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
-| Simple | Wide        | 371 × 91 px       | Head block at the top (head stacked with hint line, ± and big set point); operating-mode segment at the bottom once it fits (from 138 px height)        |
-| Simple | Compact     | 232 × 116 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
-| Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 197 × 64 px; footer line with actual or message from 89 px height, beside ± 199 × 94 px |
+| Stage  | Arrangement | from content area | Content                                                                                                                                                                 |
+| ------ | ----------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full   | Large       | 360 × 500 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar                               |
+| Full   | Broad       | 617 × 247 px      | Ring with set point, actual and ± on one side; beside it card head, hint line, pills, operating-mode segment and readings bar as in Large                               |
+| Full   | Medium      | 247 × 292 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                                  |
+| Simple | Wide        | 371 × 86 px       | Head block at the top (head stacked with hint line, ± and big set point); operating-mode segment at the bottom once it fits (from 388 × 135 px)                         |
+| Simple | Compact     | 232 × 112 px      | Name and chip, ± and set point, below it actual or message                                                                                                              |
+| Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 197 × 64 px; footer line with actual from 74 px height, with a message from 84 px, beside ± 197 × 94 px |
 
-With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. The set point grows and shrinks with the ring in the ring and with the scale in Wide and Compact; in the tile it fills its row beside ± and above the footer line (see [Scale](#scale)). Transitions and the click ripple are left out when the system asks for reduced motion.
+The thresholds apply to the standard content without a message; what the content shows in addition, such as a message or the holiday row, raises them (see [Scale](#scale)). With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. The set point grows and shrinks with the ring in the ring and with the scale in Wide and Compact; in the tile it fills its row beside ± and above the footer line (see [Scale](#scale)). Transitions and the click ripple are left out when the system asks for reduced motion.
 
 ### Scale
 
 Every arrangement draws its parts by one continuous scale relative to the design, taken from the room its area gives: ring, set point, actual, ±, gaps, pills, operating modes and readings grow and shrink together. Card head and hint line follow damped (about 1.3 times at twice the scale), so neighbouring widgets keep similar names. The scale goes up to 2.0; downwards it ends for each arrangement where its ± are still 40 px and none of its texts gets smaller than 11 px, card head and hint line counted damped. In Large and Broad the labels of the readings (12 px) bind, in Medium the ±. The numbers on the ring show only while they stay 11 px, from a ring of about 293 px. When the whole content of an arrangement does not fit even then, the widget takes a smaller one; the thresholds in the table are exactly these points.
 
-In Full, of Large and Broad the arrangement with the larger scale wins; Medium appears only when neither fits. The ring fills the room the other parts leave (at most twice the design, 640 px); set point, actual and ± in the ring grow with it. Large puts pills, operating modes and readings in a centred column of 392 px × scale, Broad puts the same column with card head and hint line beside the ring. The whole content always counts, a message and the holiday row included, so the ring does not jump when they appear.
+In Full, of Large and Broad the arrangement with the larger scale wins; Medium appears only when neither fits. The ring fills the room the other parts leave (at most twice the design, 640 px); set point, actual and ± in the ring grow with it. It is at least the design's lower bound × scale (Large and Broad 240 px, Medium 200 px), but never smaller than ± at 40 px and the actual at 11 px need (about 246 px). Large puts pills, operating modes and readings in a centred column of 392 px × scale, Broad puts the same column with card head and hint line beside the ring. What the content shows counts: a message or the holiday row only once they appear. The widget may then change its scale or arrangement.
 
 Examples with the standard frame and the standard content inset:
 
 | Widget        | Arrangement | Scale | Ring   |
 | ------------- | ----------- | ----- | ------ |
-| 320 × 700 px  | Medium      | 0.85  | 272 px |
-| 380 × 800 px  | Medium      | 1.04  | 332 px |
-| 440 × 700 px  | Large       | 0.93  | 299 px |
-| 600 × 900 px  | Large       | 1.26  | 404 px |
-| 800 × 520 px  | Broad       | 1.04  | 333 px |
-| 1200 × 600 px | Broad       | 1.59  | 509 px |
+| 320 × 700 px  | Medium      | 1.36  | 272 px |
+| 380 × 800 px  | Medium      | 1.66  | 332 px |
+| 440 × 700 px  | Large       | 1.00  | 339 px |
+| 600 × 900 px  | Large       | 1.41  | 446 px |
+| 800 × 520 px  | Broad       | 1.17  | 281 px |
+| 1200 × 600 px | Broad       | 1.79  | 430 px |
 
-In Simple, Wide and Compact draw their parts at a scale: set point, ± and gaps grow with the area up to twice the design, card head and hint line damped. The arrangement that can draw larger wins — a flat, wide widget shows Wide, a narrow or tall one Compact. Wide shows the operating-mode segment as soon as it fits; head block and segment then share the height, and set point and ± grow with the height between them. Compact sizes set point and ± by width and height. Below the areas named, ± would be smaller than 40 px; the widget then shows the tile.
+In Simple, Wide and Compact draw their parts at a scale: set point, ± and gaps grow with the area up to twice the design, card head and hint line damped. Wide with the operating-mode segment comes first as soon as it fits at the least scale (from 388 × 135 px), even where Compact could draw larger, so enlarging the widget never drops a control. Head block and segment then share the height, and set point and ± grow with the height between them. Elsewhere, of Wide without the segment and Compact the arrangement that can draw larger wins — a flat, wide widget shows Wide, a narrow one Compact. Compact sizes set point and ± by width and height. Below the areas named, ± would be smaller than 40 px; the widget then shows the tile.
 
-The tile follows the same rule: ± appear as soon as they fit at 40 px, then the footer line as soon as its text keeps 11 px; ±, set point and footer line then grow with the area, name and open symbol damped. The tile's values apply to the area inside half the content inset.
+The tile follows the same rule: ± appear as soon as they fit at 40 px, then the footer line as soon as its text keeps 11 px (the actual in the theme's text, a message 12 px); ±, set point and footer line then grow with the area, name and open symbol damped. The tile's values apply to the area inside half the content inset.
 
 ### Layout
 
@@ -231,7 +231,7 @@ The tile follows the same rule: ± appear as soon as they fit at 40 px, then the
 
 ### Frame and Size Stage
 
-The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples: with the standard content inset a widget narrower than about 410 px shows Medium instead of Large. The narrowest grid section (320 px) shows Medium with a ring of 272 px with the standard content inset, without numbers on the ring.
+The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples: with the standard content inset a widget narrower than about 408 px shows Medium instead of Large. The narrowest grid section (320 px) shows Medium with a ring of 272 px with the standard content inset, without numbers on the ring.
 
 ## Mini Dialog
 
