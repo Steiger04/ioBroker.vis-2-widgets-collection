@@ -198,11 +198,11 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Voll    | Groß      | 302 × 516 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
 | Voll    | Breit     | 557 × 260 px     | Ring mit Sollwert, Ist und ± auf einer Seite; daneben Kartenkopf, Hinweiszeile, Pills, Betriebsart-Segment und Messwertleiste wie in Groß       |
 | Voll    | Mittel    | 247 × 317 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
-| Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
-| Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
-| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
+| Einfach | Quer      | 371 × 91 px      | Kopfblock oben (Kopf gestapelt mit Hinweiszeile, ± und großer Sollwert); Betriebsart-Segment unten, sobald es passt (ab 138 px Höhe)            |
+| Einfach | Kompakt   | 232 × 116 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
+| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 197 × 64 px; Fußzeile mit Ist oder Meldung ab 89 px Höhe, neben ± ab 199 × 94 px     |
 
-Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring wächst und schrumpft der Sollwert mit dem Ring. In Kompakt und in der Kachel wird der Sollwert kleiner, wenn die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
+Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Der Sollwert wächst und schrumpft im Ring mit dem Ring, in Quer und Kompakt mit dem Maßstab; in der Kachel füllt er seine Zeile neben ± und über der Fußzeile (siehe [Maßstab](#maßstab)). Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
 
 ### Maßstab
 
@@ -220,6 +220,10 @@ Beispiele mit dem Standard-Rahmen und dem Standard-Inhaltsabstand:
 | 600 × 900 px  | Groß      | 1,26    | 405 px |
 | 800 × 520 px  | Breit     | 1,04    | 333 px |
 | 1200 × 600 px | Breit     | 1,59    | 509 px |
+
+In Einfach zeichnen Quer und Kompakt ihre Teile im Maßstab: Sollwert, ± und Abstände wachsen mit der Fläche bis zum Doppelten des Entwurfs, Kartenkopf und Hinweiszeile gedämpft. Es gewinnt die Anordnung, die größer zeichnen kann — ein flaches, breites Widget zeigt Quer, ein schmales oder hohes Kompakt. Quer zeigt das Betriebsart-Segment, sobald es passt; dann teilen sich Kopfblock und Segment die Höhe, und Sollwert und ± wachsen mit der Höhe dazwischen. Kompakt richtet Sollwert und ± nach Breite und Höhe. Unter den genannten Flächen wären die ± kleiner als 40 px; dann zeigt das Widget die Kachel.
+
+Die Kachel folgt derselben Regel: Sobald ± mit 40 px hineinpassen, erscheinen sie, danach die Fußzeile, sobald ihre Schrift 11 px behält; dann wachsen ±, Sollwert und Fußzeile mit der Fläche, Name und Öffnen-Symbol gedämpft. Die Kachel-Werte gelten für die Fläche nach dem halben Inhaltsabstand.
 
 ### Ansicht
 

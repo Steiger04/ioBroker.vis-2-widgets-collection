@@ -20,13 +20,33 @@
  * computed once there. The plan names the arrangement's Maßstab (ADR-0122 Nachtrag „Maßstab und
  * Anordnungswahl“, `lib/heating/scaleRule`) and the sizes of every part from it
  * (`thermostatSizes`): ±, set-point, actual temperature, Kartenkopf and hint line (damped), pills,
- * readings and gaps; the parts set no size of their own. Voll draws at the largest Maßstab its box
- * holds, its dial filling the room the other parts leave (see „Voll“ below); Einfach and the tile
- * draw at Maßstab 1 for now — the design's sizes.
+ * readings and gaps; the parts set no size of their own.
+ *
+ * Voll (see „Voll“ below): Groß, Breit and Mittel each draw at the largest Maßstab their whole
+ * content fits; Voll holds while one of them fits at its least Maßstab, of Groß and Breit the one
+ * with the larger Maßstab draws, Mittel only when neither holds. The dial fills the room the other
+ * parts leave at that Maßstab.
+ *
+ * Einfach (`thermostatEinfachPlan`): Quer and Kompakt each take the largest Maßstab at which their
+ * parts fit the box (`querNeed`, `kompaktNeed`); Einfach holds while one of them fits at its least
+ * Maßstab (± 40 px), and of the two the one with the larger Maßstab draws. Quer shows the
+ * operating-mode segment as soon as it fits at its least Maßstab (the pills' text 11 px) and then
+ * takes its Maßstab with the segment below the head.
+ *
+ * The tile (`thermostatTile`) follows the same rule in the area the hull leaves it: ± as soon as they
+ * fit at 40 px, the footer line as soon as it fits at its least Maßstab, then the largest Maßstab
+ * the area holds; the set-point fills its row, the hull's head row grows damped (`tileHeadScale`).
  */
 
-import { kartenkopfSizes, pillSizes, type KartenkopfSizes, type PillSizes } from '../lib/heating/partSizes';
-import { headScale, leastScale, legible, SCALE_BOUNDS, scaled } from '../lib/heating/scaleRule';
+import {
+    KARTENKOPF_DESIGN,
+    kartenkopfSizes,
+    PILL_DESIGN,
+    pillSizes,
+    type KartenkopfSizes,
+    type PillSizes,
+} from '../lib/heating/partSizes';
+import { fittingScale, headScale, leastScale, legible, SCALE_BOUNDS, scaled } from '../lib/heating/scaleRule';
 import type { TileArea } from '../lib/heating/SizeStages';
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
 
@@ -40,8 +60,9 @@ interface LeastBox {
  * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
  * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
  * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
- * The tile's parts: ± 44 px, the footer line 28 px — the hull's head row and gaps come with its area
- * (`TileArea`).
+ * The tile's parts: ± 44 px, the footer line 28 px, the set-point 32 px — the hull's head row and
+ * gaps come with its area (`TileArea`). Sizes in px are the design's; the fits (`querNeed`,
+ * `kompaktNeed`, the tile's) take them times the Maßstab.
  */
 export const SETPOINT_FIT = {
     glyphsPerFontPx: 3.6,
@@ -54,8 +75,8 @@ export const SETPOINT_FIT = {
     flatGap: 12,
     stepTile: 44,
     tileLine: 28,
-    /** The least set-point line the tile keeps beside its footer (a 20 px set-point). */
-    tileMainLine: 24,
+    /** The tile's set-point at the design: two thirds of the big one. */
+    tileFont: 32,
     /** The dial (320-unit box): the ring's inner edge (radius 118 − half the stroke of 14). */
     dialInner: 111,
     /** The dial: the bottom padding of its centred column, and the gap and actual line below the set-point. */
@@ -163,58 +184,148 @@ export function thermostatSizes(scale: number, place: SizePlace): ThermostatSize
     };
 }
 
-/** The Maßstab every arrangement draws at for now: the design's. */
-const DESIGN_SCALE = 1;
+/** One spacing unit of the standard theme in px: the fits count the gaps with it. */
+const SPACING_PX = 8;
 
-/** The design's outer thresholds of Einfach and the tile, converted to the Content-Box. */
-export const THERMOSTAT_THRESHOLDS = {
-    /** Einfach, arrangement Quer (design 480 × 180). */
-    quer: { width: 456, height: 116 },
-    /** Einfach, arrangement Kompakt (design 280 × 210). */
-    kompakt: { width: 256, height: 146 },
-    /** Quer with the operating-mode segment (design height 300). */
-    querModes: { width: 0, height: 236 },
-    /**
-     * The tile's ± (design width 220), in the tile's area: from the spec's width on, and as high as
-     * ± (ADR-0122: the box holds what the stage shows).
-     */
-    tileButtons: { width: 196, height: SETPOINT_FIT.stepTile },
-} as const satisfies Record<string, LeastBox>;
-
-/** Where a set-point sized by its box stands: Kompakt's row beside ±, or the tile. */
-type SetpointPlace = 'kompakt' | 'tile';
+/** The Kartenkopf's name line: its font times its line height (`Kartenkopf`). */
+const NAME_LINE = 1.3;
 
 /**
- * The set-point's font size in a place that sizes it by its box: the design's 48 px while there is
- * room, else as large as the place holds it (ADR-0122: the stage's box holds its parts) — in
- * Kompakt the row of the Content-Box beside ±, in the tile the row of its area beside ± and the
- * height the footer line leaves.
- *
- * @param place - The place.
- * @param box - Kompakt: the measured Content-Box; the tile: the area the hull leaves it.
- * @param parts - Kompakt: whether ± stand beside the set-point; the tile: its parts as
- *   {@link thermostatTile} decided them (± and the footer line), not decided again here.
- * @returns The font size in px.
+ * The Einfach arrangements' measures beyond their parts' design (px at the design): Quer's head
+ * column — the room the stacked Kartenkopf keeps beside the set-point, damped like the head — and
+ * the line below the head (Quer) or the set-point (Kompakt): the actual temperature at the Maßstab,
+ * a Meldung's hint line damped and no higher.
  */
-export function thermostatSetpointFont(place: 'kompakt', box: MeasuredBox, parts: boolean): number;
-export function thermostatSetpointFont(place: 'tile', box: TileArea, parts: ThermostatTileParts): number;
-export function thermostatSetpointFont(
-    place: SetpointPlace,
-    box: MeasuredBox | TileArea,
-    parts: boolean | ThermostatTileParts,
-): number {
+export const EINFACH_FIT = { querColumn: 140, line: 28 } as const;
+
+/**
+ * The least Maßstab of Einfach: ± keep 40 px. The damped texts (the Kartenkopf's 12.5 px, the hint
+ * line's 13 px) stay above 11 px there; the set-point is far larger.
+ */
+export const EINFACH_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [] });
+
+/** The least Maßstab of Quer with the operating-mode segment: its pills' 13.5 px keep 11 px as well. */
+export const QUER_MODES_LEAST = leastScale({
+    controls: [THERMOSTAT_DESIGN.step.stage],
+    texts: [PILL_DESIGN.font],
+});
+
+/**
+ * The big set-point's row at a Maßstab: the set-point at the design's 48 px, ± with their gap
+ * beside it where it is writable.
+ *
+ * @param scale - The Maßstab.
+ * @param writable - Whether ± stand beside the set-point.
+ * @returns Its width and height in px.
+ */
+function setpointRow(scale: number, writable: boolean): LeastBox {
     const fit = SETPOINT_FIT;
-    let font: number;
-    if (place === 'kompakt') {
-        font = (box.width - (parts ? 2 * fit.stepFlat + 2 * fit.flatGap : 0)) / fit.glyphsPerFontPx;
-    } else {
-        const area = box as TileArea;
-        const { buttons, footer } = parts as ThermostatTileParts;
-        const width = area.width - (buttons ? 2 * fit.stepTile + 2 * area.controlGap : 0);
-        const footerLine = footer ? area.rowGap + fit.tileLine : 0;
-        font = Math.min(width / fit.glyphsPerFontPx, (area.height - footerLine) / fit.lineHeight);
+    const step = writable ? fit.stepFlat * scale : 0;
+    const gap = writable ? fit.flatGap * scale : 0;
+    return {
+        width: 2 * (step + gap) + fit.glyphsPerFontPx * fit.maxFont * scale,
+        height: Math.max(step, fit.lineHeight * fit.maxFont * scale),
+    };
+}
+
+/**
+ * The line below the head or the set-point at a Maßstab: the actual temperature grows with it, a
+ * Meldung damped — the higher of both.
+ *
+ * @param scale - The Maßstab.
+ * @returns Its height in px.
+ */
+const lineAt = (scale: number): number => EINFACH_FIT.line * Math.max(scale, headScale(scale));
+
+/**
+ * What Quer needs at a Maßstab: the head block — the stacked Kartenkopf and the line below it in a
+ * column beside the set-point row — and, with the segment, the operating-mode pills below it. A
+ * running Urlaub adds a row the segment's region scrolls to.
+ *
+ * @param scale - The Maßstab.
+ * @param writable - Whether ± stand beside the set-point.
+ * @param modes - Whether the operating-mode segment stands below.
+ * @returns The box Quer needs in px.
+ */
+export function querNeed(scale: number, writable: boolean, modes: boolean): LeastBox {
+    const head = headScale(scale);
+    const gaps = scaled(THERMOSTAT_DESIGN.gaps, scale * SPACING_PX);
+    const k = KARTENKOPF_DESIGN;
+    const stacked = (k.name * NAME_LINE + k.stackGapUnits * SPACING_PX + k.chipHeight) * head;
+    const column = stacked + gaps.querText + lineAt(scale);
+    const row = setpointRow(scale, writable);
+    return {
+        width: EINFACH_FIT.querColumn * head + gaps.querHead + row.width,
+        height: Math.max(column, row.height) + (modes ? gaps.region + PILL_DESIGN.height * scale : 0),
+    };
+}
+
+/**
+ * What Kompakt needs at a Maßstab: the Kartenkopf as a row, the set-point row and the line below,
+ * one region gap between each.
+ *
+ * @param scale - The Maßstab.
+ * @param writable - Whether ± stand beside the set-point.
+ * @returns The box Kompakt needs in px.
+ */
+export function kompaktNeed(scale: number, writable: boolean): LeastBox {
+    const k = KARTENKOPF_DESIGN;
+    const head = Math.max(k.name * NAME_LINE, k.chipHeight) * headScale(scale);
+    const row = setpointRow(scale, writable);
+    const region = THERMOSTAT_DESIGN.gaps.region * SPACING_PX * scale;
+    return { width: row.width, height: head + region + row.height + region + lineAt(scale) };
+}
+
+/**
+ * Whether a box holds a need.
+ *
+ * @param box - The measured box.
+ * @returns The test of a need against the box.
+ */
+const holds =
+    (box: MeasuredBox) =>
+    (need: LeastBox): boolean =>
+        need.width <= box.width && need.height <= box.height;
+
+/** Einfach's arrangement in a box and the Maßstab it draws at. */
+export type EinfachChoice =
+    | { readonly arrangement: 'quer'; readonly modes: boolean; readonly scale: number }
+    | { readonly arrangement: 'kompakt'; readonly scale: number };
+
+/**
+ * Einfach's arrangement (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 5, 7): Quer or Kompakt,
+ * the one whose parts fit at the larger Maßstab — Quer only while it holds at the least Maßstab.
+ * Both compare the step's content without the segment; Quer then shows the segment as soon as it
+ * fits at its least Maßstab and takes the Maßstab the head leaves above it. A box too small for
+ * Einfach — floored in the dialog — draws at the least Maßstab.
+ *
+ * @param box - The measured Content-Box.
+ * @param writable - Whether the set-point is writable: only then ± stand beside it.
+ * @returns The arrangement, the segment in Quer and the Maßstab.
+ */
+export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean): EinfachChoice {
+    const fits = holds(box);
+    const quer = fittingScale(scale => fits(querNeed(scale, writable, false)));
+    const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable)));
+    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
+    if (fits(querNeed(EINFACH_LEAST, writable, false)) && quer >= kompakt) {
+        const modes = fits(querNeed(QUER_MODES_LEAST, writable, true));
+        const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true))) : quer;
+        return { arrangement: 'quer', modes, scale: Math.max(modes ? QUER_MODES_LEAST : EINFACH_LEAST, scale) };
     }
-    return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
+    return { arrangement: 'kompakt', scale: Math.max(EINFACH_LEAST, kompakt) };
+}
+
+/**
+ * Whether a box holds Einfach: Quer or Kompakt fits at the least Maßstab with ± — the rule reads no
+ * writability.
+ *
+ * @param box - The measured Content-Box.
+ * @returns `true` while one of them fits.
+ */
+export function thermostatEinfachHolds(box: MeasuredBox): boolean {
+    const fits = holds(box);
+    return fits(querNeed(EINFACH_LEAST, true, false)) || fits(kompaktNeed(EINFACH_LEAST, true));
 }
 
 /** An arrangement of Voll. */
@@ -222,15 +333,6 @@ export type VollArrangement = 'gross' | 'breit' | 'mittel';
 
 /** An arrangement of the Raumthermostat within its stage. */
 export type ThermostatArrangement = VollArrangement | 'quer' | 'kompakt';
-
-/**
- * Whether a box reaches a least box.
- *
- * @param box - The measured box.
- * @param least - The least box.
- * @returns `true` when both sizes reach it.
- */
-const reaches = (box: MeasuredBox, least: LeastBox): boolean => box.width >= least.width && box.height >= least.height;
 
 /**
  * The Raumthermostat's size-stage rule: Voll while one of its arrangements holds its whole content at
@@ -245,7 +347,7 @@ export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
     if (vollHolds(box)) {
         return 'voll';
     }
-    if (reaches(box, THERMOSTAT_THRESHOLDS.quer) || reaches(box, THERMOSTAT_THRESHOLDS.kompakt)) {
+    if (thermostatEinfachHolds(box)) {
         return 'einfach';
     }
     return 'mini';
@@ -258,25 +360,18 @@ export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
  *
  * @param stage - The effective stage.
  * @param box - The measured Content-Box.
+ * @param writable - Whether the set-point is writable (Einfach compares with or without ±).
  * @returns The arrangement to draw.
  */
-export function thermostatArrangement(stage: 'voll', box: MeasuredBox): VollArrangement;
-export function thermostatArrangement(stage: 'einfach', box: MeasuredBox): 'quer' | 'kompakt';
-export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox): ThermostatArrangement;
-export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox): ThermostatArrangement {
+export function thermostatArrangement(stage: 'voll', box: MeasuredBox, writable?: boolean): VollArrangement;
+export function thermostatArrangement(stage: 'einfach', box: MeasuredBox, writable?: boolean): 'quer' | 'kompakt';
+export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox, writable?: boolean): ThermostatArrangement;
+export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox, writable = true): ThermostatArrangement {
     if (stage === 'voll') {
         return vollArrangement(box);
     }
-    return reaches(box, THERMOSTAT_THRESHOLDS.quer) ? 'quer' : 'kompakt';
+    return thermostatEinfachChoice(box, writable).arrangement;
 }
-
-/**
- * Whether Quer is tall enough for the operating-mode segment.
- *
- * @param box - The measured Content-Box.
- * @returns `true` from the threshold on.
- */
-export const thermostatQuerModes = (box: MeasuredBox): boolean => reaches(box, THERMOSTAT_THRESHOLDS.querModes);
 
 /*
  * Voll (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 1–6, 8): each arrangement needs a box for
@@ -297,9 +392,6 @@ const DIAL_DESIGN = 320;
  * „Absenk 17,0 °C“ and „Komfort 21,0 °C“ hold their pill without being cut.
  */
 export const VOLL_COLUMN = 392;
-
-/** One spacing unit of the standard theme in px; the plan counts the parts' gaps by it. */
-const SPACING_PX = 8;
 
 /** The line height of the theme text the parts draw without a line height of their own. */
 const TEXT_LINE = 1.5;
@@ -325,7 +417,7 @@ function partHeights(sizes: ThermostatSizes): {
     gap: number;
 } {
     const { head, hint, pills, readings, gaps } = sizes;
-    const nameLine = head.name * 1.3;
+    const nameLine = head.name * NAME_LINE;
     return {
         headFull: Math.max(
             head.symbol,
@@ -406,32 +498,19 @@ function vollNeed(arrangement: VollArrangement, scale: number): VollNeed {
  * @returns `true` when the need fits.
  */
 function vollFits(arrangement: VollArrangement, box: MeasuredBox, scale: number): boolean {
-    return reaches(box, vollNeed(arrangement, scale));
+    return holds(box)(vollNeed(arrangement, scale));
 }
 
 /**
  * The Maßstab an arrangement of Voll draws at in a box: the largest its box holds, at most 2.0, to a
- * thousandth.
+ * thousandth (`fittingScale`).
  *
  * @param arrangement - The arrangement.
  * @param box - The box.
  * @returns The Maßstab (below the least when the arrangement does not hold).
  */
 export function vollScale(arrangement: VollArrangement, box: MeasuredBox): number {
-    if (vollFits(arrangement, box, SCALE_BOUNDS.max)) {
-        return SCALE_BOUNDS.max;
-    }
-    let low = 0;
-    let high: number = SCALE_BOUNDS.max;
-    for (let step = 0; step < 32; step++) {
-        const middle = (low + high) / 2;
-        if (vollFits(arrangement, box, middle)) {
-            low = middle;
-        } else {
-            high = middle;
-        }
-    }
-    return Math.floor(low * 1000) / 1000;
+    return fittingScale(scale => vollFits(arrangement, box, scale));
 }
 
 /**
@@ -527,18 +606,86 @@ export interface ThermostatTileParts {
     footer: boolean;
 }
 
+/** The tile's parts and the Maßstab it draws them at. */
+export interface ThermostatTileFit extends ThermostatTileParts {
+    /** The Maßstab: 0 when not even the set-point fits at the smallest. */
+    readonly scale: number;
+}
+
+/** The least Maßstab of the tile's ±: they keep 40 px (44 px at the design). */
+export const TILE_BUTTONS_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.tile], texts: [] });
+
+/** The least Maßstab of the tile's footer line: its 12 px keep 11 px. */
+export const TILE_FOOTER_LEAST = leastScale({ controls: [], texts: [THERMOSTAT_DESIGN.hint.tile.font] });
+
 /**
- * The parts the tile's area holds: ± from their least box, the footer line below the main row —
- * as high as ±, else the least set-point line — and the hull's gap.
+ * The factor of the tile hull's head row at the tile's Maßstab: damped, and never below the hull's
+ * design — the tile is the smallest step, its name and open symbol do not shrink.
+ *
+ * @param scale - The tile's Maßstab.
+ * @returns The head row's factor.
+ */
+export const tileHeadScale = (scale: number): number => headScale(Math.max(1, scale));
+
+/**
+ * What the tile's parts need of its area at a Maßstab: the set-point at the tile's design font, ±
+ * with the hull's gap where they show, the footer line below the hull's row gap, and the head row's
+ * growth over the design the area already left.
+ *
+ * @param scale - The Maßstab.
+ * @param area - The area the hull leaves the tile.
+ * @param parts - Which optional parts show.
+ * @returns The box the parts need in px.
+ */
+function tileNeed(scale: number, area: TileArea, parts: ThermostatTileParts): LeastBox {
+    const fit = SETPOINT_FIT;
+    const step = parts.buttons ? fit.stepTile * scale : 0;
+    const font = fit.tileFont * scale;
+    return {
+        width: (parts.buttons ? 2 * (step + area.controlGap) : 0) + fit.glyphsPerFontPx * font,
+        height:
+            area.head * (tileHeadScale(scale) - 1) +
+            Math.max(step, fit.lineHeight * font) +
+            (parts.footer ? area.rowGap + fit.tileLine * scale : 0),
+    };
+}
+
+/**
+ * The parts the tile's area holds and its Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“
+ * Nr. 9): ± as soon as they fit at 40 px, then the footer line as soon as it fits beside them at
+ * its least Maßstab; the tile then draws them at the largest Maßstab its area holds.
  *
  * @param area - The area the hull leaves the tile's content.
- * @param stepping - Whether the set-point has ± at all (writable); without, the footer needs less.
- * @returns Which optional parts to show.
+ * @param stepping - Whether the set-point has ± at all (writable).
+ * @returns Which optional parts to show and the Maßstab.
  */
-export function thermostatTile(area: TileArea, stepping = true): ThermostatTileParts {
-    const buttons = stepping && reaches(area, THERMOSTAT_THRESHOLDS.tileButtons);
-    const mainRow = buttons ? SETPOINT_FIT.stepTile : SETPOINT_FIT.tileMainLine;
-    return { buttons, footer: area.height >= mainRow + area.rowGap + SETPOINT_FIT.tileLine };
+export function thermostatTile(area: TileArea, stepping = true): ThermostatTileFit {
+    const fits = holds(area);
+    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
+    const buttons = stepping && fits(tileNeed(TILE_BUTTONS_LEAST, area, { buttons: true, footer: false }));
+    const footer = fits(tileNeed(TILE_FOOTER_LEAST, area, { buttons, footer: true }));
+    const scale = fittingScale(at => fits(tileNeed(at, area, { buttons, footer })));
+    const least = Math.max(buttons ? TILE_BUTTONS_LEAST : 0, footer ? TILE_FOOTER_LEAST : 0);
+    return { buttons, footer, scale: Math.max(least, scale) };
+}
+
+/**
+ * The set-point's font size in the tile: as large as the row of its area beside ± and the height
+ * the head row and the footer line leave hold it, at most the big set-point's 48 px times the
+ * Maßstab and at least 12 px (ADR-0122: the stage's box holds its parts).
+ *
+ * @param area - The area the hull leaves the tile.
+ * @param tile - Its parts and Maßstab as {@link thermostatTile} decided them, not decided again here.
+ * @returns The font size in px.
+ */
+export function thermostatSetpointFont(area: TileArea, tile: ThermostatTileFit): number {
+    const fit = SETPOINT_FIT;
+    const { buttons, footer, scale } = tile;
+    const width = area.width - (buttons ? 2 * (fit.stepTile * scale + area.controlGap) : 0);
+    const height =
+        area.height - area.head * (tileHeadScale(scale) - 1) - (footer ? area.rowGap + fit.tileLine * scale : 0);
+    const font = Math.min(width / fit.glyphsPerFontPx, height / fit.lineHeight);
+    return Math.max(fit.minFont, Math.min(fit.maxFont * scale, Math.floor(font)));
 }
 
 /**
@@ -584,9 +731,11 @@ export interface ThermostatDial {
     readonly actualGap: number;
 }
 
-/** The Raumthermostat tile's parts and the set-point's font size beside them. */
+/** The Raumthermostat tile's parts, the set-point's font size beside them and the hull's head factor. */
 export interface ThermostatTilePlan extends ThermostatTileParts {
     readonly setpointFont: number;
+    /** The factor the hull draws its head row at (damped). */
+    readonly headScale: number;
 }
 
 /** A font of the theme's typography at a factor. */
@@ -658,25 +807,33 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
         const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
-            sizes: thermostatSizes(DESIGN_SCALE, 'tile'),
-            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile) },
+            sizes: thermostatSizes(tile.scale, 'tile'),
+            tile: {
+                buttons: tile.buttons,
+                footer: tile.footer,
+                setpointFont: thermostatSetpointFont(area, tile),
+                headScale: tileHeadScale(tile.scale),
+            },
         };
     }
-    if (stage === 'voll') {
-        return vollPlan(box);
+    if (stage === 'einfach') {
+        return thermostatEinfachPlan(box, writable);
     }
-    const arrangement = thermostatArrangement(stage, box);
-    const sizes = thermostatSizes(DESIGN_SCALE, 'stage');
-    switch (arrangement) {
-        case 'quer':
-            return {
-                arrangement,
-                sizes,
-                modes: thermostatQuerModes(box),
-                // Quer keeps the set-point in the theme's h3.
-                setpointFont: { variant: 'h3', factor: sizes.scale },
-            };
-        default:
-            return { arrangement, sizes, setpointFont: thermostatSetpointFont('kompakt', box, writable) };
-    }
+    return vollPlan(box);
+}
+
+/**
+ * The plan of Einfach: Quer or Kompakt at the Maßstab of {@link thermostatEinfachChoice} — Quer's
+ * set-point in the theme's h3 at the Maßstab, Kompakt's at the design's 48 px times it.
+ *
+ * @param box - The measured Content-Box.
+ * @param writable - Whether the set-point is writable.
+ * @returns The plan.
+ */
+function thermostatEinfachPlan(box: MeasuredBox, writable: boolean): ThermostatStagePlan {
+    const choice = thermostatEinfachChoice(box, writable);
+    const sizes = thermostatSizes(choice.scale, 'stage');
+    return choice.arrangement === 'quer'
+        ? { arrangement: 'quer', sizes, modes: choice.modes, setpointFont: { variant: 'h3', factor: choice.scale } }
+        : { arrangement: 'kompakt', sizes, setpointFont: SETPOINT_FIT.maxFont * choice.scale };
 }

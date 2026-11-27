@@ -6,11 +6,11 @@
  * @remarks
  * Pinned: the bounds (at most 2.0; ± keep 40 px, no text below 11 px), the least Maßstab a design
  * allows by them, the damped head (1 at the design, about 1.3 at 2.0) and design measures at a
- * factor.
+ * factor, and the largest Maßstab at which an arrangement fits its box.
  */
 import { describe, expect, it } from 'vitest';
 
-import { headScale, leastScale, legible, SCALE_BOUNDS, scaled } from './scaleRule';
+import { fittingScale, headScale, leastScale, legible, SCALE_BOUNDS, scaled } from './scaleRule';
 import { kartenkopfSizes, pillSizes } from './partSizes';
 
 describe('scaleRule: bounds', () => {
@@ -71,5 +71,21 @@ describe('scaleRule: legible text', () => {
         // 13.5 px × 0.769 = 10.4 px; the Kartenkopf at 0.7 is damped to 0.87: 12.5 px → 10.9 px.
         expect(pillSizes(40 / 52)).toMatchObject({ font: 11, height: 44 * (40 / 52) });
         expect(kartenkopfSizes(0.7)).toMatchObject({ name: 19 * 0.7, second: 11, chipFont: 11 });
+    });
+});
+
+describe('scaleRule: the Maßstab that fills the box', () => {
+    it('finds the largest Maßstab at which a part fits, to a thousandth', () => {
+        // A part 100 px wide at the design in a box of 137 px.
+        expect(fittingScale(scale => 100 * scale <= 137)).toBe(1.37);
+        expect(fittingScale(scale => 300 * scale <= 100)).toBe(0.333);
+    });
+
+    it('stops at the upper bound of 2.0', () => {
+        expect(fittingScale(scale => 100 * scale <= 900)).toBe(2);
+    });
+
+    it('gives 0 when not even the smallest Maßstab fits', () => {
+        expect(fittingScale(() => false)).toBe(0);
     });
 });
