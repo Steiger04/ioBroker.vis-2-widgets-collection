@@ -17,10 +17,11 @@
  * OPEN and TILTED → `offen`); a device value without a mapping gives no neutral value, and the
  * display then names the `commonStates` label, else the raw value.
  */
-import { meaningKeys, VALVE_LIST, type MeaningField, type NeutralKey } from './meaningCatalog';
+import { meaningKeys, MEANINGS, VALVE_LIST, type MeaningField, type NeutralKey } from './meaningCatalog';
+import { readValueMapping, type DeviceValue, type ValueMapping } from './valueMapping';
 import { valveCountOf } from './valveListShape';
-import type { DeviceValue, ValueMapping } from './valueMapping';
 
+import type { OidObjectMeta } from '../../types';
 import type { VisRxWidgetStateValues, WidgetData } from '@iobroker/types-vis-2';
 
 /** The quality of a substitute value from the device: the data point has not reported yet. */
@@ -56,6 +57,66 @@ export type StateValues = VisRxWidgetStateValues;
 export function boundIdOf(data: WidgetData, key: string): string | undefined {
     const id: unknown = data[key];
     return typeof id === 'string' && id !== '' && id !== 'nothing_selected' ? id : undefined;
+}
+
+/**
+ * A Bedeutung's stored object (`<field>Object`, the pick's copy {@link OidObjectMeta}) as far as its
+ * keys hold their stored type: the widget data may hold anything (an older or a hand-edited
+ * object), so a key of another type reads as missing.
+ */
+export type StoredMeaningObject = Partial<
+    Pick<OidObjectMeta, '_id' | 'unit' | 'write' | 'minValue' | 'maxValue' | 'step' | 'commonStates'>
+> & {
+    /** The data type of the state, as stored. */
+    readonly type?: string;
+};
+
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
+const isFilledText = (value: unknown): value is string => typeof value === 'string' && value !== '';
+
+/**
+ * Reads a Bedeutung's stored object.
+ *
+ * @param data - The widget data as the widget reads it.
+ * @param field - The Bedeutung.
+ * @param entry - The entry number of a list entry (ADR-0121); none for the unnumbered binding.
+ * @returns Its keys of the stored type: `_id`, `type` and `unit` as non-empty text, `write` as a
+ *   boolean, `minValue`/`maxValue`/`step` as finite numbers, `commonStates` as an object or a
+ *   list; `{}` without an object.
+ */
+export function storedObjectOf(data: WidgetData, field: MeaningField, entry?: number): StoredMeaningObject {
+    const object: unknown = data[meaningKeys(field, entry).object];
+    if (!object || typeof object !== 'object') {
+        return {};
+    }
+    const { _id, type, unit, write, minValue, maxValue, step, commonStates } = object as Record<string, unknown>;
+    return {
+        ...(isFilledText(_id) ? { _id } : {}),
+        ...(isFilledText(type) ? { type } : {}),
+        ...(isFilledText(unit) ? { unit } : {}),
+        ...(typeof write === 'boolean' ? { write } : {}),
+        ...(isFiniteNumber(minValue) ? { minValue } : {}),
+        ...(isFiniteNumber(maxValue) ? { maxValue } : {}),
+        ...(isFiniteNumber(step) ? { step } : {}),
+        ...(commonStates && typeof commonStates === 'object'
+            ? { commonStates: commonStates as OidObjectMeta['commonStates'] }
+            : {}),
+    };
+}
+
+/**
+ * Reads a Bedeutung's stored Wertezuordnung as far as it fits the Bedeutung's shape.
+ *
+ * @param data - The widget data as the widget reads it (with the Lese-Naht's mappings).
+ * @param field - The Bedeutung.
+ * @param entry - The entry number of a list entry (ADR-0121); none for the unnumbered binding.
+ * @returns The usable mapping; `undefined` for a Bedeutung without fixed values or without a usable
+ *   mapping.
+ */
+export function storedMappingOf(data: WidgetData, field: MeaningField, entry?: number): ValueMapping | undefined {
+    const shape = MEANINGS[field].mapping;
+    return shape ? readValueMapping(data[meaningKeys(field, entry).mapping], shape) : undefined;
 }
 
 /**
@@ -150,16 +211,58 @@ export function neutralValueOf(
 }
 
 /**
+ * The neutral value a Bedeutung's reported value maps to through its stored Wertezuordnung.
+ *
+ * @param data - The widget data.
+ * @param reading - What the widget knows about the Bedeutung ({@link readMeaning}).
+ * @param field - The Bedeutung (one with a mapping).
+ * @param entry - The entry number; none for the unnumbered binding.
+ * @returns The neutral value; `undefined` without a reported value or without a mapping for it.
+ */
+export function neutralReadingOf(
+    data: WidgetData,
+    reading: MeaningReading,
+    field: MeaningField,
+    entry?: number,
+): NeutralKey | undefined {
+    const shape = MEANINGS[field].mapping;
+    if (reading.kind !== 'reported' || !shape) {
+        return undefined;
+    }
+    return neutralValueOf(storedMappingOf(data, field, entry), shape.keys, reading.value);
+}
+
+/**
+ * Reads one Bedeutung of the widget as its neutral value: {@link readMeaning}, then
+ * {@link neutralReadingOf}.
+ *
+ * @param data - The widget data.
+ * @param values - The host's values map.
+ * @param field - The Bedeutung (one with a mapping).
+ * @param entry - The entry number; none for the unnumbered binding.
+ * @returns The neutral value; `undefined` while unbound, without a reported value or without a
+ *   mapping for it.
+ */
+export function readNeutral(
+    data: WidgetData,
+    values: StateValues,
+    field: MeaningField,
+    entry?: number,
+): NeutralKey | undefined {
+    return neutralReadingOf(data, readMeaning(data, values, field, entry), field, entry);
+}
+
+/**
  * The label of a device value that maps to no neutral value: its `commonStates` label, else the
  * raw value.
  *
- * @param object - The Bedeutung's stored object (`<field>Object`).
+ * @param object - The Bedeutung's stored object ({@link storedObjectOf}).
  * @param value - The reported device value.
  * @returns The text to show.
  */
-export function deviceValueLabel(object: unknown, value: DeviceValue): string {
-    const states = (object as { commonStates?: unknown } | undefined)?.commonStates;
-    if (states && typeof states === 'object') {
+export function deviceValueLabel(object: StoredMeaningObject, value: DeviceValue): string {
+    const states = object.commonStates;
+    if (states) {
         const label = (states as Record<string, unknown>)[String(value)];
         if (typeof label === 'string' && label !== '') {
             return label;

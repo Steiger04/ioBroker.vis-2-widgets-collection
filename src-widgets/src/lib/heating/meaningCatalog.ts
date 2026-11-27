@@ -197,18 +197,6 @@ export interface MeaningKeys {
 }
 
 /**
- * The stored keys of a Bedeutung, unnumbered or for a list entry.
- *
- * @param field - The Bedeutung's field name.
- * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
- * @returns The keys, the number before every suffix (`soll3`, `soll3Object`, `betriebsart3Zuordnung`).
- */
-export const meaningKeys = (field: MeaningField, entry?: number): MeaningKeys => {
-    const base = entryKey(field, entry);
-    return { field: base, object: `${base}Object`, mapping: `${base}Zuordnung` };
-};
-
-/**
  * A key of the binding, unnumbered or for a list entry: the one numbering rule of the family
  * (ADR-0121). Numbered per entry is the binding alone — the Bedeutungen with their object and
  * Wertezuordnung ({@link meaningKeys}) and the Kartenkopf's Bezeichnung and Unterzeile, which stand
@@ -220,6 +208,18 @@ export const meaningKeys = (field: MeaningField, entry?: number): MeaningKeys =>
  * @returns The key with the number before every suffix.
  */
 export const entryKey = (base: string, entry?: number): string => `${base}${entry ?? ''}`;
+
+/**
+ * The stored keys of a Bedeutung, unnumbered or for a list entry.
+ *
+ * @param field - The Bedeutung's field name.
+ * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
+ * @returns The keys, the number before every suffix (`soll3`, `soll3Object`, `betriebsart3Zuordnung`).
+ */
+export const meaningKeys = (field: MeaningField, entry?: number): MeaningKeys => {
+    const base = entryKey(field, entry);
+    return { field: base, object: `${base}Object`, mapping: `${base}Zuordnung` };
+};
 
 /** The Kartenkopf keys of a binding. */
 export interface HeaderKeys {

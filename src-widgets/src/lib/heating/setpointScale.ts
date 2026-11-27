@@ -15,6 +15,7 @@
  *
  * Pure and component-free.
  */
+import type { StoredMeaningObject } from './meaningReading';
 
 /** The design scale's lower end (°C), for a set-point without a real minimum. */
 export const DESIGN_MIN = 5;
@@ -38,22 +39,22 @@ export interface SetpointScale {
 /** Floating-point slack when a value sits on the step grid. */
 const EPSILON = 1e-9;
 
-const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
-
 /**
  * The scale of a set-point from its stored object.
  *
- * @param object - The set-point's stored object (`sollObject`).
+ * @param object - The set-point's stored object (`storedObjectOf(data, 'soll')`).
+ * @param object.minValue - Its real minimum.
+ * @param object.maxValue - Its real maximum.
+ * @param object.step - Its `common.step`.
  * @returns Its real limits, a missing side from the design scale, and its step.
  */
-export function setpointScale(object: unknown): SetpointScale {
-    const { minValue, maxValue, step } = (object ?? {}) as { minValue?: unknown; maxValue?: unknown; step?: unknown };
-    const min = isFiniteNumber(minValue) ? minValue : DESIGN_MIN;
-    const max = isFiniteNumber(maxValue) ? maxValue : DESIGN_MAX;
+export function setpointScale({ minValue, maxValue, step }: StoredMeaningObject): SetpointScale {
+    const min = minValue ?? DESIGN_MIN;
+    const max = maxValue ?? DESIGN_MAX;
     return {
         min,
         max: Math.max(min, max),
-        step: isFiniteNumber(step) && step > 0 ? step : DEFAULT_STEP,
+        step: step !== undefined && step > 0 ? step : DEFAULT_STEP,
     };
 }
 

@@ -9,7 +9,7 @@
  * frame's: no object of the set-point asks for one (also while the Lese-Naht still loads it, and
  * for an id the pick refused), an object of another type says it must be a number.
  */
-import { meaningKeys } from './meaningCatalog';
+import { storedObjectOf } from './meaningReading';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
@@ -27,9 +27,8 @@ export const SETPOINT_NOTICES = {
  * @returns The translation key of the notice, none while the set-point is a usable number.
  */
 export function setpointNoticeKey(data: WidgetData, entry?: number): string | undefined {
-    const object: unknown = data[meaningKeys('soll', entry).object];
-    const { _id: id, type } = (object && typeof object === 'object' ? object : {}) as { _id?: unknown; type?: unknown };
-    if (typeof id !== 'string' || id === '') {
+    const { _id: id, type } = storedObjectOf(data, 'soll', entry);
+    if (id === undefined) {
         return SETPOINT_NOTICES.choose;
     }
     return type === 'number' ? undefined : SETPOINT_NOTICES.notNumber;

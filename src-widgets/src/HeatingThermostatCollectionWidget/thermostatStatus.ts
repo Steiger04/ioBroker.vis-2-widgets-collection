@@ -27,19 +27,20 @@
  *   `urlaub`. Its end shows only while it lies ahead — a default such as `2000_01_01 00:00` means
  *   „no period“.
  */
-import { meaningKeys, MEANINGS, type MeaningField, type NeutralKey } from '../lib/heating/meaningCatalog';
+import type { MeaningField, NeutralKey } from '../lib/heating/meaningCatalog';
 import {
     deviceValueLabel,
     readMeaning,
+    readNeutral,
+    storedMappingOf,
+    storedObjectOf,
     valveMeanOf,
     type MeaningReading,
     type StateValues,
 } from '../lib/heating/meaningReading';
 import { formatDuration, formatReading, formatSince, formatUntil } from '../lib/heating/readingFormat';
 import { parseTimePoint } from '../lib/heating/timePoint';
-import { readValueMapping } from '../lib/heating/valueMapping';
 import { translate } from '../lib/translate';
-import { neutralReadingOf } from './ThermostatReadings';
 import { thermostatOff } from './thermostatOff';
 import type { TileStatus } from '../lib/heating/SizeStages';
 import type { HeatingTone } from '../lib/heating/tones';
@@ -105,16 +106,6 @@ const reportedAt = (values: StateValues, reading: MeaningReading & { kind: 'repo
     return typeof ts === 'number' ? ts : reading.lc;
 };
 
-/** The stored mapping of a Bedeutung with additions (unit or time format). */
-const mappingOf = (
-    data: WidgetData,
-    field: MeaningField,
-    entry: number | undefined,
-): { einheit?: string; zeitformat?: string } | undefined => {
-    const shape = MEANINGS[field].mapping;
-    return shape ? readValueMapping(data[meaningKeys(field, entry).mapping], shape) : undefined;
-};
-
 /** What the remaining-time Bedeutung says: whether time is left, and how much where known. */
 function remainingOf(
     data: WidgetData,
@@ -125,7 +116,7 @@ function remainingOf(
     if (reading.kind !== 'reported') {
         return { left: false, remaining: undefined };
     }
-    const mapping = mappingOf(data, 'boostRestzeit', entry);
+    const mapping = storedMappingOf(data, 'boostRestzeit', entry);
     if (mapping?.zeitformat) {
         const end = parseTimePoint(reading.value, mapping.zeitformat);
         return end === undefined ? { left: false, remaining: undefined } : { left: end > now, remaining: end - now };
@@ -151,7 +142,7 @@ function boostOf(
     mode: NeutralKey | undefined,
 ): Boost | undefined {
     const rest = remainingOf(data, values, context);
-    const boost = neutralReadingOf(data, readMeaning(data, values, 'boost', context.entry), 'boost', context.entry);
+    const boost = readNeutral(data, values, 'boost', context.entry);
     let running: boolean;
     if (boost === 'an' || boost === 'aus') {
         running = boost === 'an';
@@ -168,13 +159,13 @@ function holidayOf(
     { now, entry }: ThermostatStatusContext,
     mode: NeutralKey | undefined,
 ): { end: number | undefined } | undefined {
-    const holiday = neutralReadingOf(data, readMeaning(data, values, 'urlaub', entry), 'urlaub', entry);
+    const holiday = readNeutral(data, values, 'urlaub', entry);
     const running = holiday === 'an' || holiday === 'aus' ? holiday === 'an' : mode === 'urlaub';
     if (!running) {
         return undefined;
     }
     const endReading = readMeaning(data, values, 'urlaubEnde', entry);
-    const format = mappingOf(data, 'urlaubEnde', entry)?.zeitformat;
+    const format = storedMappingOf(data, 'urlaubEnde', entry)?.zeitformat;
     const end = endReading.kind === 'reported' && format ? parseTimePoint(endReading.value, format) : undefined;
     return { end: end !== undefined && end > now ? end : undefined };
 }
@@ -206,8 +197,7 @@ export function thermostatStatus(
     context: ThermostatStatusContext,
 ): ThermostatStatus {
     const { now, lang, entry } = context;
-    const neutral = (field: MeaningField): string | undefined =>
-        neutralReadingOf(data, readMeaning(data, values, field, entry), field, entry);
+    const neutral = (field: MeaningField): NeutralKey | undefined => readNeutral(data, values, field, entry);
 
     const reachability = readMeaning(data, values, 'erreichbarkeit', entry);
     const unreachable = neutral('erreichbarkeit') === 'unerreichbar';
@@ -216,7 +206,7 @@ export function thermostatStatus(
     const setpoint = reportedSetpoint(data, values, entry);
 
     const modeReading = readMeaning(data, values, 'betriebsart', entry);
-    const mode = neutral('betriebsart') as NeutralKey | undefined;
+    const mode = neutral('betriebsart');
     const off = thermostatOff(data, entry);
     const isOff = mode === 'aus' || (off?.kind === 'minimum' && setpoint !== undefined && setpoint === off.value);
     const boost = boostOf(data, values, context, mode);
@@ -227,7 +217,7 @@ export function thermostatStatus(
     if (mode) {
         modeText = translate(`heating_neutral_${mode}`);
     } else if (modeReading.kind === 'reported') {
-        modeText = deviceValueLabel(data[meaningKeys('betriebsart', entry).object], modeReading.value);
+        modeText = deviceValueLabel(storedObjectOf(data, 'betriebsart', entry), modeReading.value);
     }
     const remaining = boost?.remaining === undefined ? undefined : formatDuration(boost.remaining);
 
@@ -267,15 +257,12 @@ export function thermostatStatus(
     } else if (batteryLow) {
         hint = { text: translate('heating_hinweis_batterie_schwach'), message: 'hinweis' };
     } else if (windowOpen) {
-        const unit = (data[meaningKeys('soll', entry).object] as { unit?: unknown } | undefined)?.unit;
+        const { unit } = storedObjectOf(data, 'soll', entry);
         hint = {
             text:
                 setpoint === undefined
                     ? translate('heating_hinweis_fenster')
-                    : translate(
-                          'heating_hinweis_fenster_soll',
-                          formatReading(setpoint, 'temperature', lang, typeof unit === 'string' ? unit : undefined),
-                      ),
+                    : translate('heating_hinweis_fenster_soll', formatReading(setpoint, 'temperature', lang, unit)),
         };
     } else if (isOff) {
         hint = { text: translate('heating_hinweis_aus') };

@@ -16,9 +16,9 @@ import { useCallback, useContext } from 'react';
 
 import { CollectionContext } from '../../components/CollectionProvider';
 import useValueState, { type UpdateValueOptions } from '../../hooks/useValueState';
-import { meaningKeys, MEANINGS, type MeaningField, type NeutralKey } from './meaningCatalog';
-import { boundIdOf } from './meaningReading';
-import { readValueMapping, type DeviceValue } from './valueMapping';
+import { meaningKeys, type MeaningField, type NeutralKey } from './meaningCatalog';
+import { boundIdOf, storedMappingOf, storedObjectOf } from './meaningReading';
+import type { DeviceValue } from './valueMapping';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
@@ -46,8 +46,8 @@ export interface MeaningWrite {
 export function isWritableMeaning(data: WidgetData, field: MeaningField, entry?: number): boolean {
     const keys = meaningKeys(field, entry);
     const id = boundIdOf(data, keys.field);
-    const object = data[keys.object] as { _id?: unknown; write?: unknown } | undefined;
-    return id !== undefined && object?._id === id && object.write !== false;
+    const object = storedObjectOf(data, field, entry);
+    return id !== undefined && object._id === id && object.write !== false;
 }
 
 /**
@@ -67,12 +67,10 @@ export function writeValueOf(
     key: NeutralKey,
     entry?: number,
 ): DeviceValue | undefined {
-    const keys = meaningKeys(field, entry);
-    const shape = MEANINGS[field].mapping;
-    if (!shape || boundIdOf(data, keys.field) === undefined) {
+    if (boundIdOf(data, meaningKeys(field, entry).field) === undefined) {
         return undefined;
     }
-    return readValueMapping(data[keys.mapping], shape)?.[key]?.[0];
+    return storedMappingOf(data, field, entry)?.[key]?.[0];
 }
 
 /**

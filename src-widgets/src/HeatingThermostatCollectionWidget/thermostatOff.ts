@@ -11,7 +11,7 @@
  * never an invented 0). Without either there is no Aus.
  */
 import { meaningKeys } from '../lib/heating/meaningCatalog';
-import { boundIdOf } from '../lib/heating/meaningReading';
+import { boundIdOf, storedObjectOf } from '../lib/heating/meaningReading';
 import { writeValueOf } from '../lib/heating/useMeaningWrite';
 import type { DeviceValue } from '../lib/heating/valueMapping';
 
@@ -52,6 +52,6 @@ export function thermostatOff(data: WidgetData, entry?: number): ThermostatOff |
     if (value !== undefined) {
         return { kind: 'mode', field, value };
     }
-    const minimum = (data[meaningKeys('soll', entry).object] as { minValue?: unknown } | undefined)?.minValue;
-    return typeof minimum === 'number' && Number.isFinite(minimum) ? { kind: 'minimum', value: minimum } : undefined;
+    const minimum = storedObjectOf(data, 'soll', entry).minValue;
+    return minimum !== undefined ? { kind: 'minimum', value: minimum } : undefined;
 }

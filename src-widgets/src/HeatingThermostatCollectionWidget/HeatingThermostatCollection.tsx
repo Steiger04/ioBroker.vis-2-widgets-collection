@@ -38,8 +38,8 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
-import { headerKeys, meaningKeys } from '../lib/heating/meaningCatalog';
-import { readMeaning } from '../lib/heating/meaningReading';
+import { headerKeys } from '../lib/heating/meaningCatalog';
+import { readMeaning, storedObjectOf } from '../lib/heating/meaningReading';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
@@ -108,8 +108,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     // Header and footer without a main OID: the main Bedeutung is no `oid` (ADR-0123 Nr. 5).
     const { data } = useData('');
 
-    const setpointKeys = meaningKeys('soll', entry);
-    const unit = widgetData[setpointKeys.object]?.unit as string | undefined;
+    const { unit } = storedObjectOf(widgetData, 'soll', entry);
     const header = headerKeys(entry);
     const name = widgetData[header.name] as string | undefined;
     const subLine = widgetData[header.subLine] as string | undefined;
@@ -126,7 +125,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         boostBeenden: useMeaningWrite('boostBeenden', entry),
         urlaub: useMeaningWrite('urlaub', entry),
     };
-    const scale = setpointScale(widgetData[setpointKeys.object]);
+    const scale = setpointScale(storedObjectOf(widgetData, 'soll', entry));
     // The value under the pointer while the ring is dragged: shown, written on release.
     const [preview, setPreview] = useState<number | undefined>(undefined);
     const shown = preview ?? reported;

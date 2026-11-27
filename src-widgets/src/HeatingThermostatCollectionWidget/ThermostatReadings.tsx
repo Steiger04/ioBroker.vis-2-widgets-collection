@@ -18,18 +18,19 @@ import WindowOutlined from '@mui/icons-material/WindowOutlined';
 import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import { meaningKeys, MEANINGS, type MeaningField } from '../lib/heating/meaningCatalog';
+import type { MeaningField } from '../lib/heating/meaningCatalog';
 import {
     deviceValueLabel,
-    neutralValueOf,
+    neutralReadingOf,
     readMeaning,
+    readNeutral,
+    storedObjectOf,
     valveMeanOf,
     type MeaningReading,
     type StateValues,
 } from '../lib/heating/meaningReading';
 import { formatReading, NO_VALUE, type ReadingKind } from '../lib/heating/readingFormat';
 import { toneColors, type HeatingTone } from '../lib/heating/tones';
-import { readValueMapping } from '../lib/heating/valueMapping';
 import { translate } from '../lib/translate';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
@@ -48,10 +49,8 @@ export interface ThermostatReading {
 }
 
 /** The unit stored with a Bedeutung's object. */
-const unitOf = (data: WidgetData, field: MeaningField, entry?: number): string | undefined => {
-    const unit = (data[meaningKeys(field, entry).object] as { unit?: unknown } | undefined)?.unit;
-    return typeof unit === 'string' && unit !== '' ? unit : undefined;
-};
+const unitOf = (data: WidgetData, field: MeaningField, entry?: number): string | undefined =>
+    storedObjectOf(data, field, entry).unit;
 
 /**
  * The text of a number Bedeutung.
@@ -66,28 +65,6 @@ const numberText = (reading: MeaningReading, kind: ReadingKind, lang: string, un
     reading.kind === 'reported' && typeof reading.value === 'number' && Number.isFinite(reading.value)
         ? formatReading(reading.value, kind, lang, unit)
         : NO_VALUE;
-
-/**
- * The neutral value a Bedeutung's reported value maps to through its stored Wertezuordnung.
- *
- * @param data - The widget data.
- * @param reading - What the widget knows about the Bedeutung.
- * @param field - The Bedeutung (one with a mapping).
- * @param entry - The entry number; none for the unnumbered binding.
- * @returns The neutral value; `undefined` without a reported value or without a mapping for it.
- */
-export function neutralReadingOf(
-    data: WidgetData,
-    reading: MeaningReading,
-    field: MeaningField,
-    entry?: number,
-): string | undefined {
-    const shape = MEANINGS[field].mapping;
-    if (reading.kind !== 'reported' || !shape) {
-        return undefined;
-    }
-    return neutralValueOf(readValueMapping(data[meaningKeys(field, entry).mapping], shape), shape.keys, reading.value);
-}
 
 /**
  * The readings bar's elements, in the design's order: humidity, valve, window, battery.
@@ -126,16 +103,14 @@ export function thermostatReadings(
         if (neutral) {
             text = translate(`heating_neutral_${neutral}`);
         } else if (window.kind === 'reported') {
-            text = deviceValueLabel(data[meaningKeys('fenster', entry).object], window.value);
+            text = deviceValueLabel(storedObjectOf(data, 'fenster', entry), window.value);
         }
         readings.push({ meaning: 'fenster', text, ...(neutral === 'offen' ? { tone: 'kühl' as const } : {}) });
     }
 
     const battery = readMeaning(data, values, 'batteriestand', entry);
     if (battery.kind !== 'unbound') {
-        const low =
-            neutralReadingOf(data, readMeaning(data, values, 'batterieSchwach', entry), 'batterieSchwach', entry) ===
-            'schwach';
+        const low = readNeutral(data, values, 'batterieSchwach', entry) === 'schwach';
         readings.push({
             meaning: 'batteriestand',
             text: numberText(battery, 'level', lang, unitOf(data, 'batteriestand', entry)),
