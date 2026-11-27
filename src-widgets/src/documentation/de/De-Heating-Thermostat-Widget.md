@@ -109,14 +109,14 @@ Die Wertezuordnung übersetzt die Werte des Geräts in neutrale Werte, mit denen
 | ------------------- | --------------------------------- | --------------------------------------- |
 | `betriebsart`       | Auto, Manuell, Aus, Boost, Urlaub | –                                       |
 | `betriebsartSetzen` | Auto, Manuell, Aus                | –                                       |
-| `boost`             | an, aus                           | –                                       |
-| `boostBeenden`      | beenden                           | –                                       |
+| `boost`             | An, Aus                           | –                                       |
+| `boostBeenden`      | Beenden                           | –                                       |
 | `boostRestzeit`     | –                                 | Einheit (`s`, `min`) oder Zeitformat    |
-| `urlaub`            | an, aus                           | –                                       |
+| `urlaub`            | An, Aus                           | –                                       |
 | `urlaubEnde`        | –                                 | Zeitformat (`timestamp`, `iso`, Muster) |
-| `fenster`           | zu, offen                         | –                                       |
-| `erreichbarkeit`    | erreichbar, unerreichbar          | –                                       |
-| `batterieSchwach`   | schwach, ok                       | –                                       |
+| `fenster`           | Zu, Offen                         | –                                       |
+| `erreichbarkeit`    | Erreichbar, Nicht erreichbar      | –                                       |
+| `batterieSchwach`   | Schwach, OK                       | –                                       |
 
 Gespeichert werden die Schlüssel `auto`, `manuell`, `aus`, `boost`, `urlaub`, `an`, `beenden`, `zu`, `offen`, `erreichbar`, `unerreichbar`, `schwach` und `ok`.
 
@@ -155,7 +155,7 @@ Ein „Heizt“ aus Sollwert größer als Ist gibt es nicht; ein gebundenes Vent
 
 Die Hinweiszeile unter dem Ring nennt, ebenfalls mit Vorrang:
 
-1. „Keine Funkverbindung seit 13:52“, die Zeit aus der letzten Änderung der Erreichbarkeit: heute nur die Uhrzeit, sonst Tag, Monat und Uhrzeit.
+1. „Kein Funkkontakt seit 13:52“, die Zeit aus der letzten Änderung der Erreichbarkeit: heute nur die Uhrzeit, sonst Tag, Monat und Uhrzeit.
 2. „Batterie schwach, bald wechseln“
 3. „Fenster offen · abgesenkt auf 12,0 °C“, mit dem gemeldeten Sollwert
 4. „Aus“
@@ -226,7 +226,7 @@ Die Heizungs-Widgets haben keine eigenen Farbfelder und keinen eigenen Theme-Sch
 
 | Färbung | Theme-Farbe                                           | Wo                                                                                           |
 | ------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Störung | Fehlerfarbe `palette.error`, gefüllt, mit Warndreieck | Chip „Nicht erreichbar“, Hinweiszeile „Keine Funkverbindung …“, Statuszeichen der Kachel     |
+| Störung | Fehlerfarbe `palette.error`, gefüllt, mit Warndreieck | Chip „Nicht erreichbar“, Hinweiszeile „Kein Funkkontakt …“, Statuszeichen der Kachel         |
 | Hinweis | Fehlerfarbe `palette.error`, getönt, mit Warndreieck  | Hinweiszeile „Batterie schwach …“, Batteriewert der Messwertleiste, Statuszeichen der Kachel |
 | heizt   | Warnfarbe `palette.warning`                           | Chip „Heizt“ und „Boost“, Bogen und Griff des Rings, leuchtende Pills                        |
 | kühl    | Infofarbe `palette.info`                              | Chip „Fenster offen“, Fensterwert der Messwertleiste, Bogen des Rings bei offenem Fenster    |
