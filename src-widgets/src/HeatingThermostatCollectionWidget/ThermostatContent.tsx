@@ -295,8 +295,8 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             increase: stepButton('up', STEP_BUTTON.tile),
         },
     };
-    // The set-point is writable exactly when it has ± (`thermostatActions`).
-    const writable = steps !== undefined;
+    // Whether the set-point is writable, as the Heizzonen-Lesung reads it (ADR-0118 Nachtrag K4).
+    const { writable } = setpointReading;
 
     return (
         <SizeStages
