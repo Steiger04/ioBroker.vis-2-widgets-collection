@@ -35,6 +35,7 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
+import { THERMOSTAT_THRESHOLDS } from '../HeatingThermostatCollectionWidget/thermostatStages';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { THEME_PRESETS } from './theme/presets';
 import { decodeBlob } from './encoding';
@@ -862,8 +863,8 @@ const CONTROL_MIN_HEIGHT: Partial<Record<WidgetName, { px: number; reason: strin
         reason: 'ECharts grid default margins (60 px above and below the plot) + a 100 px plot',
     },
     HeatingThermostatCollectionWidget: {
-        px: 632,
-        reason: 'starts in its Voll stage (ADR-0122 Nr. 9): the Voll threshold of the Content-Box height is at most 632 px',
+        px: THERMOSTAT_THRESHOLDS.gross.height,
+        reason: "starts in its Voll stage, arrangement Groß as in the design (ADR-0122 Nr. 9): the rule's Groß height",
     },
 };
 
