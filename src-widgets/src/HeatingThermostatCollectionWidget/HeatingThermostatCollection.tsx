@@ -25,7 +25,9 @@
  * set-point has not reported: Absenk and Komfort the widget's temperatures into the set-point, Aus
  * the way `thermostatOff` names. Every action writes exactly one state through the write chain
  * (`lib/heating/useMeaningWrite`), never into a target that is not writable; a pill exists only for
- * a writable target.
+ * a writable target. The operating-mode segment (`thermostatModes`: Auto, Manuell, Boost, and the
+ * Urlaub pill with its end in a row of its own while Urlaub runs) stands in Groß and in Quer from
+ * sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
 import { Box, Typography } from '@mui/material';
@@ -38,7 +40,7 @@ import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
 import { meaningKeys } from '../lib/heating/meaningCatalog';
 import { readMeaning } from '../lib/heating/meaningReading';
-import { formatReading, NO_VALUE } from '../lib/heating/readingFormat';
+import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
 import { setpointScale, stepDown, stepUp } from '../lib/heating/setpointScale';
@@ -51,6 +53,7 @@ import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
 import HintLine from './HintLine';
 import { SetpointDial, StepButton } from './SetpointControls';
+import { thermostatModeActions, type ModeWriteField } from './thermostatModes';
 import { thermostatOff } from './thermostatOff';
 import { thermostatStatus } from './thermostatStatus';
 import {
@@ -114,9 +117,12 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
 
     // One write per Bedeutung that an action of the content writes (ADR-0120: one state per action).
     const setpointWrite = useMeaningWrite('soll', entry);
-    const modeWrites = {
+    const modeWrites: Record<ModeWriteField, ReturnType<typeof useMeaningWrite>> = {
         betriebsart: useMeaningWrite('betriebsart', entry),
         betriebsartSetzen: useMeaningWrite('betriebsartSetzen', entry),
+        boost: useMeaningWrite('boost', entry),
+        boostBeenden: useMeaningWrite('boostBeenden', entry),
+        urlaub: useMeaningWrite('urlaub', entry),
     };
     const scale = setpointScale(widgetData[setpointKeys.object]);
     // The value under the pointer while the ring is dragged: shown, written on release.
@@ -220,6 +226,34 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         });
     }
 
+    // The operating-mode segment: Auto, Manuell, Boost; the running Urlaub in a row of its own.
+    const modePills: Pill[] = thermostatModeActions(widgetData, status, field => modeWrites[field].writable, entry).map(
+        action => {
+            const { write } = action;
+            return {
+                key: action.key,
+                label: translate(`heating_neutral_${action.key}`),
+                ...(action.end === undefined
+                    ? {}
+                    : { detail: translate('heating_pill_bis', formatUntil(action.end, lang)) }),
+                active: action.active,
+                ...(write ? { onClick: () => modeWrites[write.field].write(write.value, { immediate: true }) } : {}),
+            };
+        },
+    );
+    const holidayPills = modePills.filter(pill => pill.key === 'urlaub');
+    const segmentPills = modePills.filter(pill => pill.key !== 'urlaub');
+    const modes =
+        modePills.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <PillRow
+                    pills={segmentPills}
+                    label={translate('heating_betriebsart')}
+                />
+                <PillRow pills={holidayPills} />
+            </Box>
+        ) : null;
+
     const dial = (arrangement: 'gross' | 'mittel', box: MeasuredBox): ReactNode => (
         <SetpointDial
             size={thermostatDialSize(arrangement, box)}
@@ -286,7 +320,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             </Box>,
         ),
         pills: arrangement === 'gross' ? <PillRow pills={pills} /> : null,
-        modes: null,
+        modes: arrangement === 'gross' || arrangement === 'quer' ? modes : null,
         readings: readings.length ? <ReadingsBar readings={readings} /> : null,
         hint: arrangement === 'mini' ? null : hintFor(arrangement),
         tile: {

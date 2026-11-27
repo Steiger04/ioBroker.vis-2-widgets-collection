@@ -72,6 +72,12 @@ export interface ThermostatStatus {
     readonly unreachable: boolean;
     /** The device is off — the rule of the chip „Aus“, also lighting the pill Aus. */
     readonly off: boolean;
+    /** The neutral value of the reported operating mode; none while unknown or unmapped. */
+    readonly mode?: NeutralKey;
+    /** Boost runs (ADR-0120 „Boost läuft“) — the chip's rule, also lighting the pill Boost. */
+    readonly boosting: boolean;
+    /** The running Urlaub with its end where it lies ahead; none while no Urlaub runs. */
+    readonly holiday?: { readonly end: number | undefined };
     /** What the tile's sign and accessible name show. */
     readonly tile: TileStatus;
     /** A remaining time counts on screen: render again every second. */
@@ -301,6 +307,9 @@ export function thermostatStatus(
         hint,
         unreachable,
         off: isOff,
+        ...(mode ? { mode } : {}),
+        boosting: boost !== undefined,
+        ...(holiday ? { holiday } : {}),
         tile: { tone: dotTone(chip?.tone), ...(message ? { message } : {}), ...(label ? { label } : {}) },
         counting: remaining !== undefined,
     };

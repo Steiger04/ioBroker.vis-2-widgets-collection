@@ -829,9 +829,9 @@ describe('HeatingThermostatCollectionWidget: motion', () => {
 const writes = (): [string, unknown][] =>
     (socket.setState.mock.calls as unknown as [string, unknown][]).map(([id, value]) => [id, value]);
 
-/** A pill of the pill row by its key; `null` when it is not there. */
+/** A pill of the pill row (Absenk / Komfort / Aus) by its key; `null` when it is not there. */
 const pill = (container: HTMLElement, key: string): HTMLButtonElement | null =>
-    container.querySelector<HTMLButtonElement>(`[data-heating-pill="${key}"]`);
+    container.querySelector<HTMLButtonElement>(`[data-heating-slot="pills"] [data-heating-pill="${key}"]`);
 
 /** Clicks a control. */
 const press = async (control: HTMLElement | null): Promise<void> => {
@@ -896,14 +896,16 @@ const debounced = (): Promise<void> => act(() => new Promise<void>(resolve => se
 const stepButton = (container: HTMLElement, direction: 'down' | 'up'): HTMLButtonElement | null =>
     container.querySelector<HTMLButtonElement>(`[data-heating-step="${direction}"]`);
 
-/** The pills present, in display order. */
+/** The pills of the pill row present, in display order. */
 const pillKeys = (container: HTMLElement): string[] =>
-    [...container.querySelectorAll('[data-heating-pill]')].map(element => element.getAttribute('data-heating-pill')!);
-
-/** The lit pills. */
-const litPills = (container: HTMLElement): string[] =>
-    [...container.querySelectorAll('[data-heating-pill][aria-pressed="true"]')].map(element =>
+    [...container.querySelectorAll('[data-heating-slot="pills"] [data-heating-pill]')].map(element =>
         element.getAttribute('data-heating-pill')!,
+    );
+
+/** The lit pills of the pill row. */
+const litPills = (container: HTMLElement): string[] =>
+    [...container.querySelectorAll('[data-heating-slot="pills"] [data-heating-pill][aria-pressed="true"]')].map(
+        element => element.getAttribute('data-heating-pill')!,
     );
 
 /** The shown set-point. */
@@ -1220,5 +1222,293 @@ describe('HeatingThermostatCollectionWidget: set-point not writable', () => {
         ]) {
             expect(stepButton(await mount(data, values, box), 'up')).toBeNull();
         }
+    });
+});
+
+/** The pills of the operating-mode segment (with the Urlaub row), in display order. */
+const modeKeys = (container: HTMLElement): string[] =>
+    [...container.querySelectorAll('[data-heating-slot="modes"] [data-heating-pill]')].map(element =>
+        element.getAttribute('data-heating-pill')!,
+    );
+
+/** The lit pills of the operating-mode segment. */
+const litModes = (container: HTMLElement): string[] =>
+    [...container.querySelectorAll('[data-heating-slot="modes"] [data-heating-pill][aria-pressed="true"]')].map(
+        element => element.getAttribute('data-heating-pill')!,
+    );
+
+/** A pill of the operating-mode segment by its key. */
+const modePill = (container: HTMLElement, key: string): HTMLButtonElement | null =>
+    container.querySelector<HTMLButtonElement>(`[data-heating-slot="modes"] [data-heating-pill="${key}"]`);
+
+describe('HeatingThermostatCollectionWidget: operating mode', () => {
+    it('writes the first device value of Auto and Manuell into „Betriebsart“ without „Betriebsart setzen“', async () => {
+        const data = statusData({ betriebsartZuordnung: { auto: [0, 5], manuell: [1, 6], aus: [3] } });
+        const container = await mount(data, reporting({ betriebsart: 1 }));
+
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+        expect(litModes(container)).toEqual(['manuell']);
+        await press(modePill(container, 'auto'));
+        await press(modePill(container, 'manuell'));
+        expect(writes()).toEqual([
+            [neutral('betriebsart'), 0],
+            [neutral('betriebsart'), 1],
+        ]);
+    });
+
+    it('HmIP-like: Auto writes 0 and Manuell 1 into „Betriebsart setzen“, lit by the read operating mode', async () => {
+        const data = {
+            soll: wth2('1.SET_POINT_TEMPERATURE'),
+            betriebsart: wth2('1.SET_POINT_MODE'),
+            betriebsartZuordnung: { auto: [0], manuell: [1], urlaub: [2] },
+            betriebsartSetzen: wth2('1.CONTROL_MODE'),
+            betriebsartSetzenZuordnung: { auto: [0], manuell: [1] },
+        };
+        const container = await mount(data, reportingIds({ [wth2('1.SET_POINT_MODE')]: 0 }));
+
+        expect(modeKeys(container)).toEqual(['auto', 'manuell']);
+        expect(litModes(container)).toEqual(['auto']);
+        await press(modePill(container, 'manuell'));
+        await press(modePill(container, 'auto'));
+        expect(writes()).toEqual([
+            [wth2('1.CONTROL_MODE'), 1],
+            [wth2('1.CONTROL_MODE'), 0],
+        ]);
+    });
+
+    it('shows no pill for a value mapped as „nicht vorhanden“ (empty list) or not mapped', async () => {
+        const data = statusData({ betriebsartZuordnung: { auto: [], manuell: [1] } });
+
+        expect(modeKeys(await mount(data, reporting({ betriebsart: 1 })))).toEqual(['manuell', 'boost']);
+    });
+
+    it('shows no Auto or Manuell where the target is not writable — a bound „Betriebsart setzen“ never falls back', async () => {
+        const readOnly = statusData({ betriebsart: OWN.readOnlyMode });
+        expect(modeKeys(await mount(readOnly, reportingIds({ [OWN.readOnlyMode]: 1 }, reporting({}))))).toEqual([
+            'boost',
+        ]);
+
+        const readOnlySet = statusData({
+            betriebsartSetzen: OWN.readOnlyMode,
+            betriebsartSetzenZuordnung: { auto: [0], manuell: [1] },
+        });
+        expect(modeKeys(await mount(readOnlySet, reporting({ betriebsart: 1 })))).toEqual(['boost']);
+    });
+
+    it('lights no pill for a device value without a mapping; the chip names the raw value', async () => {
+        const data = statusData({
+            ventilAnzahl: 0,
+            ventil1: undefined,
+            betriebsartZuordnung: { auto: [0], manuell: [1] },
+        });
+        const container = await mount(data, reporting({ betriebsart: 3 }));
+
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+        expect(litModes(container)).toEqual([]);
+        expect(chipOf(container)).toEqual(['3', 'neutral']);
+    });
+
+    it('stands in Groß and in Quer from sufficient height, not in Mittel, Kompakt or a low Quer', async () => {
+        const at = async (box: ContentBox): Promise<string[]> =>
+            modeKeys(await mount(statusData(), reporting({ betriebsart: 0 }), box));
+
+        expect(await at({ width: 456, height: 240 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 456, height: 200 })).toEqual([]);
+        expect(await at({ width: 300, height: 400 })).toEqual([]);
+        expect(await at({ width: 256, height: 150 })).toEqual([]);
+    });
+});
+
+/** Own Boost and Urlaub data points of these tests. */
+const OWN_OVERRIDES = {
+    /** A writable „Boost beenden“ (a button). */
+    boostStop: 'hz.own.boost.stop',
+    /** A „Boost beenden“ that is not writable. */
+    readOnlyBoostStop: 'hz.own.boost.stop.readonly',
+    /** A writable „Urlaub“. */
+    holiday: 'hz.own.holiday',
+} as const;
+
+Object.assign(DEVICES.objects, {
+    [OWN_OVERRIDES.boostStop]: ownState(OWN_OVERRIDES.boostStop, { role: 'button', type: 'boolean', write: true }),
+    [OWN_OVERRIDES.readOnlyBoostStop]: ownState(OWN_OVERRIDES.readOnlyBoostStop, {
+        role: 'button',
+        type: 'boolean',
+        write: false,
+    }),
+    [OWN_OVERRIDES.holiday]: ownState(OWN_OVERRIDES.holiday, { role: 'switch', type: 'boolean', write: true }),
+});
+
+describe('HeatingThermostatCollectionWidget: Boost pill', () => {
+    it('starts Boost with `boost` = an', async () => {
+        const container = await mount(statusData(), reporting({ boost: false }));
+
+        expect(litModes(container)).not.toContain('boost');
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([[neutral('boost'), true]]);
+    });
+
+    it('ends a running Boost with `boost` = aus without „Boost beenden“', async () => {
+        const container = await mount(statusData(), reporting({ boost: true }));
+
+        expect(litModes(container)).toContain('boost');
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([[neutral('boost'), false]]);
+    });
+
+    it('ends a running Boost with `boostBeenden` = beenden where it is bound', async () => {
+        const data = statusData({ boostBeenden: OWN_OVERRIDES.boostStop, boostBeendenZuordnung: { beenden: [true] } });
+        const container = await mount(data, reporting({ boost: true }));
+
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([[OWN_OVERRIDES.boostStop, true]]);
+    });
+
+    it('follows „Boost läuft“ of the status: a running Boost by the operating mode ends through `boost` = aus', async () => {
+        const container = await mount(statusData(), reporting({ betriebsart: 4, boost: 'x' }));
+
+        expect(litModes(container)).toEqual(['boost']);
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([[neutral('boost'), false]]);
+    });
+
+    it('shows no Boost pill while the action a tap would take is not writable', async () => {
+        const stopReadOnly = statusData({
+            boostBeenden: OWN_OVERRIDES.readOnlyBoostStop,
+            boostBeendenZuordnung: { beenden: [true] },
+        });
+        expect(modeKeys(await mount(stopReadOnly, reporting({ boost: true })))).toEqual(['auto', 'manuell']);
+        expect(modeKeys(await mount(stopReadOnly, reporting({ boost: false })))).toEqual(['auto', 'manuell', 'boost']);
+
+        const noStart = statusData({ boostZuordnung: { an: [], aus: [false] } });
+        expect(modeKeys(await mount(noStart, reporting({ boost: false })))).toEqual(['auto', 'manuell']);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Urlaub pill', () => {
+    const END = `${PREFIX}${NEUTRAL_DEVICE.baits.urlaubEnde}`;
+    /** The neutral device with its holiday end bound as a pattern. */
+    const holidayData = (extra: Record<string, unknown> = {}): Record<string, unknown> =>
+        statusData({ urlaubEnde: END, urlaubEndeZuordnung: { zeitformat: 'YYYY_MM_DD HH:mm' }, ...extra });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('shows only while Urlaub runs, lit, with its end', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date(2026, 10, 27, 12, 0, 0));
+        const running = await mount(
+            holidayData(),
+            reportingIds({ [END]: '2026_11_29 18:00' }, reporting({ betriebsart: 2 })),
+        );
+
+        expect(modeKeys(running)).toEqual(['auto', 'manuell', 'boost', 'urlaub']);
+        expect(litModes(running)).toEqual(['urlaub']);
+        expect(modePill(running, 'urlaub')?.querySelector('[data-heating-pill-detail]')?.textContent).toBe(
+            'heating_pill_bis(Sun, 11/29, 06:00 PM)',
+        );
+
+        const none = await mount(
+            holidayData(),
+            reportingIds({ [END]: '2026_11_29 18:00' }, reporting({ betriebsart: 0 })),
+        );
+        expect(modeKeys(none)).toEqual(['auto', 'manuell', 'boost']);
+    });
+
+    it('is ended by Auto or Manuell through „Betriebsart setzen“, as the CCU WebUI does', async () => {
+        const data = {
+            soll: wth2('1.SET_POINT_TEMPERATURE'),
+            betriebsart: wth2('1.SET_POINT_MODE'),
+            betriebsartZuordnung: { auto: [0], manuell: [1], urlaub: [2] },
+            betriebsartSetzen: wth2('1.CONTROL_MODE'),
+            betriebsartSetzenZuordnung: { auto: [0], manuell: [1] },
+            urlaub: wth2('1.PARTY_MODE'),
+            urlaubZuordnung: { an: [true], aus: [false] },
+        };
+        const container = await mount(
+            data,
+            reportingIds({ [wth2('1.SET_POINT_MODE')]: 2, [wth2('1.PARTY_MODE')]: true }),
+        );
+
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'urlaub']);
+        await press(modePill(container, 'auto'));
+        await press(modePill(container, 'manuell'));
+        expect(writes()).toEqual([
+            [wth2('1.CONTROL_MODE'), 0],
+            [wth2('1.CONTROL_MODE'), 1],
+        ]);
+    });
+
+    it('writes nothing on a tap where `urlaub` is not writable (PARTY_MODE only shows)', async () => {
+        const data = {
+            soll: wth2('1.SET_POINT_TEMPERATURE'),
+            urlaub: wth2('1.PARTY_MODE'),
+            urlaubZuordnung: { an: [true], aus: [false] },
+        };
+        const container = await mount(data, reportingIds({ [wth2('1.PARTY_MODE')]: true }));
+        const holiday = modePill(container, 'urlaub');
+
+        expect(holiday?.disabled).toBe(true);
+        await press(holiday);
+        expect(writes()).toEqual([]);
+    });
+
+    it('writes `aus` of a writable `urlaub` on a tap of the active pill', async () => {
+        const data = holidayData({ urlaub: OWN_OVERRIDES.holiday, urlaubZuordnung: { an: [true], aus: [false] } });
+        const container = await mount(
+            data,
+            reportingIds({ [OWN_OVERRIDES.holiday]: true }, reporting({ betriebsart: 0 })),
+        );
+
+        expect(litModes(container)).toEqual(['auto', 'urlaub']);
+        await press(modePill(container, 'urlaub'));
+        expect(writes()).toEqual([[OWN_OVERRIDES.holiday, false]]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: inserted by the assistant (ids only)', () => {
+    it('reads the operating mode and Boost of the HmIP-WTH-2 and writes what the pick would have stored', async () => {
+        const data = Object.freeze({
+            soll: wth2('1.SET_POINT_TEMPERATURE'),
+            betriebsart: wth2('1.SET_POINT_MODE'),
+            betriebsartSetzen: wth2('1.CONTROL_MODE'),
+            boost: wth2('1.BOOST_MODE'),
+        });
+        const stored = JSON.stringify(data);
+        const container = await mount(
+            data,
+            reportingIds({ [wth2('1.SET_POINT_MODE')]: 1, [wth2('1.BOOST_MODE')]: false }),
+        );
+
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+        expect(litModes(container)).toEqual(['manuell']);
+        expect(chipOf(container)).toEqual(['heating_neutral_manuell', 'neutral']);
+        await press(modePill(container, 'auto'));
+        await press(modePill(container, 'manuell'));
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([
+            [wth2('1.CONTROL_MODE'), 0],
+            [wth2('1.CONTROL_MODE'), 1],
+            [wth2('1.BOOST_MODE'), true],
+        ]);
+        expect(JSON.stringify(data)).toBe(stored);
+        expect(socket.setObject).not.toHaveBeenCalled();
+    });
+
+    it('writes the neutral device’s first device values into „Betriebsart“ and reads a running Boost', async () => {
+        const data = Object.freeze(
+            neutralData({ betriebsart: neutral('betriebsart'), boost: neutral('boost'), ventilAnzahl: 0, ventil1: '' }),
+        );
+        const container = await mount(data, reporting({ betriebsart: 0, boost: true }));
+
+        expect(litModes(container)).toEqual(['auto', 'boost']);
+        expect(chipOf(container)).toEqual(['heating_status_boost', 'heizt']);
+        await press(modePill(container, 'manuell'));
+        await press(modePill(container, 'boost'));
+        expect(writes()).toEqual([
+            [neutral('betriebsart'), 1],
+            [neutral('boost'), false],
+        ]);
     });
 });

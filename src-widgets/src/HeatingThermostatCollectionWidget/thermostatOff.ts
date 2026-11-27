@@ -4,23 +4,39 @@
  *
  * @module HeatingThermostatCollectionWidget/thermostatOff
  * @remarks
- * The write target of the operating mode is „Betriebsart setzen“ while bound, else „Betriebsart“.
- * Only when that target maps `aus` to a device value does Aus go through the operating mode; else
- * it writes the set-point's real `common.min` — the one its pick stored (a Hilfs-ID stores the real
- * range only, never an invented 0). Without either there is no Aus.
+ * The write target of the operating mode is „Betriebsart setzen“ while bound, else „Betriebsart“
+ * ({@link operatingModeTarget}, also the target of the pills Auto and Manuell). Only when that
+ * target maps `aus` to a device value does Aus go through the operating mode; else it writes the
+ * set-point's real `common.min` — the one its pick stored (a Hilfs-ID stores the real range only,
+ * never an invented 0). Without either there is no Aus.
  */
-import { meaningKeys, MEANINGS } from '../lib/heating/meaningCatalog';
+import { meaningKeys } from '../lib/heating/meaningCatalog';
 import { boundIdOf } from '../lib/heating/meaningReading';
-import { readValueMapping, type DeviceValue } from '../lib/heating/valueMapping';
+import { writeValueOf } from '../lib/heating/useMeaningWrite';
+import type { DeviceValue } from '../lib/heating/valueMapping';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
+
+/** The Bedeutungen the operating mode is written into. */
+export type OperatingModeField = 'betriebsart' | 'betriebsartSetzen';
 
 /** How Aus is written. */
 export type ThermostatOff =
     /** Through the operating mode: write `value` into `field`. */
-    | { readonly kind: 'mode'; readonly field: 'betriebsart' | 'betriebsartSetzen'; readonly value: DeviceValue }
+    | { readonly kind: 'mode'; readonly field: OperatingModeField; readonly value: DeviceValue }
     /** Through the set-point: write its real minimum. */
     | { readonly kind: 'minimum'; readonly value: number };
+
+/**
+ * Where the operating mode is written: „Betriebsart setzen“ while bound, else „Betriebsart“ (a bound
+ * „Betriebsart setzen“ never falls back, also where it maps a value not).
+ *
+ * @param data - The widget data.
+ * @param entry - The entry number; none for the unnumbered binding.
+ * @returns The Bedeutung to write.
+ */
+export const operatingModeTarget = (data: WidgetData, entry?: number): OperatingModeField =>
+    boundIdOf(data, meaningKeys('betriebsartSetzen', entry).field) ? 'betriebsartSetzen' : 'betriebsart';
 
 /**
  * How the Raumthermostat writes Aus.
@@ -31,10 +47,8 @@ export type ThermostatOff =
  *   set-point has a real minimum.
  */
 export function thermostatOff(data: WidgetData, entry?: number): ThermostatOff | undefined {
-    const field = boundIdOf(data, meaningKeys('betriebsartSetzen', entry).field) ? 'betriebsartSetzen' : 'betriebsart';
-    const shape = MEANINGS[field].mapping;
-    const mapping = shape ? readValueMapping(data[meaningKeys(field, entry).mapping], shape) : undefined;
-    const value = boundIdOf(data, meaningKeys(field, entry).field) ? mapping?.aus?.[0] : undefined;
+    const field = operatingModeTarget(data, entry);
+    const value = writeValueOf(data, field, 'aus', entry);
     if (value !== undefined) {
         return { kind: 'mode', field, value };
     }

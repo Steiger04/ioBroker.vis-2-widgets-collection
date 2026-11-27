@@ -10,6 +10,7 @@
  * Bezeichnung and the frame settings leaving the Kartenkopf and the hint line alone. The thresholds
  * themselves are pinned at the rule (`thermostatStages.test`); the status logic at the widget seam.
  */
+import { act, createElement } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -224,5 +225,45 @@ describe('HeatingThermostatCollection: the frame settings', () => {
             'Bad',
         );
         expect(container.querySelector('[data-heating-region="hint"]')).not.toBeNull();
+    });
+});
+
+describe('HeatingThermostatCollection: the entry number (seam for the house types, ADR-0121)', () => {
+    /** The numbered binding of entry 3 with the objects and mappings its pick stores. */
+    const ENTRY_3 = {
+        soll3: 'hz.e3.setpoint',
+        soll3Object: { _id: 'hz.e3.setpoint', type: 'number', unit: '°C', write: true, minValue: 5, maxValue: 30 },
+        betriebsart3: 'hz.e3.mode',
+        betriebsart3Object: { _id: 'hz.e3.mode', type: 'number', write: true },
+        betriebsart3Zuordnung: { auto: [0], manuell: [1] },
+        boost3: 'hz.e3.boost',
+        boost3Object: { _id: 'hz.e3.boost', type: 'boolean', write: true },
+        boost3Zuordnung: { an: [true], aus: [false] },
+    };
+    const VALUES = { 'hz.e3.setpoint.val': 19.5, 'hz.e3.mode.val': 1, 'hz.e3.boost.val': false };
+
+    it('reads and writes the numbered fields of entry 3, never the unnumbered ones', () => {
+        const entry3 = (): ReturnType<typeof HeatingThermostatCollection> =>
+            createElement(HeatingThermostatCollection, { entry: 3 });
+        const { container, setValue } = mountBody(entry3, scene(ENTRY_3, START_BOX, VALUES));
+
+        expect(container.querySelector('[data-heating-setpoint]')?.textContent).toBe('19.5 °C');
+        expect(
+            [...container.querySelectorAll('[data-heating-slot="modes"] [data-heating-pill][aria-pressed="true"]')].map(
+                pill => pill.getAttribute('data-heating-pill'),
+            ),
+        ).toEqual(['manuell']);
+        for (const pill of [
+            '[data-heating-slot="modes"] [data-heating-pill="auto"]',
+            '[data-heating-slot="modes"] [data-heating-pill="boost"]',
+            '[data-heating-slot="pills"] [data-heating-pill="aus"]',
+        ]) {
+            act(() => container.querySelector<HTMLButtonElement>(pill)!.click());
+        }
+        expect(setValue.mock.calls).toEqual([
+            ['hz.e3.mode', 0],
+            ['hz.e3.boost', true],
+            ['hz.e3.setpoint', 5],
+        ]);
     });
 });

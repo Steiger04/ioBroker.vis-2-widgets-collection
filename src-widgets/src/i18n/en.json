@@ -1528,5 +1528,6 @@
     "heating_pill_komfort": "Comfort",
     "heating_soll_senken": "Lower the set point",
     "heating_soll_erhoehen": "Raise the set point",
-    "heating_soll_ring": "Set point, drag along the ring"
+    "heating_soll_ring": "Set point, drag along the ring",
+    "heating_pill_bis": "until %s"
 }

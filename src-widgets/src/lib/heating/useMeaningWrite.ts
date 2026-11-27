@@ -16,9 +16,9 @@ import { useCallback, useContext } from 'react';
 
 import { CollectionContext } from '../../components/CollectionProvider';
 import useValueState, { type UpdateValueOptions } from '../../hooks/useValueState';
-import { meaningKeys, type MeaningField } from './meaningCatalog';
+import { meaningKeys, MEANINGS, type MeaningField, type NeutralKey } from './meaningCatalog';
 import { boundIdOf } from './meaningReading';
-import type { DeviceValue } from './valueMapping';
+import { readValueMapping, type DeviceValue } from './valueMapping';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
 
@@ -48,6 +48,31 @@ export function isWritableMeaning(data: WidgetData, field: MeaningField, entry?:
     const id = boundIdOf(data, keys.field);
     const object = data[keys.object] as { _id?: unknown; write?: unknown } | undefined;
     return id !== undefined && object?._id === id && object.write !== false;
+}
+
+/**
+ * The device value a neutral value writes into a Bedeutung: the first of its Wertezuordnung
+ * (ADR-0120: reading may map several device values, writing uses the first).
+ *
+ * @param data - The widget data as the widget reads it (with the Lese-Naht's mappings).
+ * @param field - The Bedeutung.
+ * @param key - The neutral value.
+ * @param entry - The entry number; none for the unnumbered binding.
+ * @returns The device value; `undefined` while the Bedeutung is unbound or maps no device value to
+ *   the neutral value (not yet mapped, or „nicht vorhanden“).
+ */
+export function writeValueOf(
+    data: WidgetData,
+    field: MeaningField,
+    key: NeutralKey,
+    entry?: number,
+): DeviceValue | undefined {
+    const keys = meaningKeys(field, entry);
+    const shape = MEANINGS[field].mapping;
+    if (!shape || boundIdOf(data, keys.field) === undefined) {
+        return undefined;
+    }
+    return readValueMapping(data[keys.mapping], shape)?.[key]?.[0];
 }
 
 /**

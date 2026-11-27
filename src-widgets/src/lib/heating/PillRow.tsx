@@ -1,13 +1,14 @@
 /**
  * A row of pills: equal columns of toggle-like buttons that each start one action (the
- * Raumthermostat's Absenk / Komfort / Aus; the same row carries later actions of the family).
+ * Raumthermostat's Absenk / Komfort / Aus and its operating-mode segment).
  *
  * @module lib/heating/PillRow
  * @remarks
  * A pill names its action, optionally a detail (the value it writes), and lights while the reported
  * state equals what it would set (`aria-pressed`). The lit pill takes the `heizt` tone's surface and
  * text (`lib/heating/tones`), the others stay quiet on the card. The caller decides which pills
- * exist — only those with a writable target — and what a tap writes. An empty row draws nothing.
+ * exist — only those with a writable target — and what a tap writes; a pill without an action only
+ * shows a state (disabled, still lit). An empty row draws nothing.
  * Under `prefers-reduced-motion` there is no ripple and no transition.
  */
 import { Box, ButtonBase, useTheme } from '@mui/material';
@@ -26,14 +27,16 @@ export interface Pill {
     readonly detail?: string;
     /** The reported state equals what the pill sets. */
     readonly active: boolean;
-    /** Starts the action. */
-    readonly onClick: () => void;
+    /** Starts the action; none for a pill that only shows a state. */
+    readonly onClick?: () => void;
 }
 
 /** Props of {@link PillRow}. */
 export interface PillRowProps {
     /** The pills, in display order. */
     readonly pills: readonly Pill[];
+    /** The accessible name of the row as a group; none for an unnamed row. */
+    readonly label?: string;
 }
 
 /**
@@ -41,9 +44,10 @@ export interface PillRowProps {
  *
  * @param props - Component props.
  * @param props.pills - The pills, in display order.
+ * @param props.label - The accessible name of the row as a group.
  * @returns The row; `null` without a pill.
  */
-export default function PillRow({ pills }: PillRowProps): ReactElement | null {
+export default function PillRow({ pills, label }: PillRowProps): ReactElement | null {
     const theme = useTheme();
     const reducedMotion = useReducedMotion();
     if (!pills.length) {
@@ -54,6 +58,7 @@ export default function PillRow({ pills }: PillRowProps): ReactElement | null {
     return (
         <Box
             data-heating-pills=""
+            {...(label ? { role: 'group', 'aria-label': label } : {})}
             sx={{ display: 'grid', gridTemplateColumns: `repeat(${pills.length}, minmax(0, 1fr))`, gap: 1 }}
         >
             {pills.map(pill => (
@@ -62,6 +67,7 @@ export default function PillRow({ pills }: PillRowProps): ReactElement | null {
                     data-heating-pill={pill.key}
                     aria-pressed={pill.active}
                     disableRipple={reducedMotion}
+                    disabled={!pill.onClick}
                     onClick={pill.onClick}
                     sx={{
                         minWidth: 0,
