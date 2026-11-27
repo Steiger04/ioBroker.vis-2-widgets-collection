@@ -24,6 +24,12 @@ export const THERMOSTAT_VIEWS = ['voll', 'einfach'] as const;
 /** A value of `ansicht`. */
 export type ThermostatView = (typeof THERMOSTAT_VIEWS)[number];
 
+/** The label key of each layout (literal keys, complete by type). */
+const THERMOSTAT_VIEW_LABELS: Readonly<Record<ThermostatView, string>> = {
+    voll: 'heating_ansicht_voll',
+    einfach: 'heating_ansicht_einfach',
+};
+
 /**
  * The binding fields of the Raumthermostat.
  *
@@ -61,7 +67,7 @@ export function thermostatValueFields(): (RxWidgetInfoAttributesField | Extended
             name: 'ansicht',
             type: 'select',
             label: 'heating_ansicht',
-            options: THERMOSTAT_VIEWS.map(view => ({ value: view, label: `heating_ansicht_${view}` })),
+            options: THERMOSTAT_VIEWS.map(view => ({ value: view, label: THERMOSTAT_VIEW_LABELS[view] })),
             default: 'voll' satisfies ThermostatView,
             emptiedReadsUnset: true,
         },

@@ -29,7 +29,7 @@
  *   `urlaub`. Its end shows only while it lies ahead — a default such as `2000_01_01 00:00` means
  *   „no period“.
  */
-import type { MeaningField, NeutralKey } from '../lib/heating/meaningCatalog';
+import { NEUTRAL_LABELS, type MeaningField, type NeutralKey } from '../lib/heating/meaningCatalog';
 import {
     deviceValueLabel,
     readMeaning,
@@ -48,6 +48,9 @@ import type { TileStatus } from '../lib/heating/SizeStages';
 import type { HeatingTone } from '../lib/heating/tones';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
+
+/** The hint line's text of an operating mode without an Übersteuerung (literal keys). */
+const MODE_HINTS = { manuell: 'heating_hinweis_manuell', auto: 'heating_hinweis_auto' } as const;
 
 /** A Meldung: what tones the hint line and the tile's sign (ADR-0124 Nr. 2). */
 export type ThermostatMessage = Extract<HeatingTone, 'störung' | 'hinweis'>;
@@ -217,7 +220,7 @@ export function thermostatStatus(
 
     let modeText: string | undefined;
     if (mode) {
-        modeText = translate(`heating_neutral_${mode}`);
+        modeText = translate(NEUTRAL_LABELS[mode]);
     } else if (modeReading.kind === 'reported') {
         modeText = deviceValueLabel(storedObjectOf(data, 'betriebsart', entry), modeReading.value);
     }
@@ -280,7 +283,7 @@ export function thermostatStatus(
                     : translate('heating_hinweis_urlaub_bis', formatUntil(holiday.end, lang)),
         };
     } else if (mode === 'manuell' || mode === 'auto') {
-        hint = { text: translate(`heating_hinweis_${mode}`) };
+        hint = { text: translate(MODE_HINTS[mode]) };
     }
 
     // The Meldung is the hint line's: only Störung and Hinweis carry one, and they lead its precedence.

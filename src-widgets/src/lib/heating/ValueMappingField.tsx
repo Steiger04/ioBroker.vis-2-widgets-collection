@@ -33,7 +33,7 @@ import usePickedWidgetData from '../../hooks/usePickedWidgetData';
 import { convertToOidType } from '../../hooks/useValueState';
 import { NO_FIELD_DEFAULTS } from '../fieldDefaults';
 import { translate } from '../translate';
-import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { MEANINGS, meaningKeys, NEUTRAL_LABELS } from './meaningCatalog';
 import { meaningPickField } from './meaningPick';
 import {
     booleanMapping,
@@ -47,7 +47,7 @@ import {
 } from './valueMapping';
 
 import type { MappingShape, MeaningField, NeutralKey } from './meaningCatalog';
-import type { DeviceValue, MappingAdditionValue, ValueMapping } from './valueMapping';
+import type { DeviceValue, MappingAdditionValue, MappingUnit, NamedTimeFormat, ValueMapping } from './valueMapping';
 import type { OidType } from '../../types';
 import type { WidgetDataReading } from '../pickedWidgetData';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
@@ -204,7 +204,7 @@ function NeutralRow({ neutral, mapping, object, commit }: RowProps & { neutral: 
                     <TextField
                         {...params}
                         variant="standard"
-                        label={translate(`heating_neutral_${neutral}`)}
+                        label={translate(NEUTRAL_LABELS[neutral])}
                         onBlur={() => deviceOptions === undefined && addTyped(input)}
                     />
                 )}
@@ -242,15 +242,24 @@ function InvertRow({ shape, mapping, commit }: RowProps): React.JSX.Element {
 /** One option of the unit / time format row. */
 type AdditionOption = { readonly addition: NonNullable<MappingAdditionValue>; readonly label: string };
 
+/** The label key of each unit (literal keys, complete by type). */
+const UNIT_LABELS: Readonly<Record<MappingUnit, string>> = { s: 'heating_einheit_s', min: 'heating_einheit_min' };
+
+/** The label key of each named time format (literal keys, complete by type). */
+const TIME_FORMAT_LABELS: Readonly<Record<NamedTimeFormat, string>> = {
+    timestamp: 'heating_zeitformat_timestamp',
+    iso: 'heating_zeitformat_iso',
+};
+
 /** The named options a Bedeutung's addition row offers: units, then named time formats. */
 const additionOptionsOf = (shape: MappingShape): AdditionOption[] => [
     ...(shape.additions.includes('einheit')
-        ? UNITS.map(unit => ({ addition: { einheit: unit }, label: translate(`heating_einheit_${unit}`) }))
+        ? UNITS.map(unit => ({ addition: { einheit: unit }, label: translate(UNIT_LABELS[unit]) }))
         : []),
     ...(shape.additions.includes('zeitformat')
         ? NAMED_TIME_FORMATS.map(format => ({
               addition: { zeitformat: format },
-              label: translate(`heating_zeitformat_${format}`),
+              label: translate(TIME_FORMAT_LABELS[format]),
           }))
         : []),
 ];

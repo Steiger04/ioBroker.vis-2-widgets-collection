@@ -26,6 +26,9 @@ export type MappingUnit = (typeof UNITS)[number];
 /** The named time formats; any other text is a pattern such as `YYYY_MM_DD HH:mm`. */
 export const NAMED_TIME_FORMATS = ['timestamp', 'iso'] as const;
 
+/** A named time format. */
+export type NamedTimeFormat = (typeof NAMED_TIME_FORMATS)[number];
+
 /**
  * A stored Wertezuordnung, in its stored form: per neutral value its device values (first = write
  * value, empty = „nicht vorhanden“), plus the unit of a duration or the format of a point in time

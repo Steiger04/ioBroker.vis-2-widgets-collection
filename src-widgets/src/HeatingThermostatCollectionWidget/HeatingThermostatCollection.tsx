@@ -38,7 +38,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
-import { headerKeys } from '../lib/heating/meaningCatalog';
+import { headerKeys, NEUTRAL_LABELS } from '../lib/heating/meaningCatalog';
 import { readMeaning, storedObjectOf } from '../lib/heating/meaningReading';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
@@ -76,6 +76,9 @@ export interface HeatingThermostatCollectionProps {
      */
     entry?: number;
 }
+
+/** The label keys of the temperature pills (literal keys). */
+const PILL_LABELS = { absenk: 'heating_pill_absenk', komfort: 'heating_pill_komfort' } as const;
 
 /** The Voll design size of the content (the Mini-Dialog's size, ADR-0122 Nr. 7). */
 const FULL_SIZE = { width: 420, height: 700 } as const;
@@ -209,7 +212,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             if (target !== undefined) {
                 pills.push({
                     key,
-                    label: translate(`heating_pill_${key}`),
+                    label: translate(PILL_LABELS[key]),
                     detail: formatReading(target, 'temperature', lang, unit),
                     active: reported === target,
                     onClick: () => setpointWrite.write(target, { immediate: true }),
@@ -234,7 +237,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             const { write } = action;
             return {
                 key: action.key,
-                label: translate(`heating_neutral_${action.key}`),
+                label: translate(NEUTRAL_LABELS[action.key]),
                 ...(action.end === undefined
                     ? {}
                     : { detail: translate('heating_pill_bis', formatUntil(action.end, lang)) }),

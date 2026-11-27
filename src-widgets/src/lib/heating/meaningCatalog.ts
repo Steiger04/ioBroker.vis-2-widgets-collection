@@ -55,6 +55,26 @@ export type NeutralKey =
     | 'schwach'
     | 'ok';
 
+/**
+ * The label key of each neutral value. Literal keys — like every translation key of the family — so
+ * the code scan against `en.json` finds them, and complete by type.
+ */
+export const NEUTRAL_LABELS: Readonly<Record<NeutralKey, string>> = {
+    auto: 'heating_neutral_auto',
+    manuell: 'heating_neutral_manuell',
+    aus: 'heating_neutral_aus',
+    boost: 'heating_neutral_boost',
+    urlaub: 'heating_neutral_urlaub',
+    an: 'heating_neutral_an',
+    beenden: 'heating_neutral_beenden',
+    zu: 'heating_neutral_zu',
+    offen: 'heating_neutral_offen',
+    erreichbar: 'heating_neutral_erreichbar',
+    unerreichbar: 'heating_neutral_unerreichbar',
+    schwach: 'heating_neutral_schwach',
+    ok: 'heating_neutral_ok',
+};
+
 /** The additions a Wertezuordnung may carry: a duration's unit or a point in time's format. */
 export type MappingAddition = 'einheit' | 'zeitformat';
 

@@ -18,7 +18,7 @@ import WindowOutlined from '@mui/icons-material/WindowOutlined';
 import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import type { MeaningField } from '../lib/heating/meaningCatalog';
+import { NEUTRAL_LABELS, type MeaningField } from '../lib/heating/meaningCatalog';
 import {
     deviceValueLabel,
     neutralReadingOf,
@@ -101,7 +101,7 @@ export function thermostatReadings(
         const neutral = neutralReadingOf(data, window, 'fenster', entry);
         let text = NO_VALUE;
         if (neutral) {
-            text = translate(`heating_neutral_${neutral}`);
+            text = translate(NEUTRAL_LABELS[neutral]);
         } else if (window.kind === 'reported') {
             text = deviceValueLabel(storedObjectOf(data, 'fenster', entry), window.value);
         }
