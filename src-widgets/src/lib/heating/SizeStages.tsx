@@ -22,8 +22,9 @@
  *   which inside the dialog draws the stage of the dialog's own box, without the `ansicht` cap and
  *   never below Einfach; on closing the focus returns to the tile.
  *
- * In the editor Mini shows the tile; a locked widget or hidden helpers open the dialog as at
- * runtime — there is no edit path of its own (Nr. 8).
+ * In the editor Mini shows the tile; a locked widget opens the dialog as at runtime — there is no
+ * edit path of its own (Nr. 8). The host drops its edit overlay only for a locked widget here: it
+ * hides its helpers for can.js widgets alone, so that way does not reach a React widget.
  */
 import OpenInFull from '@mui/icons-material/OpenInFull';
 import { Box, ButtonBase, Typography, keyframes, useTheme } from '@mui/material';

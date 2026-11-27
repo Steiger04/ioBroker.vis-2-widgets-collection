@@ -218,7 +218,7 @@ In the stage Mini the whole tile is a button: a tap, Enter or Space opens the Mi
 - **Size:** content 420 × 700 px, at most the screen size minus a margin. In the dialog the same rule by the measured area applies, but without the `ansicht` cap and never below Simple; there is no dialog inside the dialog.
 - **Closing:** close button, Escape or a tap on the backdrop. The focus returns to the tile. If the widget grows out of Mini, an open dialog stays open.
 - **Theme:** The dialog has no collection frame but shows the collection's theme.
-- **In the editor:** Mini shows the tile. The vis-2 edit overlay catches clicks; in the editor you open the dialog on a locked widget or with the helpers hidden, otherwise in the runtime view.
+- **In the editor:** Mini shows the tile. The vis-2 edit overlay catches clicks; in the editor you open the dialog on a locked widget, otherwise in the runtime view.
 
 ## Colors
 

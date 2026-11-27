@@ -218,7 +218,7 @@ In der Stufe Mini ist die ganze Kachel ein Knopf: Tippen, Enter oder Leertaste �
 - **Größe:** Inhalt 420 × 700 px, höchstens die Bildschirmgröße abzüglich eines Rands. Im Dialog gilt dieselbe Regel nach der gemessenen Fläche, aber ohne `ansicht`-Begrenzung und nie unter Einfach; einen Dialog im Dialog gibt es nicht.
 - **Schließen:** Schließen-Knopf, Escape oder Tippen auf den Hintergrund. Der Fokus kehrt zur Kachel zurück. Wächst das Widget aus Mini heraus, bleibt ein offener Dialog offen.
 - **Theme:** Der Dialog hat keinen Collection-Rahmen, zeigt aber das Theme der Collection.
-- **Im Editor:** Mini zeigt die Kachel. Die Bearbeitungsfläche von vis-2 fängt Klicks ab; den Dialog öffnest du im Editor an einem gesperrten Widget oder bei ausgeblendeten Hilfsflächen, sonst in der Laufzeit-Ansicht.
+- **Im Editor:** Mini zeigt die Kachel. Die Bearbeitungsfläche von vis-2 fängt Klicks ab; den Dialog öffnest du im Editor an einem gesperrten Widget, sonst in der Laufzeit-Ansicht.
 
 ## Farben
 
