@@ -22,7 +22,6 @@ import useData from '../hooks/useData';
 import MiniDialog from '../lib/heating/MiniDialog';
 import type { MeasuredBox } from '../lib/heating/stageRule';
 import ThermostatContent from './ThermostatContent';
-import { thermostatPlan } from './thermostatStages';
 
 /** The box the ResizeObserver fake reports for the Mini-Dialog's content area. */
 let dialogBox: MeasuredBox | undefined;
@@ -142,8 +141,6 @@ describe('ThermostatContent: entry 3 in the Mini-Dialog of a house type', () => 
 describe('ThermostatContent: a theme of its own (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
     /** A theme with a larger spacing unit and a larger h3 than the standard theme. */
     const theme = createTheme({ spacing: 10, typography: { h3: { fontSize: '3.5rem' } } });
-    /** Its measures as the plan reads them: spacing 10 px, body1 16 px in 1.5 lines, h3 56 px. */
-    const measures = { spacing: 10, text: 16, textLine: 1.5, h3: 56 };
     const box = { width: 741, height: 160 };
 
     /** The Raumthermostat alone in that theme, its Content-Box published. */
@@ -156,29 +153,46 @@ describe('ThermostatContent: a theme of its own (ADR-0122 Nachtrag „Maßstab u
             </ThemeProvider>
         );
     };
+    /** The Raumthermostat alone in the standard theme, the same Content-Box published. */
+    const Standard: FC = function Standard() {
+        return (
+            <ContentBoxContext.Provider value={box}>
+                <ThermostatContent />
+            </ContentBoxContext.Provider>
+        );
+    };
+    const data = {
+        inhaltsabstand: 0,
+        soll: 'hz.setpoint',
+        sollObject: { _id: 'hz.setpoint', type: 'number', unit: '°C', write: true, minValue: 5, maxValue: 30 },
+    };
+    /** The width of ± as drawn: 52 px at the design, so the Maßstab is a 52nd of it. */
+    const stepIn = (container: HTMLElement): number =>
+        parseFloat(getComputedStyle(container.querySelector<HTMLElement>('[data-heating-step="up"]')!).width);
 
     it("draws Quer by the plan of the theme's measures: its set-point row fits the box", () => {
-        const data = {
-            inhaltsabstand: 0,
-            soll: 'hz.setpoint',
-            sollObject: { _id: 'hz.setpoint', type: 'number', unit: '°C', write: true, minValue: 5, maxValue: 30 },
-        };
         const { container } = mountBody(Themed, collectionScene('heating-thermostat-themed', data, 21, 'hz.setpoint'));
-        const plan = thermostatPlan('einfach', box, true, { measures });
         const setpoint = container.querySelector<HTMLElement>(
             '[data-heating-slot="setpoint"] [data-heating-setpoint]',
         )!;
         const font = parseFloat(getComputedStyle(setpoint).fontSize);
-        const step = parseFloat(
-            getComputedStyle(container.querySelector<HTMLElement>('[data-heating-step="up"]')!).width,
-        );
+        const step = stepIn(container);
 
         expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
             'quer',
         );
-        expect(font).toBeCloseTo(56 * plan.sizes.scale, 3);
-        expect(step).toBeCloseTo(52 * plan.sizes.scale, 3);
+        // The Maßstab as ± draw it (52 px at the design); the set-point in the theme's h3 at it.
+        const scale = step / 52;
+        expect(font).toBeCloseTo(56 * scale, 3);
         // „21,0 °C“ measured 161 px wide at 48 px of font; ± with their gap of 1.5 units of 10 px.
-        expect(font * (161 / 48) + 2 * step + 2 * 15 * plan.sizes.scale).toBeLessThanOrEqual(box.width);
+        expect(font * (161 / 48) + 2 * step + 2 * 15 * scale).toBeLessThanOrEqual(box.width);
+    });
+
+    it('draws Quer at a smaller Maßstab than the standard theme: its larger h3 and spacing unit need more room', () => {
+        const themed = mountBody(Themed, collectionScene('heating-thermostat-themed', data, 21, 'hz.setpoint'));
+        const themedStep = stepIn(themed.container);
+        const standard = mountBody(Standard, collectionScene('heating-thermostat-standard', data, 21, 'hz.setpoint'));
+
+        expect(themedStep).toBeLessThan(stepIn(standard.container));
     });
 });

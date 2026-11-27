@@ -337,8 +337,19 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     };
     // Whether the set-point is writable, as the Heizzonen-Lesung reads it (ADR-0118 Nachtrag K4).
     const { writable } = setpointReading;
-    // What the rule and the plan read beyond the box: the measures of the theme the parts draw in.
-    const shape: ThermostatShape = { measures: themeMeasures(theme) };
+    // What the rule and the plan read beyond the box: the measures of the theme the parts draw in
+    // and the parts the content shows (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 3).
+    const shape: ThermostatShape = {
+        measures: themeMeasures(theme),
+        shown: {
+            hint: status.hint ? (message ? 'message' : 'line') : 'none',
+            actual: actualText !== undefined,
+            pills: pills.length > 0,
+            modes: segmentPills.length > 0,
+            holiday: holidayPills.length > 0,
+            readings: readings.length > 0,
+        },
+    };
 
     return (
         <SizeStages

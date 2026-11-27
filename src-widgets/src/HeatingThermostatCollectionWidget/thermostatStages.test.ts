@@ -97,29 +97,30 @@ describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9, Nachtra
 
 describe('Größenstufen: Voll from the need of its content at the least Maßstab', () => {
     /*
-     * The least Maßstab is where ± (52 px) keep 40 px: 0.769. Mittel's need there: the dial
-     * 320 × 0.769 = 246.2 px wide; high the dial, the Kartenkopf row (its 30 px chip, damped to
-     * 0.906: 27.2 px), the hint line with a Meldung (13 px × 1.5 + 2 × 4 px, damped: 24.9 px) and two
-     * gaps of 12 px × 0.769 — 316.7 px.
+     * The least Maßstab is where ± (52 px) keep 40 px: 0.769. Mittel's need there: the dial at
+     * 320 × 0.769 = 246.2 px wide (its own least 200 × 0.769 is smaller); high the dial, the
+     * Kartenkopf row (its 30 px chip, damped), two gaps of 12 px × 0.769 and no hint line, since the
+     * standard data carry no Meldung — 291.4 px.
      */
     it.each([
-        ['Voll at Mittel’s least box', 247, 317, true],
-        ['not Voll one px too narrow', 246, 317, false],
-        ['not Voll one px too low', 247, 316, false],
+        ['Voll at Mittel’s least box', 247, 292, true],
+        ['not Voll one px too narrow', 246, 292, false],
+        ['not Voll one px too low', 247, 291, false],
     ])('%s (%i × %i px)', (_case, width, height, voll) => {
         expect(stageOf(width, height) === 'voll').toBe(voll);
     });
 
     /*
      * Breit's least Maßstab is where its readings label (12 px) keeps 11 px: 0.917. Its need there:
-     * the dial (293.3 px), a gap (11.0) and the column (392 × 0.917 = 359.3) — 663.7 px wide; high
-     * the column's Kartenkopf, hint line, pills, operating modes with the Urlaub row, readings and four
-     * gaps — 298.6 px. A wide, low box too low for Mittel holds Voll as Breit.
+     * the dial (246.2 px, the instrument's least), a gap (11.0) and the column (392 × 0.917 = 359.3)
+     * — 616.5 px wide; high the dial, since the column's Kartenkopf, hint line, pills, operating
+     * modes, readings and their gaps stay lower. A wide, low box too low for Mittel holds Voll as
+     * Breit.
      */
     it.each([
-        ['Voll as Breit at its least box', 664, 299, 'voll'],
-        ['not Voll one px too narrow for Breit', 663, 299, 'einfach'],
-        ['not Voll one px too low for Breit', 664, 298, 'einfach'],
+        ['Voll as Breit at its least box', 617, 247, 'voll'],
+        ['not Voll one px too narrow for Breit', 616, 247, 'einfach'],
+        ['not Voll one px too low for Breit', 617, 246, 'einfach'],
     ])('%s (%i × %i px)', (_case, width, height, stage) => {
         expect(stageOf(width, height)).toBe(stage);
     });
@@ -127,14 +128,15 @@ describe('Größenstufen: Voll from the need of its content at the least Maßsta
 
 describe('Größenstufen: the thresholds of the rule', () => {
     it.each([
-        // Einfach as Quer: its parts at the least Maßstab (± 40 px) need 370.5 × 90.1 px.
-        ['Einfach (Quer) at its least box', 371, 91, 'einfach'],
-        ['not Quer one px too low', 371, 90, 'mini'],
-        ['not Quer one px too narrow, too low for Kompakt', 370, 91, 'mini'],
-        // Einfach as Kompakt: 231.4 × 115.3 px at the least Maßstab.
-        ['Einfach (Kompakt) at its least box', 232, 116, 'einfach'],
-        ['not Kompakt one px too narrow', 231, 116, 'mini'],
-        ['not Kompakt one px too low', 232, 115, 'mini'],
+        // Einfach as Quer: its parts at the least Maßstab (± 40 px) as they draw — Kartenkopf, the
+        // set-point row and the hint line — need 370.5 × 85.x px.
+        ['Einfach (Quer) at its least box', 371, 86, 'einfach'],
+        ['not Quer one px too low', 371, 85, 'mini'],
+        ['not Quer one px too narrow, too low for Kompakt', 370, 86, 'mini'],
+        // Einfach as Kompakt: 231.x × 111.x px at the least Maßstab.
+        ['Einfach (Kompakt) at its least box', 232, 112, 'einfach'],
+        ['not Kompakt one px too narrow', 231, 112, 'mini'],
+        ['not Kompakt one px too low', 232, 111, 'mini'],
         // Mini below.
         ['Mini for a tile-sized box', 156, 66, 'mini'],
         ['Mini for an empty box', 0, 0, 'mini'],
@@ -157,27 +159,27 @@ describe('Größenstufen: the actual temperature in the least Maßstab', () => {
 describe('Anordnungen: the arrangement within a stage', () => {
     it.each([
         // Groß at its least Maßstab (the readings label's 12 px keep 11 px: 0.917): its column
-        // 392 × 0.917 = 359.3 px wide; high the dial (293.3 px), the full Kartenkopf, the hint line,
-        // pills, operating modes with the Urlaub row, readings and five gaps — 602.4 px.
-        ['Groß at its least box', 360, 603, 'gross'],
-        ['Mittel one px too narrow for Groß', 359, 603, 'mittel'],
-        ['Mittel one px too low for Groß', 360, 602, 'mittel'],
-        ['Breit at its least box', 664, 299, 'breit'],
-        // 852 px wide: Breit draws at 852 / 724 = 1.176; Groß reaches that Maßstab from 759 px high.
-        ['Breit while it draws larger than Groß', 852, 758, 'breit'],
-        ['Groß once it draws larger than Breit', 852, 760, 'gross'],
+        // 392 × 0.917 = 359.3 px wide; high the dial (246.2 px), the full Kartenkopf, the hint line,
+        // pills, operating modes, readings and their gaps as the standard data show them — 499.x px.
+        ['Groß at its least box', 360, 500, 'gross'],
+        ['Mittel one px too narrow for Groß', 359, 500, 'mittel'],
+        ['Mittel one px too low for Groß', 360, 499, 'mittel'],
+        ['Breit at its least box', 617, 247, 'breit'],
+        // 852 px wide: Breit draws at 1.322; Groß reaches a larger Maßstab from 665 px high.
+        ['Breit while it draws larger than Groß', 852, 664, 'breit'],
+        ['Groß once it draws larger than Breit', 852, 665, 'gross'],
     ])('Voll: %s (%i × %i px)', (_case, width, height, arrangement) => {
         expect(thermostatArrangement('voll', { width, height })).toBe(arrangement);
     });
 
     it.each([
-        // The larger Maßstab wins: at 160 px of height Kompakt draws at 1.169, Quer from 519 px on
-        // at more (without its segment; with it, it draws at 1.028).
-        ['Quer at its least box', 371, 91, 'quer'],
-        ['Kompakt one px before Quer draws larger', 518, 160, 'kompakt'],
-        ['Quer where it draws larger than Kompakt', 519, 160, 'quer'],
+        // The larger Maßstab wins: at 160 px of height Kompakt draws at 1.173, Quer from 521 px on
+        // at more (without its segment; with it, it draws at 1.031).
+        ['Quer at its least box', 371, 86, 'quer'],
+        ['Kompakt one px before Quer draws larger', 520, 160, 'kompakt'],
+        ['Quer where it draws larger than Kompakt', 521, 160, 'quer'],
         ['Kompakt in a box too narrow for Quer', 370, 300, 'kompakt'],
-        ['Quer in a box too low for Kompakt', 600, 115, 'quer'],
+        ['Quer in a box too low for Kompakt', 600, 111, 'quer'],
         // Capped by `ansicht` or floored in the dialog: a Voll-sized box draws Einfach.
         ['Kompakt for the start box', 396, 636, 'kompakt'],
         ['Kompakt for a wide Voll box: it draws at 2.0, Quer at 1.4', 600, 636, 'kompakt'],
@@ -220,7 +222,7 @@ describe('Kachel: the parts of the Raumthermostat tile', () => {
 
 describe('Passform: every arrangement holds its parts in its box', () => {
     it.each([
-        ['at its least box', 232, 116],
+        ['at its least box', 232, 112],
         ['300 × 190 px outer (acceptance repro)', 274, 164],
         ['282 × 180 px outer (acceptance repro)', 256, 154],
         ['320 × 190 px outer', 294, 164],
@@ -240,10 +242,10 @@ describe('Passform: every arrangement holds its parts in its box', () => {
     });
 
     it.each([
-        ['at its least box', 371, 91, false],
-        ['a flat, wide box', 741, 137, false],
+        ['at its least box', 371, 86, false],
+        ['a flat, wide box', 741, 134, false],
         ['with the segment', 741, 194, true],
-        ['with the segment at its least height', 741, 138, true],
+        ['with the segment at its least height', 741, 135, true],
     ])('Quer with ± %s (%i × %i px)', (_case, width, height, modes) => {
         const plan = thermostatPlan('einfach', { width, height }, true);
         if (plan.arrangement !== 'quer') {
@@ -315,9 +317,9 @@ describe('Passform: the set-point stays inside the ring of the dial', () => {
     };
 
     it.each([
-        ['Mittel at its least box', 247, 317],
+        ['Mittel at its least box', 247, 292],
         ['Mittel at 330 × 450 px outer (acceptance)', 304, 424],
-        ['Groß at its least box', 360, 603],
+        ['Groß at its least box', 360, 500],
         ['Groß at the start box', 392, 612],
         ['Groß at its largest dial', 2000, 2000],
     ] as const)('%s', (_case, width, height) => {

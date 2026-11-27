@@ -21,7 +21,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { tileArea } from '../lib/heating/SizeStages';
-import { thermostatPlan } from './thermostatStages';
+import { thermostatPlan, vollLeastBox } from './thermostatStages';
 
 describe('thermostatPlan: Voll fills its box (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
     it('gives a tall, narrow Voll box (380 × 800 px outer, 332 × 752 px inside the Inhaltsabstand) a ring as wide as the middle', () => {
@@ -109,6 +109,21 @@ describe('thermostatPlan: Voll fills its box (ADR-0122 Nachtrag „Maßstab und 
         expect(thermostatPlan('voll', { width: 302, height: 516 }, true).arrangement).toBe('mittel');
     });
 
+    it.each([
+        ['a Meldung (the hint line with its padding)', { hint: 'message' }],
+        ['the running Urlaub (a second row of the segment)', { holiday: true }],
+    ] as const)('counts %s only while it shows (no fixed reserve)', (_case, shown) => {
+        // The standard content: the hint line without a Meldung, no Urlaub.
+        expect(vollLeastBox('gross').height).toBeLessThan(vollLeastBox('gross', { shown }).height);
+        expect(vollLeastBox('breit').height).toBeLessThanOrEqual(vollLeastBox('breit', { shown }).height);
+    });
+
+    it('needs no room for parts it does not show: no readings, no hint line', () => {
+        expect(vollLeastBox('gross', { shown: { readings: false, hint: 'none' } }).height).toBeLessThan(
+            vollLeastBox('gross').height,
+        );
+    });
+
     it('does not depend on writability', () => {
         expect(thermostatPlan('voll', { width: 396, height: 636 }, false)).toEqual(
             thermostatPlan('voll', { width: 396, height: 636 }, true),
@@ -125,21 +140,22 @@ describe('thermostatPlan: Einfach', () => {
     });
 
     it.each([
-        // The segment from the least Maßstab of its pills (0.815): 137.9 px of height.
-        ['Quer one px below the segment', 741, 137, { arrangement: 'quer', modes: false }],
-        ['Quer with the segment from 138 px', 741, 138, { arrangement: 'quer', modes: true }],
-        ['Quer without the segment at its least box', 371, 91, { arrangement: 'quer', modes: false }],
+        // The segment from the least Maßstab of its pills (0.818): 134.x px of height.
+        ['Quer one px below the segment', 741, 134, { arrangement: 'quer', modes: false }],
+        ['Quer with the segment from 135 px', 741, 135, { arrangement: 'quer', modes: true }],
+        ['Quer without the segment at its least box', 371, 86, { arrangement: 'quer', modes: false }],
     ])('%s (%i × %i px)', (_case, width, height, plan) => {
         expect(thermostatPlan('einfach', { width, height }, true)).toMatchObject(plan);
     });
 
     it.each([
-        // Width-limited: the head column (140 px damped), the gap and the set-point row hold 1.638.
-        ['a flat Quer fills its width', 741, 137, 1.638],
+        // Height-limited: the Kartenkopf, the set-point row and the hint line hold 1.595 in 134 px.
+        ['a flat Quer fills its height', 741, 134, 1.595],
         // With the segment the head block and the pills share the height: the Maßstab follows it.
-        ['Quer with the segment at its least height', 741, 138, 0.815],
-        ['Quer with the segment, 56 px higher', 741, 194, 1.326],
-        ['Quer at its least box', 371, 91, 0.77],
+        ['Quer with the segment at its least height', 741, 135, 0.818],
+        ['Quer with the segment, 59 px higher', 741, 194, 1.33],
+        // The least Maßstab itself, where ± keep 40 px.
+        ['Quer at its least box', 371, 86, 40 / 52],
     ])("%s: Quer's Maßstab and its set-point in the theme's h3 (%i × %i px)", (_case, width, height, scale) => {
         expect(thermostatPlan('einfach', { width, height }, true)).toMatchObject({
             arrangement: 'quer',
@@ -181,10 +197,10 @@ describe('thermostatPlan: Einfach', () => {
     it.each([
         // Width-limited: (256 px) / 300.8 px of set-point row → 0.851, the set-point 48 × 0.851.
         ['Kompakt in a narrow box beside ±', 256, 150, true, 0.851, 40.848],
-        // Without ± the row is shorter: the height limits at 1.086.
-        ['Kompakt without ±', 256, 150, false, 1.086, 52.128],
+        // Without ± the row is shorter: the height limits at 1.089.
+        ['Kompakt without ±', 256, 150, false, 1.089, 52.272],
         // Height-limited: head row, set-point row and line below in 150 px.
-        ['Kompakt in a wide, low box', 400, 150, true, 1.086, 52.128],
+        ['Kompakt in a wide, low box', 400, 150, true, 1.089, 52.272],
         ['Kompakt in a narrow, tall box', 280, 300, true, 0.93, 44.64],
         // Capped by `ansicht` or floored in the dialog.
         ['Kompakt for the start box', 396, 636, true, 1.316, 63.168],

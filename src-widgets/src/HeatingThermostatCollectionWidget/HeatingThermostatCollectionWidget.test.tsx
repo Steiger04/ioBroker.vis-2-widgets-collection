@@ -23,7 +23,7 @@ import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
 import { createTestRoot } from '../lib/testing/testRoots';
 import HeatingThermostatCollectionWidget from './HeatingThermostatCollectionWidget';
-import { thermostatPlan } from './thermostatStages';
+import { thermostatPlan, vollLeastBox } from './thermostatStages';
 
 // The host base class with what renderWidgetBody reaches (as in lib/aiRawDataRender.test). Its `t`
 // reads `this` like the host's and returns the key, with its arguments in brackets.
@@ -413,7 +413,7 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
     it.each([
         ['Groß', START_BOX, 'dial', true],
         ['Mittel', { width: 296, height: 400 }, 'dial', false],
-        ['Quer', { width: 500, height: 150 }, 'hint', false],
+        ['Quer', { width: 600, height: 100 }, 'hint', false],
         ['Kompakt', { width: 280, height: 180 }, 'hint', false],
         ['the tile with its footer', { width: 156, height: 90 }, 'tile', false],
     ])('%s: actual temperature in its place, the readings bar only in Groß', async (_case, box, place, bar) => {
@@ -426,7 +426,7 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
 
     it.each([
         ['Kompakt', { width: 280, height: 180 }],
-        ['Quer', { width: 500, height: 150 }],
+        ['Quer', { width: 600, height: 100 }],
     ])("%s: draws the actual temperature in px of the plan, the theme's text at the Maßstab", async (_case, box) => {
         const container = await mount(neutralData(), allValues(), box);
         const plan = thermostatPlan('einfach', box, true);
@@ -735,7 +735,7 @@ describe('HeatingThermostatCollectionWidget: hint line', () => {
 
     it.each([
         ['Mittel', { width: 296, height: 400 }],
-        ['Quer', { width: 500, height: 150 }],
+        ['Quer', { width: 600, height: 100 }],
         ['Kompakt', { width: 280, height: 180 }],
     ])(
         '%s: a Meldung takes the hint place; without one Mittel shows none and Einfach the actual temperature',
@@ -1461,10 +1461,25 @@ describe('HeatingThermostatCollectionWidget: operating mode', () => {
             modeKeys(await mount(statusData(), reporting({ betriebsart: 0 }), box));
 
         expect(await at({ width: 741, height: 194 })).toEqual(['auto', 'manuell', 'boost']);
-        expect(await at({ width: 741, height: 138 })).toEqual(['auto', 'manuell', 'boost']);
-        expect(await at({ width: 741, height: 137 })).toEqual([]);
+        expect(await at({ width: 741, height: 135 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 741, height: 134 })).toEqual([]);
         expect(await at({ width: 300, height: 400 })).toEqual([]);
         expect(await at({ width: 256, height: 150 })).toEqual([]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the plan counts what the content shows', () => {
+    const arrangementOf = (container: HTMLElement): string | null | undefined =>
+        container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement');
+
+    it('counts a Meldung in the need of Voll only while it shows', async () => {
+        // Groß's least box without a Meldung; the Meldung's padded hint line needs a few px more.
+        const box = vollLeastBox('gross');
+
+        expect(arrangementOf(await mount(statusData(), reporting({ soll: 21 }), box))).toBe('gross');
+        expect(arrangementOf(await mount(statusData(), reporting({ soll: 21, batterieSchwach: true }), box))).toBe(
+            'mittel',
+        );
     });
 });
 
@@ -1503,12 +1518,12 @@ describe('HeatingThermostatCollectionWidget: Quer at its Maßstab', () => {
         const low = await querAt({ width: 741, height: 160 });
         const high = await querAt({ width: 741, height: 194 });
 
-        // 741 × 160: Maßstab 1.028 with the segment; 741 × 194: 1.326.
-        expect(stepOf(low)).toBeCloseTo(52 * 1.028, 3);
-        expect(stepOf(high)).toBeCloseTo(52 * 1.326, 3);
+        // 741 × 160: Maßstab 1.031 with the segment; 741 × 194: 1.33.
+        expect(stepOf(low)).toBeCloseTo(52 * 1.031, 3);
+        expect(stepOf(high)).toBeCloseTo(52 * 1.33, 3);
         // The theme's h3 (48 px in the standard theme) at the Maßstab.
-        expect(setpointSize(low)).toBeCloseTo(48 * 1.028, 3);
-        expect(setpointSize(high)).toBeCloseTo(48 * 1.326, 3);
+        expect(setpointSize(low)).toBeCloseTo(48 * 1.031, 3);
+        expect(setpointSize(high)).toBeCloseTo(48 * 1.33, 3);
     });
 });
 
