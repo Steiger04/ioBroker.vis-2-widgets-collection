@@ -35,6 +35,9 @@ export const valveKeys = (m: number): ValveKeys => {
     return { field, object: `${field}Object`, zone: `${field}Zone` };
 };
 
+/** Every stored key of valve `m`: what moves with it and what goes with its number. */
+const allValveKeys = (m: number): string[] => Object.values(valveKeys(m));
+
 /**
  * The id field of valve `m`: the shared pick under the numbered name, a Hilfs-ID with „real range
  * only“, so its pick stores only `ventil{m}Object`.
@@ -57,20 +60,21 @@ export const valveCountOf = (data: WidgetData): number =>
     Math.min(VALVE_LIST.max, Math.max(0, Math.trunc(optionalNumber(data[VALVE_LIST.counter]) ?? 0)));
 
 /**
- * The patch that adds an empty valve after the last one; it clears leftovers under the new number.
+ * The patch that adds an empty valve after the last one; it clears every leftover key under the
+ * new number ({@link valveKeys}).
  *
  * @param data - The widget data.
  * @returns The vis-2 patch (`null` deletes a key).
  */
 export const addValvePatch = (data: WidgetData): WidgetData => {
     const next = valveCountOf(data) + 1;
-    const keys = valveKeys(next);
-    return { [VALVE_LIST.counter]: next, [keys.field]: null, [keys.object]: null };
+    return { [VALVE_LIST.counter]: next, ...Object.fromEntries(allValveKeys(next).map(key => [key, null])) };
 };
 
 /**
- * The patch that removes valve `m`: the later valves move up with their objects, the last number
- * goes, the counter follows.
+ * The patch that removes valve `m`: the later valves move up with every key of theirs
+ * ({@link valveKeys}: id, object, zone reference — a missing key moves as a deletion), the last
+ * number goes, the counter follows.
  *
  * @param data - The widget data.
  * @param m - The valve number to remove (1-based).
@@ -79,11 +83,14 @@ export const addValvePatch = (data: WidgetData): WidgetData => {
 export const removeValvePatch = (data: WidgetData, m: number): WidgetData => {
     const count = valveCountOf(data);
     const patch: WidgetData = { [VALVE_LIST.counter]: count - 1 };
-    for (const key of ['field', 'object'] as const) {
-        for (let k = m; k < count; k++) {
-            patch[valveKeys(k)[key]] = data[valveKeys(k + 1)[key]] ?? null;
-        }
-        patch[valveKeys(count)[key]] = null;
+    for (let k = m; k < count; k++) {
+        const next = allValveKeys(k + 1);
+        allValveKeys(k).forEach((key, i) => {
+            patch[key] = data[next[i]] ?? null;
+        });
+    }
+    for (const key of allValveKeys(count)) {
+        patch[key] = null;
     }
     return patch;
 };

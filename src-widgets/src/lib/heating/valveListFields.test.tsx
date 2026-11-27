@@ -232,6 +232,45 @@ describe('valve list — add and remove', () => {
         });
     });
 
+    it('removes a valve, moving the zone references of the later valves up with them', () => {
+        const container = mount({ w1: { ...THREE_VALVES, ventil1Zone: 1, ventil2Zone: 2, ventil3Zone: 3 } });
+
+        click(removeButtons(container)[0]);
+
+        expect(stored.w1).toEqual({
+            ventilAnzahl: 2,
+            ventil1: VALVE_2,
+            ventil1Object: { _id: VALVE_2 },
+            ventil1Zone: 2,
+            ventil2: VALVE_3,
+            ventil2Object: { _id: VALVE_3 },
+            ventil2Zone: 3,
+        });
+    });
+
+    it('removes a valve without zone reference, so the next valve does not inherit its zone', () => {
+        const container = mount({ w1: { ...THREE_VALVES, ventil1Zone: 1, ventil3Zone: 3 } });
+
+        click(removeButtons(container)[0]);
+
+        expect(stored.w1).toEqual({
+            ventilAnzahl: 2,
+            ventil1: VALVE_2,
+            ventil1Object: { _id: VALVE_2 },
+            ventil2: VALVE_3,
+            ventil2Object: { _id: VALVE_3 },
+            ventil2Zone: 3,
+        });
+    });
+
+    it('adds an empty valve without a zone reference left over under its number', () => {
+        const container = mount({ w1: { ventilAnzahl: 1, ventil1: VALVE_1, ventil2Zone: 4 } });
+
+        click(addButton(container));
+
+        expect(stored.w1).toEqual({ ventilAnzahl: 2, ventil1: VALVE_1 });
+    });
+
     it('locks add and remove while the selected widgets hold different valve lists', () => {
         const container = mount({ w1: THREE_VALVES, w2: { ventilAnzahl: 1, ventil1: VALVE_3 } });
 
