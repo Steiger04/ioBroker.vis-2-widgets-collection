@@ -43,6 +43,7 @@ import {
     HEATING_TEST_PREFIX,
     heatingTestDevices,
     NEUTRAL_DEVICE,
+    NEUTRAL_PAIR_DEVICE,
 } from '../testing/heatingTestDevices';
 import { heatingBindingFields } from './bindingFields';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
@@ -353,6 +354,61 @@ describe('main pick — two candidates of one role (ADR-0119 Nachtrag)', () => {
         const picked = await pickMain(at(NEUTRAL_DEVICE.binding.soll));
 
         expect(infoBoxesOf(picked)).toEqual([]);
+    });
+});
+
+describe('main pick — the operating-mode pair of the role path (ADR-0119 Nachtrag K5)', () => {
+    it('binds a further writable state of the mode channel with the mode value list as betriebsartSetzen, mapped by its labels', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll));
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen));
+        expect((picked.betriebsartSetzenObject as { _id?: string } | undefined)?._id).toBe(
+            at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen),
+        );
+        // VACATION names no neutral value of „Betriebsart setzen“.
+        expect(picked.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+    });
+
+    const COMMAND = at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen);
+
+    /** The test devices with the mode command changed: `common` merged, or moved to `id`. */
+    const withCommand = (common: Record<string, unknown>, id = COMMAND): Record<string, ioBroker.Object> => {
+        const objects = heatingTestDevices().objects;
+        const command = objects[COMMAND];
+        delete objects[COMMAND];
+        objects[id] = { ...command, _id: id, common: { ...command.common, ...common } } as ioBroker.Object;
+        return objects;
+    };
+
+    it.each<[string, Record<string, ioBroker.Object>]>([
+        ['not writable', withCommand({ write: false })],
+        ['in another channel of the device', withCommand({}, at(`${NEUTRAL_PAIR_DEVICE.id}.maintenance.modeCommand`))],
+        ['with another value list', withCommand({ states: { 0: 'AUTO', 1: 'MANUAL' } })],
+        ['with the labels at other values', withCommand({ states: { 0: 'MANUAL', 1: 'AUTO', 2: 'VACATION' } })],
+        ['without a value list', withCommand({ states: undefined })],
+    ])('binds no betriebsartSetzen for a mode command %s', async (_case, objects) => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, objects);
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        expect(infoBoxesOf(picked)).toEqual([]);
+    });
+
+    it('leaves betriebsartSetzen empty with two fitting states and names both in the InfoBox', async () => {
+        const objects = heatingTestDevices().objects;
+        const second = at(`${NEUTRAL_PAIR_DEVICE.id}.thermostat.modeCommand2`);
+        objects[second] = { ...objects[COMMAND], _id: second } as ioBroker.Object;
+
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, objects);
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        const boxes = infoBoxesOf(picked);
+        expect(boxes).toHaveLength(1);
+        expect(boxes[0]).toContain('t:heating_betriebsart_setzen');
+        expect(boxes[0]).toContain(COMMAND);
+        expect(boxes[0]).toContain(second);
     });
 });
 

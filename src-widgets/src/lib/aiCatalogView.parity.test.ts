@@ -37,9 +37,11 @@ import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THERMOSTAT_THRESHOLDS } from '../HeatingThermostatCollectionWidget/thermostatStages';
 import { HINT_TABLE } from './heating/hintTable';
+import { recognisePair, recogniseState } from './heating/recognition';
 import { ROLE_TABLE } from './heating/roleTable';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { THEME_PRESETS } from './theme/presets';
+import { parentIdOf } from './commonObjectFields';
 import { decodeBlob } from './encoding';
 import {
     isUiOnlyCustomField,
@@ -51,7 +53,7 @@ import {
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
 } from './testing/aiSeams';
-import { ANLAGE_WTH2, heatingTestDevices } from './testing/heatingTestDevices';
+import { ANLAGE_WTH2, heatingTestDevices, NEUTRAL_PAIR_DEVICE } from './testing/heatingTestDevices';
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
@@ -770,32 +772,42 @@ describe('Raumthermostat: valve list and operating mode in the assistant’s vie
         expect(guide).toContain('the base field "ventil" itself stays empty');
     });
 
-    it('names the operating-mode pair by what the assistant sees of a state (role, write, states)', () => {
+    it('names the operating-mode pair as recognition binds it (installation extract and neutral pair device)', () => {
         const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
-        const role = ROLE_TABLE.find(entry => entry.meaning === 'betriebsart')!.roles[0];
-        // The installation extract (HmIP-WTH-2): `search_objects` shows id, type, role, unit, min, max,
-        // write and states — not read. The rule of the sentence must find the hint table's pair there.
+        const entry = ROLE_TABLE.find(one => one.pair)!;
         const { objects } = heatingTestDevices('');
-        const channel = `${ANLAGE_WTH2.id}.1.`;
-        const inChannel = Object.entries(objects).filter(([id, object]) => id.startsWith(channel) && object.type === 'state');
-        const commonOf = (object: ioBroker.Object): ioBroker.StateCommon => object.common as ioBroker.StateCommon;
-        const read = inChannel.filter(([, object]) => commonOf(object).role === role);
-        expect(read).toHaveLength(1);
-        const [readId, readObject] = read[0];
-        const sameList = inChannel.filter(
-            ([id, object]) =>
-                id !== readId &&
-                commonOf(object).write === true &&
-                JSON.stringify(commonOf(object).states) === JSON.stringify(commonOf(readObject).states),
-        );
-        const nameOf = (id: string): string => id.slice(id.lastIndexOf('.') + 1);
-        const hint = (meaning: string): string | undefined => HINT_TABLE.find(entry => entry.meaning === meaning)?.name;
+        /** Partner and pair as recognition and its pair rule find them on a device: the last segments of their ids. */
+        const pairOn = (device: string): { partner: string[]; paired: string[]; meaning?: string } => {
+            const states = Object.values(objects).filter(
+                object => object.type === 'state' && object._id.startsWith(`${device}.`),
+            );
+            const partners = states.filter(
+                state => recogniseState(state, objects[parentIdOf(state._id)])?.meaning === entry.meaning,
+            );
+            const pair = partners.length === 1 ? recognisePair(entry.meaning, partners[0], states) : undefined;
+            return {
+                partner: partners.map(state => state._id),
+                paired: pair?.states.map(state => state._id) ?? [],
+                meaning: pair?.meaning,
+            };
+        };
+        const hint = (meaning: string): string | undefined => HINT_TABLE.find(one => one.meaning === meaning)?.name;
+        const wth2 = `${ANLAGE_WTH2.id}.1`;
 
-        expect(nameOf(readId)).toBe(hint('betriebsart'));
-        expect(sameList.map(([id]) => nameOf(id))).toEqual([hint('betriebsartSetzen')]);
-        expect(guide).toContain(`take the state with the role "${role}" as "betriebsart"`);
+        // The installation extract (HmIP-WTH-2): the rule finds the hint table's pair without it.
+        expect(pairOn(ANLAGE_WTH2.id)).toEqual({
+            partner: [`${wth2}.${hint('betriebsart')}`],
+            paired: [`${wth2}.${hint('betriebsartSetzen')}`],
+            meaning: 'betriebsartSetzen',
+        });
+        expect(pairOn(NEUTRAL_PAIR_DEVICE.id)).toEqual({
+            partner: [NEUTRAL_PAIR_DEVICE.binding.betriebsart],
+            paired: [NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen],
+            meaning: 'betriebsartSetzen',
+        });
+        expect(guide).toContain(`take the state with the role "${entry.roles[0]}" as "${entry.meaning}"`);
         expect(guide).toContain(
-            'as "betriebsartSetzen" a further writable state of the same channel whose value list ("states") equals that of "betriebsart", whatever its role',
+            `as "${entry.pair}" a further writable state of the same channel whose value list ("states") equals that of "${entry.meaning}", whatever its role`,
         );
     });
 

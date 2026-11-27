@@ -23,6 +23,9 @@
  * - A reading that means its Bedeutung only beside another (`RoleEntry.prefillBeside`: an operating
  *   voltage is a battery level only beside a battery flag) counts only when the device holds a
  *   candidate for that other Bedeutung.
+ * - The pair rule of the role path (`RoleEntry.pair`, ADR-0119 Nachtrag K5) adds the candidates
+ *   for „Betriebsart setzen“ beside each candidate for „Betriebsart“ — one state found by both
+ *   ways counts once.
  *
  * Nothing of this runs at runtime; the read seam derives only what the pick of one field stores.
  */
@@ -37,7 +40,7 @@ import { headerKeys, MEANINGS, meaningKeys } from './meaningCatalog';
 import { boundIdOf } from './meaningReading';
 import { meaningPickOptions } from './meaningPick';
 import { recordOpenCandidates } from './prefillCandidates';
-import { recogniseState } from './recognition';
+import { recognisePair, recogniseState } from './recognition';
 
 import type { AllowedType } from '../allowedOidTypes';
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
@@ -178,7 +181,10 @@ const objectsBelowAsync = async (
     }
 };
 
-/** The candidates of the device per Bedeutung of the subset (the main one left out). */
+/**
+ * The candidates of the device per Bedeutung of the subset (the main one left out): what
+ * recognition takes each state for, and what the pair rule finds beside each candidate.
+ */
 const candidatesOfDevice = (
     subset: MeaningSubset,
     mainId: string,
@@ -186,23 +192,30 @@ const candidatesOfDevice = (
     channels: Record<string, ioBroker.Object>,
 ): Map<MeaningField, Candidate[]> => {
     const found = new Map<MeaningField, Candidate[]>();
-    for (const state of Object.values(states)) {
-        if (state._id === mainId || state.type !== 'state') {
-            continue;
-        }
-        const channelId = parentIdOf(state._id);
-        const recognised = recogniseState(state, channels[channelId]);
-        const meaning = recognised?.meaning;
-        if (!meaning || meaning === subset.main || !subset.meanings.includes(meaning)) {
-            continue;
+    const add = (meaning: MeaningField, state: ioBroker.Object, beside?: MeaningField): void => {
+        if (meaning === subset.main || !subset.meanings.includes(meaning)) {
+            return;
         }
         const type = (state.common as ioBroker.StateCommon).type as AllowedType | undefined;
-        if (!type || !MEANINGS[meaning].valueTypes.includes(type)) {
-            continue;
-        }
         const list = found.get(meaning) ?? [];
-        list.push({ id: state._id, channelId, beside: recognised.prefillBeside });
+        if (!type || !MEANINGS[meaning].valueTypes.includes(type) || list.some(one => one.id === state._id)) {
+            return;
+        }
+        list.push({ id: state._id, channelId: parentIdOf(state._id), beside });
         found.set(meaning, list);
+    };
+    const others = Object.values(states).filter(state => state._id !== mainId && state.type === 'state');
+    const recognised = others.flatMap(state => {
+        const one = recogniseState(state, channels[parentIdOf(state._id)]);
+        return one ? [{ state, ...one }] : [];
+    });
+    for (const { state, meaning, prefillBeside } of recognised) {
+        add(meaning, state, prefillBeside);
+    }
+    // The pair rule of the role path: beside every recognised candidate, whatever bound it.
+    for (const { state, meaning } of recognised) {
+        const pair = recognisePair(meaning, state, others);
+        pair?.states.forEach(paired => add(pair.meaning, paired));
     }
     // A candidate that means its Bedeutung only beside another one counts only with it.
     for (const [meaning, list] of found) {

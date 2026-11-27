@@ -10,6 +10,8 @@
  * (automatic circuit assignment is a Homematic-Zusatz), nor the generic timer/text roles, nor
  * `switch.mode.party`, `switch.power` and `value.mode.thermostat`, which name no stage-1 Bedeutung
  * unambiguously. Order matters only where two entries could recognise the same state; none do.
+ * One Bedeutung binds by no role of its own but beside its partner: „Betriebsart setzen“
+ * ({@link RoleEntry.pair}, ADR-0119 Nachtrag K5).
  */
 import type { MeaningField, NeutralKey } from './meaningCatalog';
 
@@ -39,6 +41,13 @@ export interface RoleEntry {
      * hand is unaffected.
      */
     readonly prefillBeside?: MeaningField;
+    /**
+     * The Bedeutung of the pair rule (ADR-0119 Nachtrag K5): a further writable state of the same
+     * channel as a candidate for this entry's Bedeutung, whose value list equals the candidate's,
+     * whatever its role, is a candidate for it. Its Wertezuordnung is read with this entry's
+     * encoding, whatever its role — on the pick of that one field too.
+     */
+    readonly pair?: MeaningField;
 }
 
 /** All entries. */
@@ -57,6 +66,7 @@ export const ROLE_TABLE: readonly RoleEntry[] = [
                 ['VACATION', 'urlaub'],
             ],
         },
+        pair: 'betriebsartSetzen',
     },
     { roles: ['switch.mode.boost', 'switch.boost'], meaning: 'boost', encoding: { kind: 'boolean', inverted: false } },
     {

@@ -14,7 +14,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
-import { ANLAGE_WTH2, HEATING_TEST_PREFIX, heatingTestDevices, NEUTRAL_DEVICE } from '../testing/heatingTestDevices';
+import {
+    ANLAGE_WTH2,
+    HEATING_TEST_PREFIX,
+    heatingTestDevices,
+    NEUTRAL_DEVICE,
+    NEUTRAL_PAIR_DEVICE,
+} from '../testing/heatingTestDevices';
 import { heatingBindingFields } from './bindingFields';
 import { HINT_TABLE } from './hintTable';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
@@ -151,6 +157,55 @@ describe('single pick — further STATE_ROLES encodings', () => {
         const picked = await pick(field, ID, {}, withState(common));
 
         expect(`${field}Zuordnung` in picked).toBe(false);
+    });
+});
+
+describe('single pick of betriebsartSetzen — the labels of the mode, whatever the role (ADR-0119 Nachtrag K5)', () => {
+    const COMMAND = neutral(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen);
+
+    /** The test devices with the mode command's `common` merged with `common`. */
+    const withCommand = (common: Record<string, unknown>): Record<string, unknown> => {
+        const objects = heatingTestDevices().objects;
+        objects[COMMAND] = {
+            ...objects[COMMAND],
+            common: { ...objects[COMMAND].common, ...common },
+        } as ioBroker.Object;
+        return objects;
+    };
+
+    it('fills the mapping of the mode command from its labels, without its partner', async () => {
+        const picked = await pick('betriebsartSetzen', COMMAND);
+
+        expect(picked.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+        expect(Object.keys(picked).sort()).toEqual([
+            'betriebsartSetzen',
+            'betriebsartSetzenObject',
+            'betriebsartSetzenZuordnung',
+        ]);
+    });
+
+    it.each<[string, Record<string, unknown>, Record<string, unknown>]>([
+        ['no role', { role: undefined }, { auto: [0], manuell: [1] }],
+        ['the role of the mode', { role: 'level.mode.thermostat' }, { auto: [0], manuell: [1] }],
+        [
+            'text values in other case',
+            { type: 'string', states: { A: 'auto', M: 'Manual' } },
+            { auto: ['A'], manuell: ['M'] },
+        ],
+    ])('reads the labels for a state with %s', async (_case, common, mapping) => {
+        const picked = await pick('betriebsartSetzen', COMMAND, {}, withCommand(common));
+
+        expect(picked.betriebsartSetzenZuordnung).toEqual(mapping);
+    });
+
+    it.each<[string, Record<string, unknown>]>([
+        ['a label outside the mode labels', { states: { 0: 'AUTO', 1: 'MANUAL', 2: 'BOOST' } }],
+        ['only a label without a neutral value of betriebsartSetzen', { states: { 2: 'VACATION' } }],
+        ['no value list', { states: undefined }],
+    ])('fills no mapping for %s', async (_case, common) => {
+        const picked = await pick('betriebsartSetzen', COMMAND, {}, withCommand(common));
+
+        expect('betriebsartSetzenZuordnung' in picked).toBe(false);
     });
 });
 

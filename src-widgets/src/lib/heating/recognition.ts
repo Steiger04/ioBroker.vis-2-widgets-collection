@@ -7,7 +7,10 @@
  * Two ways, read in this order — for the Bedeutung and for its mapping the first way that
  * recognises something holds:
  * 1. the role path (`lib/heating/roleTable`): role and value list after the STATE_ROLES; a
- *    Bedeutung with fixed values is recognised only when its values map onto the neutral values;
+ *    Bedeutung with fixed values is recognised only when its values map onto the neutral values.
+ *    Its pair rule ({@link recognisePair}, `RoleEntry.pair`) finds „Betriebsart setzen“ beside a
+ *    candidate for „Betriebsart“; that Bedeutung's mapping comes from the partner entry's labels,
+ *    whatever the state's role;
  * 2. the hint table (`lib/heating/hintTable`): data point name and channel type.
  *
  * Recognition reads only what the objects say — the state object and its channel object — never
@@ -15,9 +18,11 @@
  * its own empty mapping ({@link mappingPickDerivation}, wired through `createIdField`'s
  * `pickDerivation`), and the Lese-Naht reads the same derivation for a bound Bedeutung without its
  * stored mapping (ADR-0120 Nachtrag „Spec Stufe 1 schreiben“). The prefill of the whole device on
- * the main pick runs {@link recogniseState} over every state of the device.
+ * the main pick runs {@link recogniseState} over every state of the device and
+ * {@link recognisePair} beside each candidate.
  */
 import { convertToOidType } from '../../hooks/useValueState';
+import { parentIdOf } from '../commonObjectFields';
 import { HINT_TABLE } from './hintTable';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
 import { ROLE_TABLE } from './roleTable';
@@ -26,7 +31,7 @@ import { booleanMapping } from './valueMapping';
 import type { OidType } from '../../types';
 import type { PickDerivation, PickedObject } from '../commonObjectFields';
 import type { MeaningField, NeutralKey } from './meaningCatalog';
-import type { RoleEncoding } from './roleTable';
+import type { RoleEncoding, RoleEntry } from './roleTable';
 import type { DeviceValue, ValueMapping } from './valueMapping';
 
 /** What recognition found for one data point. */
@@ -82,13 +87,17 @@ const mappingOfEncoding = (
     }
     const mapping: Partial<Record<NeutralKey, DeviceValue[]>> = {};
     for (const [known, neutral] of encoding.labels) {
+        if (!shape.keys.includes(neutral)) {
+            // A label of the encoding the Bedeutung has no neutral value for (VACATION of a pair).
+            continue;
+        }
         for (const [value, label] of valueList) {
             if (label.trim().toUpperCase() === known.toUpperCase()) {
                 (mapping[neutral] ??= []).push(value);
             }
         }
     }
-    return mapping;
+    return Object.keys(mapping).length > 0 ? mapping : undefined;
 };
 
 /** The role path: the first role entry that recognises the state, with its mapping. */
@@ -109,6 +118,26 @@ const byRole = (object: ioBroker.Object): Recognition | undefined => {
     }
     return undefined;
 };
+
+/** The role entry whose pair rule names `meaning` (`RoleEntry.pair`). */
+const pairEntryOf = (meaning: MeaningField): RoleEntry | undefined => ROLE_TABLE.find(entry => entry.pair === meaning);
+
+/** The pair path of the role path: the mapping of a state as a paired Bedeutung, whatever its role. */
+const byPair = (meaning: MeaningField, object: ioBroker.Object): Recognition | undefined => {
+    const encoding = pairEntryOf(meaning)?.encoding;
+    const mapping = encoding && mappingOfEncoding(encoding, meaning, object.common as ioBroker.StateCommon);
+    return mapping ? { meaning, mapping } : undefined;
+};
+
+/** The value list of a state as label per device value written as text; none without one. */
+const valueListKey = (object: ioBroker.Object): Map<string, string> | undefined => {
+    const valueList = valueListOf(object.common as ioBroker.StateCommon);
+    return valueList && new Map(valueList.map(([value, label]) => [String(value), label]));
+};
+
+/** Whether two value lists hold the same labels for the same device values. */
+const sameValueList = (one: Map<string, string>, other: Map<string, string>): boolean =>
+    one.size === other.size && [...one].every(([value, label]) => other.get(value) === label);
 
 /** The hint-table path: the entry for the data point name in its channel's type. */
 const byHint = (object: ioBroker.Object, channel: ioBroker.Object | undefined): Recognition | undefined => {
@@ -132,19 +161,59 @@ const byHint = (object: ioBroker.Object, channel: ioBroker.Object | undefined): 
  *   recognises the data point.
  */
 export function recogniseState(object: ioBroker.Object, channel?: ioBroker.Object): Recognition | undefined {
-    const ways = [byRole(object), byHint(object, channel)];
-    const first = ways.find(way => way !== undefined);
+    const role = byRole(object);
+    const hint = byHint(object, channel);
+    const first = role ?? hint;
     if (!first) {
         return undefined;
     }
     const { meaning, prefillBeside } = first;
+    const ways = [role, byPair(meaning, object), hint];
     const mapping = ways.find(way => way?.meaning === meaning && way.mapping)?.mapping;
     return { meaning, ...(mapping ? { mapping } : {}), ...(prefillBeside ? { prefillBeside } : {}) };
 }
 
 /**
+ * The pair rule of the role path (`RoleEntry.pair`, ADR-0119 Nachtrag K5): beside a candidate for
+ * a Bedeutung whose role entry names a pair, every further writable state of the same channel
+ * whose value list equals the candidate's is a candidate for the paired Bedeutung, whatever its
+ * role. It reads what `search_objects` shows the assistant too — `write` and `states`, not `read`.
+ *
+ * @param partnerMeaning - The Bedeutung recognition took the partner for.
+ * @param partner - The partner state.
+ * @param states - The states to look through (those of the device); others than states and the
+ *   partner itself are skipped.
+ * @returns The paired Bedeutung with its candidates, in the order of `states`; `undefined` when
+ *   no role entry of `partnerMeaning` names a pair or the partner has no value list.
+ */
+export function recognisePair(
+    partnerMeaning: MeaningField,
+    partner: ioBroker.Object,
+    states: Iterable<ioBroker.Object>,
+): { meaning: MeaningField; states: ioBroker.Object[] } | undefined {
+    const meaning = ROLE_TABLE.find(entry => entry.meaning === partnerMeaning && entry.pair)?.pair;
+    const partnerList = valueListKey(partner);
+    if (!meaning || !partnerList) {
+        return undefined;
+    }
+    const channelId = parentIdOf(partner._id);
+    const paired: ioBroker.Object[] = [];
+    for (const state of states) {
+        if (state.type !== 'state' || state._id === partner._id || parentIdOf(state._id) !== channelId) {
+            continue;
+        }
+        const list = valueListKey(state);
+        if ((state.common as ioBroker.StateCommon).write === true && list && sameValueList(list, partnerList)) {
+            paired.push(state);
+        }
+    }
+    return { meaning, states: paired };
+}
+
+/**
  * The pick derivation of a Bedeutung's id field: its Wertezuordnung, when recognition takes the
- * picked data point for this very Bedeutung and recognises a mapping.
+ * picked data point for this very Bedeutung and recognises a mapping — or, for a paired Bedeutung
+ * (`RoleEntry.pair`), when the partner entry's labels map it, whatever recognition takes it for.
  *
  * @param field - The Bedeutung.
  * @param entry - The entry number of a list entry (ADR-0121); none for the unnumbered case.
@@ -156,9 +225,8 @@ export const mappingPickDerivation = (field: MeaningField, entry?: number): Pick
     return Object.assign(
         ({ object, channel }: PickedObject) => {
             const recognised = recogniseState(object, channel);
-            return recognised?.meaning === field && recognised.mapping
-                ? { [mappingKey]: recognised.mapping }
-                : undefined;
+            const mapping = recognised?.meaning === field ? recognised.mapping : byPair(field, object)?.mapping;
+            return mapping ? { [mappingKey]: mapping } : undefined;
         },
         { keys: [mappingKey] },
     );
