@@ -99,16 +99,16 @@ describe('HeatingThermostatCollection: stage and arrangement', () => {
     );
 
     it.each([
-        ['Groß', START_BOX, 'dial'],
-        ['Mittel', { width: 296, height: 400 }, 'dial'],
-        ['Quer', { width: 500, height: 150 }, 'setpoint'],
-        ['Kompakt', { width: 280, height: 180 }, 'setpoint'],
+        ['Groß', START_BOX, 'dial', ['pills']],
+        ['Mittel', { width: 296, height: 400 }, 'dial', []],
+        ['Quer', { width: 500, height: 150 }, 'setpoint', []],
+        ['Kompakt', { width: 280, height: 180 }, 'setpoint', []],
     ])(
-        'shows the set-point in the place of %s — besides the Kartenkopf the other places stay empty until filled',
-        (_case, box, place) => {
+        'shows the set-point in the place of %s — besides the Kartenkopf (and the pills of Groß) the other places stay empty until filled',
+        (_case, box, place, more) => {
             const { container } = mountBody(HeatingThermostatCollection, scene({}, box));
 
-            expect(filledSlots(container)).toEqual(['head', place]);
+            expect(filledSlots(container)).toEqual(['head', place, ...more]);
             expect(container.querySelector(`[data-heating-slot="${place}"] [data-heating-setpoint]`)?.textContent).toBe(
                 '21.5 °C',
             );

@@ -110,3 +110,19 @@ export const thermostatTile = (box: MeasuredBox): ThermostatTileParts => ({
     buttons: reaches(box, THERMOSTAT_THRESHOLDS.tileButtons),
     footer: reaches(box, THERMOSTAT_THRESHOLDS.tileFooter),
 });
+
+/**
+ * The dial's edge length in an arrangement of Voll: the design's dial size (`Main.dc.html`
+ * `layout()`), its outer sizes taken back to the Content-Box like the thresholds (width −24,
+ * height −64), within the design's bounds.
+ *
+ * @param arrangement - Groß or Mittel.
+ * @param box - The measured Content-Box.
+ * @returns The edge length in px.
+ */
+export function thermostatDialSize(arrangement: 'gross' | 'mittel', box: MeasuredBox): number {
+    const clamp = (value: number, low: number, high: number): number => Math.max(low, Math.min(high, value));
+    return arrangement === 'gross'
+        ? clamp(Math.min(box.width - 76, box.height - 316), 240, 380)
+        : clamp(Math.min(box.width - 52, box.height - 168), 200, 320);
+}

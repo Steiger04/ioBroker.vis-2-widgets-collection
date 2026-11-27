@@ -17,6 +17,15 @@
  * the readings bar of Groß (`ThermostatReadings`). The status (`thermostatStatus`) also names the
  * tile's sign; an unreachable device is drawn dimmed and stays operable. Every value reads honestly
  * (`lib/heating/meaningReading`): „–“ while bound without a value or not yet reported.
+ *
+ * Operating (stage-1 spec „Bedienen“): the ring of the dial (Voll) and ± (dial, big set-point, tile)
+ * step the set-point on its scale (`lib/heating/setpointScale`); they are off while the set-point
+ * has not reported yet, and absent while it is not writable. A drag shows its value and writes once
+ * on release. The pills of Groß (`lib/heating/PillRow`) write absolute values even while the
+ * set-point has not reported: Absenk and Komfort the widget's temperatures into the set-point, Aus
+ * the way `thermostatOff` names. Every action writes exactly one state through the write chain
+ * (`lib/heating/useMeaningWrite`), never into a target that is not writable; a pill exists only for
+ * a writable target.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
 import { Box, Typography } from '@mui/material';
@@ -25,22 +34,28 @@ import { useContext, useState, type ReactElement, type ReactNode } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useValueState from '../hooks/useValueState';
 import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
 import { meaningKeys } from '../lib/heating/meaningCatalog';
 import { readMeaning } from '../lib/heating/meaningReading';
 import { formatReading, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
+import PillRow, { type Pill } from '../lib/heating/PillRow';
+import { setpointScale, stepDown, stepUp } from '../lib/heating/setpointScale';
 import SizeStages from '../lib/heating/SizeStages';
+import type { MeasuredBox } from '../lib/heating/stageRule';
+import { useMeaningWrite } from '../lib/heating/useMeaningWrite';
 import { setpointNoticeKey } from '../lib/heating/setpointNotice';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
 import HintLine from './HintLine';
+import { SetpointDial, StepButton } from './SetpointControls';
+import { thermostatOff } from './thermostatOff';
 import { thermostatStatus } from './thermostatStatus';
 import {
     thermostatArrangement,
+    thermostatDialSize,
     thermostatQuerModes,
     thermostatStage,
     type ThermostatArrangement,
@@ -64,6 +79,13 @@ const FULL_SIZE = { width: 420, height: 700 } as const;
 /** The opacity of an unreachable device's set-point and dial (the design's dimming). */
 const DIMMED_OPACITY = 0.4;
 
+/** The ± edge length beside the big set-point and in the tile (the design's). */
+const STEP_BUTTON = { flat: 52, tile: 44 } as const;
+
+/** A stored number, if it is one. */
+const numberOf = (value: unknown): number | undefined =>
+    typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+
 /**
  * The Raumthermostat in its frame.
  *
@@ -83,12 +105,23 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     const { data } = useData('');
 
     const setpointKeys = meaningKeys('soll', entry);
-    const { value } = useValueState(setpointKeys.field);
     const unit = widgetData[setpointKeys.object]?.unit as string | undefined;
     const name = widgetData[`bezeichnung${entry ?? ''}`] as string | undefined;
     const subLine = widgetData[`unterzeile${entry ?? ''}`] as string | undefined;
     // The set-point shows only once reported, never the device's substitute value (ADR-0119).
-    const setpointReported = readMeaning(widgetData, values, 'soll', entry).kind === 'reported';
+    const setpointReading = readMeaning(widgetData, values, 'soll', entry);
+    const reported = setpointReading.kind === 'reported' ? numberOf(setpointReading.value) : undefined;
+
+    // One write per Bedeutung that an action of the content writes (ADR-0120: one state per action).
+    const setpointWrite = useMeaningWrite('soll', entry);
+    const modeWrites = {
+        betriebsart: useMeaningWrite('betriebsart', entry),
+        betriebsartSetzen: useMeaningWrite('betriebsartSetzen', entry),
+    };
+    const scale = setpointScale(widgetData[setpointKeys.object]);
+    // The value under the pointer while the ring is dragged: shown, written on release.
+    const [preview, setPreview] = useState<number | undefined>(undefined);
+    const shown = preview ?? reported;
 
     const noticeKey = setpointNoticeKey(widgetData, entry);
 
@@ -99,7 +132,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             data-heating-setpoint=""
             sx={{ whiteSpace: 'nowrap' }}
         >
-            {setpointReported && typeof value === 'number' ? formatReading(value, 'temperature', lang, unit) : NO_VALUE}
+            {shown === undefined ? NO_VALUE : formatReading(shown, 'temperature', lang, unit)}
         </Typography>
     );
 
@@ -133,6 +166,84 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         </Box>
     );
 
+    // ± and the ring step the reported set-point; off until it has reported, absent while not writable.
+    const step = (direction: 'down' | 'up'): void => {
+        if (reported === undefined) {
+            return;
+        }
+        const next = direction === 'up' ? stepUp(reported, scale) : stepDown(reported, scale);
+        if (next !== reported) {
+            setpointWrite.write(next);
+        }
+    };
+    const commit = (next: number): void => {
+        if (next !== reported) {
+            setpointWrite.write(next, { immediate: true });
+        }
+    };
+    const stepButton = (direction: 'down' | 'up', size: number): ReactNode =>
+        setpointWrite.writable ? (
+            <StepButton
+                direction={direction}
+                size={size}
+                disabled={
+                    reported === undefined || (direction === 'up' ? reported >= scale.max : reported <= scale.min)
+                }
+                onClick={() => step(direction)}
+            />
+        ) : null;
+
+    // The pills of Groß: absolute values, also while the set-point has not reported yet.
+    const pills: Pill[] = [];
+    if (setpointWrite.writable) {
+        for (const key of ['absenk', 'komfort'] as const) {
+            const target = numberOf(widgetData[`${key}${entry ?? ''}`]);
+            if (target !== undefined) {
+                pills.push({
+                    key,
+                    label: translate(`heating_pill_${key}`),
+                    detail: formatReading(target, 'temperature', lang, unit),
+                    active: reported === target,
+                    onClick: () => setpointWrite.write(target, { immediate: true }),
+                });
+            }
+        }
+    }
+    const off = thermostatOff(widgetData, entry);
+    const offWrite = off?.kind === 'mode' ? modeWrites[off.field] : setpointWrite;
+    if (off && offWrite.writable) {
+        pills.push({
+            key: 'aus',
+            label: translate('heating_neutral_aus'),
+            active: status.off,
+            onClick: () => offWrite.write(off.value, { immediate: true }),
+        });
+    }
+
+    const dial = (arrangement: 'gross' | 'mittel', box: MeasuredBox): ReactNode => (
+        <SetpointDial
+            size={thermostatDialSize(arrangement, box)}
+            scale={scale}
+            value={shown}
+            disabled={reported === undefined}
+            cool={status.chip?.tone === 'kühl'}
+            onPreview={setPreview}
+            onCommit={commit}
+            onStep={step}
+            buttons={
+                setpointWrite.writable ? (
+                    <>
+                        {stepButton('down', STEP_BUTTON.flat)}
+                        {stepButton('up', STEP_BUTTON.flat)}
+                    </>
+                ) : null
+            }
+        >
+            {setpoint}
+            {actual}
+        </SetpointDial>
+    );
+
     const head = (arrangement: ThermostatArrangement, form: KartenkopfForm): ReactNode => (
         <Kartenkopf
             form={form}
@@ -164,23 +275,24 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         }
     };
 
-    const partsFor = (arrangement: ThermostatArrangement | 'mini'): ThermostatParts => ({
+    const partsFor = (arrangement: ThermostatArrangement | 'mini', box: MeasuredBox): ThermostatParts => ({
         head: form => (arrangement === 'mini' ? null : head(arrangement, form)),
-        dial: dimmed(
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+        dial: arrangement === 'gross' || arrangement === 'mittel' ? dimmed(dial(arrangement, box)) : null,
+        setpoint: dimmed(
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                {stepButton('down', STEP_BUTTON.flat)}
                 {setpoint}
-                {actual}
+                {stepButton('up', STEP_BUTTON.flat)}
             </Box>,
         ),
-        setpoint: dimmed(setpoint),
-        pills: null,
+        pills: arrangement === 'gross' ? <PillRow pills={pills} /> : null,
         modes: null,
         readings: readings.length ? <ReadingsBar readings={readings} /> : null,
         hint: arrangement === 'mini' ? null : hintFor(arrangement),
         tile: {
             main: dimmed(setpoint),
-            decrease: null,
-            increase: null,
+            decrease: stepButton('down', STEP_BUTTON.tile),
+            increase: stepButton('up', STEP_BUTTON.tile),
             line: message ? (
                 <HintLine
                     hint={message}
@@ -209,11 +321,11 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
                         <ThermostatStage
                             arrangement={arrangement}
                             querModes={thermostatQuerModes(box)}
-                            parts={partsFor(arrangement)}
+                            parts={partsFor(arrangement, box)}
                         />
                     );
                 }}
-                renderTile={box => thermostatTileContent(partsFor('mini'), box)}
+                renderTile={box => thermostatTileContent(partsFor('mini', box), box)}
                 name={name}
                 typeName={translate('heating_thermostat_collection_widget')}
                 status={status.tile}

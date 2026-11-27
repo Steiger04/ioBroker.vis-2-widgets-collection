@@ -824,3 +824,379 @@ describe('HeatingThermostatCollectionWidget: motion', () => {
         expect(pulses(await mount(statusData(), reporting({})))).toBe(false);
     });
 });
+
+/** The states written through the socket, as `[id, value]`. */
+const writes = (): [string, unknown][] =>
+    (socket.setState.mock.calls as unknown as [string, unknown][]).map(([id, value]) => [id, value]);
+
+/** A pill of the pill row by its key; `null` when it is not there. */
+const pill = (container: HTMLElement, key: string): HTMLButtonElement | null =>
+    container.querySelector<HTMLButtonElement>(`[data-heating-pill="${key}"]`);
+
+/** Clicks a control. */
+const press = async (control: HTMLElement | null): Promise<void> => {
+    expect(control).not.toBeNull();
+    await act(() => {
+        control!.click();
+        return Promise.resolve();
+    });
+};
+
+describe('HeatingThermostatCollectionWidget: Komfort and Absenk', () => {
+    it('Komfort writes 21 and Absenk 17 into the set-point, one state per action', async () => {
+        const container = await mount(statusData(), reporting({ soll: 19 }));
+
+        await press(pill(container, 'komfort'));
+        expect(writes()).toEqual([[neutral('soll'), 21]]);
+
+        socket.setState.mockClear();
+        await press(pill(container, 'absenk'));
+        expect(writes()).toEqual([[neutral('soll'), 17]]);
+    });
+});
+
+/** Own data points of these tests, behind the same socket. */
+const OWN = {
+    /** A set-point without `common.min/max` and without a step. */
+    bareSetpoint: 'hz.own.bare.setpoint',
+    /** A set-point that is not writable. */
+    readOnlySetpoint: 'hz.own.readonly.setpoint',
+    /** A writable „Betriebsart setzen“. */
+    modeSet: 'hz.own.mode.set',
+    /** A „Betriebsart“ that is not writable. */
+    readOnlyMode: 'hz.own.mode.readonly',
+} as const;
+
+const ownState = (id: string, common: Record<string, unknown>): ioBroker.Object =>
+    ({ _id: id, type: 'state', common: { name: id, read: true, ...common }, native: {} }) as ioBroker.Object;
+
+Object.assign(DEVICES.objects, {
+    [OWN.bareSetpoint]: ownState(OWN.bareSetpoint, {
+        role: 'level.temperature',
+        type: 'number',
+        unit: '°C',
+        write: true,
+    }),
+    [OWN.readOnlySetpoint]: ownState(OWN.readOnlySetpoint, {
+        role: 'level.temperature',
+        type: 'number',
+        unit: '°C',
+        min: 5,
+        max: 30,
+        write: false,
+    }),
+    [OWN.modeSet]: ownState(OWN.modeSet, { role: 'level.mode.thermostat', type: 'number', write: true }),
+    [OWN.readOnlyMode]: ownState(OWN.readOnlyMode, { role: 'level.mode.thermostat', type: 'number', write: false }),
+});
+
+/** Lets the write chain's debounce (300 ms) pass. */
+const debounced = (): Promise<void> => act(() => new Promise<void>(resolve => setTimeout(resolve, 350)));
+
+/** The ± button of a direction; `null` when it is not there. */
+const stepButton = (container: HTMLElement, direction: 'down' | 'up'): HTMLButtonElement | null =>
+    container.querySelector<HTMLButtonElement>(`[data-heating-step="${direction}"]`);
+
+/** The pills present, in display order. */
+const pillKeys = (container: HTMLElement): string[] =>
+    [...container.querySelectorAll('[data-heating-pill]')].map(element => element.getAttribute('data-heating-pill')!);
+
+/** The lit pills. */
+const litPills = (container: HTMLElement): string[] =>
+    [...container.querySelectorAll('[data-heating-pill][aria-pressed="true"]')].map(element =>
+        element.getAttribute('data-heating-pill')!,
+    );
+
+/** The shown set-point. */
+const shownSetpoint = (container: HTMLElement): string | null | undefined =>
+    container.querySelector('[data-heating-setpoint]')?.textContent;
+
+describe('HeatingThermostatCollectionWidget: pills', () => {
+    it('shows Absenk, Komfort and Aus in Groß, with the values they write', async () => {
+        const container = await mount(statusData(), reporting({ soll: 19 }));
+
+        expect(pillKeys(container)).toEqual(['absenk', 'komfort', 'aus']);
+        expect(
+            [...container.querySelectorAll('[data-heating-pill-detail]')].map(element => element.textContent),
+        ).toEqual(['17.0 °C', '21.0 °C']);
+    });
+
+    it('writes the widget values of Komfort and Absenk', async () => {
+        const container = await mount(statusData({ komfort: 22.5, absenk: 16 }), reporting({ soll: 19 }));
+
+        await press(pill(container, 'komfort'));
+        await press(pill(container, 'absenk'));
+        expect(writes()).toEqual([
+            [neutral('soll'), 22.5],
+            [neutral('soll'), 16],
+        ]);
+    });
+
+    it('lights a pill while the reported set-point equals its value, not while it has not reported', async () => {
+        expect(litPills(await mount(statusData(), reporting({ soll: 21 })))).toEqual(['komfort']);
+        expect(litPills(await mount(statusData(), reporting({ soll: 17 })))).toEqual(['absenk']);
+        expect(litPills(await mount(statusData(), reporting({ soll: 19.5 })))).toEqual([]);
+
+        const notReported = { ...reporting({ soll: 21 }), [`${neutral('soll')}.q`]: 0x20 };
+        expect(litPills(await mount(statusData(), notReported))).toEqual([]);
+    });
+
+    it('stands only in Groß', async () => {
+        const mittel = await mount(statusData(), reporting({ soll: 19 }), { width: 300, height: 400 });
+        expect(mittel.querySelector('[data-heating-dial]')).not.toBeNull();
+        expect(pillKeys(mittel)).toEqual([]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Aus', () => {
+    it('writes the first value of `aus` into „Betriebsart setzen“ where it is bound', async () => {
+        const data = statusData({ betriebsartSetzen: OWN.modeSet, betriebsartSetzenZuordnung: { aus: [7, 8] } });
+        const container = await mount(data, reporting({ soll: 19 }));
+
+        await press(pill(container, 'aus'));
+        expect(writes()).toEqual([[OWN.modeSet, 7]]);
+    });
+
+    it('writes through „Betriebsart“ without „Betriebsart setzen“', async () => {
+        const container = await mount(statusData(), reporting({ soll: 19 }));
+
+        await press(pill(container, 'aus'));
+        expect(writes()).toEqual([[neutral('betriebsart'), 3]]);
+    });
+
+    it('writes the real minimum into the set-point without a mapped `aus` (5 °C)', async () => {
+        const data = statusData({ betriebsartZuordnung: { auto: [0], manuell: [1] } });
+        const container = await mount(data, reporting({ soll: 19 }));
+
+        await press(pill(container, 'aus'));
+        expect(writes()).toEqual([[neutral('soll'), 5]]);
+    });
+
+    it('shows no Aus without a mapped `aus` and without a real minimum', async () => {
+        const data = statusData({ soll: OWN.bareSetpoint, betriebsartZuordnung: { auto: [0], manuell: [1] } });
+        const container = await mount(data, reportingIds({ [OWN.bareSetpoint]: 19 }));
+
+        expect(pillKeys(container)).toEqual(['absenk', 'komfort']);
+    });
+
+    it('lights Aus by the rule of the chip „Aus“', async () => {
+        const off = await mount(statusData(), reporting({ soll: 19, betriebsart: 3 }));
+        expect(litPills(off)).toEqual(['aus']);
+
+        expect(litPills(await mount(statusData(), reporting({ soll: 19, betriebsart: 1 })))).toEqual([]);
+    });
+
+    it('shows no Aus where its operating-mode target is not writable', async () => {
+        const data = statusData({ betriebsart: OWN.readOnlyMode });
+        const container = await mount(data, reportingIds({ [OWN.readOnlyMode]: 1 }, reporting({ soll: 19 })));
+
+        expect(pillKeys(container)).toEqual(['absenk', 'komfort']);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
+    it('± writes one step of 0.5 K after the debounce, one state per press', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+
+        await press(stepButton(container, 'up'));
+        expect(writes()).toEqual([]);
+        await debounced();
+        expect(writes()).toEqual([[neutral('soll'), 21.5]]);
+
+        socket.setState.mockClear();
+        await press(stepButton(container, 'down'));
+        await debounced();
+        expect(writes()).toEqual([[neutral('soll'), 20.5]]);
+    });
+
+    it('snaps a set-point off the grid to the next step', async () => {
+        const container = await mount(statusData(), reporting({ soll: 20.3 }));
+
+        await press(stepButton(container, 'up'));
+        await debounced();
+        expect(writes()).toEqual([[neutral('soll'), 20.5]]);
+    });
+
+    it('locks + at the maximum and − at the minimum of the real limits (5–30)', async () => {
+        const top = await mount(statusData(), reporting({ soll: 30 }));
+        expect([stepButton(top, 'down')!.disabled, stepButton(top, 'up')!.disabled]).toEqual([false, true]);
+
+        const bottom = await mount(statusData(), reporting({ soll: 5 }));
+        expect([stepButton(bottom, 'down')!.disabled, stepButton(bottom, 'up')!.disabled]).toEqual([true, false]);
+    });
+
+    it('runs on 5–30 °C for a set-point without `common.min/max`', async () => {
+        const data = { soll: OWN.bareSetpoint };
+        const top = await mount(data, reportingIds({ [OWN.bareSetpoint]: 30 }));
+        expect(stepButton(top, 'up')!.disabled).toBe(true);
+        expect(top.querySelector('[data-heating-ring]')?.getAttribute('aria-valuemax')).toBe('30');
+
+        const bottom = await mount(data, reportingIds({ [OWN.bareSetpoint]: 5 }));
+        expect(stepButton(bottom, 'down')!.disabled).toBe(true);
+        expect(bottom.querySelector('[data-heating-ring]')?.getAttribute('aria-valuemin')).toBe('5');
+    });
+
+    it('runs on the real limits 4.5–30.5 °C where the object has them', async () => {
+        const setpoint = wth2('1.SET_POINT_TEMPERATURE');
+        const data = { soll: setpoint };
+
+        const below = await mount(data, reportingIds({ [setpoint]: 30 }));
+        await press(stepButton(below, 'up'));
+        await debounced();
+        expect(writes()).toEqual([[setpoint, 30.5]]);
+
+        const top = await mount(data, reportingIds({ [setpoint]: 30.5 }));
+        expect(stepButton(top, 'up')!.disabled).toBe(true);
+        const bottom = await mount(data, reportingIds({ [setpoint]: 4.5 }));
+        expect(stepButton(bottom, 'down')!.disabled).toBe(true);
+    });
+
+    it('stands with the big set-point in Quer and Kompakt, and in the tile from about 220 px', async () => {
+        for (const box of [
+            { width: 456, height: 120 },
+            { width: 256, height: 150 },
+            { width: 196, height: 66 },
+        ]) {
+            const container = await mount(statusData(), reporting({ soll: 21 }), box);
+            expect([stepButton(container, 'down'), stepButton(container, 'up')]).not.toContain(null);
+        }
+
+        const narrowTile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 66 });
+        expect(stepButton(narrowTile, 'up')).toBeNull();
+    });
+
+    it('steps from the tile', async () => {
+        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 66 });
+
+        await press(stepButton(tile, 'down'));
+        await debounced();
+        expect(writes()).toEqual([[neutral('soll'), 20.5]]);
+        expect(tile.querySelector('[data-heating-tile] button[aria-expanded="true"]')).toBeNull();
+    });
+});
+
+/** Fires a pointer event on the ring at a point of its 320-unit box. */
+const pointer = async (ring: Element, type: string, [x, y]: [number, number]): Promise<void> => {
+    await act(() => {
+        ring.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }));
+        return Promise.resolve();
+    });
+};
+
+/** The ring of a mounted dial, laid out as a 320 × 320 px box at the origin. */
+const ringOf = (container: HTMLElement): Element => {
+    const ring = container.querySelector('[data-heating-ring]')!;
+    ring.getBoundingClientRect = () => ({ left: 0, top: 0, width: 320, height: 320 }) as DOMRect;
+    return ring;
+};
+
+/** Points of the ring (radius 118 around 160/160): the top and the right. */
+const RING_TOP: [number, number] = [160, 42];
+const RING_RIGHT: [number, number] = [278, 160];
+
+describe('HeatingThermostatCollectionWidget: dragging the ring', () => {
+    it('shows the value while dragging and writes it once on release', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const ring = ringOf(container);
+
+        // Top of 5–30: 17.5; right: 225° of 270° → 25.83 → 26.0 on the 0.5 grid.
+        await pointer(ring, 'pointerdown', RING_TOP);
+        expect(shownSetpoint(container)).toBe('17.5 °C');
+        await pointer(ring, 'pointermove', RING_RIGHT);
+        expect(shownSetpoint(container)).toBe('26.0 °C');
+        expect(writes()).toEqual([]);
+
+        await pointer(ring, 'pointerup', RING_RIGHT);
+        expect(writes()).toEqual([[neutral('soll'), 26]]);
+    });
+
+    it('takes the real limits: the top of 4.5–30.5 is 17.5', async () => {
+        const setpoint = wth2('1.SET_POINT_TEMPERATURE');
+        const container = await mount({ soll: setpoint }, reportingIds({ [setpoint]: 21 }));
+        const ring = ringOf(container);
+
+        await pointer(ring, 'pointerdown', [
+            160 + 118 * Math.cos(Math.PI * 1.25),
+            160 + 118 * Math.sin(Math.PI * 1.25),
+        ]);
+        await pointer(ring, 'pointerup', RING_TOP);
+        // 225° is 90° along the 270° ring: 4.5 + 26 / 3 = 13.17 → 13.0.
+        expect(writes()).toEqual([[setpoint, 13]]);
+    });
+
+    it('writes nothing on a cancelled drag or a press beside the ring', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const ring = ringOf(container);
+
+        await pointer(ring, 'pointerdown', RING_TOP);
+        await pointer(ring, 'pointercancel', RING_TOP);
+        await pointer(ring, 'pointerdown', [160, 160]);
+        await pointer(ring, 'pointerup', [160, 160]);
+        expect(writes()).toEqual([]);
+        expect(shownSetpoint(container)).toBe('21.0 °C');
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: set-point not reported', () => {
+    const notReported = (): Record<string, unknown> => ({
+        ...reporting({ soll: 21 }),
+        [`${neutral('soll')}.q`]: 0x20,
+    });
+
+    it('locks ± and the ring while the set-point has not reported (q = 0x20)', async () => {
+        const container = await mount(statusData(), notReported());
+        expect([stepButton(container, 'down')!.disabled, stepButton(container, 'up')!.disabled]).toEqual([true, true]);
+        const ring = ringOf(container);
+        expect([ring.getAttribute('aria-disabled'), ring.getAttribute('tabindex')]).toEqual(['true', '-1']);
+
+        await pointer(ring, 'pointerdown', RING_TOP);
+        await pointer(ring, 'pointerup', RING_TOP);
+        expect(writes()).toEqual([]);
+    });
+
+    it('locks them as well on the host placeholder (val "null", q = 0)', async () => {
+        const values = { ...reporting({}), [`${neutral('soll')}.val`]: 'null', [`${neutral('soll')}.q`]: 0 };
+        const container = await mount(statusData(), values);
+
+        expect(stepButton(container, 'up')!.disabled).toBe(true);
+    });
+
+    it('still writes Komfort, Absenk and Aus', async () => {
+        const container = await mount(statusData(), notReported());
+
+        await press(pill(container, 'komfort'));
+        await press(pill(container, 'absenk'));
+        await press(pill(container, 'aus'));
+        expect(writes()).toEqual([
+            [neutral('soll'), 21],
+            [neutral('soll'), 17],
+            [neutral('betriebsart'), 3],
+        ]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: set-point not writable', () => {
+    it('shows no control that writes into it, and Aus only through the writable operating mode', async () => {
+        const data = statusData({ soll: OWN.readOnlySetpoint });
+        const values = reportingIds({ [OWN.readOnlySetpoint]: 21 });
+        const container = await mount(data, values);
+
+        expect([stepButton(container, 'down'), stepButton(container, 'up')]).toEqual([null, null]);
+        expect(pillKeys(container)).toEqual(['aus']);
+        const ring = ringOf(container);
+        expect(ring.getAttribute('aria-disabled')).toBe('true');
+        await pointer(ring, 'pointerdown', RING_TOP);
+        await pointer(ring, 'pointerup', RING_TOP);
+        await debounced();
+        expect(writes()).toEqual([]);
+
+        const minimumOnly = await mount({ ...data, betriebsartZuordnung: { auto: [0] } }, values);
+        expect(pillKeys(minimumOnly)).toEqual([]);
+
+        for (const box of [
+            { width: 456, height: 120 },
+            { width: 196, height: 66 },
+        ]) {
+            expect(stepButton(await mount(data, values, box), 'up')).toBeNull();
+        }
+    });
+});

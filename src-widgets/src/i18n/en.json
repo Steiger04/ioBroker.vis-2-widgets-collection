@@ -1523,5 +1523,10 @@
     "heating_hinweis_urlaub": "Holiday running",
     "heating_hinweis_urlaub_bis": "Holiday until %s",
     "heating_hinweis_manuell": "Manual · applies until the next change",
-    "heating_hinweis_auto": "Auto · the device's weekly profile"
+    "heating_hinweis_auto": "Auto · the device's weekly profile",
+    "heating_pill_absenk": "Setback",
+    "heating_pill_komfort": "Comfort",
+    "heating_soll_senken": "Lower the set point",
+    "heating_soll_erhoehen": "Raise the set point",
+    "heating_soll_ring": "Set point, drag along the ring"
 }

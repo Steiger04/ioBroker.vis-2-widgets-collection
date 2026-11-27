@@ -70,6 +70,8 @@ export interface ThermostatStatus {
     readonly hint?: ThermostatHint;
     /** The device is not reachable: drawn dimmed, still operable. */
     readonly unreachable: boolean;
+    /** The device is off — the rule of the chip „Aus“, also lighting the pill Aus. */
+    readonly off: boolean;
     /** What the tile's sign and accessible name show. */
     readonly tile: TileStatus;
     /** A remaining time counts on screen: render again every second. */
@@ -298,6 +300,7 @@ export function thermostatStatus(
         chip,
         hint,
         unreachable,
+        off: isOff,
         tile: { tone: dotTone(chip?.tone), ...(message ? { message } : {}), ...(label ? { label } : {}) },
         counting: remaining !== undefined,
     };
