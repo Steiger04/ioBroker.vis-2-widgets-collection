@@ -13,7 +13,7 @@
  */
 import { guardWidgetData } from '../fieldFactories';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
-import { boundIdOf } from './meaningReading';
+import { boundIdOf } from './zoneReading';
 import ValueMappingField from './ValueMappingField';
 
 import type { MeaningField } from './meaningCatalog';

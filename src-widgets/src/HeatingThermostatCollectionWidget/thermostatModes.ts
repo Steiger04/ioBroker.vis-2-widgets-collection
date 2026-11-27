@@ -17,14 +17,11 @@
  * - **Urlaub** shows only while Urlaub runs, lit, with its end where it lies ahead. It is never
  *   started here; where `urlaub` itself is writable a tap writes its `aus`, else the pill only shows.
  */
-import { boundIdOf } from '../lib/heating/meaningReading';
-import { meaningKeys, type MeaningField } from '../lib/heating/meaningCatalog';
-import { writeValueOf } from '../lib/heating/useMeaningWrite';
 import { operatingModeTarget } from './thermostatOff';
+import type { MeaningField, NeutralKey } from '../lib/heating/meaningCatalog';
 import type { DeviceValue } from '../lib/heating/valueMapping';
+import type { ZoneReading } from '../lib/heating/zoneReading';
 import type { ThermostatStatus } from './thermostatStatus';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
 
 /** The Bedeutungen a pill of the segment writes. */
 export type ModeWriteField = Extract<
@@ -52,43 +49,32 @@ export interface ModeAction {
 /**
  * A write where its target is writable and maps the neutral value.
  *
- * @param data - The widget data as the widget reads it.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @param field - The target Bedeutung.
  * @param key - The neutral value.
- * @param writable - Whether a Bedeutung is a writable target.
- * @param entry - The entry number.
  * @returns The write, or none.
  */
-const writeOf = (
-    data: WidgetData,
-    field: ModeWriteField,
-    key: Parameters<typeof writeValueOf>[2],
-    writable: (field: ModeWriteField) => boolean,
-    entry: number | undefined,
-): ModeWrite | undefined => {
-    const value = writeValueOf(data, field, key, entry);
-    return value !== undefined && writable(field) ? { field, value } : undefined;
+const writeOf = (zone: ZoneReading, field: ModeWriteField, key: NeutralKey): ModeWrite | undefined => {
+    const target = zone.meaning(field);
+    const value = target.writeValue(key);
+    return value !== undefined && target.writable ? { field, value } : undefined;
 };
 
 /**
  * The pills of the operating-mode segment.
  *
- * @param data - The widget data as the widget reads it (with the Lese-Naht's objects and mappings).
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @param status - The Raumthermostat's status (operating mode, Boost, Urlaub).
- * @param writable - Whether a Bedeutung is a writable target (`useMeaningWrite`).
- * @param entry - The entry number; none for the unnumbered binding.
  * @returns The pills in display order: Auto, Manuell, Boost, Urlaub — each only where it exists.
  */
 export function thermostatModeActions(
-    data: WidgetData,
+    zone: ZoneReading,
     status: Pick<ThermostatStatus, 'mode' | 'boosting' | 'holiday'>,
-    writable: (field: ModeWriteField) => boolean,
-    entry?: number,
 ): ModeAction[] {
     const actions: ModeAction[] = [];
-    const target = operatingModeTarget(data, entry);
+    const target = operatingModeTarget(zone);
     for (const key of ['auto', 'manuell'] as const) {
-        const write = writeOf(data, target, key, writable, entry);
+        const write = writeOf(zone, target, key);
         if (write) {
             actions.push({ key, active: status.mode === key, write });
         }
@@ -96,18 +82,18 @@ export function thermostatModeActions(
 
     let boost: ModeWrite | undefined;
     if (!status.boosting) {
-        boost = writeOf(data, 'boost', 'an', writable, entry);
-    } else if (boundIdOf(data, meaningKeys('boostBeenden', entry).field)) {
-        boost = writeOf(data, 'boostBeenden', 'beenden', writable, entry);
+        boost = writeOf(zone, 'boost', 'an');
+    } else if (zone.meaning('boostBeenden').kind !== 'unbound') {
+        boost = writeOf(zone, 'boostBeenden', 'beenden');
     } else {
-        boost = writeOf(data, 'boost', 'aus', writable, entry);
+        boost = writeOf(zone, 'boost', 'aus');
     }
     if (boost) {
         actions.push({ key: 'boost', active: status.boosting, write: boost });
     }
 
     if (status.holiday) {
-        const write = writeOf(data, 'urlaub', 'aus', writable, entry);
+        const write = writeOf(zone, 'urlaub', 'aus');
         actions.push({
             key: 'urlaub',
             active: true,

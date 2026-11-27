@@ -3,12 +3,37 @@
  * each with `ventil{m}Object`, counted by `ventilAnzahl`.
  *
  * @module lib/heating/valveListShape
+ * @remarks
+ * The keys of one valve are named only here ({@link valveKeys}), its zone reference
+ * `ventil{m}Zone` included: the house types store which list entry a valve belongs to (ADR-0121
+ * Nachtrag 2026-11-27). The key is read from stage 1 on; a field for it arrives in stage 2.
  */
 import { createIdField } from '../commonObjectFields';
 import optionalNumber from '../helper/optionalNumber';
 import { VALVE_LIST } from './meaningCatalog';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+/** The stored keys of one valve. */
+export interface ValveKeys {
+    /** The id field. */
+    readonly field: string;
+    /** The object its pick stores. */
+    readonly object: string;
+    /** The entry number of the list entry it belongs to (house types). */
+    readonly zone: string;
+}
+
+/**
+ * The stored keys of valve `m`.
+ *
+ * @param m - The valve number (1-based).
+ * @returns `ventil{m}`, `ventil{m}Object` and `ventil{m}Zone`.
+ */
+export const valveKeys = (m: number): ValveKeys => {
+    const field = `${VALVE_LIST.field}${m}`;
+    return { field, object: `${field}Object`, zone: `${field}Zone` };
+};
 
 /**
  * The id field of valve `m`: the shared pick under the numbered name, a Hilfs-ID with „real range
@@ -18,7 +43,7 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
  * @returns The field the panel renders natively.
  */
 export const valveIdField = (m: number): RxWidgetInfoAttributesField => ({
-    ...createIdField(`${VALVE_LIST.field}${m}`, VALVE_LIST.valueTypes, { inventRange: false }),
+    ...createIdField(valveKeys(m).field, VALVE_LIST.valueTypes, { inventRange: false }),
     label: VALVE_LIST.label,
 });
 
@@ -39,11 +64,8 @@ export const valveCountOf = (data: WidgetData): number =>
  */
 export const addValvePatch = (data: WidgetData): WidgetData => {
     const next = valveCountOf(data) + 1;
-    return {
-        [VALVE_LIST.counter]: next,
-        [`${VALVE_LIST.field}${next}`]: null,
-        [`${VALVE_LIST.field}${next}Object`]: null,
-    };
+    const keys = valveKeys(next);
+    return { [VALVE_LIST.counter]: next, [keys.field]: null, [keys.object]: null };
 };
 
 /**
@@ -57,11 +79,11 @@ export const addValvePatch = (data: WidgetData): WidgetData => {
 export const removeValvePatch = (data: WidgetData, m: number): WidgetData => {
     const count = valveCountOf(data);
     const patch: WidgetData = { [VALVE_LIST.counter]: count - 1 };
-    for (const suffix of ['', 'Object']) {
+    for (const key of ['field', 'object'] as const) {
         for (let k = m; k < count; k++) {
-            patch[`${VALVE_LIST.field}${k}${suffix}`] = data[`${VALVE_LIST.field}${k + 1}${suffix}`] ?? null;
+            patch[valveKeys(k)[key]] = data[valveKeys(k + 1)[key]] ?? null;
         }
-        patch[`${VALVE_LIST.field}${count}${suffix}`] = null;
+        patch[valveKeys(count)[key]] = null;
     }
     return patch;
 };

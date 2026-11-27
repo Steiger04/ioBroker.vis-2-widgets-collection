@@ -4,9 +4,9 @@
  *
  * @module HeatingThermostatCollectionWidget/thermostatStatus
  * @remarks
- * Everything reads reported values through the stored Wertezuordnung (guard rail „Gemeldet statt
- * behauptet“): a Bedeutung that is unbound, has no value, has not reported yet or reports a value
- * without a mapping says nothing.
+ * Everything reads reported values through the Heizzonen-Lesung (`lib/heating/zoneReading`) and its
+ * stored Wertezuordnung (guard rail „Gemeldet statt behauptet“): a Bedeutung that is unbound, has no
+ * value, has not reported yet or reports a value without a mapping says nothing.
  *
  * Chip, by precedence: Störung „Nicht erreichbar“ (`störung`) · window open (`kühl`) · Aus
  * (`neutral`) · Boost with its remaining time where known (`heizt`) · Urlaub (`neutral`) · with a
@@ -29,25 +29,14 @@
  *   `urlaub`. Its end shows only while it lies ahead — a default such as `2000_01_01 00:00` means
  *   „no period“.
  */
-import { NEUTRAL_LABELS, type MeaningField, type NeutralKey } from '../lib/heating/meaningCatalog';
-import {
-    deviceValueLabel,
-    readMeaning,
-    readNeutral,
-    storedMappingOf,
-    storedObjectOf,
-    valveMeanOf,
-    type MeaningReading,
-    type StateValues,
-} from '../lib/heating/meaningReading';
 import { formatDuration, formatReading, formatSince, formatUntil } from '../lib/heating/readingFormat';
 import { parseTimePoint } from '../lib/heating/timePoint';
 import { translate } from '../lib/translate';
 import { thermostatOff } from './thermostatOff';
 import type { TileStatus } from '../lib/heating/SizeStages';
+import type { NeutralKey } from '../lib/heating/meaningCatalog';
 import type { HeatingTone } from '../lib/heating/tones';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
+import type { ZoneReading } from '../lib/heating/zoneReading';
 
 /** The hint line's text of an operating mode without an Übersteuerung (literal keys). */
 const MODE_HINTS = { manuell: 'heating_hinweis_manuell', auto: 'heating_hinweis_auto' } as const;
@@ -96,8 +85,6 @@ export interface ThermostatStatusContext {
     readonly now: number;
     /** The host language. */
     readonly lang: string;
-    /** The entry number; none for the unnumbered binding. */
-    readonly entry?: number;
 }
 
 /** A running Boost: its remaining time where known (ms). */
@@ -105,49 +92,35 @@ interface Boost {
     readonly remaining: number | undefined;
 }
 
-/** The time of a data point's last report: `ts`, else `lc`. */
-const reportedAt = (values: StateValues, reading: MeaningReading & { kind: 'reported' }): number | undefined => {
-    const ts: unknown = values[`${reading.id}.ts`];
-    return typeof ts === 'number' ? ts : reading.lc;
-};
-
 /** What the remaining-time Bedeutung says: whether time is left, and how much where known. */
-function remainingOf(
-    data: WidgetData,
-    values: StateValues,
-    { now, entry }: ThermostatStatusContext,
-): { left: boolean; remaining: number | undefined } {
-    const reading = readMeaning(data, values, 'boostRestzeit', entry);
+function remainingOf(zone: ZoneReading, now: number): { left: boolean; remaining: number | undefined } {
+    const reading = zone.meaning('boostRestzeit');
     if (reading.kind !== 'reported') {
         return { left: false, remaining: undefined };
     }
-    const mapping = storedMappingOf(data, 'boostRestzeit', entry);
+    const { mapping } = reading;
     if (mapping?.zeitformat) {
         const end = parseTimePoint(reading.value, mapping.zeitformat);
         return end === undefined ? { left: false, remaining: undefined } : { left: end > now, remaining: end - now };
     }
-    if (typeof reading.value !== 'number' || !Number.isFinite(reading.value)) {
+    if (reading.number === undefined) {
         return { left: false, remaining: undefined };
     }
-    const left = reading.value > 0;
+    const left = reading.number > 0;
     if (!mapping?.einheit) {
         // A duration without a unit: running, but its time is not known.
         return { left, remaining: undefined };
     }
-    const total = reading.value * (mapping.einheit === 'min' ? 60_000 : 1000);
-    const since = reportedAt(values, reading);
+    const total = reading.number * (mapping.einheit === 'min' ? 60_000 : 1000);
+    // The time of the last report: `ts`, else `lc`.
+    const since = reading.ts ?? reading.lc;
     return { left, remaining: left ? total - Math.max(0, now - (since ?? now)) : undefined };
 }
 
 /** The running Boost, or none. */
-function boostOf(
-    data: WidgetData,
-    values: StateValues,
-    context: ThermostatStatusContext,
-    mode: NeutralKey | undefined,
-): Boost | undefined {
-    const rest = remainingOf(data, values, context);
-    const boost = readNeutral(data, values, 'boost', context.entry);
+function boostOf(zone: ZoneReading, now: number, mode: NeutralKey | undefined): Boost | undefined {
+    const rest = remainingOf(zone, now);
+    const boost = zone.meaning('boost').neutral;
     let running: boolean;
     if (boost === 'an' || boost === 'aus') {
         running = boost === 'an';
@@ -159,29 +132,20 @@ function boostOf(
 
 /** The running Urlaub with its end where it lies ahead, or none. */
 function holidayOf(
-    data: WidgetData,
-    values: StateValues,
-    { now, entry }: ThermostatStatusContext,
+    zone: ZoneReading,
+    now: number,
     mode: NeutralKey | undefined,
 ): { end: number | undefined } | undefined {
-    const holiday = readNeutral(data, values, 'urlaub', entry);
+    const holiday = zone.meaning('urlaub').neutral;
     const running = holiday === 'an' || holiday === 'aus' ? holiday === 'an' : mode === 'urlaub';
     if (!running) {
         return undefined;
     }
-    const endReading = readMeaning(data, values, 'urlaubEnde', entry);
-    const format = storedMappingOf(data, 'urlaubEnde', entry)?.zeitformat;
+    const endReading = zone.meaning('urlaubEnde');
+    const format = endReading.mapping?.zeitformat;
     const end = endReading.kind === 'reported' && format ? parseTimePoint(endReading.value, format) : undefined;
     return { end: end !== undefined && end > now ? end : undefined };
 }
-
-/** The reported set-point, if it is a number. */
-const reportedSetpoint = (data: WidgetData, values: StateValues, entry?: number): number | undefined => {
-    const reading = readMeaning(data, values, 'soll', entry);
-    return reading.kind === 'reported' && typeof reading.value === 'number' && Number.isFinite(reading.value)
-        ? reading.value
-        : undefined;
-};
 
 /** The chip's tone as the tile's dot shows it: a Meldung's tone has its own sign. */
 const dotTone = (tone: HeatingTone | undefined): TileStatus['tone'] =>
@@ -190,40 +154,30 @@ const dotTone = (tone: HeatingTone | undefined): TileStatus['tone'] =>
 /**
  * Reads the status of a Raumthermostat.
  *
- * @param data - The widget data as the widget reads it.
- * @param values - The host's values map.
- * @param context - The current time, the host language and the entry number.
+ * @param zone - The Heizzonen-Lesung of the zone.
+ * @param context - The current time and the host language.
  * @returns Chip, hint line, whether the device is unreachable, the tile's status and whether a
  *   remaining time counts.
  */
-export function thermostatStatus(
-    data: WidgetData,
-    values: StateValues,
-    context: ThermostatStatusContext,
-): ThermostatStatus {
-    const { now, lang, entry } = context;
-    const neutral = (field: MeaningField): NeutralKey | undefined => readNeutral(data, values, field, entry);
+export function thermostatStatus(zone: ZoneReading, context: ThermostatStatusContext): ThermostatStatus {
+    const { now, lang } = context;
+    const reachability = zone.meaning('erreichbarkeit');
+    const unreachable = reachability.neutral === 'unerreichbar';
+    const batteryLow = zone.meaning('batterieSchwach').neutral === 'schwach';
+    const windowOpen = zone.meaning('fenster').neutral === 'offen';
+    const setpointReading = zone.meaning('soll');
+    const setpoint = setpointReading.number;
 
-    const reachability = readMeaning(data, values, 'erreichbarkeit', entry);
-    const unreachable = neutral('erreichbarkeit') === 'unerreichbar';
-    const batteryLow = neutral('batterieSchwach') === 'schwach';
-    const windowOpen = neutral('fenster') === 'offen';
-    const setpoint = reportedSetpoint(data, values, entry);
-
-    const modeReading = readMeaning(data, values, 'betriebsart', entry);
-    const mode = neutral('betriebsart');
-    const off = thermostatOff(data, entry);
+    const modeReading = zone.meaning('betriebsart');
+    const mode = modeReading.neutral;
+    const off = thermostatOff(zone);
     const isOff = mode === 'aus' || (off?.kind === 'minimum' && setpoint !== undefined && setpoint === off.value);
-    const boost = boostOf(data, values, context, mode);
-    const holiday = holidayOf(data, values, context, mode);
-    const valve = valveMeanOf(data, values);
+    const boost = boostOf(zone, now, mode);
+    const holiday = holidayOf(zone, now, mode);
+    const valve = zone.valveMean;
 
-    let modeText: string | undefined;
-    if (mode) {
-        modeText = translate(NEUTRAL_LABELS[mode]);
-    } else if (modeReading.kind === 'reported') {
-        modeText = deviceValueLabel(storedObjectOf(data, 'betriebsart', entry), modeReading.value);
-    }
+    // The operating mode's display text, once it has reported.
+    const modeText = modeReading.kind === 'reported' ? modeReading.text : undefined;
     const remaining = boost?.remaining === undefined ? undefined : formatDuration(boost.remaining);
 
     let chip: ThermostatChip | undefined;
@@ -262,12 +216,14 @@ export function thermostatStatus(
     } else if (batteryLow) {
         hint = { text: translate('heating_hinweis_batterie_schwach'), message: 'hinweis' };
     } else if (windowOpen) {
-        const { unit } = storedObjectOf(data, 'soll', entry);
         hint = {
             text:
                 setpoint === undefined
                     ? translate('heating_hinweis_fenster')
-                    : translate('heating_hinweis_fenster_soll', formatReading(setpoint, 'temperature', lang, unit)),
+                    : translate(
+                          'heating_hinweis_fenster_soll',
+                          formatReading(setpoint, 'temperature', lang, setpointReading.unit),
+                      ),
         };
     } else if (isOff) {
         hint = { text: translate('heating_hinweis_aus') };

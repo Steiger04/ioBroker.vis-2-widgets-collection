@@ -9,9 +9,7 @@
  * frame's: no object of the set-point asks for one (also while the Lese-Naht still loads it, and
  * for an id the pick refused), an object of another type says it must be a number.
  */
-import { storedObjectOf } from './meaningReading';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
+import type { ZoneReading } from './zoneReading';
 
 /** The notice keys, family-wide: every heating type with the set-point as main Bedeutung shares them. */
 export const SETPOINT_NOTICES = {
@@ -20,14 +18,13 @@ export const SETPOINT_NOTICES = {
 } as const;
 
 /**
- * The notice key for the set-point binding of the widget data.
+ * The notice key for the set-point binding of a Heizzone.
  *
- * @param data - The widget data as the widget reads it.
- * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @returns The translation key of the notice, none while the set-point is a usable number.
  */
-export function setpointNoticeKey(data: WidgetData, entry?: number): string | undefined {
-    const { _id: id, type } = storedObjectOf(data, 'soll', entry);
+export function setpointNoticeKey(zone: ZoneReading): string | undefined {
+    const { _id: id, type } = zone.meaning('soll').object;
     if (id === undefined) {
         return SETPOINT_NOTICES.choose;
     }

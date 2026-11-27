@@ -40,7 +40,7 @@ import {
     parentIdOf,
 } from '../commonObjectFields';
 import { headerKeys, MEANINGS, meaningKeys } from './meaningCatalog';
-import { boundIdOf } from './meaningReading';
+import { boundIdOf } from './zoneReading';
 import { meaningPickOptions } from './meaningPick';
 import { recordOpenCandidates } from './prefillCandidates';
 import { recognisePair, recogniseState } from './recognition';

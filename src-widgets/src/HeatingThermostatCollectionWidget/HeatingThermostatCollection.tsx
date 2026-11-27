@@ -16,7 +16,8 @@
  * in Mittel; in Quer, Kompakt and the tile's footer a Meldung replaces the actual temperature) and
  * the readings bar of Groß (`ThermostatReadings`). The status (`thermostatStatus`) also names the
  * tile's sign; an unreachable device is drawn dimmed and stays operable. Every value reads honestly
- * (`lib/heating/meaningReading`): „–“ while bound without a value or not yet reported.
+ * through the Heizzonen-Lesung (`lib/heating/zoneReading`), bound once to the entry number: „–“
+ * while bound without a value or not yet reported.
  *
  * Operating (stage-1 spec „Bedienen“): the ring of the dial (Voll) and ± (dial, big set-point, tile)
  * step the set-point on its scale (`lib/heating/setpointScale`); they are off while the set-point
@@ -24,10 +25,10 @@
  * on release. The pills of Groß (`lib/heating/PillRow`) write absolute values even while the
  * set-point has not reported: Absenk and Komfort the widget's temperatures into the set-point, Aus
  * the way `thermostatOff` names. Every action writes exactly one state through the write chain
- * (`lib/heating/useMeaningWrite`), never into a target that is not writable; a pill exists only for
- * a writable target. The operating-mode segment (`thermostatModes`: Auto, Manuell, Boost, and the
- * Urlaub pill with its end in a row of its own while Urlaub runs) stands in Groß and in Quer from
- * sufficient height.
+ * (`lib/heating/useMeaningWrite`), never into a target the Heizzonen-Lesung reads as not writable; a
+ * pill exists only for a writable target. The operating-mode segment (`thermostatModes`: Auto,
+ * Manuell, Boost, and the Urlaub pill with its end in a row of its own while Urlaub runs) stands in
+ * Groß and in Quer from sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
 import { Box, Typography } from '@mui/material';
@@ -39,15 +40,15 @@ import useData from '../hooks/useData';
 import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
 import { headerKeys, NEUTRAL_LABELS } from '../lib/heating/meaningCatalog';
-import { readMeaning, storedObjectOf } from '../lib/heating/meaningReading';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
 import { setpointScale, stepDown, stepUp } from '../lib/heating/setpointScale';
 import SizeStages from '../lib/heating/SizeStages';
 import type { MeasuredBox } from '../lib/heating/stageRule';
-import { useMeaningWrite } from '../lib/heating/useMeaningWrite';
+import { useMeaningWrite, type MeaningWrite } from '../lib/heating/useMeaningWrite';
 import { setpointNoticeKey } from '../lib/heating/setpointNotice';
+import { readZone } from '../lib/heating/zoneReading';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
@@ -115,29 +116,31 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     // Header and footer without a main OID: the main Bedeutung is no `oid` (ADR-0123 Nr. 5).
     const { data } = useData('');
 
-    const { unit } = storedObjectOf(widgetData, 'soll', entry);
+    // The zone's data, read once for the entry number (ADR-0121 Nachtrag 2026-11-27).
+    const zone = readZone(widgetData, values, entry);
+    const setpointReading = zone.meaning('soll');
+    const { unit } = setpointReading;
     const header = headerKeys(entry);
     const name = widgetData[header.name] as string | undefined;
     const subLine = widgetData[header.subLine] as string | undefined;
     // The set-point shows only once reported, never the device's substitute value (ADR-0119).
-    const setpointReading = readMeaning(widgetData, values, 'soll', entry);
-    const reported = setpointReading.kind === 'reported' ? numberOf(setpointReading.value) : undefined;
+    const reported = setpointReading.number;
 
     // One write per Bedeutung that an action of the content writes (ADR-0120: one state per action).
-    const setpointWrite = useMeaningWrite('soll', entry);
-    const modeWrites: Record<ModeWriteField, ReturnType<typeof useMeaningWrite>> = {
-        betriebsart: useMeaningWrite('betriebsart', entry),
-        betriebsartSetzen: useMeaningWrite('betriebsartSetzen', entry),
-        boost: useMeaningWrite('boost', entry),
-        boostBeenden: useMeaningWrite('boostBeenden', entry),
-        urlaub: useMeaningWrite('urlaub', entry),
+    const setpointWrite = { writable: setpointReading.writable, write: useMeaningWrite(setpointReading) };
+    const modeWrites: Record<ModeWriteField, MeaningWrite> = {
+        betriebsart: useMeaningWrite(zone.meaning('betriebsart')),
+        betriebsartSetzen: useMeaningWrite(zone.meaning('betriebsartSetzen')),
+        boost: useMeaningWrite(zone.meaning('boost')),
+        boostBeenden: useMeaningWrite(zone.meaning('boostBeenden')),
+        urlaub: useMeaningWrite(zone.meaning('urlaub')),
     };
-    const scale = setpointScale(storedObjectOf(widgetData, 'soll', entry));
+    const scale = setpointScale(setpointReading.object);
     // The value under the pointer while the ring is dragged: shown, written on release.
     const [preview, setPreview] = useState<number | undefined>(undefined);
     const shown = preview ?? reported;
 
-    const noticeKey = setpointNoticeKey(widgetData, entry);
+    const noticeKey = setpointNoticeKey(zone);
 
     // The set-point in the theme's h3; a place that sizes it by its box passes the font size.
     const setpointAt = (fontSize?: number): ReactElement => (
@@ -155,14 +158,14 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     );
     const setpoint = setpointAt();
 
-    const actualText = actualTemperatureText(widgetData, values, lang, entry);
+    const actualText = actualTemperatureText(zone, lang);
     const actual = actualText === undefined ? null : <ActualTemperature text={actualText} />;
-    const readings = thermostatReadings(widgetData, values, lang, entry);
+    const readings = thermostatReadings(zone, lang);
 
     // The Boost remaining time counts on between two reports: every second while it shows.
     const [counting, setCounting] = useState(false);
     const now = useClock(counting);
-    const status = thermostatStatus(widgetData, values, { now, lang, entry });
+    const status = thermostatStatus(zone, { now, lang });
     if (status.counting !== counting) {
         setCounting(status.counting);
     }
@@ -229,32 +232,31 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             }
         }
     }
-    const off = thermostatOff(widgetData, entry);
-    const offWrite = off?.kind === 'mode' ? modeWrites[off.field] : setpointWrite;
-    if (off && offWrite.writable) {
+    const off = thermostatOff(zone);
+    const offTarget = off?.kind === 'mode' ? off.field : 'soll';
+    if (off && zone.meaning(offTarget).writable) {
+        const writeOff = off.kind === 'mode' ? modeWrites[off.field] : setpointWrite.write;
         pills.push({
             key: 'aus',
             label: translate('heating_neutral_aus'),
             active: status.off,
-            onClick: () => offWrite.write(off.value, { immediate: true }),
+            onClick: () => writeOff(off.value, { immediate: true }),
         });
     }
 
     // The operating-mode segment: Auto, Manuell, Boost; the running Urlaub in a row of its own.
-    const modePills: Pill[] = thermostatModeActions(widgetData, status, field => modeWrites[field].writable, entry).map(
-        action => {
-            const { write } = action;
-            return {
-                key: action.key,
-                label: translate(NEUTRAL_LABELS[action.key]),
-                ...(action.end === undefined
-                    ? {}
-                    : { detail: translate('heating_pill_bis', formatUntil(action.end, lang)) }),
-                active: action.active,
-                ...(write ? { onClick: () => modeWrites[write.field].write(write.value, { immediate: true }) } : {}),
-            };
-        },
-    );
+    const modePills: Pill[] = thermostatModeActions(zone, status).map(action => {
+        const { write } = action;
+        return {
+            key: action.key,
+            label: translate(NEUTRAL_LABELS[action.key]),
+            ...(action.end === undefined
+                ? {}
+                : { detail: translate('heating_pill_bis', formatUntil(action.end, lang)) }),
+            active: action.active,
+            ...(write ? { onClick: () => modeWrites[write.field](write.value, { immediate: true }) } : {}),
+        };
+    });
     const holidayPills = modePills.filter(pill => pill.key === 'urlaub');
     const segmentPills = modePills.filter(pill => pill.key !== 'urlaub');
     const modes =
@@ -343,9 +345,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         tile: {
             // The tile sizes the set-point to the room ± and the footer line leave.
             main: dimmed(
-                setpointAt(
-                    thermostatSetpointFont('tile', box, thermostatTile(box, setpointWrite.writable).buttons),
-                ),
+                setpointAt(thermostatSetpointFont('tile', box, thermostatTile(box, setpointWrite.writable).buttons)),
             ),
             decrease: stepButton('down', STEP_BUTTON.tile),
             increase: stepButton('up', STEP_BUTTON.tile),

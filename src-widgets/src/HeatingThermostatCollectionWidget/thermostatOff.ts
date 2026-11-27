@@ -10,12 +10,8 @@
  * set-point's real `common.min` — the one its pick stored (a Hilfs-ID stores the real range only,
  * never an invented 0). Without either there is no Aus.
  */
-import { meaningKeys } from '../lib/heating/meaningCatalog';
-import { boundIdOf, storedObjectOf } from '../lib/heating/meaningReading';
-import { writeValueOf } from '../lib/heating/useMeaningWrite';
 import type { DeviceValue } from '../lib/heating/valueMapping';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
+import type { ZoneReading } from '../lib/heating/zoneReading';
 
 /** The Bedeutungen the operating mode is written into. */
 export type OperatingModeField = 'betriebsart' | 'betriebsartSetzen';
@@ -31,27 +27,25 @@ export type ThermostatOff =
  * Where the operating mode is written: „Betriebsart setzen“ while bound, else „Betriebsart“ (a bound
  * „Betriebsart setzen“ never falls back, also where it maps a value not).
  *
- * @param data - The widget data.
- * @param entry - The entry number; none for the unnumbered binding.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @returns The Bedeutung to write.
  */
-export const operatingModeTarget = (data: WidgetData, entry?: number): OperatingModeField =>
-    boundIdOf(data, meaningKeys('betriebsartSetzen', entry).field) ? 'betriebsartSetzen' : 'betriebsart';
+export const operatingModeTarget = (zone: ZoneReading): OperatingModeField =>
+    zone.meaning('betriebsartSetzen').kind === 'unbound' ? 'betriebsart' : 'betriebsartSetzen';
 
 /**
  * How the Raumthermostat writes Aus.
  *
- * @param data - The widget data (as the widget reads it, with the Lese-Naht's mappings).
- * @param entry - The entry number; none for the unnumbered binding.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @returns The way to write Aus; `undefined` when neither the operating mode maps `aus` nor the
  *   set-point has a real minimum.
  */
-export function thermostatOff(data: WidgetData, entry?: number): ThermostatOff | undefined {
-    const field = operatingModeTarget(data, entry);
-    const value = writeValueOf(data, field, 'aus', entry);
+export function thermostatOff(zone: ZoneReading): ThermostatOff | undefined {
+    const field = operatingModeTarget(zone);
+    const value = zone.meaning(field).writeValue('aus');
     if (value !== undefined) {
         return { kind: 'mode', field, value };
     }
-    const minimum = storedObjectOf(data, 'soll', entry).minValue;
+    const minimum = zone.meaning('soll').object.minValue;
     return minimum !== undefined ? { kind: 'minimum', value: minimum } : undefined;
 }

@@ -18,7 +18,7 @@ import { InfoBox } from '../../components/controls';
 import { guardWidgetData } from '../fieldFactories';
 import { translate } from '../translate';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
-import { boundIdOf } from './meaningReading';
+import { boundIdOf } from './zoneReading';
 import { openCandidatesOf, subscribeOpenCandidates } from './prefillCandidates';
 
 import type { MeaningField, MeaningSubset } from './meaningCatalog';

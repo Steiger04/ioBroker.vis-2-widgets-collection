@@ -15,7 +15,7 @@
  *
  * Pure and component-free.
  */
-import type { StoredMeaningObject } from './meaningReading';
+import type { StoredMeaningObject } from './zoneReading';
 
 /** The design scale's lower end (°C), for a set-point without a real minimum. */
 export const DESIGN_MIN = 5;
@@ -42,7 +42,7 @@ const EPSILON = 1e-9;
 /**
  * The scale of a set-point from its stored object.
  *
- * @param object - The set-point's stored object (`storedObjectOf(data, 'soll')`).
+ * @param object - The set-point's stored object (`zone.meaning('soll').object`).
  * @param object.minValue - Its real minimum.
  * @param object.maxValue - Its real maximum.
  * @param object.step - Its `common.step`.
