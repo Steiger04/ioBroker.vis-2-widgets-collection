@@ -19,7 +19,7 @@ import { useRef, type KeyboardEvent, type PointerEvent, type ReactElement, type 
 
 import { useReducedMotion } from '../lib/heating/motion';
 import { fractionOf, RING_START, RING_SWEEP, valueAtAngle, type SetpointScale } from '../lib/heating/setpointScale';
-import { accentColors } from '../lib/heating/tones';
+import { accentColors, neutralColors } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
 
 /** Props of {@link StepButton}. */
@@ -157,6 +157,7 @@ export function SetpointDial({
     buttons,
 }: SetpointDialProps): ReactElement {
     const theme = useTheme();
+    const quiet = neutralColors(theme);
     const reducedMotion = useReducedMotion();
     // The value under the pointer while a drag runs; none while no drag runs.
     const dragRef = useRef<number | undefined>(undefined);
@@ -266,7 +267,7 @@ export function SetpointDial({
                     d={ticks.minor}
                     style={{
                         fill: 'none',
-                        stroke: theme.palette.text.secondary,
+                        stroke: quiet.tick,
                         strokeWidth: 1.5,
                         strokeLinecap: 'round',
                         opacity: 0.45,
@@ -276,7 +277,7 @@ export function SetpointDial({
                     d={ticks.major}
                     style={{
                         fill: 'none',
-                        stroke: theme.palette.text.secondary,
+                        stroke: quiet.tick,
                         strokeWidth: 2,
                         strokeLinecap: 'round',
                     }}
@@ -287,7 +288,7 @@ export function SetpointDial({
                         x={x}
                         y={y}
                         style={{
-                            fill: theme.palette.text.secondary,
+                            fill: quiet.label,
                             fontSize: `${Math.min(16, 11.5 / k).toFixed(1)}px`,
                             textAnchor: 'middle',
                             dominantBaseline: 'central',

@@ -16,7 +16,7 @@
  * stage 2 a house type opens one entry's Raumthermostat here.
  */
 import Close from '@mui/icons-material/Close';
-import { Box, Dialog, IconButton, Typography } from '@mui/material';
+import { Box, Dialog, IconButton, Typography, useTheme } from '@mui/material';
 import { createContext, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 
 import { ContentBoxContext, type ContentBox } from '../../hooks/useContentBox';
@@ -24,6 +24,7 @@ import useElementDimensions from '../../hooks/useElementDimensions';
 import { translate } from '../translate';
 import { useReducedMotion } from './motion';
 import { measuredBoxOf, type MeasuredBox } from './stageRule';
+import { neutralColors } from './tones';
 
 /** Whether the content draws inside the Mini-Dialog; provided by {@link MiniDialog} only. */
 export const InMiniDialogContext = createContext(false);
@@ -71,6 +72,7 @@ export interface MiniDialogProps {
  */
 export default function MiniDialog({ open, onClose, title, label, size, children }: MiniDialogProps): ReactElement {
     const reducedMotion = useReducedMotion();
+    const quiet = neutralColors(useTheme());
     const [area, setArea] = useState<HTMLElement | null>(null);
     const { width, height } = useElementDimensions(area);
     const box = useMemo<ContentBox>(() => ({ width, height }), [width, height]);
@@ -113,7 +115,7 @@ export default function MiniDialog({ open, onClose, title, label, size, children
                     data-heating-dialog-title=""
                     variant="subtitle2"
                     noWrap
-                    sx={{ color: 'text.secondary', letterSpacing: '0.04em' }}
+                    sx={{ color: quiet.label, letterSpacing: '0.04em' }}
                 >
                     {title}
                 </Typography>

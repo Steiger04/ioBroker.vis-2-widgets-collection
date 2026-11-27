@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Theme } from '@iobroker/gui-components';
 
 import { InjectedContentBoxContext, type ContentBox } from '../hooks/useContentBox';
-import { accentColors, toneColors } from '../lib/heating/tones';
+import { accentColors, neutralColors, toneColors } from '../lib/heating/tones';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
@@ -778,8 +778,9 @@ describe('HeatingThermostatCollectionWidget: the tile status', () => {
             'hinweis',
             'Bad, heating_status_heizt, heating_hinweis_batterie_schwach',
         ]);
-        expect(await tileOf({})).toEqual(['dot', 'heizt', 'Bad, heating_status_heizt']);
-        expect(await tileOf({ fenster: 1 })).toEqual(['dot', 'kühl', 'Bad, heating_status_fenster']);
+        // No sign without a Meldung (ADR-0124 Nachtrag 2): the tile says heizt or kühl in its name only.
+        expect(await tileOf({})).toEqual([null, null, 'Bad, heating_status_heizt']);
+        expect(await tileOf({ fenster: 1 })).toEqual([null, null, 'Bad, heating_status_fenster']);
     });
 });
 
@@ -800,36 +801,26 @@ describe('HeatingThermostatCollectionWidget: not reachable', () => {
     });
 });
 
-describe('HeatingThermostatCollectionWidget: motion', () => {
-    afterEach(() => {
-        vi.restoreAllMocks();
+describe('HeatingThermostatCollectionWidget: no dots (ADR-0124 Nachtrag 2 2026-11-27)', () => {
+    /** The signs drawn in the Kartenkopf's chip, by kind. */
+    const chipSigns = (container: HTMLElement): (string | null)[] =>
+        [...container.querySelectorAll('[data-heating-chip] [data-heating-chip-sign]')].map(sign =>
+            sign.getAttribute('data-heating-chip-sign'),
+        );
+
+    it('draws no dot in a chip and nothing pulses while heating', async () => {
+        const container = await mount(statusData(), reporting({}));
+
+        expect(chipOf(container)).toEqual(['heating_status_heizt', 'heizt']);
+        expect(chipSigns(container)).toEqual([]);
+        expect(container.querySelector('[data-pulse]')).toBeNull();
     });
 
-    /** Answers `prefers-reduced-motion: reduce` as given. */
-    const reducedMotion = (reduce: boolean): void => {
-        vi.spyOn(window, 'matchMedia').mockImplementation(
-            query =>
-                ({
-                    matches: reduce && query.includes('prefers-reduced-motion: reduce'),
-                    media: query,
-                    onchange: null,
-                    addListener: () => {},
-                    removeListener: () => {},
-                    addEventListener: () => {},
-                    removeEventListener: () => {},
-                    dispatchEvent: () => false,
-                }) as MediaQueryList,
-        );
-    };
+    it('keeps the warning triangle in a Meldung chip', async () => {
+        const container = await mount(statusData(), reporting({ erreichbarkeit: false }));
 
-    const pulses = (container: HTMLElement): boolean =>
-        container.querySelector('[data-heating-chip] [data-heating-chip-sign]')!.hasAttribute('data-pulse');
-
-    it('pulses the chip dot while heating, but not under prefers-reduced-motion', async () => {
-        reducedMotion(false);
-        expect(pulses(await mount(statusData(), reporting({})))).toBe(true);
-        reducedMotion(true);
-        expect(pulses(await mount(statusData(), reporting({})))).toBe(false);
+        expect(chipOf(container)).toEqual(['heating_status_unerreichbar', 'störung']);
+        expect(chipSigns(container)).toEqual(['triangle']);
     });
 });
 
@@ -1605,19 +1596,95 @@ describe('HeatingThermostatCollectionWidget: the Bedienakzent (ADR-0124 Nachtrag
         ]);
     });
 
-    it('fills the ± keys and the Kartenkopf symbol with the accent surface, their signs in the accent text', async () => {
+    it('fills the ± keys with the accent surface, their signs in the accent text', async () => {
         const container = await mount(statusData(), reporting({ soll: 21 }));
         const looks = [
             container.querySelector<HTMLElement>('[data-heating-step="up"]')!,
             container.querySelector<HTMLElement>('[data-heating-step="down"]')!,
-            container.querySelector<HTMLElement>('[data-heating-head-symbol]')!,
         ].map(element => [css(getComputedStyle(element).backgroundColor), css(getComputedStyle(element).color)]);
 
         expect(looks).toEqual([
             [css(accent.surface), css(accent.text)],
             [css(accent.surface), css(accent.text)],
-            [css(accent.surface), css(accent.text)],
         ]);
+    });
+
+    it('draws the Kartenkopf symbol without a surface, in the accent line (ADR-0124 Nachtrag 2)', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const symbol = getComputedStyle(container.querySelector<HTMLElement>('[data-heating-head-symbol]')!);
+
+        expect(symbol.backgroundColor).toBe('');
+        expect(css(symbol.color)).toBe(css(accent.line));
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the Neutralstufe (ADR-0124 Nachtrag 2 2026-11-27)', () => {
+    /** The Neutralstufe of the theme the widget draws in: the host's light theme without a user theme. */
+    const quiet = neutralColors(resolveCollectionTheme(Theme('light'), undefined, {}));
+    /** A colour as the browser writes it, without spaces. */
+    const css = (color: string | null | undefined): string => (color ?? '').replace(/\s+/g, '');
+
+    it('draws the neutral chip without a surface, its text in the Neutralstufe; a toned chip keeps its capsule', async () => {
+        // Without a valve the chip shows the operating mode, in the neutral tone.
+        const neutralChip = await mount(
+            statusData({ ventilAnzahl: 0, ventil1: undefined }),
+            reporting({ betriebsart: 0 }),
+        );
+        const quietChip = neutralChip.querySelector<HTMLElement>('[data-heating-chip]')!;
+        expect(quietChip.getAttribute('data-tone')).toBe('neutral');
+        expect(getComputedStyle(quietChip).backgroundColor).toBe('');
+        expect(css(getComputedStyle(quietChip).color)).toBe(css(quiet.label));
+
+        const heating = await mount(statusData(), reporting({}));
+        const heatingChip = heating.querySelector<HTMLElement>('[data-heating-chip]')!;
+        const heizt = toneColors(resolveCollectionTheme(Theme('light'), undefined, {}), 'heizt');
+        expect(css(getComputedStyle(heatingChip).backgroundColor)).toBe(css(heizt.surface));
+    });
+
+    it('draws the quiet pills in the Neutralstufe: line, label and a faint surface', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const resting = container.querySelector<HTMLElement>('[data-heating-pill][aria-pressed="false"]')!;
+        const look = getComputedStyle(resting);
+
+        expect([css(look.borderTopColor), css(look.color), css(look.backgroundColor)]).toEqual([
+            css(quiet.line),
+            css(quiet.label),
+            css(quiet.surface),
+        ]);
+    });
+
+    it('draws the scale in the Neutralstufe: ticks and numbers', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const [minor, major] = [...container.querySelectorAll<SVGPathElement>('[data-heating-dial] path')];
+        const number = container.querySelector<SVGTextElement>('[data-heating-dial] text')!;
+
+        expect([css(minor.style.stroke), css(major.style.stroke), css(number.style.fill)]).toEqual([
+            css(quiet.tick),
+            css(quiet.tick),
+            css(quiet.label),
+        ]);
+    });
+
+    it('draws the readings bar in the Neutralstufe: its line, the names and the word „Ist“', async () => {
+        const container = await mount(statusData(), reporting({}));
+        const reading = container.querySelector<HTMLElement>('[data-heating-reading]')!;
+        const bar = reading.parentElement!;
+        const name = reading.lastElementChild!;
+        const word = container.querySelector('[data-heating-actual]')!.firstElementChild!;
+
+        expect([
+            css(getComputedStyle(bar).borderTopColor),
+            css(getComputedStyle(name).color),
+            css(getComputedStyle(word).color),
+        ]).toEqual([css(quiet.line), css(quiet.label), css(quiet.label)]);
+    });
+
+    it('draws the quiet hint line in the Neutralstufe', async () => {
+        const container = await mount(statusData(), reporting({ betriebsart: 2 }));
+        const hint = container.querySelector<HTMLElement>('[data-heating-hint]');
+
+        expect(hint?.hasAttribute('data-tone')).toBe(false);
+        expect(css(getComputedStyle(hint!).color)).toBe(css(quiet.label));
     });
 });
 
@@ -1651,7 +1718,7 @@ describe('the Werttexte follow the widget text colour (ADR-0124 Nachtrag 2026-11
         const word = actual?.firstElementChild;
         expect(word?.textContent).toBe('heating_messwert_ist');
         expect(colorOf(word)).not.toBe('rgb(213,21,21)');
-        expect(colorOf(word)).toBe(rgb(theme.palette.text.secondary));
+        expect(colorOf(word)).toBe(rgb(neutralColors(theme).label));
     });
 
     it('lets a tone win over the vis-2 colour: an open window stays kühl', async () => {

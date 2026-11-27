@@ -10,17 +10,17 @@
  *
  * Hidden behind it: the arrangement (row: symbol, name over second line, chips at the end;
  * stacked: name, second line, chips below), the truncation (name and second line end with an
- * ellipsis, chips keep their width), the chip's appearance (a capsule with a dot, the triangle for
- * a Meldung, the heizt dot pulsing unless the user asked for less motion) and tone → colour through
- * the tone module (`lib/heating/tones`); the type symbol sits on the Bedienakzent (ADR-0124 Nachtrag
- * 2026-11-27). An empty name or second line shows no line. The frame's
+ * ellipsis, chips keep their width), the chip's appearance (a toned capsule, the triangle for a
+ * Meldung; the neutral chip quiet text in the Neutralstufe without a surface — no dots, ADR-0124
+ * Nachtrag 2 2026-11-27) and tone → colour through the tone module (`lib/heating/tones`); the type
+ * symbol stands without a surface in the Bedienakzent's line colour (ADR-0124 Nachtrag 2026-11-27,
+ * Nachtrag 2). An empty name or second line shows no line. The frame's
  * `noHeader` never reaches it; the Mini tile has its own head (ADR-0122).
  */
-import { Box, Typography, keyframes, useTheme } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import { useReducedMotion } from './motion';
-import { accentColors, toneColors, type HeatingTone } from './tones';
+import { accentColors, neutralColors, toneColors, type HeatingTone } from './tones';
 
 /** The form of the Kartenkopf. */
 export type KartenkopfForm = 'zeile' | 'gestapelt';
@@ -47,14 +47,9 @@ export interface KartenkopfProps {
     symbol?: ReactNode;
 }
 
-/** The chip dot's pulse while heating (the design's `hzPulse`). */
-const pulse = keyframes`
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.7); }
-`;
-
 /**
- * One chip: a capsule in its tone with a dot, or the triangle for a Meldung.
+ * One chip: a capsule in its tone, with the triangle for a Meldung; the neutral chip is quiet text
+ * without a surface (ADR-0124 Nachtrag 2 2026-11-27).
  *
  * @param props - Component props.
  * @param props.chip - The chip.
@@ -62,9 +57,8 @@ const pulse = keyframes`
  */
 function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
     const theme = useTheme();
-    const reducedMotion = useReducedMotion();
+    const quiet = chip.tone === 'neutral';
     const colors = toneColors(theme, chip.tone);
-    const pulsing = chip.tone === 'heizt' && !reducedMotion;
 
     return (
         <Box
@@ -77,37 +71,23 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
                 alignItems: 'center',
                 gap: '7px',
                 height: 30,
-                px: 1.5,
+                // Without a capsule the quiet text needs no inner padding: it lines up with the name.
+                px: quiet ? 0 : 1.5,
                 borderRadius: 999,
                 fontSize: 12.5,
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
-                bgcolor: colors.surface,
-                color: colors.text,
+                ...(quiet ? { color: neutralColors(theme).label } : { bgcolor: colors.surface, color: colors.text }),
             }}
         >
-            <Box
-                component="span"
-                aria-hidden
-                data-heating-chip-sign={colors.mark ?? 'dot'}
-                data-pulse={pulsing ? '' : undefined}
-                sx={
-                    colors.mark === 'triangle'
-                        ? {
-                              width: 9,
-                              height: 8,
-                              bgcolor: 'currentColor',
-                              clipPath: 'polygon(50% 0, 100% 100%, 0 100%)',
-                          }
-                        : {
-                              width: 7,
-                              height: 7,
-                              borderRadius: '50%',
-                              bgcolor: 'currentColor',
-                              animation: pulsing ? `${pulse} 1.8s ease-in-out infinite` : 'none',
-                          }
-                }
-            />
+            {colors.mark === 'triangle' ? (
+                <Box
+                    component="span"
+                    aria-hidden
+                    data-heating-chip-sign="triangle"
+                    sx={{ width: 9, height: 8, bgcolor: 'currentColor', clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }}
+                />
+            ) : null}
             <span>{chip.text}</span>
         </Box>
     );
@@ -125,7 +105,9 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
  * @returns The head.
  */
 export default function Kartenkopf({ name, secondLine, chips, form, symbol }: KartenkopfProps): ReactElement {
-    const accent = accentColors(useTheme());
+    const theme = useTheme();
+    const accent = accentColors(theme);
+    const quiet = neutralColors(theme);
     const stacked = form === 'gestapelt';
     const nameLine = name ? (
         <Typography
@@ -142,7 +124,7 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
             data-heating-head-second=""
             component="div"
             noWrap
-            sx={{ maxWidth: '100%', fontSize: 12.5, color: 'text.secondary' }}
+            sx={{ maxWidth: '100%', fontSize: 12.5, color: quiet.label }}
         >
             {secondLine}
         </Typography>
@@ -177,12 +159,10 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
                         width: 44,
                         height: 44,
                         flex: 'none',
-                        borderRadius: '14px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        bgcolor: accent.surface,
-                        color: accent.text,
+                        color: accent.line,
                     }}
                 >
                     {symbol}

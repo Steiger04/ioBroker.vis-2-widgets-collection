@@ -18,7 +18,7 @@ import { resolveCollectionTheme } from '../theme/resolveCollectionTheme';
 import { THEME_PRESETS } from '../theme/presets';
 import type { Theme } from '@mui/material/styles';
 import type { UserTheme } from '../theme/themeTypes';
-import { accentColors, HEATING_TONES, toneColors } from './tones';
+import { accentColors, HEATING_TONES, neutralColors, toneColors } from './tones';
 
 /** WCAG AA for normal text. */
 const AA = 4.5;
@@ -278,5 +278,97 @@ describe('Bedienakzent: the controls take the theme primary in shades (ADR-0124 
         (theme.palette.primary as { main: string }).main = 'var(--host-primary)';
         const accent = accentColors(theme);
         expect(getContrastRatio(accent.text, accent.surface)).toBeGreaterThanOrEqual(AA);
+    });
+});
+
+describe('Neutralstufe: the quiet parts take a light primary hue (ADR-0124 Nachtrag 2 2026-11-27)', () => {
+    /** Lines against the card. */
+    const LINE = 2;
+    /** Scale ticks against the card (graphical objects). */
+    const TICK = 3;
+    /** The strongest elevation overlay the frame allows (baseElevation 24, MUI getOverlayAlpha). */
+    const MAX_OVERLAY = 0.16;
+
+    /** `color` (any alpha) over the opaque `base`, as opaque `rgb()`. */
+    const over = (base: string, color: string, extra = 1): string => {
+        const [br, bg, bb] = decomposeColor(base).values;
+        const parsed = decomposeColor(color);
+        const alpha = (parsed.values[3] ?? 1) * extra;
+        const mix = (b: number, c: number): number => Math.round(b * (1 - alpha) + c * alpha);
+        return `rgb(${mix(br, parsed.values[0])}, ${mix(bg, parsed.values[1])}, ${mix(bb, parsed.values[2])})`;
+    };
+    /** The card as drawn: the paper, and in dark mode also with the strongest elevation overlay. */
+    const cards = (theme: Theme): string[] => {
+        const paper = over('rgb(0, 0, 0)', theme.palette.background.paper);
+        return theme.palette.mode === 'dark' ? [paper, over(paper, 'rgb(255, 255, 255)', MAX_OVERLAY)] : [paper];
+    };
+
+    const hosts: [string, Theme][] = [
+        ['vis-2 modern dark', modern('dark')],
+        ['vis-2 modern light', modern('light')],
+        ['MUI default dark', createTheme({ palette: { mode: 'dark' } })],
+        ['MUI default light', createTheme({ palette: { mode: 'light' } })],
+    ];
+    const users: [string, UserTheme][] = [
+        ['no user theme', {}],
+        ...THEME_PRESETS.map((preset): [string, UserTheme] => [`preset ${preset.id}`, preset.theme]),
+        ['pale primary, light', { palette: { mode: 'light', primary: { main: '#e8f4ff' } } }],
+        ['deep primary, dark', { palette: { mode: 'dark', primary: { main: '#06061a' } } }],
+    ];
+    const cases = hosts.flatMap(([hostName, host]) =>
+        users.map(([userName, user]) => ({ name: `${hostName} + ${userName}`, theme: resolve(host, user) })),
+    );
+
+    it.each(cases)('$name: line ≥ 2:1, tick ≥ 3:1, label ≥ 4.5:1 on every card, labels also on a pill', ({ theme }) => {
+        const neutral = neutralColors(theme);
+        for (const card of cards(theme)) {
+            expect(getContrastRatio(neutral.line, card)).toBeGreaterThanOrEqual(LINE);
+            expect(getContrastRatio(neutral.tick, card)).toBeGreaterThanOrEqual(TICK);
+            expect(getContrastRatio(neutral.label, card)).toBeGreaterThanOrEqual(AA);
+            expect(getContrastRatio(neutral.label, over(card, neutral.surface))).toBeGreaterThanOrEqual(AA);
+            expect(getContrastRatio(neutral.label, over(card, neutral.hover))).toBeGreaterThanOrEqual(AA);
+        }
+    });
+
+    it("lifts the default theme's line out of the card: modernDark's navy divider lay below it at 1.1:1", () => {
+        const theme = resolve(modern('dark'));
+        const { line } = neutralColors(theme);
+        expect(getContrastRatio(theme.palette.divider, cards(theme)[0])).toBeLessThan(LINE);
+        for (const card of cards(theme)) {
+            expect(getContrastRatio(line, card)).toBeGreaterThanOrEqual(LINE);
+        }
+    });
+
+    it("carries the primary hue: Smaragd's quiet parts lean green, Bernstein's warm", () => {
+        const preset = (id: string): UserTheme => THEME_PRESETS.find(entry => entry.id === id)!.theme;
+        const green = neutralColors(resolve(modern('dark'), preset('smaragd')));
+        for (const color of [green.line, green.tick, green.label]) {
+            const [r, g, b] = channels(color);
+            expect(g).toBeGreaterThan(r);
+            expect(g).toBeGreaterThan(b);
+        }
+        const warm = neutralColors(resolve(modern('dark'), preset('bernstein')));
+        for (const color of [warm.line, warm.tick, warm.label]) {
+            const [r, , b] = channels(color);
+            expect(r).toBeGreaterThan(b);
+        }
+    });
+
+    it('lays a faint translucent primary on an inactive pill, the hover a step stronger', () => {
+        const theme = resolve(modern('dark'), { palette: { primary: { main: '#ff0000' } } });
+        const neutral = neutralColors(theme);
+        const [r, g, b, alpha] = decomposeColor(neutral.surface).values;
+        expect([r, g, b]).toEqual([255, 0, 0]);
+        expect(alpha).toBeGreaterThan(0);
+        expect(alpha).toBeLessThan(0.1);
+        expect(decomposeColor(neutral.hover).values[3]).toBeGreaterThan(alpha!);
+    });
+
+    it('stays readable instead of throwing on colours no calculation reads', () => {
+        const theme = createTheme({ palette: { mode: 'dark' } });
+        (theme.palette.primary as { main: string }).main = 'var(--host-primary)';
+        (theme.palette.text as { secondary: string }).secondary = 'var(--host-text)';
+        const neutral = neutralColors(theme);
+        expect(getContrastRatio(neutral.label, theme.palette.background.paper)).toBeGreaterThanOrEqual(AA);
     });
 });

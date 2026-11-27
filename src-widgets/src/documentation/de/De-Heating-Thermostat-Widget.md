@@ -198,9 +198,9 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Voll    | Mittel    | 276 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
 | Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
 | Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
-| Mini    | Kachel    | darunter         | Name, Statuszeichen, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px                                 |
+| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
 
-Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Bewegungen (Puls des heizt-Punkts, Übergänge) entfallen, wenn das System reduzierte Bewegung verlangt.
+Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
 
 ### Ansicht
 
@@ -228,13 +228,15 @@ Die Heizungs-Widgets haben keine eigenen Farbfelder und keinen eigenen Theme-Sch
 | ------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Störung | Fehlerfarbe `palette.error`, gefüllt, mit Warndreieck | Chip „Nicht erreichbar“, Hinweiszeile „Kein Funkkontakt …“, Statuszeichen der Kachel         |
 | Hinweis | Fehlerfarbe `palette.error`, getönt, mit Warndreieck  | Hinweiszeile „Batterie schwach …“, Batteriewert der Messwertleiste, Statuszeichen der Kachel |
-| heizt   | Warnfarbe `palette.warning`                           | Chip „Heizt“ und „Boost“, Statuszeichen der Kachel                                           |
-| kühl    | Infofarbe `palette.info`                              | Chip „Fenster offen“, Fensterwert der Messwertleiste, Statuszeichen der Kachel               |
-| neutral | Text- und Flächenfarben des Themes                    | übrige Chips, ruhige Hinweiszeile                                                            |
+| heizt   | Warnfarbe `palette.warning`                           | Chip „Heizt“ und „Boost“                                                                     |
+| kühl    | Infofarbe `palette.info`                              | Chip „Fenster offen“, Fensterwert der Messwertleiste                                         |
+| neutral | Neutralstufe (siehe unten), ohne Kapsel               | übrige Chips, ruhige Hinweiszeile                                                            |
 
-Was du einstellst oder wählst, trägt keine dieser Färbungen, sondern den **Bedienakzent** aus der Primärfarbe `palette.primary`: Ring (Bogen, Griff und Spur), die gewählte Pill und das Betriebsart-Segment, die ± und das Symbol im Kartenkopf. Er zeigt eine Einstellung, keinen Zustand, und bleibt deshalb in jedem Zustand gleich, auch bei offenem Fenster. Seine Stufen entstehen wie bei den Färbungen: die Primärfarbe selbst für Bogen und Griff (mindestens 3:1 zur Karte), getönt für Flächen, Zeichen und Schrift darauf mit mindestens 4,5:1. So passt das Widget im Standard-Theme wie in jeder Vorlage des Theme-Studios zu deinen übrigen Widgets.
+Was du einstellst oder wählst, trägt keine dieser Färbungen, sondern den **Bedienakzent** aus der Primärfarbe `palette.primary`: Ring (Bogen, Griff und Spur), die gewählte Pill und das Betriebsart-Segment, die ± und das Symbol im Kartenkopf (ohne eigene Fläche, in der Linienfarbe des Akzents). Er zeigt eine Einstellung, keinen Zustand, und bleibt deshalb in jedem Zustand gleich, auch bei offenem Fenster. Seine Stufen entstehen wie bei den Färbungen: die Primärfarbe selbst für Bogen und Griff (mindestens 3:1 zur Karte), getönt für Flächen, Zeichen und Schrift darauf mit mindestens 4,5:1. So passt das Widget im Standard-Theme wie in jeder Vorlage des Theme-Studios zu deinen übrigen Widgets.
 
 Die Werte selbst — Bezeichnung, Sollwert, Ist-Wert und die Werte der Messwertleiste — nehmen die Textfarbe des Widgets: das vis-2-Attribut **Farbe** (CSS Font & Text), sonst die Textfarbe des Themes; das gilt auch in der Kachel und im Mini-Dialog. Beschriftungen wie „Ist“, die Skala und die Namen der Messwerte bleiben gedämpft, und ein Zustand mit Färbung (offenes Fenster, Batterie mit Hinweis) behält seine Färbung.
+
+Die ruhigen Teile — Linien und Ränder, die Skala, Beschriftungen, die nicht gewählten Pills, der neutrale Chip und die ruhige Hinweiszeile — tragen die **Neutralstufe**: die gedämpfte Textfarbe des Themes mit einem leichten Hauch der Primärfarbe. Linien erreichen mindestens 2:1 zur Karte, die Striche der Skala 3:1, Beschriftungen 4,5:1; die nicht gewählten Pills liegen auf einer zarten Fläche in der Primärfarbe. Punkte gibt es nicht: Chip und Kachel zeigen ein Zeichen nur für eine Störung oder einen Hinweis, das Warndreieck.
 
 Die Heizungs-Widgets nehmen `palette.error` für Störungen und Hinweise, `palette.warning` für Heizen (Wärme, keine Warnung) und `palette.info` für kühl, etwa ein offenes Fenster. Die Schrift auf diesen Färbungen erreicht in Hell und Dunkel mindestens 4,5:1: Gefüllt nimmt sie Schwarz oder Weiß, getönt wird die Farbe aufgehellt bzw. abgedunkelt, bis der Kontrast reicht.
 

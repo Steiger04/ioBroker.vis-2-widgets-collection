@@ -3,7 +3,7 @@
  *
  * @module lib/heating/tones
  * @remarks
- * Chip, status dot and hint line name only the tone; which palette slot, which mode and which
+ * Chip, status sign and hint line name only the tone; which palette slot, which mode and which
  * contrast step stay in here. Source is the resolved collection theme's palette only (cascade
  * Theme Studio → vis-2 theme → MUI default, ADR-0004/ADR-0078): Störung and Hinweis take `error`
  * (Meldungsfarbe), heizt `warning`, kühl `info`, neutral the secondary text colour, all on the
@@ -21,7 +21,15 @@
  * the primary itself, stepped until 3:1 on the paper (a graphical object); surfaces take its tint,
  * the hover a step stronger; a sign or text on them is stepped until 4.5:1 on both.
  *
- * Every returned colour is opaque, so the contrast holds whatever lies beneath the surface.
+ * The **Neutralstufe** (ADR-0124 Nachtrag 2 2026-11-27) gives the quiet parts — lines, the scale,
+ * labels, the resting pills — a light primary hue: the secondary text colour on the paper with a
+ * fifth of the primary mixed in. Lines are stepped until 2:1, ticks until 3:1, labels until 4.5:1,
+ * each on every card the widget may stand on (in dark mode MUI lightens an elevated card by up to
+ * 0.16 white) and the labels on the resting pill surface and its hover as well.
+ *
+ * Every returned colour is opaque, so the contrast holds whatever lies beneath the surface — except
+ * the Neutralstufe's pill surface and hover: a faint translucent primary that takes on the card it
+ * lies on; the labels on it are checked against every card beneath.
  * Pure and component-free; never throws on an unreadable theme colour.
  */
 
@@ -54,6 +62,21 @@ const MIN_GRAPHIC_CONTRAST = 3;
 
 /** How much stronger the hover tint of an accent surface is than its rest tint. */
 const HOVER_TINT_FACTOR = 1.75;
+
+/** WCAG 2:1 for the quiet lines (pill borders, the readings bar's rule) against the card. */
+const MIN_LINE_CONTRAST = 2;
+
+/** Share of the primary colour mixed into the Neutralstufe's secondary text colour. */
+const NEUTRAL_HUE_SHARE = 0.2;
+
+/** Alpha of the Neutralstufe's translucent pill surface, per mode. */
+const NEUTRAL_SURFACE_ALPHA = { dark: 0.06, light: 0.05 } as const;
+
+/** Start alpha of a quiet line or tick over the paper, raised until it reaches its contrast. */
+const NEUTRAL_LINE_START = 0.2;
+
+/** The strongest white overlay MUI lays on a dark elevated card (elevation 24). */
+const MAX_CARD_OVERLAY = 0.16;
 
 /** Alpha of the tint on the paper, per mode (start values of the design). */
 const TINT_ALPHA = { dark: 0.16, light: 0.1 } as const;
@@ -123,6 +146,24 @@ function readableOn(surface: string, color: string, minContrast = MIN_CONTRAST):
         }
     }
     return blackOrWhite(surface);
+}
+
+/**
+ * {@link readableOn} for several surfaces at once: stepped in the direction the first surface asks
+ * for until the colour reaches `minContrast` on every one. The last step is white or black.
+ */
+function readableOnAll(surfaces: readonly string[], color: string, minContrast: number): string {
+    const towardsWhite = blackOrWhite(surfaces[0]) === '#fff';
+    const reaches = (candidate: string): boolean =>
+        surfaces.every(surface => getContrastRatio(candidate, surface) >= minContrast);
+    for (let step = 0; step * CONTRAST_STEP < 1; step++) {
+        const coefficient = step * CONTRAST_STEP;
+        const candidate = towardsWhite ? lighten(color, coefficient) : darken(color, coefficient);
+        if (reaches(candidate)) {
+            return candidate;
+        }
+    }
+    return towardsWhite ? '#fff' : '#000';
 }
 
 /** The palette slot colour a tone derives from. */
@@ -198,4 +239,75 @@ export function accentColors(theme: Theme): AccentColors {
     const onHover = readableOn(hover, primaryOnPaper);
     const text = getContrastRatio(onHover, surface) >= MIN_CONTRAST ? onHover : readableOn(surface, onHover);
     return { line: readableOn(paper, primaryOnPaper, MIN_GRAPHIC_CONTRAST), surface, hover, text };
+}
+
+/** The colours of the Neutralstufe. */
+export interface NeutralColors {
+    /** Opaque line colour (pill borders, the readings bar's rule), at least 2:1 on every card. */
+    line: string;
+    /** Opaque colour of the scale's ticks, at least 3:1 on every card. */
+    tick: string;
+    /** Opaque label colour, at least 4.5:1 on every card and on the pill surface and its hover. */
+    label: string;
+    /** Translucent primary: the resting pill's faint surface. */
+    surface: string;
+    /** Translucent primary, a step stronger than {@link NeutralColors.surface}: the resting pill's hover. */
+    hover: string;
+}
+
+/**
+ * The colours of the Neutralstufe in the given theme: the quiet parts with a light primary hue
+ * (ADR-0124 Nachtrag 2 2026-11-27).
+ *
+ * @param theme - The resolved collection theme (`useCollectionTheme`).
+ * @returns Opaque line, tick and label colours, and a translucent surface and hover.
+ */
+export function neutralColors(theme: Theme): NeutralColors {
+    const mode = theme.palette.mode === 'dark' ? 'dark' : 'light';
+    const fallback = FALLBACK[mode];
+    const paperRgba = rgbaOf(theme.palette.background?.paper, fallback.paper);
+    const base: Rgba = { rgb: paperRgba.rgb, alpha: 1 };
+    const paper = composite(base, base, 1);
+    const cards =
+        mode === 'dark' ? [paper, composite(base, { rgb: [255, 255, 255], alpha: 1 }, MAX_CARD_OVERLAY)] : [paper];
+    const primary = rgbaOf(theme.palette.primary?.main, fallback.primary);
+
+    const secondaryOnPaper = composite(base, rgbaOf(theme.palette.text?.secondary, fallback.text), 1);
+    const hue = rgbaOf(composite(rgbaOf(secondaryOnPaper, fallback.text), primary, NEUTRAL_HUE_SHARE), fallback.text);
+
+    /** The hue over the paper, from faint to full, until it reaches `minContrast` on every card. */
+    const quiet = (minContrast: number): string => {
+        for (let opacity = NEUTRAL_LINE_START; opacity < 1; opacity += CONTRAST_STEP) {
+            const candidate = composite(base, hue, opacity);
+            if (cards.every(card => getContrastRatio(candidate, card) >= minContrast)) {
+                return candidate;
+            }
+        }
+        return readableOnAll(cards, composite(base, hue, 1), minContrast);
+    };
+
+    const translucent = (opacity: number): string => {
+        const alpha = Math.round(opacity * primary.alpha * 1000) / 1000;
+        const [r, g, b] = primary.rgb.map(channel => Math.round(channel));
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    const surfaceOpacity = NEUTRAL_SURFACE_ALPHA[mode];
+    const surface = translucent(surfaceOpacity);
+    const hover = translucent(surfaceOpacity * HOVER_TINT_FACTOR);
+    const beneath = cards.flatMap(card => {
+        const under = rgbaOf(card, fallback.paper);
+        return [
+            card,
+            composite(under, primary, surfaceOpacity),
+            composite(under, primary, surfaceOpacity * HOVER_TINT_FACTOR),
+        ];
+    });
+
+    return {
+        line: quiet(MIN_LINE_CONTRAST),
+        tick: quiet(MIN_GRAPHIC_CONTRAST),
+        label: readableOnAll(beneath, composite(base, hue, 1), MIN_CONTRAST),
+        surface,
+        hover,
+    };
 }

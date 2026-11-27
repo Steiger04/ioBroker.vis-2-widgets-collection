@@ -17,9 +17,9 @@
  * - the `ansicht` cap: the effective stage is the lower of the box's stage and `ansicht` (Nr. 2);
  * - the tile hull and its measures (a `body2` head row, gaps in spacing units — the area's
  *   arithmetic reads them from the theme it draws in): the whole surface is one button (keyboard by
- *   the platform), the name, the open symbol and the status dot — the warning triangle in the
- *   Meldungsfarbe for a Meldung (Störung full, Hinweis tinted), else a dot in the chip's tone
- *   (ADR-0124 Nr. 4) — and the status in the accessible name;
+ *   the platform), the name, the open symbol and the status sign — the warning triangle in the
+ *   Meldungsfarbe for a Meldung (Störung full, Hinweis tinted), else no sign (ADR-0124 Nr. 4,
+ *   Nachtrag 2 2026-11-27: no dots) — and the status in the accessible name;
  * - the Mini-Dialog the tile opens (`lib/heating/MiniDialog`, Nr. 6, 7): its open state lives here,
  *   above the stages, so it survives the widget growing out of Mini; it shows this module again,
  *   which inside the dialog draws the stage of the dialog's own box, without the `ansicht` cap and
@@ -30,14 +30,14 @@
  * hides its helpers for can.js widgets alone, so that way does not reach a React widget.
  */
 import OpenInFull from '@mui/icons-material/OpenInFull';
-import { Box, ButtonBase, Typography, keyframes, useTheme, type Theme } from '@mui/material';
+import { Box, ButtonBase, Typography, useTheme, type Theme } from '@mui/material';
 import { useContext, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from 'react';
 
 import useContentBox from '../../hooks/useContentBox';
 import MiniDialog, { InMiniDialogContext } from './MiniDialog';
 import { useReducedMotion } from './motion';
 import { cappedStage, dialogStage, measuredBoxOf, type DrawnStage, type MeasuredBox, type SizeRule } from './stageRule';
-import { toneColors, type HeatingTone } from './tones';
+import { neutralColors, toneColors, type HeatingTone } from './tones';
 
 /** The status a type names for its tile: the chip's tone, a Meldung over it, and its words. */
 export interface TileStatus {
@@ -221,33 +221,21 @@ export interface SizeStagesProps<Data> {
     name: string | undefined;
     /** The translated type name: the dialog's title, the accessible name without a Bezeichnung. */
     typeName: string;
-    /** The status of the tile's dot and accessible name. */
+    /** The status of the tile's sign and accessible name. */
     status: TileStatus;
     /** The type's Voll design size of the content (the dialog's size). */
     fullSize: MeasuredBox;
 }
 
-/** The heating dot's pulse (the design's `hzPulse`). */
-const pulse = keyframes`
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.7); }
-`;
-
-/** Props of {@link StatusSign}. */
-interface StatusSignProps {
-    status: TileStatus;
-    reducedMotion: boolean;
-}
-
 /**
- * The tile's status sign: precedence Störung > Hinweis > the chip's tone (ADR-0124 Nr. 4).
+ * The tile's status sign: precedence Störung > Hinweis (ADR-0124 Nr. 4); without a Meldung none
+ * (Nachtrag 2 2026-11-27: no dots — the chip's tone stays in the accessible name).
  *
  * @param props - Component props.
  * @param props.status - The type's status.
- * @param props.reducedMotion - Whether the user asked for less motion.
- * @returns The triangle in the Meldungsfarbe, else a dot in the chip's tone.
+ * @returns The triangle in the Meldungsfarbe, else nothing.
  */
-function StatusSign({ status, reducedMotion }: StatusSignProps): ReactElement {
+function StatusSign({ status }: { status: TileStatus }): ReactElement | null {
     const theme = useTheme();
 
     if (status.message) {
@@ -269,25 +257,7 @@ function StatusSign({ status, reducedMotion }: StatusSignProps): ReactElement {
             />
         );
     }
-
-    const pulsing = status.tone === 'heizt' && !reducedMotion;
-    return (
-        <Box
-            component="span"
-            aria-hidden
-            data-heating-status="dot"
-            data-tone={status.tone}
-            data-pulse={pulsing ? '' : undefined}
-            sx={{
-                width: 8,
-                height: 8,
-                flex: 'none',
-                borderRadius: '50%',
-                bgcolor: toneColors(theme, status.tone).text,
-                animation: pulsing ? `${pulse} 1.8s ease-in-out infinite` : 'none',
-            }}
-        />
-    );
+    return null;
 }
 
 /** Props of {@link Tile}. */
@@ -316,6 +286,7 @@ interface TileProps {
  */
 function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: TileProps): ReactElement {
     const reducedMotion = useReducedMotion();
+    const quiet = neutralColors(useTheme());
     const label = [name || typeName, status.label].filter(Boolean).join(', ');
     const raised = (node: ReactNode): ReactNode =>
         node == null ? null : <Box sx={{ position: 'relative', zIndex: 1, display: 'flex' }}>{node}</Box>;
@@ -337,10 +308,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <StatusSign
-                    status={status}
-                    reducedMotion={reducedMotion}
-                />
+                <StatusSign status={status} />
                 {name ? (
                     <Typography
                         data-heating-tile-name=""
@@ -356,7 +324,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                 <OpenInFull
                     data-heating-open=""
                     aria-hidden
-                    sx={{ fontSize: OPEN_SYMBOL_SIZE, flex: 'none', color: 'text.secondary' }}
+                    sx={{ fontSize: OPEN_SYMBOL_SIZE, flex: 'none', color: quiet.label }}
                 />
             </Box>
             <Box
@@ -386,7 +354,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                     zIndex: 0,
                     borderRadius: 'inherit',
                     transition: reducedMotion ? 'none' : 'background-color 150ms',
-                    '&:hover': { bgcolor: 'action.hover' },
+                    '&:hover': { bgcolor: quiet.hover },
                     '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
                 }}
             />

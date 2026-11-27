@@ -136,12 +136,11 @@ describe('HeatingThermostatCollection: stage and arrangement', () => {
 describe('HeatingThermostatCollection: the tile', () => {
     const TILE_BOX = { width: 156, height: 66 };
 
-    it('shows the Bezeichnung, the status dot and the set-point, and names itself by the Bezeichnung', () => {
+    it('shows the Bezeichnung and the set-point, and names itself by the Bezeichnung', () => {
         const { container } = mountBody(HeatingThermostatCollection, scene({ bezeichnung: 'Wohnzimmer' }, TILE_BOX));
         const tile = container.querySelector('[data-heating-tile]')!;
 
         expect(tile.querySelector('[data-heating-tile-name]')?.textContent).toBe('Wohnzimmer');
-        expect(tile.querySelector('[data-heating-status]')).not.toBeNull();
         expect(tile.querySelector('[data-heating-setpoint]')?.textContent).toBe('21.5 °C');
         expect(tile.querySelector('button')?.getAttribute('aria-label')).toBe('Wohnzimmer');
     });
@@ -155,11 +154,10 @@ describe('HeatingThermostatCollection: the tile', () => {
         );
     });
 
-    it('reports the neutral tone while no status is known', () => {
+    it('shows no status sign while no Meldung is known: no dots (ADR-0124 Nachtrag 2 2026-11-27)', () => {
         const { container } = mountBody(HeatingThermostatCollection, scene({}, TILE_BOX));
-        const sign = container.querySelector('[data-heating-status]')!;
 
-        expect([sign.getAttribute('data-heating-status'), sign.getAttribute('data-tone')]).toEqual(['dot', 'neutral']);
+        expect(container.querySelector('[data-heating-tile] [data-heating-status]')).toBeNull();
     });
 });
 

@@ -192,15 +192,15 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 
 ### Stages and Arrangements
 
-| Stage  | Arrangement | from content area | Content                                                                                                                                   |
-| ------ | ----------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Full   | Large       | 376 × 576 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar |
-| Full   | Medium      | 276 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                    |
-| Simple | Wide        | 456 × 116 px      | Head stacked on the left with hint line, ± and big set point on the right; operating-mode segment from 236 px height                      |
-| Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                |
-| Mini   | Tile        | below             | Name, status sign, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px              |
+| Stage  | Arrangement | from content area | Content                                                                                                                                                 |
+| ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full   | Large       | 376 × 576 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar               |
+| Full   | Medium      | 276 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
+| Simple | Wide        | 456 × 116 px      | Head stacked on the left with hint line, ± and big set point on the right; operating-mode segment from 236 px height                                    |
+| Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
+| Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px |
 
-With the standard frame the start size 420 × 700 px gives a content area of about 396 × 636 px and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Motion (pulse of the heating dot, transitions) is left out when the system asks for reduced motion.
+With the standard frame the start size 420 × 700 px gives a content area of about 396 × 636 px and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
 
 ### Layout
 
@@ -228,13 +228,15 @@ The heating widgets have no color fields and no theme key of their own. Every co
 | --------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Fault     | Error color `palette.error`, filled, with warning triangle | Chip "Not reachable", hint line "No radio connection …", status sign of the tile      |
 | Notice    | Error color `palette.error`, tinted, with warning triangle | Hint line "Battery low …", battery value of the readings bar, status sign of the tile |
-| Heating   | Warning color `palette.warning`                            | Chips "Heating" and "Boost", status sign of the tile                                  |
-| Cool      | Info color `palette.info`                                  | Chip "Window open", window value of the readings bar, status sign of the tile         |
-| Neutral   | Text and surface colors of the theme                       | Other chips, quiet hint line                                                          |
+| Heating   | Warning color `palette.warning`                            | Chips "Heating" and "Boost"                                                           |
+| Cool      | Info color `palette.info`                                  | Chip "Window open", window value of the readings bar                                  |
+| Neutral   | Neutral shade (see below), without a capsule               | Other chips, quiet hint line                                                          |
 
-What you set or choose takes none of these colourings but the **control accent** from the primary color `palette.primary`: the ring (arc, handle and track), the chosen pill and the operating-mode segment, the ± and the symbol in the card head. It shows a setting, not a state, so it stays the same in every state, also with a window open. Its shades are built like the colourings': the primary color itself for arc and handle (at least 3:1 on the card), tinted for surfaces, signs and text on them at least 4.5:1. So the widget matches your other widgets in the default theme as in every Theme Studio preset.
+What you set or choose takes none of these colourings but the **control accent** from the primary color `palette.primary`: the ring (arc, handle and track), the chosen pill and the operating-mode segment, the ± and the symbol in the card head (without a surface of its own, in the accent's line colour). It shows a setting, not a state, so it stays the same in every state, also with a window open. Its shades are built like the colourings': the primary color itself for arc and handle (at least 3:1 on the card), tinted for surfaces, signs and text on them at least 4.5:1. So the widget matches your other widgets in the default theme as in every Theme Studio preset.
 
 The values themselves — name, set point, actual value and the values of the readings bar — take the widget's text colour: the vis-2 attribute **color** (CSS Font & Text), else the theme's text colour; this also holds in the tile and in the Mini-Dialog. Captions such as „Actual“, the scale and the names of the readings stay muted, and a state with a colouring (open window, battery with a notice) keeps its colouring.
+
+The quiet parts — lines and borders, the scale, captions, the pills not chosen, the neutral chip and the quiet hint line — take the **neutral shade**: the theme's muted text colour with a light touch of the primary color. Lines reach at least 2:1 on the card, the scale's ticks 3:1, captions 4.5:1; the pills not chosen lie on a faint surface in the primary color. There are no dots: chip and tile show a sign only for a fault or a notice, the warning triangle.
 
 The heating widgets take `palette.error` for faults and notices, `palette.warning` for heating (warmth, not a warning) and `palette.info` for cool, such as an open window. The text on these colourings reaches at least 4.5:1 in light and dark: filled it takes black or white, tinted the color is lightened or darkened until the contrast suffices.
 

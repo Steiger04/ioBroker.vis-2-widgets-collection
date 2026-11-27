@@ -19,7 +19,7 @@ import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
 import { formatReading, NO_VALUE, type ReadingKind } from '../lib/heating/readingFormat';
-import { toneColors, type HeatingTone } from '../lib/heating/tones';
+import { neutralColors, toneColors, type HeatingTone } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
 import type { MeaningReading, ZoneReading } from '../lib/heating/zoneReading';
 
@@ -106,6 +106,7 @@ const ELEMENTS: Readonly<Record<ReadingMeaning, { icon: typeof SpeedOutlined; la
  */
 export function ReadingsBar({ readings }: { readings: readonly ThermostatReading[] }): ReactElement {
     const theme = useTheme();
+    const quiet = neutralColors(theme);
     return (
         <Box
             sx={{
@@ -114,7 +115,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                 gap: 1,
                 pt: 1.75,
                 borderTop: 1,
-                borderColor: 'divider',
+                borderColor: quiet.line,
             }}
         >
             {readings.map(({ meaning, text, tone }) => {
@@ -132,7 +133,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                                 aria-hidden
                                 sx={{
                                     fontSize: 16,
-                                    color: tone === 'kühl' ? colors?.text : 'text.secondary',
+                                    color: tone === 'kühl' ? colors?.text : quiet.label,
                                 }}
                             />
                             <Typography
@@ -153,7 +154,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
                         </Box>
                         <Typography
                             component="span"
-                            sx={{ fontSize: 11.5, color: 'text.secondary', whiteSpace: 'nowrap' }}
+                            sx={{ fontSize: 11.5, color: quiet.label, whiteSpace: 'nowrap' }}
                         >
                             {translate(label)}
                         </Typography>
@@ -168,7 +169,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
  * The actual temperature with its label, for the dial, the Einfach line and the tile's footer.
  *
  * @remarks
- * Only the word „Ist“ is muted. The value is a Werttext and sets no colour of its own: it takes
+ * Only the word „Ist“ is muted, in the Neutralstufe's label colour. The value is a Werttext and sets no colour of its own: it takes
  * the vis-2 text colour (the widget's text styles reach every Typography through the collection
  * theme, the Mini-Dialog portal included), else the theme's text colour it inherits.
  * @param props - Component props.
@@ -176,6 +177,7 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
  * @returns The line.
  */
 export function ActualTemperature({ text }: { text: string }): ReactNode {
+    const quiet = neutralColors(useTheme());
     return (
         <Box
             data-heating-actual=""
@@ -184,7 +186,7 @@ export function ActualTemperature({ text }: { text: string }): ReactNode {
         >
             <Box
                 component="span"
-                sx={{ color: 'text.secondary' }}
+                sx={{ color: quiet.label }}
             >
                 {translate('heating_messwert_ist')}
             </Box>

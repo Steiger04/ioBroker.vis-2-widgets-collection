@@ -7,7 +7,8 @@
  * A pill names its action, optionally a detail (the value it writes), and lights while the reported
  * state equals what it would set (`aria-pressed`). The lit pill takes the Bedienakzent's surface and
  * text (`lib/heating/tones`, ADR-0124 Nachtrag 2026-11-27: a choice, not a state), the others stay
- * quiet on the card. The caller decides which pills
+ * quiet in the Neutralstufe — its line, its label and a faint surface (Nachtrag 2). The caller
+ * decides which pills
  * exist — only those with a writable target — and what a tap writes; a pill without an action only
  * shows a state (disabled, still lit). An empty row draws nothing.
  * Under `prefers-reduced-motion` there is no ripple and no transition.
@@ -16,7 +17,7 @@ import { Box, ButtonBase, useTheme } from '@mui/material';
 import type { ReactElement } from 'react';
 
 import { useReducedMotion } from './motion';
-import { accentColors } from './tones';
+import { accentColors, neutralColors } from './tones';
 
 /** One pill of the row. */
 export interface Pill {
@@ -55,6 +56,7 @@ export default function PillRow({ pills, label }: PillRowProps): ReactElement | 
         return null;
     }
     const lit = accentColors(theme);
+    const quiet = neutralColors(theme);
 
     return (
         <Box
@@ -77,14 +79,14 @@ export default function PillRow({ pills, label }: PillRowProps): ReactElement | 
                         px: 1,
                         borderRadius: '14px',
                         border: 1,
-                        borderColor: pill.active ? 'transparent' : 'divider',
-                        bgcolor: pill.active ? lit.surface : 'transparent',
-                        color: pill.active ? lit.text : 'text.secondary',
+                        borderColor: pill.active ? 'transparent' : quiet.line,
+                        bgcolor: pill.active ? lit.surface : quiet.surface,
+                        color: pill.active ? lit.text : quiet.label,
                         fontSize: 13.5,
                         fontWeight: 500,
                         whiteSpace: 'nowrap',
                         transition: reducedMotion ? 'none' : 'background-color 150ms, color 150ms',
-                        '&:hover': { bgcolor: pill.active ? lit.surface : 'action.hover' },
+                        '&:hover': { bgcolor: pill.active ? lit.surface : quiet.hover },
                         '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                     }}
                 >

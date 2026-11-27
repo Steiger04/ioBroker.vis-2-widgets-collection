@@ -6,8 +6,8 @@
  * A stand-in type hands the module its rule, its stages, its tile and its status through the
  * interface — no Raumthermostat logic. The scene injects the Content-Box the frame publishes.
  * Pinned: the empty content before the first measurement, the `ansicht` cap, the tile hull (whole
- * surface a button, name, open symbol, status dot with the precedence Störung > Hinweis > the
- * chip's tone, the status in the accessible name), motion under `prefers-reduced-motion` and the
+ * surface a button, name, open symbol, the warning triangle for a Meldung with the precedence
+ * Störung > Hinweis and no sign without one (ADR-0124 Nachtrag 2), the status in the accessible name), motion under `prefers-reduced-motion` and the
  * Mini-Dialog (ADR-0122 Nr. 6, 7): its own measured box — fed here by a ResizeObserver fake, since
  * happy-dom lays nothing out — with the floor Einfach and no `ansicht` cap, open while the widget
  * grows out of Mini, closing back to the tile, in the collection theme. The focus trap and the real
@@ -218,12 +218,12 @@ describe('SizeStages: the tile hull', () => {
         expect(tileButton(container).getAttribute('aria-expanded')).toBe('true');
     });
 
-    it('shows the name, the status dot and the open symbol', () => {
+    it('shows the name and the open symbol, and no status sign without a Meldung', () => {
         const { container } = mountBody(standIn(), scene(MINI));
         const tile = container.querySelector('[data-heating-tile]')!;
 
         expect(tile.textContent).toContain('Wohnzimmer');
-        expect(statusSign(container).kind).toBe('dot');
+        expect(statusSign(container).kind).toBeNull();
         expect(tile.querySelector('[data-heating-open]')).not.toBeNull();
     });
 
@@ -240,7 +240,7 @@ describe('SizeStages: the tile hull', () => {
         expect(tileButton(container).getAttribute('aria-label')).toBe('Raumthermostat');
     });
 
-    it.each<[string, TileStatus, { kind: string; tone: string }]>([
+    it.each<[string, TileStatus, { kind: string | null; tone: string | null }]>([
         [
             'a Störung over a Hinweis tone',
             { tone: 'heizt', message: 'störung', label: 'Nicht erreichbar' },
@@ -251,13 +251,9 @@ describe('SizeStages: the tile hull', () => {
             { tone: 'kühl', message: 'hinweis', label: 'Batterie schwach' },
             { kind: 'triangle', tone: 'hinweis' },
         ],
-        ['the chip tone without a Meldung (heizt)', { tone: 'heizt', label: 'Heizt' }, { kind: 'dot', tone: 'heizt' }],
-        [
-            'the chip tone without a Meldung (kühl)',
-            { tone: 'kühl', label: 'Fenster offen' },
-            { kind: 'dot', tone: 'kühl' },
-        ],
-        ['the chip tone without a Meldung (neutral)', { tone: 'neutral' }, { kind: 'dot', tone: 'neutral' }],
+        ['no sign for heizt without a Meldung', { tone: 'heizt', label: 'Heizt' }, { kind: null, tone: null }],
+        ['no sign for kühl without a Meldung', { tone: 'kühl', label: 'Fenster offen' }, { kind: null, tone: null }],
+        ['no sign for neutral without a Meldung', { tone: 'neutral' }, { kind: null, tone: null }],
     ])('takes %s for its status sign', (_case, status, sign) => {
         const { container } = mountBody(standIn({ status }), scene(MINI));
 
@@ -289,11 +285,11 @@ describe('SizeStages: motion', () => {
 
     const HEATING = { tone: 'heizt', label: 'Heizt' } as const;
 
-    it('pulses the heating dot and ripples the tile by default', () => {
+    it('ripples the tile by default, and nothing pulses', () => {
         reducedMotion(false);
         const { container } = mountBody(standIn({ status: HEATING }), scene({ width: 100, height: 200 }));
 
-        expect(container.querySelector('[data-heating-status]')!.hasAttribute('data-pulse')).toBe(true);
+        expect(container.querySelector('[data-pulse]')).toBeNull();
         act(() => {
             tileButton(container).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
         });
@@ -301,11 +297,10 @@ describe('SizeStages: motion', () => {
         expect(getComputedStyle(tileButton(container)).transition).toContain('background');
     });
 
-    it('runs no animation under prefers-reduced-motion: no pulse, no ripple, no transition', () => {
+    it('runs no animation under prefers-reduced-motion: no ripple, no transition', () => {
         reducedMotion(true);
         const { container } = mountBody(standIn({ status: HEATING }), scene({ width: 100, height: 200 }));
 
-        expect(container.querySelector('[data-heating-status]')!.hasAttribute('data-pulse')).toBe(false);
         act(() => {
             tileButton(container).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
         });
