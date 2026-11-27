@@ -381,6 +381,13 @@ describe('main pick — the operating-mode pair of the role path (ADR-0119 Nacht
         return objects;
     };
 
+    it('binds a mode command without a write flag — ioBroker reads a missing `common.write` as writable', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withCommand({ write: undefined }));
+
+        expect(picked.betriebsartSetzen).toBe(COMMAND);
+        expect(picked.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+    });
+
     it.each<[string, Record<string, ioBroker.Object>]>([
         ['not writable', withCommand({ write: false })],
         ['in another channel of the device', withCommand({}, at(`${NEUTRAL_PAIR_DEVICE.id}.maintenance.modeCommand`))],

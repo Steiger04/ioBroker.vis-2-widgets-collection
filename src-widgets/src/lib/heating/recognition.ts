@@ -177,7 +177,8 @@ export function recogniseState(object: ioBroker.Object, channel?: ioBroker.Objec
  * The pair rule of the role path (`RoleEntry.pair`, ADR-0119 Nachtrag K5): beside a candidate for
  * a Bedeutung whose role entry names a pair, every further writable state of the same channel
  * whose value list equals the candidate's is a candidate for the paired Bedeutung, whatever its
- * role. It reads what `search_objects` shows the assistant too — `write` and `states`, not `read`.
+ * role. It reads what `search_objects` shows the assistant too — `write` and `states`, not `read`;
+ * only `write: false` reads as not writable, as everywhere in the repo (`isOidReadOnly`).
  *
  * @param partnerMeaning - The Bedeutung recognition took the partner for.
  * @param partner - The partner state.
@@ -203,7 +204,7 @@ export function recognisePair(
             continue;
         }
         const list = valueListKey(state);
-        if ((state.common as ioBroker.StateCommon).write === true && list && sameValueList(list, partnerList)) {
+        if ((state.common as ioBroker.StateCommon).write !== false && list && sameValueList(list, partnerList)) {
             paired.push(state);
         }
     }
