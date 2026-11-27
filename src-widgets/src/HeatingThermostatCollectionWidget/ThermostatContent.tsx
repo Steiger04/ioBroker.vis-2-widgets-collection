@@ -309,7 +309,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                     parts={parts}
                 />
             )}
-            renderTile={box => thermostatTileContent(parts, thermostatPlan('mini', box, writable).tile)}
+            renderTile={area => thermostatTileContent(parts, thermostatPlan('mini', area, writable).tile)}
             name={name}
             typeName={translate('heating_thermostat_collection_widget')}
             status={status.tile}

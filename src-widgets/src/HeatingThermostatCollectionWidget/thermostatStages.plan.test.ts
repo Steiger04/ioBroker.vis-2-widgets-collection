@@ -9,10 +9,12 @@
  * thresholds in `thermostatStages.test`): the dial edge from the design's dial size taken back to
  * the Content-Box (Groß: width − 76, height − 316 within 240…380; Mittel: width − 52, height − 168
  * within 200…320), the set-point font from 3.6 px of width per px of font and a 1.2 line, at most 48
- * and at least 12 px.
+ * and at least 12 px. The tile's plan computes in the area the size-stage module's hull leaves it
+ * (`tileArea`); its cases stay in Content-Box sizes.
  */
 import { describe, expect, it } from 'vitest';
 
+import { tileArea } from '../lib/heating/SizeStages';
 import { thermostatPlan } from './thermostatStages';
 
 describe('thermostatPlan: Voll', () => {
@@ -85,6 +87,6 @@ describe('thermostatPlan: the tile', () => {
         ['240 × 110 px outer', 214, 84, true, { buttons: true, footer: false, setpointFont: 31 }],
         ['220 × 110 px outer', 194, 84, true, { buttons: false, footer: true, setpointFont: 23 }],
     ])('%s (%i × %i px)', (_case, width, height, writable, tile) => {
-        expect(thermostatPlan('mini', { width, height }, writable)).toEqual({ arrangement: 'mini', tile });
+        expect(thermostatPlan('mini', tileArea({ width, height }), writable)).toEqual({ arrangement: 'mini', tile });
     });
 });

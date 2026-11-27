@@ -16,6 +16,7 @@
  * computed once there.
  */
 
+import type { TileArea } from '../lib/heating/SizeStages';
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
 
 /** A least box in px (both sizes reached). */
@@ -28,7 +29,8 @@ interface LeastBox {
  * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
  * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
  * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
- * The tile: its head row 20 px, ± 44 px with 6 px of gap, the footer line 28 px, 4 px between rows.
+ * The tile's parts: ± 44 px, the footer line 28 px — the hull's head row and gaps come with its area
+ * (`TileArea`).
  */
 export const SETPOINT_FIT = {
     glyphsPerFontPx: 3.6,
@@ -39,11 +41,8 @@ export const SETPOINT_FIT = {
     minFont: 12,
     stepFlat: 52,
     flatGap: 12,
-    tileHead: 20,
     stepTile: 44,
-    tileGap: 6,
     tileLine: 28,
-    tileRowGap: 4,
     /** The least set-point line the tile keeps beside its footer (a 20 px set-point). */
     tileMainLine: 24,
     /** The dial (320-unit box): the ring's inner edge (radius 118 − half the stroke of 14). */
@@ -66,33 +65,10 @@ export const THERMOSTAT_THRESHOLDS = {
     /** Quer with the operating-mode segment (design height 300). */
     querModes: { width: 0, height: 236 },
     /**
-     * The tile's ± (design width 220): from the spec's width on, and as high as the head row and ±
-     * need (ADR-0122: the box holds what the stage shows).
+     * The tile's ± (design width 220), in the tile's area: from the spec's width on, and as high as
+     * ± (ADR-0122: the box holds what the stage shows).
      */
-    tileButtons: {
-        width: 196,
-        height: SETPOINT_FIT.tileHead + SETPOINT_FIT.tileRowGap + SETPOINT_FIT.stepTile,
-    },
-    /** The tile's footer line: below the head row and the least set-point line. */
-    tileFooter: {
-        width: 0,
-        height:
-            SETPOINT_FIT.tileHead +
-            SETPOINT_FIT.tileRowGap +
-            SETPOINT_FIT.tileMainLine +
-            SETPOINT_FIT.tileRowGap +
-            SETPOINT_FIT.tileLine,
-    },
-    /** The tile's footer line beside ±: the main row is as high as ±. */
-    tileFooterButtons: {
-        width: 0,
-        height:
-            SETPOINT_FIT.tileHead +
-            SETPOINT_FIT.tileRowGap +
-            SETPOINT_FIT.stepTile +
-            SETPOINT_FIT.tileRowGap +
-            SETPOINT_FIT.tileLine,
-    },
+    tileButtons: { width: 196, height: SETPOINT_FIT.stepTile },
 } as const satisfies Record<string, LeastBox>;
 
 /** Where a set-point sized by its box stands: Kompakt's row beside ±, or the tile. */
@@ -101,24 +77,26 @@ export type SetpointPlace = 'kompakt' | 'tile';
 /**
  * The set-point's font size in a place that sizes it by its box: the design's 48 px while there is
  * room, else as large as the place holds it (ADR-0122: the stage's box holds its parts) — in
- * Kompakt the row beside ±, in the tile the row beside ± and the height left by the head row and
- * the footer line.
+ * Kompakt the row of the Content-Box beside ±, in the tile the row of its area beside ± and the
+ * height the footer line leaves.
  *
  * @param place - The place.
- * @param box - The measured Content-Box.
+ * @param box - Kompakt: the measured Content-Box; the tile: the area the hull leaves it.
  * @param buttons - Whether ± stand beside the set-point.
  * @returns The font size in px.
  */
-export function thermostatSetpointFont(place: SetpointPlace, box: MeasuredBox, buttons: boolean): number {
+export function thermostatSetpointFont(place: 'kompakt', box: MeasuredBox, buttons: boolean): number;
+export function thermostatSetpointFont(place: 'tile', box: TileArea, buttons: boolean): number;
+export function thermostatSetpointFont(place: SetpointPlace, box: MeasuredBox | TileArea, buttons: boolean): number {
     const fit = SETPOINT_FIT;
     let font: number;
     if (place === 'kompakt') {
         font = (box.width - (buttons ? 2 * fit.stepFlat + 2 * fit.flatGap : 0)) / fit.glyphsPerFontPx;
     } else {
-        const width = box.width - (buttons ? 2 * fit.stepTile + 2 * fit.tileGap : 0);
-        const footer = thermostatTile(box, buttons).footer ? fit.tileRowGap + fit.tileLine : 0;
-        const height = box.height - fit.tileHead - fit.tileRowGap - footer;
-        font = Math.min(width / fit.glyphsPerFontPx, height / fit.lineHeight);
+        const area = box as TileArea;
+        const width = area.width - (buttons ? 2 * fit.stepTile + 2 * area.controlGap : 0);
+        const footer = thermostatTile(area, buttons).footer ? area.rowGap + fit.tileLine : 0;
+        font = Math.min(width / fit.glyphsPerFontPx, (area.height - footer) / fit.lineHeight);
     }
     return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
 }
@@ -186,18 +164,17 @@ export interface ThermostatTileParts {
 }
 
 /**
- * The parts the tile's box holds.
+ * The parts the tile's area holds: ± from their least box, the footer line below the main row —
+ * as high as ±, else the least set-point line — and the hull's gap.
  *
- * @param box - The measured Content-Box.
+ * @param area - The area the hull leaves the tile's content.
  * @param stepping - Whether the set-point has ± at all (writable); without, the footer needs less.
  * @returns Which optional parts to show.
  */
-export function thermostatTile(box: MeasuredBox, stepping = true): ThermostatTileParts {
-    const buttons = stepping && reaches(box, THERMOSTAT_THRESHOLDS.tileButtons);
-    return {
-        buttons,
-        footer: reaches(box, buttons ? THERMOSTAT_THRESHOLDS.tileFooterButtons : THERMOSTAT_THRESHOLDS.tileFooter),
-    };
+export function thermostatTile(area: TileArea, stepping = true): ThermostatTileParts {
+    const buttons = stepping && reaches(area, THERMOSTAT_THRESHOLDS.tileButtons);
+    const mainRow = buttons ? SETPOINT_FIT.stepTile : SETPOINT_FIT.tileMainLine;
+    return { buttons, footer: area.height >= mainRow + area.rowGap + SETPOINT_FIT.tileLine };
 }
 
 /**
@@ -272,19 +249,19 @@ export type ThermostatPlan = ThermostatStagePlan | ThermostatMiniPlan;
  * dial's size and font, the set-point's font and the tile's parts.
  *
  * @param stage - The effective stage (Mini for the tile).
- * @param box - The measured Content-Box.
+ * @param box - The measured Content-Box; for the tile the area the hull leaves it.
  * @param writable - Whether the set-point is writable: only then it has ±.
  * @returns The plan.
  */
-export function thermostatPlan(stage: 'mini', box: MeasuredBox, writable: boolean): ThermostatMiniPlan;
+export function thermostatPlan(stage: 'mini', box: TileArea, writable: boolean): ThermostatMiniPlan;
 export function thermostatPlan(stage: DrawnStage, box: MeasuredBox, writable: boolean): ThermostatStagePlan;
-export function thermostatPlan(stage: SizeStage, box: MeasuredBox, writable: boolean): ThermostatPlan;
-export function thermostatPlan(stage: SizeStage, box: MeasuredBox, writable: boolean): ThermostatPlan {
+export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, writable: boolean): ThermostatPlan {
     if (stage === 'mini') {
-        const tile = thermostatTile(box, writable);
+        const area = box as TileArea;
+        const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
-            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', box, tile.buttons) },
+            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile.buttons) },
         };
     }
     const arrangement = thermostatArrangement(stage, box);
