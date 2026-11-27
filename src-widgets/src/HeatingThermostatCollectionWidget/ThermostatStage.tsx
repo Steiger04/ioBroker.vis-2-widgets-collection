@@ -12,9 +12,10 @@
  * - Groß: Kartenkopf (row, with symbol and Unterzeile); dial; hint line; pills, operating-mode
  *   segment, readings.
  * - Mittel: Kartenkopf (row); dial; the hint line only for a Meldung.
- * - Quer: Kartenkopf (stacked) with a Meldung, else the actual temperature, beside the big
- *   set-point in the theme's h3; the operating-mode segment below, from sufficient height.
- * - Kompakt: Kartenkopf (row); big set-point sized to its row; a Meldung, else the actual
+ * - Quer: the head block at the top — Kartenkopf (stacked) with a Meldung, else the actual
+ *   temperature, beside the big set-point in the theme's h3 at the Maßstab; the operating-mode
+ *   segment flush at the bottom, where it fits.
+ * - Kompakt: Kartenkopf (row); big set-point at the Maßstab; a Meldung, else the actual
  *   temperature.
  * - The tile: the set-point sized to the tile, ± and the footer line (a Meldung, else the actual
  *   temperature) where they fit.
@@ -103,8 +104,12 @@ const fixedRegion = (name: string, gap: number, children: ReactNode, column: num
     </Box>
 );
 
-/** The middle region: takes the rest and scrolls, `gap` spacing units between its places. */
-const middleRegion = (gap: number, children: ReactNode, centred = true): ReactElement => (
+/**
+ * The middle region: takes the rest and scrolls, `gap` spacing units between its places — centred,
+ * or at its bottom: the rest of the height stands above its first place, which still scrolls from
+ * the top when the region is too low (a margin, not the flex alignment, which would cut it off).
+ */
+const middleRegion = (gap: number, children: ReactNode, place: 'center' | 'end' = 'center'): ReactElement => (
     <Box
         data-heating-region="middle"
         sx={{
@@ -114,9 +119,10 @@ const middleRegion = (gap: number, children: ReactNode, centred = true): ReactEl
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: centred ? 'center' : 'flex-start',
+            justifyContent: place === 'center' ? 'center' : 'flex-start',
             alignItems: 'stretch',
             gap,
+            ...(place === 'end' ? { '& > :first-of-type': { marginTop: 'auto' } } : {}),
         }}
     >
         {children}
@@ -190,7 +196,7 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                         </Box>
                         {slot('setpoint', parts.setpoint(plan.setpointFont))}
                     </Box>
-                    {middleRegion(gaps.region, plan.modes ? slot('modes', parts.modes) : null, false)}
+                    {middleRegion(gaps.region, plan.modes ? slot('modes', parts.modes) : null, 'end')}
                 </>
             );
             break;

@@ -66,3 +66,33 @@ export function scaled<Measures extends Readonly<Record<string, number>>>(
         readonly [Key in keyof Measures]: number;
     };
 }
+
+/** The step the Maßstab is found in: a thousandth, so the plans stay stable across tiny box changes. */
+const SCALE_STEP = 1000;
+
+/**
+ * The largest Maßstab up to {@link SCALE_BOUNDS.max} at which an arrangement fits its box — the
+ * arrangement takes the room its box gives (Nr. 1). The type names the fit: whether its parts at a
+ * Maßstab fit the box; it must hold for every smaller Maßstab once it holds for one.
+ *
+ * @param fits - Whether the arrangement's parts at a Maßstab fit its box.
+ * @returns The Maßstab in thousandths, rounded down; 0 when not even the smallest fits. The type
+ *   compares it with its least Maßstab ({@link leastScale}) to decide whether the arrangement holds.
+ */
+export function fittingScale(fits: (scale: number) => boolean): number {
+    let low = 0;
+    let high = SCALE_BOUNDS.max * SCALE_STEP;
+    if (fits(high / SCALE_STEP)) {
+        return SCALE_BOUNDS.max;
+    }
+    // `low` fits (or is 0), `high` does not.
+    while (high - low > 1) {
+        const middle = Math.floor((low + high) / 2);
+        if (fits(middle / SCALE_STEP)) {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    return low / SCALE_STEP;
+}

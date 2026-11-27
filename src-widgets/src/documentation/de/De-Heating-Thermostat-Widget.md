@@ -197,11 +197,13 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | ------- | --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Voll    | Groß      | 376 × 576 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
 | Voll    | Mittel    | 272 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
-| Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
-| Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
+| Einfach | Quer      | 371 × 91 px      | Kopfblock oben (Kopf gestapelt mit Hinweiszeile, ± und großer Sollwert); Betriebsart-Segment unten, sobald es passt (ab 138 px Höhe)            |
+| Einfach | Kompakt   | 232 × 116 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
 | Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
 
 Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
+
+In Einfach zeichnen Quer und Kompakt ihre Teile im Maßstab: Sollwert, ± und Abstände wachsen mit der Fläche bis zum Doppelten des Entwurfs, Kartenkopf und Hinweiszeile gedämpft. Es gewinnt die Anordnung, die größer zeichnen kann — ein flaches, breites Widget zeigt Quer, ein schmales oder hohes Kompakt. Quer zeigt das Betriebsart-Segment, sobald es passt; dann teilen sich Kopfblock und Segment die Höhe, und Sollwert und ± wachsen mit der Höhe dazwischen. Kompakt richtet Sollwert und ± nach Breite und Höhe. Unter den genannten Flächen wären die ± kleiner als 40 px; dann zeigt das Widget die Kachel.
 
 ### Ansicht
 

@@ -1074,9 +1074,12 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
             '[data-heating-slot="setpoint"] [data-heating-setpoint]',
         )!;
         const font = parseFloat(getComputedStyle(setpoint).fontSize);
+        const step = parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
 
-        // „21,0 °C“ measured 161 px wide at 48 px of font; ± 52 px with 12 px of gap on both sides.
-        expect(font * (161 / 48) + 2 * 52 + 2 * 12).toBeLessThanOrEqual(274);
+        // „21,0 °C“ measured 161 px wide at 48 px of font; ± with 12 px of gap at the design, both at
+        // the set-point's Maßstab (font / 48).
+        expect(step).toBeGreaterThanOrEqual(40);
+        expect(font * (161 / 48) + 2 * step + 2 * 12 * (font / 48)).toBeLessThanOrEqual(274);
     });
 
     it('draws the set-point of the tile so that ± and the footer fit (240 × 110 and 220 × 110 px outer)', async () => {
@@ -1356,10 +1359,52 @@ describe('HeatingThermostatCollectionWidget: operating mode', () => {
         const at = async (box: ContentBox): Promise<string[]> =>
             modeKeys(await mount(statusData(), reporting({ betriebsart: 0 }), box));
 
-        expect(await at({ width: 456, height: 240 })).toEqual(['auto', 'manuell', 'boost']);
-        expect(await at({ width: 456, height: 200 })).toEqual([]);
+        expect(await at({ width: 741, height: 194 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 741, height: 138 })).toEqual(['auto', 'manuell', 'boost']);
+        expect(await at({ width: 741, height: 137 })).toEqual([]);
         expect(await at({ width: 300, height: 400 })).toEqual([]);
         expect(await at({ width: 256, height: 150 })).toEqual([]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Quer at its Maßstab', () => {
+    /** The Raumthermostat in a box that draws Quer. */
+    const querAt = async (box: ContentBox): Promise<HTMLElement> => {
+        const container = await mount(statusData(), reporting({ soll: 21, betriebsart: 0 }), box);
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'quer',
+        );
+        return container;
+    };
+    const stepOf = (container: HTMLElement): number => parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
+    const setpointSize = (container: HTMLElement): string =>
+        getComputedStyle(
+            container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!,
+        ).fontSize;
+
+    it('stands the head block at the top and the operating-mode segment flush at the bottom', async () => {
+        const container = await querAt({ width: 741, height: 194 });
+        const head = container.querySelector('[data-heating-region="head"]')!;
+        const middle = container.querySelector('[data-heating-region="middle"]')!;
+        const modes = middle.querySelector<HTMLElement>('[data-heating-slot="modes"]')!;
+
+        expect(head.nextElementSibling).toBe(middle);
+        expect(head.contains(container.querySelector('[data-heating-slot="setpoint"]'))).toBe(true);
+        // The rest of the height above the segment: it stands at the bottom, and scrolls from the top
+        // when the box is too low.
+        expect(getComputedStyle(modes).marginTop).toBe('auto');
+        expect(getComputedStyle(middle).justifyContent).toBe('flex-start');
+    });
+
+    it('draws the set-point and ± larger with more height', async () => {
+        const low = await querAt({ width: 741, height: 160 });
+        const high = await querAt({ width: 741, height: 194 });
+
+        // 741 × 160: Maßstab 1.028 with the segment; 741 × 194: 1.326.
+        expect(stepOf(low)).toBeCloseTo(52 * 1.028, 3);
+        expect(stepOf(high)).toBeCloseTo(52 * 1.326, 3);
+        expect(setpointSize(low)).toContain('1.028');
+        expect(setpointSize(high)).toContain('1.326');
     });
 });
 
