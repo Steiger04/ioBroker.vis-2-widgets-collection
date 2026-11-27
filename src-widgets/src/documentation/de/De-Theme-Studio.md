@@ -97,14 +97,14 @@ Gruppen: **Karte** und **Kopf & Fuß**, in der Reihenfolge des Panels. Die Schal
 
 ## Sektion Status & Text
 
-| Einstellung     | Theme-Pfad               | Wirkort                                                                                                                                            |
-| --------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fehlerfarbe     | `palette.error.main`     | Reihenfarbe 6 der Diagramm-Palette „Theme (auto)“ und Fehleranzeigen, z. B. die Fehlermeldung im ECharts-Widget und die rote Linie des Input-Felds |
-| Warnfarbe       | `palette.warning.main`   | Reihenfarbe 3 der Diagramm-Palette „Theme (auto)“ und Warnungen, z. B. die Tiefenwarnung im JSON-Table-Widget                                      |
-| Infofarbe       | `palette.info.main`      | Reihenfarbe 5 der Diagramm-Palette „Theme (auto)“                                                                                                  |
-| Erfolgsfarbe    | `palette.success.main`   | Reihenfarbe 4 der Diagramm-Palette „Theme (auto)“                                                                                                  |
-| Text (primär)   | `palette.text.primary`   | Standard aller Textfarben. Folgt ohne eigene Wahl der Primärfarbe, auch der des vis-2-Themes                                                       |
-| Text (sekundär) | `palette.text.secondary` | Nebentexte wie Einheiten, Beschriftungen und Hinweise; Standard der Achsentexte im Diagramm und des nicht gewählten Radio-Icons                    |
+| Einstellung     | Theme-Pfad               | Wirkort                                                                                                                                                                                                                                               |
+| --------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fehlerfarbe     | `palette.error.main`     | Reihenfarbe 6 der Diagramm-Palette „Theme (auto)“ und Fehleranzeigen, z. B. die Fehlermeldung im ECharts-Widget und die rote Linie des Input-Felds; in den Heizungs-Widgets Störungen und Hinweise ([Farben](De-Heating-Thermostat-Widget.md#farben)) |
+| Warnfarbe       | `palette.warning.main`   | Reihenfarbe 3 der Diagramm-Palette „Theme (auto)“ und Warnungen, z. B. die Tiefenwarnung im JSON-Table-Widget; in den Heizungs-Widgets Heizen (Wärme, keine Warnung)                                                                                  |
+| Infofarbe       | `palette.info.main`      | Reihenfarbe 5 der Diagramm-Palette „Theme (auto)“; in den Heizungs-Widgets kühl, z. B. ein offenes Fenster                                                                                                                                            |
+| Erfolgsfarbe    | `palette.success.main`   | Reihenfarbe 4 der Diagramm-Palette „Theme (auto)“                                                                                                                                                                                                     |
+| Text (primär)   | `palette.text.primary`   | Standard aller Textfarben. Folgt ohne eigene Wahl der Primärfarbe, auch der des vis-2-Themes                                                                                                                                                          |
+| Text (sekundär) | `palette.text.secondary` | Nebentexte wie Einheiten, Beschriftungen und Hinweise; Standard der Achsentexte im Diagramm und des nicht gewählten Radio-Icons                                                                                                                       |
 
 Gruppen: **Statusfarben** und **Text**. Die Zusammenfassung zählt die gesetzten Farben („x von 6 gesetzt“).
 

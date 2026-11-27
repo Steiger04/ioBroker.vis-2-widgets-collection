@@ -61,6 +61,19 @@ Liest der Assistent eine View, gibt der Host die gesetzten Daten jedes Widgets v
 2. Bitte den Assistenten, diese View zu lesen und das Widget als Muster zu nehmen.
 3. Nenne, was sich ändern soll: Datenpunkt, Titel, Farben oder Ziel-View.
 
+## Heizungs-Widgets
+
+Die Heizungs-Widgets bilden ein eigenes Set: Sein technischer Name lautet `vis-2-widgets-collection-heating`, in der Widget-Palette heißt die Gruppe „Widget-Sammlung · Heizung“. Der Assistent sieht nur den technischen Namen. Nenne die Set-ID deshalb wörtlich in jeder Anfrage, wie unter [Das Set nennen](#das-set-nennen) für `vis-2-widgets-collection` beschrieben. Erster Typ ist der [Raumthermostat](De-Heating-Thermostat-Widget.md).
+
+- „Welche Widgets bietet das Set `vis-2-widgets-collection-heating`?“
+- „Leg im Set `vis-2-widgets-collection-heating` einen Raumthermostat für das Bad an.“
+- „Lege in der View ‚Heizung‘ einen Raumthermostat aus dem Set `vis-2-widgets-collection-heating` für das Wandthermostat im Wohnzimmer an.“
+- „Stelle beim Raumthermostat ‚Bad‘ aus dem Set `vis-2-widgets-collection-heating` die Komforttemperatur auf 22 °C.“
+
+Laut seinem Leitfaden hat jede Bedeutung des Thermostats ein eigenes Datenpunkt-Feld, Pflicht ist nur der Sollwert `soll`. Das Vorfüllen der übrigen Bedeutungen läuft nur beim Pick im Editor, nicht beim Einfügen durch die KI: Der Assistent setzt jeden Datenpunkt selbst. Die Wertezuordnungen lässt er leer, das Widget liest sie aus dem Datenpunkt selbst. Den Raumnamen schreibt er in `bezeichnung`, Kopf- und Fußzeile bleiben leer, solange du sie nicht verlangst. Prüfe das eingefügte Widget und binde fehlende Bedeutungen im Panel nach.
+
+Das Theme der Heizungs-Widgets ist das der Collection: Der Eintrag für das [Theme per KI](#theme-per-ki) steht weiter im Set `vis-2-widgets-collection`.
+
 ## Theme per KI
 
 Der Assistent von vis-2 kann das Theme der Collection ändern: Farben, Schrift, Form und Widget-Rahmen aller Collection-Widgets, ohne dass du das [Theme-Studio](De-Theme-Studio.md) öffnest. Er bearbeitet dasselbe Theme wie das Studio. Das Theme gilt **für die ganze Installation**, nicht je Projekt oder View: Eine Änderung wirkt in jedem Projekt.

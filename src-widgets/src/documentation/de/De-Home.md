@@ -369,5 +369,6 @@ Die Widget Collection umfasst folgende Widgets:
 - [JSON Table Widget](De-JsonTable-Widget.md) - Tabellen-Widget für JSON-Daten mit Sortierung, Filterung und Seitenumbruch
 - [ECharts Widget](De-Echarts-Widget.md) - Diagramme (Linie, Balken, Punktwolke, Torte) mit vollem Konfigurator — History-Adapter oder JSON-Datenpunkt
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md) - Die JSON-Payload-Formate des ECharts-Widgets mit Beispielen
+- [Raumthermostat](De-Heating-Thermostat-Widget.md) - Heizung eines Raums: Sollwert mit Ring, Messwerte, Betriebsart und Boost; Palettengruppe „Widget-Sammlung · Heizung“
 - [Theme-Studio](De-Theme-Studio.md) - Collection-weiter Theme-Editor (Farben, Schrift, Form) für alle Widgets der Sammlung
 - [KI-Assistent](De-AI-Assistant.md) - Collection-Widgets mit dem KI-Assistenten von vis-2 oder einem externen MCP-Client bauen: Set nennen, Beispiel-Prompts, Vorlagen, Grenzen

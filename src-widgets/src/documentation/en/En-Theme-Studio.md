@@ -97,14 +97,14 @@ Groups: **Card** and **Header & footer**, in the order of the panel. The switche
 
 ## Status & text section
 
-| Setting          | Theme path               | Where it takes effect                                                                                                                                     |
-| ---------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Error color      | `palette.error.main`     | Series color 6 of the chart palette "Theme (auto)" and error indicators, e.g. the error message in the ECharts widget and the red line of the input field |
-| Warning color    | `palette.warning.main`   | Series color 3 of the chart palette "Theme (auto)" and warnings, e.g. the depth warning in the JSON table widget                                          |
-| Info color       | `palette.info.main`      | Series color 5 of the chart palette "Theme (auto)"                                                                                                        |
-| Success color    | `palette.success.main`   | Series color 4 of the chart palette "Theme (auto)"                                                                                                        |
-| Text (primary)   | `palette.text.primary`   | Default of all text colors. Follows the primary color until set, including that of the vis-2 theme                                                        |
-| Text (secondary) | `palette.text.secondary` | Secondary text such as units, captions and hints; default of the axis text in charts and of the unselected radio icon                                     |
+| Setting          | Theme path               | Where it takes effect                                                                                                                                                                                                                                   |
+| ---------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error color      | `palette.error.main`     | Series color 6 of the chart palette "Theme (auto)" and error indicators, e.g. the error message in the ECharts widget and the red line of the input field; in the heating widgets faults and notices ([Colors](En-Heating-Thermostat-Widget.md#colors)) |
+| Warning color    | `palette.warning.main`   | Series color 3 of the chart palette "Theme (auto)" and warnings, e.g. the depth warning in the JSON table widget; in the heating widgets heating (warmth, not a warning)                                                                                |
+| Info color       | `palette.info.main`      | Series color 5 of the chart palette "Theme (auto)"; in the heating widgets cool, e.g. an open window                                                                                                                                                    |
+| Success color    | `palette.success.main`   | Series color 4 of the chart palette "Theme (auto)"                                                                                                                                                                                                      |
+| Text (primary)   | `palette.text.primary`   | Default of all text colors. Follows the primary color until set, including that of the vis-2 theme                                                                                                                                                      |
+| Text (secondary) | `palette.text.secondary` | Secondary text such as units, captions and hints; default of the axis text in charts and of the unselected radio icon                                                                                                                                   |
 
 Groups: **Status colors** and **Text**. The summary counts the set colors ("x of 6 set").
 
