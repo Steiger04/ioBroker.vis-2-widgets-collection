@@ -11,12 +11,16 @@
  * stand with the binding, after the main Bedeutung, not in the host's fixed group (ADR-0123 Nr. 8;
  * `name` is a host attribute, hence `bezeichnung`).
  *
+ * Below each id field of a Bedeutung with fixed values stands its Wertezuordnung
+ * (`lib/heating/mappingField`), shown while the Bedeutung is bound.
+ *
  * The entry number is the seam for the list editor of the house types (ADR-0121): with entry 3
  * every stored key carries the number before its suffix (`soll3`, `soll3Object`). Single-room
  * types use the unnumbered case. The valve list is widget-wide, never per entry
  * (`lib/heating/valveListFields`).
  */
 import { createIdField } from '../commonObjectFields';
+import { meaningMappingField } from './mappingField';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
 
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
@@ -35,18 +39,31 @@ export const meaningIdField = (field: MeaningField, entry?: number): RxWidgetInf
 });
 
 /**
+ * The id field of one Bedeutung and, where it has fixed values, its Wertezuordnung below it.
+ *
+ * @param field - The Bedeutung's field name.
+ * @param entry - The entry number; none for the unnumbered case.
+ * @returns One or two fields.
+ */
+const meaningFields = (field: MeaningField, entry?: number): RxWidgetInfoAttributesField[] => {
+    const mapping = meaningMappingField(field, entry);
+    return mapping ? [meaningIdField(field, entry), mapping] : [meaningIdField(field, entry)];
+};
+
+/**
  * Builds the binding fields of a heating type.
  *
  * @param subset - The type's subset of the catalogue.
  * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
- * @returns The main Bedeutung, Bezeichnung, Unterzeile, then the other Bedeutungen in subset order.
+ * @returns The main Bedeutung, Bezeichnung, Unterzeile, then the other Bedeutungen in subset order,
+ *   each Wertezuordnung right after its id field.
  */
 export function heatingBindingFields(subset: MeaningSubset, entry?: number): RxWidgetInfoAttributesField[] {
     const number = entry ?? '';
     return [
-        meaningIdField(subset.main, entry),
+        ...meaningFields(subset.main, entry),
         { name: `bezeichnung${number}`, type: 'text', label: 'heating_bezeichnung' },
         { name: `unterzeile${number}`, type: 'text', label: 'heating_unterzeile' },
-        ...subset.meanings.filter(field => field !== subset.main).map(field => meaningIdField(field, entry)),
+        ...subset.meanings.filter(field => field !== subset.main).flatMap(field => meaningFields(field, entry)),
     ];
 }
