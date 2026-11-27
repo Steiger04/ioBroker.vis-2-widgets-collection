@@ -407,7 +407,7 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
         ['Mittel', { width: 296, height: 400 }, 'dial', false],
         ['Quer', { width: 500, height: 150 }, 'hint', false],
         ['Kompakt', { width: 280, height: 180 }, 'hint', false],
-        ['the tile with its footer', { width: 156, height: 66 }, 'tile', false],
+        ['the tile with its footer', { width: 156, height: 80 }, 'tile', false],
     ])('%s: actual temperature in its place, the readings bar only in Groß', async (_case, box, place, bar) => {
         const container = await mount(neutralData(), allValues(), box);
 
@@ -734,7 +734,7 @@ describe('HeatingThermostatCollectionWidget: hint line', () => {
     );
 
     it('the tile footer shows a Meldung instead of the actual temperature', async () => {
-        const box = { width: 156, height: 66 };
+        const box = { width: 156, height: 80 };
         const footer = (container: HTMLElement): Element | null =>
             container.querySelector(
                 '[data-heating-tile] [data-heating-hint], [data-heating-tile] [data-heating-actual]',
@@ -1060,13 +1060,13 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         for (const box of [
             { width: 456, height: 120 },
             { width: 256, height: 150 },
-            { width: 196, height: 66 },
+            { width: 196, height: 68 },
         ]) {
             const container = await mount(statusData(), reporting({ soll: 21 }), box);
             expect([stepButton(container, 'down'), stepButton(container, 'up')]).not.toContain(null);
         }
 
-        const narrowTile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 66 });
+        const narrowTile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 68 });
         expect(stepButton(narrowTile, 'up')).toBeNull();
     });
 
@@ -1079,8 +1079,23 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         expect(font * (161 / 48) + 2 * 52 + 2 * 12).toBeLessThanOrEqual(274);
     });
 
+    it('draws the set-point of the tile so that ± and the footer fit (240 × 110 and 220 × 110 px outer)', async () => {
+        // „21,0 °C“ measured 161 px wide at 48 px of font, its line 1.2 × the font; ± 44 px with 6 px
+        // of gap; head row 20 px, footer line 28 px, 4 px between the rows.
+        const fontOf = (container: HTMLElement): number =>
+            parseFloat(getComputedStyle(container.querySelector<HTMLElement>('[data-heating-tile] [data-heating-setpoint]')!).fontSize);
+
+        const withButtons = await mount(statusData(), reporting({ soll: 21 }), { width: 214, height: 84 });
+        expect(stepButton(withButtons, 'up')).not.toBeNull();
+        expect(fontOf(withButtons) * (161 / 48) + 2 * 44 + 2 * 6).toBeLessThanOrEqual(214);
+
+        const withFooter = await mount(statusData(), reporting({ soll: 21 }), { width: 194, height: 84 });
+        expect(withFooter.querySelector('[data-heating-tile] [data-heating-actual]')).not.toBeNull();
+        expect(20 + 4 + 1.2 * fontOf(withFooter) + 4 + 28).toBeLessThanOrEqual(84);
+    });
+
     it('steps from the tile', async () => {
-        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 66 });
+        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 68 });
 
         await press(stepButton(tile, 'down'));
         await debounced();
@@ -1231,7 +1246,7 @@ describe('HeatingThermostatCollectionWidget: set-point not writable', () => {
 
         for (const box of [
             { width: 456, height: 120 },
-            { width: 196, height: 66 },
+            { width: 196, height: 68 },
         ]) {
             expect(stepButton(await mount(data, values, box), 'up')).toBeNull();
         }

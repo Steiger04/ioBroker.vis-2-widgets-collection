@@ -20,6 +20,30 @@ interface LeastBox {
     readonly height: number;
 }
 
+/**
+ * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
+ * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
+ * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
+ * The tile: its head row 20 px, ± 44 px with 6 px of gap, the footer line 28 px, 4 px between rows.
+ */
+export const SETPOINT_FIT = {
+    glyphsPerFontPx: 3.6,
+    lineHeight: 1.2,
+    /** The design size of the set-point. */
+    maxFont: 48,
+    /** Below this the set-point no longer shrinks. */
+    minFont: 12,
+    stepFlat: 52,
+    flatGap: 12,
+    tileHead: 20,
+    stepTile: 44,
+    tileGap: 6,
+    tileLine: 28,
+    tileRowGap: 4,
+    /** The least set-point line the tile keeps beside its footer (a 20 px set-point). */
+    tileMainLine: 24,
+} as const;
+
 /** The design's outer thresholds, converted to the Content-Box. */
 export const THERMOSTAT_THRESHOLDS = {
     /** Voll, arrangement Groß (design 400 × 640). */
@@ -32,44 +56,62 @@ export const THERMOSTAT_THRESHOLDS = {
     kompakt: { width: 256, height: 146 },
     /** Quer with the operating-mode segment (design height 300). */
     querModes: { width: 0, height: 236 },
-    /** The tile's ± (design 220 × 110). */
-    tileButtons: { width: 196, height: 46 },
-    /** The tile's footer line (design height 130). */
-    tileFooter: { width: 0, height: 66 },
+    /**
+     * The tile's ± (design width 220): from the spec's width on, and as high as the head row and ±
+     * need (ADR-0122: the box holds what the stage shows).
+     */
+    tileButtons: {
+        width: 196,
+        height: SETPOINT_FIT.tileHead + SETPOINT_FIT.tileRowGap + SETPOINT_FIT.stepTile,
+    },
+    /** The tile's footer line: below the head row and the least set-point line. */
+    tileFooter: {
+        width: 0,
+        height:
+            SETPOINT_FIT.tileHead +
+            SETPOINT_FIT.tileRowGap +
+            SETPOINT_FIT.tileMainLine +
+            SETPOINT_FIT.tileRowGap +
+            SETPOINT_FIT.tileLine,
+    },
+    /** The tile's footer line beside ±: the main row is as high as ±. */
+    tileFooterButtons: {
+        width: 0,
+        height:
+            SETPOINT_FIT.tileHead +
+            SETPOINT_FIT.tileRowGap +
+            SETPOINT_FIT.stepTile +
+            SETPOINT_FIT.tileRowGap +
+            SETPOINT_FIT.tileLine,
+    },
 } as const satisfies Record<string, LeastBox>;
 
-/**
- * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
- * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
- * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
- */
-export const SETPOINT_FIT = {
-    glyphsPerFontPx: 3.6,
-    lineHeight: 1.2,
-    /** The design size of the set-point. */
-    maxFont: 48,
-    /** Below this the set-point no longer shrinks. */
-    minFont: 12,
-    stepFlat: 52,
-    flatGap: 12,
-} as const;
-
-/** Where a set-point sized by its box stands. */
-export type SetpointPlace = 'kompakt';
+/** Where a set-point sized by its box stands: Kompakt's row beside ±, or the tile. */
+export type SetpointPlace = 'kompakt' | 'tile';
 
 /**
- * The set-point's font size in a place that sizes it by its box: the design's 48 px while the row
- * has room, else as large as the row beside ± holds it (ADR-0122: the stage's box holds its parts).
+ * The set-point's font size in a place that sizes it by its box: the design's 48 px while there is
+ * room, else as large as the place holds it (ADR-0122: the stage's box holds its parts) — in
+ * Kompakt the row beside ±, in the tile the row beside ± and the height left by the head row and
+ * the footer line.
  *
- * @param _place - The place.
+ * @param place - The place.
  * @param box - The measured Content-Box.
  * @param buttons - Whether ± stand beside the set-point.
  * @returns The font size in px.
  */
-export function thermostatSetpointFont(_place: SetpointPlace, box: MeasuredBox, buttons: boolean): number {
-    const { glyphsPerFontPx, maxFont, minFont, stepFlat, flatGap } = SETPOINT_FIT;
-    const room = box.width - (buttons ? 2 * stepFlat + 2 * flatGap : 0);
-    return Math.max(minFont, Math.min(maxFont, Math.floor(room / glyphsPerFontPx)));
+export function thermostatSetpointFont(place: SetpointPlace, box: MeasuredBox, buttons: boolean): number {
+    const fit = SETPOINT_FIT;
+    let font: number;
+    if (place === 'kompakt') {
+        font = (box.width - (buttons ? 2 * fit.stepFlat + 2 * fit.flatGap : 0)) / fit.glyphsPerFontPx;
+    } else {
+        const width = box.width - (buttons ? 2 * fit.stepTile + 2 * fit.tileGap : 0);
+        const footer = thermostatTile(box, buttons).footer ? fit.tileRowGap + fit.tileLine : 0;
+        const height = box.height - fit.tileHead - fit.tileRowGap - footer;
+        font = Math.min(width / fit.glyphsPerFontPx, height / fit.lineHeight);
+    }
+    return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
 }
 
 /** An arrangement of the Raumthermostat within its stage. */
@@ -138,12 +180,16 @@ export interface ThermostatTileParts {
  * The parts the tile's box holds.
  *
  * @param box - The measured Content-Box.
+ * @param stepping - Whether the set-point has ± at all (writable); without, the footer needs less.
  * @returns Which optional parts to show.
  */
-export const thermostatTile = (box: MeasuredBox): ThermostatTileParts => ({
-    buttons: reaches(box, THERMOSTAT_THRESHOLDS.tileButtons),
-    footer: reaches(box, THERMOSTAT_THRESHOLDS.tileFooter),
-});
+export function thermostatTile(box: MeasuredBox, stepping = true): ThermostatTileParts {
+    const buttons = stepping && reaches(box, THERMOSTAT_THRESHOLDS.tileButtons);
+    return {
+        buttons,
+        footer: reaches(box, buttons ? THERMOSTAT_THRESHOLDS.tileFooterButtons : THERMOSTAT_THRESHOLDS.tileFooter),
+    };
+}
 
 /**
  * The dial's edge length in an arrangement of Voll: the design's dial size, its outer sizes taken

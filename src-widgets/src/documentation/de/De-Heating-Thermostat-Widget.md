@@ -198,9 +198,9 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Voll    | Mittel    | 276 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
 | Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
 | Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
-| Mini    | Kachel    | darunter         | Name, Statuszeichen, Sollwert; ± ab 196 × 46 px; Fußzeile mit Ist oder Meldung ab 66 px Höhe                                                    |
+| Mini    | Kachel    | darunter         | Name, Statuszeichen, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px                                 |
 
-Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Bewegungen (Puls des heizt-Punkts, Übergänge) entfallen, wenn das System reduzierte Bewegung verlangt.
+Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. In Kompakt und in der Kachel wird der Sollwert kleiner, wenn die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Bewegungen (Puls des heizt-Punkts, Übergänge) entfallen, wenn das System reduzierte Bewegung verlangt.
 
 ### Ansicht
 

@@ -62,6 +62,7 @@ import {
     thermostatQuerModes,
     thermostatSetpointFont,
     thermostatStage,
+    thermostatTile,
     SETPOINT_FIT,
     type ThermostatArrangement,
 } from './thermostatStages';
@@ -89,7 +90,7 @@ const FULL_SIZE = { width: 420, height: 700 } as const;
 const DIMMED_OPACITY = 0.4;
 
 /** The ± edge length beside the big set-point and in the tile (the design's). */
-const STEP_BUTTON = { flat: SETPOINT_FIT.stepFlat, tile: 44 } as const;
+const STEP_BUTTON = { flat: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile } as const;
 
 /** A stored number, if it is one. */
 const numberOf = (value: unknown): number | undefined =>
@@ -339,7 +340,12 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         readings: readings.length ? <ReadingsBar readings={readings} /> : null,
         hint: arrangement === 'mini' ? null : hintFor(arrangement),
         tile: {
-            main: dimmed(setpoint),
+            // The tile sizes the set-point to the room ± and the footer line leave.
+            main: dimmed(
+                setpointAt(
+                    thermostatSetpointFont('tile', box, thermostatTile(box, setpointWrite.writable).buttons),
+                ),
+            ),
             decrease: stepButton('down', STEP_BUTTON.tile),
             increase: stepButton('up', STEP_BUTTON.tile),
             line: message ? (

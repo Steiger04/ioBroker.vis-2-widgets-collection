@@ -202,7 +202,7 @@ export default function ThermostatStage({ arrangement, querModes, parts }: Therm
  * @returns What the tile hull shows below its head.
  */
 export function thermostatTileContent(parts: ThermostatParts, box: MeasuredBox): TileContent {
-    const fits = thermostatTile(box);
+    const fits = thermostatTile(box, parts.tile.decrease != null);
     return {
         main: parts.tile.main,
         start: fits.buttons ? parts.tile.decrease : null,
