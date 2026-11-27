@@ -52,6 +52,16 @@ export function leastScale(needs: ScaleNeeds): number {
 }
 
 /**
+ * A text size held legible: never below {@link SCALE_BOUNDS.minText}. Texts that follow the Maßstab
+ * in full stop shrinking there instead of bounding the Maßstab — so the least Maßstab is set by ±
+ * alone, and small design texts (labels of 11.5 px) do not lift it to nearly the design.
+ *
+ * @param px - The text size at the factor, in px.
+ * @returns The text size, at least the bound.
+ */
+export const legible = (px: number): number => Math.max(SCALE_BOUNDS.minText, px);
+
+/**
  * Design measures at a factor: every measure — px or spacing units — times the factor.
  *
  * @param design - The design's measures.

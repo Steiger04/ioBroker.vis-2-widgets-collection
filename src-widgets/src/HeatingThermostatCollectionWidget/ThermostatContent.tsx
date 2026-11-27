@@ -205,12 +205,15 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             writes[ring.field](next, { immediate: true });
         }
     };
-    const stepButton = (direction: StepKey, sizes: ThermostatSizes): ReactNode =>
+    const stepButton = (
+        direction: StepKey,
+        { step: size, stepIcon }: Pick<ThermostatSizes, 'step' | 'stepIcon'>,
+    ): ReactNode =>
         steps ? (
             <StepButton
                 direction={direction}
-                size={sizes.step}
-                iconSize={sizes.stepIcon}
+                size={size}
+                iconSize={stepIcon}
                 disabled={steps[direction].locked}
                 onClick={() => step(direction)}
             />
@@ -250,14 +253,15 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     // All parts for every arrangement alike, at the sizes of the plan of the box; the arrangement
     // (`ThermostatStage`) alone decides which part stands where (ADR-0122 Nachtrag K7).
     const partsAt = (sizes: ThermostatSizes): ThermostatParts => {
-        const actual =
+        const actualAt = (size: number, gap: number): ReactNode =>
             actualText === undefined ? null : (
                 <ActualTemperature
                     text={actualText}
-                    size={sizes.actual}
-                    gap={sizes.gaps.actual}
+                    size={size}
+                    gap={gap}
                 />
             );
+        const actual = actualAt(sizes.actual, sizes.gaps.actual);
         return {
             head: (form, full) => (
                 <Kartenkopf
@@ -271,11 +275,12 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                         : {})}
                 />
             ),
-            dial: ({ size, font }) =>
+            // The dial's instrument (set-point, ±, actual temperature) follows the dial's own factor.
+            dial: dial =>
                 dimmed(
                     <SetpointDial
-                        size={size}
-                        gap={sizes.gaps.dial}
+                        size={dial.size}
+                        gap={dial.gap}
                         scale={scale}
                         value={shown}
                         disabled={!ring || ring.locked}
@@ -285,14 +290,14 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                         buttons={
                             steps ? (
                                 <>
-                                    {stepButton('down', sizes)}
-                                    {stepButton('up', sizes)}
+                                    {stepButton('down', dial)}
+                                    {stepButton('up', dial)}
                                 </>
                             ) : null
                         }
                     >
-                        {setpointAt(font)}
-                        {actual}
+                        {setpointAt(dial.font)}
+                        {actualAt(dial.actual, dial.actualGap)}
                     </SetpointDial>,
                 ),
             setpoint: font =>

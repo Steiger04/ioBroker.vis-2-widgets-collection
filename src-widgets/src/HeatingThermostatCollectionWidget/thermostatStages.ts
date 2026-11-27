@@ -9,22 +9,24 @@
  * inset 8 px, base padding 2 × 8 px) and 64 px of height (the same plus the header and the footer
  * line flat at 2 × 20 px). The rule reads the box inside the Inhaltsabstand (ADR-0122 Nachtrag
  * 2026-11-27, standard 2 × 12 px), so a widget dropped at the start size 440 × 700 px (≈ 416 × 636 px
- * of Content-Box, 392 × 612 px inside the inset) starts in Voll/Groß as in the design. Voll begins
- * at Mittel, 272 × 376 px — the narrowest grid section (296 px) inside the standard Inhaltsabstand,
- * narrower than the design's 300 px outer, and 11 grid rows (632 px). The box after the frame counts
- * without correction (Nr. 4): a large padding, Rahmenvorgabe or Inhaltsabstand may move the widget
- * one stage down.
+ * of Content-Box, 392 × 612 px inside the inset) starts in Voll/Groß as in the design. Voll holds
+ * while one of its arrangements holds its whole content at the least Maßstab (ADR-0122 Nachtrag
+ * „Maßstab und Anordnungswahl“ Nr. 6, `vollHolds`): Mittel from 247 × 317 px — the narrowest grid
+ * section (296 px, 272 px inside the standard Inhaltsabstand) stays Voll. The box after the frame
+ * counts without correction (Nr. 4): a large padding, Rahmenvorgabe or Inhaltsabstand may move the
+ * widget one stage down.
  *
  * The content draws by one plan (`thermostatPlan`): the helpers below are its pieces, each size
  * computed once there. The plan names the arrangement's Maßstab (ADR-0122 Nachtrag „Maßstab und
  * Anordnungswahl“, `lib/heating/scaleRule`) and the sizes of every part from it
  * (`thermostatSizes`): ±, set-point, actual temperature, Kartenkopf and hint line (damped), pills,
- * readings and gaps; the parts set no size of their own. Every arrangement draws at Maßstab 1 for
- * now — the design's sizes.
+ * readings and gaps; the parts set no size of their own. Voll draws at the largest Maßstab its box
+ * holds, its dial filling the room the other parts leave (see „Voll“ below); Einfach and the tile
+ * draw at Maßstab 1 for now — the design's sizes.
  */
 
 import { kartenkopfSizes, pillSizes, type KartenkopfSizes, type PillSizes } from '../lib/heating/partSizes';
-import { headScale, scaled } from '../lib/heating/scaleRule';
+import { headScale, leastScale, legible, SCALE_BOUNDS, scaled } from '../lib/heating/scaleRule';
 import type { TileArea } from '../lib/heating/SizeStages';
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
 
@@ -125,11 +127,21 @@ export interface ThermostatSizes {
     readonly gaps: ThermostatGaps;
 }
 
+/** The hint line with its text held legible. */
+const legibleHint = (hint: HintLineSizes): HintLineSizes => ({ ...hint, font: legible(hint.font) });
+
+/** The readings bar with its texts held legible. */
+const legibleReadings = (readings: ReadingSizes): ReadingSizes => ({
+    ...readings,
+    value: legible(readings.value),
+    label: legible(readings.label),
+});
+
 /**
  * The sizes of all parts at a Maßstab: the instrument (±, set-point, actual temperature), pills,
  * readings and gaps at the Maßstab, the Kartenkopf and the hint line damped (`headScale`) — the
  * tile's footer line grows with the Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 1,
- * 9).
+ * 9). No text falls below 11 px (`legible`, Nr. 2).
  *
  * @param scale - The Maßstab.
  * @param place - An arrangement of Voll or Einfach, or the tile.
@@ -144,9 +156,9 @@ export function thermostatSizes(scale: number, place: SizePlace): ThermostatSize
         stepIcon: design.stepIcon * scale,
         actual: design.actual * scale,
         head: kartenkopfSizes(head),
-        hint: place === 'tile' ? scaled(design.hint.tile, scale) : scaled(design.hint.line, head),
+        hint: legibleHint(place === 'tile' ? scaled(design.hint.tile, scale) : scaled(design.hint.line, head)),
         pills: pillSizes(scale),
-        readings: scaled(design.readings, scale),
+        readings: legibleReadings(scaled(design.readings, scale)),
         gaps: scaled(design.gaps, scale),
     };
 }
@@ -154,16 +166,8 @@ export function thermostatSizes(scale: number, place: SizePlace): ThermostatSize
 /** The Maßstab every arrangement draws at for now: the design's. */
 const DESIGN_SCALE = 1;
 
-/** The design's outer thresholds, converted to the Content-Box. */
+/** The design's outer thresholds of Einfach and the tile, converted to the Content-Box. */
 export const THERMOSTAT_THRESHOLDS = {
-    /** Voll, arrangement Groß (design 400 × 640). */
-    gross: { width: 376, height: 576 },
-    /**
-     * Voll, arrangement Mittel (design 300 × 440) — the least box of Voll. Its width is the
-     * narrowest grid section (296 px) inside the standard Inhaltsabstand, not the design's
-     * (ADR-0122 Nachtrag 2026-11-27); the dial stays bound by the height there.
-     */
-    mittel: { width: 272, height: 376 },
     /** Einfach, arrangement Quer (design 480 × 180). */
     quer: { width: 456, height: 116 },
     /** Einfach, arrangement Kompakt (design 280 × 210). */
@@ -213,8 +217,11 @@ export function thermostatSetpointFont(
     return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
 }
 
+/** An arrangement of Voll. */
+export type VollArrangement = 'gross' | 'mittel';
+
 /** An arrangement of the Raumthermostat within its stage. */
-export type ThermostatArrangement = 'gross' | 'mittel' | 'quer' | 'kompakt';
+export type ThermostatArrangement = VollArrangement | 'quer' | 'kompakt';
 
 /**
  * Whether a box reaches a least box.
@@ -226,15 +233,16 @@ export type ThermostatArrangement = 'gross' | 'mittel' | 'quer' | 'kompakt';
 const reaches = (box: MeasuredBox, least: LeastBox): boolean => box.width >= least.width && box.height >= least.height;
 
 /**
- * The Raumthermostat's size-stage rule: Voll from Mittel on, Einfach from Quer or Kompakt on, else
- * Mini. It reads none of its own data.
+ * The Raumthermostat's size-stage rule: Voll while one of its arrangements holds its whole content at
+ * the least Maßstab (`vollHolds`), Einfach from Quer or Kompakt on, else Mini. It reads none of its
+ * own data.
  *
  * @param box - The measured Content-Box.
  * @param _data - The type's own data (unused).
  * @returns The stage the box allows.
  */
 export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
-    if (reaches(box, THERMOSTAT_THRESHOLDS.mittel)) {
+    if (vollHolds(box)) {
         return 'voll';
     }
     if (reaches(box, THERMOSTAT_THRESHOLDS.quer) || reaches(box, THERMOSTAT_THRESHOLDS.kompakt)) {
@@ -244,7 +252,7 @@ export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
 }
 
 /**
- * The arrangement of a drawn stage: Groß or Mittel in Voll, Quer or Kompakt in Einfach. A box too
+ * The arrangement of a drawn stage: in Voll by `vollArrangement`, Quer or Kompakt in Einfach. A box too
  * small for its stage — capped by `ansicht` it never is, floored in the dialog it may be — takes the
  * smaller arrangement.
  *
@@ -252,9 +260,12 @@ export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
  * @param box - The measured Content-Box.
  * @returns The arrangement to draw.
  */
+export function thermostatArrangement(stage: 'voll', box: MeasuredBox): VollArrangement;
+export function thermostatArrangement(stage: 'einfach', box: MeasuredBox): 'quer' | 'kompakt';
+export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox): ThermostatArrangement;
 export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox): ThermostatArrangement {
     if (stage === 'voll') {
-        return reaches(box, THERMOSTAT_THRESHOLDS.gross) ? 'gross' : 'mittel';
+        return vollArrangement(box);
     }
     return reaches(box, THERMOSTAT_THRESHOLDS.quer) ? 'quer' : 'kompakt';
 }
@@ -266,6 +277,225 @@ export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox): Ther
  * @returns `true` from the threshold on.
  */
 export const thermostatQuerModes = (box: MeasuredBox): boolean => reaches(box, THERMOSTAT_THRESHOLDS.querModes);
+
+/*
+ * Voll (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 1–6, 8): each arrangement needs a box for
+ * its whole content at a Maßstab — the dial at 320 px × Maßstab, the other parts at their sizes from
+ * `thermostatSizes`, Groß's column at its design width × Maßstab. An arrangement draws at the largest
+ * Maßstab its box holds (at most 2.0); it holds while that reaches the least Maßstab. The dial then
+ * takes the room the arrangement leaves it at that Maßstab — never less than 320 px × Maßstab, at
+ * most twice the design — and its instrument (set-point, ±, actual temperature) follows the dial.
+ */
+
+/** The design's dial edge in px (the ring's 320-unit box at Maßstab 1). */
+const DIAL_DESIGN = 320;
+
+/**
+ * The design width of Groß's column of pills, operating modes and readings in px: the content width
+ * of the start size 440 px inside the frame and the standard Inhaltsabstand (440 − 24 − 24), where
+ * „Absenk 17,0 °C“ and „Komfort 21,0 °C“ hold their pill without being cut.
+ */
+export const VOLL_COLUMN = 392;
+
+/** One spacing unit of the standard theme in px; the plan counts the parts' gaps by it. */
+const SPACING_PX = 8;
+
+/** The line height of the theme text the parts draw without a line height of their own. */
+const TEXT_LINE = 1.5;
+
+/** The ± edge of the design bounds Voll from below; its texts stay legible on their own (`legible`). */
+export const VOLL_LEAST_SCALE = leastScale({ controls: [THERMOSTAT_DESIGN.step.stage], texts: [] });
+
+/**
+ * The heights of the parts beside the dial at a Maßstab, in px.
+ *
+ * @param sizes - The sizes at the Maßstab.
+ * @returns The heights: the Kartenkopf full (symbol and Unterzeile) and in its short row, the hint
+ *   line with a Meldung, the pills, the operating modes with the Urlaub row, the readings bar and
+ *   one gap between regions.
+ */
+function partHeights(sizes: ThermostatSizes): {
+    headFull: number;
+    headRow: number;
+    hint: number;
+    pills: number;
+    modes: number;
+    readings: number;
+    gap: number;
+} {
+    const { head, hint, pills, readings, gaps } = sizes;
+    const nameLine = head.name * 1.3;
+    return {
+        headFull: Math.max(
+            head.symbol,
+            nameLine + head.textGapUnits * SPACING_PX + head.second * TEXT_LINE,
+            head.chipHeight,
+        ),
+        headRow: Math.max(nameLine, head.chipHeight),
+        hint: Math.max(hint.font * TEXT_LINE, hint.sign) + 2 * hint.padYUnits * SPACING_PX,
+        pills: pills.height,
+        modes: 2 * pills.height + gaps.modes * SPACING_PX,
+        // The bar's top line of 1 px does not scale.
+        readings:
+            readings.topUnits * SPACING_PX +
+            1 +
+            Math.max(readings.value * TEXT_LINE, readings.icon) +
+            readings.itemGapUnits * SPACING_PX +
+            readings.label * TEXT_LINE,
+        gap: gaps.region * SPACING_PX,
+    };
+}
+
+/** What an arrangement of Voll needs at a Maßstab: its box, and the room it leaves the dial. */
+interface VollNeed extends LeastBox {
+    /** The room for the dial: the box less every other part. */
+    readonly dialRoom: (box: MeasuredBox) => LeastBox;
+}
+
+/**
+ * The box an arrangement of Voll needs for its whole content at a Maßstab — a Meldung and the Urlaub
+ * row counted, so the dial does not jump when they come.
+ *
+ * @param arrangement - The arrangement.
+ * @param scale - The Maßstab.
+ * @returns The need.
+ */
+function vollNeed(arrangement: VollArrangement, scale: number): VollNeed {
+    const part = partHeights(thermostatSizes(scale, 'stage'));
+    const dial = DIAL_DESIGN * scale;
+    // Groß: Kartenkopf, dial, hint line, column (pills, modes, readings) — five gaps.
+    const beside =
+        arrangement === 'gross'
+            ? part.headFull + part.hint + part.pills + part.modes + part.readings + 5 * part.gap
+            : part.headRow + part.hint + 2 * part.gap;
+    return {
+        width: arrangement === 'gross' ? Math.max(dial, VOLL_COLUMN * scale) : dial,
+        height: beside + dial,
+        dialRoom: box => ({ width: box.width, height: box.height - beside }),
+    };
+}
+
+/**
+ * Whether an arrangement of Voll holds its whole content in a box at a Maßstab.
+ *
+ * @param arrangement - The arrangement.
+ * @param box - The box.
+ * @param scale - The Maßstab.
+ * @returns `true` when the need fits.
+ */
+function vollFits(arrangement: VollArrangement, box: MeasuredBox, scale: number): boolean {
+    return reaches(box, vollNeed(arrangement, scale));
+}
+
+/**
+ * The Maßstab an arrangement of Voll draws at in a box: the largest its box holds, at most 2.0, to a
+ * thousandth.
+ *
+ * @param arrangement - The arrangement.
+ * @param box - The box.
+ * @returns The Maßstab (below the least when the arrangement does not hold).
+ */
+export function vollScale(arrangement: VollArrangement, box: MeasuredBox): number {
+    if (vollFits(arrangement, box, SCALE_BOUNDS.max)) {
+        return SCALE_BOUNDS.max;
+    }
+    let low = 0;
+    let high: number = SCALE_BOUNDS.max;
+    for (let step = 0; step < 32; step++) {
+        const middle = (low + high) / 2;
+        if (vollFits(arrangement, box, middle)) {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    return Math.floor(low * 1000) / 1000;
+}
+
+/**
+ * The least box of an arrangement of Voll: its need at the least Maßstab, to the px above.
+ *
+ * @param arrangement - The arrangement.
+ * @returns The least box.
+ */
+export function vollLeastBox(arrangement: VollArrangement): LeastBox {
+    const need = vollNeed(arrangement, VOLL_LEAST_SCALE);
+    return { width: Math.ceil(need.width), height: Math.ceil(need.height) };
+}
+
+/** The arrangements of Voll that show the whole content, besides Mittel. */
+const VOLL_FULL: readonly VollArrangement[] = ['gross'];
+
+/**
+ * Whether a box holds Voll: one of its arrangements holds its whole content at the least Maßstab.
+ *
+ * @param box - The measured box.
+ * @returns `true` for Voll.
+ */
+function vollHolds(box: MeasuredBox): boolean {
+    return [...VOLL_FULL, 'mittel' as const].some(arrangement => vollFits(arrangement, box, VOLL_LEAST_SCALE));
+}
+
+/**
+ * The arrangement of Voll for a box: of the arrangements with the whole content the one with the
+ * largest Maßstab, Mittel only when none holds at the least Maßstab (Nr. 5).
+ *
+ * @param box - The measured box.
+ * @returns The arrangement.
+ */
+function vollArrangement(box: MeasuredBox): VollArrangement {
+    let best: VollArrangement = 'mittel';
+    let bestScale = -1;
+    for (const arrangement of VOLL_FULL) {
+        const scale = vollScale(arrangement, box);
+        if (vollFits(arrangement, box, VOLL_LEAST_SCALE) && scale > bestScale) {
+            best = arrangement;
+            bestScale = scale;
+        }
+    }
+    return best;
+}
+
+/**
+ * The dial of an arrangement of Voll in a box at its Maßstab: as large as the room the other parts
+ * leave it, at most twice the design, with its instrument at the dial's factor.
+ *
+ * @param need - The arrangement's need at its Maßstab.
+ * @param box - The box.
+ * @returns The dial.
+ */
+function vollDial(need: VollNeed, box: MeasuredBox): ThermostatDial {
+    const room = need.dialRoom(box);
+    // Not rounded: a dial rounded down would draw ± below 40 px at the least Maßstab.
+    const size = Math.min(room.width, room.height, SCALE_BOUNDS.max * DIAL_DESIGN);
+    const k = size / DIAL_DESIGN;
+    const design = THERMOSTAT_DESIGN;
+    return {
+        size,
+        font: thermostatDialFont(size),
+        step: design.step.stage * k,
+        stepIcon: design.stepIcon * k,
+        actual: design.actual * k,
+        gap: design.gaps.dial * k,
+        actualGap: design.gaps.actual * k,
+    };
+}
+
+/**
+ * The plan of Voll for a box.
+ *
+ * @param box - The measured box.
+ * @returns The plan of its arrangement.
+ */
+function vollPlan(box: MeasuredBox): ThermostatVollPlan {
+    const arrangement = vollArrangement(box);
+    const scale = vollScale(arrangement, box);
+    const sizes = thermostatSizes(scale, 'stage');
+    const dial = vollDial(vollNeed(arrangement, scale), box);
+    return arrangement === 'gross'
+        ? { arrangement, sizes, dial, column: VOLL_COLUMN * scale }
+        : { arrangement, sizes, dial };
+}
 
 /** The optional parts of the Raumthermostat tile. */
 export interface ThermostatTileParts {
@@ -290,46 +520,46 @@ export function thermostatTile(area: TileArea, stepping = true): ThermostatTileP
 }
 
 /**
- * The dial's edge length in an arrangement of Voll: the design's dial size, its outer sizes taken
- * back to the Content-Box like the thresholds (width −24, height −64), within the design's bounds.
- *
- * @param arrangement - Groß or Mittel.
- * @param box - The measured Content-Box.
- * @returns The edge length in px.
- */
-export function thermostatDialSize(arrangement: 'gross' | 'mittel', box: MeasuredBox): number {
-    const clamp = (value: number, low: number, high: number): number => Math.max(low, Math.min(high, value));
-    return arrangement === 'gross'
-        ? clamp(Math.min(box.width - 76, box.height - 316), 240, 380)
-        : clamp(Math.min(box.width - 52, box.height - 168), 200, 320);
-}
-
-/**
- * The set-point's font size in the dial: the design's 48 px while it fits, else as large as keeps
- * its far corner inside the ring's inner edge — the set-point, the gap and the actual line stand
- * centred above the dial's bottom padding (ADR-0122: the stage's box holds its parts).
+ * The set-point's font size in the dial: the design's 48 px at the dial's factor (its edge over the
+ * design's 320 px) while it fits, else as large as keeps its far corner inside the ring's inner edge
+ * — the set-point, the gap and the actual line stand centred above the dial's bottom padding, all at
+ * that factor (ADR-0122: the stage's box holds its parts).
  *
  * @param size - The dial's edge length in px.
  * @returns The font size in px.
  */
 export function thermostatDialFont(size: number): number {
     const fit = SETPOINT_FIT;
-    const k = size / 320;
+    const k = size / DIAL_DESIGN;
     const inside = (font: number): boolean => {
-        const top = (fit.dialPadding / 2) * k + (fit.lineHeight * font + fit.dialBelow) / 2;
+        const top = (fit.dialPadding / 2) * k + (fit.lineHeight * font + fit.dialBelow * k) / 2;
         return Math.hypot((fit.glyphsPerFontPx * font) / 2, top) <= fit.dialInner * k;
     };
-    let font: number = fit.maxFont;
+    let font = Math.max(fit.minFont, Math.floor(fit.maxFont * k));
     while (font > fit.minFont && !inside(font)) {
         font -= 1;
     }
     return font;
 }
 
-/** The dial of an arrangement of Voll: its edge length and the set-point's font size in it. */
+/**
+ * The dial of an arrangement of Voll: its edge length, and the instrument inside it at the dial's
+ * factor (its edge over the design's 320 px) — the set-point's font, ±, their symbol, the actual
+ * temperature and its gaps.
+ */
 export interface ThermostatDial {
     readonly size: number;
     readonly font: number;
+    /** The ± edge in px. */
+    readonly step: number;
+    /** The ± symbol in px (drawn in the theme's rem). */
+    readonly stepIcon: number;
+    /** The actual temperature in em of the surrounding text. */
+    readonly actual: number;
+    /** Between set-point and actual line, in spacing units. */
+    readonly gap: number;
+    /** Between the word „Ist“ and the actual temperature, in spacing units. */
+    readonly actualGap: number;
 }
 
 /** The Raumthermostat tile's parts and the set-point's font size beside them. */
@@ -357,13 +587,16 @@ export type ThermostatStagePlan = SizedPlan &
         | {
               readonly arrangement: 'gross';
               readonly dial: ThermostatDial;
-              /** The column of pills, operating modes and readings in px; `null`: the whole width. */
-              readonly column: number | null;
+              /** The centred column of pills, operating modes and readings in px. */
+              readonly column: number;
           }
         | { readonly arrangement: 'mittel'; readonly dial: ThermostatDial }
         | { readonly arrangement: 'quer'; readonly modes: boolean; readonly setpointFont: ThemeFont }
         | { readonly arrangement: 'kompakt'; readonly setpointFont: number }
     );
+
+/** The plan of Voll: an arrangement with the dial. */
+export type ThermostatVollPlan = Extract<ThermostatStagePlan, { readonly dial: ThermostatDial }>;
 
 /** The plan of the Mini stage: the tile. */
 export interface ThermostatMiniPlan extends SizedPlan {
@@ -389,6 +622,7 @@ export type ThermostatPlan = ThermostatStagePlan | ThermostatMiniPlan;
  * @returns The plan.
  */
 export function thermostatPlan(stage: 'mini', box: TileArea, writable: boolean): ThermostatMiniPlan;
+export function thermostatPlan(stage: 'voll', box: MeasuredBox, writable: boolean): ThermostatVollPlan;
 export function thermostatPlan(stage: DrawnStage, box: MeasuredBox, writable: boolean): ThermostatStagePlan;
 export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, writable: boolean): ThermostatPlan {
     if (stage === 'mini') {
@@ -400,14 +634,12 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
             tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile) },
         };
     }
+    if (stage === 'voll') {
+        return vollPlan(box);
+    }
     const arrangement = thermostatArrangement(stage, box);
     const sizes = thermostatSizes(DESIGN_SCALE, 'stage');
-    const dialOf = (size: number): ThermostatDial => ({ size, font: thermostatDialFont(size) });
     switch (arrangement) {
-        case 'gross':
-            return { arrangement, sizes, dial: dialOf(thermostatDialSize(arrangement, box)), column: null };
-        case 'mittel':
-            return { arrangement, sizes, dial: dialOf(thermostatDialSize(arrangement, box)) };
         case 'quer':
             return {
                 arrangement,

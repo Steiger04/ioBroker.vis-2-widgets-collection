@@ -5,16 +5,15 @@
  * @remarks
  * One pure function from the drawn stage, the box and whether the set-point is writable to the
  * whole plan: arrangement, the operating-mode segment in Quer, dial size and font, the set-point
- * font and the tile's parts. The values are those of the earlier separate helpers (pinned at the
- * thresholds in `thermostatStages.test`): the dial edge from the design's dial size taken back to
- * the Content-Box (Groß: width − 76, height − 316 within 240…380; Mittel: width − 52, height − 168
- * within 200…320), the set-point font from 3.6 px of width per px of font and a 1.2 line, at most 48
- * and at least 12 px. The tile's plan computes in the area the size-stage module's hull leaves it
+ * font and the tile's parts. The set-point font of Einfach and the tile from 3.6 px of width per px
+ * of font and a 1.2 line, at most 48 and at least 12 px (pinned at the thresholds in
+ * `thermostatStages.test`). The tile's plan computes in the area the size-stage module's hull leaves it
  * (`tileArea`); its cases stay in Content-Box sizes.
  *
  * Every plan names its Maßstab and the sizes of all parts it draws with (ADR-0122 Nachtrag „Maßstab
- * und Anordnungswahl“); at Maßstab 1 they are the design's, as the parts drew them before the plan
- * named them: ± 52 px (44 px in the tile) with the theme's 24 px icon, the Kartenkopf's 19 / 12.5 px
+ * und Anordnungswahl“). Voll draws at the largest Maßstab its box holds — between the least, where ±
+ * keep 40 px, and 2.0 — its ring filling the room the other parts leave. At Maßstab 1 the sizes are
+ * the design's, as the parts drew them before the plan named them: ± 52 px (44 px in the tile) with the theme's 24 px icon, the Kartenkopf's 19 / 12.5 px
  * lines, its 44 px symbol box with a 22 px symbol and its 30 px chip, the hint line's 13 px (12 px in
  * the tile's footer), the pills 44 px high in 13.5 px, the readings' 16 / 11.5 px, the actual
  * temperature in the surrounding text's size and the gaps in the theme's spacing units.
@@ -24,20 +23,57 @@ import { describe, expect, it } from 'vitest';
 import { tileArea } from '../lib/heating/SizeStages';
 import { thermostatPlan } from './thermostatStages';
 
-describe('thermostatPlan: Voll', () => {
-    it.each([
-        // 396 − 76 = 636 − 316 = 320: the design's dial with its 48 px set-point.
-        ['Groß at the start box', 396, 636, { arrangement: 'gross', dial: { size: 320, font: 48 } }],
-        // min(300, 260) = 260; the set-point shrinks to stay inside the ring.
-        ['Groß at its least box', 376, 576, { arrangement: 'gross', dial: { size: 260, font: 41 } }],
-        ['Groß at its largest dial', 600, 900, { arrangement: 'gross', dial: { size: 380, font: 48 } }],
-        // One px too narrow for Groß: Mittel, min(323, 408) capped at 320.
-        ['Mittel one px too narrow for Groß', 375, 576, { arrangement: 'mittel', dial: { size: 320, font: 48 } }],
-        ['Mittel one px too low for Groß', 376, 575, { arrangement: 'mittel', dial: { size: 320, font: 48 } }],
-        // min(220, 208) = 208.
-        ['Mittel at its least box', 272, 376, { arrangement: 'mittel', dial: { size: 208, font: 31 } }],
-    ])('%s (%i × %i px)', (_case, width, height, plan) => {
-        expect(thermostatPlan('voll', { width, height }, true)).toMatchObject(plan);
+describe('thermostatPlan: Voll fills its box (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    it('gives a tall, narrow Voll box (380 × 800 px outer, 332 × 752 px inside the Inhaltsabstand) a ring as wide as the middle', () => {
+        // Before: Mittel with the ring at width − 52 = 280 px.
+        expect(thermostatPlan('voll', { width: 332, height: 752 }, true)).toMatchObject({ dial: { size: 332 } });
+    });
+
+    it('lets the ring grow past the design’s 380 px with the room', () => {
+        expect(thermostatPlan('voll', { width: 600, height: 900 }, true).dial.size).toBeGreaterThan(380);
+    });
+
+    it('draws at most at Maßstab 2.0: ring 640 px, ± 104 px, the set-point 96 px in a very large box', () => {
+        expect(thermostatPlan('voll', { width: 2000, height: 2000 }, true)).toMatchObject({
+            sizes: { scale: 2, step: 104 },
+            dial: { size: 640, font: 96, step: 104 },
+        });
+    });
+
+    it('draws Mittel at its least box at the least Maßstab: ± keep 40 px, its texts 11 px', () => {
+        const plan = thermostatPlan('voll', { width: 247, height: 317 }, true);
+
+        expect(plan.arrangement).toBe('mittel');
+        expect(plan.sizes.step).toBeGreaterThanOrEqual(40);
+        expect(plan.sizes.step).toBeCloseTo(40, 0);
+        expect(plan.dial.step).toBeGreaterThanOrEqual(40);
+        expect(plan.dial.step).toBeCloseTo(40, 0);
+        expect(plan.sizes.pills.font).toBe(11);
+        expect(plan.sizes.readings.label).toBe(11);
+    });
+
+    it('damps the Kartenkopf and the hint line: about 1.3 times at Maßstab 2.0', () => {
+        const { sizes } = thermostatPlan('voll', { width: 2000, height: 2000 }, true);
+
+        expect(sizes.head.name).toBeCloseTo(19 * 1.3, 6);
+        expect(sizes.hint.font).toBeCloseTo(13 * 1.3, 6);
+        expect(sizes.pills.height).toBe(88);
+    });
+
+    it("keeps Groß's pills, operating modes and readings in a centred column of 392 px × Maßstab", () => {
+        const plan = thermostatPlan('voll', { width: 900, height: 800 }, true);
+
+        expect(plan.arrangement).toBe('gross');
+        expect(plan).toMatchObject({ column: 392 * plan.sizes.scale });
+        expect((plan as { column: number }).column).toBeLessThan(900);
+    });
+
+    it('lets the ring take the room beside a narrow column: the instrument follows the ring', () => {
+        // 332 px wide: the column holds Groß at 332 / 392 = 0.847, the ring the whole width.
+        const plan = thermostatPlan('voll', { width: 332, height: 752 }, true);
+
+        expect(plan.sizes.scale).toBeCloseTo(332 / 392, 2);
+        expect(plan).toMatchObject({ arrangement: 'gross', dial: { size: 332, step: 52 * (332 / 320) } });
     });
 
     it('does not depend on writability', () => {
@@ -140,13 +176,6 @@ const DESIGN_SIZES = {
 
 describe('thermostatPlan: Maßstab and part sizes', () => {
     it.each([
-        ['Groß', 396, 636],
-        ['Mittel', 272, 376],
-    ])('draws %s at Maßstab 1 with the design sizes (%i × %i px)', (_case, width, height) => {
-        expect(thermostatPlan('voll', { width, height }, true).sizes).toEqual(DESIGN_SIZES);
-    });
-
-    it.each([
         ['Quer', 456, 236],
         ['Kompakt', 256, 146],
     ])('draws %s at Maßstab 1 with the design sizes (%i × %i px)', (_case, width, height) => {
@@ -165,13 +194,6 @@ describe('thermostatPlan: Maßstab and part sizes', () => {
         expect(thermostatPlan('einfach', { width: 456, height: 116 }, true)).toMatchObject({
             arrangement: 'quer',
             setpointFont: { variant: 'h3', factor: 1 },
-        });
-    });
-
-    it("lays Groß's pills, operating modes and readings across the whole width", () => {
-        expect(thermostatPlan('voll', { width: 900, height: 800 }, true)).toMatchObject({
-            arrangement: 'gross',
-            column: null,
         });
     });
 });

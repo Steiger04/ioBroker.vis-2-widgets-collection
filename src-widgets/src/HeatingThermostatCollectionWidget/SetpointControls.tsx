@@ -18,6 +18,7 @@ import { Box, IconButton, useTheme } from '@mui/material';
 import { useRef, type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode } from 'react';
 
 import { useReducedMotion } from '../lib/heating/motion';
+import { SCALE_BOUNDS } from '../lib/heating/scaleRule';
 import { fractionOf, RING_START, RING_SWEEP, valueAtAngle, type SetpointScale } from '../lib/heating/setpointScale';
 import { accentColors, neutralColors } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
@@ -80,6 +81,11 @@ const VIEW = 320;
 const CENTRE = VIEW / 2;
 const RADIUS = 118;
 const STROKE = 14;
+/**
+ * The scale labels' size in the ring's units: they grow with the dial, but never fall below the
+ * family's least text (`SCALE_BOUNDS.minText` in px).
+ */
+const TICK_LABEL = 11.5;
 /** The ring takes a pointer between these distances from the centre. */
 const GRAB = { inner: 92, outer: 158 } as const;
 
@@ -298,7 +304,7 @@ export function SetpointDial({
                         y={y}
                         style={{
                             fill: quiet.label,
-                            fontSize: `${Math.min(16, 11.5 / k).toFixed(1)}px`,
+                            fontSize: `${Math.max(TICK_LABEL, SCALE_BOUNDS.minText / k).toFixed(1)}px`,
                             textAnchor: 'middle',
                             dominantBaseline: 'central',
                         }}
@@ -371,7 +377,7 @@ export function SetpointDial({
                         position: 'absolute',
                         left: 0,
                         right: 0,
-                        bottom: 2,
+                        bottom: `${2 * k}px`,
                         display: 'flex',
                         justifyContent: 'center',
                         gap: `${Math.round(20 * k)}px`,

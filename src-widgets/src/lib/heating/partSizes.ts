@@ -6,9 +6,10 @@
  * @remarks
  * A type's plan hands each part its sizes: the Kartenkopf at the damped factor of the Maßstab, the
  * pills at the Maßstab (`lib/heating/scaleRule`). The parts set no size of their own. Measures named
- * `…Units` are in the theme's spacing units, the others in px. Pure; no component.
+ * `…Units` are in the theme's spacing units, the others in px. Fonts stay legible (`legible`: never
+ * below 11 px). Pure; no component.
  */
-import { scaled } from './scaleRule';
+import { legible, scaled } from './scaleRule';
 
 /** The Kartenkopf's design measures. */
 export const KARTENKOPF_DESIGN = {
@@ -62,7 +63,10 @@ export type PillSizes = { readonly [Key in keyof typeof PILL_DESIGN]: number };
  * @param factor - The damped factor of the Maßstab.
  * @returns The sizes.
  */
-export const kartenkopfSizes = (factor: number): KartenkopfSizes => scaled(KARTENKOPF_DESIGN, factor);
+export function kartenkopfSizes(factor: number): KartenkopfSizes {
+    const sizes = scaled(KARTENKOPF_DESIGN, factor);
+    return { ...sizes, name: legible(sizes.name), second: legible(sizes.second), chipFont: legible(sizes.chipFont) };
+}
 
 /**
  * The pill row's sizes at a factor.
@@ -70,4 +74,7 @@ export const kartenkopfSizes = (factor: number): KartenkopfSizes => scaled(KARTE
  * @param factor - The Maßstab.
  * @returns The sizes.
  */
-export const pillSizes = (factor: number): PillSizes => scaled(PILL_DESIGN, factor);
+export function pillSizes(factor: number): PillSizes {
+    const sizes = scaled(PILL_DESIGN, factor);
+    return { ...sizes, font: legible(sizes.font) };
+}

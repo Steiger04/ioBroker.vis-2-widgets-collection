@@ -16,8 +16,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     thermostatArrangement,
-    thermostatDialFont,
-    thermostatDialSize,
+    thermostatPlan,
     thermostatQuerModes,
     thermostatSetpointFont,
     thermostatStage,
@@ -76,17 +75,17 @@ describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9, Nachtra
         expect(thermostatArrangement('voll', content)).toBe('gross');
     });
 
-    it('would not reach Groß from the former 420 px with the standard Inhaltsabstand', () => {
+    it('reaches Groß from the former 420 px too: the column narrows with the Maßstab', () => {
         const box = contentBoxOf(420, 700);
         const content = { width: box.width - INHALTSABSTAND, height: box.height - INHALTSABSTAND };
 
-        expect(thermostatArrangement('voll', content)).toBe('mittel');
+        expect(thermostatArrangement('voll', content)).toBe('gross');
     });
 
     it('holds Voll at 11 grid rows (632 px) and in the narrowest section (296 px), inside the standard Inhaltsabstand', () => {
         expect(stageOf(416 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('voll');
         expect(stageOf(296, 632)).toBe('voll');
-        // Mittel's width is 296 − 24 = 272 px (ADR-0122 Nachtrag 2026-11-27).
+        // The narrowest section inside the standard Inhaltsabstand: 296 − 24 = 272 px, Mittel.
         expect(stageOf(296 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('voll');
         expect(thermostatArrangement('voll', { width: 296 - INHALTSABSTAND, height: 632 - INHALTSABSTAND })).toBe(
             'mittel',
@@ -94,13 +93,24 @@ describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9, Nachtra
     });
 });
 
+describe('Größenstufen: Voll from the need of its content at the least Maßstab', () => {
+    /*
+     * The least Maßstab is where ± (52 px) keep 40 px: 0.769. Mittel's need there: the dial
+     * 320 × 0.769 = 246.2 px wide; high the dial, the Kartenkopf row (its 30 px chip, damped to
+     * 0.906: 27.2 px), the hint line with a Meldung (13 px × 1.5 + 2 × 4 px, damped: 24.9 px) and two
+     * gaps of 12 px × 0.769 — 316.7 px.
+     */
+    it.each([
+        ['Voll at Mittel’s least box', 247, 317, true],
+        ['not Voll one px too narrow', 246, 317, false],
+        ['not Voll one px too low', 247, 316, false],
+    ])('%s (%i × %i px)', (_case, width, height, voll) => {
+        expect(stageOf(width, height) === 'voll').toBe(voll);
+    });
+});
+
 describe('Größenstufen: the thresholds of the rule', () => {
     it.each([
-        // Voll begins with the arrangement Mittel: the narrowest grid section (296 px) inside the
-        // standard Inhaltsabstand wide, the design's 440 px outer high.
-        ['Voll at its least box', 272, 376, 'voll'],
-        ['not Voll one px too narrow', 271, 376, 'einfach'],
-        ['not Voll one px too low', 272, 375, 'einfach'],
         // Einfach as Quer: 480 × 180 px outer.
         ['Einfach (Quer) at its least box', 456, 116, 'einfach'],
         ['not Quer one px too low', 456, 115, 'mini'],
@@ -119,10 +129,12 @@ describe('Größenstufen: the thresholds of the rule', () => {
 
 describe('Anordnungen: the arrangement within a stage', () => {
     it.each([
-        // Groß: 400 × 640 px outer.
-        ['Groß at its least box', 376, 576, 'gross'],
-        ['Mittel one px too narrow for Groß', 375, 576, 'mittel'],
-        ['Mittel one px too low for Groß', 376, 575, 'mittel'],
+        // Groß at the least Maßstab: its column 392 × 0.769 = 301.5 px wide; high the dial (246.2 px),
+        // the full Kartenkopf (41.2), the hint line (24.9), pills (33.8), operating modes with the
+        // Urlaub row (73.8), readings (49.0) and five gaps (46.2) — 515.1 px.
+        ['Groß at its least box', 302, 516, 'gross'],
+        ['Mittel one px too narrow for Groß', 301, 516, 'mittel'],
+        ['Mittel one px too low for Groß', 302, 515, 'mittel'],
     ])('Voll: %s (%i × %i px)', (_case, width, height, arrangement) => {
         expect(thermostatArrangement('voll', { width, height })).toBe(arrangement);
     });
@@ -229,31 +241,33 @@ describe('Passform: the tile holds what it shows', () => {
 describe('Passform: the set-point stays inside the ring of the dial', () => {
     /**
      * The dial's geometry (320-unit box, `SetpointControls`): the ring's inner edge at 118 − 7 units;
-     * the set-point line, 4 px of gap and the 28 px actual line stand centred above a bottom padding
-     * of 26 units. The set-point's far corner must stay inside the inner edge.
+     * the set-point line, the gap of 4 px and the actual line of 28 px — both at the dial's factor —
+     * stand centred above a bottom padding of 26 units. The set-point's far corner must stay inside
+     * the inner edge.
      */
     const cornerInside = (size: number, font: number): boolean => {
         const k = size / 320;
-        const block = MEASURED.lineHeight * font + 4 + 28;
+        const block = MEASURED.lineHeight * font + (4 + 28) * k;
         const top = 13 * k + block / 2;
         const half = (MEASURED.glyphsPerFontPx * font) / 2;
         return Math.hypot(half, top) <= 111 * k;
     };
 
     it.each([
-        ['Mittel at its least box', 'mittel', 272, 376],
-        ['Mittel at 330 × 450 px outer (acceptance)', 'mittel', 304, 424],
-        ['Mittel at its largest dial', 'mittel', 375, 900],
-        ['Groß at its least box', 'gross', 376, 576],
-        ['Groß at the start box', 'gross', 396, 636],
-        ['Groß at its largest dial', 'gross', 600, 900],
-    ] as const)('%s', (_case, arrangement, width, height) => {
-        const size = thermostatDialSize(arrangement, { width, height });
+        ['Mittel at its least box', 247, 317],
+        ['Mittel at 330 × 450 px outer (acceptance)', 304, 424],
+        ['Groß at its least box', 302, 516],
+        ['Groß at the start box', 392, 612],
+        ['Groß at its largest dial', 2000, 2000],
+    ] as const)('%s', (_case, width, height) => {
+        const { dial } = thermostatPlan('voll', { width, height }, true);
 
-        expect(cornerInside(size, thermostatDialFont(size))).toBe(true);
+        expect(cornerInside(dial.size, dial.font)).toBe(true);
     });
 
-    it('keeps the design size of 48 px in the dial of the start box', () => {
-        expect(thermostatDialFont(thermostatDialSize('gross', { width: 396, height: 636 }))).toBe(48);
+    it('draws the set-point at the design’s 48 px times the dial’s factor: 96 px in the largest dial', () => {
+        expect(thermostatPlan('voll', { width: 2000, height: 2000 }, true)).toMatchObject({
+            dial: { size: 640, font: 96 },
+        });
     });
 });

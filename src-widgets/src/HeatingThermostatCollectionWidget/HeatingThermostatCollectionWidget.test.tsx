@@ -23,6 +23,7 @@ import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
 import { createTestRoot } from '../lib/testing/testRoots';
 import HeatingThermostatCollectionWidget from './HeatingThermostatCollectionWidget';
+import { thermostatPlan } from './thermostatStages';
 
 // The host base class with what renderWidgetBody reaches (as in lib/aiRawDataRender.test). Its `t`
 // reads `this` like the host's and returns the key, with its arguments in brackets.
@@ -1120,6 +1121,47 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
     });
 });
 
+describe('HeatingThermostatCollectionWidget: Voll draws at its Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    /** The rendered px of a style property. */
+    const px = (element: Element | null, property: 'width' | 'height' | 'fontSize'): number =>
+        parseFloat(getComputedStyle(element as HTMLElement)[property]);
+
+    it.each([
+        ['Groß, tall and narrow (380 × 800 px outer)', { width: 332, height: 752 }],
+        ['Groß at the start box', { width: 396, height: 636 }],
+        ['Mittel in the narrowest grid section', { width: 272, height: 608 }],
+        ['Groß in a very large box', { width: 2000, height: 2000 }],
+    ])('%s: ring, ± and the set-point as the plan names them', async (_case, box) => {
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21 }), box);
+        const dial = container.querySelector('[data-heating-dial]');
+
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            plan.arrangement,
+        );
+        expect(px(dial, 'width')).toBeCloseTo(plan.dial.size, 1);
+        expect(px(stepButton(container, 'up'), 'width')).toBeCloseTo(plan.dial.step, 1);
+        expect(px(dial!.querySelector('[data-heating-setpoint]'), 'fontSize')).toBe(plan.dial.font);
+    });
+
+    it('fills a tall, narrow box with the ring: 332 px instead of 280 px', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }), { width: 332, height: 752 });
+
+        expect(px(container.querySelector('[data-heating-dial]'), 'width')).toBe(332);
+    });
+
+    it("keeps Groß's pills, operating modes and readings in the plan's column", async () => {
+        const box = { width: 900, height: 800 };
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21 }), box);
+        const column = container.querySelector('[data-heating-region="controls"]');
+
+        expect(plan.arrangement).toBe('gross');
+        expect(px(column, 'width')).toBeCloseTo((plan as { column: number }).column, 1);
+        expect(column?.querySelector('[data-heating-pills]')).not.toBeNull();
+    });
+});
+
 /** Fires a pointer event on the ring at a point of its 320-unit box. */
 const pointer = async (ring: Element, type: string, [x, y]: [number, number]): Promise<void> => {
     await act(() => {
@@ -1834,9 +1876,15 @@ describe('HeatingThermostatCollectionWidget: the Inhaltsabstand (ADR-0122 Nachtr
     });
 
     it('drops a stage when a large Inhaltsabstand leaves the content too little room', async () => {
-        const container = await mount({ ...statusData(), inhaltsabstand: 4 }, reporting({}), START_BOX);
+        const box = { width: 360, height: 636 };
+        expect(
+            (await mount(statusData(), reporting({}), box))
+                .querySelector('[data-heating-arrangement]')
+                ?.getAttribute('data-heating-arrangement'),
+        ).toBe('gross');
+        const container = await mount({ ...statusData(), inhaltsabstand: 4 }, reporting({}), box);
 
-        // 396 − 2 × 32 = 332 < 376: Mittel instead of Groß.
+        // 360 − 2 × 32 = 296 px < Groß's least width of 302 px: Mittel instead of Groß.
         expect(insetOf(container)).toBe('32px');
         expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
             'mittel',

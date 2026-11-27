@@ -10,7 +10,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { headScale, leastScale, SCALE_BOUNDS, scaled } from './scaleRule';
+import { headScale, leastScale, legible, SCALE_BOUNDS, scaled } from './scaleRule';
+import { kartenkopfSizes, pillSizes } from './partSizes';
 
 describe('scaleRule: bounds', () => {
     it('allows at most 2.0, ± of at least 40 px and no text below 11 px', () => {
@@ -54,5 +55,21 @@ describe('scaleRule: design measures at a factor', () => {
 
         expect(scaled(design, 1)).toEqual(design);
         expect(scaled(design, 1.5)).toEqual({ height: 66, font: 20.25, gapUnits: 1.5 });
+    });
+});
+
+describe('scaleRule: legible text', () => {
+    it.each([
+        ['keeps a text above the bound', 13.5, 13.5],
+        ['holds a text at the bound', 11, 11],
+        ['stops a smaller text at 11 px', 8.8, 11],
+    ])('%s (%d px)', (_case, px, shown) => {
+        expect(legible(px)).toBe(shown);
+    });
+
+    it('holds the pills and the Kartenkopf legible at the least Maßstab of ± 52 px', () => {
+        // 13.5 px × 0.769 = 10.4 px; the Kartenkopf at 0.7 is damped to 0.87: 12.5 px → 10.9 px.
+        expect(pillSizes(40 / 52)).toMatchObject({ font: 11, height: 44 * (40 / 52) });
+        expect(kartenkopfSizes(0.7)).toMatchObject({ name: 19 * 0.7, second: 11, chipFont: 11 });
     });
 });
