@@ -36,6 +36,7 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
 import { THERMOSTAT_THRESHOLDS } from '../HeatingThermostatCollectionWidget/thermostatStages';
+import { CONTENT_INSET } from './heating/contentInset';
 import { HINT_TABLE } from './heating/hintTable';
 import { recognisePair, recogniseState } from './heating/recognition';
 import { ROLE_TABLE } from './heating/roleTable';
@@ -969,8 +970,10 @@ const CONTROL_MIN_HEIGHT: Partial<Record<WidgetName, { px: number; reason: strin
         reason: 'ECharts grid default margins (60 px above and below the plot) + a 100 px plot',
     },
     HeatingThermostatCollectionWidget: {
-        px: THERMOSTAT_THRESHOLDS.gross.height,
-        reason: "starts in its Voll stage, arrangement Groß as in the design (ADR-0122 Nr. 9): the rule's Groß height",
+        // The rule reads the box inside the Inhaltsabstand (ADR-0122 Nachtrag 2026-11-27): its standard
+        // in spacing units at the standard 8 px, on both sides.
+        px: THERMOSTAT_THRESHOLDS.gross.height + 2 * CONTENT_INSET.standard * 8,
+        reason: "starts in its Voll stage, arrangement Groß as in the design (ADR-0122 Nr. 9): the rule's Groß height inside the standard Inhaltsabstand",
     },
 };
 
