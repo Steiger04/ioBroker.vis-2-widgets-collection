@@ -164,6 +164,27 @@ describe('thermostatPlan: Einfach', () => {
         });
     });
 
+    it.each([
+        // Quer with the segment holds at its least Maßstab (the pills' 13.5 px keep 11 px: 0.815).
+        ['Quer with the segment at its least height', 400, 135, { arrangement: 'quer', modes: true }],
+        // One px lower: the larger Maßstab of Quer without the segment and Kompakt.
+        ['Kompakt one px below, larger than Quer without the segment', 400, 134, { arrangement: 'kompakt' }],
+        ['Quer without the segment one px below, larger than Kompakt', 741, 134, { arrangement: 'quer', modes: false }],
+    ])('chooses by the segment first: %s (%i × %i px)', (_case, width, height, plan) => {
+        expect(thermostatPlan('einfach', { width, height }, true)).toMatchObject(plan);
+    });
+
+    it('keeps Quer with the segment where Kompakt would draw larger (789 × 290 px outer: 741 × 242 px)', () => {
+        const box = { width: 741, height: 242 };
+        // Without an operating mode to show, Kompakt draws larger than Quer here.
+        const withoutModes = thermostatPlan('einfach', box, true, { shown: { modes: false } });
+        const plan = thermostatPlan('einfach', box, true);
+
+        expect(withoutModes).toMatchObject({ arrangement: 'kompakt' });
+        expect(plan).toMatchObject({ arrangement: 'quer', modes: true });
+        expect(plan.sizes.scale).toBeLessThan(withoutModes.sizes.scale);
+    });
+
     it("counts with the theme's measures: a larger h3 and spacing unit draw Quer at a smaller Maßstab", () => {
         const box = { width: 741, height: 160 };
         const standard = thermostatPlan('einfach', box, true);
@@ -200,10 +221,10 @@ describe('thermostatPlan: Einfach', () => {
         // Without ± the row is shorter: the height limits at 1.089.
         ['Kompakt without ±', 256, 150, false, 1.089, 52.272],
         // Height-limited: head row, set-point row and line below in 150 px.
-        ['Kompakt in a wide, low box', 400, 150, true, 1.089, 52.272],
+        ['Kompakt in a low box too narrow for the segment', 380, 150, true, 1.089, 52.272],
         ['Kompakt in a narrow, tall box', 280, 300, true, 0.93, 44.64],
-        // Capped by `ansicht` or floored in the dialog.
-        ['Kompakt for the start box', 396, 636, true, 1.316, 63.168],
+        // Capped by `ansicht` or floored in the dialog: a tall box too narrow for Quer with the segment.
+        ['Kompakt in a tall box', 387, 636, true, 1.286, 61.728],
     ])('%s (%i × %i px)', (_case, width, height, writable, scale, setpointFont) => {
         const plan = thermostatPlan('einfach', { width, height }, writable);
 

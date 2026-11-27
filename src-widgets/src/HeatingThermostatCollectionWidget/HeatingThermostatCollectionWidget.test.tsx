@@ -1466,6 +1466,15 @@ describe('HeatingThermostatCollectionWidget: operating mode', () => {
         expect(await at({ width: 300, height: 400 })).toEqual([]);
         expect(await at({ width: 256, height: 150 })).toEqual([]);
     });
+
+    it('stays in Quer with the segment where Kompakt would draw larger (789 × 290 px outer: 741 × 242 px)', async () => {
+        const container = await mount(statusData(), reporting({ betriebsart: 0 }), { width: 741, height: 242 });
+
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'quer',
+        );
+        expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+    });
 });
 
 describe('HeatingThermostatCollectionWidget: the plan counts what the content shows', () => {

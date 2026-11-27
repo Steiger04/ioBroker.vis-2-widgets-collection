@@ -408,11 +408,12 @@ export type EinfachChoice =
     | { readonly arrangement: 'kompakt'; readonly scale: number };
 
 /**
- * Einfach's arrangement (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 5, 7): Quer or Kompakt,
- * the one whose parts fit at the larger Maßstab — Quer only while it holds at the least Maßstab.
- * Both compare the step's content without the segment; Quer then shows the segment as soon as it
- * fits at its least Maßstab and takes the Maßstab the head leaves above it. A box too small for
- * Einfach — floored in the dialog — draws at the least Maßstab.
+ * Einfach's arrangement (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 5, 7; Stories 79, 80):
+ * Quer with the operating-mode segment wherever it holds at its least Maßstab — it shows more of the
+ * step's content, as Groß and Breit do against Mittel, so growing the box never drops the segment —
+ * at the largest Maßstab its box holds. Elsewhere Quer without the segment or Kompakt, the one whose
+ * parts fit at the larger Maßstab — Quer only while it holds at the least Maßstab, Quer on a tie. A
+ * box too small for Einfach — floored in the dialog — draws at the least Maßstab.
  *
  * @param box - The measured Content-Box.
  * @param writable - Whether the set-point is writable: only then ± stand beside it.
@@ -421,15 +422,17 @@ export type EinfachChoice =
  */
 function thermostatEinfachChoice(box: MeasuredBox, writable: boolean, shape: ThermostatShape): EinfachChoice {
     const fits = holds(box);
+    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
+    const modesLeast = einfachLeast(shape, true);
+    if (segmentRows(shape.shown) > 0 && fits(querNeed(modesLeast, writable, true, shape))) {
+        const scale = fittingScale(at => fits(querNeed(at, writable, true, shape)));
+        return { arrangement: 'quer', modes: true, scale: Math.max(modesLeast, scale) };
+    }
+    const least = einfachLeast(shape);
     const quer = fittingScale(scale => fits(querNeed(scale, writable, false, shape)));
     const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable, shape)));
-    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
-    const least = einfachLeast(shape);
     if (fits(querNeed(least, writable, false, shape)) && quer >= kompakt) {
-        const modesLeast = einfachLeast(shape, true);
-        const modes = segmentRows(shape.shown) > 0 && fits(querNeed(modesLeast, writable, true, shape));
-        const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true, shape))) : quer;
-        return { arrangement: 'quer', modes, scale: Math.max(modes ? modesLeast : least, scale) };
+        return { arrangement: 'quer', modes: false, scale: Math.max(least, quer) };
     }
     return { arrangement: 'kompakt', scale: Math.max(least, kompakt) };
 }

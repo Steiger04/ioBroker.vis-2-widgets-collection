@@ -173,16 +173,23 @@ describe('Anordnungen: the arrangement within a stage', () => {
     });
 
     it.each([
-        // The larger Maßstab wins: at 160 px of height Kompakt draws at 1.173, Quer from 521 px on
-        // at more (without its segment; with it, it draws at 1.031).
+        // Quer with the segment wherever it holds at its least Maßstab (0.815), though Kompakt
+        // would draw larger: from 135 px of height and 388 px of width.
+        ['Quer with the segment at its least height', 400, 135, 'quer'],
+        ['Kompakt one px below the segment, larger than Quer without it', 400, 134, 'kompakt'],
+        ['Quer with the segment at its least width', 388, 600, 'quer'],
+        ['Kompakt one px too narrow for the segment', 387, 600, 'kompakt'],
+        ['Quer with the segment where Kompakt would draw larger', 741, 242, 'quer'],
+        // Below the segment the larger Maßstab wins: at 130 px of height Kompakt draws at 0.923,
+        // Quer without the segment from 429 px on at more.
         ['Quer at its least box', 371, 86, 'quer'],
-        ['Kompakt one px before Quer draws larger', 520, 160, 'kompakt'],
-        ['Quer where it draws larger than Kompakt', 521, 160, 'quer'],
+        ['Kompakt one px before Quer draws larger', 428, 130, 'kompakt'],
+        ['Quer where it draws larger than Kompakt', 429, 130, 'quer'],
         ['Kompakt in a box too narrow for Quer', 370, 300, 'kompakt'],
         ['Quer in a box too low for Kompakt', 600, 111, 'quer'],
         // Capped by `ansicht` or floored in the dialog: a Voll-sized box draws Einfach.
-        ['Kompakt for the start box', 396, 636, 'kompakt'],
-        ['Kompakt for a wide Voll box: it draws at 2.0, Quer at 1.4', 600, 636, 'kompakt'],
+        ['Quer with the segment for the start box', 396, 636, 'quer'],
+        ['Kompakt for a tall box too narrow for the segment', 387, 636, 'kompakt'],
     ])('Einfach: %s (%i × %i px)', (_case, width, height, arrangement) => {
         expect(thermostatArrangement('einfach', { width, height })).toBe(arrangement);
     });
