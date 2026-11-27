@@ -9,8 +9,9 @@
  * (`lib/heating/MiniDialog`). The size-stage module (`lib/heating/SizeStages`, ADR-0122) decides by
  * the Content-Box it finds — the frame's, or the dialog's own box, where the module's dialog
  * context gives the dialog's stage (never below Einfach, no dialog in the dialog): the type's rule
- * (`thermostatStages`) gives Voll, Einfach or Mini, the arrangements (`ThermostatStage`) place the
- * parts, Mini is the module's tile filled with the set-point. The parts: the Kartenkopf
+ * (`thermostatStages`) gives Voll, Einfach or Mini, the plan of the box (`thermostatPlan`) the
+ * arrangement and its sizes; the content hands over all of its parts alike and the arrangements
+ * (`ThermostatStage`) alone place them, Mini is the module's tile filled with the set-point. The parts: the Kartenkopf
  * (`lib/heating/Kartenkopf`: symbol, Bezeichnung, Unterzeile and status chip in Groß; name and chip
  * in Mittel and Kompakt; stacked in Quer), the set-point in the dial and big set-point places, the
  * actual temperature below it in the dial, the hint line (`HintLine`: always in Groß, only for a
@@ -36,14 +37,13 @@ import { useContext, useState, type ReactElement, type ReactNode } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';
 import { useClock } from '../lib/heating/clock';
-import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
+import Kartenkopf from '../lib/heating/Kartenkopf';
 import { headerKeys, NEUTRAL_LABELS } from '../lib/heating/meaningCatalog';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
 import { setpointScale } from '../lib/heating/setpointScale';
 import SizeStages from '../lib/heating/SizeStages';
-import type { MeasuredBox } from '../lib/heating/stageRule';
 import { readZone } from '../lib/heating/zoneReading';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
@@ -53,17 +53,7 @@ import { SetpointDial, StepButton } from './SetpointControls';
 import { thermostatActions, type ThermostatAction } from './thermostatActions';
 import { thermostatStatus } from './thermostatStatus';
 import { useThermostatWrites } from './useThermostatWrites';
-import {
-    thermostatArrangement,
-    thermostatDialFont,
-    thermostatDialSize,
-    thermostatQuerModes,
-    thermostatSetpointFont,
-    thermostatStage,
-    thermostatTile,
-    SETPOINT_FIT,
-    type ThermostatArrangement,
-} from './thermostatStages';
+import { thermostatPlan, thermostatStage, SETPOINT_FIT } from './thermostatStages';
 import type { HeatingThermostatCollectionContextProps } from '../types';
 
 import type { WidgetData } from '@iobroker/types-vis-2';
@@ -140,7 +130,6 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             {shown === undefined ? NO_VALUE : formatReading(shown, 'temperature', lang, unit)}
         </Typography>
     );
-    const setpoint = setpointAt();
 
     const actualText = actualTemperatureText(zone, lang);
     const actual = actualText === undefined ? null : <ActualTemperature text={actualText} />;
@@ -244,113 +233,83 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             </Box>
         ) : null;
 
-    const dial = (arrangement: 'gross' | 'mittel', box: MeasuredBox): ReactNode => (
-        <SetpointDial
-            size={thermostatDialSize(arrangement, box)}
-            scale={scale}
-            value={shown}
-            disabled={reported === undefined}
-            cool={status.chip?.tone === 'kühl'}
-            onPreview={setPreview}
-            onCommit={commit}
-            onStep={step}
-            buttons={
-                steps ? (
-                    <>
-                        {stepButton('down', STEP_BUTTON.flat)}
-                        {stepButton('up', STEP_BUTTON.flat)}
-                    </>
-                ) : null
-            }
-        >
-            {setpointAt(thermostatDialFont(thermostatDialSize(arrangement, box)))}
-            {actual}
-        </SetpointDial>
-    );
-
-    const head = (arrangement: ThermostatArrangement, form: KartenkopfForm): ReactNode => (
-        <Kartenkopf
-            form={form}
-            name={name}
-            chips={status.chip ? [status.chip] : []}
-            // The full arrangement: the fixed type symbol and the Unterzeile (ADR-0123 Nr. 1, 7).
-            {...(arrangement === 'gross'
-                ? { symbol: <ThermostatOutlined sx={{ fontSize: 22 }} />, secondLine: subLine }
-                : {})}
-        />
-    );
-
-    /** The hint place: Groß always, Mittel only for a Meldung, Einfach a Meldung or the actual temperature. */
-    const hintFor = (arrangement: ThermostatArrangement): ReactNode => {
-        switch (arrangement) {
-            case 'gross':
-                return status.hint ? <HintLine hint={status.hint} /> : null;
-            case 'mittel':
-                return message ? <HintLine hint={message} /> : null;
-            default:
-                return message ? (
-                    <HintLine
-                        hint={message}
-                        align={arrangement === 'kompakt' ? 'center' : 'start'}
-                    />
-                ) : (
-                    actual
-                );
-        }
-    };
-
-    const partsFor = (arrangement: ThermostatArrangement | 'mini', box: MeasuredBox): ThermostatParts => ({
-        head: form => (arrangement === 'mini' ? null : head(arrangement, form)),
-        dial: arrangement === 'gross' || arrangement === 'mittel' ? dimmed(dial(arrangement, box)) : null,
-        setpoint: dimmed(
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-                {stepButton('down', STEP_BUTTON.flat)}
-                {/* Quer keeps the h3; Kompakt sizes the set-point to its row beside ±. */}
-                {arrangement === 'kompakt'
-                    ? setpointAt(thermostatSetpointFont('kompakt', box, steps !== undefined))
-                    : setpoint}
-                {stepButton('up', STEP_BUTTON.flat)}
-            </Box>,
+    // All parts for every arrangement alike: the plan of the box sizes them, the arrangement
+    // (`ThermostatStage`) alone decides which part stands where (ADR-0122 Nachtrag K7).
+    const parts: ThermostatParts = {
+        head: (form, full) => (
+            <Kartenkopf
+                form={form}
+                name={name}
+                chips={status.chip ? [status.chip] : []}
+                // The full arrangement: the fixed type symbol and the Unterzeile (ADR-0123 Nr. 1, 7).
+                {...(full ? { symbol: <ThermostatOutlined sx={{ fontSize: 22 }} />, secondLine: subLine } : {})}
+            />
         ),
-        pills: arrangement === 'gross' ? <PillRow pills={pills} /> : null,
-        modes: arrangement === 'gross' || arrangement === 'quer' ? modes : null,
-        readings: readings.length ? <ReadingsBar readings={readings} /> : null,
-        hint: arrangement === 'mini' ? null : hintFor(arrangement),
-        tile: {
-            // The tile sizes the set-point to the room ± and the footer line leave.
-            main: dimmed(
-                setpointAt(thermostatSetpointFont('tile', box, thermostatTile(box, steps !== undefined).buttons)),
+        dial: ({ size, font }) =>
+            dimmed(
+                <SetpointDial
+                    size={size}
+                    scale={scale}
+                    value={shown}
+                    disabled={reported === undefined}
+                    cool={status.chip?.tone === 'kühl'}
+                    onPreview={setPreview}
+                    onCommit={commit}
+                    onStep={step}
+                    buttons={
+                        steps ? (
+                            <>
+                                {stepButton('down', STEP_BUTTON.flat)}
+                                {stepButton('up', STEP_BUTTON.flat)}
+                            </>
+                        ) : null
+                    }
+                >
+                    {setpointAt(font)}
+                    {actual}
+                </SetpointDial>,
             ),
-            decrease: stepButton('down', STEP_BUTTON.tile),
-            increase: stepButton('up', STEP_BUTTON.tile),
-            line: message ? (
+        setpoint: font =>
+            dimmed(
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                    {stepButton('down', STEP_BUTTON.flat)}
+                    {setpointAt(font)}
+                    {stepButton('up', STEP_BUTTON.flat)}
+                </Box>,
+            ),
+        pills: <PillRow pills={pills} />,
+        modes,
+        readings: readings.length ? <ReadingsBar readings={readings} /> : null,
+        hint: status.hint ? <HintLine hint={status.hint} /> : null,
+        message: look =>
+            message ? (
                 <HintLine
                     hint={message}
-                    size="tile"
-                    align="start"
+                    {...look}
                 />
-            ) : (
-                actual
-            ),
+            ) : null,
+        actual,
+        tile: {
+            main: font => dimmed(setpointAt(font)),
+            decrease: stepButton('down', STEP_BUTTON.tile),
+            increase: stepButton('up', STEP_BUTTON.tile),
         },
-    });
+    };
+    // The set-point is writable exactly when it has ± (`thermostatActions`).
+    const writable = steps !== undefined;
 
     return (
         <SizeStages
             rule={thermostatStage}
             data={widgetData}
             ansicht={widgetData.ansicht}
-            renderStage={(stage, box) => {
-                const arrangement = thermostatArrangement(stage, box);
-                return (
-                    <ThermostatStage
-                        arrangement={arrangement}
-                        querModes={thermostatQuerModes(box)}
-                        parts={partsFor(arrangement, box)}
-                    />
-                );
-            }}
-            renderTile={box => thermostatTileContent(partsFor('mini', box), box)}
+            renderStage={(stage, box) => (
+                <ThermostatStage
+                    plan={thermostatPlan(stage, box, writable)}
+                    parts={parts}
+                />
+            )}
+            renderTile={box => thermostatTileContent(parts, thermostatPlan('mini', box, writable).tile)}
             name={name}
             typeName={translate('heating_thermostat_collection_widget')}
             status={status.tile}

@@ -1,5 +1,6 @@
 /**
- * The Raumthermostat's size-stage rule and its arrangements (ADR-0122 Nr. 1, 9).
+ * The Raumthermostat's size-stage rule, its arrangements and the arrangement plan of a box
+ * (ADR-0122 Nr. 1, 9, Nachtrag K7).
  *
  * @module HeatingThermostatCollectionWidget/thermostatStages
  * @remarks
@@ -10,6 +11,9 @@
  * Content-Box) starts in Voll/Groß as in the design. Voll begins at Mittel, 276 × 376 px — within
  * the narrowest grid section (296 px) and 11 grid rows (632 px). The box after the frame counts
  * without correction (Nr. 4): a large padding or Rahmenvorgabe may move the widget one stage down.
+ *
+ * The content draws by one plan (`thermostatPlan`): the helpers below are its pieces, each size
+ * computed once there.
  */
 
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
@@ -231,4 +235,68 @@ export function thermostatDialFont(size: number): number {
         font -= 1;
     }
     return font;
+}
+
+/** The dial of an arrangement of Voll: its edge length and the set-point's font size in it. */
+export interface ThermostatDial {
+    readonly size: number;
+    readonly font: number;
+}
+
+/** The Raumthermostat tile's parts and the set-point's font size beside them. */
+export interface ThermostatTilePlan extends ThermostatTileParts {
+    readonly setpointFont: number;
+}
+
+/** The plan of a drawn stage: an arrangement of Voll or Einfach and the sizes it draws with. */
+export type ThermostatStagePlan =
+    | { readonly arrangement: 'gross' | 'mittel'; readonly dial: ThermostatDial }
+    | { readonly arrangement: 'quer'; readonly modes: boolean }
+    | { readonly arrangement: 'kompakt'; readonly setpointFont: number };
+
+/** The plan of the Mini stage: the tile. */
+export interface ThermostatMiniPlan {
+    readonly arrangement: 'mini';
+    readonly tile: ThermostatTilePlan;
+}
+
+/**
+ * The whole plan of the Raumthermostat for a box: the arrangement and every size it draws with,
+ * each computed once. The arrangements place the parts by it (`ThermostatStage`).
+ */
+export type ThermostatPlan = ThermostatStagePlan | ThermostatMiniPlan;
+
+/**
+ * The Raumthermostat's arrangement plan (ADR-0122 Nachtrag K7): from the effective stage, the box
+ * and whether the set-point is writable to the arrangement, the operating-mode segment in Quer, the
+ * dial's size and font, the set-point's font and the tile's parts.
+ *
+ * @param stage - The effective stage (Mini for the tile).
+ * @param box - The measured Content-Box.
+ * @param writable - Whether the set-point is writable: only then it has ±.
+ * @returns The plan.
+ */
+export function thermostatPlan(stage: 'mini', box: MeasuredBox, writable: boolean): ThermostatMiniPlan;
+export function thermostatPlan(stage: DrawnStage, box: MeasuredBox, writable: boolean): ThermostatStagePlan;
+export function thermostatPlan(stage: SizeStage, box: MeasuredBox, writable: boolean): ThermostatPlan;
+export function thermostatPlan(stage: SizeStage, box: MeasuredBox, writable: boolean): ThermostatPlan {
+    if (stage === 'mini') {
+        const tile = thermostatTile(box, writable);
+        return {
+            arrangement: 'mini',
+            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', box, tile.buttons) },
+        };
+    }
+    const arrangement = thermostatArrangement(stage, box);
+    switch (arrangement) {
+        case 'gross':
+        case 'mittel': {
+            const size = thermostatDialSize(arrangement, box);
+            return { arrangement, dial: { size, font: thermostatDialFont(size) } };
+        }
+        case 'quer':
+            return { arrangement, modes: thermostatQuerModes(box) };
+        default:
+            return { arrangement, setpointFont: thermostatSetpointFont('kompakt', box, writable) };
+    }
 }
