@@ -518,3 +518,89 @@ describe('main pick — what counts as the device', () => {
         expect(Object.keys(picked).sort()).toEqual(['soll', 'sollObject']);
     });
 });
+
+describe('main pick — one commit of the prefilled data (ADR-0111 addendum 2026-11-27)', () => {
+    /** Longer than the shared handler's 100 ms commit: a device read that outlasts it. */
+    const SLOW_READ_MS = 150;
+
+    /** The fake object database, with each object view answering only after `SLOW_READ_MS`. */
+    const slowSocketOver = (objects: Record<string, ioBroker.Object>): Connection => {
+        const socket = socketOver(objects);
+        return {
+            getObject: socket.getObject.bind(socket),
+            getObjectView: (start: string, end: string, type: string): Promise<unknown> =>
+                new Promise(resolve => {
+                    setTimeout(
+                        () => resolve(socket.getObjectView(start, end, type as ioBroker.ObjectType)),
+                        SLOW_READ_MS,
+                    );
+                }),
+        } as unknown as Connection;
+    };
+
+    /** One call of `changeData`: the data as handed over, and the object the host keeps. */
+    interface Commit {
+        readonly handed: WidgetData;
+        readonly kept: WidgetData;
+    }
+
+    /** Picks `id` as the main Bedeutung with real timers and records every commit to vis-2. */
+    async function commitsOfPick(
+        id: string,
+        objects: Record<string, ioBroker.Object> = heatingTestDevices().objects,
+    ): Promise<Commit[]> {
+        const commits: Commit[] = [];
+        const field = mainField();
+        await field.onChange(
+            field,
+            { soll: id },
+            newData => {
+                commits.push({ handed: structuredClone(newData), kept: newData });
+            },
+            slowSocketOver(objects),
+        );
+        // Past every pending commit of the pick (the shared handler commits after 100 ms).
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return commits;
+    }
+
+    beforeEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('hands the fully prefilled data over exactly once, and never mutates it afterwards', async () => {
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.soll));
+
+        expect(commits).toHaveLength(1);
+        const [{ handed, kept }] = commits;
+        expect(handed.ist).toBe(at(NEUTRAL_DEVICE.binding.ist));
+        expect(handed.betriebsartZuordnung).toEqual({ auto: [0], manuell: [1], urlaub: [2] });
+        expect(handed.bezeichnung).toBe('Neutral thermostat');
+        expect(kept).toEqual(handed);
+    });
+
+    it('commits once on an emptied main pick', async () => {
+        const commits = await commitsOfPick('');
+
+        expect(commits.map(one => one.handed)).toEqual([{ soll: '' }]);
+    });
+
+    it('commits once on an unusable main pick', async () => {
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.boost));
+
+        expect(commits.map(one => Object.keys(one.handed))).toEqual([['soll']]);
+    });
+
+    it('commits once for a state without a device to read', async () => {
+        const objects = heatingTestDevices().objects;
+        delete objects[at(NEUTRAL_DEVICE.id)];
+        objects[at(`${NEUTRAL_DEVICE.id}.thermostat`)] = {
+            ...objects[at(`${NEUTRAL_DEVICE.id}.thermostat`)],
+            type: 'meta',
+        } as ioBroker.Object;
+
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.soll), objects);
+
+        expect(commits.map(one => Object.keys(one.handed).sort())).toEqual([['soll', 'sollObject']]);
+    });
+});
