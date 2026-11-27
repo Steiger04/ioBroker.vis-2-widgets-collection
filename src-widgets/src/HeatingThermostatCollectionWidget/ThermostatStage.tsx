@@ -241,7 +241,8 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                         </Box>
                         {slot('setpoint', parts.setpoint(plan.setpointFont))}
                     </Box>
-                    {middleRegion(gaps.region, plan.modes ? slot('modes', parts.modes) : null, 'end')}
+                    {/* The segment's middle only while it shows: an empty one would add a gap the plan does not count. */}
+                    {plan.modes ? middleRegion(gaps.region, slot('modes', parts.modes), 'end') : null}
                 </>
             );
             break;

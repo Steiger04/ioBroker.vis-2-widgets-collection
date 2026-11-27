@@ -1474,6 +1474,8 @@ describe('HeatingThermostatCollectionWidget: operating mode', () => {
             'quer',
         );
         expect(modeKeys(container)).toEqual(['auto', 'manuell', 'boost']);
+        // The segment stands in the middle below the head row.
+        expect(container.querySelector('[data-heating-region="middle"] [data-heating-slot="modes"]')).not.toBeNull();
     });
 });
 
