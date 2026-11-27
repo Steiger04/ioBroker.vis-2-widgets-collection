@@ -16,7 +16,9 @@
  *
  * Hint line, by precedence: Störung „Keine Funkverbindung seit …“ (the reachability's `lc`) ·
  * Hinweis battery low · window open with the reported set-point · Aus · Boost · Urlaub until its
- * end · the operating mode's text. Only Störung and Hinweis tone it (ADR-0124 Nr. 2).
+ * end · the operating mode's text. Only Störung and Hinweis tone it (ADR-0124 Nr. 2); the tile's
+ * Meldung is the hint line's. Chip and hint line keep their own precedence lists, as the spec states
+ * them: they share most steps but not all (no battery in the chip, no valve in the hint line).
  *
  * - **Aus** is active when the operating mode reads `aus`, or — where Aus writes the set-point's
  *   real minimum (`thermostatOff`) — when the reported set-point equals that minimum.
@@ -281,12 +283,8 @@ export function thermostatStatus(
         hint = { text: translate(`heating_hinweis_${mode}`) };
     }
 
-    let message: ThermostatMessage | undefined;
-    if (unreachable) {
-        message = 'störung';
-    } else if (batteryLow) {
-        message = 'hinweis';
-    }
+    // The Meldung is the hint line's: only Störung and Hinweis carry one, and they lead its precedence.
+    const message = hint?.message;
     const label = [chip?.text, message === 'hinweis' ? hint?.text : undefined].filter(Boolean).join(', ');
 
     return {
