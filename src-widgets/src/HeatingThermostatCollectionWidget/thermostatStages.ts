@@ -82,21 +82,27 @@ export type SetpointPlace = 'kompakt' | 'tile';
  *
  * @param place - The place.
  * @param box - Kompakt: the measured Content-Box; the tile: the area the hull leaves it.
- * @param buttons - Whether ± stand beside the set-point.
+ * @param parts - Kompakt: whether ± stand beside the set-point; the tile: its parts as
+ *   {@link thermostatTile} decided them (± and the footer line), not decided again here.
  * @returns The font size in px.
  */
-export function thermostatSetpointFont(place: 'kompakt', box: MeasuredBox, buttons: boolean): number;
-export function thermostatSetpointFont(place: 'tile', box: TileArea, buttons: boolean): number;
-export function thermostatSetpointFont(place: SetpointPlace, box: MeasuredBox | TileArea, buttons: boolean): number {
+export function thermostatSetpointFont(place: 'kompakt', box: MeasuredBox, parts: boolean): number;
+export function thermostatSetpointFont(place: 'tile', box: TileArea, parts: ThermostatTileParts): number;
+export function thermostatSetpointFont(
+    place: SetpointPlace,
+    box: MeasuredBox | TileArea,
+    parts: boolean | ThermostatTileParts,
+): number {
     const fit = SETPOINT_FIT;
     let font: number;
     if (place === 'kompakt') {
-        font = (box.width - (buttons ? 2 * fit.stepFlat + 2 * fit.flatGap : 0)) / fit.glyphsPerFontPx;
+        font = (box.width - (parts ? 2 * fit.stepFlat + 2 * fit.flatGap : 0)) / fit.glyphsPerFontPx;
     } else {
         const area = box as TileArea;
+        const { buttons, footer } = parts as ThermostatTileParts;
         const width = area.width - (buttons ? 2 * fit.stepTile + 2 * area.controlGap : 0);
-        const footer = thermostatTile(area, buttons).footer ? area.rowGap + fit.tileLine : 0;
-        font = Math.min(width / fit.glyphsPerFontPx, (area.height - footer) / fit.lineHeight);
+        const footerLine = footer ? area.rowGap + fit.tileLine : 0;
+        font = Math.min(width / fit.glyphsPerFontPx, (area.height - footerLine) / fit.lineHeight);
     }
     return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
 }
@@ -261,7 +267,7 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
         const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
-            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile.buttons) },
+            tile: { ...tile, setpointFont: thermostatSetpointFont('tile', area, tile) },
         };
     }
     const arrangement = thermostatArrangement(stage, box);
