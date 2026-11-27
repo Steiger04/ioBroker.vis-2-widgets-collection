@@ -5,9 +5,10 @@
  * @remarks
  * The scene injects the Content-Box the frame publishes. Pinned: the empty content before the
  * first measurement, the stage and arrangement per box with their places (Kartenkopf, dial or big
- * set-point, pills, operating-mode segment, readings, hint line), the `ansicht` cap, the tile with
- * the Bezeichnung and the frame settings leaving the Kartenkopf and the hint line alone. The
- * thresholds themselves are pinned at the rule (`thermostatStages.test`).
+ * set-point, pills, operating-mode segment, readings, hint line), the Kartenkopf's form per
+ * arrangement (symbol, Bezeichnung, Unterzeile, chip), the `ansicht` cap, the tile with the
+ * Bezeichnung and the frame settings leaving the Kartenkopf and the hint line alone. The thresholds
+ * themselves are pinned at the rule (`thermostatStages.test`); the status logic at the widget seam.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -32,7 +33,11 @@ const mountBody = testScopedMount();
 const START_BOX = { width: 396, height: 636 };
 
 /** A Raumthermostat scene over the fixture's data as the widget reads it, with a box when given. */
-const scene = (data: Record<string, unknown> = {}, box?: MeasuredBox): PreviewScene => {
+const scene = (
+    data: Record<string, unknown> = {},
+    box?: MeasuredBox,
+    values: Record<string, unknown> = {},
+): PreviewScene => {
     const plain = collectionScene(
         'heating-thermostat-test',
         readWidgetData([...thermostatBindingFields(), ...thermostatValueFields()], {
@@ -42,7 +47,8 @@ const scene = (data: Record<string, unknown> = {}, box?: MeasuredBox): PreviewSc
         21.5,
         SETPOINT_OID,
     );
-    return box ? withContentBox(plain, box) : plain;
+    const valued = { ...plain, context: { ...plain.context, values: { ...plain.context.values, ...values } } };
+    return box ? withContentBox(valued, box) : valued;
 };
 
 /** The value of a data attribute on the first element carrying it. */
@@ -97,14 +103,17 @@ describe('HeatingThermostatCollection: stage and arrangement', () => {
         ['Mittel', { width: 296, height: 400 }, 'dial'],
         ['Quer', { width: 500, height: 150 }, 'setpoint'],
         ['Kompakt', { width: 280, height: 180 }, 'setpoint'],
-    ])('shows the set-point in the place of %s — the other places stay empty until filled', (_case, box, place) => {
-        const { container } = mountBody(HeatingThermostatCollection, scene({}, box));
+    ])(
+        'shows the set-point in the place of %s — besides the Kartenkopf the other places stay empty until filled',
+        (_case, box, place) => {
+            const { container } = mountBody(HeatingThermostatCollection, scene({}, box));
 
-        expect(filledSlots(container)).toEqual([place]);
-        expect(container.querySelector(`[data-heating-slot="${place}"] [data-heating-setpoint]`)?.textContent).toBe(
-            '21.5 °C',
-        );
-    });
+            expect(filledSlots(container)).toEqual(['head', place]);
+            expect(container.querySelector(`[data-heating-slot="${place}"] [data-heating-setpoint]`)?.textContent).toBe(
+                '21.5 °C',
+            );
+        },
+    );
 
     it('caps a Voll box at Einfach with `ansicht: einfach`', () => {
         const { container } = mountBody(HeatingThermostatCollection, scene({ ansicht: 'einfach' }, START_BOX));
@@ -145,11 +154,58 @@ describe('HeatingThermostatCollection: the tile', () => {
         );
     });
 
-    it('reports the neutral tone without a Meldung (the real status follows with the Kartenkopf)', () => {
+    it('reports the neutral tone while no status is known', () => {
         const { container } = mountBody(HeatingThermostatCollection, scene({}, TILE_BOX));
         const sign = container.querySelector('[data-heating-status]')!;
 
         expect([sign.getAttribute('data-heating-status'), sign.getAttribute('data-tone')]).toEqual(['dot', 'neutral']);
+    });
+});
+
+describe('HeatingThermostatCollection: the Kartenkopf per arrangement', () => {
+    /** An operating mode reporting Auto: the chip shows it. */
+    const MODE = { betriebsart: 'hz.mode', betriebsartZuordnung: { auto: [0], manuell: [1] } };
+    const NAMES = { bezeichnung: 'Wohnzimmer', unterzeile: 'Heizkörper Fensterseite' };
+
+    /** What the Kartenkopf shows: form, symbol, name, second line and chip. */
+    const headOf = (container: HTMLElement): Record<string, unknown> => {
+        const head = container.querySelector('[data-heating-slot="head"] [data-heating-head]')!;
+        return {
+            form: head.getAttribute('data-heating-head'),
+            symbol: head.querySelector('[data-heating-head-symbol]') !== null,
+            name: head.querySelector('[data-heating-head-name]')?.textContent ?? null,
+            second: head.querySelector('[data-heating-head-second]')?.textContent ?? null,
+            chip: head.querySelector('[data-heating-chip]')?.textContent ?? null,
+        };
+    };
+
+    it.each([
+        ['Groß: symbol, Bezeichnung, Unterzeile and chip', START_BOX, 'zeile', true, 'Heizkörper Fensterseite'],
+        ['Mittel: name and chip', { width: 296, height: 400 }, 'zeile', false, null],
+        ['Quer: stacked', { width: 500, height: 150 }, 'gestapelt', false, null],
+        ['Kompakt: a row', { width: 280, height: 180 }, 'zeile', false, null],
+    ])('%s', (_case, box, form, symbol, second) => {
+        const { container } = mountBody(
+            HeatingThermostatCollection,
+            scene({ ...MODE, ...NAMES }, box, { 'hz.mode.val': 0 }),
+        );
+
+        expect(headOf(container)).toEqual({
+            form,
+            symbol,
+            name: 'Wohnzimmer',
+            second,
+            chip: 'heating_neutral_auto',
+        });
+    });
+
+    it('shows no second line for an empty Unterzeile, and no chip while nothing is known', () => {
+        const { container } = mountBody(
+            HeatingThermostatCollection,
+            scene({ bezeichnung: 'Bad', unterzeile: '' }, START_BOX),
+        );
+
+        expect(headOf(container)).toEqual({ form: 'zeile', symbol: true, name: 'Bad', second: null, chip: null });
     });
 });
 
@@ -158,10 +214,15 @@ describe('HeatingThermostatCollection: the frame settings', () => {
         ['with the header and the footer line', { noHeader: false, noFooter: false }],
         ['without them', { noHeader: true, noFooter: true }],
     ])('keep the Kartenkopf and hint-line places and the stage of the same box %s', (_case, frame) => {
-        const { container } = mountBody(HeatingThermostatCollection, scene(frame, START_BOX));
+        const { container } = mountBody(
+            HeatingThermostatCollection,
+            scene({ ...frame, bezeichnung: 'Bad' }, START_BOX),
+        );
 
         expect(attribute(container, 'data-heating-arrangement')).toBe('gross');
-        expect(container.querySelector('[data-heating-region="head"]')).not.toBeNull();
+        expect(container.querySelector('[data-heating-region="head"] [data-heating-head-name]')?.textContent).toBe(
+            'Bad',
+        );
         expect(container.querySelector('[data-heating-region="hint"]')).not.toBeNull();
     });
 });

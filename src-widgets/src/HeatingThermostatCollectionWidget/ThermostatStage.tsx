@@ -17,11 +17,9 @@ import { Box } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
 import { thermostatTile, type ThermostatArrangement } from './thermostatStages';
+import type { KartenkopfForm } from '../lib/heating/Kartenkopf';
 import type { TileContent } from '../lib/heating/SizeStages';
 import type { MeasuredBox } from '../lib/heating/stageRule';
-
-/** The form of the Kartenkopf (ADR-0123 Nr. 1). */
-export type KartenkopfForm = 'zeile' | 'gestapelt';
 
 /** The content of the Raumthermostat's places. */
 export interface ThermostatParts {

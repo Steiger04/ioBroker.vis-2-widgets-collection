@@ -23,16 +23,16 @@ import { createTestRoot } from '../lib/testing/testRoots';
 import HeatingThermostatCollectionWidget from './HeatingThermostatCollectionWidget';
 
 // The host base class with what renderWidgetBody reaches (as in lib/aiRawDataRender.test). Its `t`
-// reads `this` like the host's and returns the key.
+// reads `this` like the host's and returns the key, with its arguments in brackets.
 vi.hoisted(() => {
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static getI18nPrefix(): string {
             return '';
         }
 
-        static t(key: string): string {
+        static t(key: string, ...args: string[]): string {
             void this.getI18nPrefix;
-            return key;
+            return args.length ? `${key}(${args.join('|')})` : key;
         }
 
         props: unknown;
@@ -95,46 +95,75 @@ afterEach(() => {
     socket.setObject.mockClear();
 });
 
+/** A mounted Raumthermostat: its container, and a new report of state values rendered into it. */
+interface MountedWidget {
+    container: HTMLElement;
+    report: (values: Record<string, unknown>) => Promise<void>;
+}
+
 /**
  * Mounts the Raumthermostat the way vis-2 renders it, inside a frame that publishes `box`.
  *
  * @param data - The stored data (`rxData` and `props.widget.data`).
  * @param values - The subscribed state values (`<id>.val/.ack/.ts/.lc/.q`).
  * @param box - The Content-Box the frame publishes.
+ * @param lang - The host language.
+ * @returns The container and a way to render new state values, as the host does on a report.
+ */
+async function mountWidget(
+    data: Record<string, unknown>,
+    values: Record<string, unknown>,
+    box: ContentBox = START_BOX,
+    lang = 'en',
+): Promise<MountedWidget> {
+    const instance = new (HeatingThermostatCollectionWidget as unknown as new (props: unknown) => WidgetInstance)({
+        context: { socket, themeType: 'light', lang, theme: Theme('light') },
+    });
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createTestRoot(container);
+    const render = async (current: Record<string, unknown>): Promise<void> => {
+        instance.state = { rxData: data, rxStyle: {}, values: current, editMode: false };
+        await act(() => {
+            root.render(
+                <InjectedContentBoxContext.Provider value={box}>
+                    {instance.renderWidgetBody({
+                        id: 'preview-heating-thermostat',
+                        widget: { data, style: {} },
+                        style: {},
+                        refService: { current: null },
+                    })}
+                </InjectedContentBoxContext.Provider>,
+            );
+            return Promise.resolve();
+        });
+        // A macrotask: the object reads of the Bedeutungen stored without their object resolve.
+        await act(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
+    };
+    await render(values);
+    unmounts.push(() => {
+        act(() => root.unmount());
+        container.remove();
+    });
+    return { container, report: render };
+}
+
+/**
+ * Mounts the Raumthermostat the way vis-2 renders it, inside a frame that publishes `box`.
+ *
+ * @param data - The stored data (`rxData` and `props.widget.data`).
+ * @param values - The subscribed state values (`<id>.val/.ack/.ts/.lc/.q`).
+ * @param box - The Content-Box the frame publishes.
+ * @param lang - The host language.
  * @returns The container.
  */
 async function mount(
     data: Record<string, unknown>,
     values: Record<string, unknown>,
     box: ContentBox = START_BOX,
+    lang = 'en',
 ): Promise<HTMLElement> {
-    const instance = new (HeatingThermostatCollectionWidget as unknown as new (props: unknown) => WidgetInstance)({
-        context: { socket, themeType: 'light', lang: 'en', theme: Theme('light') },
-    });
-    instance.state = { rxData: data, rxStyle: {}, values, editMode: false };
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    const root = createTestRoot(container);
-    await act(() => {
-        root.render(
-            <InjectedContentBoxContext.Provider value={box}>
-                {instance.renderWidgetBody({
-                    id: 'preview-heating-thermostat',
-                    widget: { data, style: {} },
-                    style: {},
-                    refService: { current: null },
-                })}
-            </InjectedContentBoxContext.Provider>,
-        );
-        return Promise.resolve();
-    });
-    // A macrotask: the object reads of the Bedeutungen stored without their object resolve.
-    await act(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
-    unmounts.push(() => {
-        act(() => root.unmount());
-        container.remove();
-    });
-    return container;
+    return (await mountWidget(data, values, box, lang)).container;
 }
 
 /** The neutral device bound with ids only, as the assistant writes it. */
@@ -406,5 +435,392 @@ describe('HeatingThermostatCollectionWidget: where the readings stand per arrang
         ).toEqual(['luftfeuchte', 'ventil', 'fenster', 'batteriestand']);
         expect(reading(container, 'luftfeuchte')).toBe('48 %');
         expect(reading(container, 'ventil')).toBe('35 %');
+    });
+});
+
+/** The neutral device with every status Bedeutung bound, each with its stored Wertezuordnung. */
+const statusData = (extra: Record<string, unknown> = {}): Record<string, unknown> =>
+    neutralData({
+        betriebsart: neutral('betriebsart'),
+        boost: neutral('boost'),
+        erreichbarkeit: neutral('erreichbarkeit'),
+        betriebsartZuordnung: { auto: [0], manuell: [1], urlaub: [2], aus: [3], boost: [4] },
+        boostZuordnung: { an: [true], aus: [false] },
+        fensterZuordnung: { zu: [0], offen: [1, 2] },
+        erreichbarkeitZuordnung: { erreichbar: [true], unerreichbar: [false] },
+        batterieSchwachZuordnung: { schwach: [true], ok: [false] },
+        ...extra,
+    });
+
+/** All values, with the given Bedeutungen of the neutral device reporting `val` (q = 0). */
+const reporting = (reports: Record<string, unknown>, base = allValues()): Record<string, unknown> => ({
+    ...base,
+    ...Object.fromEntries(
+        Object.entries(reports).flatMap(([meaning, val]) => [
+            [`${neutral(meaning)}.val`, val],
+            [`${neutral(meaning)}.q`, 0],
+        ]),
+    ),
+});
+
+/** The status chip of the Kartenkopf: its text and tone; `null` without a chip. */
+const chipOf = (container: HTMLElement): [string, string | null] | null => {
+    const chip = container.querySelector('[data-heating-region="head"] [data-heating-chip]');
+    return chip ? [chip.textContent ?? '', chip.getAttribute('data-tone')] : null;
+};
+
+describe('HeatingThermostatCollectionWidget: status chip', () => {
+    it.each([
+        ['1 unreachable, also with the window open', { erreichbarkeit: false, fenster: 2 }, 'unerreichbar', 'störung'],
+        ['2 window open, also with Boost', { fenster: 1, boost: true }, 'fenster', 'kühl'],
+        ['3 off by the operating mode, also with Boost', { betriebsart: 3, boost: true }, 'aus', 'neutral'],
+        ['4 Boost, also during Urlaub', { boost: true, betriebsart: 2 }, 'boost', 'heizt'],
+        ['5 Urlaub by the operating mode', { betriebsart: 2 }, 'urlaub', 'neutral'],
+        ['6 heating with a reported valve above 0', { ventil: 35 }, 'heizt', 'heizt'],
+        ['6 holding with a reported valve at 0', { ventil: 0 }, 'haelt', 'neutral'],
+    ])('%s', async (_case, reports, chip, tone) => {
+        expect(chipOf(await mount(statusData(), reporting(reports)))).toEqual([`heating_status_${chip}`, tone]);
+    });
+
+    it('7 without a valve shows the operating mode, never „Heizt“ from set-point above actual', async () => {
+        const data = statusData({ ventilAnzahl: 0, ventil1: undefined });
+        // Set-point 21 °C above actual 20.5 °C.
+        expect(chipOf(await mount(data, reporting({ betriebsart: 0 })))).toEqual(['heating_neutral_auto', 'neutral']);
+        expect(chipOf(await mount(data, reporting({ betriebsart: 1 })))).toEqual([
+            'heating_neutral_manuell',
+            'neutral',
+        ]);
+    });
+
+    it('7 shows the commonStates label of an operating mode without a mapping', async () => {
+        const data = statusData({ ventilAnzahl: 0, ventil1: undefined, betriebsartZuordnung: { auto: [0] } });
+
+        expect(chipOf(await mount(data, reporting({ betriebsart: 1 })))).toEqual(['MANUAL', 'neutral']);
+    });
+
+    it('treats a bound valve that has not reported like no valve: the operating mode, no „Hält“', async () => {
+        const values = { ...reporting({ betriebsart: 0 }), [`${neutral('ventil')}.q`]: 0x20 };
+
+        expect(chipOf(await mount(statusData(), values))).toEqual(['heating_neutral_auto', 'neutral']);
+    });
+
+    it('shows no chip without a valve and without an operating mode', async () => {
+        expect(chipOf(await mount({ soll: neutral('soll'), ist: neutral('ist') }, allValues()))).toBeNull();
+    });
+
+    it('keeps the chip on a Hinweis: battery low changes nothing', async () => {
+        expect(chipOf(await mount(statusData(), reporting({ batterieSchwach: true })))).toEqual([
+            'heating_status_heizt',
+            'heizt',
+        ]);
+    });
+});
+
+/** A state of the installation's HmIP-WTH-2. */
+const wth2 = (name: string): string => `${PREFIX}${ANLAGE_WTH2.id}.${name}`;
+
+/** All values, with the given ids reporting `val` (q = 0). */
+const reportingIds = (reports: Record<string, unknown>, base = allValues()): Record<string, unknown> => ({
+    ...base,
+    ...Object.fromEntries(
+        Object.entries(reports).flatMap(([id, val]) => [
+            [`${id}.val`, val],
+            [`${id}.q`, 0],
+        ]),
+    ),
+});
+
+describe('HeatingThermostatCollectionWidget: Aus', () => {
+    /** The HmIP-WTH-2 as the hint table binds it: no `aus` in either operating-mode mapping. */
+    const hmipData = {
+        soll: wth2('1.SET_POINT_TEMPERATURE'),
+        betriebsart: wth2('1.SET_POINT_MODE'),
+        betriebsartZuordnung: { auto: [0], manuell: [1], urlaub: [2] },
+        betriebsartSetzen: wth2('1.CONTROL_MODE'),
+        betriebsartSetzenZuordnung: { auto: [0], manuell: [1] },
+    };
+
+    it('shows „Aus“ where Aus writes the real minimum and the reported set-point equals it (4.5 °C)', async () => {
+        const values = reportingIds({ [wth2('1.SET_POINT_MODE')]: 0, [wth2('1.SET_POINT_TEMPERATURE')]: 4.5 });
+
+        expect(chipOf(await mount(hmipData, values))).toEqual(['heating_status_aus', 'neutral']);
+    });
+
+    it('does not show „Aus“ for the same 4.5 °C not yet reported (q = 0x20)', async () => {
+        const values = reportingIds({ [wth2('1.SET_POINT_MODE')]: 0 });
+        expect(values[`${wth2('1.SET_POINT_TEMPERATURE')}.q`]).toBe(0x20);
+
+        expect(chipOf(await mount(hmipData, values))).toEqual(['heating_neutral_auto', 'neutral']);
+    });
+
+    it('does not judge by the set-point where the operating mode maps `aus`: 5 °C (the minimum) is no „Aus“', async () => {
+        const container = await mount(statusData(), reporting({ soll: 5, betriebsart: 0 }));
+
+        expect(chipOf(container)).toEqual(['heating_status_heizt', 'heizt']);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: Boost', () => {
+    const REST = `${PREFIX}${NEUTRAL_DEVICE.baits.boostRestzeit}`;
+    /** The boost reading's own value left unbound: the remaining time decides. */
+    const restData = (mapping: Record<string, unknown>): Record<string, unknown> =>
+        statusData({ boost: '', boostRestzeit: REST, boostRestzeitZuordnung: mapping });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('counts a remaining time of 10 min down locally until a new report comes', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date(2026, 10, 27, 12, 0, 0));
+        const reportAt = (values: Record<string, unknown>): Record<string, unknown> => ({
+            ...values,
+            [`${REST}.ts`]: Date.now(),
+            [`${REST}.lc`]: Date.now(),
+        });
+        const { container, report } = await mountWidget(
+            restData({ einheit: 'min' }),
+            reportAt(reportingIds({ [REST]: 10 })),
+        );
+        expect(chipOf(container)).toEqual(['heating_status_boost_rest(10:00)', 'heizt']);
+
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
+        expect(chipOf(container)).toEqual(['heating_status_boost_rest(9:59)', 'heizt']);
+        act(() => {
+            vi.advanceTimersByTime(60_000);
+        });
+        expect(chipOf(container)?.[0]).toBe('heating_status_boost_rest(8:59)');
+
+        await report(reportAt(reportingIds({ [REST]: 5 })));
+        expect(chipOf(container)?.[0]).toBe('heating_status_boost_rest(5:00)');
+    });
+
+    it('shows „Boost“ without a time for a remaining time without unit, and counts towards an end time', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date(2026, 10, 27, 12, 0, 0));
+
+        expect(chipOf(await mount(restData({}), reportingIds({ [REST]: 3 })))).toEqual([
+            'heating_status_boost',
+            'heizt',
+        ]);
+        const end = await mount(
+            restData({ zeitformat: 'YYYY_MM_DD HH:mm' }),
+            reportingIds({ [REST]: '2026_11_27 12:05' }),
+        );
+        expect(chipOf(end)?.[0]).toBe('heating_status_boost_rest(5:00)');
+    });
+
+    it('shows no Boost for a remaining time of 0 and follows the operating mode `boost` without other sources', async () => {
+        expect(chipOf(await mount(restData({ einheit: 'min' }), reportingIds({ [REST]: 0 })))?.[0]).toBe(
+            'heating_status_heizt',
+        );
+        expect(chipOf(await mount(statusData({ boost: '' }), reporting({ betriebsart: 4 })))).toEqual([
+            'heating_status_boost',
+            'heizt',
+        ]);
+    });
+
+    it('follows a reported Boost value over the operating mode: Boost off wins over mode `boost`', async () => {
+        expect(chipOf(await mount(statusData(), reporting({ boost: false, betriebsart: 4 })))?.[0]).toBe(
+            'heating_status_heizt',
+        );
+    });
+
+    it('reads a BOOST_MODE-like data point with `common.read: false` as readable once it reports', async () => {
+        const data = { soll: wth2('1.SET_POINT_TEMPERATURE'), boost: wth2('1.BOOST_MODE') };
+        const mapping = { boostZuordnung: { an: [true], aus: [false] } };
+        expect(DEVICES.objects[wth2('1.BOOST_MODE')].common.read).toBe(false);
+
+        expect(chipOf(await mount({ ...data, ...mapping }, reportingIds({ [wth2('1.BOOST_MODE')]: true })))).toEqual([
+            'heating_status_boost',
+            'heizt',
+        ]);
+        // Still on the device's substitute value (q = 0x20): nothing is known.
+        expect(chipOf(await mount({ ...data, ...mapping }, allValues()))).toBeNull();
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: hint line', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    /** The hint line in its place: text, tone and whether it carries the triangle. */
+    const hintOf = (container: HTMLElement): [string, string | null, boolean] | null => {
+        const hint = container.querySelector('[data-heating-slot="hint"] [data-heating-hint]');
+        return hint
+            ? [hint.textContent ?? '', hint.getAttribute('data-tone'), !!hint.querySelector('[data-heating-hint-sign]')]
+            : null;
+    };
+
+    it('reports a Störung with the time from `lc` of the reachability — today only the time — toned with the triangle', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date(2026, 10, 27, 15, 0, 0));
+        const at = (lc: Date): Record<string, unknown> => ({
+            ...reporting({ erreichbarkeit: false, batterieSchwach: true }),
+            [`${neutral('erreichbarkeit')}.lc`]: lc.getTime(),
+        });
+
+        expect(hintOf(await mount(statusData(), at(new Date(2026, 10, 27, 13, 52)), START_BOX, 'de'))).toEqual([
+            'heating_hinweis_keine_verbindung_seit(13:52)',
+            'störung',
+            true,
+        ]);
+        expect(hintOf(await mount(statusData(), at(new Date(2026, 10, 24, 13, 52)), START_BOX, 'de'))?.[0]).toBe(
+            'heating_hinweis_keine_verbindung_seit(24.11., 13:52)',
+        );
+    });
+
+    it('reports battery low as a Hinweis, toned with the triangle, and leaves the chip alone', async () => {
+        const container = await mount(statusData(), reporting({ batterieSchwach: true, fenster: 1 }));
+
+        expect(hintOf(container)).toEqual(['heating_hinweis_batterie_schwach', 'hinweis', true]);
+        expect(chipOf(container)).toEqual(['heating_status_fenster', 'kühl']);
+    });
+
+    it.each([
+        ['window open with the reported set-point', { fenster: 1, soll: 12 }, 'heating_hinweis_fenster_soll(12.0 °C)'],
+        ['Aus', { betriebsart: 3 }, 'heating_hinweis_aus'],
+        ['Boost', { boost: true }, 'heating_hinweis_boost'],
+        ['Urlaub', { betriebsart: 2 }, 'heating_hinweis_urlaub'],
+        ['manual', { betriebsart: 1 }, 'heating_hinweis_manuell'],
+        ['auto', { betriebsart: 0 }, 'heating_hinweis_auto'],
+    ])('stays quiet for %s: no tone, no triangle', async (_case, reports, text) => {
+        expect(hintOf(await mount(statusData(), reporting(reports)))).toEqual([text, null, false]);
+    });
+
+    it('shows the end of an Urlaub in its time format, and none for the default „2000_01_01 00:00“', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(new Date(2026, 10, 27, 12, 0, 0));
+        const data = {
+            soll: wth2('1.SET_POINT_TEMPERATURE'),
+            urlaub: wth2('1.PARTY_MODE'),
+            urlaubZuordnung: { an: [true], aus: [false] },
+            urlaubEnde: wth2('1.PARTY_TIME_END'),
+            urlaubEndeZuordnung: { zeitformat: 'YYYY_MM_DD HH:mm' },
+        };
+        const at = (end: string): Record<string, unknown> =>
+            reportingIds({ [wth2('1.PARTY_MODE')]: true, [wth2('1.PARTY_TIME_END')]: end });
+
+        const running = await mount(data, at('2026_11_29 18:00'), START_BOX, 'de');
+        expect(hintOf(running)?.[0]).toBe('heating_hinweis_urlaub_bis(So., 29.11., 18:00)');
+        expect(chipOf(running)).toEqual(['heating_status_urlaub', 'neutral']);
+        expect(hintOf(await mount(data, at('2000_01_01 00:00'), START_BOX, 'de'))?.[0]).toBe('heating_hinweis_urlaub');
+    });
+
+    it.each([
+        ['Mittel', { width: 296, height: 400 }],
+        ['Quer', { width: 500, height: 150 }],
+        ['Kompakt', { width: 280, height: 180 }],
+    ])(
+        '%s: a Meldung takes the hint place; without one Mittel shows none and Einfach the actual temperature',
+        async (_case, box) => {
+            const quiet = await mount(statusData(), reporting({ betriebsart: 1 }), box);
+            expect(hintOf(quiet)).toBeNull();
+            expect(quiet.querySelector('[data-heating-slot="hint"] [data-heating-actual]') !== null).toBe(
+                _case !== 'Mittel',
+            );
+
+            const low = await mount(statusData(), reporting({ batterieSchwach: true }), box);
+            expect(hintOf(low)).toEqual(['heating_hinweis_batterie_schwach', 'hinweis', true]);
+            expect(low.querySelector('[data-heating-slot="hint"] [data-heating-actual]')).toBeNull();
+        },
+    );
+
+    it('the tile footer shows a Meldung instead of the actual temperature', async () => {
+        const box = { width: 156, height: 66 };
+        const footer = (container: HTMLElement): Element | null =>
+            container.querySelector(
+                '[data-heating-tile] [data-heating-hint], [data-heating-tile] [data-heating-actual]',
+            );
+
+        expect(footer(await mount(statusData(), reporting({}), box))?.hasAttribute('data-heating-actual')).toBe(true);
+        const low = footer(await mount(statusData(), reporting({ batterieSchwach: true }), box));
+        expect([low?.textContent, low?.getAttribute('data-tone')]).toEqual([
+            'heating_hinweis_batterie_schwach',
+            'hinweis',
+        ]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the tile status', () => {
+    const TILE_BOX = { width: 156, height: 66 };
+
+    /** The tile's sign (kind and tone) and its button's accessible name. */
+    const tileOf = async (reports: Record<string, unknown>): Promise<[string | null, string | null, string | null]> => {
+        const container = await mount(statusData({ bezeichnung: 'Bad' }), reporting(reports), TILE_BOX);
+        const sign = container.querySelector('[data-heating-tile] [data-heating-status]');
+        return [
+            sign?.getAttribute('data-heating-status') ?? null,
+            sign?.getAttribute('data-tone') ?? null,
+            container.querySelector('[data-heating-tile] button')?.getAttribute('aria-label') ?? null,
+        ];
+    };
+
+    it('shows Störung over Hinweis over the chip tone, and names the status', async () => {
+        expect(await tileOf({ erreichbarkeit: false, batterieSchwach: true })).toEqual([
+            'triangle',
+            'störung',
+            'Bad, heating_status_unerreichbar',
+        ]);
+        expect(await tileOf({ batterieSchwach: true })).toEqual([
+            'triangle',
+            'hinweis',
+            'Bad, heating_status_heizt, heating_hinweis_batterie_schwach',
+        ]);
+        expect(await tileOf({})).toEqual(['dot', 'heizt', 'Bad, heating_status_heizt']);
+        expect(await tileOf({ fenster: 1 })).toEqual(['dot', 'kühl', 'Bad, heating_status_fenster']);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: not reachable', () => {
+    it('draws the set-point dimmed and keeps the device operable', async () => {
+        const reachable = await mount(statusData(), reporting({}));
+        expect(reachable.querySelector('[data-heating-dimmed]')).toBeNull();
+
+        const container = await mount(statusData(), reporting({ erreichbarkeit: false }));
+        expect(container.querySelector('[data-heating-dimmed] [data-heating-setpoint]')).not.toBeNull();
+
+        const tile = await mount(statusData(), reporting({ erreichbarkeit: false }), { width: 156, height: 66 });
+        expect(tile.querySelector('[data-heating-dimmed] [data-heating-setpoint]')).not.toBeNull();
+        const button = tile.querySelector<HTMLButtonElement>('[data-heating-tile] button')!;
+        expect(button.disabled).toBe(false);
+        act(() => button.click());
+        expect(button.getAttribute('aria-expanded')).toBe('true');
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: motion', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    /** Answers `prefers-reduced-motion: reduce` as given. */
+    const reducedMotion = (reduce: boolean): void => {
+        vi.spyOn(window, 'matchMedia').mockImplementation(
+            query =>
+                ({
+                    matches: reduce && query.includes('prefers-reduced-motion: reduce'),
+                    media: query,
+                    onchange: null,
+                    addListener: () => {},
+                    removeListener: () => {},
+                    addEventListener: () => {},
+                    removeEventListener: () => {},
+                    dispatchEvent: () => false,
+                }) as MediaQueryList,
+        );
+    };
+
+    const pulses = (container: HTMLElement): boolean =>
+        container.querySelector('[data-heating-chip] [data-heating-chip-sign]')!.hasAttribute('data-pulse');
+
+    it('pulses the chip dot while heating, but not under prefers-reduced-motion', async () => {
+        reducedMotion(false);
+        expect(pulses(await mount(statusData(), reporting({})))).toBe(true);
+        reducedMotion(true);
+        expect(pulses(await mount(statusData(), reporting({})))).toBe(false);
     });
 });
