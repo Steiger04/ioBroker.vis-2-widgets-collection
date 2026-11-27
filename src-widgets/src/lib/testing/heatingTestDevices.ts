@@ -14,6 +14,9 @@
  *   the neutrality. Beside it the baits: states without a standard role or with a generic one.
  * - **Ambiguous device:** the neutral device with extra candidates of the same role — one case
  *   the set point channel decides, one it cannot (ADR-0119, ambiguity rule of the prefill).
+ * - **Neutral pair device:** the neutral device plus a write-only mode command of another role
+ *   with the mode's value list, in the mode's channel — the operating-mode pair of the role path
+ *   (ADR-0119 Nachtrag K5).
  * - **Stump device:** only set point and actual temperature — the missing bindings.
  * - **Installation extract:** a HmIP-WTH-2 and a HmIP-FALMOT-C12 taken whole from an export of a
  *   real installation — it proves the hint-table path.
@@ -198,6 +201,29 @@ const neutralChannels = (device: string): Record<string, string> => ({
     [`${device}.maintenance`]: 'Maintenance',
 });
 
+const NEUTRAL_PAIR = 'neutral-pair';
+
+/** The neutral pair device: the neutral one, ids relative, plus its mode command. */
+const NEUTRAL_PAIR_BINDING = {
+    soll: `${NEUTRAL_PAIR}.thermostat.setpoint`,
+    betriebsart: `${NEUTRAL_PAIR}.thermostat.mode`,
+    betriebsartSetzen: `${NEUTRAL_PAIR}.thermostat.modeCommand`,
+} as const;
+
+/** The mode command of the neutral pair device: write only, a generic role, the mode's value list. */
+const MODE_COMMAND: StateDescription = {
+    id: NEUTRAL_PAIR_BINDING.betriebsartSetzen,
+    common: {
+        name: 'Mode command',
+        role: 'level',
+        type: 'number',
+        states: { 0: 'AUTO', 1: 'MANUAL', 2: 'VACATION' },
+        read: false,
+        write: true,
+    },
+    val: 0,
+};
+
 const AMBIGUOUS = 'ambiguous';
 
 /** The ambiguity cases of the ambiguous device (ids relative). */
@@ -229,13 +255,19 @@ const windowContact = (id: string, name: string): StateDescription => ({
     val: 0,
 });
 
-/** The described devices of own making: neutral, ambiguous and stump. */
+/** The described devices of own making: neutral, neutral pair, ambiguous and stump. */
 const DESCRIBED: DeviceDescription[] = [
     {
         id: NEUTRAL,
         name: 'Neutral thermostat',
         channels: neutralChannels(NEUTRAL),
         states: neutralStates(NEUTRAL),
+    },
+    {
+        id: NEUTRAL_PAIR,
+        name: 'Neutral thermostat with mode command',
+        channels: neutralChannels(NEUTRAL_PAIR),
+        states: [...neutralStates(NEUTRAL_PAIR), MODE_COMMAND],
     },
     {
         id: AMBIGUOUS,
@@ -335,6 +367,12 @@ export const NEUTRAL_DEVICE: {
     binding: Record<string, string>;
     baits: Record<string, string>;
 } = { id: NEUTRAL, binding: NEUTRAL_BINDING, baits: NEUTRAL_BAITS };
+
+/**
+ * The neutral pair device: the neutral device plus the mode command beside the mode (ids relative
+ * to the prefix).
+ */
+export const NEUTRAL_PAIR_DEVICE = { id: NEUTRAL_PAIR, binding: NEUTRAL_PAIR_BINDING } as const;
 
 /** The stump device: only set point and actual temperature (ids relative to the prefix). */
 export const STUMP_DEVICE = {

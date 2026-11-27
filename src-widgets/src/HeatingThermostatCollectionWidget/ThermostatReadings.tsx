@@ -4,12 +4,12 @@
  *
  * @module HeatingThermostatCollectionWidget/ThermostatReadings
  * @remarks
- * An unbound Bedeutung leaves its element out; a bound one without a value or not yet reported
- * shows „–“. The valve is the mean of all bound valves that have reported. The window shows its
- * neutral value through the stored Wertezuordnung (open toned `kühl`); a device value without a
- * mapping shows its `commonStates` label, else the raw value, without a neutral state. The battery
- * shows its level with the object's unit, marked as a Hinweis while `batterieSchwach` reads
- * `schwach`.
+ * Everything reads through the Heizzonen-Lesung (`lib/heating/zoneReading`). An unbound Bedeutung
+ * leaves its element out; a bound one without a value or not yet reported shows „–“. The valve is
+ * the mean of the zone's bound valves that have reported. The window shows its display text (its
+ * neutral value through the stored Wertezuordnung, open toned `kühl`; a device value without a
+ * mapping its `commonStates` label, else the raw value, without a neutral state). The battery shows
+ * its level with the object's unit, marked as a Hinweis while `batterieSchwach` reads `schwach`.
  */
 import BatteryStdOutlined from '@mui/icons-material/BatteryStdOutlined';
 import SpeedOutlined from '@mui/icons-material/SpeedOutlined';
@@ -18,22 +18,10 @@ import WindowOutlined from '@mui/icons-material/WindowOutlined';
 import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import { NEUTRAL_LABELS, type MeaningField } from '../lib/heating/meaningCatalog';
-import {
-    deviceValueLabel,
-    neutralReadingOf,
-    readMeaning,
-    readNeutral,
-    storedObjectOf,
-    valveMeanOf,
-    type MeaningReading,
-    type StateValues,
-} from '../lib/heating/meaningReading';
 import { formatReading, NO_VALUE, type ReadingKind } from '../lib/heating/readingFormat';
 import { toneColors, type HeatingTone } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
+import type { MeaningReading, ZoneReading } from '../lib/heating/zoneReading';
 
 /** What an element of the readings bar shows: a Bedeutung, or `ventil` for the valve mean. */
 export type ReadingMeaning = 'luftfeuchte' | 'ventil' | 'fenster' | 'batteriestand';
@@ -48,72 +36,52 @@ export interface ThermostatReading {
     readonly tone?: HeatingTone;
 }
 
-/** The unit stored with a Bedeutung's object. */
-const unitOf = (data: WidgetData, field: MeaningField, entry?: number): string | undefined =>
-    storedObjectOf(data, field, entry).unit;
-
 /**
  * The text of a number Bedeutung.
  *
- * @param reading - What the widget knows about it (bound).
+ * @param reading - What the Heizzonen-Lesung says about it (bound).
  * @param kind - How to write it.
  * @param lang - The host language.
- * @param unit - The object's unit.
- * @returns The number with its unit, else „–“.
+ * @returns The number with its object's unit, else „–“.
  */
-const numberText = (reading: MeaningReading, kind: ReadingKind, lang: string, unit?: string): string =>
-    reading.kind === 'reported' && typeof reading.value === 'number' && Number.isFinite(reading.value)
-        ? formatReading(reading.value, kind, lang, unit)
-        : NO_VALUE;
+const numberText = (reading: MeaningReading, kind: ReadingKind, lang: string): string =>
+    reading.number === undefined ? NO_VALUE : formatReading(reading.number, kind, lang, reading.unit);
 
 /**
  * The readings bar's elements, in the design's order: humidity, valve, window, battery.
  *
- * @param data - The widget data.
- * @param values - The host's values map.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @param lang - The host language.
- * @param entry - The entry number; none for the unnumbered binding.
  * @returns The elements of the bound Bedeutungen.
  */
-export function thermostatReadings(
-    data: WidgetData,
-    values: StateValues,
-    lang: string,
-    entry?: number,
-): ThermostatReading[] {
+export function thermostatReadings(zone: ZoneReading, lang: string): ThermostatReading[] {
     const readings: ThermostatReading[] = [];
 
-    const humidity = readMeaning(data, values, 'luftfeuchte', entry);
+    const humidity = zone.meaning('luftfeuchte');
     if (humidity.kind !== 'unbound') {
-        readings.push({
-            meaning: 'luftfeuchte',
-            text: numberText(humidity, 'percent', lang, unitOf(data, 'luftfeuchte', entry)),
-        });
+        readings.push({ meaning: 'luftfeuchte', text: numberText(humidity, 'percent', lang) });
     }
 
-    const valve = valveMeanOf(data, values);
+    const valve = zone.valveMean;
     if (valve !== undefined) {
         readings.push({ meaning: 'ventil', text: valve === null ? NO_VALUE : formatReading(valve, 'percent', lang) });
     }
 
-    const window = readMeaning(data, values, 'fenster', entry);
+    const window = zone.meaning('fenster');
     if (window.kind !== 'unbound') {
-        const neutral = neutralReadingOf(data, window, 'fenster', entry);
-        let text = NO_VALUE;
-        if (neutral) {
-            text = translate(NEUTRAL_LABELS[neutral]);
-        } else if (window.kind === 'reported') {
-            text = deviceValueLabel(storedObjectOf(data, 'fenster', entry), window.value);
-        }
-        readings.push({ meaning: 'fenster', text, ...(neutral === 'offen' ? { tone: 'kühl' as const } : {}) });
+        readings.push({
+            meaning: 'fenster',
+            text: window.text,
+            ...(window.neutral === 'offen' ? { tone: 'kühl' as const } : {}),
+        });
     }
 
-    const battery = readMeaning(data, values, 'batteriestand', entry);
+    const battery = zone.meaning('batteriestand');
     if (battery.kind !== 'unbound') {
-        const low = readNeutral(data, values, 'batterieSchwach', entry) === 'schwach';
+        const low = zone.meaning('batterieSchwach').neutral === 'schwach';
         readings.push({
             meaning: 'batteriestand',
-            text: numberText(battery, 'level', lang, unitOf(data, 'batteriestand', entry)),
+            text: numberText(battery, 'level', lang),
             ...(low ? { tone: 'hinweis' as const } : {}),
         });
     }
@@ -231,20 +199,11 @@ export function ActualTemperature({ text }: { text: string }): ReactNode {
 /**
  * The actual temperature's text.
  *
- * @param data - The widget data.
- * @param values - The host's values map.
+ * @param zone - The Heizzonen-Lesung of the zone.
  * @param lang - The host language.
- * @param entry - The entry number; none for the unnumbered binding.
  * @returns The text; `undefined` while `ist` is unbound (the element is left out).
  */
-export function actualTemperatureText(
-    data: WidgetData,
-    values: StateValues,
-    lang: string,
-    entry?: number,
-): string | undefined {
-    const reading = readMeaning(data, values, 'ist', entry);
-    return reading.kind === 'unbound'
-        ? undefined
-        : numberText(reading, 'temperature', lang, unitOf(data, 'ist', entry));
+export function actualTemperatureText(zone: ZoneReading, lang: string): string | undefined {
+    const reading = zone.meaning('ist');
+    return reading.kind === 'unbound' ? undefined : numberText(reading, 'temperature', lang);
 }

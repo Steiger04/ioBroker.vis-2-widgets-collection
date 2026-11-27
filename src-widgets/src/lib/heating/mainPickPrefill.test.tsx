@@ -43,6 +43,7 @@ import {
     HEATING_TEST_PREFIX,
     heatingTestDevices,
     NEUTRAL_DEVICE,
+    NEUTRAL_PAIR_DEVICE,
 } from '../testing/heatingTestDevices';
 import { heatingBindingFields } from './bindingFields';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
@@ -356,6 +357,102 @@ describe('main pick — two candidates of one role (ADR-0119 Nachtrag)', () => {
     });
 });
 
+describe('main pick — the operating-mode pair of the role path (ADR-0119 Nachtrag K5)', () => {
+    it('binds a further writable state of the mode channel with the mode value list as betriebsartSetzen, mapped by its labels', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll));
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen));
+        expect((picked.betriebsartSetzenObject as { _id?: string } | undefined)?._id).toBe(
+            at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen),
+        );
+        // VACATION names no neutral value of „Betriebsart setzen“.
+        expect(picked.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+    });
+
+    const COMMAND = at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen);
+
+    /** The test devices with the mode command changed: `common` merged, or moved to `id`. */
+    const withCommand = (common: Record<string, unknown>, id = COMMAND): Record<string, ioBroker.Object> => {
+        const objects = heatingTestDevices().objects;
+        const command = objects[COMMAND];
+        delete objects[COMMAND];
+        objects[id] = { ...command, _id: id, common: { ...command.common, ...common } } as ioBroker.Object;
+        return objects;
+    };
+
+    it('binds a mode command without a write flag — ioBroker reads a missing `common.write` as writable', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withCommand({ write: undefined }));
+
+        expect(picked.betriebsartSetzen).toBe(COMMAND);
+        expect(picked.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+    });
+
+    it.each<[string, Record<string, ioBroker.Object>]>([
+        ['not writable', withCommand({ write: false })],
+        ['in another channel of the device', withCommand({}, at(`${NEUTRAL_PAIR_DEVICE.id}.maintenance.modeCommand`))],
+        ['with another value list', withCommand({ states: { 0: 'AUTO', 1: 'MANUAL' } })],
+        ['with the labels at other values', withCommand({ states: { 0: 'MANUAL', 1: 'AUTO', 2: 'VACATION' } })],
+        ['without a value list', withCommand({ states: undefined })],
+    ])('binds no betriebsartSetzen for a mode command %s', async (_case, objects) => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, objects);
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        expect(infoBoxesOf(picked)).toEqual([]);
+    });
+
+    it('leaves betriebsartSetzen empty with two fitting states and names both in the InfoBox', async () => {
+        const objects = heatingTestDevices().objects;
+        const second = at(`${NEUTRAL_PAIR_DEVICE.id}.thermostat.modeCommand2`);
+        objects[second] = { ...objects[COMMAND], _id: second } as ioBroker.Object;
+
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, objects);
+
+        expect(picked.betriebsart).toBe(at(NEUTRAL_PAIR_DEVICE.binding.betriebsart));
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        const boxes = infoBoxesOf(picked);
+        expect(boxes).toHaveLength(1);
+        expect(boxes[0]).toContain('t:heating_betriebsart_setzen');
+        expect(boxes[0]).toContain(COMMAND);
+        expect(boxes[0]).toContain(second);
+    });
+});
+
+describe('main pick — two operating-mode candidates of one channel (pair rule: a further state)', () => {
+    const MODE = at(NEUTRAL_PAIR_DEVICE.binding.betriebsart);
+    const COMMAND = at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen);
+    const SECOND_MODE = at(`${NEUTRAL_PAIR_DEVICE.id}.thermostat.mode2`);
+
+    /** The test devices with a second writable mode state beside the first, same value list. */
+    const withSecondMode = (command: boolean): Record<string, ioBroker.Object> => {
+        const objects = heatingTestDevices().objects;
+        objects[SECOND_MODE] = { ...objects[MODE], _id: SECOND_MODE } as ioBroker.Object;
+        if (!command) {
+            delete objects[COMMAND];
+        }
+        return objects;
+    };
+
+    it('takes neither for „Betriebsart setzen“ — the ambiguity stays with „Betriebsart“', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withSecondMode(false));
+
+        expect(picked.betriebsart).toBeUndefined();
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        const boxes = infoBoxesOf(picked);
+        expect(boxes).toHaveLength(1);
+        expect(boxes[0]).toContain(MODE);
+        expect(boxes[0]).toContain(SECOND_MODE);
+        expect(boxes[0]).not.toContain('t:heating_betriebsart_setzen');
+    });
+
+    it('still binds the one further state beside them as „Betriebsart setzen“', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withSecondMode(true));
+
+        expect(picked.betriebsartSetzen).toBe(COMMAND);
+    });
+});
+
 describe('main pick — Bezeichnung and Unterzeile', () => {
     const SOLL = at(NEUTRAL_DEVICE.binding.soll);
     const DEVICE = at(NEUTRAL_DEVICE.id);
@@ -460,5 +557,91 @@ describe('main pick — what counts as the device', () => {
         const picked = await pickMain(at(NEUTRAL_DEVICE.binding.soll), {}, objects);
 
         expect(Object.keys(picked).sort()).toEqual(['soll', 'sollObject']);
+    });
+});
+
+describe('main pick — one commit of the prefilled data (ADR-0111 addendum 2026-11-27)', () => {
+    /** Longer than the shared handler's 100 ms commit: a device read that outlasts it. */
+    const SLOW_READ_MS = 150;
+
+    /** The fake object database, with each object view answering only after `SLOW_READ_MS`. */
+    const slowSocketOver = (objects: Record<string, ioBroker.Object>): Connection => {
+        const socket = socketOver(objects);
+        return {
+            getObject: socket.getObject.bind(socket),
+            getObjectView: (start: string, end: string, type: string): Promise<unknown> =>
+                new Promise(resolve => {
+                    setTimeout(
+                        () => resolve(socket.getObjectView(start, end, type as ioBroker.ObjectType)),
+                        SLOW_READ_MS,
+                    );
+                }),
+        } as unknown as Connection;
+    };
+
+    /** One call of `changeData`: the data as handed over, and the object the host keeps. */
+    interface Commit {
+        readonly handed: WidgetData;
+        readonly kept: WidgetData;
+    }
+
+    /** Picks `id` as the main Bedeutung with real timers and records every commit to vis-2. */
+    async function commitsOfPick(
+        id: string,
+        objects: Record<string, ioBroker.Object> = heatingTestDevices().objects,
+    ): Promise<Commit[]> {
+        const commits: Commit[] = [];
+        const field = mainField();
+        await field.onChange(
+            field,
+            { soll: id },
+            newData => {
+                commits.push({ handed: structuredClone(newData), kept: newData });
+            },
+            slowSocketOver(objects),
+        );
+        // Past every pending commit of the pick (the shared handler commits after 100 ms).
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return commits;
+    }
+
+    beforeEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('hands the fully prefilled data over exactly once, and never mutates it afterwards', async () => {
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.soll));
+
+        expect(commits).toHaveLength(1);
+        const [{ handed, kept }] = commits;
+        expect(handed.ist).toBe(at(NEUTRAL_DEVICE.binding.ist));
+        expect(handed.betriebsartZuordnung).toEqual({ auto: [0], manuell: [1], urlaub: [2] });
+        expect(handed.bezeichnung).toBe('Neutral thermostat');
+        expect(kept).toEqual(handed);
+    });
+
+    it('commits once on an emptied main pick', async () => {
+        const commits = await commitsOfPick('');
+
+        expect(commits.map(one => one.handed)).toEqual([{ soll: '' }]);
+    });
+
+    it('commits once on an unusable main pick', async () => {
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.boost));
+
+        expect(commits.map(one => Object.keys(one.handed))).toEqual([['soll']]);
+    });
+
+    it('commits once for a state without a device to read', async () => {
+        const objects = heatingTestDevices().objects;
+        delete objects[at(NEUTRAL_DEVICE.id)];
+        objects[at(`${NEUTRAL_DEVICE.id}.thermostat`)] = {
+            ...objects[at(`${NEUTRAL_DEVICE.id}.thermostat`)],
+            type: 'meta',
+        } as ioBroker.Object;
+
+        const commits = await commitsOfPick(at(NEUTRAL_DEVICE.binding.soll), objects);
+
+        expect(commits.map(one => Object.keys(one.handed).sort())).toEqual([['soll', 'sollObject']]);
     });
 });

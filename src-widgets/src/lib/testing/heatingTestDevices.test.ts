@@ -18,6 +18,7 @@ import {
     ANLAGE_WTH2,
     HEATING_TEST_PREFIX,
     NEUTRAL_DEVICE,
+    NEUTRAL_PAIR_DEVICE,
     STUMP_DEVICE,
     heatingTestDevices,
     valuesOf,
@@ -45,10 +46,17 @@ const channelOf = (device: string, id: string): string => parentOf(id).slice(`${
 /** The labels of a value list, in order of the device values. */
 const labelsOf = (object: ioBroker.StateObject): unknown[] => Object.values(object.common.states ?? {});
 
-const DEVICES = [NEUTRAL_DEVICE.id, STUMP_DEVICE.id, AMBIGUOUS_DEVICE.id, ANLAGE_WTH2.id, ANLAGE_FALMOT.id];
+const DEVICES = [
+    NEUTRAL_DEVICE.id,
+    NEUTRAL_PAIR_DEVICE.id,
+    STUMP_DEVICE.id,
+    AMBIGUOUS_DEVICE.id,
+    ANLAGE_WTH2.id,
+    ANLAGE_FALMOT.id,
+];
 
 describe('heating test devices — invariant 1: device → channel → state', () => {
-    it('holds exactly the five devices', () => {
+    it('holds exactly the six devices', () => {
         const devices = Object.values(objects)
             .filter(object => object.type === 'device')
             .map(object => object._id);
@@ -155,6 +163,35 @@ describe('heating test devices — invariant 2: one state per meaning on the neu
             expect(states[object._id].q, object._id).toBe(0);
             expect(states[object._id].ack, object._id).toBe(true);
         }
+    });
+});
+
+describe('heating test devices — the neutral pair device', () => {
+    const relative = (object: ioBroker.StateObject): string =>
+        object._id.slice(`${HEATING_TEST_PREFIX}${NEUTRAL_PAIR_DEVICE.id}`.length);
+
+    it('carries the neutral device and the mode command, nothing else', () => {
+        const neutral = statesOf(NEUTRAL_DEVICE.id).map(object =>
+            object._id.slice(`${HEATING_TEST_PREFIX}${NEUTRAL_DEVICE.id}`.length),
+        );
+
+        expect(statesOf(NEUTRAL_PAIR_DEVICE.id).map(relative).sort()).toEqual(
+            [...neutral, '.thermostat.modeCommand'].sort(),
+        );
+    });
+
+    it('puts a write-only mode command of a generic role with the mode value list into the mode channel', () => {
+        const mode = objects[
+            `${HEATING_TEST_PREFIX}${NEUTRAL_PAIR_DEVICE.binding.betriebsart}`
+        ] as ioBroker.StateObject;
+        const command = objects[
+            `${HEATING_TEST_PREFIX}${NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen}`
+        ] as ioBroker.StateObject;
+
+        expect(command.common).toMatchObject({ role: 'level', type: 'number', read: false, write: true });
+        expect(command.common.states).toEqual(mode.common.states);
+        expect(mode.common.role).toBe('level.mode.thermostat');
+        expect(parentOf(command._id)).toBe(parentOf(mode._id));
     });
 });
 

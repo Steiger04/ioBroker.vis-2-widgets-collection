@@ -5,7 +5,9 @@
  * @module lib/heating/SizeStages
  * @remarks
  * Interface: a type hands over its pure rule `(box, own data) → stage`, draws Voll and Einfach itself
- * (`renderStage`) and fills the tile (`renderTile`: main value, line, optional controls). It names
+ * (`renderStage`) and fills the tile (`renderTile`: main value, line, optional controls) in the area
+ * the hull leaves it (`TileArea`: the box below the head row and its gap, with the gaps the hull
+ * sets between the type's parts — computed, not measured again; Nachtrag K3). It names
  * itself (`typeName`, `name`), its status (`status`: the chip's tone or a Meldung) and its Voll
  * design size (`fullSize`) for the Mini-Dialog.
  *
@@ -13,10 +15,11 @@
  * - the measuring: the frame's Content-Box (`useContentBox`, ADR-0098); before the first measurement
  *   the content area stays empty (Nr. 3);
  * - the `ansicht` cap: the effective stage is the lower of the box's stage and `ansicht` (Nr. 2);
- * - the tile hull: the whole surface is one button (keyboard by the platform), the name, the open
- *   symbol and the status dot — the warning triangle in the Meldungsfarbe for a Meldung (Störung
- *   full, Hinweis tinted), else a dot in the chip's tone (ADR-0124 Nr. 4) — and the status in the
- *   accessible name;
+ * - the tile hull and its measures (a `body2` head row, gaps in spacing units — the area's
+ *   arithmetic reads them from the theme it draws in): the whole surface is one button (keyboard by
+ *   the platform), the name, the open symbol and the status dot — the warning triangle in the
+ *   Meldungsfarbe for a Meldung (Störung full, Hinweis tinted), else a dot in the chip's tone
+ *   (ADR-0124 Nr. 4) — and the status in the accessible name;
  * - the Mini-Dialog the tile opens (`lib/heating/MiniDialog`, Nr. 6, 7): its open state lives here,
  *   above the stages, so it survives the widget growing out of Mini; it shows this module again,
  *   which inside the dialog draws the stage of the dialog's own box, without the `ansicht` cap and
@@ -27,7 +30,7 @@
  * hides its helpers for can.js widgets alone, so that way does not reach a React widget.
  */
 import OpenInFull from '@mui/icons-material/OpenInFull';
-import { Box, ButtonBase, Typography, keyframes, useTheme } from '@mui/material';
+import { Box, ButtonBase, Typography, keyframes, useTheme, type Theme } from '@mui/material';
 import { useContext, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from 'react';
 
 import useContentBox from '../../hooks/useContentBox';
@@ -44,6 +47,93 @@ export interface TileStatus {
     message?: Extract<HeatingTone, 'störung' | 'hinweis'>;
     /** The status in words, for the accessible name (the chip's or the Meldung's text). */
     label?: string;
+}
+
+/** The tile hull's gaps in spacing units: between the tile's rows, between a control and the main value. */
+const TILE_GAP_UNITS = { row: 0.5, control: 0.75 } as const;
+
+/** The open symbol's size in px: the head row is never lower. */
+const OPEN_SYMBOL_SIZE = 16;
+
+/** The tile hull's drawn sizes in px: the head row and the two gaps it sets. */
+export interface TileHullMeasures {
+    readonly head: number;
+    readonly rowGap: number;
+    readonly controlGap: number;
+}
+
+/**
+ * The hull's measures in the standard theme (spacing 8 px, a `body2` line of 20 px) — also what a
+ * theme value stands in for that does not read as px (e.g. a spacing in rem or a CSS variable).
+ */
+const STANDARD_TILE_HULL: TileHullMeasures = { head: 20, rowGap: 4, controlGap: 6 };
+
+/**
+ * A CSS length in px, if it reads as one: a number, `…px`, or `…rem` at the theme's root size.
+ *
+ * @param value - The CSS value.
+ * @param rootPx - The px of one rem.
+ * @returns The px, or `undefined`.
+ */
+const pxOf = (value: unknown, rootPx: number): number | undefined => {
+    if (typeof value === 'number') {
+        return value;
+    }
+    const match = typeof value === 'string' ? /^\s*(-?\d*\.?\d+)(px|rem)\s*$/.exec(value) : null;
+    if (!match) {
+        return undefined;
+    }
+    return parseFloat(match[1]) * (match[2] === 'rem' ? rootPx : 1);
+};
+
+/**
+ * The tile hull's measures in the theme it draws in: the head row is one `body2` line (the name),
+ * at least the open symbol; the gaps are the theme's spacing units.
+ *
+ * @param theme - The theme the hull draws in.
+ * @returns The measures in px; the standard one for a value that does not read as px.
+ */
+export function tileHullMeasures(theme: Theme): TileHullMeasures {
+    const rootPx = theme.typography.htmlFontSize ?? 16;
+    const { fontSize, lineHeight } = theme.typography.body2;
+    const fontPx = pxOf(fontSize, rootPx);
+    const linePx =
+        fontPx === undefined
+            ? undefined
+            : typeof lineHeight === 'number' || /^\s*\d*\.?\d+\s*$/.test(String(lineHeight))
+              ? Number(lineHeight) * fontPx
+              : pxOf(lineHeight, rootPx);
+    return {
+        head: linePx === undefined ? STANDARD_TILE_HULL.head : Math.round(Math.max(linePx, OPEN_SYMBOL_SIZE)),
+        rowGap: pxOf(theme.spacing(TILE_GAP_UNITS.row), rootPx) ?? STANDARD_TILE_HULL.rowGap,
+        controlGap: pxOf(theme.spacing(TILE_GAP_UNITS.control), rootPx) ?? STANDARD_TILE_HULL.controlGap,
+    };
+}
+
+/** The area a type fills in its tile, below the hull's head row and the gap under it. */
+export interface TileArea extends MeasuredBox {
+    /** The gap the hull sets between the main row and the footer line, in px. */
+    readonly rowGap: number;
+    /** The gap the hull sets between a control and the main value, in px. */
+    readonly controlGap: number;
+}
+
+/**
+ * The area the tile hull leaves a type in a box: the same width, the height below the head row and
+ * its gap (never below 0), and the hull's gaps between the type's parts — computed, no second
+ * measurement.
+ *
+ * @param box - The measured Content-Box of the Mini stage.
+ * @param hull - The hull's measures ({@link tileHullMeasures}); those of the standard theme by default.
+ * @returns The area of the type's tile content.
+ */
+export function tileArea(box: MeasuredBox, hull: TileHullMeasures = STANDARD_TILE_HULL): TileArea {
+    return {
+        width: box.width,
+        height: Math.max(0, box.height - hull.head - hull.rowGap),
+        rowGap: hull.rowGap,
+        controlGap: hull.controlGap,
+    };
 }
 
 /** What a type puts into its tile below the hull's head. */
@@ -68,8 +158,8 @@ export interface SizeStagesProps<Data> {
     ansicht: unknown;
     /** Draws Voll or Einfach for the measured box. */
     renderStage: (stage: DrawnStage, box: MeasuredBox) => ReactNode;
-    /** Fills the tile for the measured box. */
-    renderTile: (box: MeasuredBox) => TileContent;
+    /** Fills the tile in the area the hull leaves it. */
+    renderTile: (area: TileArea) => TileContent;
     /** The Bezeichnung; empty shows no name line. */
     name: string | undefined;
     /** The translated type name: the dialog's title, the accessible name without a Bezeichnung. */
@@ -184,7 +274,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                gap: 0.5,
+                gap: TILE_GAP_UNITS.row,
                 minWidth: 0,
                 overflow: 'hidden',
             }}
@@ -209,7 +299,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                 <OpenInFull
                     data-heating-open=""
                     aria-hidden
-                    sx={{ fontSize: 16, flex: 'none', color: 'text.secondary' }}
+                    sx={{ fontSize: OPEN_SYMBOL_SIZE, flex: 'none', color: 'text.secondary' }}
                 />
             </Box>
             <Box
@@ -217,7 +307,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: hasControls ? 'space-between' : 'flex-start',
-                    gap: 0.75,
+                    gap: TILE_GAP_UNITS.control,
                     minWidth: 0,
                 }}
             >
@@ -256,7 +346,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
  * @param props.data - The type's own data the rule reads.
  * @param props.ansicht - The stored `ansicht`.
  * @param props.renderStage - Draws Voll or Einfach.
- * @param props.renderTile - Fills the tile.
+ * @param props.renderTile - Fills the tile in the area the hull leaves it.
  * @param props.name - The Bezeichnung.
  * @param props.typeName - The translated type name.
  * @param props.status - The tile's status.
@@ -267,6 +357,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
 export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactElement | null {
     const { rule, data, ansicht, renderStage, renderTile, name, typeName, status, fullSize } = props;
     const box = measuredBoxOf(useContentBox());
+    const theme = useTheme();
     const inDialog = useContext(InMiniDialogContext);
     // Above the stages: an open dialog stays open when the widget grows out of Mini (Nr. 7).
     const [open, setOpen] = useState(false);
@@ -297,7 +388,7 @@ export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactEle
         >
             {stage === 'mini' ? (
                 <Tile
-                    content={renderTile(box)}
+                    content={renderTile(tileArea(box, tileHullMeasures(theme)))}
                     name={name}
                     typeName={typeName}
                     status={status}

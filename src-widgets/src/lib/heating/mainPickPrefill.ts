@@ -4,13 +4,15 @@
  *
  * @module lib/heating/mainPickPrefill
  * @remarks
- * The `onChange` of the main Bedeutung's id field. It runs the field's own pick through the shared
- * pick chain, then reads every channel of the device the picked state belongs to (object types
- * device → channel → state; the Light2 channel detection widened from the channel to the device)
- * and fills the still-empty fields of the type's other Bedeutungen with what recognition takes for
- * them (`lib/heating/recognition`: role path, then hint table — for the field and for its mapping
- * the first way that recognises something). Each filled field runs its own pick, so it stores its
- * object and its empty Wertezuordnung like a pick by hand. Set fields and set mappings stay.
+ * The `onChange` of the main Bedeutung's id field. It runs the field's own pick through the apply
+ * step of the shared pick chain, then reads every channel of the device the picked state belongs
+ * to (object types device → channel → state; the Light2 channel detection widened from the channel
+ * to the device) and fills the still-empty fields of the type's other Bedeutungen with what
+ * recognition takes for them (`lib/heating/recognition`: role path, then hint table — for the field
+ * and for its mapping the first way that recognises something). Each filled field runs its own
+ * pick, so it stores its object and its empty Wertezuordnung like a pick by hand. Set fields and
+ * set mappings stay. The prefilled data reach vis-2 in one commit at the end (ADR-0111 addendum
+ * 2026-11-27).
  *
  * - **Ambiguity:** of several candidates for one Bedeutung, those in the channel of the picked main
  *   Bedeutung count first; one there wins. Several there, or none there and several in the device,
@@ -23,21 +25,25 @@
  * - A reading that means its Bedeutung only beside another (`RoleEntry.prefillBeside`: an operating
  *   voltage is a battery level only beside a battery flag) counts only when the device holds a
  *   candidate for that other Bedeutung.
+ * - The pair rule of the role path (`RoleEntry.pair`, ADR-0119 Nachtrag K5) adds the candidates
+ *   for „Betriebsart setzen“ beside each candidate for „Betriebsart“ — one state found by both
+ *   ways counts once.
  *
  * Nothing of this runs at runtime; the read seam derives only what the pick of one field stores.
  */
 import {
     applyObjectPick,
+    applyOidChangeAsync,
+    commitOidChange,
     loadObjectOrNoneAsync,
     loadPickedObjectAsync,
-    oidChangeHandlerAsync,
     parentIdOf,
 } from '../commonObjectFields';
 import { headerKeys, MEANINGS, meaningKeys } from './meaningCatalog';
-import { boundIdOf } from './meaningReading';
+import { boundIdOf } from './zoneReading';
 import { meaningPickOptions } from './meaningPick';
 import { recordOpenCandidates } from './prefillCandidates';
-import { recogniseState } from './recognition';
+import { recognisePair, recogniseState } from './recognition';
 
 import type { AllowedType } from '../allowedOidTypes';
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
@@ -178,7 +184,10 @@ const objectsBelowAsync = async (
     }
 };
 
-/** The candidates of the device per Bedeutung of the subset (the main one left out). */
+/**
+ * The candidates of the device per Bedeutung of the subset (the main one left out): what
+ * recognition takes each state for, and what the pair rule finds beside each candidate.
+ */
 const candidatesOfDevice = (
     subset: MeaningSubset,
     mainId: string,
@@ -186,23 +195,33 @@ const candidatesOfDevice = (
     channels: Record<string, ioBroker.Object>,
 ): Map<MeaningField, Candidate[]> => {
     const found = new Map<MeaningField, Candidate[]>();
-    for (const state of Object.values(states)) {
-        if (state._id === mainId || state.type !== 'state') {
-            continue;
-        }
-        const channelId = parentIdOf(state._id);
-        const recognised = recogniseState(state, channels[channelId]);
-        const meaning = recognised?.meaning;
-        if (!meaning || meaning === subset.main || !subset.meanings.includes(meaning)) {
-            continue;
+    const add = (meaning: MeaningField, state: ioBroker.Object, beside?: MeaningField): void => {
+        if (meaning === subset.main || !subset.meanings.includes(meaning)) {
+            return;
         }
         const type = (state.common as ioBroker.StateCommon).type as AllowedType | undefined;
-        if (!type || !MEANINGS[meaning].valueTypes.includes(type)) {
-            continue;
-        }
         const list = found.get(meaning) ?? [];
-        list.push({ id: state._id, channelId, beside: recognised.prefillBeside });
+        if (!type || !MEANINGS[meaning].valueTypes.includes(type) || list.some(one => one.id === state._id)) {
+            return;
+        }
+        list.push({ id: state._id, channelId: parentIdOf(state._id), beside });
         found.set(meaning, list);
+    };
+    const others = Object.values(states).filter(state => state._id !== mainId && state.type === 'state');
+    const recognised = others.flatMap(state => {
+        const one = recogniseState(state, channels[parentIdOf(state._id)]);
+        return one ? [{ state, ...one }] : [];
+    });
+    for (const { state, meaning, prefillBeside } of recognised) {
+        add(meaning, state, prefillBeside);
+    }
+    // The pair rule of the role path: beside every recognised candidate, whatever bound it — a
+    // further state, so one that is itself a candidate for the partner's Bedeutung is no pair: two
+    // of them stay the partner's ambiguity, not each other's pair.
+    for (const { state, meaning } of recognised) {
+        const pair = recognisePair(meaning, state, others);
+        const partners = new Set(recognised.filter(one => one.meaning === meaning).map(one => one.state._id));
+        pair?.states.filter(paired => !partners.has(paired._id)).forEach(paired => add(pair.meaning, paired));
     }
     // A candidate that means its Bedeutung only beside another one counts only with it.
     for (const [meaning, list] of found) {
@@ -249,58 +268,75 @@ const bindAsync = async (
 };
 
 /**
- * The `onChange` of a type's main Bedeutung: its pick, then the prefill of the device.
+ * The prefill of the device after a usable main pick: binds what recognition finds, records the
+ * open candidates and fills Bezeichnung and Unterzeile — all into `data`, nothing handed to vis-2.
+ */
+const prefillDeviceAsync = async (
+    socket: Connection,
+    data: WidgetData,
+    subset: MeaningSubset,
+    entry: number | undefined,
+): Promise<void> => {
+    const keys = meaningKeys(subset.main, entry);
+    const mainId = data[keys.field] as string;
+    const mainChannel = parentIdOf(mainId);
+    const place = await devicePlaceAsync(socket, mainId);
+    if (!place) {
+        recordOpenCandidates(keys.field, mainId, {});
+        return;
+    }
+    const [states, channels] = await Promise.all([
+        objectsBelowAsync(socket, place.root, 'state'),
+        objectsBelowAsync(socket, place.root, 'channel'),
+    ]);
+
+    const open: Partial<Record<MeaningField, readonly string[]>> = {};
+    for (const [meaning, candidates] of candidatesOfDevice(subset, mainId, states, channels)) {
+        if (boundIdOf(data, meaningKeys(meaning, entry).field) !== undefined) {
+            continue;
+        }
+        const decision = decide(candidates, mainChannel);
+        if ('winner' in decision) {
+            await bindAsync(socket, data, meaning, decision.winner, entry);
+        } else {
+            open[meaning] = decision.ambiguous;
+        }
+    }
+    recordOpenCandidates(keys.field, mainId, open satisfies OpenCandidates);
+    await nameAsync(socket, data, mainId, place, entry);
+};
+
+/**
+ * The `onChange` of a type's main Bedeutung: its pick, then the prefill of the device, handed to
+ * vis-2 in one commit.
  *
  * @param subset - The type's subset of the catalogue.
  * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
  * @returns The handler.
+ * @remarks
+ * The pick runs the apply step of the shared handler (emptied, unusable per ADR-0111 Nr. 1, pick);
+ * the commit follows once, after the prefill, on every path — the host keeps the handed object, so
+ * it never holds a half-prefilled widget that mutates on (ADR-0111 addendum 2026-11-27).
  */
 export const mainPickPrefill =
     (subset: MeaningSubset, entry?: number): RxWidgetInfoFieldChangeHandler =>
     async (
-        field: RxWidgetInfoAttributesField,
+        _field: RxWidgetInfoAttributesField,
         data: WidgetData,
         changeData: (newData: WidgetData) => void,
         socket: Connection,
     ): Promise<void> => {
         const keys = meaningKeys(subset.main, entry);
-        await oidChangeHandlerAsync(
+        await applyOidChangeAsync(
+            socket,
+            data,
             MEANINGS[subset.main].valueTypes,
             keys.field,
             meaningPickOptions(subset.main, entry),
-        )(field, data, changeData, socket);
-        if (!data[keys.object]) {
-            // Emptied or unusable: the shared handler has dropped the object, nothing to prefill.
-            return;
+        );
+        // Emptied or unusable: the apply step has dropped the object, nothing to prefill.
+        if (data[keys.object]) {
+            await prefillDeviceAsync(socket, data, subset, entry);
         }
-
-        const mainId = data[keys.field] as string;
-        const mainChannel = parentIdOf(mainId);
-        const place = await devicePlaceAsync(socket, mainId);
-        if (!place) {
-            recordOpenCandidates(keys.field, mainId, {});
-            changeData(data);
-            return;
-        }
-        const [states, channels] = await Promise.all([
-            objectsBelowAsync(socket, place.root, 'state'),
-            objectsBelowAsync(socket, place.root, 'channel'),
-        ]);
-
-        const open: Partial<Record<MeaningField, readonly string[]>> = {};
-        for (const [meaning, candidates] of candidatesOfDevice(subset, mainId, states, channels)) {
-            if (boundIdOf(data, meaningKeys(meaning, entry).field) !== undefined) {
-                continue;
-            }
-            const decision = decide(candidates, mainChannel);
-            if ('winner' in decision) {
-                await bindAsync(socket, data, meaning, decision.winner, entry);
-            } else {
-                open[meaning] = decision.ambiguous;
-            }
-        }
-        recordOpenCandidates(keys.field, mainId, open satisfies OpenCandidates);
-        await nameAsync(socket, data, mainId, place, entry);
-
-        changeData(data);
+        commitOidChange(data, changeData);
     };

@@ -66,6 +66,10 @@ const DOM_TS_TESTS = [
     'src/widgetsRegistry.test.ts',
     // Runs the host's translation steps against the real I18n, which keeps its dictionary on `window`.
     'src/translations.test.ts',
+    // The Heizzonen-Lesung translates a neutral value's display text (`translate` reads `window`).
+    'src/lib/heating/zoneReading.test.ts',
+    // The Raumthermostat's actions read through the Heizzonen-Lesung (same reason).
+    'src/HeatingThermostatCollectionWidget/thermostatActions.test.ts',
 ];
 
 export default defineConfig({

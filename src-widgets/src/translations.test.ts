@@ -16,7 +16,7 @@ function hostLoad(): string | undefined {
         module.default.prefix = 'vis-2-widgets-collection_';
     }
     const i18nPrefix = module.default.prefix as string | undefined;
-    I18n.extendTranslations(module.default as Parameters<typeof I18n.extendTranslations>[0]);
+    I18n.extendTranslations(module.default);
     return i18nPrefix;
 }
 

@@ -24,7 +24,7 @@ import { readSelectedWidgetDatas } from '../../components/selectedWidgets';
 import { vis2EditorOf } from '../../components/StateEditor/StateDetailField';
 import { translate } from '../translate';
 import { VALVE_LIST } from './meaningCatalog';
-import { addValvePatch, removeValvePatch, valveCountOf, valveIdField } from './valveListShape';
+import { addValvePatch, removeValvePatch, valveCountOf, valveIdField, valveKeys } from './valveListShape';
 
 import type { Vis2Editor, Vis2EditorProps } from '../../components/StateEditor/StateDetailField';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
@@ -101,7 +101,7 @@ function ListButton({
 /** The valve list of one widget as a comparable text: count and ids. */
 const valveListSignature = (data: WidgetData): string => {
     const count = valveCountOf(data);
-    return JSON.stringify(Array.from({ length: count }, (_, i) => data[`${VALVE_LIST.field}${i + 1}`] ?? ''));
+    return JSON.stringify(Array.from({ length: count }, (_, i) => data[valveKeys(i + 1).field] ?? ''));
 };
 
 /**

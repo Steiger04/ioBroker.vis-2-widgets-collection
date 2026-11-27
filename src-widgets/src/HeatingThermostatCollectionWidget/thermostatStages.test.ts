@@ -7,7 +7,9 @@
  * Content-Box. The start-step test derives the box from the outer 420 × 700 px with the grid test's
  * frame arithmetic (`lib/aiCatalogView.parity.test.ts`, `frameHeightOf`): the card inset of 8 px, the
  * header and the footer line flat at 20 px each and the base padding of 8 px on both sides — about
- * 396 × 636 px. Every threshold is pinned with a value just before and just behind it.
+ * 396 × 636 px. Every threshold is pinned with a value just before and just behind it. The tile
+ * computes in the area the size-stage module's hull leaves it (`tileArea`); its cases stay in
+ * Content-Box sizes.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -20,6 +22,7 @@ import {
     thermostatStage,
     thermostatTile,
 } from './thermostatStages';
+import { tileArea } from '../lib/heating/SizeStages';
 
 /**
  * The drawn sizes the fit counts with, measured in the browser (acceptance, vis-2 :3000): the
@@ -125,7 +128,7 @@ describe('Kachel: the parts of the Raumthermostat tile', () => {
         ['no ± one px too narrow', 195, 68, false],
         ['no ± one px too low', 196, 67, false],
     ])('%s (%i × %i px)', (_case, width, height, buttons) => {
-        expect(thermostatTile({ width, height }).buttons).toBe(buttons);
+        expect(thermostatTile(tileArea({ width, height })).buttons).toBe(buttons);
     });
 
     it.each([
@@ -136,7 +139,7 @@ describe('Kachel: the parts of the Raumthermostat tile', () => {
         ['the footer beside ± at its least height', 196, 100, true],
         ['no footer beside ± one px lower', 196, 99, false],
     ])('%s (%i × %i px)', (_case, width, height, footer) => {
-        expect(thermostatTile({ width, height }).footer).toBe(footer);
+        expect(thermostatTile(tileArea({ width, height })).footer).toBe(footer);
     });
 });
 
@@ -187,8 +190,8 @@ describe('Passform: the tile holds what it shows', () => {
         ['a large tile', 260, 140],
     ])('%s (%i × %i px)', (_case, width, height) => {
         const box = { width, height };
-        const parts = thermostatTile(box);
-        const font = thermostatSetpointFont('tile', box, parts.buttons);
+        const parts = thermostatTile(tileArea(box));
+        const font = thermostatSetpointFont('tile', tileArea(box), parts);
         const setpointWidth = MEASURED.glyphsPerFontPx * font;
         const buttons = parts.buttons ? 2 * MEASURED.stepTile + 2 * MEASURED.tileGap : 0;
         const mainRow = Math.max(parts.buttons ? MEASURED.stepTile : 0, MEASURED.lineHeight * font);
@@ -200,8 +203,8 @@ describe('Passform: the tile holds what it shows', () => {
     });
 
     it('shows ± in the tile at 240 × 110 px outer and the footer at 220 × 110 px outer', () => {
-        expect(thermostatTile({ width: 214, height: 84 }).buttons).toBe(true);
-        expect(thermostatTile({ width: 194, height: 84 }).footer).toBe(true);
+        expect(thermostatTile(tileArea({ width: 214, height: 84 })).buttons).toBe(true);
+        expect(thermostatTile(tileArea({ width: 194, height: 84 })).footer).toBe(true);
     });
 });
 

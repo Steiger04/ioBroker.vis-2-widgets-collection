@@ -17,7 +17,12 @@ import type { RxWidgetInfoGroup } from '@iobroker/types-vis-2';
 import usePickedWidgetData from '../../hooks/usePickedWidgetData';
 import { NO_FIELD_DEFAULTS } from '../fieldDefaults';
 import { oidPickFieldsOf, type WidgetDataReading } from '../pickedWidgetData';
-import { ANLAGE_WTH2, HEATING_TEST_PREFIX, heatingTestDevices } from '../testing/heatingTestDevices';
+import {
+    ANLAGE_WTH2,
+    HEATING_TEST_PREFIX,
+    heatingTestDevices,
+    NEUTRAL_PAIR_DEVICE,
+} from '../testing/heatingTestDevices';
 import { createTestRoot } from '../testing/testRoots';
 import { heatingBindingFields } from './bindingFields';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
@@ -100,6 +105,19 @@ describe('Lese-Naht — a bound Bedeutung without its Wertezuordnung', () => {
 
         expect(read.betriebsartZuordnung).toEqual({ auto: [0], manuell: [1], urlaub: [2] });
         expect(read.betriebsartObject).toBe(own);
+        expect(socket.setObject).not.toHaveBeenCalled();
+        expect(socket.setState).not.toHaveBeenCalled();
+    });
+
+    it('reads the mapping of a mode command from its labels, whatever its role (ADR-0119 Nachtrag K5)', async () => {
+        const command = `${HEATING_TEST_PREFIX}${NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen}`;
+        const stored = Object.freeze({ betriebsartSetzen: command });
+        const socket = fakeSocket();
+
+        const read = await readThrough(stored, socket);
+
+        expect(read.betriebsartSetzenZuordnung).toEqual({ auto: [0], manuell: [1] });
+        expect(stored).toEqual({ betriebsartSetzen: command });
         expect(socket.setObject).not.toHaveBeenCalled();
         expect(socket.setState).not.toHaveBeenCalled();
     });

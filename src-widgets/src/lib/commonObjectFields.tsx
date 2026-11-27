@@ -370,6 +370,62 @@ export const applyObjectPick = (
 };
 
 /**
+ * The apply step of {@link oidChangeHandlerAsync}: what the change of the id field `oid` writes into
+ * `data`, on every path, without handing anything to vis-2.
+ *
+ * @param socket - The vis-2 connection.
+ * @param data - The widget data, changed in place.
+ * @param allowedTypes - Allowed JS types for the selected state/object.
+ * @param oid - The name of the data property that stores the selected object id.
+ * @param options - See {@link OidPickOptions}.
+ * @remarks
+ * An emptied field drops its object (a main OID also its rows and root fields, ADR-0111 Nr. 2); an
+ * id without a usable object — none, a type the field does not allow, a socket error — drops only
+ * that object (Nr. 1); a usable pick runs {@link applyObjectPick}. A handler that changes more after
+ * the pick (the heating main pick's prefill) runs this step, then commits once
+ * ({@link commitOidChange}) — the host keeps the handed object, so nothing mutates it afterwards
+ * (ADR-0111 addendum 2026-11-27).
+ */
+export const applyOidChangeAsync = async (
+    socket: Connection,
+    data: WidgetData,
+    allowedTypes: readonly AllowedType[],
+    oid = 'oid',
+    options: OidPickOptions = {},
+): Promise<void> => {
+    if (!data[oid]) {
+        if (oidRole(oid) === 'main') {
+            removeMainOidRows(data);
+        }
+        dropFieldObject(data, oid);
+        return;
+    }
+
+    try {
+        const picked = await loadPickedObjectAsync(socket, data[oid], allowedTypes, options);
+        if (!picked) {
+            dropUnusableObject(data, oid);
+            return;
+        }
+
+        applyObjectPick(data, oid, picked, options);
+    } catch (error) {
+        console.error(`Error handling OID change for ${data[oid]}:`, error);
+        dropUnusableObject(data, oid);
+    }
+};
+
+/**
+ * The commit of an OID change: hands `data` to vis-2's `changeData` after 100 ms.
+ *
+ * @param data - The widget data as the change left it; nothing may mutate it afterwards.
+ * @param changeData - vis-2's `changeData` of the field's `onChange`.
+ */
+export const commitOidChange = (data: WidgetData, changeData: (newData: WidgetData) => void): void => {
+    setTimeout(() => changeData(data), 100);
+};
+
+/**
  * Creates an async `onChange` handler for an OID/id editor field.
  *
  * @param allowedTypes Allowed JS types for the selected state/object.
@@ -393,8 +449,9 @@ export const applyObjectPick = (
  *   `${oid}Object`, `commonStates` included — no root field, no `onlyDisplay` suggestion.
  *
  * A pick without a usable object drops only that object, for every role (ADR-0111 Nr. 1). Only an
- * emptied main-OID field also removes the rows and the root fields (Nr. 2). `changeData` runs on
- * every path.
+ * emptied main-OID field also removes the rows and the root fields (Nr. 2). The handler is the
+ * apply step ({@link applyOidChangeAsync}) followed by the commit ({@link commitOidChange}), so
+ * `changeData` runs on every path (ADR-0111 addendum 2026-11-27).
  */
 export const oidChangeHandlerAsync =
     (allowedTypes: readonly AllowedType[], oid = 'oid', options: OidPickOptions = {}) =>
@@ -404,31 +461,8 @@ export const oidChangeHandlerAsync =
         changeData: (newData: WidgetData) => void,
         socket: Connection,
     ): Promise<void> => {
-        if (!data[oid]) {
-            if (oidRole(oid) === 'main') {
-                removeMainOidRows(data);
-            }
-            dropFieldObject(data, oid);
-            setTimeout(() => changeData(data), 100);
-            return;
-        }
-
-        try {
-            const picked = await loadPickedObjectAsync(socket, data[oid], allowedTypes, options);
-            if (!picked) {
-                dropUnusableObject(data, oid);
-                setTimeout(() => changeData(data), 100);
-                return;
-            }
-
-            applyObjectPick(data, oid, picked, options);
-
-            setTimeout(() => changeData(data), 100);
-        } catch (error) {
-            console.error(`Error handling OID change for ${data[oid]}:`, error);
-            dropUnusableObject(data, oid);
-            setTimeout(() => changeData(data), 100);
-        }
+        await applyOidChangeAsync(socket, data, allowedTypes, oid, options);
+        commitOidChange(data, changeData);
     };
 
 /**
