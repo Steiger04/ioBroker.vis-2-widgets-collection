@@ -241,7 +241,7 @@ The heating widgets take `palette.error` for faults and notices, `palette.warnin
 ## Frame and Hidden Fields
 
 - **Header and footer** of the frame (`header`, `footer` with their sizes) are empty until you set them. No header and No footer hide only these lines, never the card head or the hint line.
-- **Widget frame:** All eight frame settings act as with the other widgets, inheriting from the Theme Studio (see [Widget frame](En-Home.md#widget-frame)). The card is drawn by the collection's frame.
+- **Widget frame:** All eight frame settings are declared. Seven act as with the other widgets, inheriting from the Theme Studio (see [Widget frame](En-Home.md#widget-frame)). The setting No header icon has no effect here (see below), so the AI guide names only the other seven. The card is drawn by the collection's frame.
 - **Hidden**, because they have no effect here: the icon block with No header icon (the frame shows no corner icon), alias, value and value size (the set point is no `oid`) and square, ellipse and circle (a round shape would cut off card head and hint line). Stored values of these fields stay.
 
 ## AI Assistant

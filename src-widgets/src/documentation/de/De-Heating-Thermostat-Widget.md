@@ -241,7 +241,7 @@ Die Heizungs-Widgets nehmen `palette.error` für Störungen und Hinweise, `palet
 ## Rahmen und ausgeblendete Felder
 
 - **Kopf- und Fußzeile** des Rahmens (`header`, `footer` samt Größen) sind leer, solange du sie nicht setzt. Kein Header und Kein Footer blenden nur diese Zeilen aus, nie den Kartenkopf oder die Hinweiszeile.
-- **Widget-Rahmen:** Alle acht Rahmen-Einstellungen wirken wie bei den übrigen Widgets, mit Erben aus dem Theme-Studio (siehe [Widget-Rahmen](De-Home.md#widget-rahmen)). Die Karte zeichnet der Rahmen der Collection.
+- **Widget-Rahmen:** Alle acht Rahmen-Einstellungen sind deklariert. Sieben wirken wie bei den übrigen Widgets, mit Erben aus dem Theme-Studio (siehe [Widget-Rahmen](De-Home.md#widget-rahmen)). Kein Headericon wirkt hier nicht (siehe unten), deshalb nennt der KI-Leitfaden nur die sieben übrigen. Die Karte zeichnet der Rahmen der Collection.
 - **Ausgeblendet**, weil sie hier nicht wirken: der Icon-Block samt Kein Headericon (der Rahmen zeigt kein Eck-Icon), Alias, Wert und Wertgröße (der Sollwert ist kein `oid`) sowie Quadrat, Ellipse und Kreis (eine runde Form schnitte Kartenkopf und Hinweiszeile ab). Gespeicherte Werte dieser Felder bleiben erhalten.
 
 ## KI-Assistent

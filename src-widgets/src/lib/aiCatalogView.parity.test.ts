@@ -631,26 +631,59 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             );
         });
 
+        /**
+         * Widgets whose KI-Leitfaden still names a frame setting their panel hides (written before the
+         * rule below; the 13 collection widgets stay unchanged): ECharts hides `noHeaderIcon`.
+         */
+        const GUIDE_NAMES_HIDDEN_FRAME_SETTINGS: readonly WidgetName[] = ['EchartsCollectionWidget'];
+
+        /**
+         * The frame settings a widget's KI-Leitfaden names: those its panel shows — a setting hidden
+         * in every state does nothing on this type (the Raumthermostat's frame shows no corner icon).
+         */
+        const guideFrameKeysOf = (name: WidgetName): string[] =>
+            GUIDE_NAMES_HIDDEN_FRAME_SETTINGS.includes(name)
+                ? [...WIDGET_FRAME_KEYS]
+                : WIDGET_FRAME_KEYS.filter(key => !isHiddenFor(declarationOf(infos.get(name)!, key).field, {}));
+
+        /** The frame settings as a KI-Leitfaden lists them: quoted, the last one after „and“. */
+        const frameListOf = (keys: readonly string[]): string =>
+            `${keys
+                .slice(0, -1)
+                .map(key => `"${key}"`)
+                .join(', ')} and "${keys[keys.length - 1]}"`;
+
         /** The sentence of a widget's KI-Leitfaden that names the frame settings. */
         const frameSentenceOf = (name: WidgetName): string[] =>
             sentencesOf(guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '').filter(
-                sentence => WIDGET_FRAME_KEYS.every(key => sentence.includes(`"${key}"`)),
+                sentence => sentence.includes(`Set the frame fields ${frameListOf(guideFrameKeysOf(name))} only`),
             );
 
         it.each(PLACEABLE_WIDGETS)(
-            '%s: its KI-Leitfaden says to set the frame settings only on an explicit request for this widget',
+            '%s: its KI-Leitfaden names the frame settings it shows, to set only on an explicit request for this widget',
             name => {
                 const sentences = frameSentenceOf(name);
+                const named = WIDGET_FRAME_KEYS.filter(key =>
+                    guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label?.includes(`"${key}"`),
+                );
 
                 expect(sentences).toHaveLength(1);
                 expect(sentences[0]).toContain('only when the user explicitly asks for them on this widget');
                 expect(sentences[0]).toContain('follow the theme');
+                expect(named).toEqual(guideFrameKeysOf(name));
             },
         );
 
-        it('words the frame sentence alike in every widget’s KI-Leitfaden', () => {
-            expect(new Set(PLACEABLE_WIDGETS.flatMap(frameSentenceOf)).size).toBe(1);
+        it('words the frame sentence alike in every widget’s KI-Leitfaden, apart from the settings it names', () => {
+            const withoutList = PLACEABLE_WIDGETS.flatMap(name =>
+                frameSentenceOf(name).map(sentence => sentence.replace(frameListOf(guideFrameKeysOf(name)), '…')),
+            );
+
+            expect(new Set(withoutList).size).toBe(1);
         });
+
+        /** The number of on/off fields as the KI-Leitfaden writes it. */
+        const COUNT_WORDS: Readonly<Record<number, string>> = { 5: 'five', 6: 'six' };
 
         // The type description shows the frame settings as custom fields without a default (the
         // Erb-Adapter, ticket 05): the KI-Leitfaden names the values an explicit request sets.
@@ -665,8 +698,14 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 const format = sentences.filter(sentence => sentence.includes('"basePadding" a number'));
                 const { basePadding: padding, baseElevation: elevation } = WIDGET_FRAME_SETTINGS;
 
+                const onOff = guideFrameKeysOf(name).filter(
+                    key => WIDGET_FRAME_SETTINGS[key as keyof typeof WIDGET_FRAME_SETTINGS].kind === 'boolean',
+                ).length;
+
                 expect(format).toHaveLength(1);
-                expect(format[0]).toContain('the six on/off fields take true or false as their names say');
+                expect(format[0]).toContain(
+                    `the ${COUNT_WORDS[onOff]} on/off fields take true or false as their names say`,
+                );
                 expect(format[0]).toContain(`"basePadding" a number from ${padding.min} to ${padding.max}`);
                 expect(format[0]).toContain(`"baseElevation" a whole number from ${elevation.min} to ${elevation.max}`);
                 // It follows the sentence that names all eight and says that unset means the theme.
