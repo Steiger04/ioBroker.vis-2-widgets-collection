@@ -25,6 +25,7 @@ import {
     thermostatStage,
     thermostatTile,
 } from './thermostatStages';
+import { headScale } from '../lib/heating/scaleRule';
 import { tileArea } from '../lib/heating/SizeStages';
 
 /**
@@ -147,23 +148,33 @@ describe('Anordnungen: the arrangement within a stage', () => {
 
 describe('Kachel: the parts of the Raumthermostat tile', () => {
     it.each([
-        // ± from about 220 px of width (spec), and from the height of head row and ± (20 + 4 + 44 px).
-        ['± at their least box', 196, 68, true],
-        ['no ± one px too narrow', 195, 68, false],
-        ['no ± one px too low', 196, 67, false],
+        // ± at 40 px (Maßstab 0.909) beside a set-point of 32 × 0.909 px with the hull's 6 px gaps:
+        // 196.7 px wide (about the spec's 220 px outer), 40 px high below head row and gap (24 px).
+        ['± at their least box', 197, 64, true],
+        ['no ± one px too narrow', 196, 64, false],
+        ['no ± one px too low', 197, 63, false],
     ])('%s (%i × %i px)', (_case, width, height, buttons) => {
         expect(thermostatTile(tileArea({ width, height })).buttons).toBe(buttons);
     });
 
     it.each([
-        // The footer line below head row, a set-point of 20 px and the 28 px line (20 + 4 + 24 + 4 + 28 px).
-        ['the footer at its least height', 156, 80, true],
-        ['no footer one px lower', 156, 79, false],
-        // With ± the main row is 44 px high.
-        ['the footer beside ± at its least height', 196, 100, true],
-        ['no footer beside ± one px lower', 196, 99, false],
+        // The footer line at its least Maßstab (12 px of text keep 11 px: 0.917) below the set-point
+        // line, 4 px apart: 64.9 px of area.
+        ['the footer at its least height', 156, 89, true],
+        ['no footer one px lower', 156, 88, false],
+        // Beside ± the main row is the ± edge at 0.917: 69.9 px of area, 198.3 px of width.
+        ['the footer beside ± at its least box', 199, 94, true],
+        ['no footer beside ± one px lower', 199, 93, false],
+        ['no footer beside ± one px narrower', 198, 94, false],
     ])('%s (%i × %i px)', (_case, width, height, footer) => {
         expect(thermostatTile(tileArea({ width, height })).footer).toBe(footer);
+    });
+
+    it('needs no ± room without ±: the footer stands where only the set-point and the line fit', () => {
+        expect(thermostatTile(tileArea({ width: 156, height: 89 }), false)).toMatchObject({
+            buttons: false,
+            footer: true,
+        });
     });
 });
 
@@ -217,27 +228,34 @@ describe('Passform: the tile holds what it shows', () => {
         ['240 × 110 px outer (acceptance repro)', 214, 84],
         ['240 × 80 px outer (acceptance repro)', 214, 54],
         ['160 × 110 px outer (acceptance repro)', 134, 84],
-        ['± at their least box', 196, 68],
-        ['± and the footer at their least box', 196, 100],
-        ['the footer at its least box', 156, 80],
+        ['± at their least box', 197, 64],
+        ['± and the footer at their least box', 199, 94],
+        ['the footer at its least box', 156, 89],
         ['a large tile', 230, 140],
+        ['a tall tile', 230, 400],
+        ['a tiny tile', 100, 40],
     ])('%s (%i × %i px)', (_case, width, height) => {
         const box = { width, height };
-        const parts = thermostatTile(tileArea(box));
-        const font = thermostatSetpointFont(tileArea(box), parts);
+        const area = tileArea(box);
+        const tile = thermostatTile(area);
+        const font = thermostatSetpointFont(area, tile);
+        const step = MEASURED.stepTile * tile.scale;
+        // The hull's head row grows damped, never below its 20 px.
+        const head = MEASURED.tileHead * Math.max(1, headScale(tile.scale));
         const setpointWidth = MEASURED.glyphsPerFontPx * font;
-        const buttons = parts.buttons ? 2 * MEASURED.stepTile + 2 * MEASURED.tileGap : 0;
-        const mainRow = Math.max(parts.buttons ? MEASURED.stepTile : 0, MEASURED.lineHeight * font);
-        const footer = parts.footer ? MEASURED.tileRowGap + MEASURED.tileLine : 0;
+        const buttons = tile.buttons ? 2 * step + 2 * MEASURED.tileGap : 0;
+        const mainRow = Math.max(tile.buttons ? step : 0, MEASURED.lineHeight * font);
+        const footer = tile.footer ? MEASURED.tileRowGap + MEASURED.tileLine * tile.scale : 0;
 
         expect(thermostatStage(box, {})).toBe('mini');
+        expect(tile.buttons ? step : 40).toBeGreaterThanOrEqual(40);
         expect(setpointWidth + buttons).toBeLessThanOrEqual(width);
-        expect(MEASURED.tileHead + MEASURED.tileRowGap + mainRow + footer).toBeLessThanOrEqual(height);
+        expect(head + MEASURED.tileRowGap + mainRow + footer).toBeLessThanOrEqual(height + 1e-9);
     });
 
-    it('shows ± in the tile at 240 × 110 px outer and the footer at 220 × 110 px outer', () => {
+    it('shows ± in the tile at 240 × 110 px outer and the footer beside them from 199 × 94 px', () => {
         expect(thermostatTile(tileArea({ width: 214, height: 84 })).buttons).toBe(true);
-        expect(thermostatTile(tileArea({ width: 194, height: 84 })).footer).toBe(true);
+        expect(thermostatTile(tileArea({ width: 199, height: 94 }))).toMatchObject({ buttons: true, footer: true });
     });
 });
 

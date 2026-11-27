@@ -199,11 +199,13 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Voll    | Mittel    | 272 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
 | Einfach | Quer      | 371 × 91 px      | Kopfblock oben (Kopf gestapelt mit Hinweiszeile, ± und großer Sollwert); Betriebsart-Segment unten, sobald es passt (ab 138 px Höhe)            |
 | Einfach | Kompakt   | 232 × 116 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
-| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
+| Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 197 × 64 px; Fußzeile mit Ist oder Meldung ab 89 px Höhe, neben ± ab 199 × 94 px     |
 
 Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
 
 In Einfach zeichnen Quer und Kompakt ihre Teile im Maßstab: Sollwert, ± und Abstände wachsen mit der Fläche bis zum Doppelten des Entwurfs, Kartenkopf und Hinweiszeile gedämpft. Es gewinnt die Anordnung, die größer zeichnen kann — ein flaches, breites Widget zeigt Quer, ein schmales oder hohes Kompakt. Quer zeigt das Betriebsart-Segment, sobald es passt; dann teilen sich Kopfblock und Segment die Höhe, und Sollwert und ± wachsen mit der Höhe dazwischen. Kompakt richtet Sollwert und ± nach Breite und Höhe. Unter den genannten Flächen wären die ± kleiner als 40 px; dann zeigt das Widget die Kachel.
+
+Die Kachel folgt derselben Regel: Sobald ± mit 40 px hineinpassen, erscheinen sie, danach die Fußzeile, sobald ihre Schrift 11 px behält; dann wachsen ±, Sollwert und Fußzeile mit der Fläche, Name und Öffnen-Symbol gedämpft. Die Kachel-Werte gelten für die Fläche nach dem halben Inhaltsabstand.
 
 ### Ansicht
 

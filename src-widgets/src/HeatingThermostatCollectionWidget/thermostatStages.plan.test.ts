@@ -109,29 +109,63 @@ describe('thermostatPlan: Einfach', () => {
 });
 
 describe('thermostatPlan: the tile', () => {
+    it('grows ± with the Maßstab of a larger tile', () => {
+        expect(thermostatPlan('mini', tileArea({ width: 230, height: 130 }), true)).toMatchObject({
+            tile: { buttons: true },
+            sizes: { scale: 1.072, step: 44 * 1.072 },
+        });
+    });
+
     it.each([
-        // ± from 196 × 68: the set-point beside them (196 − 100) / 3.6 = 26.
-        ['± at their least box', 196, 68, true, { buttons: true, footer: false, setpointFont: 26 }],
-        // Not writable: no ±, the height (68 − 24) / 1.2 = 36 limits.
+        // ± from 197 × 64 at 40 px (Maßstab 0.909): the set-point beside them as large as the row holds.
+        ['± at their least box', 197, 64, true, 0.909, { buttons: true, footer: false, setpointFont: 29 }],
+        // Not writable: no ±, the set-point alone fills the area.
         [
             'no ± while the set-point is not writable',
-            196,
-            68,
+            197,
+            64,
             false,
-            { buttons: false, footer: false, setpointFont: 36 },
+            1.034,
+            { buttons: false, footer: false, setpointFont: 33 },
         ],
-        ['no ± one px too narrow', 195, 68, true, { buttons: false, footer: false, setpointFont: 36 }],
-        ['± and the footer at their least box', 196, 100, true, { buttons: true, footer: true, setpointFont: 26 }],
-        ['no footer beside ± one px lower', 196, 99, true, { buttons: true, footer: false, setpointFont: 26 }],
-        // (80 − 24 − 32) / 1.2 = 20 above the footer.
-        ['the footer at its least height', 156, 80, true, { buttons: false, footer: true, setpointFont: 20 }],
-        ['no footer one px lower', 156, 79, false, { buttons: false, footer: false, setpointFont: 43 }],
-        ['240 × 110 px outer', 214, 84, true, { buttons: true, footer: false, setpointFont: 31 }],
-        ['220 × 110 px outer', 194, 84, true, { buttons: false, footer: true, setpointFont: 23 }],
-    ])('%s (%i × %i px)', (_case, width, height, writable, tile) => {
-        expect(thermostatPlan('mini', tileArea({ width, height }), writable)).toMatchObject({
-            arrangement: 'mini',
-            tile,
+        ['no ± one px too narrow', 196, 64, true, 1.034, { buttons: false, footer: false, setpointFont: 33 }],
+        [
+            '± and the footer at their least box',
+            199,
+            94,
+            true,
+            0.9167,
+            { buttons: true, footer: true, setpointFont: 29 },
+        ],
+        ['no footer beside ± one px lower', 199, 93, true, 0.92, { buttons: true, footer: false, setpointFont: 29 }],
+        // The footer at its least Maßstab 0.917; one px lower the set-point takes the whole area.
+        ['the footer at its least height', 156, 89, true, 0.918, { buttons: false, footer: true, setpointFont: 29 }],
+        ['no footer one px lower', 156, 88, false, 1.354, { buttons: false, footer: false, setpointFont: 43 }],
+        ['240 × 110 px outer', 214, 84, true, 0.994, { buttons: true, footer: false, setpointFont: 31 }],
+        ['a larger tile', 230, 130, true, 1.072, { buttons: true, footer: true, setpointFont: 34 }],
+        // The set-point never below 12 px.
+        ['a tiny tile', 100, 40, true, 0.416, { buttons: false, footer: false, setpointFont: 13 }],
+    ])('%s (%i × %i px)', (_case, width, height, writable, scale, tile) => {
+        const plan = thermostatPlan('mini', tileArea({ width, height }), writable);
+
+        expect(plan).toMatchObject({ arrangement: 'mini', tile });
+        expect(plan.sizes.scale).toBeCloseTo(scale, 3);
+        expect(plan.sizes.step).toBeCloseTo(44 * scale, 2);
+    });
+
+    it.each([
+        // The head row damped at the tile's Maßstab, never below the hull's design.
+        ['a larger tile', 230, 130, 1.0267],
+        ['a tile below the design', 197, 64, 1],
+        ['a tall tile without ±', 156, 88, 1.1216],
+    ])("draws the hull's head row damped in %s (%i × %i px)", (_case, width, height, headScale) => {
+        expect(thermostatPlan('mini', tileArea({ width, height }), true).tile.headScale).toBeCloseTo(headScale, 3);
+    });
+
+    it('lets the footer line grow with the Maßstab', () => {
+        expect(thermostatPlan('mini', tileArea({ width: 230, height: 130 }), true).sizes.hint).toMatchObject({
+            font: 12 * 1.072,
+            sign: 14 * 1.072,
         });
     });
 });
@@ -188,8 +222,8 @@ describe('thermostatPlan: Maßstab and part sizes', () => {
         expect(thermostatPlan('einfach', { width, height }, true).sizes).toEqual(DESIGN_SIZES);
     });
 
-    it("draws the tile at Maßstab 1 with its ± of 44 px and its footer's hint line", () => {
-        expect(thermostatPlan('mini', tileArea({ width: 214, height: 100 }), true).sizes).toEqual({
+    it("draws the tile at Maßstab 1 with its ± of 44 px and its footer's hint line where they just fit", () => {
+        expect(thermostatPlan('mini', tileArea({ width: 216, height: 100 }), true).sizes).toEqual({
             ...DESIGN_SIZES,
             step: 44,
             hint: { font: 12, sign: 14, gapUnits: 0.75, padXUnits: 0.75, padYUnits: 0.25, radius: 10 },

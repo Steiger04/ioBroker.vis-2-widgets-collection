@@ -18,7 +18,7 @@
  * - Kompakt: Kartenkopf (row); big set-point at the Maßstab; a Meldung, else the actual
  *   temperature.
  * - The tile: the set-point sized to the tile, ± and the footer line (a Meldung, else the actual
- *   temperature) where they fit.
+ *   temperature) where they fit, at the tile's Maßstab; the hull's head row damped.
  */
 import { Box } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
@@ -241,5 +241,6 @@ export function thermostatTileContent(parts: ThermostatParts, tile: ThermostatTi
         start: tile.buttons ? parts.tile.decrease : null,
         end: tile.buttons ? parts.tile.increase : null,
         line: tile.footer ? (parts.message({ align: 'start' }) ?? parts.actual) : null,
+        headScale: tile.headScale,
     };
 }

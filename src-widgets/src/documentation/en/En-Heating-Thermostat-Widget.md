@@ -199,11 +199,13 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 | Full   | Medium      | 272 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
 | Simple | Wide        | 371 × 91 px       | Head block at the top (head stacked with hint line, ± and big set point); operating-mode segment at the bottom once it fits (from 138 px height)        |
 | Simple | Compact     | 232 × 116 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
-| Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px |
+| Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 197 × 64 px; footer line with actual or message from 89 px height, beside ± 199 × 94 px |
 
 With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
 
 In Simple, Wide and Compact draw their parts at a scale: set point, ± and gaps grow with the area up to twice the design, card head and hint line damped. The arrangement that can draw larger wins — a flat, wide widget shows Wide, a narrow or tall one Compact. Wide shows the operating-mode segment as soon as it fits; head block and segment then share the height, and set point and ± grow with the height between them. Compact sizes set point and ± by width and height. Below the areas named, ± would be smaller than 40 px; the widget then shows the tile.
+
+The tile follows the same rule: ± appear as soon as they fit at 40 px, then the footer line as soon as its text keeps 11 px; ±, set point and footer line then grow with the area, name and open symbol damped. The tile's values apply to the area inside half the content inset.
 
 ### Layout
 

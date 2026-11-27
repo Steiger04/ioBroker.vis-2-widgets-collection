@@ -26,6 +26,10 @@
  * Maßstab (± 40 px), and of the two the one with the larger Maßstab draws. Quer shows the
  * operating-mode segment as soon as it fits at its least Maßstab (the pills' text 11 px) and then
  * takes its Maßstab with the segment below the head.
+ *
+ * The tile (`thermostatTile`) follows the same rule in the area the hull leaves it: ± as soon as they
+ * fit at 40 px, the footer line as soon as it fits at its least Maßstab, then the largest Maßstab
+ * the area holds; the set-point fills its row, the hull's head row grows damped (`tileHeadScale`).
  */
 
 import {
@@ -50,9 +54,9 @@ interface LeastBox {
  * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
  * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
  * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
- * The tile's parts: ± 44 px, the footer line 28 px — the hull's head row and gaps come with its area
- * (`TileArea`). Sizes in px are the design's; the Einfach fits (`querNeed`, `kompaktNeed`) take them
- * times the Maßstab.
+ * The tile's parts: ± 44 px, the footer line 28 px, the set-point 32 px — the hull's head row and
+ * gaps come with its area (`TileArea`). Sizes in px are the design's; the fits (`querNeed`,
+ * `kompaktNeed`, the tile's) take them times the Maßstab.
  */
 export const SETPOINT_FIT = {
     glyphsPerFontPx: 3.6,
@@ -65,8 +69,8 @@ export const SETPOINT_FIT = {
     flatGap: 12,
     stepTile: 44,
     tileLine: 28,
-    /** The least set-point line the tile keeps beside its footer (a 20 px set-point). */
-    tileMainLine: 24,
+    /** The tile's set-point at the design: two thirds of the big one. */
+    tileFont: 32,
     /** The dial (320-unit box): the ring's inner edge (radius 118 − half the stroke of 14). */
     dialInner: 111,
     /** The dial: the bottom padding of its centred column, and the gap and actual line below the set-point. */
@@ -177,31 +181,7 @@ export const THERMOSTAT_THRESHOLDS = {
      * (ADR-0122 Nachtrag 2026-11-27); the dial stays bound by the height there.
      */
     mittel: { width: 272, height: 376 },
-    /**
-     * The tile's ± (design width 220), in the tile's area: from the spec's width on, and as high as
-     * ± (ADR-0122: the box holds what the stage shows).
-     */
-    tileButtons: { width: 196, height: SETPOINT_FIT.stepTile },
 } as const satisfies Record<string, LeastBox>;
-
-/**
- * The set-point's font size in the tile: the design's 48 px while there is room, else as large as
- * the row of its area beside ± and the height the footer line leaves hold it (ADR-0122: the stage's
- * box holds its parts).
- *
- * @param area - The area the hull leaves the tile.
- * @param parts - Its parts as {@link thermostatTile} decided them (± and the footer line), not
- *   decided again here.
- * @returns The font size in px.
- */
-export function thermostatSetpointFont(area: TileArea, parts: ThermostatTileParts): number {
-    const fit = SETPOINT_FIT;
-    const { buttons, footer } = parts;
-    const width = area.width - (buttons ? 2 * fit.stepTile + 2 * area.controlGap : 0);
-    const footerLine = footer ? area.rowGap + fit.tileLine : 0;
-    const font = Math.min(width / fit.glyphsPerFontPx, (area.height - footerLine) / fit.lineHeight);
-    return Math.max(fit.minFont, Math.min(fit.maxFont, Math.floor(font)));
-}
 
 /** One spacing unit of the standard theme in px: the fits count the gaps with it. */
 const SPACING_PX = 8;
@@ -326,10 +306,11 @@ export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean): Ei
     const fits = holds(box);
     const quer = fittingScale(scale => fits(querNeed(scale, writable, false)));
     const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable)));
-    if (quer >= EINFACH_LEAST && quer >= kompakt) {
+    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
+    if (fits(querNeed(EINFACH_LEAST, writable, false)) && quer >= kompakt) {
         const modes = fits(querNeed(QUER_MODES_LEAST, writable, true));
         const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true))) : quer;
-        return { arrangement: 'quer', modes, scale };
+        return { arrangement: 'quer', modes, scale: Math.max(modes ? QUER_MODES_LEAST : EINFACH_LEAST, scale) };
     }
     return { arrangement: 'kompakt', scale: Math.max(EINFACH_LEAST, kompakt) };
 }
@@ -401,18 +382,86 @@ export interface ThermostatTileParts {
     footer: boolean;
 }
 
+/** The tile's parts and the Maßstab it draws them at. */
+export interface ThermostatTileFit extends ThermostatTileParts {
+    /** The Maßstab: 0 when not even the set-point fits at the smallest. */
+    readonly scale: number;
+}
+
+/** The least Maßstab of the tile's ±: they keep 40 px (44 px at the design). */
+export const TILE_BUTTONS_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.tile], texts: [] });
+
+/** The least Maßstab of the tile's footer line: its 12 px keep 11 px. */
+export const TILE_FOOTER_LEAST = leastScale({ controls: [], texts: [THERMOSTAT_DESIGN.hint.tile.font] });
+
 /**
- * The parts the tile's area holds: ± from their least box, the footer line below the main row —
- * as high as ±, else the least set-point line — and the hull's gap.
+ * The factor of the tile hull's head row at the tile's Maßstab: damped, and never below the hull's
+ * design — the tile is the smallest step, its name and open symbol do not shrink.
+ *
+ * @param scale - The tile's Maßstab.
+ * @returns The head row's factor.
+ */
+export const tileHeadScale = (scale: number): number => headScale(Math.max(1, scale));
+
+/**
+ * What the tile's parts need of its area at a Maßstab: the set-point at the tile's design font, ±
+ * with the hull's gap where they show, the footer line below the hull's row gap, and the head row's
+ * growth over the design the area already left.
+ *
+ * @param scale - The Maßstab.
+ * @param area - The area the hull leaves the tile.
+ * @param parts - Which optional parts show.
+ * @returns The box the parts need in px.
+ */
+function tileNeed(scale: number, area: TileArea, parts: ThermostatTileParts): LeastBox {
+    const fit = SETPOINT_FIT;
+    const step = parts.buttons ? fit.stepTile * scale : 0;
+    const font = fit.tileFont * scale;
+    return {
+        width: (parts.buttons ? 2 * (step + area.controlGap) : 0) + fit.glyphsPerFontPx * font,
+        height:
+            area.head * (tileHeadScale(scale) - 1) +
+            Math.max(step, fit.lineHeight * font) +
+            (parts.footer ? area.rowGap + fit.tileLine * scale : 0),
+    };
+}
+
+/**
+ * The parts the tile's area holds and its Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“
+ * Nr. 9): ± as soon as they fit at 40 px, then the footer line as soon as it fits beside them at
+ * its least Maßstab; the tile then draws them at the largest Maßstab its area holds.
  *
  * @param area - The area the hull leaves the tile's content.
- * @param stepping - Whether the set-point has ± at all (writable); without, the footer needs less.
- * @returns Which optional parts to show.
+ * @param stepping - Whether the set-point has ± at all (writable).
+ * @returns Which optional parts to show and the Maßstab.
  */
-export function thermostatTile(area: TileArea, stepping = true): ThermostatTileParts {
-    const buttons = stepping && reaches(area, THERMOSTAT_THRESHOLDS.tileButtons);
-    const mainRow = buttons ? SETPOINT_FIT.stepTile : SETPOINT_FIT.tileMainLine;
-    return { buttons, footer: area.height >= mainRow + area.rowGap + SETPOINT_FIT.tileLine };
+export function thermostatTile(area: TileArea, stepping = true): ThermostatTileFit {
+    const fits = holds(area);
+    // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
+    const buttons = stepping && fits(tileNeed(TILE_BUTTONS_LEAST, area, { buttons: true, footer: false }));
+    const footer = fits(tileNeed(TILE_FOOTER_LEAST, area, { buttons, footer: true }));
+    const scale = fittingScale(at => fits(tileNeed(at, area, { buttons, footer })));
+    const least = Math.max(buttons ? TILE_BUTTONS_LEAST : 0, footer ? TILE_FOOTER_LEAST : 0);
+    return { buttons, footer, scale: Math.max(least, scale) };
+}
+
+/**
+ * The set-point's font size in the tile: as large as the row of its area beside ± and the height
+ * the head row and the footer line leave hold it, at most the big set-point's 48 px times the
+ * Maßstab and at least 12 px (ADR-0122: the stage's box holds its parts).
+ *
+ * @param area - The area the hull leaves the tile.
+ * @param tile - Its parts and Maßstab as {@link thermostatTile} decided them, not decided again here.
+ * @returns The font size in px.
+ */
+export function thermostatSetpointFont(area: TileArea, tile: ThermostatTileFit): number {
+    const fit = SETPOINT_FIT;
+    const { buttons, footer, scale } = tile;
+    const width = area.width - (buttons ? 2 * (fit.stepTile * scale + area.controlGap) : 0);
+    const height =
+        area.height - area.head * (tileHeadScale(scale) - 1) - (footer ? area.rowGap + fit.tileLine * scale : 0);
+    const font = Math.min(width / fit.glyphsPerFontPx, height / fit.lineHeight);
+    return Math.max(fit.minFont, Math.min(fit.maxFont * scale, Math.floor(font)));
 }
 
 /**
@@ -458,9 +507,11 @@ export interface ThermostatDial {
     readonly font: number;
 }
 
-/** The Raumthermostat tile's parts and the set-point's font size beside them. */
+/** The Raumthermostat tile's parts, the set-point's font size beside them and the hull's head factor. */
 export interface ThermostatTilePlan extends ThermostatTileParts {
     readonly setpointFont: number;
+    /** The factor the hull draws its head row at (damped). */
+    readonly headScale: number;
 }
 
 /** A font of the theme's typography at a factor. */
@@ -522,8 +573,13 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
         const tile = thermostatTile(area, writable);
         return {
             arrangement: 'mini',
-            sizes: thermostatSizes(DESIGN_SCALE, 'tile'),
-            tile: { ...tile, setpointFont: thermostatSetpointFont(area, tile) },
+            sizes: thermostatSizes(tile.scale, 'tile'),
+            tile: {
+                buttons: tile.buttons,
+                footer: tile.footer,
+                setpointFont: thermostatSetpointFont(area, tile),
+                headScale: tileHeadScale(tile.scale),
+            },
         };
     }
     if (stage === 'einfach') {
