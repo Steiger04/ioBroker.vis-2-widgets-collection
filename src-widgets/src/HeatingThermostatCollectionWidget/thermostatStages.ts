@@ -72,7 +72,7 @@ export const THERMOSTAT_THRESHOLDS = {
 } as const satisfies Record<string, LeastBox>;
 
 /** Where a set-point sized by its box stands: Kompakt's row beside ±, or the tile. */
-export type SetpointPlace = 'kompakt' | 'tile';
+type SetpointPlace = 'kompakt' | 'tile';
 
 /**
  * The set-point's font size in a place that sizes it by its box: the design's 48 px while there is
