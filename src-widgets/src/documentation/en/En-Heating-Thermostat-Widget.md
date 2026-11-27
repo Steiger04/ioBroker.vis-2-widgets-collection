@@ -234,6 +234,8 @@ The heating widgets have no color fields and no theme key of their own. Every co
 
 What you set or choose takes none of these colourings but the **control accent** from the primary color `palette.primary`: the ring (arc, handle and track), the chosen pill and the operating-mode segment, the ± and the symbol in the card head. It shows a setting, not a state, so it stays the same in every state, also with a window open. Its shades are built like the colourings': the primary color itself for arc and handle (at least 3:1 on the card), tinted for surfaces, signs and text on them at least 4.5:1. So the widget matches your other widgets in the default theme as in every Theme Studio preset.
 
+The values themselves — name, set point, actual value and the values of the readings bar — take the widget's text colour: the vis-2 attribute **color** (CSS Font & Text), else the theme's text colour; this also holds in the tile and in the Mini-Dialog. Captions such as „Actual“, the scale and the names of the readings stay muted, and a state with a colouring (open window, battery with a notice) keeps its colouring.
+
 The heating widgets take `palette.error` for faults and notices, `palette.warning` for heating (warmth, not a warning) and `palette.info` for cool, such as an open window. The text on these colourings reaches at least 4.5:1 in light and dark: filled it takes black or white, tinted the color is lightened or darkened until the contrast suffices.
 
 - **Example pink cast:** The design shows faults in a red with a pink cast. That is a theme choice: in the [Theme Studio](En-Theme-Studio.md#status--text-section) set the error color to `#FF6B7F` (dark theme) or `#D12C4D` (light theme). Without a choice of your own the error color of the vis-2 theme applies.

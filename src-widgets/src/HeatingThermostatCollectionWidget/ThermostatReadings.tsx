@@ -167,6 +167,10 @@ export function ReadingsBar({ readings }: { readings: readonly ThermostatReading
 /**
  * The actual temperature with its label, for the dial, the Einfach line and the tile's footer.
  *
+ * @remarks
+ * Only the word „Ist“ is muted. The value is a Werttext and sets no colour of its own: it takes
+ * the vis-2 text colour (the widget's text styles reach every Typography through the collection
+ * theme, the Mini-Dialog portal included), else the theme's text colour it inherits.
  * @param props - Component props.
  * @param props.text - The formatted actual temperature, or „–“.
  * @returns The line.
@@ -176,16 +180,20 @@ export function ActualTemperature({ text }: { text: string }): ReactNode {
         <Box
             data-heating-actual=""
             component="span"
-            sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, color: 'text.secondary', minWidth: 0 }}
+            sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, minWidth: 0 }}
         >
-            <span>{translate('heating_messwert_ist')}</span>
+            <Box
+                component="span"
+                sx={{ color: 'text.secondary' }}
+            >
+                {translate('heating_messwert_ist')}
+            </Box>
             <Typography
                 component="span"
                 data-heating-actual-value=""
                 sx={{
                     fontSize: '1.15em',
                     fontWeight: 500,
-                    color: 'text.primary',
                     fontVariantNumeric: 'tabular-nums',
                     whiteSpace: 'nowrap',
                 }}

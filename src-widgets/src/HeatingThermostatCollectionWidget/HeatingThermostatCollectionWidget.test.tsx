@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Theme } from '@iobroker/gui-components';
 
 import { InjectedContentBoxContext, type ContentBox } from '../hooks/useContentBox';
-import { accentColors } from '../lib/heating/tones';
+import { accentColors, toneColors } from '../lib/heating/tones';
 import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
@@ -110,6 +110,7 @@ interface MountedWidget {
  * @param values - The subscribed state values (`<id>.val/.ack/.ts/.lc/.q`).
  * @param box - The Content-Box the frame publishes.
  * @param lang - The host language.
+ * @param style - The widget's vis-2 style (`CSS Font & Text`, e.g. `color`).
  * @returns The container and a way to render new state values, as the host does on a report.
  */
 async function mountWidget(
@@ -117,6 +118,7 @@ async function mountWidget(
     values: Record<string, unknown>,
     box: ContentBox = START_BOX,
     lang = 'en',
+    style: Record<string, unknown> = {},
 ): Promise<MountedWidget> {
     const instance = new (HeatingThermostatCollectionWidget as unknown as new (props: unknown) => WidgetInstance)({
         context: { socket, themeType: 'light', lang, theme: Theme('light') },
@@ -125,14 +127,14 @@ async function mountWidget(
     document.body.appendChild(container);
     const root = createTestRoot(container);
     const render = async (current: Record<string, unknown>): Promise<void> => {
-        instance.state = { rxData: data, rxStyle: {}, values: current, editMode: false };
+        instance.state = { rxData: data, rxStyle: style, values: current, editMode: false };
         await act(() => {
             root.render(
                 <InjectedContentBoxContext.Provider value={box}>
                     {instance.renderWidgetBody({
                         id: 'preview-heating-thermostat',
-                        widget: { data, style: {} },
-                        style: {},
+                        widget: { data, style },
+                        style,
                         refService: { current: null },
                     })}
                 </InjectedContentBoxContext.Provider>,
@@ -1616,5 +1618,107 @@ describe('HeatingThermostatCollectionWidget: the Bedienakzent (ADR-0124 Nachtrag
             [css(accent.surface), css(accent.text)],
             [css(accent.surface), css(accent.text)],
         ]);
+    });
+});
+
+describe('the Werttexte follow the widget text colour (ADR-0124 Nachtrag 2026-11-27)', () => {
+    const RED = { color: '#d51515' };
+    const theme = resolveCollectionTheme(Theme('light'), undefined, {});
+    /** A colour as `rgb(r,g,b)` without spaces (happy-dom keeps the source notation, e.g. hex). */
+    const rgb = (color: string): string => {
+        const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color.trim());
+        return hex
+            ? `rgb(${hex
+                  .slice(1)
+                  .map(part => parseInt(part, 16))
+                  .join(',')})`
+            : color.replace(/\s+/g, '');
+    };
+    /** The computed colour of `element`, normalised by {@link rgb}. */
+    const colorOf = (element: Element | null | undefined): string =>
+        element ? rgb(getComputedStyle(element).color) : '';
+    const actualValue = (container: HTMLElement): Element | null =>
+        container.querySelector('[data-heating-actual-value]');
+
+    it('paints the actual value in the vis-2 colour', async () => {
+        const { container } = await mountWidget(neutralData(), allValues(), START_BOX, 'en', RED);
+        expect(colorOf(actualValue(container))).toBe('rgb(213,21,21)');
+    });
+
+    it('keeps the word „Ist“ and the reading names muted next to it', async () => {
+        const { container } = await mountWidget(neutralData(), allValues(), START_BOX, 'en', RED);
+        const actual = container.querySelector('[data-heating-actual]');
+        const word = actual?.firstElementChild;
+        expect(word?.textContent).toBe('heating_messwert_ist');
+        expect(colorOf(word)).not.toBe('rgb(213,21,21)');
+        expect(colorOf(word)).toBe(rgb(theme.palette.text.secondary));
+    });
+
+    it('lets a tone win over the vis-2 colour: an open window stays kühl', async () => {
+        const { container } = await mountWidget(
+            neutralData({ fensterZuordnung: { zu: [0], offen: [1, 2] } }),
+            { ...allValues(), [`${neutral('fenster')}.val`]: 1 },
+            START_BOX,
+            'en',
+            RED,
+        );
+        const value = container.querySelector('[data-heating-reading="fenster"] [data-heating-reading-value]');
+        expect(value?.getAttribute('data-tone')).toBe('kühl');
+        expect(colorOf(value)).toBe(rgb(toneColors(theme, 'kühl').text));
+    });
+
+    it('lets a Hinweis win over the vis-2 colour: a low battery stays toned', async () => {
+        const { container } = await mountWidget(
+            neutralData({ batterieSchwachZuordnung: { schwach: [true], ok: [false] } }),
+            { ...allValues(), [`${neutral('batterieSchwach')}.val`]: true },
+            START_BOX,
+            'en',
+            RED,
+        );
+        const value = container.querySelector('[data-heating-reading="batteriestand"] [data-heating-reading-value]');
+        expect(value?.getAttribute('data-tone')).toBe('hinweis');
+        expect(colorOf(value)).toBe(rgb(toneColors(theme, 'hinweis').text));
+    });
+
+    it('reaches the tile and the Mini-Dialog portal, which lies outside the widget', async () => {
+        const { container } = await mountWidget(neutralData(), allValues(), { width: 156, height: 66 }, 'en', RED);
+        expect(colorOf(container.querySelector('[data-heating-tile] [data-heating-setpoint]'))).toBe('rgb(213,21,21)');
+
+        // The dialog measures its own area (ADR-0122 Nr. 6): report the start size for it while it opens.
+        const inert = globalThis.ResizeObserver;
+        globalThis.ResizeObserver = class {
+            readonly #callback: ResizeObserverCallback;
+
+            constructor(callback: ResizeObserverCallback) {
+                this.#callback = callback;
+            }
+
+            observe(element: Element): void {
+                if (element.hasAttribute('data-heating-dialog-box')) {
+                    this.#callback([{ contentRect: START_BOX } as unknown as ResizeObserverEntry], this);
+                }
+            }
+
+            // eslint-disable-next-line class-methods-use-this -- nothing to stop
+            unobserve(): void {}
+
+            // eslint-disable-next-line class-methods-use-this -- nothing to stop
+            disconnect(): void {}
+        };
+        try {
+            act(() => container.querySelector<HTMLButtonElement>('[data-heating-tile] button')!.click());
+        } finally {
+            globalThis.ResizeObserver = inert;
+        }
+        const dialog = document.querySelector('[role="dialog"]');
+        expect(dialog).not.toBeNull();
+        expect(container.contains(dialog)).toBe(false);
+        expect(colorOf(dialog!.querySelector('[data-heating-actual-value]'))).toBe('rgb(213,21,21)');
+        expect(colorOf(dialog!.querySelector('[data-heating-setpoint]'))).toBe('rgb(213,21,21)');
+    });
+
+    it('paints the actual value in the theme text colour without a vis-2 colour', async () => {
+        const { container } = await mountWidget(neutralData(), allValues());
+        expect(colorOf(actualValue(container))).toBe(rgb(theme.palette.text.primary));
     });
 });
