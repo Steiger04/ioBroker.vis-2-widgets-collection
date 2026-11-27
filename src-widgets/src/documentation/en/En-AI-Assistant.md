@@ -61,6 +61,19 @@ When the assistant reads a view, the host returns the set data of every widget i
 2. Ask the assistant to read this view and to use the widget as a pattern.
 3. Say what should change: state, title, colors or target view.
 
+## Heating Widgets
+
+The heating widgets form a set of their own: its technical name is `vis-2-widgets-collection-heating`, in the widget palette the group is called "Widget collection · Heating". The assistant sees only the technical name. So name the set ID literally in every request, as described under [Name the Set](#name-the-set) for `vis-2-widgets-collection`. The first type is the [room thermostat](En-Heating-Thermostat-Widget.md).
+
+- "Which widgets does the set `vis-2-widgets-collection-heating` offer?"
+- "Add a room thermostat for the bathroom from the set `vis-2-widgets-collection-heating`."
+- "In the view 'Heating', add a room thermostat from the set `vis-2-widgets-collection-heating` for the wall thermostat in the living room."
+- "Set the comfort temperature of the room thermostat 'Bathroom' from the set `vis-2-widgets-collection-heating` to 22 °C."
+
+By its guide each meaning of the thermostat has a data point field of its own, only the set point `soll` is required. The prefill of the other meanings runs only on the pick in the editor, not when the AI inserts the widget: the assistant sets every data point itself. It leaves the value mappings empty, the widget reads them from the data point itself. It writes the room name into `bezeichnung`, header and footer stay empty unless you ask for them. Check the inserted widget and bind missing meanings in the panel.
+
+The theme of the heating widgets is that of the collection: the entry for the [theme by AI](#theme-by-ai) stays in the set `vis-2-widgets-collection`.
+
 ## Theme by AI
 
 The vis-2 assistant can change the theme of the collection: colors, font, shape and widget frame of all collection widgets, without you opening the [Theme Studio](En-Theme-Studio.md). It edits the same theme as the studio. The theme applies **to the whole installation**, not per project or view: a change takes effect in every project.
@@ -144,6 +157,7 @@ palette.mode: "light" or "dark"; leave it out to follow vis-2.
 Colors: hex like #1976d2, rgb() or hsl(); no color names, no gradients.
 If palette.primary.main is set and palette.secondary.main is not, the secondary color is derived from the primary.
 Without palette.text.primary the text takes the primary color.
+The heating widgets take palette.error for faults and notices, palette.warning for heating (warmth, not a warning) and palette.info for cool, such as an open window.
 typography.fontFamily: a CSS font stack.
 Bundled fonts work on every device, use the value exactly as written: "'Inter', system-ui, sans-serif", "'Open Sans', system-ui, sans-serif", "'Montserrat', system-ui, sans-serif", "'Merriweather', Georgia, serif", "'Playfair Display', Georgia, serif", "'Roboto Slab', Georgia, serif", "'JetBrains Mono', ui-monospace, monospace", "'Oswald', system-ui, sans-serif", "'Nunito', system-ui, sans-serif", "'Roboto', system-ui, sans-serif".
 Any other stack needs the font on the device.

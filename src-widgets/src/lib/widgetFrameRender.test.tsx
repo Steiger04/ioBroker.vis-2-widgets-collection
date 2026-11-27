@@ -314,8 +314,9 @@ const FRAME_SETTING_CASES: readonly FrameSettingCase[] = [
         own: false,
         draft: false,
         shown: f => !f.headerIcon,
-        // The chart draws no corner icon at all; the gauge's is the active highlight zone's (none here).
-        notShownBy: ['EchartsCollectionWidget', 'GaugeCollectionWidget'],
+        // The chart and the heating types draw no corner icon at all (ADR-0123 Nr. 3); the gauge's is
+        // the active highlight zone's (none here).
+        notShownBy: ['EchartsCollectionWidget', 'GaugeCollectionWidget', 'HeatingThermostatCollectionWidget'],
     },
     { key: 'noFooter', standard: false, preset: true, own: false, draft: false, shown: f => !f.footer },
 ];

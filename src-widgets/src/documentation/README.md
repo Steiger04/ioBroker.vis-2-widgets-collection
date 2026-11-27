@@ -26,6 +26,7 @@ documentation/
 │   ├── De-JsonTable-Widget.md
 │   ├── De-Echarts-Widget.md
 │   ├── De-Echarts-JSON-Formate.md
+│   ├── De-Heating-Thermostat-Widget.md
 │   └── De-Theme-Studio.md
 ├── en/              # English documentation
 │   ├── En-Home.md
@@ -43,6 +44,7 @@ documentation/
 │   ├── En-JsonTable-Widget.md
 │   ├── En-Echarts-Widget.md
 │   ├── En-Echarts-JSON-Formats.md
+│   ├── En-Heating-Thermostat-Widget.md
 │   └── En-Theme-Studio.md
 └── img/             # Images shared by all languages
     ├── collection-state.png

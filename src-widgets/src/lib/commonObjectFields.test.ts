@@ -12,7 +12,7 @@ import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
 
 import { ANY_VALUE_TYPES, JSON_TABLE_TYPES } from './allowedOidTypes';
-import commonObjectFields, { oidChangeHandlerAsync } from './commonObjectFields';
+import commonObjectFields, { createIdField, oidChangeHandlerAsync, type PickedObject } from './commonObjectFields';
 
 const STATUS = 'zigbee.0.lamp.mode_status';
 const COMMAND = 'zigbee.0.lamp.mode_set';
@@ -224,6 +224,94 @@ describe('commonObjectFields — { inventRange: false }: a pick takes only the r
 
     it('changes nothing else of the pick', async () => {
         expect(await pickReal({ oid: STATUS })).toEqual(STATUS_PICKED);
+    });
+});
+
+describe('createIdField — an auxiliary ID with { inventRange: false } copies only the real range', () => {
+    /** A pick of the auxiliary id field `soll` through the field the option builds. */
+    const pickAuxiliary = (data: WidgetData, inventRange?: boolean): Promise<WidgetData> => {
+        const field = createIdField('soll', ANY_VALUE_TYPES, inventRange === undefined ? undefined : { inventRange });
+
+        return pick('soll', data, (field as { onChange: RxWidgetInfoFieldChangeHandler }).onChange);
+    };
+
+    it('stores no bound the object lacks in its object copy', async () => {
+        const picked = await pickAuxiliary({ soll: NO_RANGE }, false);
+
+        expect(picked.sollObject).toMatchObject({ _id: NO_RANGE });
+        expect(picked.sollObject).not.toHaveProperty('minValue');
+        expect(picked.sollObject).not.toHaveProperty('maxValue');
+    });
+
+    it('stores a real bound, 0 included', async () => {
+        expect((await pickAuxiliary({ soll: COOLING }, false)).sollObject).toMatchObject({
+            minValue: -10,
+            maxValue: 0,
+        });
+    });
+
+    it.each([
+        { id: MIN_ONLY, kept: { minValue: 5 }, missing: 'maxValue' },
+        { id: MAX_ONLY, kept: { maxValue: 50 }, missing: 'minValue' },
+    ])('checks each bound on its own: $id keeps $kept, has no $missing', async ({ id, kept, missing }) => {
+        const { sollObject } = await pickAuxiliary({ soll: id }, false);
+
+        expect(sollObject).toMatchObject(kept);
+        expect(sollObject).not.toHaveProperty(missing);
+    });
+
+    it('writes no root range', async () => {
+        const picked = await pickAuxiliary({ soll: COOLING }, false);
+
+        expect(picked).not.toHaveProperty('minValue');
+        expect(picked).not.toHaveProperty('maxValue');
+    });
+
+    it('keeps the seeded copy without the option', async () => {
+        expect((await pickAuxiliary({ soll: NO_RANGE })).sollObject).toMatchObject({ minValue: 0, maxValue: 100 });
+    });
+});
+
+describe('createIdField — a field with its own pick derivation', () => {
+    /** Stand-in field: derives `probeZuordnung` from the state's role and its channel's id. */
+    const probeField = createIdField('probe', ANY_VALUE_TYPES, {
+        pickDerivation: Object.assign(
+            ({ object, channel }: PickedObject) =>
+                channel ? { probeZuordnung: { role: object.common.role, channel: channel._id } } : undefined,
+            { keys: ['probeZuordnung'] },
+        ),
+    });
+    const pickProbe = (data: WidgetData, socket?: Connection): Promise<WidgetData> =>
+        pick('probe', data, (probeField as { onChange: RxWidgetInfoFieldChangeHandler }).onChange, socket);
+
+    it('stores the derived keys beside the object, read with the channel one level above the state', async () => {
+        const picked = await pickProbe({ probe: STATUS });
+
+        expect(picked.probeZuordnung).toEqual({ role: 'value', channel: 'zigbee.0.lamp' });
+        expect(picked.probeObject).toMatchObject({ _id: STATUS });
+    });
+
+    it('keeps a key the data sets', async () => {
+        expect((await pickProbe({ probe: STATUS, probeZuordnung: { an: [true] } })).probeZuordnung).toEqual({
+            an: [true],
+        });
+    });
+
+    it('derives nothing when the channel read fails, and keeps the pick of the state', async () => {
+        const failingChannel = {
+            getObject: (id: string): Promise<unknown> =>
+                id === 'zigbee.0.lamp' ? Promise.reject(new Error('socket error')) : Promise.resolve(OBJECTS[id]),
+        } as unknown as Connection;
+
+        const picked = await pickProbe({ probe: STATUS }, failingChannel);
+
+        expect(picked).not.toHaveProperty('probeZuordnung');
+        expect(picked.probeObject).toMatchObject({ _id: STATUS });
+    });
+
+    it('carries the derivation as a mirror; a field without one carries none', () => {
+        expect(typeof (probeField as { pickDerivation?: unknown }).pickDerivation).toBe('function');
+        expect(createIdField('soll', ANY_VALUE_TYPES)).not.toHaveProperty('pickDerivation');
     });
 });
 
@@ -685,6 +773,41 @@ describe('oidChangeHandlerAsync — Hilfs-OID (ADR-0096)', () => {
             const picked = await pick(name, { ...ROOT, [name]: COMMAND });
 
             expect(await pick(name, { ...picked, [name]: '' })).toEqual({ ...ROOT, [name]: '' });
+        });
+    });
+});
+
+describe('oidChangeHandlerAsync — a field name that prefixes another id field (ADR-0111 Nr. 1)', () => {
+    /** Each pair: the field whose object goes, and a sibling id field whose name it prefixes. */
+    const PREFIXED = [
+        { name: 'boost', sibling: 'boostBeenden' },
+        { name: 'ventil1', sibling: 'ventil10' },
+    ];
+
+    beforeEach(() => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    describe.each(PREFIXED)('$name beside $sibling', ({ name, sibling }) => {
+        const siblingPicked = { [sibling]: STATUS, [`${sibling}Object`]: { _id: STATUS, type: 'number' } };
+
+        it('clearing it keeps the sibling object', async () => {
+            const picked = await pick(name, { ...siblingPicked, [name]: COMMAND });
+
+            expect(await pick(name, { ...picked, [name]: '' })).toEqual({ ...siblingPicked, [name]: '' });
+        });
+
+        it('a pick without a usable object keeps the sibling object', async () => {
+            const picked = await pick(name, { ...siblingPicked, [name]: COMMAND });
+
+            expect(await pick(name, { ...picked, [name]: 'zigbee.0.la' })).toEqual({
+                ...siblingPicked,
+                [name]: 'zigbee.0.la',
+            });
         });
     });
 });

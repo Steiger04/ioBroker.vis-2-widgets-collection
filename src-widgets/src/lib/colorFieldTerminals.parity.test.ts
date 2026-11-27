@@ -81,6 +81,7 @@ const WIDGET_BODIES: Record<WidgetName, string> = {
     JsonTableCollectionWidget: 'JsonTableCollection',
     EchartsCollectionWidget: 'EchartsCollection',
     ThemeConfigWizard: 'ThemeWizardButton',
+    HeatingThermostatCollectionWidget: 'HeatingThermostatCollection',
 };
 for (const name of widgets) {
     vi.doMock(`../${name}/${WIDGET_BODIES[name]}`, () => ({ default: () => null }));

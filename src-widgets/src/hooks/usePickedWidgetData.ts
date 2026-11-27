@@ -6,10 +6,12 @@
  * @module hooks/usePickedWidgetData
  * @remarks
  * Each object is read once per id field and id through the widget's socket, the way the editor pick
- * reads it ({@link loadPickedObjectAsync}); a missing object, a type the field does not take and a
- * socket error read as no usable object. A result stays with its field and id, so a changed id
- * neither loses nor mixes up a read still running. Nothing is written: no widget data, no state.
- * Data whose id fields all carry their own object reads no object; with no unset key that has a
+ * reads it ({@link loadPickedObjectAsync}), with its channel for a field with its own pick
+ * derivation; a missing object, a type the field does not take and a socket error read as no usable
+ * object (a missing or unreadable channel as none: the derivation reads it as missing). A result
+ * stays with its field and id, so a changed id neither loses nor mixes up a read still running.
+ * Nothing is written: no widget data, no state. Data whose id fields all carry their own object,
+ * none with its own derivation leaving a key unset, reads no object; with no unset key that has a
  * default it comes back unchanged.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -61,7 +63,7 @@ export default function usePickedWidgetData<T extends object>(
                 continue;
             }
             running.current.add(key);
-            loadPickedObjectAsync(socket, awaitedObject.id, awaitedObject.field.allowedTypes)
+            loadPickedObjectAsync(socket, awaitedObject.id, awaitedObject.field.allowedTypes, awaitedObject.field)
                 // A socket error is no usable object, as for the editor pick (ADR-0111 Nr. 1).
                 .catch(() => undefined)
                 .then(picked => {

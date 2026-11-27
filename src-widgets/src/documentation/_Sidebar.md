@@ -21,6 +21,7 @@
 - [JSON Table Widget](De-JsonTable-Widget.md)
 - [ECharts Widget](De-Echarts-Widget.md)
 - [ECharts JSON-Formate](De-Echarts-JSON-Formate.md)
+- [Raumthermostat](De-Heating-Thermostat-Widget.md)
 - [Theme-Studio](De-Theme-Studio.md)
 - [KI-Assistent](De-AI-Assistant.md)
 
@@ -42,5 +43,6 @@
 - [JSON Table Widget](En-JsonTable-Widget.md)
 - [ECharts Widget](En-Echarts-Widget.md)
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md)
+- [Room Thermostat](En-Heating-Thermostat-Widget.md)
 - [Theme Studio](En-Theme-Studio.md)
 - [AI Assistant](En-AI-Assistant.md)

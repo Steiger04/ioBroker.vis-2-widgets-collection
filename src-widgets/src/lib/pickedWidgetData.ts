@@ -8,9 +8,14 @@
  * keys (`lib/commonObjectFields`). The vis-2 assistant sets the id without running it, and its flat
  * update leaves an older object with a foreign `_id` behind. For such a field the widget reads the
  * object itself; this module decides which fields wait for one and merges what the pick would have
- * written, with the pick's own derivation ({@link applyObjectPick}), into what the widget reads:
+ * written, with the pick's own derivation ({@link applyObjectPick}) — a field's own
+ * `pickDerivation` included (e.g. a missing Wertezuordnung, ADR-0120) — into what the widget reads:
  * - an object whose `_id` is not the id reads as missing (also while it loads, and for an id
  *   without a usable object: the widget shows its OID hint as without an object);
+ * - a field that holds its own object reads only its own derivation, while one of its keys is unset
+ *   (a bound Bedeutung without its stored Wertezuordnung, ADR-0120 Nachtrag „Spec Stufe 1
+ *   schreiben“); its object stays, also while the read runs and without a usable object. A field
+ *   without its own derivation and with its own object waits for nothing;
  * - every key the pick writes counts only where the data leaves it unset (`isUnset`):
  *   what is set wins — except the row count (`values_count`, `ignoreCommonStates`), which the pick
  *   counts from the stored rows and count together with the rows it supplements, so the stored
@@ -25,11 +30,11 @@
  * The stored data is never written. A field whose object matches its id is not touched, and data
  * without such a field and without an unset key that has a default comes back as the same object.
  */
-import { applyObjectPick, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
+import { applyObjectPick, applyPickDerivation, PICK_ROW_COUNT_KEYS } from './commonObjectFields';
 import { isUnset, NO_FIELD_DEFAULTS, withFieldDefaults } from './fieldDefaults';
 
 import type { AllowedType } from './allowedOidTypes';
-import type { PickedObject } from './commonObjectFields';
+import type { PickDerivation, PickedObject } from './commonObjectFields';
 import type { FieldDefaults } from './fieldDefaults';
 import type { RxWidgetInfoGroup, WidgetData } from '@iobroker/types-vis-2';
 
@@ -39,8 +44,10 @@ export interface OidPickField {
     readonly name: string;
     /** Allowed JS types of the picked state. */
     readonly allowedTypes: readonly AllowedType[];
-    /** Whether a main-OID pick seeds a missing bound of the root range. */
+    /** Whether a missing bound is seeded (`createIdField`'s `inventRange`). */
     readonly inventRange: boolean;
+    /** The field's own pick derivation (`createIdField`'s `pickDerivation`), if it has one. */
+    readonly pickDerivation?: PickDerivation;
 }
 
 /**
@@ -60,11 +67,12 @@ interface PickFieldMirror {
     type?: string;
     allowedTypes?: unknown;
     inventRange?: unknown;
+    pickDerivation?: unknown;
 }
 
 /**
  * The id fields of a widget whose pick runs the shared derivation: the fields `createIdField`
- * builds, recognised by their `allowedTypes` mirror.
+ * builds, recognised by their `allowedTypes` mirror, with their `inventRange` and `pickDerivation`.
  *
  * @param visAttrs - The widget's `getWidgetInfo().visAttrs`.
  * @returns The fields in declaration order.
@@ -72,9 +80,19 @@ interface PickFieldMirror {
 export const oidPickFieldsOf = (visAttrs: readonly RxWidgetInfoGroup[]): OidPickField[] =>
     visAttrs.flatMap(group =>
         (group.fields ?? []).flatMap(field => {
-            const { name, type, allowedTypes, inventRange } = field as PickFieldMirror;
+            const { name, type, allowedTypes, inventRange, pickDerivation } = field as PickFieldMirror;
             return type === 'id' && name && Array.isArray(allowedTypes)
-                ? [{ name, allowedTypes: allowedTypes as AllowedType[], inventRange: inventRange !== false }]
+                ? [
+                      {
+                          name,
+                          allowedTypes: allowedTypes as AllowedType[],
+                          inventRange: inventRange !== false,
+                          ...(typeof pickDerivation === 'function' &&
+                          Array.isArray((pickDerivation as Partial<PickDerivation>).keys)
+                              ? { pickDerivation: pickDerivation as PickDerivation }
+                              : {}),
+                      },
+                  ]
                 : [];
         }),
     );
@@ -95,18 +113,31 @@ const hasOwnObject = (data: WidgetData, field: OidPickField, id: string): boolea
 export interface AwaitedObject {
     readonly field: OidPickField;
     readonly id: string;
+    /** The field holds its own object and waits only for its own derivation. */
+    readonly ownObject?: true;
 }
 
+/** Whether the field's own derivation leaves one of its keys unset in the data. */
+const derivesUnsetKey = (data: WidgetData, field: OidPickField): boolean =>
+    !!field.pickDerivation?.keys.some(key => isUnset(data[key]));
+
 /**
- * The fields that hold an id without its object: no object, or one with a foreign `_id`.
+ * The fields that hold an id without its object (no object, or one with a foreign `_id`), and the
+ * fields that hold their own object while their own derivation leaves a key unset.
  *
  * @param data - The widget data as the widget reads it.
  * @param fields - The widget's {@link oidPickFieldsOf}.
  */
 export const awaitedObjectsOf = (data: WidgetData, fields: readonly OidPickField[]): AwaitedObject[] =>
-    fields.flatMap(field => {
+    fields.flatMap((field): AwaitedObject[] => {
         const id = idOf(data, field);
-        return id !== undefined && !hasOwnObject(data, field, id) ? [{ field, id }] : [];
+        if (id === undefined) {
+            return [];
+        }
+        if (!hasOwnObject(data, field, id)) {
+            return [{ field, id }];
+        }
+        return derivesUnsetKey(data, field) ? [{ field, id, ownObject: true }] : [];
     });
 
 /**
@@ -131,9 +162,9 @@ export function pickedWidgetData<T extends WidgetData>(
 ): T {
     const read: WidgetData = { ...data };
     let changed = false;
-    for (const { field } of awaited) {
+    for (const { field, ownObject } of awaited) {
         // A foreign object belongs to another id: it reads as missing.
-        if (`${field.name}Object` in read) {
+        if (!ownObject && `${field.name}Object` in read) {
             delete read[`${field.name}Object`];
             changed = true;
         }
@@ -144,7 +175,9 @@ export function pickedWidgetData<T extends WidgetData>(
     const derived: WidgetData = { ...withFieldDefaults(read, defaults) };
     for (const awaitedObject of awaited) {
         const picked = pickedOf(awaitedObject);
-        if (picked) {
+        if (picked && awaitedObject.ownObject) {
+            applyPickDerivation(derived, picked, awaitedObject.field.pickDerivation);
+        } else if (picked) {
             applyObjectPick(derived, awaitedObject.field.name, picked, awaitedObject.field);
         }
     }

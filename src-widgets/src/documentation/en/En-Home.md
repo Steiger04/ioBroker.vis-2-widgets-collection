@@ -369,5 +369,6 @@ The Widget Collection includes the following widgets:
 - [JSON Table Widget](En-JsonTable-Widget.md) - Table widget for JSON data with sorting, filtering, and pagination
 - [ECharts Widget](En-Echarts-Widget.md) - Charts (line, bar, scatter, pie) with a full configurator — history adapter or JSON data point
 - [ECharts JSON Formats](En-Echarts-JSON-Formats.md) - The JSON payload formats of the ECharts widget, with examples
+- [Room Thermostat](En-Heating-Thermostat-Widget.md) - Heating of a room: set point with a ring, readings, operating mode and Boost; palette group "Widget collection · Heating"
 - [Theme Studio](En-Theme-Studio.md) - Collection-wide theme editor (colors, typography, shape) for all widgets of the collection
 - [AI Assistant](En-AI-Assistant.md) - Build collection widgets with the vis-2 AI assistant or an external MCP client: naming the set, example prompts, templates, limits

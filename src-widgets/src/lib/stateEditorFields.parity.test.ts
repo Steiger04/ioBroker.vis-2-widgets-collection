@@ -43,6 +43,7 @@ const BODIES: Record<string, string> = {
     EchartsCollectionWidget: 'EchartsCollection',
     ThemeConfigWizard: 'ThemeWizardButton',
     TemplateCollectionWidget: 'TemplateCollection',
+    HeatingThermostatCollectionWidget: 'HeatingThermostatCollection',
 };
 const ROSTER = [...widgets, 'TemplateCollectionWidget'];
 for (const name of ROSTER) {

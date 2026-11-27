@@ -35,6 +35,9 @@ import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
 import en from '../i18n/en.json';
 import { STUDIO_COLOR_FIELDS } from '../ThemeConfigWizard/studioColorFields';
+import { THERMOSTAT_THRESHOLDS } from '../HeatingThermostatCollectionWidget/thermostatStages';
+import { HINT_TABLE } from './heating/hintTable';
+import { ROLE_TABLE } from './heating/roleTable';
 import { FONT_CATALOGUE } from './theme/fontCatalogue';
 import { THEME_PRESETS } from './theme/presets';
 import { decodeBlob } from './encoding';
@@ -48,6 +51,7 @@ import {
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
 } from './testing/aiSeams';
+import { ANLAGE_WTH2, heatingTestDevices } from './testing/heatingTestDevices';
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
@@ -82,6 +86,7 @@ const WIDGET_BODIES: Record<WidgetName, string> = {
     JsonTableCollectionWidget: 'JsonTableCollection',
     EchartsCollectionWidget: 'EchartsCollection',
     ThemeConfigWizard: 'ThemeWizardButton',
+    HeatingThermostatCollectionWidget: 'HeatingThermostatCollection',
 };
 for (const name of PLACEABLE_TYPES) {
     vi.doMock(`../${name}/${WIDGET_BODIES[name]}`, () => ({ default: () => null }));
@@ -262,8 +267,8 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 
     it('checks every type of the registry: the placeable widgets and the order', () => {
-        expect(PLACEABLE_TYPES).toHaveLength(14);
-        expect(PLACEABLE_WIDGETS).toHaveLength(13);
+        expect(PLACEABLE_TYPES).toHaveLength(15);
+        expect(PLACEABLE_WIDGETS).toHaveLength(14);
         expect(Object.keys(ORDER_TYPES)).toEqual(['ThemeConfigWizard']);
     });
 
@@ -629,26 +634,59 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
             );
         });
 
+        /**
+         * Widgets whose KI-Leitfaden still names a frame setting their panel hides (written before the
+         * rule below; the 13 collection widgets stay unchanged): ECharts hides `noHeaderIcon`.
+         */
+        const GUIDE_NAMES_HIDDEN_FRAME_SETTINGS: readonly WidgetName[] = ['EchartsCollectionWidget'];
+
+        /**
+         * The frame settings a widget's KI-Leitfaden names: those its panel shows — a setting hidden
+         * in every state does nothing on this type (the Raumthermostat's frame shows no corner icon).
+         */
+        const guideFrameKeysOf = (name: WidgetName): string[] =>
+            GUIDE_NAMES_HIDDEN_FRAME_SETTINGS.includes(name)
+                ? [...WIDGET_FRAME_KEYS]
+                : WIDGET_FRAME_KEYS.filter(key => !isHiddenFor(declarationOf(infos.get(name)!, key).field, {}));
+
+        /** The frame settings as a KI-Leitfaden lists them: quoted, the last one after „and“. */
+        const frameListOf = (keys: readonly string[]): string =>
+            `${keys
+                .slice(0, -1)
+                .map(key => `"${key}"`)
+                .join(', ')} and "${keys[keys.length - 1]}"`;
+
         /** The sentence of a widget's KI-Leitfaden that names the frame settings. */
         const frameSentenceOf = (name: WidgetName): string[] =>
             sentencesOf(guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '').filter(
-                sentence => WIDGET_FRAME_KEYS.every(key => sentence.includes(`"${key}"`)),
+                sentence => sentence.includes(`Set the frame fields ${frameListOf(guideFrameKeysOf(name))} only`),
             );
 
         it.each(PLACEABLE_WIDGETS)(
-            '%s: its KI-Leitfaden says to set the frame settings only on an explicit request for this widget',
+            '%s: its KI-Leitfaden names the frame settings it shows, to set only on an explicit request for this widget',
             name => {
                 const sentences = frameSentenceOf(name);
+                const named = WIDGET_FRAME_KEYS.filter(key =>
+                    guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label?.includes(`"${key}"`),
+                );
 
                 expect(sentences).toHaveLength(1);
                 expect(sentences[0]).toContain('only when the user explicitly asks for them on this widget');
                 expect(sentences[0]).toContain('follow the theme');
+                expect(named).toEqual(guideFrameKeysOf(name));
             },
         );
 
-        it('words the frame sentence alike in every widget’s KI-Leitfaden', () => {
-            expect(new Set(PLACEABLE_WIDGETS.flatMap(frameSentenceOf)).size).toBe(1);
+        it('words the frame sentence alike in every widget’s KI-Leitfaden, apart from the settings it names', () => {
+            const withoutList = PLACEABLE_WIDGETS.flatMap(name =>
+                frameSentenceOf(name).map(sentence => sentence.replace(frameListOf(guideFrameKeysOf(name)), '…')),
+            );
+
+            expect(new Set(withoutList).size).toBe(1);
         });
+
+        /** The number of on/off fields as the KI-Leitfaden writes it. */
+        const COUNT_WORDS: Readonly<Record<number, string>> = { 5: 'five', 6: 'six' };
 
         // The type description shows the frame settings as custom fields without a default (the
         // Erb-Adapter, ticket 05): the KI-Leitfaden names the values an explicit request sets.
@@ -663,8 +701,14 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
                 const format = sentences.filter(sentence => sentence.includes('"basePadding" a number'));
                 const { basePadding: padding, baseElevation: elevation } = WIDGET_FRAME_SETTINGS;
 
+                const onOff = guideFrameKeysOf(name).filter(
+                    key => WIDGET_FRAME_SETTINGS[key as keyof typeof WIDGET_FRAME_SETTINGS].kind === 'boolean',
+                ).length;
+
                 expect(format).toHaveLength(1);
-                expect(format[0]).toContain('the six on/off fields take true or false as their names say');
+                expect(format[0]).toContain(
+                    `the ${COUNT_WORDS[onOff]} on/off fields take true or false as their names say`,
+                );
                 expect(format[0]).toContain(`"basePadding" a number from ${padding.min} to ${padding.max}`);
                 expect(format[0]).toContain(`"baseElevation" a whole number from ${elevation.min} to ${elevation.max}`);
                 // It follows the sentence that names all eight and says that unset means the theme.
@@ -706,6 +750,60 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
+describe('Raumthermostat: valve list and operating mode in the assistant’s view', () => {
+    const name: WidgetName = 'HeatingThermostatCollectionWidget';
+    const fieldIn = (language: Translate, field: string): DescribedField | undefined =>
+        describedFields(infos.get(name)!, I18N_PREFIX, language).find(one => one.name === field);
+
+    it('tells the assistant at the hidden base field "ventil" to leave it empty and where the valves go', () => {
+        const label = fieldIn(t, 'ventil')?.label ?? '';
+
+        expect(label).toContain('leave it empty');
+        expect(label).toContain('"ventil1"');
+        expect(label).toContain('"ventilAnzahl"');
+    });
+
+    it('says the same in the KI-Leitfaden', () => {
+        const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
+
+        expect(guide).toContain('"ventil1", "ventil2" and so on, with their number in "ventilAnzahl"');
+        expect(guide).toContain('the base field "ventil" itself stays empty');
+    });
+
+    it('names the operating-mode pair by what the assistant sees of a state (role, write, states)', () => {
+        const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
+        const role = ROLE_TABLE.find(entry => entry.meaning === 'betriebsart')!.roles[0];
+        // The installation extract (HmIP-WTH-2): `search_objects` shows id, type, role, unit, min, max,
+        // write and states — not read. The rule of the sentence must find the hint table's pair there.
+        const { objects } = heatingTestDevices('');
+        const channel = `${ANLAGE_WTH2.id}.1.`;
+        const inChannel = Object.entries(objects).filter(([id, object]) => id.startsWith(channel) && object.type === 'state');
+        const commonOf = (object: ioBroker.Object): ioBroker.StateCommon => object.common as ioBroker.StateCommon;
+        const read = inChannel.filter(([, object]) => commonOf(object).role === role);
+        expect(read).toHaveLength(1);
+        const [readId, readObject] = read[0];
+        const sameList = inChannel.filter(
+            ([id, object]) =>
+                id !== readId &&
+                commonOf(object).write === true &&
+                JSON.stringify(commonOf(object).states) === JSON.stringify(commonOf(readObject).states),
+        );
+        const nameOf = (id: string): string => id.slice(id.lastIndexOf('.') + 1);
+        const hint = (meaning: string): string | undefined => HINT_TABLE.find(entry => entry.meaning === meaning)?.name;
+
+        expect(nameOf(readId)).toBe(hint('betriebsart'));
+        expect(sameList.map(([id]) => nameOf(id))).toEqual([hint('betriebsartSetzen')]);
+        expect(guide).toContain(`take the state with the role "${role}" as "betriebsart"`);
+        expect(guide).toContain(
+            'as "betriebsartSetzen" a further writable state of the same channel whose value list ("states") equals that of "betriebsart", whatever its role',
+        );
+    });
+
+    it.each(LANGUAGE_FILES)('words the base field for the assistant in English in %s, like the KI-Leitfaden', file => {
+        expect(fieldIn(translatorOf(readLanguage(file)), 'ventil')?.label).toBe(fieldIn(t, 'ventil')?.label);
+    });
+});
+
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
@@ -741,6 +839,24 @@ describe('Every language file: what the assistant and the palette read in each i
 
             expect(untranslated).toEqual([]);
         });
+
+        // Heating types bind through hidden base fields (ADR-0121: the assistant sees only the declared
+        // base fields); a label without its key reaches the assistant raw (and the host logs a miss).
+        it.each(['HeatingThermostatCollectionWidget'] as WidgetName[])(
+            '%s: translates the label of every field that has one',
+            name => {
+                const info = infos.get(name)!;
+                const untranslated = describedFields(info, I18N_PREFIX, translate)
+                    .filter(
+                        field =>
+                            field.label !== undefined &&
+                            field.label === I18N_PREFIX + declarationOf(info, field.name!).field.label!,
+                    )
+                    .map(field => field.name);
+
+                expect(untranslated).toEqual([]);
+            },
+        );
     });
 });
 
@@ -839,6 +955,10 @@ const CONTROL_MIN_HEIGHT: Partial<Record<WidgetName, { px: number; reason: strin
     EchartsCollectionWidget: {
         px: 220,
         reason: 'ECharts grid default margins (60 px above and below the plot) + a 100 px plot',
+    },
+    HeatingThermostatCollectionWidget: {
+        px: THERMOSTAT_THRESHOLDS.gross.height,
+        reason: "starts in its Voll stage, arrangement Groß as in the design (ADR-0122 Nr. 9): the rule's Groß height",
     },
 };
 

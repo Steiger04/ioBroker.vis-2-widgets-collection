@@ -771,6 +771,13 @@ export type InputCollectionContextProps = CollectionContextProps<WidgetRegistry[
 export type EchartsCollectionContextProps = CollectionContextProps<WidgetRegistry['tplEchartsCollectionWidget']>;
 
 /**
+ * React Context props for the Raumthermostat (heating family).
+ */
+export type HeatingThermostatCollectionContextProps = CollectionContextProps<
+    WidgetRegistry['tplHeatingThermostatCollectionWidget']
+>;
+
+/**
  * Union of all widget-specific context types.
  *
  * @remarks
@@ -799,7 +806,8 @@ export type AllCollectionContextProps =
     | Light2CollectionContextProps
     | JsonTableCollectionContextProps
     | InputCollectionContextProps
-    | EchartsCollectionContextProps;
+    | EchartsCollectionContextProps
+    | HeatingThermostatCollectionContextProps;
 
 /**
  * Generate context type for a specific widget ID.

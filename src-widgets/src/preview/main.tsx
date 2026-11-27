@@ -15,6 +15,8 @@ import { createRoot } from 'react-dom/client';
 import { Theme } from '@iobroker/gui-components';
 
 import CollectionProvider from '../components/CollectionProvider';
+import en from '../i18n/en.json';
+import { I18N_PREFIX } from '../lib/translate';
 import { buildPreviewContext } from './mockContext';
 import { scenes, sceneSlugs } from './scenes';
 import { buildScaffoldSource, slugFor } from './scaffold';
@@ -30,12 +32,25 @@ interface PreviewWindow extends Window {
 const win = window as PreviewWindow;
 win.__scenes = sceneSlugs;
 
+/**
+ * The host's `t` for the scenes: the English text of a key, its `%s` filled in order. preview.html's
+ * stub only passes keys through, enough for scaffolding; a body that writes its status, hints and
+ * labels as texts (the Raumthermostat) would show its keys in the image.
+ */
+const englishText = (key: string, ...args: unknown[]): string => {
+    const texts = en as Record<string, string>;
+    const text = texts[key.startsWith(I18N_PREFIX) ? key.slice(I18N_PREFIX.length) : key] ?? key;
+    return args.reduce<string>((filled, arg) => filled.replace('%s', String(arg)), text);
+};
+(window.visRxWidget as unknown as { t: typeof englishText }).t = englishText;
+
 function SceneView({ scene, mode }: { scene: PreviewScene; mode?: 'light' | 'dark' }): JSX.Element {
     // CLI `?mode=` overrides the fixture's declared mode (default light), so one
     // scene renders in either theme without duplicating the fixture.
     const effectiveMode = mode ?? scene.context.mode ?? 'light';
     const effectiveScene = { ...scene, context: { ...scene.context, mode: effectiveMode } };
-    const context = buildPreviewContext(effectiveScene);
+    // The scenes render the English texts (`englishText`), so numbers and times follow English too.
+    const context = Object.assign(buildPreviewContext(effectiveScene), { lang: 'en' });
     const Body = scene.component;
     // Canvas background follows the theme surface so dark mode renders faithfully
     // (dark canvas + dark card + visible elevation shadow), not "dark card on white".

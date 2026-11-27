@@ -59,10 +59,12 @@ import {
     DIALOG_OID,
     FIXTURES,
     NUMBER_OID,
+    SETPOINT_OID,
     SWITCH_OID,
     TABLE_OID,
     type WidgetFixture,
 } from './testing/widgetFixtures';
+import { heatingWidgets } from '../widgetsRegistry';
 import {
     AXIS_KINDS,
     CHART_CONFIG_KINDS,
@@ -205,6 +207,14 @@ const OBJECTS: Record<string, unknown> = {
     // A Hue White lamp's brightness: the Hue-Skala 0-254.
     [WHITE_LEVEL_OID]: stateObject(WHITE_LEVEL_OID, { type: 'number', role: 'level.dimmer', min: 0, max: 254 }),
     [LIST_OID]: stateObject(LIST_OID, { type: 'array' }),
+    // A thermostat's set-point temperature (the heating types' main Bedeutung `soll`).
+    [SETPOINT_OID]: stateObject(SETPOINT_OID, {
+        type: 'number',
+        role: 'level.temperature',
+        unit: '°C',
+        min: 4.5,
+        max: 30.5,
+    }),
 };
 
 const stubSocket = {
@@ -1727,8 +1737,13 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
             return idName ? [[name, idName] as const] : [];
         });
 
-        /** The widgets that show the frame's OID hint; the Dialog's Sitzungs-OID is optional (ADR-0111). */
-        const HINTING = ID_FIELDS.filter(([name]) => name !== 'DialogCollectionWidget');
+        /**
+         * The widgets that show the frame's OID hint; the Dialog's Sitzungs-OID is optional (ADR-0111),
+         * a heating type names its main Bedeutung in its own notice (ADR-0123 Nr. 5, checked below).
+         */
+        const HINTING = ID_FIELDS.filter(
+            ([name]) => name !== 'DialogCollectionWidget' && !(heatingWidgets as readonly string[]).includes(name),
+        );
 
         const HINT = 'collection_base_select_oid';
 
@@ -1829,6 +1844,67 @@ describe('Naht 2: widgets rendered from raw assistant data', () => {
                 }
             },
         );
+
+        // The Raumthermostat's main Bedeutung is `soll`, not `oid` (ADR-0123 Nr. 5): without a usable
+        // set-point it reports a valid type to the frame and shows its own notice naming the set-point,
+        // never the frame's OID hint. Like the frame's: no object asks for one, an object of another
+        // type says it must be a number.
+        describe('HeatingThermostatCollectionWidget: its own notice for the set-point', () => {
+            const CHOOSE = 'heating_notice_choose_setpoint';
+            const NOT_NUMBER = 'heating_notice_setpoint_not_number';
+            const FRAME_NOTICES = [HINT, 'collection_base_invalid_type'];
+
+            /** The thermostat rendered from the data, with the fixture's values. */
+            const thermostat = async (data: Record<string, unknown>): Promise<string> =>
+                renderWidget(
+                    await load('HeatingThermostatCollectionWidget'),
+                    data,
+                    FIXTURES.HeatingThermostatCollectionWidget!.values,
+                );
+
+            it.each([
+                ['no data', {}],
+                ['only the frame texts', { ...CHROME }],
+                ['an emptied set-point', { ...CHROME, soll: '' }],
+                ['the unselected set-point', { ...CHROME, soll: 'nothing_selected' }],
+                ['a set-point the object database does not know', { ...CHROME, soll: MISSING_OID }],
+                ['a set-point whose type the pick refuses', { ...CHROME, soll: LIST_OID }],
+            ])('asks for the set-point with %s', async (_case, data) => {
+                const html = await thermostat(data);
+
+                expect(html).toContain(CHOOSE);
+                expect(html).not.toContain(NOT_NUMBER);
+                for (const notice of FRAME_NOTICES) {
+                    expect(html).not.toContain(notice);
+                }
+            });
+
+            it('says the set-point must be a number for a stored object of another type', async () => {
+                const html = await thermostat({
+                    ...CHROME,
+                    soll: SETPOINT_OID,
+                    sollObject: { _id: SETPOINT_OID, type: 'string', write: true },
+                });
+
+                expect(html).toContain(NOT_NUMBER);
+                expect(html).not.toContain(CHOOSE);
+                for (const notice of FRAME_NOTICES) {
+                    expect(html).not.toContain(notice);
+                }
+            });
+
+            it('shows its content and the frame texts with a number set-point, stored or read in', async () => {
+                const { data } = FIXTURES.HeatingThermostatCollectionWidget!;
+
+                for (const html of [await thermostat(data), await thermostat({ ...CHROME, soll: SETPOINT_OID })]) {
+                    expect(html).toContain('Head');
+                    expect(html).toContain('Foot');
+                    for (const notice of [CHOOSE, NOT_NUMBER, ...FRAME_NOTICES]) {
+                        expect(html).not.toContain(notice);
+                    }
+                }
+            });
+        });
 
         it.each(ID_FIELDS)(
             '%s writes neither the widget data nor a state, and reads each object once',

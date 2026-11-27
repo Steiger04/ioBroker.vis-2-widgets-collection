@@ -139,6 +139,19 @@ describe('theme state description (AI channel for MCP clients)', () => {
         expect(description).toContain('write the whole theme back');
         expect(description).toContain('A single invalid value is ignored');
     });
+
+    // ADR-0124 no. 7: a client that changes a status colour learns that the heating widgets take it.
+    it('says in one sentence which studio colours the heating widgets take, and that warning means warmth there', () => {
+        const sentences = description.split('. ').filter(part => part.includes('heating widgets'));
+        const studioPaths = STUDIO_COLOR_FIELDS.map(field => field.path);
+
+        expect(sentences).toHaveLength(1);
+        for (const slot of ['palette.error', 'palette.warning', 'palette.info']) {
+            expect(studioPaths).toContain(`${slot}.main`);
+            expect(sentences[0], slot).toContain(slot);
+        }
+        expect(sentences[0]).toContain('not a warning');
+    });
 });
 
 // ADR-0117: the Rahmenvorgaben are a key of the same theme; an MCP client learns their shape here.

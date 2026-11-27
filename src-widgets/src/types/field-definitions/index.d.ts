@@ -17,6 +17,7 @@ import type { JsonTableFieldsRxData } from './json-table-fields';
 import type { InputFieldsRxData } from './input-fields';
 import type { EchartsFieldsRxData } from './echarts-fields';
 import type { ThemeOrderFieldsRxData } from './theme-order-fields';
+import type { HeatingThermostatFieldsRxData } from './heating-thermostat-fields';
 
 /**
  * Registry of all available field definitions for vis-2 Collection widgets.
@@ -134,6 +135,9 @@ export interface FieldDefinitions {
 
     /** Theme-Auftrag field types (the settings the assistant filled, unchecked) */
     themeOrder: ThemeOrderFieldsRxData;
+
+    /** Raumthermostat field types (binding per Thermostat-Bedeutung, valve list, widget values) */
+    heatingThermostat: HeatingThermostatFieldsRxData;
 }
 
 /**
@@ -174,6 +178,7 @@ export type * from './json-table-fields';
 export type * from './input-fields';
 export type * from './echarts-fields';
 export type * from './theme-order-fields';
+export type * from './heating-thermostat-fields';
 
 /**
  * Re-export ExtendedField type for custom field definitions.

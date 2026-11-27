@@ -154,6 +154,16 @@ export interface WidgetFieldMappings {
     tplEchartsCollectionWidget: ['base', 'common', 'commonObject', 'echarts'];
 
     /**
+     * Raumthermostat - the first heating type (ADR-0118): one room's thermostat, bound per Thermostat-Bedeutung
+     *
+     * @remarks
+     * `commonObject` for type compatibility only, as with echarts: the main Bedeutung is `soll`, not
+     * `oid` (ADR-0123 Nr. 5); its `sollObject` and the other Bedeutungen' objects are typed by the
+     * `${string}Object` index of the common-object fields.
+     */
+    tplHeatingThermostatCollectionWidget: ['base', 'common', 'commonObject', 'heatingThermostat'];
+
+    /**
      * Theme-Auftrag - a placed Theme Studio type: a one-time order to change the stored theme
      *
      * @remarks

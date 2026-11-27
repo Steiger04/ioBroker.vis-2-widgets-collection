@@ -18,6 +18,7 @@ import CheckboxCollection from '../../CheckboxCollectionWidget/CheckboxCollectio
 import DialogCollection from '../../DialogCollectionWidget/DialogCollection';
 import EchartsCollection from '../../EchartsCollectionWidget/EchartsCollection';
 import GaugeCollection from '../../GaugeCollectionWidget/GaugeCollection';
+import HeatingThermostatCollection from '../../HeatingThermostatCollectionWidget/HeatingThermostatCollection';
 import InputCollection from '../../InputCollectionWidget/InputCollection';
 import JsonTableCollection from '../../JsonTableCollectionWidget/JsonTableCollection';
 import Light2Collection from '../../Light2CollectionWidget/Light2Collection';
@@ -78,6 +79,7 @@ export const SWITCH_OID = 'demo.0.power';
 export const DIALOG_OID = 'demo.0.dialog';
 export const TABLE_OID = 'demo.0.table';
 export const CHART_OID = 'demo.0.chart';
+export const SETPOINT_OID = 'demo.0.setpoint';
 
 /** One entry per placeable widget. */
 export const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
@@ -161,5 +163,24 @@ export const FIXTURES: Partial<Record<WidgetName, WidgetFixture>> = {
                 { x: 2, a: 3 },
             ]),
         },
+    },
+    HeatingThermostatCollectionWidget: {
+        body: HeatingThermostatCollection,
+        // The main Bedeutung `soll` with the object its pick stores (a Hilfs-ID: no root fields, real range only).
+        data: {
+            ...CHROME,
+            soll: SETPOINT_OID,
+            sollObject: {
+                _id: SETPOINT_OID,
+                name: SETPOINT_OID,
+                type: 'number',
+                unit: '°C',
+                write: true,
+                onlyDisplay: false,
+                minValue: 4.5,
+                maxValue: 30.5,
+            },
+        },
+        values: { [`${SETPOINT_OID}.val`]: 21.5 },
     },
 };

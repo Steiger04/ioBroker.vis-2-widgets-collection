@@ -14,6 +14,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidTypeFilter } from './allowedOidTypes';
+import { isUnset } from './fieldDefaults';
 import optionalNumber from './helper/optionalNumber';
 import { oidRole } from './oidRole';
 import { stateEditorSpec } from './stateEditorConfig';
@@ -45,14 +46,13 @@ const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): 
 /** The Zustandszeilen of the main OID (`oid`): the row keys every state widget carries. */
 const MAIN_STATE_ROWS = stateEditorSpec().config;
 
-/** Drops this field's object; the control ID's suggestion follows the fallback to the main OID (ADR-0090). */
+/**
+ * Drops this field's object, nothing else (ADR-0111 Nr. 1); the control ID's suggestion follows
+ * the fallback to the main OID (ADR-0090). Exactly `<name>Object`: a field name may prefix another
+ * id field's (`boost`/`boostBeenden`, `ventil1`/`ventil10`), whose object stays.
+ */
 const dropFieldObject = (data: WidgetData, oid: string): void => {
-    // Clear only fields that start with the given OID and end with 'Object'
-    Object.keys(data).forEach(key => {
-        if (key.startsWith(oid) && key.endsWith('Object')) {
-            delete data[key];
-        }
-    });
+    delete data[`${oid}Object`];
 
     if (oidRole(oid) === 'control') {
         data.onlyDisplay = writeTargetDeniesWrite(data);
@@ -122,15 +122,55 @@ const dropUnusableObject = (data: WidgetData, oid: string): void => {
     dropFieldObject(data, oid);
 };
 
-/** Options of a main-OID pick; the other OID roles write no range. */
+/** Options of an id field's pick. */
 interface OidPickOptions {
     /**
-     * Seed a missing bound of the root `minValue`/`maxValue` (0..100, default: true). Off for a
-     * widget that draws no range: only the object's real bounds reach the root fields (ADR-0109
-     * Nr. 8). The `oidObject` copy stays seeded either way.
+     * Seed a missing bound (0..100, default: true). Off for a widget that draws no range: a
+     * main-OID pick takes only the object's real bounds into the root `minValue`/`maxValue`
+     * (ADR-0109 Nr. 8) and its `oidObject` copy stays seeded; any other id field takes only the
+     * real bounds into its `<oid>Object` copy (the other roles write no root range).
      */
     inventRange?: boolean;
+    /** The field's own derivation beyond the shared one; see {@link PickDerivation}. */
+    pickDerivation?: PickDerivation;
 }
+
+/**
+ * An id field's own pick derivation: further keys its pick takes from the picked object (and its
+ * channel), beyond what the shared derivation writes — e.g. the Wertezuordnung of a heating
+ * Bedeutung (ADR-0120). Its keys fill only keys the data leaves unset, in the editor pick and in
+ * the Lese-Naht alike (`lib/pickedWidgetData`) — there also for a field that holds its own object
+ * while one of its {@link PickDerivation.keys} is unset.
+ */
+export interface PickDerivation {
+    /**
+     * @param picked - What {@link loadPickedObjectAsync} read, the channel included.
+     * @returns The derived keys; `undefined` or `{}` for none.
+     */
+    (picked: PickedObject): Readonly<Record<string, unknown>> | undefined;
+    /** Every key the derivation may write. */
+    readonly keys: readonly string[];
+}
+
+/**
+ * Fills `data` with what a field's own derivation takes from `picked`, only into unset keys: what
+ * is set wins.
+ *
+ * @param data - The widget data, changed in place (top-level keys only).
+ * @param picked - What {@link loadPickedObjectAsync} read.
+ * @param pickDerivation - The field's own derivation; none: nothing changes.
+ */
+export const applyPickDerivation = (
+    data: WidgetData,
+    picked: PickedObject,
+    pickDerivation: PickDerivation | undefined,
+): void => {
+    for (const [key, value] of Object.entries(pickDerivation?.(picked) ?? {})) {
+        if (!isUnset(value) && isUnset(data[key])) {
+            data[key] = value;
+        }
+    }
+};
 
 /**
  * Stores a bound the object really has in a root field and removes the field otherwise.
@@ -147,13 +187,64 @@ const setRealBound = (data: WidgetData, key: 'minValue' | 'maxValue', bound: num
     }
 };
 
+/**
+ * The range of the object copy (`<oid>Object`).
+ *
+ * @param object - The picked state object.
+ * @param seeded - Seed a missing bound with 0..100 (ADR-0109 Nr. 8, addendum K6: the copy of the
+ *   main OID and of every field without `inventRange: false`); otherwise only a bound the object
+ *   really has gets a key — a non-main id field with `inventRange: false` (Heizungs-Widgets: „Aus“ of
+ *   the Raumthermostat needs the real minimum of the setpoint, ADR-0119/0120).
+ */
+const copiedRange = (object: ioBroker.StateObject, seeded: boolean): { minValue?: number; maxValue?: number } => {
+    const { min, max } = object.common;
+    if (seeded) {
+        // `??`: a real bound of 0 is a range, only a missing one gets seeded.
+        return { minValue: min ?? 0, maxValue: max ?? 100 };
+    }
+    return {
+        ...(typeof min === 'number' ? { minValue: min } : {}),
+        ...(typeof max === 'number' ? { maxValue: max } : {}),
+    };
+};
+
 /** What a pick reads from the object database: the usable object and the icon it carries. */
 export interface PickedObject {
     /** The picked state object; its `common.type` is one of the field's allowed types. */
     object: ioBroker.StateObject;
     /** The icon of the object or of its nearest parent with one. */
     icon: string | null;
+    /**
+     * The object one level above the state (its channel), read only for a field with a
+     * {@link PickDerivation}; `undefined` when it is missing or its read failed.
+     */
+    channel?: ioBroker.Object;
 }
+
+/** The id one level above `id`; `''` for a top-level id. */
+export const parentIdOf = (id: string): string => id.split('.').slice(0, -1).join('.');
+
+/**
+ * Reads an object where its absence is no error: an empty id, a missing object and a socket error
+ * read as none.
+ *
+ * @param socket - The vis-2 connection.
+ * @param id - The object id.
+ */
+export const loadObjectOrNoneAsync = async (socket: Connection, id: string): Promise<ioBroker.Object | undefined> => {
+    if (!id) {
+        return undefined;
+    }
+    try {
+        return (await socket.getObject(id)) ?? undefined;
+    } catch {
+        return undefined;
+    }
+};
+
+/** Reads the object one level above `id`; without it the state's pick stands. */
+const loadChannelAsync = (socket: Connection, id: string): Promise<ioBroker.Object | undefined> =>
+    loadObjectOrNoneAsync(socket, parentIdOf(id));
 
 /**
  * Reads what a pick of `id` takes from the object database.
@@ -161,19 +252,27 @@ export interface PickedObject {
  * @param socket - The vis-2 connection.
  * @param id - The picked object id.
  * @param allowedTypes - Allowed JS types for the picked state.
- * @returns The object and its icon; `undefined` for an id that does not resolve or a type outside
- *   `allowedTypes`. A socket error rejects.
+ * @param options - The field's pick options: a {@link OidPickOptions.pickDerivation} also reads
+ *   the channel.
+ * @returns The object and its icon (and channel); `undefined` for an id that does not resolve or a
+ *   type outside `allowedTypes`. A socket error on the object rejects.
  */
 export const loadPickedObjectAsync = async (
     socket: Connection,
     id: string,
     allowedTypes: readonly AllowedType[],
+    options: OidPickOptions = {},
 ): Promise<PickedObject | undefined> => {
     const object = (await socket.getObject(id)) as ioBroker.StateObject | undefined;
     if (!object || !allowedTypes.includes(object.common.type as AllowedType)) {
         return undefined;
     }
-    return { object, icon: await getObjectIconAsync(socket, object) };
+    const icon = await getObjectIconAsync(socket, object);
+    if (!options.pickDerivation) {
+        return { object, icon };
+    }
+    const channel = await loadChannelAsync(socket, id);
+    return channel ? { object, icon, channel } : { object, icon };
 };
 
 /**
@@ -188,13 +287,15 @@ export const loadPickedObjectAsync = async (
  * @param picked.icon - Its icon, or its nearest parent's.
  * @param options - See {@link OidPickOptions}.
  * @param options.inventRange - See {@link OidPickOptions.inventRange}.
+ * @param options.pickDerivation - See {@link OidPickOptions.pickDerivation}.
  */
 export const applyObjectPick = (
     data: WidgetData,
     oid: string,
-    { object, icon }: PickedObject,
-    { inventRange = true }: OidPickOptions = {},
+    picked: PickedObject,
+    { inventRange = true, pickDerivation }: OidPickOptions = {},
 ): void => {
+    const { object, icon } = picked;
     const role = oidRole(oid);
     const oidType = object.common.type as AllowedType;
 
@@ -211,9 +312,7 @@ export const applyObjectPick = (
         write: object.common.write,
         onlyDisplay: object.common.write === false,
         unit: object.common.unit || '',
-        // `??`: a real bound of 0 is a range, only a missing one gets seeded.
-        minValue: object.common.min ?? 0,
-        maxValue: object.common.max ?? 100,
+        ...copiedRange(object, role === 'main' || inventRange),
         // Copy only: no root field, and no key for an object without a step (ADR-0110 Nr. 12).
         ...(typeof object.common.step === 'number' ? { step: object.common.step } : {}),
     };
@@ -265,6 +364,9 @@ export const applyObjectPick = (
         // states no row carries yet are appended (ADR-0104 §6).
         assignStateRowPatch(data, applyStateRowOperation(data, { kind: 'supplement' }, MAIN_STATE_ROWS));
     }
+
+    // The field's own derivation fills only what the data leaves unset: what is set wins.
+    applyPickDerivation(data, picked, pickDerivation);
 };
 
 /**
@@ -312,7 +414,7 @@ export const oidChangeHandlerAsync =
         }
 
         try {
-            const picked = await loadPickedObjectAsync(socket, data[oid], allowedTypes);
+            const picked = await loadPickedObjectAsync(socket, data[oid], allowedTypes, options);
             if (!picked) {
                 dropUnusableObject(data, oid);
                 setTimeout(() => changeData(data), 100);
@@ -342,8 +444,8 @@ export const oidChangeHandlerAsync =
  * `allowedTypes` also lands on the field as an introspectable mirror of the onChange
  * filter — the allowedOidTypes parity test reads it (vis-2 ignores unknown keys) — and as
  * `filter` for the object dialog, which then offers only those types (ADR-0111 Nr. 4).
- * `allowedTypes` and `inventRange` are the mirror the runtime reads for an id without its object
- * (`lib/pickedWidgetData`): the same pick, without the editor.
+ * `allowedTypes`, `inventRange` and a given `pickDerivation` are the mirror the runtime reads for
+ * an id without its object (`lib/pickedWidgetData`): the same pick, without the editor.
  * @example createIdField('oid', ANY_VALUE_TYPES)
  */
 export const createIdField = (
@@ -358,6 +460,7 @@ export const createIdField = (
         onChange: oidChangeHandlerAsync(allowedTypes, name, options),
         allowedTypes,
         inventRange: options?.inventRange !== false,
+        ...(options?.pickDerivation ? { pickDerivation: options.pickDerivation } : {}),
         filter: oidTypeFilter(allowedTypes),
     }) as RxWidgetInfoAttributesField;
 
