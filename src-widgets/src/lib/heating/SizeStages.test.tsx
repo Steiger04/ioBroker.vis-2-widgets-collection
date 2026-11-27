@@ -416,6 +416,21 @@ describe('SizeStages: the Mini-Dialog', () => {
         expect(dialogTheme).toBe(widgetTheme);
     });
 
+    it("sets the collection theme's font on the content in widget and dialog, for text outside Typography too", () => {
+        dialogBox = { width: 388, height: 684 };
+        const handle = openFromTile();
+        handle.rerender(scene(VOLL));
+
+        // Quotes around family names are the one thing the computed value normalises.
+        const unquoted = (family: string | undefined): string | undefined => family?.replace(/["']/g, '');
+        const fontFamily = unquoted(themesSeen.find(seen => seen.where === 'widget')!.theme.typography.fontFamily);
+        const widgetContent = handle.container.querySelector<HTMLElement>('[data-heating-stage]')!;
+        const dialogContent = dialog()!.querySelector<HTMLElement>('[data-heating-stage]')!;
+        expect(fontFamily).toBeTruthy();
+        expect(unquoted(getComputedStyle(widgetContent).fontFamily)).toBe(fontFamily);
+        expect(unquoted(getComputedStyle(dialogContent).fontFamily)).toBe(fontFamily);
+    });
+
     it.each<[string, () => void]>([
         [
             'the close button',

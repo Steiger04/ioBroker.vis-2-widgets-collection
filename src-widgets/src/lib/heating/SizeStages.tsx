@@ -290,7 +290,9 @@ export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactEle
     return (
         <Box
             data-heating-stage={stage}
-            sx={{ width: '100%', height: '100%', minWidth: 0, minHeight: 0 }}
+            // The collection theme's font for all of the content: chips, hint line and dial labels are
+            // no Typography and would take the host page's font (the dialog renders this Box again).
+            sx={{ width: '100%', height: '100%', minWidth: 0, minHeight: 0, fontFamily: t => t.typography.fontFamily }}
         >
             {stage === 'mini' ? (
                 <Tile
