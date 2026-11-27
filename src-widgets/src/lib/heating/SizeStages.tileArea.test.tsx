@@ -7,7 +7,8 @@
  * and the gap under it, computed (no second measurement), and learns the gaps the hull sets between
  * its parts. The hull's drawn sizes follow the theme it draws in: the head row is a `body2` line
  * (at least the 16 px open symbol), the gaps are 0.5 and 0.75 spacing units — in the standard theme
- * 20 px, 4 px between the rows and 6 px between a control and the main value.
+ * 20 px, 4 px between the rows and 6 px between a control and the main value. With CSS variables on
+ * (Theme Studio), the spacing is the variable's value in the theme.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -95,6 +96,26 @@ describe('SizeStages: the area of the tile content', () => {
             height: 112,
             rowGap: 8,
             controlGap: 12,
+        });
+    });
+
+    it("follows the theme's spacing with CSS variables on (Theme Studio's switch)", () => {
+        // The provider's theme answers `calc(0.5 * var(--vis2c-spacing))`; 140 − 20 − 8 = 112.
+        expect(areaFor({ width: 260, height: 140 }, { spacing: 16, cssVariables: { cssVarPrefix: 'vis2c' } })).toEqual({
+            width: 260,
+            height: 112,
+            rowGap: 8,
+            controlGap: 12,
+        });
+    });
+
+    it('reads a spacing in rem with CSS variables on', () => {
+        // 0.75 rem = 12 px: gaps 6 and 9 px; 140 − 20 − 6 = 114.
+        expect(areaFor({ width: 260, height: 140 }, { spacing: '0.75rem', cssVariables: true })).toEqual({
+            width: 260,
+            height: 114,
+            rowGap: 6,
+            controlGap: 9,
         });
     });
 

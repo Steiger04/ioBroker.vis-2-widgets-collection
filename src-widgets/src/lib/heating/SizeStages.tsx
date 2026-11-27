@@ -64,7 +64,8 @@ export interface TileHullMeasures {
 
 /**
  * The hull's measures in the standard theme (spacing 8 px, a `body2` line of 20 px) — also what a
- * theme value stands in for that does not read as px (e.g. a spacing in rem or a CSS variable).
+ * theme value stands in for that does not read as px (e.g. a spacing in em or a CSS variable
+ * without the theme's value).
  */
 const STANDARD_TILE_HULL: TileHullMeasures = { head: 20, rowGap: 4, controlGap: 6 };
 
@@ -87,6 +88,56 @@ const pxOf = (value: unknown, rootPx: number): number | undefined => {
 };
 
 /**
+ * A spacing with CSS variables on: `calc(0.5 * var(--vis2c-spacing))`, or the bare `var(…)` for one
+ * unit — with the theme's value as fallback when the theme is fresh from `createTheme`, without once
+ * a ThemeProvider has rebuilt it.
+ */
+const CSS_VAR_SPACING = /^\s*(?:calc\(\s*(-?\d*\.?\d+)\s*\*\s*)?var\(\s*(--[\w-]+)\s*(?:,\s*([^()]+?)\s*)?\)\s*\)?\s*$/;
+
+/** A theme with CSS variables on: it writes its variables' values into style sheets. */
+type CssVarsSheets = { generateStyleSheets?: () => Array<Record<string, unknown>> };
+
+/**
+ * The value a theme with CSS variables gives a variable: the first style sheet that sets it.
+ *
+ * @param theme - The theme.
+ * @param name - The variable, e.g. `--vis2c-spacing`.
+ * @returns The value, or `undefined`.
+ */
+const cssVarValueOf = (theme: Theme, name: string): unknown => {
+    for (const sheet of (theme as CssVarsSheets).generateStyleSheets?.() ?? []) {
+        for (const css of Object.values(sheet)) {
+            if (css && typeof css === 'object' && name in css) {
+                return (css as Record<string, unknown>)[name];
+            }
+        }
+    }
+    return undefined;
+};
+
+/**
+ * A theme spacing in px, if it reads as one: a length ({@link pxOf}) or, with CSS variables on, the
+ * variable's value in the theme (its fallback when the theme sets none), times the factor.
+ *
+ * @param theme - The theme.
+ * @param units - The spacing units.
+ * @param rootPx - The px of one rem.
+ * @returns The px, or `undefined`.
+ */
+const spacingPxOf = (theme: Theme, units: number, rootPx: number): number | undefined => {
+    const value: unknown = theme.spacing(units);
+    const match = typeof value === 'string' ? CSS_VAR_SPACING.exec(value) : null;
+    if (!match) {
+        return pxOf(value, rootPx);
+    }
+    const unit = pxOf(cssVarValueOf(theme, match[2]) ?? match[3], rootPx);
+    return unit === undefined ? undefined : unit * (match[1] === undefined ? 1 : parseFloat(match[1]));
+};
+
+/** The hull's measures per theme: a theme with CSS variables builds its style sheets to answer. */
+const tileHullCache = new WeakMap<Theme, TileHullMeasures>();
+
+/**
  * The tile hull's measures in the theme it draws in: the head row is one `body2` line (the name),
  * at least the open symbol; the gaps are the theme's spacing units.
  *
@@ -94,6 +145,10 @@ const pxOf = (value: unknown, rootPx: number): number | undefined => {
  * @returns The measures in px; the standard one for a value that does not read as px.
  */
 export function tileHullMeasures(theme: Theme): TileHullMeasures {
+    const cached = tileHullCache.get(theme);
+    if (cached) {
+        return cached;
+    }
     const rootPx = theme.typography.htmlFontSize ?? 16;
     const { fontSize, lineHeight } = theme.typography.body2;
     const fontPx = pxOf(fontSize, rootPx);
@@ -103,11 +158,13 @@ export function tileHullMeasures(theme: Theme): TileHullMeasures {
             : typeof lineHeight === 'number' || /^\s*\d*\.?\d+\s*$/.test(String(lineHeight))
               ? Number(lineHeight) * fontPx
               : pxOf(lineHeight, rootPx);
-    return {
+    const measures: TileHullMeasures = {
         head: linePx === undefined ? STANDARD_TILE_HULL.head : Math.round(Math.max(linePx, OPEN_SYMBOL_SIZE)),
-        rowGap: pxOf(theme.spacing(TILE_GAP_UNITS.row), rootPx) ?? STANDARD_TILE_HULL.rowGap,
-        controlGap: pxOf(theme.spacing(TILE_GAP_UNITS.control), rootPx) ?? STANDARD_TILE_HULL.controlGap,
+        rowGap: spacingPxOf(theme, TILE_GAP_UNITS.row, rootPx) ?? STANDARD_TILE_HULL.rowGap,
+        controlGap: spacingPxOf(theme, TILE_GAP_UNITS.control, rootPx) ?? STANDARD_TILE_HULL.controlGap,
     };
+    tileHullCache.set(theme, measures);
+    return measures;
 }
 
 /** The area a type fills in its tile, below the hull's head row and the gap under it. */
