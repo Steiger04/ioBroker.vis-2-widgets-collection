@@ -76,6 +76,11 @@ describe('thermostatPlan: Voll fills its box (ADR-0122 Nachtrag „Maßstab und 
         expect(plan).toMatchObject({ arrangement: 'gross', dial: { size: 332, step: 52 * (332 / 320) } });
     });
 
+    it('lays a wide, low Voll box (800 × 520 px outer, 752 × 472 px inside the Inhaltsabstand) out as Breit', () => {
+        // Before: Mittel, the pills, operating modes and readings left out.
+        expect(thermostatPlan('voll', { width: 752, height: 472 }, true).arrangement).toBe('breit');
+    });
+
     it('does not depend on writability', () => {
         expect(thermostatPlan('voll', { width: 396, height: 636 }, false)).toEqual(
             thermostatPlan('voll', { width: 396, height: 636 }, true),

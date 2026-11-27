@@ -169,7 +169,7 @@ Only fault and notice (1 and 2) colour the line and carry the warning triangle. 
 ### Readings
 
 - **Actual temperature** below the set point in the ring, in the simple stage instead of the hint line, in the tile in the footer line. A fault or a notice replaces it there.
-- **Readings bar** (only in the arrangement Large): humidity, valve (mean of the valves), window (Closed/Open, open coloured cool) and battery level (coloured as a notice at "battery low"). The battery element appears only with `batteriestand` bound.
+- **Readings bar** (only in the arrangements Large and Broad): humidity, valve (mean of the valves), window (Closed/Open, open coloured cool) and battery level (coloured as a notice at "battery low"). The battery element appears only with `batteriestand` bound.
 - **Format:** temperatures with one decimal, humidity and valve as whole numbers, in the language of vis-2, with the data point's unit (without one °C or %). The battery level shows as reported with at most two decimals and only with the data point's unit.
 - **Not reported yet:** A bound data point without a value, with the quality flag `0x20` or with the host's placeholder for a state without a value shows "–", never a substitute value of the device. There is no age and no threshold for stale values.
 - **Not reachable:** Set point and ring appear dimmed and stay operable.
@@ -185,7 +185,7 @@ Every action writes exactly one data point, through the collection's write chain
 - **Off** writes the mapped value "Off" of `betriebsartSetzen`, if that field is unbound, that of `betriebsart`. Without a mapped "Off" it writes the real minimum of the set-point data point; if there is none, the pill is missing.
 - **Operating-mode segment:** Auto and Manual write to `betriebsartSetzen`, if it is unbound, to `betriebsart`, as far as mapped there; they light up by the operating mode read. Boost writes `boost` = on; while Boost runs a tap writes `boostBeenden` = end, without that field `boost` = off. If the next action is not writable, the Boost pill is missing.
 - **Holiday:** A row of its own "Holiday until …" appears only while the holiday runs. Auto or Manual end it; if `urlaub` is writable, a tap on the row writes off there.
-- **Place:** pills Setback, Comfort and Off only in the arrangement Large, the operating-mode segment in Large and in Wide from sufficient height, ± in the ring, beside the big set point and in the tile.
+- **Place:** pills Setback, Comfort and Off only in the arrangements Large and Broad, the operating-mode segment in Large, Broad and in Wide from sufficient height, ± in the ring, beside the big set point and in the tile.
 
 ## Size Stages
 
@@ -195,13 +195,31 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 
 | Stage  | Arrangement | from content area | Content                                                                                                                                                 |
 | ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Full   | Large       | 376 × 576 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar               |
-| Full   | Medium      | 272 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
+| Full   | Large       | 302 × 516 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar               |
+| Full   | Broad       | 557 × 260 px      | Ring with set point, actual and ± on one side; beside it card head, hint line, pills, operating-mode segment and readings bar as in Large               |
+| Full   | Medium      | 247 × 317 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
 | Simple | Wide        | 456 × 116 px      | Head stacked on the left with hint line, ± and big set point on the right; operating-mode segment from 236 px height                                    |
 | Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
 | Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px |
 
-With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
+With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring the set point grows and shrinks with the ring. In Compact and in the tile the set point gets smaller when the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
+
+### Scale
+
+Every arrangement draws its parts by one continuous scale relative to the design, taken from the room its area gives: ring, set point, actual, ±, gaps, pills, operating modes and readings grow and shrink together. Card head and hint line follow damped (about 1.3 times at twice the scale), so neighbouring widgets keep similar names. The scale goes up to 2.0; downwards it ends where ± are still 40 px, and no text gets smaller than 11 px. When the whole content of an arrangement does not fit even then, the widget takes a smaller one; the thresholds in the table are exactly these points.
+
+In Full, of Large and Broad the arrangement with the larger scale wins; Medium appears only when neither fits. The ring fills the room the other parts leave (at most twice the design, 640 px); set point, actual and ± in the ring grow with it. Large puts pills, operating modes and readings in a centred column of 392 px × scale, Broad puts the same column with card head and hint line beside the ring. The whole content always counts, a message and the holiday row included, so the ring does not jump when they appear.
+
+Examples with the standard frame and the standard content inset:
+
+| Widget        | Arrangement | Scale | Ring   |
+| ------------- | ----------- | ----- | ------ |
+| 320 × 700 px  | Medium      | 0.85  | 272 px |
+| 380 × 800 px  | Large       | 0.85  | 332 px |
+| 440 × 700 px  | Large       | 0.93  | 299 px |
+| 600 × 900 px  | Large       | 1.26  | 405 px |
+| 800 × 520 px  | Broad       | 1.04  | 333 px |
+| 1200 × 600 px | Broad       | 1.59  | 509 px |
 
 ### Layout
 
@@ -209,7 +227,7 @@ With the standard frame the start size 440 × 700 px gives about 416 × 636 px, 
 
 ### Frame and Size Stage
 
-The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples: with the standard content inset a widget about 420 px wide shows Medium instead of Large. The narrowest grid section (320 px) just holds Medium with the standard content inset; with a larger one it shows Compact.
+The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples: with the standard content inset a widget narrower than about 350 px shows Medium instead of Large. The narrowest grid section (320 px) shows Medium with a ring of 272 px with the standard content inset.
 
 ## Mini Dialog
 

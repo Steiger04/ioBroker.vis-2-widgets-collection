@@ -107,6 +107,20 @@ describe('Größenstufen: Voll from the need of its content at the least Maßsta
     ])('%s (%i × %i px)', (_case, width, height, voll) => {
         expect(stageOf(width, height) === 'voll').toBe(voll);
     });
+
+    /*
+     * Breit's need at the least Maßstab: the dial (246.2 px), a gap (9.2) and the column
+     * (392 × 0.769 = 301.5) — 556.9 px wide; high the column's Kartenkopf (41.2), hint line (24.9),
+     * pills (33.8), operating modes with the Urlaub row (73.8), readings (49.0) and four gaps (36.9) —
+     * 259.7 px. A wide, low box too low for Mittel holds Voll as Breit.
+     */
+    it.each([
+        ['Voll as Breit at its least box', 557, 260, 'voll'],
+        ['not Voll one px too narrow for Breit', 556, 260, 'einfach'],
+        ['not Voll one px too low for Breit', 557, 259, 'einfach'],
+    ])('%s (%i × %i px)', (_case, width, height, stage) => {
+        expect(stageOf(width, height)).toBe(stage);
+    });
 });
 
 describe('Größenstufen: the thresholds of the rule', () => {
@@ -135,6 +149,10 @@ describe('Anordnungen: the arrangement within a stage', () => {
         ['Groß at its least box', 302, 516, 'gross'],
         ['Mittel one px too narrow for Groß', 301, 516, 'mittel'],
         ['Mittel one px too low for Groß', 302, 515, 'mittel'],
+        ['Breit at its least box', 557, 260, 'breit'],
+        // 852 px wide: Breit draws at 852 / 724 = 1.176; Groß reaches that Maßstab from 759 px high.
+        ['Breit while it draws larger than Groß', 852, 758, 'breit'],
+        ['Groß once it draws larger than Breit', 852, 760, 'gross'],
     ])('Voll: %s (%i × %i px)', (_case, width, height, arrangement) => {
         expect(thermostatArrangement('voll', { width, height })).toBe(arrangement);
     });

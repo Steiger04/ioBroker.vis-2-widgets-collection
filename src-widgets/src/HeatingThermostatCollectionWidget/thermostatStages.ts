@@ -218,7 +218,7 @@ export function thermostatSetpointFont(
 }
 
 /** An arrangement of Voll. */
-export type VollArrangement = 'gross' | 'mittel';
+export type VollArrangement = 'gross' | 'breit' | 'mittel';
 
 /** An arrangement of the Raumthermostat within its stage. */
 export type ThermostatArrangement = VollArrangement | 'quer' | 'kompakt';
@@ -281,7 +281,8 @@ export const thermostatQuerModes = (box: MeasuredBox): boolean => reaches(box, T
 /*
  * Voll (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“ Nr. 1–6, 8): each arrangement needs a box for
  * its whole content at a Maßstab — the dial at 320 px × Maßstab, the other parts at their sizes from
- * `thermostatSizes`, Groß's column at its design width × Maßstab. An arrangement draws at the largest
+ * `thermostatSizes`, the column of Groß (below the dial) and of Breit (beside it, with the
+ * Kartenkopf and the hint line) at its design width × Maßstab. An arrangement draws at the largest
  * Maßstab its box holds (at most 2.0); it holds while that reaches the least Maßstab. The dial then
  * takes the room the arrangement leaves it at that Maßstab — never less than 320 px × Maßstab, at
  * most twice the design — and its instrument (set-point, ±, actual temperature) follows the dial.
@@ -363,16 +364,37 @@ interface VollNeed extends LeastBox {
 function vollNeed(arrangement: VollArrangement, scale: number): VollNeed {
     const part = partHeights(thermostatSizes(scale, 'stage'));
     const dial = DIAL_DESIGN * scale;
-    // Groß: Kartenkopf, dial, hint line, column (pills, modes, readings) — five gaps.
-    const beside =
-        arrangement === 'gross'
-            ? part.headFull + part.hint + part.pills + part.modes + part.readings + 5 * part.gap
-            : part.headRow + part.hint + 2 * part.gap;
-    return {
-        width: arrangement === 'gross' ? Math.max(dial, VOLL_COLUMN * scale) : dial,
-        height: beside + dial,
-        dialRoom: box => ({ width: box.width, height: box.height - beside }),
-    };
+    const column = VOLL_COLUMN * scale;
+    // The whole content beside the dial: Kartenkopf, hint line, pills, modes, readings.
+    const content = part.headFull + part.hint + part.pills + part.modes + part.readings;
+    switch (arrangement) {
+        case 'gross': {
+            // Kartenkopf, dial, hint line and the column below one another — five gaps.
+            const beside = content + 5 * part.gap;
+            return {
+                width: Math.max(dial, column),
+                height: beside + dial,
+                dialRoom: box => ({ width: box.width, height: box.height - beside }),
+            };
+        }
+        case 'breit': {
+            // The dial, a gap and the column beside it; the column's five parts with four gaps.
+            const beside = part.gap + column;
+            return {
+                width: dial + beside,
+                height: Math.max(dial, content + 4 * part.gap),
+                dialRoom: box => ({ width: box.width - beside, height: box.height }),
+            };
+        }
+        default: {
+            const beside = part.headRow + part.hint + 2 * part.gap;
+            return {
+                width: dial,
+                height: beside + dial,
+                dialRoom: box => ({ width: box.width, height: box.height - beside }),
+            };
+        }
+    }
 }
 
 /**
@@ -424,7 +446,7 @@ export function vollLeastBox(arrangement: VollArrangement): LeastBox {
 }
 
 /** The arrangements of Voll that show the whole content, besides Mittel. */
-const VOLL_FULL: readonly VollArrangement[] = ['gross'];
+const VOLL_FULL: readonly VollArrangement[] = ['gross', 'breit'];
 
 /**
  * Whether a box holds Voll: one of its arrangements holds its whole content at the least Maßstab.
@@ -492,9 +514,9 @@ function vollPlan(box: MeasuredBox): ThermostatVollPlan {
     const scale = vollScale(arrangement, box);
     const sizes = thermostatSizes(scale, 'stage');
     const dial = vollDial(vollNeed(arrangement, scale), box);
-    return arrangement === 'gross'
-        ? { arrangement, sizes, dial, column: VOLL_COLUMN * scale }
-        : { arrangement, sizes, dial };
+    return arrangement === 'mittel'
+        ? { arrangement, sizes, dial }
+        : { arrangement, sizes, dial, column: VOLL_COLUMN * scale };
 }
 
 /** The optional parts of the Raumthermostat tile. */
@@ -588,6 +610,12 @@ export type ThermostatStagePlan = SizedPlan &
               readonly arrangement: 'gross';
               readonly dial: ThermostatDial;
               /** The centred column of pills, operating modes and readings in px. */
+              readonly column: number;
+          }
+        | {
+              readonly arrangement: 'breit';
+              readonly dial: ThermostatDial;
+              /** The column beside the dial: Kartenkopf, hint line, pills, operating modes, readings, in px. */
               readonly column: number;
           }
         | { readonly arrangement: 'mittel'; readonly dial: ThermostatDial }

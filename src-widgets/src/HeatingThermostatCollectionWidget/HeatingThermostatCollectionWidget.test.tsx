@@ -1150,6 +1150,29 @@ describe('HeatingThermostatCollectionWidget: Voll draws at its Maßstab (ADR-012
         expect(px(container.querySelector('[data-heating-dial]'), 'width')).toBe(332);
     });
 
+    it('lays a wide, low box out as Breit: the ring, and beside it the whole rest of Groß', async () => {
+        const box = { width: 752, height: 472 };
+        const plan = thermostatPlan('voll', box, true);
+        const container = await mount(statusData(), reporting({ soll: 21, betriebsart: 0, ventil: 35 }), box);
+        const breit = container.querySelector('[data-heating-region="breit"]')!;
+        const side = breit.querySelector('[data-heating-region="side"]')!;
+
+        expect(plan.arrangement).toBe('breit');
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'breit',
+        );
+        expect(breit.querySelector(':scope > [data-heating-slot="dial"] [data-heating-dial]')).not.toBeNull();
+        expect(
+            ['head', 'hint', 'pills', 'modes', 'readings'].map(
+                name => side.querySelector(`[data-heating-slot="${name}"]`) !== null,
+            ),
+        ).toEqual([true, true, true, true, true]);
+        expect(side.querySelector('[data-heating-head-symbol]')).not.toBeNull();
+        expect(px(side, 'width')).toBeCloseTo((plan as { column: number }).column, 1);
+        expect(px(breit.querySelector('[data-heating-dial]'), 'width')).toBeCloseTo(plan.dial.size, 1);
+        expect(px(stepButton(container, 'up'), 'width')).toBeCloseTo(plan.dial.step, 1);
+    });
+
     it("keeps Groß's pills, operating modes and readings in the plan's column", async () => {
         const box = { width: 900, height: 800 };
         const plan = thermostatPlan('voll', box, true);

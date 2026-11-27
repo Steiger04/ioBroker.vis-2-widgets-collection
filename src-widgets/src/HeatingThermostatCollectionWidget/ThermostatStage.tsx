@@ -11,6 +11,8 @@
  * nothing.
  * - Groß: Kartenkopf (row, with symbol and Unterzeile); dial; hint line; pills, operating-mode
  *   segment, readings.
+ * - Breit: dial; beside it a column of Groß's width with the Kartenkopf (row, with symbol and
+ *   Unterzeile), hint line, pills, operating-mode segment, readings.
  * - Mittel: Kartenkopf (row); dial; the hint line only for a Meldung.
  * - Quer: Kartenkopf (stacked) with a Meldung, else the actual temperature, beside the big
  *   set-point in the theme's h3; the operating-mode segment below, from sufficient height.
@@ -153,6 +155,49 @@ export default function ThermostatStage({ plan, parts }: ThermostatStageProps): 
                         plan.column,
                     )}
                 </>
+            );
+            break;
+        case 'breit':
+            // The dial on one side, the column with the whole rest beside it, both centred.
+            regions = (
+                <Box
+                    data-heating-region="breit"
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        minWidth: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: gaps.region,
+                    }}
+                >
+                    {slot('dial', parts.dial(plan.dial))}
+                    <Box
+                        data-heating-region="side"
+                        sx={{
+                            flex: 'none',
+                            width: plan.column,
+                            maxWidth: '100%',
+                            minWidth: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: gaps.region,
+                        }}
+                    >
+                        {fixedRegion('head', gaps.region, slot('head', parts.head('zeile', true)))}
+                        {fixedRegion('hint', gaps.region, slot('hint', parts.hint))}
+                        {fixedRegion(
+                            'controls',
+                            gaps.region,
+                            <>
+                                {slot('pills', parts.pills)}
+                                {slot('modes', parts.modes)}
+                                {slot('readings', parts.readings)}
+                            </>,
+                        )}
+                    </Box>
+                </Box>
             );
             break;
         case 'mittel':
