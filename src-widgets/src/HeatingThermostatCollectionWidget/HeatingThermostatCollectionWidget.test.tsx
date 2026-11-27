@@ -1134,6 +1134,28 @@ describe('HeatingThermostatCollectionWidget: dragging the ring', () => {
         expect(writes()).toEqual([]);
         expect(shownSetpoint(container)).toBe('21.0 °C');
     });
+
+    it('steps like ± with the arrow keys', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const ring = ringOf(container);
+        expect(ring.getAttribute('tabindex')).toBe('0');
+
+        await act(() => {
+            ring.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowUp' }));
+            return Promise.resolve();
+        });
+        await debounced();
+        expect(writes()).toEqual([[neutral('soll'), 21.5]]);
+    });
+
+    it('writes nothing when released on the reported value', async () => {
+        const container = await mount(statusData(), reporting({ soll: 17.5 }));
+        const ring = ringOf(container);
+
+        await pointer(ring, 'pointerdown', RING_TOP);
+        await pointer(ring, 'pointerup', RING_TOP);
+        expect(writes()).toEqual([]);
+    });
 });
 
 describe('HeatingThermostatCollectionWidget: set-point not reported', () => {
