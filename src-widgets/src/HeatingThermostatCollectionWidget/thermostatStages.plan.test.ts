@@ -261,18 +261,13 @@ describe('thermostatPlan: the tile', () => {
             { buttons: false, footer: false, setpointFont: 33 },
         ],
         ['no ± one px too narrow', 196, 64, true, 1.034, { buttons: false, footer: false, setpointFont: 33 }],
-        [
-            '± and the footer at their least box',
-            199,
-            94,
-            true,
-            0.9167,
-            { buttons: true, footer: true, setpointFont: 29 },
-        ],
-        ['no footer beside ± one px lower', 199, 93, true, 0.92, { buttons: true, footer: false, setpointFont: 29 }],
-        // The footer at its least Maßstab 0.917; one px lower the set-point takes the whole area.
-        ['the footer at its least height', 156, 89, true, 0.918, { buttons: false, footer: true, setpointFont: 29 }],
-        ['no footer one px lower', 156, 88, false, 1.354, { buttons: false, footer: false, setpointFont: 43 }],
+        // Beside ± the footer stands at their least Maßstab (0.909).
+        ['± and the footer at their least box', 197, 94, true, 0.91, { buttons: true, footer: true, setpointFont: 29 }],
+        ['no footer beside ± one px lower', 197, 93, true, 0.91, { buttons: true, footer: false, setpointFont: 29 }],
+        // The footer with the actual temperature at its least Maßstab 0.6875 (16 px keep 11 px); one
+        // px lower the set-point takes the whole area.
+        ['the footer at its least height', 156, 74, true, 0.696, { buttons: false, footer: true, setpointFont: 22 }],
+        ['no footer one px lower', 156, 73, false, 1.233, { buttons: false, footer: false, setpointFont: 39 }],
         ['240 × 110 px outer', 214, 84, true, 0.994, { buttons: true, footer: false, setpointFont: 31 }],
         ['a larger tile', 230, 130, true, 1.072, { buttons: true, footer: true, setpointFont: 34 }],
         // The set-point never below 12 px.
@@ -289,7 +284,7 @@ describe('thermostatPlan: the tile', () => {
         // The head row damped at the tile's Maßstab, never below the hull's design.
         ['a larger tile', 230, 130, 1.0267],
         ['a tile below the design', 197, 64, 1],
-        ['a tall tile without ±', 156, 88, 1.1216],
+        ['a tall tile without ±', 156, 120, 1.1216],
     ])("draws the hull's head row damped in %s (%i × %i px)", (_case, width, height, headScale) => {
         expect(thermostatPlan('mini', tileArea({ width, height }), true).tile.headScale).toBeCloseTo(headScale, 3);
     });
@@ -348,7 +343,8 @@ describe('thermostatPlan: Maßstab and part sizes', () => {
     });
 
     it("draws the tile at Maßstab 1 with its ± of 44 px and its footer's hint line where they just fit", () => {
-        expect(thermostatPlan('mini', tileArea({ width: 216, height: 100 }), true).sizes).toEqual({
+        // 215.2 px for ± and the set-point; 20 + 4 px of hull, ± 44, 4 px and the actual line 27.6 px.
+        expect(thermostatPlan('mini', tileArea({ width: 216, height: 99.6 }), true).sizes).toEqual({
             ...DESIGN_SIZES,
             step: 44,
             hint: { font: 12, sign: 14, gapUnits: 0.75, padXUnits: 0.75, padYUnits: 0.25, radius: 10 },

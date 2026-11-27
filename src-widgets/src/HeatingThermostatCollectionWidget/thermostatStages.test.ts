@@ -19,9 +19,9 @@ import { describe, expect, it } from 'vitest';
 import {
     thermostatArrangement,
     thermostatPlan,
-    thermostatSetpointFont,
     thermostatStage,
-    thermostatTile,
+    type ThermostatShapeInput,
+    type ThermostatTilePlan,
 } from './thermostatStages';
 import { headScale } from '../lib/heating/scaleRule';
 import { tileArea } from '../lib/heating/SizeStages';
@@ -36,11 +36,14 @@ const MEASURED = {
     lineHeight: 1.2,
     stepFlat: 52,
     flatGap: 12,
-    /** The tile: its head row, ± 44 px with 6 px of gap, the footer line, 4 px between its rows. */
+    /**
+     * The tile: its head row, ± 44 px with 6 px of gap, the footer line with the actual temperature
+     * (the theme's 16 px, its value 1.15 em, in 1.5 lines), 4 px between its rows.
+     */
     tileHead: 20,
     stepTile: 44,
     tileGap: 6,
-    tileLine: 28,
+    tileLine: 16 * 1.15 * 1.5,
     tileRowGap: 4,
 } as const;
 
@@ -195,6 +198,10 @@ describe('Anordnungen: the arrangement within a stage', () => {
     });
 });
 
+/** The tile's plan in the area the hull leaves a Content-Box. */
+const tileOf = (width: number, height: number, writable = true, input: ThermostatShapeInput = {}): ThermostatTilePlan =>
+    thermostatPlan('mini', tileArea({ width, height }), writable, input).tile;
+
 describe('Kachel: the parts of the Raumthermostat tile', () => {
     it.each([
         // ± at 40 px (Maßstab 0.909) beside a set-point of 32 × 0.909 px with the hull's 6 px gaps:
@@ -203,27 +210,35 @@ describe('Kachel: the parts of the Raumthermostat tile', () => {
         ['no ± one px too narrow', 196, 64, false],
         ['no ± one px too low', 197, 63, false],
     ])('%s (%i × %i px)', (_case, width, height, buttons) => {
-        expect(thermostatTile(tileArea({ width, height })).buttons).toBe(buttons);
+        expect(tileOf(width, height).buttons).toBe(buttons);
     });
 
     it.each([
-        // The footer line at its least Maßstab (12 px of text keep 11 px: 0.917) below the set-point
-        // line, 4 px apart: 64.9 px of area.
-        ['the footer at its least height', 156, 89, true],
-        ['no footer one px lower', 156, 88, false],
-        // Beside ± the main row is the ± edge at 0.917: 69.9 px of area, 198.3 px of width.
-        ['the footer beside ± at its least box', 199, 94, true],
-        ['no footer beside ± one px lower', 199, 93, false],
-        ['no footer beside ± one px narrower', 198, 94, false],
+        // The footer line shows the actual temperature: the theme's 16 px keep 11 px at 0.6875, its
+        // line 16 × 1.15 × 1.5 × 0.6875 = 19.0 px below the set-point line, 4 px apart.
+        ['the footer at its least height', 156, 74, true],
+        ['no footer one px lower', 156, 73, false],
+        // Beside ± the Maßstab is theirs (0.909): the ± edge and the footer line at it.
+        ['the footer beside ± at its least box', 197, 94, true],
+        ['no footer beside ± one px lower', 197, 93, false],
     ])('%s (%i × %i px)', (_case, width, height, footer) => {
-        expect(thermostatTile(tileArea({ width, height })).footer).toBe(footer);
+        expect(tileOf(width, height).footer).toBe(footer);
+    });
+
+    it.each([
+        // A Meldung's 12 px keep 11 px at 0.917; its padded line max(12 × 1.5, 14) + 2 × 2 px at it.
+        ['the Meldung footer at its least height', 156, 84, true],
+        ['no Meldung footer one px lower', 156, 83, false],
+    ])('%s (%i × %i px)', (_case, width, height, footer) => {
+        expect(tileOf(width, height, true, { shown: { hint: 'message' } }).footer).toBe(footer);
+    });
+
+    it('shows no footer where the content shows neither a Meldung nor the actual temperature', () => {
+        expect(tileOf(156, 200, true, { shown: { hint: 'line', actual: false } }).footer).toBe(false);
     });
 
     it('needs no ± room without ±: the footer stands where only the set-point and the line fit', () => {
-        expect(thermostatTile(tileArea({ width: 156, height: 89 }), false)).toMatchObject({
-            buttons: false,
-            footer: true,
-        });
+        expect(tileOf(156, 74, false)).toMatchObject({ buttons: false, footer: true });
     });
 });
 
@@ -278,16 +293,16 @@ describe('Passform: the tile holds what it shows', () => {
         ['240 × 80 px outer (acceptance repro)', 214, 54],
         ['160 × 110 px outer (acceptance repro)', 134, 84],
         ['± at their least box', 197, 64],
-        ['± and the footer at their least box', 199, 94],
-        ['the footer at its least box', 156, 89],
+        ['± and the footer at their least box', 197, 94],
+        ['the footer at its least box', 156, 74],
         ['a large tile', 230, 140],
         ['a tall tile', 230, 400],
         ['a tiny tile', 100, 40],
     ])('%s (%i × %i px)', (_case, width, height) => {
         const box = { width, height };
-        const area = tileArea(box);
-        const tile = thermostatTile(area);
-        const font = thermostatSetpointFont(area, tile);
+        const plan = thermostatPlan('mini', tileArea(box), true);
+        const tile = { ...plan.tile, scale: plan.sizes.scale };
+        const font = tile.setpointFont;
         const step = MEASURED.stepTile * tile.scale;
         // The hull's head row grows damped, never below its 20 px.
         const head = MEASURED.tileHead * Math.max(1, headScale(tile.scale));
@@ -302,9 +317,9 @@ describe('Passform: the tile holds what it shows', () => {
         expect(head + MEASURED.tileRowGap + mainRow + footer).toBeLessThanOrEqual(height + 1e-9);
     });
 
-    it('shows ± in the tile at 240 × 110 px outer and the footer beside them from 199 × 94 px', () => {
-        expect(thermostatTile(tileArea({ width: 214, height: 84 })).buttons).toBe(true);
-        expect(thermostatTile(tileArea({ width: 199, height: 94 }))).toMatchObject({ buttons: true, footer: true });
+    it('shows ± in the tile at 240 × 110 px outer and the footer beside them from 197 × 94 px', () => {
+        expect(tileOf(214, 84).buttons).toBe(true);
+        expect(tileOf(197, 94)).toMatchObject({ buttons: true, footer: true });
     });
 });
 

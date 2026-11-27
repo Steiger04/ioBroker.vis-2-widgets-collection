@@ -823,8 +823,20 @@ export interface ThermostatTileFit extends ThermostatTileParts {
 /** The least Maßstab of the tile's ±: they keep 40 px (44 px at the design). */
 export const TILE_BUTTONS_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.tile], texts: [] });
 
-/** The least Maßstab of the tile's footer line: its 12 px keep 11 px. */
-export const TILE_FOOTER_LEAST = leastScale({ controls: [], texts: [THERMOSTAT_DESIGN.hint.tile.font] });
+/**
+ * The least Maßstab of the tile's footer line: the text it shows keeps 11 px — a Meldung's 12 px, else
+ * the actual temperature in the theme's text.
+ *
+ * @param shape - What the plan reads beyond the box.
+ * @returns The least Maßstab; `null` when the content shows neither.
+ */
+function tileFooterLeast(shape: ThermostatShape): number | null {
+    const { measures, shown } = shape;
+    if (shown.hint === 'message') {
+        return leastScale({ controls: [], texts: [THERMOSTAT_DESIGN.hint.tile.font] });
+    }
+    return shown.actual ? leastScale({ controls: [], texts: [measures.text] }) : null;
+}
 
 /**
  * The factor of the tile hull's head row at the tile's Maßstab: damped, and never below the hull's
@@ -836,64 +848,83 @@ export const TILE_FOOTER_LEAST = leastScale({ controls: [], texts: [THERMOSTAT_D
 export const tileHeadScale = (scale: number): number => headScale(Math.max(1, scale));
 
 /**
- * What the tile's parts need of its area at a Maßstab: the set-point at the tile's design font, ±
- * with the hull's gap where they show, the footer line below the hull's row gap, and the head row's
- * growth over the design the area already left.
+ * The room the tile's parts leave its set-point at a Maßstab: the width beside ± with the hull's gap
+ * where they show, the height below the head row's growth over the design the area already left and
+ * above the footer line — a Meldung's padded line or the actual temperature, as it draws — with the
+ * hull's row gap.
  *
  * @param scale - The Maßstab.
  * @param area - The area the hull leaves the tile.
  * @param parts - Which optional parts show.
- * @returns The box the parts need in px.
+ * @param shape - What the plan reads beyond the box.
+ * @returns The room in px.
  */
-function tileNeed(scale: number, area: TileArea, parts: ThermostatTileParts): LeastBox {
-    const fit = SETPOINT_FIT;
-    const step = parts.buttons ? fit.stepTile * scale : 0;
-    const font = fit.tileFont * scale;
+function tileRoom(scale: number, area: TileArea, parts: ThermostatTileParts, shape: ThermostatShape): LeastBox {
+    const step = THERMOSTAT_DESIGN.step.tile * scale;
+    const footer = parts.footer ? area.rowGap + lineBelow(thermostatSizes(scale, 'tile', shape.measures), shape) : 0;
     return {
-        width: (parts.buttons ? 2 * (step + area.controlGap) : 0) + fit.glyphsPerFontPx * font,
-        height:
-            area.head * (tileHeadScale(scale) - 1) +
-            Math.max(step, fit.lineHeight * font) +
-            (parts.footer ? area.rowGap + fit.tileLine * scale : 0),
+        width: area.width - (parts.buttons ? 2 * (step + area.controlGap) : 0),
+        height: area.height - area.head * (tileHeadScale(scale) - 1) - footer,
     };
 }
 
 /**
+ * Whether the tile's parts fit its area at a Maßstab: the set-point at the tile's design font in the
+ * room they leave it, ± beside it as high as their edge.
+ *
+ * @param scale - The Maßstab.
+ * @param area - The area the hull leaves the tile.
+ * @param parts - Which optional parts show.
+ * @param shape - What the plan reads beyond the box.
+ * @returns `true` when they fit.
+ */
+function tileFits(scale: number, area: TileArea, parts: ThermostatTileParts, shape: ThermostatShape): boolean {
+    const fit = SETPOINT_FIT;
+    const room = tileRoom(scale, area, parts, shape);
+    const font = fit.tileFont * scale;
+    const step = parts.buttons ? THERMOSTAT_DESIGN.step.tile * scale : 0;
+    return fit.glyphsPerFontPx * font <= room.width && Math.max(step, fit.lineHeight * font) <= room.height;
+}
+
+/**
  * The parts the tile's area holds and its Maßstab (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“
- * Nr. 9): ± as soon as they fit at 40 px, then the footer line as soon as it fits beside them at
- * its least Maßstab; the tile then draws them at the largest Maßstab its area holds.
+ * Nr. 9): ± as soon as they fit at 40 px, then the footer line — what the content shows there — as
+ * soon as it fits beside them at its least Maßstab; the tile then draws them at the largest Maßstab
+ * its area holds.
  *
  * @param area - The area the hull leaves the tile's content.
  * @param stepping - Whether the set-point has ± at all (writable).
+ * @param shape - What the plan reads beyond the box.
  * @returns Which optional parts to show and the Maßstab.
  */
-export function thermostatTile(area: TileArea, stepping = true): ThermostatTileFit {
-    const fits = holds(area);
+function thermostatTile(area: TileArea, stepping: boolean, shape: ThermostatShape): ThermostatTileFit {
     // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
-    const buttons = stepping && fits(tileNeed(TILE_BUTTONS_LEAST, area, { buttons: true, footer: false }));
-    const footer = fits(tileNeed(TILE_FOOTER_LEAST, area, { buttons, footer: true }));
-    const scale = fittingScale(at => fits(tileNeed(at, area, { buttons, footer })));
-    const least = Math.max(buttons ? TILE_BUTTONS_LEAST : 0, footer ? TILE_FOOTER_LEAST : 0);
+    const buttons = stepping && tileFits(TILE_BUTTONS_LEAST, area, { buttons: true, footer: false }, shape);
+    const buttonsLeast = buttons ? TILE_BUTTONS_LEAST : 0;
+    const footerLeast = tileFooterLeast(shape);
+    // The footer beside ± at the larger of both least Maßstäbe: ± never fall below 40 px for it.
+    const withFooter = footerLeast === null ? null : Math.max(buttonsLeast, footerLeast);
+    const footer = withFooter !== null && tileFits(withFooter, area, { buttons, footer: true }, shape);
+    const scale = fittingScale(at => tileFits(at, area, { buttons, footer }, shape));
+    const least = footer && withFooter !== null ? withFooter : buttonsLeast;
     return { buttons, footer, scale: Math.max(least, scale) };
 }
 
 /**
- * The set-point's font size in the tile: as large as the row of its area beside ± and the height
- * the head row and the footer line leave hold it, at most the big set-point's 48 px times the
- * Maßstab and at least 12 px (ADR-0122: the stage's box holds its parts).
+ * The set-point's font size in the tile: as large as the room its parts leave it holds, at most the
+ * big set-point's 48 px times the Maßstab and at least 12 px (ADR-0122: the stage's box holds its
+ * parts).
  *
  * @param area - The area the hull leaves the tile.
  * @param tile - Its parts and Maßstab as {@link thermostatTile} decided them, not decided again here.
+ * @param shape - What the plan reads beyond the box.
  * @returns The font size in px.
  */
-export function thermostatSetpointFont(area: TileArea, tile: ThermostatTileFit): number {
+function thermostatSetpointFont(area: TileArea, tile: ThermostatTileFit, shape: ThermostatShape): number {
     const fit = SETPOINT_FIT;
-    const { buttons, footer, scale } = tile;
-    const width = area.width - (buttons ? 2 * (fit.stepTile * scale + area.controlGap) : 0);
-    const height =
-        area.height - area.head * (tileHeadScale(scale) - 1) - (footer ? area.rowGap + fit.tileLine * scale : 0);
-    const font = Math.min(width / fit.glyphsPerFontPx, height / fit.lineHeight);
-    return Math.max(fit.minFont, Math.min(fit.maxFont * scale, Math.floor(font)));
+    const room = tileRoom(tile.scale, area, tile, shape);
+    const font = Math.min(room.width / fit.glyphsPerFontPx, room.height / fit.lineHeight);
+    return Math.max(fit.minFont, Math.min(fit.maxFont * tile.scale, Math.floor(font)));
 }
 
 /**
@@ -1032,14 +1063,14 @@ export function thermostatPlan(
     const shape = shapeOf(input);
     if (stage === 'mini') {
         const area = box as TileArea;
-        const tile = thermostatTile(area, writable);
+        const tile = thermostatTile(area, writable, shape);
         return {
             arrangement: 'mini',
             sizes: thermostatSizes(tile.scale, 'tile', shape.measures),
             tile: {
                 buttons: tile.buttons,
                 footer: tile.footer,
-                setpointFont: thermostatSetpointFont(area, tile),
+                setpointFont: thermostatSetpointFont(area, tile, shape),
                 headScale: tileHeadScale(tile.scale),
             },
         };
