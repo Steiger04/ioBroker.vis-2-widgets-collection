@@ -51,6 +51,7 @@ import {
     UI_ONLY_CUSTOM_FIELDS,
     type WidgetName,
 } from './testing/aiSeams';
+import { ANLAGE_WTH2, heatingTestDevices } from './testing/heatingTestDevices';
 import { fieldDefaultOf } from './testing/widgetReading';
 import { I18N_PREFIX } from './translate';
 import { fieldRulesOf, usableWidgetData, type FieldRule } from './usableWidgetData';
@@ -769,16 +770,33 @@ describe('Raumthermostat: valve list and operating mode in the assistant’s vie
         expect(guide).toContain('the base field "ventil" itself stays empty');
     });
 
-    it('names the operating-mode pair as the role table and the hint table bind it', () => {
+    it('names the operating-mode pair by what the assistant sees of a state (role, write, states)', () => {
         const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
         const role = ROLE_TABLE.find(entry => entry.meaning === 'betriebsart')!.roles[0];
-        // HmIP (hint table): the read state SET_POINT_MODE carries that role, the write-only
-        // CONTROL_MODE is a second mode state of the same channel with another role.
-        const hmip = (meaning: string): string | undefined => HINT_TABLE.find(entry => entry.meaning === meaning)?.name;
-        expect([hmip('betriebsart'), hmip('betriebsartSetzen')]).toEqual(['SET_POINT_MODE', 'CONTROL_MODE']);
+        // The installation extract (HmIP-WTH-2): `search_objects` shows id, type, role, unit, min, max,
+        // write and states — not read. The rule of the sentence must find the hint table's pair there.
+        const { objects } = heatingTestDevices('');
+        const channel = `${ANLAGE_WTH2.id}.1.`;
+        const inChannel = Object.entries(objects).filter(([id, object]) => id.startsWith(channel) && object.type === 'state');
+        const commonOf = (object: ioBroker.Object): ioBroker.StateCommon => object.common as ioBroker.StateCommon;
+        const read = inChannel.filter(([, object]) => commonOf(object).role === role);
+        expect(read).toHaveLength(1);
+        const [readId, readObject] = read[0];
+        const sameList = inChannel.filter(
+            ([id, object]) =>
+                id !== readId &&
+                commonOf(object).write === true &&
+                JSON.stringify(commonOf(object).states) === JSON.stringify(commonOf(readObject).states),
+        );
+        const nameOf = (id: string): string => id.slice(id.lastIndexOf('.') + 1);
+        const hint = (meaning: string): string | undefined => HINT_TABLE.find(entry => entry.meaning === meaning)?.name;
 
+        expect(nameOf(readId)).toBe(hint('betriebsart'));
+        expect(sameList.map(([id]) => nameOf(id))).toEqual([hint('betriebsartSetzen')]);
         expect(guide).toContain(`take the state with the role "${role}" as "betriebsart"`);
-        expect(guide).toContain('"betriebsartSetzen" only a second, writable mode state of the same device with another role');
+        expect(guide).toContain(
+            'as "betriebsartSetzen" a further writable state of the same channel whose value list ("states") equals that of "betriebsart", whatever its role',
+        );
     });
 
     it.each(LANGUAGE_FILES)('words the base field for the assistant in English in %s, like the KI-Leitfaden', file => {
