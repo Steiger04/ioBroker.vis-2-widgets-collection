@@ -26,8 +26,15 @@
  *
  * Nothing of this runs at runtime; the read seam derives only what the pick of one field stores.
  */
-import { applyObjectPick, loadPickedObjectAsync, oidChangeHandlerAsync } from '../commonObjectFields';
+import {
+    applyObjectPick,
+    loadObjectOrNoneAsync,
+    loadPickedObjectAsync,
+    oidChangeHandlerAsync,
+    parentIdOf,
+} from '../commonObjectFields';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { boundIdOf } from './meaningReading';
 import { meaningPickOptions } from './meaningPick';
 import { recordOpenCandidates } from './prefillCandidates';
 import { recogniseState } from './recognition';
@@ -37,24 +44,6 @@ import type { MeaningField, MeaningSubset } from './meaningCatalog';
 import type { OpenCandidates } from './prefillCandidates';
 import type { Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoAttributesField, RxWidgetInfoFieldChangeHandler, WidgetData } from '@iobroker/types-vis-2';
-
-/** The id one level above `id`. */
-const parentOf = (id: string): string => id.split('.').slice(0, -1).join('.');
-
-/** Whether an id field holds no pick (vis-2 writes `nothing_selected` for none). */
-const isUnbound = (value: unknown): boolean => !value || value === 'nothing_selected';
-
-/** Reads an object; a missing one and a socket error read as none. */
-const objectAsync = async (socket: Connection, id: string): Promise<ioBroker.Object | undefined> => {
-    if (!id) {
-        return undefined;
-    }
-    try {
-        return (await socket.getObject(id)) ?? undefined;
-    } catch {
-        return undefined;
-    }
-};
 
 /** Where the picked state sits: its channel and its device, as far as they exist. */
 interface DevicePlace {
@@ -71,14 +60,14 @@ interface DevicePlace {
  * (vis-2 `Wizard/deviceDetection.ts` `getParents`); none for a state without a channel above it.
  */
 const devicePlaceAsync = async (socket: Connection, stateId: string): Promise<DevicePlace | undefined> => {
-    const channelId = parentOf(stateId);
-    const parent = await objectAsync(socket, channelId);
+    const channelId = parentIdOf(stateId);
+    const parent = await loadObjectOrNoneAsync(socket, channelId);
     if (!parent || (parent.type !== 'channel' && parent.type !== 'folder')) {
         // No channel, no device: the siblings of a loose state (an adapter instance's states) are
         // no device to read.
         return undefined;
     }
-    const above = await objectAsync(socket, parentOf(channelId));
+    const above = await loadObjectOrNoneAsync(socket, parentIdOf(channelId));
     if (!above || (above.type !== 'device' && above.type !== 'folder')) {
         return { channel: parent, root: channelId };
     }
@@ -202,7 +191,7 @@ const candidatesOfDevice = (
         if (state._id === mainId || state.type !== 'state') {
             continue;
         }
-        const channelId = parentOf(state._id);
+        const channelId = parentIdOf(state._id);
         const recognised = recogniseState(state, channels[channelId]);
         const meaning = recognised?.meaning;
         if (!meaning || meaning === subset.main || !subset.meanings.includes(meaning)) {
@@ -287,7 +276,7 @@ export const mainPickPrefill =
         }
 
         const mainId = data[keys.field] as string;
-        const mainChannel = parentOf(mainId);
+        const mainChannel = parentIdOf(mainId);
         const place = await devicePlaceAsync(socket, mainId);
         if (!place) {
             recordOpenCandidates(keys.field, mainId, {});
@@ -301,7 +290,7 @@ export const mainPickPrefill =
 
         const open: Partial<Record<MeaningField, readonly string[]>> = {};
         for (const [meaning, candidates] of candidatesOfDevice(subset, mainId, states, channels)) {
-            if (!isUnbound(data[meaningKeys(meaning, entry).field])) {
+            if (boundIdOf(data, meaningKeys(meaning, entry).field) !== undefined) {
                 continue;
             }
             const decision = decide(candidates, mainChannel);

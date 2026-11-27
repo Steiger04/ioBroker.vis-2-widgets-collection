@@ -18,6 +18,7 @@ import { InfoBox } from '../../components/controls';
 import { guardWidgetData } from '../fieldFactories';
 import { translate } from '../translate';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { boundIdOf } from './meaningReading';
 import { openCandidatesOf, subscribeOpenCandidates } from './prefillCandidates';
 
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
@@ -25,9 +26,6 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
 
 /** The name prefix of the prefill notice: no data key starts with it. */
 export const PREFILL_NOTICE_PREFIX = 'vorfuellen:';
-
-/** Whether an id field holds no pick (vis-2 writes `nothing_selected` for none). */
-const isUnbound = (value: unknown): boolean => !value || value === 'nothing_selected';
 
 /** The open Bedeutungen of the widget's last main pick that are still empty, with their candidates. */
 const stillOpen = (
@@ -37,8 +35,8 @@ const stillOpen = (
 ): [MeaningField, readonly string[]][] => {
     const mainField = meaningKeys(subset.main, entry).field;
     const open = openCandidatesOf(mainField, data[mainField]) ?? {};
-    return (Object.entries(open) as [MeaningField, readonly string[]][]).filter(([meaning]) =>
-        isUnbound(data[meaningKeys(meaning, entry).field]),
+    return (Object.entries(open) as [MeaningField, readonly string[]][]).filter(
+        ([meaning]) => boundIdOf(data, meaningKeys(meaning, entry).field) === undefined,
     );
 };
 

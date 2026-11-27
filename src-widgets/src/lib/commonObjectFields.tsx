@@ -221,21 +221,30 @@ export interface PickedObject {
     channel?: ioBroker.Object;
 }
 
+/** The id one level above `id`; `''` for a top-level id. */
+export const parentIdOf = (id: string): string => id.split('.').slice(0, -1).join('.');
+
 /**
- * Reads the object one level above `id`: a missing object and a socket error read as none — the
- * state's pick stands without it.
+ * Reads an object where its absence is no error: an empty id, a missing object and a socket error
+ * read as none.
+ *
+ * @param socket - The vis-2 connection.
+ * @param id - The object id.
  */
-const loadChannelAsync = async (socket: Connection, id: string): Promise<ioBroker.Object | undefined> => {
-    const parentId = id.split('.').slice(0, -1).join('.');
-    if (!parentId) {
+export const loadObjectOrNoneAsync = async (socket: Connection, id: string): Promise<ioBroker.Object | undefined> => {
+    if (!id) {
         return undefined;
     }
     try {
-        return (await socket.getObject(parentId)) ?? undefined;
+        return (await socket.getObject(id)) ?? undefined;
     } catch {
         return undefined;
     }
 };
+
+/** Reads the object one level above `id`; without it the state's pick stands. */
+const loadChannelAsync = (socket: Connection, id: string): Promise<ioBroker.Object | undefined> =>
+    loadObjectOrNoneAsync(socket, parentIdOf(id));
 
 /**
  * Reads what a pick of `id` takes from the object database.

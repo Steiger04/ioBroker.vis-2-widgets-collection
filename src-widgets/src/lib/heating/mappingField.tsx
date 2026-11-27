@@ -13,6 +13,7 @@
  */
 import { guardWidgetData } from '../fieldFactories';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { boundIdOf } from './meaningReading';
 import ValueMappingField from './ValueMappingField';
 
 import type { MeaningField } from './meaningCatalog';
@@ -20,9 +21,6 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
 
 /** The name prefix of the Wertezuordnung fields: no data key starts with it. */
 export const MAPPING_FIELD_PREFIX = 'zuordnung:';
-
-/** Whether an id field's stored value binds a data point (vis-2 writes `nothing_selected` for none). */
-const isBound = (id: unknown): boolean => typeof id === 'string' && id !== '' && id !== 'nothing_selected';
 
 /**
  * The Wertezuordnung field of one Bedeutung.
@@ -41,7 +39,7 @@ export function meaningMappingField(field: MeaningField, entry?: number): RxWidg
         type: 'custom',
         label: 'heating_zuordnung',
         noBinding: true,
-        hidden: (data: WidgetData) => !isBound(data[keys.field]),
+        hidden: (data: WidgetData) => boundIdOf(data, keys.field) === undefined,
         component: guardWidgetData((_field: unknown, data, onDataChange, props) => (
             <ValueMappingField
                 field={field}
