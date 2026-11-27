@@ -28,6 +28,8 @@
             // placeholder text on every render, not only in the empty state), so
             // `t` passes the key through — scenes render with data and never
             // show the placeholder, and a passthrough keeps the stub honest.
+            // src/preview/main.tsx replaces `t` with the English texts for the
+            // scenes, since some bodies write their status and labels as texts.
             window.visRxWidget = class VisRxWidgetStub {
                 static t(key) {
                     return key;
