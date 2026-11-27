@@ -13,6 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
     thermostatArrangement,
+    thermostatDialFont,
+    thermostatDialSize,
     thermostatQuerModes,
     thermostatSetpointFont,
     thermostatStage,
@@ -200,5 +202,37 @@ describe('Passform: the tile holds what it shows', () => {
     it('shows ± in the tile at 240 × 110 px outer and the footer at 220 × 110 px outer', () => {
         expect(thermostatTile({ width: 214, height: 84 }).buttons).toBe(true);
         expect(thermostatTile({ width: 194, height: 84 }).footer).toBe(true);
+    });
+});
+
+describe('Passform: the set-point stays inside the ring of the dial', () => {
+    /**
+     * The dial's geometry (320-unit box, `SetpointControls`): the ring's inner edge at 118 − 7 units;
+     * the set-point line, 4 px of gap and the 28 px actual line stand centred above a bottom padding
+     * of 26 units. The set-point's far corner must stay inside the inner edge.
+     */
+    const cornerInside = (size: number, font: number): boolean => {
+        const k = size / 320;
+        const block = MEASURED.lineHeight * font + 4 + 28;
+        const top = 13 * k + block / 2;
+        const half = (MEASURED.glyphsPerFontPx * font) / 2;
+        return Math.hypot(half, top) <= 111 * k;
+    };
+
+    it.each([
+        ['Mittel at its least box', 'mittel', 276, 376],
+        ['Mittel at 330 × 450 px outer (acceptance)', 'mittel', 304, 424],
+        ['Mittel at its largest dial', 'mittel', 375, 900],
+        ['Groß at its least box', 'gross', 376, 576],
+        ['Groß at the start box', 'gross', 396, 636],
+        ['Groß at its largest dial', 'gross', 600, 900],
+    ] as const)('%s', (_case, arrangement, width, height) => {
+        const size = thermostatDialSize(arrangement, { width, height });
+
+        expect(cornerInside(size, thermostatDialFont(size))).toBe(true);
+    });
+
+    it('keeps the design size of 48 px in the dial of the start box', () => {
+        expect(thermostatDialFont(thermostatDialSize('gross', { width: 396, height: 636 }))).toBe(48);
     });
 });

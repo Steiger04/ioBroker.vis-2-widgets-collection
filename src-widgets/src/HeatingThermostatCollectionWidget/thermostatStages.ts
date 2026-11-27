@@ -42,6 +42,11 @@ export const SETPOINT_FIT = {
     tileRowGap: 4,
     /** The least set-point line the tile keeps beside its footer (a 20 px set-point). */
     tileMainLine: 24,
+    /** The dial (320-unit box): the ring's inner edge (radius 118 − half the stroke of 14). */
+    dialInner: 111,
+    /** The dial: the bottom padding of its centred column, and the gap and actual line below the set-point. */
+    dialPadding: 26,
+    dialBelow: 4 + 28,
 } as const;
 
 /** The design's outer thresholds, converted to the Content-Box. */
@@ -204,4 +209,26 @@ export function thermostatDialSize(arrangement: 'gross' | 'mittel', box: Measure
     return arrangement === 'gross'
         ? clamp(Math.min(box.width - 76, box.height - 316), 240, 380)
         : clamp(Math.min(box.width - 52, box.height - 168), 200, 320);
+}
+
+/**
+ * The set-point's font size in the dial: the design's 48 px while it fits, else as large as keeps
+ * its far corner inside the ring's inner edge — the set-point, the gap and the actual line stand
+ * centred above the dial's bottom padding (ADR-0122: the stage's box holds its parts).
+ *
+ * @param size - The dial's edge length in px.
+ * @returns The font size in px.
+ */
+export function thermostatDialFont(size: number): number {
+    const fit = SETPOINT_FIT;
+    const k = size / 320;
+    const inside = (font: number): boolean => {
+        const top = (fit.dialPadding / 2) * k + (fit.lineHeight * font + fit.dialBelow) / 2;
+        return Math.hypot((fit.glyphsPerFontPx * font) / 2, top) <= fit.dialInner * k;
+    };
+    let font: number = fit.maxFont;
+    while (font > fit.minFont && !inside(font)) {
+        font -= 1;
+    }
+    return font;
 }

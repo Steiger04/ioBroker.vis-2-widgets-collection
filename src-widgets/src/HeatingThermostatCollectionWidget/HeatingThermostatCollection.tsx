@@ -58,6 +58,7 @@ import { thermostatOff } from './thermostatOff';
 import { thermostatStatus } from './thermostatStatus';
 import {
     thermostatArrangement,
+    thermostatDialFont,
     thermostatDialSize,
     thermostatQuerModes,
     thermostatSetpointFont,
@@ -286,7 +287,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
                 ) : null
             }
         >
-            {setpoint}
+            {setpointAt(thermostatDialFont(thermostatDialSize(arrangement, box)))}
             {actual}
         </SetpointDial>
     );

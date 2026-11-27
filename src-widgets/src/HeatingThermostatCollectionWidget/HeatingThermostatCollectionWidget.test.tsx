@@ -1094,6 +1094,19 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         expect(20 + 4 + 1.2 * fontOf(withFooter) + 4 + 28).toBeLessThanOrEqual(84);
     });
 
+    it('keeps the set-point of the dial inside the ring in Mittel (330 × 450 px outer)', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }), { width: 304, height: 424 });
+        const dial = container.querySelector<HTMLElement>('[data-heating-dial]')!;
+        const size = parseFloat(getComputedStyle(dial).width);
+        const font = parseFloat(getComputedStyle(dial.querySelector<HTMLElement>('[data-heating-setpoint]')!).fontSize);
+        const k = size / 320;
+
+        // „21,0 °C“ measured 161 px wide at 48 px of font, its line 1.2 × the font; below it 4 px of gap
+        // and the 28 px actual line, centred above 26 units; the ring's inner edge at 111 units.
+        const top = 13 * k + (1.2 * font + 4 + 28) / 2;
+        expect(Math.hypot((font * (161 / 48)) / 2, top)).toBeLessThanOrEqual(111 * k);
+    });
+
     it('steps from the tile', async () => {
         const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 68 });
 

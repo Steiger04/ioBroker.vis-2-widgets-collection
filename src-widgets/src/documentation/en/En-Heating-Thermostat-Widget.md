@@ -200,7 +200,7 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 | Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                |
 | Mini   | Tile        | below             | Name, status sign, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px              |
 
-With the standard frame the start size 420 × 700 px gives a content area of about 396 × 636 px and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In Compact and in the tile the set point gets smaller when the area beside ± (and above the footer line) does not hold its full size. Motion (pulse of the heating dot, transitions) is left out when the system asks for reduced motion.
+With the standard frame the start size 420 × 700 px gives a content area of about 396 × 636 px and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Motion (pulse of the heating dot, transitions) is left out when the system asks for reduced motion.
 
 ### Layout
 
