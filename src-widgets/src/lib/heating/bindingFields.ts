@@ -28,7 +28,7 @@
 import { createIdField } from '../commonObjectFields';
 import { mainPickPrefill } from './mainPickPrefill';
 import { meaningMappingField } from './mappingField';
-import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { headerKeys, MEANINGS, meaningKeys } from './meaningCatalog';
 import { meaningPickOptions } from './meaningPick';
 import { prefillNoticeField } from './prefillNoticeField';
 
@@ -68,15 +68,15 @@ const meaningFields = (field: MeaningField, entry?: number): RxWidgetInfoAttribu
  *   Bedeutungen in subset order, each Wertezuordnung right after its id field.
  */
 export function heatingBindingFields(subset: MeaningSubset, entry?: number): RxWidgetInfoAttributesField[] {
-    const number = entry ?? '';
+    const header = headerKeys(entry);
     const [mainId, ...mainRest] = meaningFields(subset.main, entry);
     return [
         // The pick of the main Bedeutung prefills the device's other Bedeutungen (ADR-0119).
         { ...mainId, onChange: mainPickPrefill(subset, entry) },
         ...mainRest,
         prefillNoticeField(subset, entry),
-        { name: `bezeichnung${number}`, type: 'text', label: 'heating_bezeichnung' },
-        { name: `unterzeile${number}`, type: 'text', label: 'heating_unterzeile' },
+        { name: header.name, type: 'text', label: 'heating_bezeichnung' },
+        { name: header.subLine, type: 'text', label: 'heating_unterzeile' },
         ...subset.meanings.filter(field => field !== subset.main).flatMap(field => meaningFields(field, entry)),
     ];
 }

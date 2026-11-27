@@ -204,9 +204,40 @@ export interface MeaningKeys {
  * @returns The keys, the number before every suffix (`soll3`, `soll3Object`, `betriebsart3Zuordnung`).
  */
 export const meaningKeys = (field: MeaningField, entry?: number): MeaningKeys => {
-    const base = `${field}${entry ?? ''}`;
+    const base = entryKey(field, entry);
     return { field: base, object: `${base}Object`, mapping: `${base}Zuordnung` };
 };
+
+/**
+ * A key of the binding, unnumbered or for a list entry: the one numbering rule of the family
+ * (ADR-0121). Numbered per entry is the binding alone — the Bedeutungen with their object and
+ * Wertezuordnung ({@link meaningKeys}) and the Kartenkopf's Bezeichnung and Unterzeile, which stand
+ * with the binding ({@link headerKeys}, ADR-0123 Nr. 8). Widget values (`komfort`, `absenk`,
+ * `ansicht`) belong to the widget and stay unnumbered.
+ *
+ * @param base - The unnumbered key.
+ * @param entry - The entry number of a list entry; none for a single-room type.
+ * @returns The key with the number before every suffix.
+ */
+export const entryKey = (base: string, entry?: number): string => `${base}${entry ?? ''}`;
+
+/** The Kartenkopf keys of a binding. */
+export interface HeaderKeys {
+    /** Bezeichnung: the name in the Kartenkopf. */
+    readonly name: string;
+    /** Unterzeile: the second line below it. */
+    readonly subLine: string;
+}
+
+/**
+ * The Kartenkopf keys of a binding, unnumbered or for a list entry ({@link entryKey}).
+ *
+ * @param entry - The entry number of a list entry; none for a single-room type.
+ */
+export const headerKeys = (entry?: number): HeaderKeys => ({
+    name: entryKey('bezeichnung', entry),
+    subLine: entryKey('unterzeile', entry),
+});
 
 /** The valve list: flat, counted, one id field per valve (ADR-0119, ADR-0121). */
 export const VALVE_LIST = {

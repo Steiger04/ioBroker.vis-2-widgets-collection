@@ -38,7 +38,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { useClock } from '../lib/heating/clock';
 import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
-import { meaningKeys } from '../lib/heating/meaningCatalog';
+import { headerKeys, meaningKeys } from '../lib/heating/meaningCatalog';
 import { readMeaning } from '../lib/heating/meaningReading';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
@@ -70,8 +70,9 @@ import type { WidgetData } from '@iobroker/types-vis-2';
 /** Props of {@link HeatingThermostatCollection}. */
 export interface HeatingThermostatCollectionProps {
     /**
-     * The entry number whose binding the content reads (`soll3`, `soll3Object`): the seam for the
-     * house types' list entries (ADR-0121); none for the Raumthermostat itself.
+     * The entry number whose binding the content reads (`soll3`, `soll3Object`, `bezeichnung3`): the
+     * seam for the house types' list entries (ADR-0121); none for the Raumthermostat itself. The
+     * widget values (`komfort`, `absenk`, `ansicht`) stay unnumbered.
      */
     entry?: number;
 }
@@ -109,8 +110,9 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
 
     const setpointKeys = meaningKeys('soll', entry);
     const unit = widgetData[setpointKeys.object]?.unit as string | undefined;
-    const name = widgetData[`bezeichnung${entry ?? ''}`] as string | undefined;
-    const subLine = widgetData[`unterzeile${entry ?? ''}`] as string | undefined;
+    const header = headerKeys(entry);
+    const name = widgetData[header.name] as string | undefined;
+    const subLine = widgetData[header.subLine] as string | undefined;
     // The set-point shows only once reported, never the device's substitute value (ADR-0119).
     const setpointReading = readMeaning(widgetData, values, 'soll', entry);
     const reported = setpointReading.kind === 'reported' ? numberOf(setpointReading.value) : undefined;
@@ -203,7 +205,8 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     const pills: Pill[] = [];
     if (setpointWrite.writable) {
         for (const key of ['absenk', 'komfort'] as const) {
-            const target = numberOf(widgetData[`${key}${entry ?? ''}`]);
+            // A widget value, unnumbered like its declaration (`entryKey`): only the binding is per entry.
+            const target = numberOf(widgetData[key]);
             if (target !== undefined) {
                 pills.push({
                     key,

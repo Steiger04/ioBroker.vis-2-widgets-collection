@@ -33,7 +33,7 @@ import {
     oidChangeHandlerAsync,
     parentIdOf,
 } from '../commonObjectFields';
-import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { headerKeys, MEANINGS, meaningKeys } from './meaningCatalog';
 import { boundIdOf } from './meaningReading';
 import { meaningPickOptions } from './meaningPick';
 import { recordOpenCandidates } from './prefillCandidates';
@@ -139,8 +139,7 @@ const nameAsync = async (
     place: DevicePlace,
     entry: number | undefined,
 ): Promise<void> => {
-    const nameKey = `bezeichnung${entry ?? ''}`;
-    const lineKey = `unterzeile${entry ?? ''}`;
+    const { name: nameKey, subLine: lineKey } = headerKeys(entry);
     if (!isEmptyText(data[nameKey])) {
         return;
     }
