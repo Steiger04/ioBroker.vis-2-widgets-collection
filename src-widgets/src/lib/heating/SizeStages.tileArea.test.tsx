@@ -5,12 +5,14 @@
  * @remarks
  * The tile hull keeps its own measures: a type fills its tile in the box below the hull's head row
  * and the gap under it, computed (no second measurement), and learns the gaps the hull sets between
- * its parts. The hull's drawn sizes at the standard spacing: the head row 20 px, 4 px between the
- * rows, 6 px between a control and the main value.
+ * its parts. The hull's drawn sizes follow the theme it draws in: the head row is a `body2` line
+ * (at least the 16 px open symbol), the gaps are 0.5 and 0.75 spacing units — in the standard theme
+ * 20 px, 4 px between the rows and 6 px between a control and the main value.
  */
 import { describe, expect, it } from 'vitest';
 
-import type { FC } from 'react';
+import { createTheme, ThemeProvider, type ThemeOptions } from '@mui/material';
+import type { FC, ReactElement } from 'react';
 
 import {
     collectionScene,
@@ -27,38 +29,42 @@ installInertResizeObserver();
 
 const mountBody = testScopedMount();
 
-/** A stand-in type that is always Mini and records the area its tile gets. */
-const standIn = (areas: TileArea[]): FC =>
+/** A stand-in type that is always Mini and records the area its tile gets, in a theme when given. */
+const standIn = (areas: TileArea[], themeOptions?: ThemeOptions): FC =>
     function StandInBody() {
         const { data } = useData('');
+        const themed = (node: ReactElement): ReactElement =>
+            themeOptions ? <ThemeProvider theme={createTheme(themeOptions)}>{node}</ThemeProvider> : node;
         return (
             <CollectionBase
                 data={data}
                 cornerIcon={false}
             >
-                <SizeStages
-                    rule={() => 'mini'}
-                    data={{}}
-                    ansicht="voll"
-                    renderStage={() => null}
-                    renderTile={area => {
-                        areas.push(area);
-                        return { main: <span data-stand-in="main">21°</span> };
-                    }}
-                    name="Bad"
-                    typeName="Raumthermostat"
-                    status={{ tone: 'neutral' }}
-                    fullSize={{ width: 420, height: 700 }}
-                />
+                {themed(
+                    <SizeStages
+                        rule={() => 'mini'}
+                        data={{}}
+                        ansicht="voll"
+                        renderStage={() => null}
+                        renderTile={area => {
+                            areas.push(area);
+                            return { main: <span data-stand-in="main">21°</span> };
+                        }}
+                        name="Bad"
+                        typeName="Raumthermostat"
+                        status={{ tone: 'neutral' }}
+                        fullSize={{ width: 420, height: 700 }}
+                    />,
+                )}
             </CollectionBase>
         );
     };
 
 /** The area the tile got for a Content-Box. */
-const areaFor = (box: MeasuredBox): TileArea | undefined => {
+const areaFor = (box: MeasuredBox, themeOptions?: ThemeOptions): TileArea | undefined => {
     const areas: TileArea[] = [];
     mountBody(
-        standIn(areas),
+        standIn(areas, themeOptions),
         withContentBox(collectionScene('tile-area-test', { noHeader: true, noFooter: true }, undefined), box),
     );
     return areas.at(-1);
@@ -71,6 +77,35 @@ describe('SizeStages: the area of the tile content', () => {
         ['a large tile', { width: 260, height: 140 }, { width: 260, height: 116 }],
     ])('is the box minus the head row and its gap for %s', (_case, box, rest) => {
         expect(areaFor(box)).toEqual({ ...rest, rowGap: 4, controlGap: 6 });
+    });
+
+    it('takes the measures of the standard theme: head row 20 px, gaps 4 and 6 px', () => {
+        expect(areaFor({ width: 260, height: 140 }, {})).toEqual({
+            width: 260,
+            height: 116,
+            rowGap: 4,
+            controlGap: 6,
+        });
+    });
+
+    it("follows the theme's spacing: 16 px doubles both gaps", () => {
+        // 140 − 20 − 8 = 112.
+        expect(areaFor({ width: 260, height: 140 }, { spacing: 16 })).toEqual({
+            width: 260,
+            height: 112,
+            rowGap: 8,
+            controlGap: 12,
+        });
+    });
+
+    it("follows the theme's type size: the head row is one body2 line", () => {
+        // body2 at a base size of 21 px: 21 px × 1.43 ≈ 30 px; 140 − 30 − 4 = 106.
+        expect(areaFor({ width: 260, height: 140 }, { typography: { fontSize: 21 } })).toEqual({
+            width: 260,
+            height: 106,
+            rowGap: 4,
+            controlGap: 6,
+        });
     });
 
     it('never goes below nothing in a box lower than the head', () => {
