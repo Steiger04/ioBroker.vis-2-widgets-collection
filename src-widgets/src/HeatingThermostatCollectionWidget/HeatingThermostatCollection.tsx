@@ -9,26 +9,36 @@
  * hint. Otherwise the size-stage module (`lib/heating/SizeStages`, ADR-0122) decides by the measured
  * Content-Box: the type's rule (`thermostatStages`) gives Voll, Einfach or Mini, the arrangements
  * (`ThermostatStage`) place the parts, Mini is the module's tile filled with the set-point. The
- * places stay empty until their parts are built. Filled so far: the set-point in the dial and big
- * set-point places, the actual temperature below it in the dial, in the Einfach hint place and in
- * the tile's footer, and the readings bar of Groß (`ThermostatReadings`). Every value reads
- * honestly (`lib/heating/meaningReading`): „–“ while bound without a value or not yet reported.
+ * places stay empty until their parts are built. Filled so far: the Kartenkopf (`lib/heating/
+ * Kartenkopf`: symbol, Bezeichnung, Unterzeile and status chip in Groß; name and chip in Mittel and
+ * Kompakt; stacked in Quer), the set-point in the dial and big set-point places, the actual
+ * temperature below it in the dial, the hint line (`HintLine`: always in Groß, only for a Meldung
+ * in Mittel; in Quer, Kompakt and the tile's footer a Meldung replaces the actual temperature) and
+ * the readings bar of Groß (`ThermostatReadings`). The status (`thermostatStatus`) also names the
+ * tile's sign; an unreachable device is drawn dimmed and stays operable. Every value reads honestly
+ * (`lib/heating/meaningReading`): „–“ while bound without a value or not yet reported.
  */
+import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
 import { Box, Typography } from '@mui/material';
-import { useContext, type ReactElement } from 'react';
+import { useContext, useState, type ReactElement, type ReactNode } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
+import { useClock } from '../lib/heating/clock';
+import Kartenkopf, { type KartenkopfForm } from '../lib/heating/Kartenkopf';
 import { meaningKeys } from '../lib/heating/meaningCatalog';
 import { readMeaning } from '../lib/heating/meaningReading';
 import { formatReading, NO_VALUE } from '../lib/heating/readingFormat';
-import SizeStages, { type TileStatus } from '../lib/heating/SizeStages';
+import { useReducedMotion } from '../lib/heating/motion';
+import SizeStages from '../lib/heating/SizeStages';
 import { setpointNoticeKey } from '../lib/heating/setpointNotice';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
+import HintLine from './HintLine';
+import { thermostatStatus } from './thermostatStatus';
 import {
     thermostatArrangement,
     thermostatQuerModes,
@@ -51,8 +61,8 @@ export interface HeatingThermostatCollectionProps {
 /** The Voll design size of the content (the Mini-Dialog's size, ADR-0122 Nr. 7). */
 const FULL_SIZE = { width: 420, height: 700 } as const;
 
-/** The status until the Kartenkopf's status logic reports it: neutral, no Meldung. */
-const NEUTRAL_STATUS: TileStatus = { tone: 'neutral' };
+/** The opacity of an unreachable device's set-point and dial (the design's dimming). */
+const DIMMED_OPACITY = 0.4;
 
 /**
  * The Raumthermostat in its frame.
@@ -76,6 +86,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     const { value } = useValueState(setpointKeys.field);
     const unit = widgetData[setpointKeys.object]?.unit as string | undefined;
     const name = widgetData[`bezeichnung${entry ?? ''}`] as string | undefined;
+    const subLine = widgetData[`unterzeile${entry ?? ''}`] as string | undefined;
     // The set-point shows only once reported, never the device's substitute value (ADR-0119).
     const setpointReported = readMeaning(widgetData, values, 'soll', entry).kind === 'reported';
 
@@ -96,21 +107,90 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     const actual = actualText === undefined ? null : <ActualTemperature text={actualText} />;
     const readings = thermostatReadings(widgetData, values, lang, entry);
 
-    // Until the Kartenkopf's hint line: Einfach shows the actual temperature in its hint place, Voll in the dial.
+    // The Boost remaining time counts on between two reports: every second while it shows.
+    const [counting, setCounting] = useState(false);
+    const now = useClock(counting);
+    const status = thermostatStatus(widgetData, values, { now, lang, entry });
+    if (status.counting !== counting) {
+        setCounting(status.counting);
+    }
+    const reducedMotion = useReducedMotion();
+    const message = status.hint?.message ? status.hint : undefined;
+
+    // An unreachable device is drawn dimmed and stays operable (no pointer or focus change).
+    const dimmed = (content: ReactNode): ReactNode => (
+        <Box
+            data-heating-dimmed={status.unreachable ? '' : undefined}
+            sx={{
+                display: 'contents',
+                '& > *': {
+                    opacity: status.unreachable ? DIMMED_OPACITY : 1,
+                    transition: reducedMotion ? 'none' : 'opacity 0.3s',
+                },
+            }}
+        >
+            {content}
+        </Box>
+    );
+
+    const head = (arrangement: ThermostatArrangement, form: KartenkopfForm): ReactNode => (
+        <Kartenkopf
+            form={form}
+            name={name}
+            chips={status.chip ? [status.chip] : []}
+            // The full arrangement: the fixed type symbol and the Unterzeile (ADR-0123 Nr. 1, 7).
+            {...(arrangement === 'gross'
+                ? { symbol: <ThermostatOutlined sx={{ fontSize: 22 }} />, secondLine: subLine }
+                : {})}
+        />
+    );
+
+    /** The hint place: Groß always, Mittel only for a Meldung, Einfach a Meldung or the actual temperature. */
+    const hintFor = (arrangement: ThermostatArrangement): ReactNode => {
+        switch (arrangement) {
+            case 'gross':
+                return status.hint ? <HintLine hint={status.hint} /> : null;
+            case 'mittel':
+                return message ? <HintLine hint={message} /> : null;
+            default:
+                return message ? (
+                    <HintLine
+                        hint={message}
+                        align={arrangement === 'kompakt' ? 'center' : 'start'}
+                    />
+                ) : (
+                    actual
+                );
+        }
+    };
+
     const partsFor = (arrangement: ThermostatArrangement | 'mini'): ThermostatParts => ({
-        head: () => null,
-        dial: (
+        head: form => (arrangement === 'mini' ? null : head(arrangement, form)),
+        dial: dimmed(
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                 {setpoint}
                 {actual}
-            </Box>
+            </Box>,
         ),
-        setpoint,
+        setpoint: dimmed(setpoint),
         pills: null,
         modes: null,
         readings: readings.length ? <ReadingsBar readings={readings} /> : null,
-        hint: arrangement === 'quer' || arrangement === 'kompakt' ? actual : null,
-        tile: { main: setpoint, decrease: null, increase: null, line: actual },
+        hint: arrangement === 'mini' ? null : hintFor(arrangement),
+        tile: {
+            main: dimmed(setpoint),
+            decrease: null,
+            increase: null,
+            line: message ? (
+                <HintLine
+                    hint={message}
+                    size="tile"
+                    align="start"
+                />
+            ) : (
+                actual
+            ),
+        },
     });
 
     return (
@@ -136,7 +216,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
                 renderTile={box => thermostatTileContent(partsFor('mini'), box)}
                 name={name}
                 typeName={translate('heating_thermostat_collection_widget')}
-                status={NEUTRAL_STATUS}
+                status={status.tile}
                 fullSize={FULL_SIZE}
             />
         </CollectionBase>
