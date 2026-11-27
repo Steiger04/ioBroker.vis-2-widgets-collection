@@ -112,9 +112,8 @@ export const thermostatTile = (box: MeasuredBox): ThermostatTileParts => ({
 });
 
 /**
- * The dial's edge length in an arrangement of Voll: the design's dial size (`Main.dc.html`
- * `layout()`), its outer sizes taken back to the Content-Box like the thresholds (width −24,
- * height −64), within the design's bounds.
+ * The dial's edge length in an arrangement of Voll: the design's dial size, its outer sizes taken
+ * back to the Content-Box like the thresholds (width −24, height −64), within the design's bounds.
  *
  * @param arrangement - Groß or Mittel.
  * @param box - The measured Content-Box.
