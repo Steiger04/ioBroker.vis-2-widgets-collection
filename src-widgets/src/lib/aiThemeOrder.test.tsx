@@ -815,6 +815,21 @@ describe('Naht „Theme-Auftrag“: what an order can set', () => {
             expect(guide()).toContain(notations);
             expect(stateDescription()).toContain(notations);
         });
+
+        // ADR-0124 no. 7: the heating widgets take their tones from three status colours of the
+        // palette, so an order that changes one of them changes the heating widgets too.
+        it('says in one sentence which order fields colour the heating widgets, and that "warning" means warmth there', () => {
+            const sentences = guide()
+                .split('. ')
+                .filter(sentence => sentence.includes('heating widgets'));
+
+            expect(sentences).toHaveLength(1);
+            for (const name of ['error', 'warning', 'info']) {
+                expect(orderFields().map(field => field.name)).toContain(name);
+                expect(sentences[0], name).toContain(`"${name}"`);
+            }
+            expect(sentences[0]).toContain('not a warning');
+        });
     });
 });
 

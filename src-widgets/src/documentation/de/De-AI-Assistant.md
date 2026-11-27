@@ -144,6 +144,7 @@ palette.mode: "light" or "dark"; leave it out to follow vis-2.
 Colors: hex like #1976d2, rgb() or hsl(); no color names, no gradients.
 If palette.primary.main is set and palette.secondary.main is not, the secondary color is derived from the primary.
 Without palette.text.primary the text takes the primary color.
+The heating widgets take palette.error for faults and notices, palette.warning for heating (warmth, not a warning) and palette.info for cool, such as an open window.
 typography.fontFamily: a CSS font stack.
 Bundled fonts work on every device, use the value exactly as written: "'Inter', system-ui, sans-serif", "'Open Sans', system-ui, sans-serif", "'Montserrat', system-ui, sans-serif", "'Merriweather', Georgia, serif", "'Playfair Display', Georgia, serif", "'Roboto Slab', Georgia, serif", "'JetBrains Mono', ui-monospace, monospace", "'Oswald', system-ui, sans-serif", "'Nunito', system-ui, sans-serif", "'Roboto', system-ui, sans-serif".
 Any other stack needs the font on the device.
