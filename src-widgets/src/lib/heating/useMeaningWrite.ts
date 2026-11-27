@@ -5,89 +5,37 @@
  * @module lib/heating/useMeaningWrite
  * @remarks
  * A thin seam over `useValueState`: the write stays optimistic and debounced (or immediate on
- * request) and never reaches a state whose object says `write: false`. On top it answers whether
- * the Bedeutung is a writable target at all — bound, its stored object (`<field>Object`, from the
- * pick or the Lese-Naht) belongs to the bound id, the object does not forbid writing and the widget
- * is no display-only widget. Controls that write a Bedeutung show only while it is writable, and a
- * write to a target that is not is dropped here, so no action reaches a data point it must not.
+ * request), and `useValueState`'s guard never lets it reach a state whose object says
+ * `write: false`. Whether the Bedeutung may be written at all is the Heizzonen-Lesung's answer
+ * (`MeaningReading.writable`): controls that write a Bedeutung show only while it is writable, and
+ * a write to a target that is not is dropped here, so no action reaches a data point it must not.
  * One call writes exactly one state.
  */
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 
-import { CollectionContext } from '../../components/CollectionProvider';
 import useValueState, { type UpdateValueOptions } from '../../hooks/useValueState';
-import { meaningKeys, type MeaningField, type NeutralKey } from './meaningCatalog';
-import { boundIdOf, storedMappingOf, storedObjectOf } from './meaningReading';
 import type { DeviceValue } from './valueMapping';
-
-import type { WidgetData } from '@iobroker/types-vis-2';
-
-/** How one Bedeutung is written. */
-export interface MeaningWrite {
-    /** The Bedeutung is a writable target: controls writing it may show. */
-    readonly writable: boolean;
-    /**
-     * Writes one value into the Bedeutung's data point; nothing while it is not writable.
-     *
-     * @param value - The device value.
-     * @param options - `immediate` writes past the debounce (one discrete action).
-     */
-    readonly write: (value: DeviceValue, options?: UpdateValueOptions) => void;
-}
+import type { MeaningReading } from './zoneReading';
 
 /**
- * Whether a Bedeutung's stored object belongs to its bound id and allows writing.
+ * Writes one value into a Bedeutung's data point; nothing while it is not writable.
  *
- * @param data - The widget data as the widget reads it.
- * @param field - The Bedeutung.
- * @param entry - The entry number; none for the unnumbered binding.
- * @returns `true` while the object of the bound id does not forbid writing.
+ * @param value - The device value.
+ * @param options - `immediate` writes past the debounce (one discrete action).
  */
-export function isWritableMeaning(data: WidgetData, field: MeaningField, entry?: number): boolean {
-    const keys = meaningKeys(field, entry);
-    const id = boundIdOf(data, keys.field);
-    const object = storedObjectOf(data, field, entry);
-    return id !== undefined && object._id === id && object.write !== false;
-}
-
-/**
- * The device value a neutral value writes into a Bedeutung: the first of its Wertezuordnung
- * (ADR-0120: reading may map several device values, writing uses the first).
- *
- * @param data - The widget data as the widget reads it (with the Lese-Naht's mappings).
- * @param field - The Bedeutung.
- * @param key - The neutral value.
- * @param entry - The entry number; none for the unnumbered binding.
- * @returns The device value; `undefined` while the Bedeutung is unbound or maps no device value to
- *   the neutral value (not yet mapped, or „nicht vorhanden“).
- */
-export function writeValueOf(
-    data: WidgetData,
-    field: MeaningField,
-    key: NeutralKey,
-    entry?: number,
-): DeviceValue | undefined {
-    if (boundIdOf(data, meaningKeys(field, entry).field) === undefined) {
-        return undefined;
-    }
-    return storedMappingOf(data, field, entry)?.[key]?.[0];
-}
+export type MeaningWrite = (value: DeviceValue, options?: UpdateValueOptions) => void;
 
 /**
  * The write of one Bedeutung.
  *
- * @param field - The Bedeutung.
- * @param entry - The entry number; none for the unnumbered binding.
- * @returns Whether it is writable and the write.
+ * @param reading - The Bedeutung as the Heizzonen-Lesung reads it.
+ * @returns The write.
  */
-export function useMeaningWrite(field: MeaningField, entry?: number): MeaningWrite {
-    const {
-        widget: { data },
-    } = useContext(CollectionContext);
-    const { locked, updateValue } = useValueState(meaningKeys(field, entry).field);
-    const writable = !locked && isWritableMeaning(data as WidgetData, field, entry);
+export function useMeaningWrite(reading: Pick<MeaningReading, 'idKey' | 'writable'>): MeaningWrite {
+    const { updateValue } = useValueState(reading.idKey);
+    const { writable } = reading;
 
-    const write = useCallback(
+    return useCallback(
         (value: DeviceValue, options?: UpdateValueOptions): void => {
             if (writable) {
                 updateValue(value, options);
@@ -95,6 +43,4 @@ export function useMeaningWrite(field: MeaningField, entry?: number): MeaningWri
         },
         [writable, updateValue],
     );
-
-    return { writable, write };
 }

@@ -1,6 +1,7 @@
 /**
  * The stored Wertezuordnung of a Thermostat-Bedeutung (ADR-0120, Nachtrag „Spec Stufe 1
- * schreiben“): reading it, changing it and the patch that stores it.
+ * schreiben“): reading it, its two directions (device → neutral, neutral → device), changing it and
+ * the patch that stores it.
  *
  * @module lib/heating/valueMapping
  * @remarks
@@ -77,6 +78,40 @@ export function readValueMapping(stored: unknown, shape: MappingShape): ValueMap
     }
     return isEmptyMapping(mapping) ? undefined : mapping;
 }
+
+/**
+ * Reading direction: the neutral value a device value maps to (n:1 — several device values may map
+ * to one neutral value, window OPEN and TILTED → `offen`).
+ *
+ * @param mapping - The Bedeutung's mapping; `undefined` for none.
+ * @param keys - The neutral keys of the Bedeutung, in catalogue order: the first that lists the
+ *   value wins.
+ * @param value - The reported device value.
+ * @returns The neutral value; `undefined` when no neutral value lists the device value.
+ */
+export function neutralOfDeviceValue(
+    mapping: ValueMapping | undefined,
+    keys: readonly NeutralKey[],
+    value: DeviceValue,
+): NeutralKey | undefined {
+    if (!mapping) {
+        return undefined;
+    }
+    // Compared as text: a mapping typed in without the object stores text, the data point may report a number.
+    return keys.find(key => mapping[key]?.some(deviceValue => String(deviceValue) === String(value)));
+}
+
+/**
+ * Writing direction: the device value a neutral value writes — the first of its list (ADR-0120:
+ * reading may map several device values, writing uses the first).
+ *
+ * @param mapping - The Bedeutung's mapping; `undefined` for none.
+ * @param key - The neutral value.
+ * @returns The device value; `undefined` while the neutral value is not mapped yet or „nicht
+ *   vorhanden“ (an empty list).
+ */
+export const deviceValueOfNeutral = (mapping: ValueMapping | undefined, key: NeutralKey): DeviceValue | undefined =>
+    mapping?.[key]?.[0];
 
 /**
  * The mapping with one neutral value set or taken out.
