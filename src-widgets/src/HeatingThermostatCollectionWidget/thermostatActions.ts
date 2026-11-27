@@ -30,6 +30,7 @@
  *   (`lib/heating/setpointScale`): locked at the limit they head for and while the set-point has not
  *   reported, and they write only a value other than the reported one.
  */
+import optionalNumber from '../lib/helper/optionalNumber';
 import { setpointScale, stepDown, stepUp, type SetpointScale } from '../lib/heating/setpointScale';
 import type { MeaningField, NeutralKey } from '../lib/heating/meaningCatalog';
 import type { DeviceValue } from '../lib/heating/valueMapping';
@@ -79,7 +80,7 @@ export interface ThermostatActions {
     readonly steps?: { readonly [K in StepKey]: ThermostatAction<K> };
 }
 
-/** The widget values the pills write (unnumbered, as declared). */
+/** The widget values the pills write, as stored — read through `optionalNumber` (ADR-0109 Nr. 7). */
 export interface ThermostatTemperatures {
     readonly komfort?: unknown;
     readonly absenk?: unknown;
@@ -94,10 +95,6 @@ export type ThermostatOff =
     | { readonly kind: 'mode'; readonly field: OperatingModeField; readonly value: DeviceValue }
     /** Through the set-point: write its real minimum. */
     | { readonly kind: 'minimum'; readonly value: number };
-
-/** A stored number, if it is one. */
-const numberOf = (value: unknown): number | undefined =>
-    typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 
 /**
  * Where the operating mode is written: „Betriebsart setzen“ while bound, else „Betriebsart“ (a bound
@@ -208,7 +205,7 @@ export function thermostatActions(
     const pills: ThermostatAction<PillKey>[] = [];
     if (setpoint.writable) {
         for (const key of ['absenk', 'komfort'] as const) {
-            const value = numberOf(temperatures[key]);
+            const value = optionalNumber(temperatures[key]);
             if (value !== undefined) {
                 pills.push({ key, field: 'soll', value, active: reported === value, locked: false });
             }

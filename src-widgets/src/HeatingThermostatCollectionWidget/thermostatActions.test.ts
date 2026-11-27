@@ -77,8 +77,15 @@ describe('Absenk and Komfort', () => {
         expect(pill(actions, 'komfort')).toMatchObject({ value: 21, active: false, locked: false });
     });
 
+    it('read a widget value vis-2 stored as text as its number (ADR-0109 Nr. 7)', () => {
+        const actions = actionsOf(setpoint(), reported(21), {}, { komfort: '21', absenk: '17.5' });
+
+        expect(pill(actions, 'komfort')).toMatchObject({ field: 'soll', value: 21, active: true });
+        expect(pill(actions, 'absenk')).toMatchObject({ field: 'soll', value: 17.5, active: false });
+    });
+
     it('leave out a widget value that is no number', () => {
-        const actions = actionsOf(setpoint(), {}, {}, { komfort: '21', absenk: undefined });
+        const actions = actionsOf(setpoint(), {}, {}, { komfort: 'warm', absenk: '' });
 
         expect(actions.pills.map(action => action.key)).toEqual(['aus']);
     });
