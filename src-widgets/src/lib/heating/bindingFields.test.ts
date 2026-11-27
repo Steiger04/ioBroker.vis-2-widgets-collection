@@ -139,7 +139,7 @@ describe('heating binding block — editor seam: the pick of a Bedeutung field',
 });
 
 describe('heating binding block — the fields it builds', () => {
-    it('builds one id field per Bedeutung, Bezeichnung and Unterzeile as text fields after the main one', () => {
+    it('builds one id field per Bedeutung, its Wertezuordnung below it, Bezeichnung and Unterzeile after the main one', () => {
         const fields = heatingBindingFields(ROOM_THERMOSTAT);
 
         expect(panelFields(fields).map(field => [field.name, field.type])).toEqual([
@@ -149,17 +149,34 @@ describe('heating binding block — the fields it builds', () => {
             ['ist', 'id'],
             ['luftfeuchte', 'id'],
             ['betriebsart', 'id'],
+            ['zuordnung:betriebsart', 'custom'],
             ['betriebsartSetzen', 'id'],
+            ['zuordnung:betriebsartSetzen', 'custom'],
             ['boost', 'id'],
+            ['zuordnung:boost', 'custom'],
             ['boostBeenden', 'id'],
+            ['zuordnung:boostBeenden', 'custom'],
             ['boostRestzeit', 'id'],
+            ['zuordnung:boostRestzeit', 'custom'],
             ['urlaub', 'id'],
+            ['zuordnung:urlaub', 'custom'],
             ['urlaubEnde', 'id'],
+            ['zuordnung:urlaubEnde', 'custom'],
             ['fenster', 'id'],
+            ['zuordnung:fenster', 'custom'],
             ['batterieSchwach', 'id'],
+            ['zuordnung:batterieSchwach', 'custom'],
             ['batteriestand', 'id'],
             ['erreichbarkeit', 'id'],
+            ['zuordnung:erreichbarkeit', 'custom'],
         ]);
+    });
+
+    it('numbers the Wertezuordnung field with the entry, under a name no data key has', () => {
+        const names = heatingBindingFields(ROOM_THERMOSTAT, 3).map(field => field.name);
+
+        expect(names).toContain('zuordnung:betriebsart3');
+        expect(names.filter(name => name?.startsWith('zuordnung:')).every(name => /\d$/.test(name!))).toBe(true);
     });
 
     it('labels the fields with heating_ keys, a numbered entry with the same ones', () => {

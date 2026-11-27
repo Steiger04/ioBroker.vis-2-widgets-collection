@@ -64,6 +64,12 @@ export interface MappingShape {
     readonly keys: readonly NeutralKey[];
     /** The additions the Bedeutung may store — exactly one of them is stored where there are two. */
     readonly additions: readonly MappingAddition[];
+    /**
+     * The neutral value a boolean device value `true` reads as, unless „Wert umkehren“ is on (the
+     * ioBroker convention: `true` is the active, the reported state); the other keys read `false`.
+     * Only Bedeutungen with it show a boolean data point as the switch „Wert umkehren“.
+     */
+    readonly trueKey?: NeutralKey;
 }
 
 /** One Thermostat-Bedeutung of the catalogue. */
@@ -91,6 +97,8 @@ const NUMBER_OR_TEXT: readonly AllowedType[] = ['number', 'string'];
 
 /** A Wertezuordnung of neutral values only. */
 const values = (...keys: NeutralKey[]): MappingShape => ({ keys, additions: [] });
+/** A Wertezuordnung of neutral values a boolean data point may carry, `trueKey` read from `true`. */
+const switchable = (trueKey: NeutralKey, ...keys: NeutralKey[]): MappingShape => ({ keys, additions: [], trueKey });
 /** A Wertezuordnung of additions only. */
 const additions = (...kinds: MappingAddition[]): MappingShape => ({ keys: [], additions: kinds });
 
@@ -117,9 +125,9 @@ export const MEANINGS: Readonly<Record<MeaningField, ThermostatMeaning>> = {
         mapping: values('auto', 'manuell', 'aus'),
         writeOnly: true,
     }),
-    boost: meaning('boost', 'heating_boost', ANY_VALUE, { mapping: values('an', 'aus') }),
+    boost: meaning('boost', 'heating_boost', ANY_VALUE, { mapping: switchable('an', 'an', 'aus') }),
     boostBeenden: meaning('boostBeenden', 'heating_boost_beenden', ANY_VALUE, {
-        mapping: values('beenden'),
+        mapping: switchable('beenden', 'beenden'),
         writeOnly: true,
     }),
     boostRestzeit: meaning('boostRestzeit', 'heating_boost_restzeit', NUMBER_OR_TEXT, {
@@ -130,7 +138,7 @@ export const MEANINGS: Readonly<Record<MeaningField, ThermostatMeaning>> = {
         mapping: additions('einheit'),
         unassigned: true,
     }),
-    urlaub: meaning('urlaub', 'heating_urlaub', ANY_VALUE, { mapping: values('an', 'aus') }),
+    urlaub: meaning('urlaub', 'heating_urlaub', ANY_VALUE, { mapping: switchable('an', 'an', 'aus') }),
     // Stage 4 (Boost und Urlaub) assigns it: the Raumthermostat starts no Urlaub.
     urlaubBeginn: meaning('urlaubBeginn', 'heating_urlaub_beginn', NUMBER_OR_TEXT, {
         mapping: additions('zeitformat'),
@@ -139,13 +147,13 @@ export const MEANINGS: Readonly<Record<MeaningField, ThermostatMeaning>> = {
     urlaubEnde: meaning('urlaubEnde', 'heating_urlaub_ende', NUMBER_OR_TEXT, { mapping: additions('zeitformat') }),
     // Stage 4 (Boost und Urlaub) assigns it.
     urlaubTemperatur: meaning('urlaubTemperatur', 'heating_urlaub_temperatur', NUMBER, { unassigned: true }),
-    fenster: meaning('fenster', 'heating_fenster', ANY_VALUE, { mapping: values('zu', 'offen') }),
+    fenster: meaning('fenster', 'heating_fenster', ANY_VALUE, { mapping: switchable('offen', 'zu', 'offen') }),
     batterieSchwach: meaning('batterieSchwach', 'heating_batterie_schwach', ANY_VALUE, {
-        mapping: values('schwach', 'ok'),
+        mapping: switchable('schwach', 'schwach', 'ok'),
     }),
     batteriestand: meaning('batteriestand', 'heating_batteriestand', NUMBER),
     erreichbarkeit: meaning('erreichbarkeit', 'heating_erreichbarkeit', ANY_VALUE, {
-        mapping: values('erreichbar', 'unerreichbar'),
+        mapping: switchable('erreichbar', 'erreichbar', 'unerreichbar'),
     }),
 };
 
