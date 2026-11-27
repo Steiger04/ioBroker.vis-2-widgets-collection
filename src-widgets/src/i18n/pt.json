@@ -1299,7 +1299,7 @@
     "theme_studio_hint_divider": "Contornos, divisores e molduras de gráficos; predefinição de todos os atributos de cor de linha.",
     "theme_studio_hint_error": "Cor da série 6 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos (por exemplo, erros de introdução). Nos widgets de aquecimento: avarias e avisos.",
     "theme_studio_hint_info": "Cor da série 5 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos. Nos widgets de aquecimento: frio, por exemplo, janela aberta.",
-    "theme_studio_hint_primary": "Acento principal: estados ativos, cor predefinida dos ícones, primeira cor de série da paleta de gráficos “Tema (automático)”.",
+    "theme_studio_hint_primary": "Acento principal: estados ativos, cor predefinida dos ícones, primeira cor de série da paleta de gráficos “Tema (automático)”. Nos widgets de aquecimento: o anel, as pílulas escolhidas e ±.",
     "theme_studio_hint_secondary": "Segundo acento e segunda cor de série de gráficos. Calculado como parceiro triádico do primário até ser definido.",
     "theme_studio_hint_success": "Cor da série 4 da paleta de gráficos “Tema (automático)” e indicadores de estado dos controlos.",
     "theme_studio_hint_text_primary": "Predefinição de todas as cores de texto. Segue a cor primária até ser definida.",

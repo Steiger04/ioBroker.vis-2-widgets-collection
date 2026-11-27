@@ -1316,7 +1316,7 @@
     "theme_studio_hint_divider": "Borders, separators and chart frames; default of every line colour attribute.",
     "theme_studio_hint_error": "Series colour 6 of the chart palette “Theme (auto)” and status indicators of controls (e.g. input errors). In the heating widgets: faults and notices.",
     "theme_studio_hint_info": "Series colour 5 of the chart palette “Theme (auto)” and status indicators of controls. In the heating widgets: cool, e.g. window open.",
-    "theme_studio_hint_primary": "Main accent: active states, default icon colour, first series colour of the chart palette “Theme (auto)”.",
+    "theme_studio_hint_primary": "Main accent: active states, default icon colour, first series colour of the chart palette “Theme (auto)”. In the heating widgets: the ring, the chosen pills and ±.",
     "theme_studio_hint_secondary": "Second accent and second chart series colour. Computed as a triadic partner of the primary until set.",
     "theme_studio_hint_success": "Series colour 4 of the chart palette “Theme (auto)” and status indicators of controls.",
     "theme_studio_hint_text_primary": "Default of all text colours. Follows the primary colour until set.",

@@ -9,8 +9,8 @@
  * (`onPreview`) and hands it over once on release (`onCommit`); a cancelled pointer writes nothing.
  * The ring is a slider for the keyboard: the arrow keys step like ±. While the ring is off (the
  * set-point has not reported yet) it neither reacts nor takes the focus; ± are disabled then.
- * The arc takes the `heizt` tone's text colour, with an open window the `kühl` one
- * (`lib/heating/tones`, as the design).
+ * Ring (arc, handle, track) and ± take the Bedienakzent (`lib/heating/tones`, ADR-0124 Nachtrag
+ * 2026-11-27): a setting, not a state, so the ring looks the same with a window open.
  */
 import Add from '@mui/icons-material/Add';
 import Remove from '@mui/icons-material/Remove';
@@ -19,7 +19,7 @@ import { useRef, type KeyboardEvent, type PointerEvent, type ReactElement, type 
 
 import { useReducedMotion } from '../lib/heating/motion';
 import { fractionOf, RING_START, RING_SWEEP, valueAtAngle, type SetpointScale } from '../lib/heating/setpointScale';
-import { toneColors } from '../lib/heating/tones';
+import { accentColors } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
 
 /** Props of {@link StepButton}. */
@@ -45,6 +45,7 @@ export interface StepButtonProps {
  */
 export function StepButton({ direction, disabled, size, onClick }: StepButtonProps): ReactElement {
     const reducedMotion = useReducedMotion();
+    const accent = accentColors(useTheme());
     return (
         <IconButton
             data-heating-step={direction}
@@ -57,11 +58,11 @@ export function StepButton({ direction, disabled, size, onClick }: StepButtonPro
                 width: size,
                 height: size,
                 border: 1,
-                borderColor: 'divider',
-                bgcolor: 'action.hover',
-                color: 'text.primary',
+                borderColor: 'transparent',
+                bgcolor: accent.surface,
+                color: accent.text,
                 transition: reducedMotion ? 'none' : undefined,
-                '&:hover': { bgcolor: 'action.selected' },
+                '&:hover': { bgcolor: accent.hover },
             }}
         >
             {direction === 'up' ? <Add /> : <Remove />}
@@ -117,8 +118,6 @@ export interface SetpointDialProps {
     readonly value: number | undefined;
     /** Off: the ring neither reacts nor takes the focus. */
     readonly disabled: boolean;
-    /** The arc in the `kühl` tone (window open). */
-    readonly cool: boolean;
     /** Shows a value while dragging; `undefined` ends the preview. */
     readonly onPreview: (value: number | undefined) => void;
     /** Takes the value on release. */
@@ -139,7 +138,6 @@ export interface SetpointDialProps {
  * @param props.scale - The set-point's scale.
  * @param props.value - The shown set-point.
  * @param props.disabled - Whether the ring is off.
- * @param props.cool - Whether the arc takes the `kühl` tone.
  * @param props.onPreview - Shows a value while dragging.
  * @param props.onCommit - Takes the value on release.
  * @param props.onStep - Steps like ±.
@@ -152,7 +150,6 @@ export function SetpointDial({
     scale,
     value,
     disabled,
-    cool,
     onPreview,
     onCommit,
     onStep,
@@ -227,7 +224,7 @@ export function SetpointDial({
     };
 
     const ticks = ticksOf(scale);
-    const arcColor = toneColors(theme, cool ? 'kühl' : 'heizt').text;
+    const accent = accentColors(theme);
     const circumference = 2 * Math.PI * RADIUS;
     const sweep = (RING_SWEEP / 360) * circumference;
     const shown = value === undefined ? undefined : fractionOf(value, scale);
@@ -306,7 +303,7 @@ export function SetpointDial({
                     transform={`rotate(${RING_START} ${CENTRE} ${CENTRE})`}
                     style={{
                         fill: 'none',
-                        stroke: theme.palette.action.selected,
+                        stroke: accent.surface,
                         strokeWidth: STROKE,
                         strokeLinecap: 'round',
                         strokeDasharray: `${sweep.toFixed(2)} ${circumference.toFixed(2)}`,
@@ -322,7 +319,7 @@ export function SetpointDial({
                             transform={`rotate(${RING_START} ${CENTRE} ${CENTRE})`}
                             style={{
                                 fill: 'none',
-                                stroke: arcColor,
+                                stroke: accent.line,
                                 strokeWidth: STROKE,
                                 strokeLinecap: 'round',
                                 strokeDasharray: `${(shown * sweep).toFixed(2)} ${circumference.toFixed(2)}`,
@@ -335,7 +332,7 @@ export function SetpointDial({
                             r={11}
                             style={{
                                 fill: theme.palette.background.paper,
-                                stroke: arcColor,
+                                stroke: accent.line,
                                 strokeWidth: 4,
                                 transition,
                             }}

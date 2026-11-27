@@ -18,7 +18,7 @@ import { resolveCollectionTheme } from '../theme/resolveCollectionTheme';
 import { THEME_PRESETS } from '../theme/presets';
 import type { Theme } from '@mui/material/styles';
 import type { UserTheme } from '../theme/themeTypes';
-import { HEATING_TONES, toneColors } from './tones';
+import { accentColors, HEATING_TONES, toneColors } from './tones';
 
 /** WCAG AA for normal text. */
 const AA = 4.5;
@@ -228,5 +228,55 @@ describe('a pure function', () => {
             const { surface, text } = toneColors(theme, tone);
             expect(getContrastRatio(text, surface)).toBeGreaterThanOrEqual(AA);
         }
+    });
+});
+
+describe('Bedienakzent: the controls take the theme primary in shades (ADR-0124 Nachtrag 2026-11-27)', () => {
+    /** WCAG AA for graphical objects — the ring's arc against the card. */
+    const GRAPHIC = 3;
+    const hosts: [string, Theme][] = [
+        ['vis-2 modern dark', modern('dark')],
+        ['vis-2 modern light', modern('light')],
+        ['MUI default dark', createTheme({ palette: { mode: 'dark' } })],
+        ['MUI default light', createTheme({ palette: { mode: 'light' } })],
+    ];
+    const users: [string, UserTheme][] = [
+        ['no user theme', {}],
+        ...THEME_PRESETS.map((preset): [string, UserTheme] => [`preset ${preset.id}`, preset.theme]),
+        ['pale primary, light', { palette: { mode: 'light', primary: { main: '#e8f4ff' } } }],
+        ['deep primary, dark', { palette: { mode: 'dark', primary: { main: '#06061a' } } }],
+    ];
+    const cases = hosts.flatMap(([hostName, host]) =>
+        users.map(([userName, user]) => ({ name: `${hostName} + ${userName}`, theme: resolve(host, user) })),
+    );
+
+    it.each(cases)('$name: arc ≥ 3:1 on the paper, sign and text ≥ 4.5:1 on the surface and its hover', ({ theme }) => {
+        const accent = accentColors(theme);
+        expect(getContrastRatio(accent.line, theme.palette.background.paper)).toBeGreaterThanOrEqual(GRAPHIC);
+        expect(getContrastRatio(accent.text, accent.surface)).toBeGreaterThanOrEqual(AA);
+        expect(getContrastRatio(accent.text, accent.hover)).toBeGreaterThanOrEqual(AA);
+    });
+
+    it('takes the primary itself for the arc where it already reads: Smaragd draws its emerald, not the amber warning', () => {
+        const smaragd = THEME_PRESETS.find(preset => preset.id === 'smaragd')!.theme;
+        const theme = resolve(modern('dark'), smaragd);
+        expect(accentColors(theme).line).toBe('rgb(52, 211, 153)'); // #34d399
+        expect(accentColors(theme).line).not.toBe(toneColors(theme, 'heizt').text);
+    });
+
+    it('tints its surfaces with the primary like a Tönung: same alpha, the hover a step stronger', () => {
+        const theme = resolve(modern('dark'), {
+            palette: { primary: { main: '#ff0000' }, background: { paper: '#000000' } },
+        });
+        const accent = accentColors(theme);
+        expect(accent.surface).toBe('rgb(41, 0, 0)'); // 0.16 × 255
+        expect(getLuminance(accent.hover)).toBeGreaterThan(getLuminance(accent.surface));
+    });
+
+    it('stays readable instead of throwing on a primary no calculation reads', () => {
+        const theme = createTheme({ palette: { mode: 'dark', primary: { main: '#1976d2' } } });
+        (theme.palette.primary as { main: string }).main = 'var(--host-primary)';
+        const accent = accentColors(theme);
+        expect(getContrastRatio(accent.text, accent.surface)).toBeGreaterThanOrEqual(AA);
     });
 });

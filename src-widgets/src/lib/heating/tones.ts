@@ -15,6 +15,12 @@
  *   on a light one in small steps until it reaches 4.5:1 — at the end of the steps it is white
  *   or black, so every theme colour stays readable.
  *
+ * The **Bedienakzent** (ADR-0124 Nachtrag 2026-11-27) is built the same way from the theme's
+ * primary colour: what a user sets or chooses — the set-point ring, the lit pill, the ± keys, the
+ * Kartenkopf symbol — takes it, never a tone, so it reads the same in every state. The arc takes
+ * the primary itself, stepped until 3:1 on the paper (a graphical object); surfaces take its tint,
+ * the hover a step stronger; a sign or text on them is stepped until 4.5:1 on both.
+ *
  * Every returned colour is opaque, so the contrast holds whatever lies beneath the surface.
  * Pure and component-free; never throws on an unreadable theme colour.
  */
@@ -43,6 +49,12 @@ export interface ToneColors {
 /** WCAG AA for normal text — the chips' 12 px text. */
 const MIN_CONTRAST = 4.5;
 
+/** WCAG AA for graphical objects — the ring's arc against the card. */
+const MIN_GRAPHIC_CONTRAST = 3;
+
+/** How much stronger the hover tint of an accent surface is than its rest tint. */
+const HOVER_TINT_FACTOR = 1.75;
+
 /** Alpha of the tint on the paper, per mode (start values of the design). */
 const TINT_ALPHA = { dark: 0.16, light: 0.1 } as const;
 
@@ -51,8 +63,8 @@ const CONTRAST_STEP = 0.02;
 
 /** MUI's defaults per mode — only a never-throw guard for a colour no calculation reads. */
 const FALLBACK = {
-    dark: { paper: '#121212', text: 'rgba(255, 255, 255, 0.7)' },
-    light: { paper: '#ffffff', text: 'rgba(0, 0, 0, 0.6)' },
+    dark: { paper: '#121212', text: 'rgba(255, 255, 255, 0.7)', primary: '#90caf9' },
+    light: { paper: '#ffffff', text: 'rgba(0, 0, 0, 0.6)', primary: '#1976d2' },
 } as const;
 
 /** A colour as channels: `[r, g, b]` in 0–255 and its alpha in 0–1. */
@@ -99,14 +111,14 @@ function blackOrWhite(surface: string): '#000' | '#fff' {
 
 /**
  * The colour lightened (dark surface) or darkened (light surface) in small steps until it
- * reaches {@link MIN_CONTRAST} on `surface`. The last step is white or black.
+ * reaches `minContrast` on `surface`. The last step is white or black.
  */
-function readableOn(surface: string, color: string): string {
+function readableOn(surface: string, color: string, minContrast = MIN_CONTRAST): string {
     const towardsWhite = blackOrWhite(surface) === '#fff';
     for (let step = 0; step * CONTRAST_STEP < 1; step++) {
         const coefficient = step * CONTRAST_STEP;
         const candidate = towardsWhite ? lighten(color, coefficient) : darken(color, coefficient);
-        if (getContrastRatio(candidate, surface) >= MIN_CONTRAST) {
+        if (getContrastRatio(candidate, surface) >= minContrast) {
             return candidate;
         }
     }
@@ -150,4 +162,40 @@ export function toneColors(theme: Theme, tone: HeatingTone): ToneColors {
     const surface = composite(base, slot, TINT_ALPHA[mode]);
     const slotOnSurface = composite(rgbaOf(surface, fallback.paper), slot, 1);
     return { surface, text: readableOn(surface, slotOnSurface), mark };
+}
+
+/** The colours of the Bedienakzent. */
+export interface AccentColors {
+    /** Opaque line colour for the ring's arc and handle, at least 3:1 on the paper. */
+    line: string;
+    /** Opaque tinted surface: the lit pill, the ± keys, the ring's track, the Kartenkopf symbol. */
+    surface: string;
+    /** Opaque hover surface, a step stronger than {@link AccentColors.surface}. */
+    hover: string;
+    /** Opaque sign and text colour on the surface, at least 4.5:1 on the surface and its hover. */
+    text: string;
+}
+
+/**
+ * The colours of the Bedienakzent in the given theme: the theme's primary colour in the shades of a
+ * Tönung (ADR-0124 Nachtrag 2026-11-27).
+ *
+ * @param theme - The resolved collection theme (`useCollectionTheme`).
+ * @returns Opaque line, surface, hover and text colours.
+ */
+export function accentColors(theme: Theme): AccentColors {
+    const mode = theme.palette.mode === 'dark' ? 'dark' : 'light';
+    const fallback = FALLBACK[mode];
+    const paperRgba = rgbaOf(theme.palette.background?.paper, fallback.paper);
+    const base: Rgba = { rgb: paperRgba.rgb, alpha: 1 };
+    const paper = composite(base, base, 1);
+    const primary = rgbaOf(theme.palette.primary?.main, fallback.primary);
+
+    const surface = composite(base, primary, TINT_ALPHA[mode]);
+    const hover = composite(base, primary, TINT_ALPHA[mode] * HOVER_TINT_FACTOR);
+    const primaryOnPaper = composite(base, primary, 1);
+    // A sign readable on the stronger hover tint reads on the rest tint as well; checked by test.
+    const onHover = readableOn(hover, primaryOnPaper);
+    const text = getContrastRatio(onHover, surface) >= MIN_CONTRAST ? onHover : readableOn(surface, onHover);
+    return { line: readableOn(paper, primaryOnPaper, MIN_GRAPHIC_CONTRAST), surface, hover, text };
 }

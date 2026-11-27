@@ -1229,7 +1229,7 @@
     "theme_studio_hint_divider": "Ränder und Trennlinien, Diagrammrahmen; Standard aller Linienfarben-Attribute.",
     "theme_studio_hint_error": "Reihenfarbe 6 der Diagramm-Palette „Theme (auto)“ und Statusanzeigen der Bedienelemente (z. B. Eingabefehler). In den Heizungs-Widgets: Störungen und Hinweise.",
     "theme_studio_hint_info": "Reihenfarbe 5 der Diagramm-Palette „Theme (auto)“ und Statusanzeigen der Bedienelemente. In den Heizungs-Widgets: kühl, z. B. Fenster offen.",
-    "theme_studio_hint_primary": "Hauptakzent: aktive Zustände, Icon-Standardfarbe, erste Reihenfarbe der Diagramm-Palette „Theme (auto)“.",
+    "theme_studio_hint_primary": "Hauptakzent: aktive Zustände, Icon-Standardfarbe, erste Reihenfarbe der Diagramm-Palette „Theme (auto)“. In den Heizungs-Widgets: Ring, gewählte Pills und ±.",
     "theme_studio_hint_secondary": "Zweiter Akzent und zweite Reihenfarbe der Diagramm-Palette. Ohne eigene Wahl triadisch aus der Primärfarbe berechnet.",
     "theme_studio_hint_success": "Reihenfarbe 4 der Diagramm-Palette „Theme (auto)“ und Statusanzeigen der Bedienelemente.",
     "theme_studio_hint_text_primary": "Standard aller Textfarben. Folgt ohne eigene Wahl der Primärfarbe.",

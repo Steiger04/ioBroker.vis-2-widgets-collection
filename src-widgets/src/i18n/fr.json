@@ -1299,7 +1299,7 @@
     "theme_studio_hint_divider": "Bordures, séparateurs et cadres de graphiques ; valeur par défaut de chaque attribut de couleur de ligne.",
     "theme_studio_hint_error": "Couleur de série 6 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles (par ex. erreurs de saisie). Dans les widgets de chauffage : défauts et avis.",
     "theme_studio_hint_info": "Couleur de série 5 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles. Dans les widgets de chauffage : froid, par ex. fenêtre ouverte.",
-    "theme_studio_hint_primary": "Accent principal : états actifs, couleur d'icône par défaut, première couleur de série de la palette de graphiques « Thème (auto) ».",
+    "theme_studio_hint_primary": "Accent principal : états actifs, couleur d'icône par défaut, première couleur de série de la palette de graphiques « Thème (auto) ». Dans les widgets de chauffage : l'anneau, les pastilles choisies et ±.",
     "theme_studio_hint_secondary": "Second accent et deuxième couleur de série de graphique. Calculé comme partenaire triadique de la couleur primaire tant qu'il n'est pas défini.",
     "theme_studio_hint_success": "Couleur de série 4 de la palette de graphiques « Thème (auto) » et indicateurs d'état des contrôles.",
     "theme_studio_hint_text_primary": "Valeur par défaut de toutes les couleurs de texte. Suit la couleur primaire tant qu'elle n'est pas définie.",

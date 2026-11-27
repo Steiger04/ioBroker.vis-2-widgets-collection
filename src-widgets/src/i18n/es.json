@@ -1299,7 +1299,7 @@
     "theme_studio_hint_divider": "Bordes, separadores y marcos de gráficos; predeterminado de cada atributo de color de línea.",
     "theme_studio_hint_error": "Color de serie 6 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles (p. ej., errores de entrada). En los widgets de calefacción: averías y avisos.",
     "theme_studio_hint_info": "Color de serie 5 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles. En los widgets de calefacción: frío, p. ej., ventana abierta.",
-    "theme_studio_hint_primary": "Acento principal: estados activos, color de icono predeterminado y primer color de serie de la paleta de gráficos «Tema (automático)».",
+    "theme_studio_hint_primary": "Acento principal: estados activos, color de icono predeterminado y primer color de serie de la paleta de gráficos «Tema (automático)». En los widgets de calefacción: el anillo, las píldoras seleccionadas y ±.",
     "theme_studio_hint_secondary": "Segundo acento y segundo color de serie de gráficos. Se calcula como contraparte triádica del color primario hasta que se establezca.",
     "theme_studio_hint_success": "Color de serie 4 de la paleta de gráficos «Tema (automático)» e indicadores de estado de los controles.",
     "theme_studio_hint_text_primary": "Predeterminado de todos los colores de texto. Sigue el color primario hasta que se establezca.",

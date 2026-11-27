@@ -224,13 +224,15 @@ In the stage Mini the whole tile is a button: a tap, Enter or Space opens the Mi
 
 The heating widgets have no color fields and no theme key of their own. Every colouring comes from the theme's palette, i.e. from the Theme Studio, otherwise from the vis-2 theme:
 
-| Colouring | Theme color                                                | Where                                                                                     |
-| --------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Fault     | Error color `palette.error`, filled, with warning triangle | Chip "Not reachable", hint line "No radio connection …", status sign of the tile          |
-| Notice    | Error color `palette.error`, tinted, with warning triangle | Hint line "Battery low …", battery value of the readings bar, status sign of the tile     |
-| Heating   | Warning color `palette.warning`                            | Chips "Heating" and "Boost", arc and handle of the ring, lit pills                        |
-| Cool      | Info color `palette.info`                                  | Chip "Window open", window value of the readings bar, arc of the ring with an open window |
-| Neutral   | Text and surface colors of the theme                       | Other chips, quiet hint line                                                              |
+| Colouring | Theme color                                                | Where                                                                                 |
+| --------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Fault     | Error color `palette.error`, filled, with warning triangle | Chip "Not reachable", hint line "No radio connection …", status sign of the tile      |
+| Notice    | Error color `palette.error`, tinted, with warning triangle | Hint line "Battery low …", battery value of the readings bar, status sign of the tile |
+| Heating   | Warning color `palette.warning`                            | Chips "Heating" and "Boost", status sign of the tile                                  |
+| Cool      | Info color `palette.info`                                  | Chip "Window open", window value of the readings bar, status sign of the tile         |
+| Neutral   | Text and surface colors of the theme                       | Other chips, quiet hint line                                                          |
+
+What you set or choose takes none of these colourings but the **control accent** from the primary color `palette.primary`: the ring (arc, handle and track), the chosen pill and the operating-mode segment, the ± and the symbol in the card head. It shows a setting, not a state, so it stays the same in every state, also with a window open. Its shades are built like the colourings': the primary color itself for arc and handle (at least 3:1 on the card), tinted for surfaces, signs and text on them at least 4.5:1. So the widget matches your other widgets in the default theme as in every Theme Studio preset.
 
 The heating widgets take `palette.error` for faults and notices, `palette.warning` for heating (warmth, not a warning) and `palette.info` for cool, such as an open window. The text on these colourings reaches at least 4.5:1 in light and dark: filled it takes black or white, tinted the color is lightened or darkened until the contrast suffices.
 

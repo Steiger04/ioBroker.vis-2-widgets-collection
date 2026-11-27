@@ -252,7 +252,6 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                     scale={scale}
                     value={shown}
                     disabled={!ring || ring.locked}
-                    cool={status.chip?.tone === 'kühl'}
                     onPreview={setPreview}
                     onCommit={commit}
                     onStep={step}

@@ -12,14 +12,15 @@
  * stacked: name, second line, chips below), the truncation (name and second line end with an
  * ellipsis, chips keep their width), the chip's appearance (a capsule with a dot, the triangle for
  * a Meldung, the heizt dot pulsing unless the user asked for less motion) and tone → colour through
- * the tone module (`lib/heating/tones`). An empty name or second line shows no line. The frame's
+ * the tone module (`lib/heating/tones`); the type symbol sits on the Bedienakzent (ADR-0124 Nachtrag
+ * 2026-11-27). An empty name or second line shows no line. The frame's
  * `noHeader` never reaches it; the Mini tile has its own head (ADR-0122).
  */
 import { Box, Typography, keyframes, useTheme } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
 import { useReducedMotion } from './motion';
-import { toneColors, type HeatingTone } from './tones';
+import { accentColors, toneColors, type HeatingTone } from './tones';
 
 /** The form of the Kartenkopf. */
 export type KartenkopfForm = 'zeile' | 'gestapelt';
@@ -124,6 +125,7 @@ function Chip({ chip }: { chip: KartenkopfChip }): ReactElement {
  * @returns The head.
  */
 export default function Kartenkopf({ name, secondLine, chips, form, symbol }: KartenkopfProps): ReactElement {
+    const accent = accentColors(useTheme());
     const stacked = form === 'gestapelt';
     const nameLine = name ? (
         <Typography
@@ -179,8 +181,8 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol }: Ka
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        bgcolor: 'action.hover',
-                        color: 'text.secondary',
+                        bgcolor: accent.surface,
+                        color: accent.text,
                     }}
                 >
                     {symbol}

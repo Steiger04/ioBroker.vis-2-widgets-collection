@@ -5,8 +5,9 @@
  * @module lib/heating/PillRow
  * @remarks
  * A pill names its action, optionally a detail (the value it writes), and lights while the reported
- * state equals what it would set (`aria-pressed`). The lit pill takes the `heizt` tone's surface and
- * text (`lib/heating/tones`), the others stay quiet on the card. The caller decides which pills
+ * state equals what it would set (`aria-pressed`). The lit pill takes the Bedienakzent's surface and
+ * text (`lib/heating/tones`, ADR-0124 Nachtrag 2026-11-27: a choice, not a state), the others stay
+ * quiet on the card. The caller decides which pills
  * exist — only those with a writable target — and what a tap writes; a pill without an action only
  * shows a state (disabled, still lit). An empty row draws nothing.
  * Under `prefers-reduced-motion` there is no ripple and no transition.
@@ -15,7 +16,7 @@ import { Box, ButtonBase, useTheme } from '@mui/material';
 import type { ReactElement } from 'react';
 
 import { useReducedMotion } from './motion';
-import { toneColors } from './tones';
+import { accentColors } from './tones';
 
 /** One pill of the row. */
 export interface Pill {
@@ -53,7 +54,7 @@ export default function PillRow({ pills, label }: PillRowProps): ReactElement | 
     if (!pills.length) {
         return null;
     }
-    const lit = toneColors(theme, 'heizt');
+    const lit = accentColors(theme);
 
     return (
         <Box

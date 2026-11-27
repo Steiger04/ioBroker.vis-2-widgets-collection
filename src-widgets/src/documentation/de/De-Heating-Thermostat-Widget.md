@@ -228,9 +228,11 @@ Die Heizungs-Widgets haben keine eigenen Farbfelder und keinen eigenen Theme-Sch
 | ------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Störung | Fehlerfarbe `palette.error`, gefüllt, mit Warndreieck | Chip „Nicht erreichbar“, Hinweiszeile „Kein Funkkontakt …“, Statuszeichen der Kachel         |
 | Hinweis | Fehlerfarbe `palette.error`, getönt, mit Warndreieck  | Hinweiszeile „Batterie schwach …“, Batteriewert der Messwertleiste, Statuszeichen der Kachel |
-| heizt   | Warnfarbe `palette.warning`                           | Chip „Heizt“ und „Boost“, Bogen und Griff des Rings, leuchtende Pills                        |
-| kühl    | Infofarbe `palette.info`                              | Chip „Fenster offen“, Fensterwert der Messwertleiste, Bogen des Rings bei offenem Fenster    |
+| heizt   | Warnfarbe `palette.warning`                           | Chip „Heizt“ und „Boost“, Statuszeichen der Kachel                                           |
+| kühl    | Infofarbe `palette.info`                              | Chip „Fenster offen“, Fensterwert der Messwertleiste, Statuszeichen der Kachel               |
 | neutral | Text- und Flächenfarben des Themes                    | übrige Chips, ruhige Hinweiszeile                                                            |
+
+Was du einstellst oder wählst, trägt keine dieser Färbungen, sondern den **Bedienakzent** aus der Primärfarbe `palette.primary`: Ring (Bogen, Griff und Spur), die gewählte Pill und das Betriebsart-Segment, die ± und das Symbol im Kartenkopf. Er zeigt eine Einstellung, keinen Zustand, und bleibt deshalb in jedem Zustand gleich, auch bei offenem Fenster. Seine Stufen entstehen wie bei den Färbungen: die Primärfarbe selbst für Bogen und Griff (mindestens 3:1 zur Karte), getönt für Flächen, Zeichen und Schrift darauf mit mindestens 4,5:1. So passt das Widget im Standard-Theme wie in jeder Vorlage des Theme-Studios zu deinen übrigen Widgets.
 
 Die Heizungs-Widgets nehmen `palette.error` für Störungen und Hinweise, `palette.warning` für Heizen (Wärme, keine Warnung) und `palette.info` für kühl, etwa ein offenes Fenster. Die Schrift auf diesen Färbungen erreicht in Hell und Dunkel mindestens 4,5:1: Gefüllt nimmt sie Schwarz oder Weiß, getönt wird die Farbe aufgehellt bzw. abgedunkelt, bis der Kontrast reicht.
 

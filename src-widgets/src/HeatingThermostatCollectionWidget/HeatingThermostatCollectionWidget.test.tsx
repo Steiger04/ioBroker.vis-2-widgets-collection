@@ -17,6 +17,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Theme } from '@iobroker/gui-components';
 
 import { InjectedContentBoxContext, type ContentBox } from '../hooks/useContentBox';
+import { accentColors } from '../lib/heating/tones';
+import { resolveCollectionTheme } from '../lib/theme/resolveCollectionTheme';
 import { installInertResizeObserver } from '../lib/testing/collectionScene';
 import { heatingTestDevices, NEUTRAL_DEVICE, ANLAGE_WTH2, valuesOf } from '../lib/testing/heatingTestDevices';
 import { createTestRoot } from '../lib/testing/testRoots';
@@ -1555,6 +1557,64 @@ describe('HeatingThermostatCollectionWidget: inserted by the assistant (ids only
         expect(writes()).toEqual([
             [neutral('betriebsart'), 1],
             [neutral('boost'), false],
+        ]);
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the Bedienakzent (ADR-0124 Nachtrag 2026-11-27)', () => {
+    /** The accent of the theme the widget draws in: the host's light theme without a user theme. */
+    const accent = accentColors(resolveCollectionTheme(Theme('light'), undefined, {}));
+    /** A colour as the browser writes it, without spaces. */
+    const css = (color: string | null | undefined): string => (color ?? '').replace(/\s+/g, '');
+    const ring = (container: HTMLElement): { arc: string; handle: string; track: string } => {
+        const circles = [...container.querySelectorAll<SVGCircleElement>('[data-heating-dial] circle')];
+        const arc = container.querySelector<SVGCircleElement>('[data-heating-arc]')!;
+        return {
+            arc: css(arc.style.stroke),
+            handle: css(circles.at(-1)!.style.stroke),
+            track: css(circles[circles.indexOf(arc) - 1].style.stroke),
+        };
+    };
+
+    it('draws the ring — arc, handle and track — in the accent, not in the heizt tone', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+
+        expect(ring(container)).toEqual({
+            arc: css(accent.line),
+            handle: css(accent.line),
+            track: css(accent.surface),
+        });
+    });
+
+    it('keeps the ring in the accent with a window open: the chip says kühl, the ring does not', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21, fenster: 1 }));
+
+        expect(chipOf(container)).toEqual(['heating_status_fenster', 'kühl']);
+        expect(ring(container).arc).toBe(css(accent.line));
+    });
+
+    it('lights the active pill with the accent surface and text', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const lit = container.querySelector<HTMLElement>('[data-heating-pill="komfort"][aria-pressed="true"]')!;
+
+        expect([css(getComputedStyle(lit).backgroundColor), css(getComputedStyle(lit).color)]).toEqual([
+            css(accent.surface),
+            css(accent.text),
+        ]);
+    });
+
+    it('fills the ± keys and the Kartenkopf symbol with the accent surface, their signs in the accent text', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }));
+        const looks = [
+            container.querySelector<HTMLElement>('[data-heating-step="up"]')!,
+            container.querySelector<HTMLElement>('[data-heating-step="down"]')!,
+            container.querySelector<HTMLElement>('[data-heating-head-symbol]')!,
+        ].map(element => [css(getComputedStyle(element).backgroundColor), css(getComputedStyle(element).color)]);
+
+        expect(looks).toEqual([
+            [css(accent.surface), css(accent.text)],
+            [css(accent.surface), css(accent.text)],
+            [css(accent.surface), css(accent.text)],
         ]);
     });
 });

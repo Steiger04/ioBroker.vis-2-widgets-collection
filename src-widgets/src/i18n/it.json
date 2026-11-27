@@ -1299,7 +1299,7 @@
     "theme_studio_hint_divider": "Bordi, separatori e cornici dei grafici; predefinito di ogni attributo di colore linea.",
     "theme_studio_hint_error": "Colore serie 6 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli (ad es. errori di input). Nei widget di riscaldamento: guasti e avvisi.",
     "theme_studio_hint_info": "Colore serie 5 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli. Nei widget di riscaldamento: freddo, ad es. finestra aperta.",
-    "theme_studio_hint_primary": "Accento principale: stati attivi, colore predefinito delle icone, primo colore serie della tavolozza dei grafici “Tema (auto)”.",
+    "theme_studio_hint_primary": "Accento principale: stati attivi, colore predefinito delle icone, primo colore serie della tavolozza dei grafici “Tema (auto)”. Nei widget di riscaldamento: l'anello, le pillole selezionate e ±.",
     "theme_studio_hint_secondary": "Secondo accento e secondo colore serie dei grafici. Calcolato come partner triadico del colore primario finché non viene impostato.",
     "theme_studio_hint_success": "Colore serie 4 della tavolozza dei grafici “Tema (auto)” e indicatori di stato dei controlli.",
     "theme_studio_hint_text_primary": "Predefinito di tutti i colori del testo. Segue il colore primario finché non viene impostato.",
