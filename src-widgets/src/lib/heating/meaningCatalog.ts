@@ -269,6 +269,11 @@ export const VALVE_LIST = {
     valueTypes: NUMBER,
     /** The label of one valve. */
     label: 'heating_ventil',
+    /**
+     * The label of the hidden base field: read only by the assistant (`describe_widget_type` lists
+     * hidden fields), so it says to leave the field empty and where the valves go (ADR-0121).
+     */
+    baseLabel: 'heating_ventil_basis',
     /** The label of the list. */
     listLabel: 'heating_ventile',
     /** The host subscribes up to two trailing digits (ADR-0121). */

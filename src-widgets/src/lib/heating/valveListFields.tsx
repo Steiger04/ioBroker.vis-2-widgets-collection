@@ -9,7 +9,9 @@
  * Two fields:
  * 1. the base field `ventil`, declared once, hidden, as an id field: the host takes `ventil1…99`
  *    for ids by its digit rule (name minus up to two trailing digits is a declared id field) and
- *    subscribes them; it carries the mirrors of `createIdField` for the Lese-Naht;
+ *    subscribes them; it carries the mirrors of `createIdField` for the Lese-Naht. Only the
+ *    assistant sees it (`describe_widget_type` lists hidden fields): its label tells it to leave
+ *    the field empty and to store the valves as `ventil1…N` with `ventilAnzahl`;
  * 2. the custom field `ventilAnzahl`: per valve the host's native id field (through vis-2's
  *    `Editor`, the pick chain of `createIdField` under the numbered name) with a remove button,
  *    then an add button. A remove moves the later valves up together with their objects and
@@ -34,7 +36,12 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
  */
 export function heatingValveListFields(): RxWidgetInfoAttributesField[] {
     return [
-        { ...createIdField(VALVE_LIST.field, VALVE_LIST.valueTypes, { inventRange: false }), hidden: () => true },
+        {
+            ...createIdField(VALVE_LIST.field, VALVE_LIST.valueTypes, { inventRange: false }),
+            // Only the assistant reads it: it must not take the base field for valve 1.
+            label: VALVE_LIST.baseLabel,
+            hidden: () => true,
+        },
         {
             name: VALVE_LIST.counter,
             type: 'custom',

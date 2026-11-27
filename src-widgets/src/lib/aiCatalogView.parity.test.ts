@@ -747,6 +747,31 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
+describe('Raumthermostat: the valve list in the assistant’s view (ADR-0121)', () => {
+    const name: WidgetName = 'HeatingThermostatCollectionWidget';
+    const fieldIn = (language: Translate, field: string): DescribedField | undefined =>
+        describedFields(infos.get(name)!, I18N_PREFIX, language).find(one => one.name === field);
+
+    it('tells the assistant at the hidden base field "ventil" to leave it empty and where the valves go', () => {
+        const label = fieldIn(t, 'ventil')?.label ?? '';
+
+        expect(label).toContain('leave it empty');
+        expect(label).toContain('"ventil1"');
+        expect(label).toContain('"ventilAnzahl"');
+    });
+
+    it('says the same in the KI-Leitfaden', () => {
+        const guide = guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX))[0]?.label ?? '';
+
+        expect(guide).toContain('"ventil1", "ventil2" and so on, with their number in "ventilAnzahl"');
+        expect(guide).toContain('the base field "ventil" itself stays empty');
+    });
+
+    it.each(LANGUAGE_FILES)('words the base field for the assistant in English in %s, like the KI-Leitfaden', file => {
+        expect(fieldIn(translatorOf(readLanguage(file)), 'ventil')?.label).toBe(fieldIn(t, 'ventil')?.label);
+    });
+});
+
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
@@ -782,6 +807,24 @@ describe('Every language file: what the assistant and the palette read in each i
 
             expect(untranslated).toEqual([]);
         });
+
+        // Heating types bind through hidden base fields (ADR-0121: the assistant sees only the declared
+        // base fields); a label without its key reaches the assistant raw (and the host logs a miss).
+        it.each(['HeatingThermostatCollectionWidget'] as WidgetName[])(
+            '%s: translates the label of every field that has one',
+            name => {
+                const info = infos.get(name)!;
+                const untranslated = describedFields(info, I18N_PREFIX, translate)
+                    .filter(
+                        field =>
+                            field.label !== undefined &&
+                            field.label === I18N_PREFIX + declarationOf(info, field.name!).field.label!,
+                    )
+                    .map(field => field.name);
+
+                expect(untranslated).toEqual([]);
+            },
+        );
     });
 });
 
