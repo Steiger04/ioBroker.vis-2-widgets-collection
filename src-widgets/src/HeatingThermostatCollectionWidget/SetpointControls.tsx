@@ -18,10 +18,10 @@ import { Box, IconButton, useTheme } from '@mui/material';
 import { useRef, type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode } from 'react';
 
 import { useReducedMotion } from '../lib/heating/motion';
-import { SCALE_BOUNDS } from '../lib/heating/scaleRule';
 import { fractionOf, RING_START, RING_SWEEP, valueAtAngle, type SetpointScale } from '../lib/heating/setpointScale';
 import { accentColors, neutralColors } from '../lib/heating/tones';
 import { translate } from '../lib/translate';
+import { DIAL_LABEL } from './thermostatStages';
 
 /** Props of {@link StepButton}. */
 export interface StepButtonProps {
@@ -81,11 +81,6 @@ const VIEW = 320;
 const CENTRE = VIEW / 2;
 const RADIUS = 118;
 const STROKE = 14;
-/**
- * The scale labels' size in the ring's units: they grow with the dial, but never fall below the
- * family's least text (`SCALE_BOUNDS.minText` in px).
- */
-const TICK_LABEL = 11.5;
 /** The ring takes a pointer between these distances from the centre. */
 const GRAB = { inner: 92, outer: 158 } as const;
 
@@ -141,6 +136,8 @@ export interface SetpointDialProps {
     readonly buttons: ReactNode;
     /** The gap between set-point and actual temperature in the centre, in spacing units. */
     readonly gap: number;
+    /** Whether the scale labels show (the plan's: while they keep 11 px). */
+    readonly labels: boolean;
 }
 
 /**
@@ -157,6 +154,7 @@ export interface SetpointDialProps {
  * @param props.children - The centre.
  * @param props.buttons - The ± below the centre.
  * @param props.gap - The gap in the centre.
+ * @param props.labels - Whether the scale labels show.
  * @returns The dial.
  */
 export function SetpointDial({
@@ -170,6 +168,7 @@ export function SetpointDial({
     children,
     buttons,
     gap,
+    labels,
 }: SetpointDialProps): ReactElement {
     const theme = useTheme();
     const quiet = neutralColors(theme);
@@ -297,14 +296,15 @@ export function SetpointDial({
                         strokeLinecap: 'round',
                     }}
                 />
-                {ticks.labels.map(([degree, x, y]) => (
+                {(labels ? ticks.labels : []).map(([degree, x, y]) => (
                     <text
                         key={degree}
                         x={x}
                         y={y}
                         style={{
                             fill: quiet.label,
-                            fontSize: `${Math.max(TICK_LABEL, SCALE_BOUNDS.minText / k).toFixed(1)}px`,
+                            // In the ring's units: the labels grow and shrink with the dial.
+                            fontSize: `${DIAL_LABEL}px`,
                             textAnchor: 'middle',
                             dominantBaseline: 'central',
                         }}

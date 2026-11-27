@@ -111,15 +111,15 @@ describe('Größenstufen: Voll from the need of its content at the least Maßsta
     });
 
     /*
-     * Breit's need at the least Maßstab: the dial (246.2 px), a gap (9.2) and the column
-     * (392 × 0.769 = 301.5) — 556.9 px wide; high the column's Kartenkopf (41.2), hint line (24.9),
-     * pills (33.8), operating modes with the Urlaub row (73.8), readings (49.0) and four gaps (36.9) —
-     * 259.7 px. A wide, low box too low for Mittel holds Voll as Breit.
+     * Breit's least Maßstab is where its readings label (12 px) keeps 11 px: 0.917. Its need there:
+     * the dial (293.3 px), a gap (11.0) and the column (392 × 0.917 = 359.3) — 663.7 px wide; high
+     * the column's Kartenkopf, hint line, pills, operating modes with the Urlaub row, readings and four
+     * gaps — 298.6 px. A wide, low box too low for Mittel holds Voll as Breit.
      */
     it.each([
-        ['Voll as Breit at its least box', 557, 260, 'voll'],
-        ['not Voll one px too narrow for Breit', 556, 260, 'einfach'],
-        ['not Voll one px too low for Breit', 557, 259, 'einfach'],
+        ['Voll as Breit at its least box', 664, 299, 'voll'],
+        ['not Voll one px too narrow for Breit', 663, 299, 'einfach'],
+        ['not Voll one px too low for Breit', 664, 298, 'einfach'],
     ])('%s (%i × %i px)', (_case, width, height, stage) => {
         expect(stageOf(width, height)).toBe(stage);
     });
@@ -145,13 +145,13 @@ describe('Größenstufen: the thresholds of the rule', () => {
 
 describe('Anordnungen: the arrangement within a stage', () => {
     it.each([
-        // Groß at the least Maßstab: its column 392 × 0.769 = 301.5 px wide; high the dial (246.2 px),
-        // the full Kartenkopf (41.2), the hint line (24.9), pills (33.8), operating modes with the
-        // Urlaub row (73.8), readings (49.0) and five gaps (46.2) — 515.1 px.
-        ['Groß at its least box', 302, 516, 'gross'],
-        ['Mittel one px too narrow for Groß', 301, 516, 'mittel'],
-        ['Mittel one px too low for Groß', 302, 515, 'mittel'],
-        ['Breit at its least box', 557, 260, 'breit'],
+        // Groß at its least Maßstab (the readings label's 12 px keep 11 px: 0.917): its column
+        // 392 × 0.917 = 359.3 px wide; high the dial (293.3 px), the full Kartenkopf, the hint line,
+        // pills, operating modes with the Urlaub row, readings and five gaps — 602.4 px.
+        ['Groß at its least box', 360, 603, 'gross'],
+        ['Mittel one px too narrow for Groß', 359, 603, 'mittel'],
+        ['Mittel one px too low for Groß', 360, 602, 'mittel'],
+        ['Breit at its least box', 664, 299, 'breit'],
         // 852 px wide: Breit draws at 852 / 724 = 1.176; Groß reaches that Maßstab from 759 px high.
         ['Breit while it draws larger than Groß', 852, 758, 'breit'],
         ['Groß once it draws larger than Breit', 852, 760, 'gross'],
@@ -306,7 +306,7 @@ describe('Passform: the set-point stays inside the ring of the dial', () => {
     it.each([
         ['Mittel at its least box', 247, 317],
         ['Mittel at 330 × 450 px outer (acceptance)', 304, 424],
-        ['Groß at its least box', 302, 516],
+        ['Groß at its least box', 360, 603],
         ['Groß at the start box', 392, 612],
         ['Groß at its largest dial', 2000, 2000],
     ] as const)('%s', (_case, width, height) => {

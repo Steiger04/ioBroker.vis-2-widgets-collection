@@ -195,8 +195,8 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 
 | Stufe   | Anordnung | ab Inhaltsfläche | Inhalt                                                                                                                                          |
 | ------- | --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Voll    | Groß      | 302 × 516 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
-| Voll    | Breit     | 557 × 260 px     | Ring mit Sollwert, Ist und ± auf einer Seite; daneben Kartenkopf, Hinweiszeile, Pills, Betriebsart-Segment und Messwertleiste wie in Groß       |
+| Voll    | Groß      | 360 × 603 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
+| Voll    | Breit     | 664 × 299 px     | Ring mit Sollwert, Ist und ± auf einer Seite; daneben Kartenkopf, Hinweiszeile, Pills, Betriebsart-Segment und Messwertleiste wie in Groß       |
 | Voll    | Mittel    | 247 × 317 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
 | Einfach | Quer      | 371 × 91 px      | Kopfblock oben (Kopf gestapelt mit Hinweiszeile, ± und großer Sollwert); Betriebsart-Segment unten, sobald es passt (ab 138 px Höhe)            |
 | Einfach | Kompakt   | 232 × 116 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
@@ -206,7 +206,7 @@ Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px
 
 ### Maßstab
 
-Jede Anordnung zeichnet ihre Teile mit einem stufenlosen Maßstab relativ zum Entwurf, abgeleitet aus dem Platz ihrer Fläche: Ring, Sollwert, Ist, ±, Abstände, Pills, Betriebsart und Messwerte wachsen und schrumpfen gemeinsam. Kartenkopf und Hinweiszeile folgen gedämpft (beim doppelten Maßstab etwa 1,3-fach), damit benachbarte Widgets ähnlich große Namen behalten. Der Maßstab reicht bis 2,0; nach unten endet er dort, wo ± noch 40 px groß sind, und keine Schrift wird kleiner als 11 px. Passt der ganze Inhalt einer Anordnung auch dann nicht, nimmt das Widget eine kleinere; die Schwellen in der Tabelle sind genau diese Stellen.
+Jede Anordnung zeichnet ihre Teile mit einem stufenlosen Maßstab relativ zum Entwurf, abgeleitet aus dem Platz ihrer Fläche: Ring, Sollwert, Ist, ±, Abstände, Pills, Betriebsart und Messwerte wachsen und schrumpfen gemeinsam. Kartenkopf und Hinweiszeile folgen gedämpft (beim doppelten Maßstab etwa 1,3-fach), damit benachbarte Widgets ähnlich große Namen behalten. Der Maßstab reicht bis 2,0; nach unten endet er für jede Anordnung dort, wo ihre ± noch 40 px groß sind und keine ihrer Schriften kleiner als 11 px wird, Kartenkopf und Hinweiszeile gedämpft gerechnet. In Groß und Breit bindet die Beschriftung der Messwerte (12 px), in Mittel binden die ±. Die Zahlen am Ring erscheinen nur, solange sie 11 px groß bleiben, ab etwa 293 px Ring. Passt der ganze Inhalt einer Anordnung auch dann nicht, nimmt das Widget eine kleinere; die Schwellen in der Tabelle sind genau diese Stellen.
 
 In Voll gewinnt unter Groß und Breit die Anordnung mit dem größeren Maßstab; Mittel erscheint nur, wenn keine der beiden passt. Der Ring füllt den Platz, den die übrigen Teile lassen (höchstens das Doppelte des Entwurfs, 640 px); Sollwert, Ist und ± im Ring wachsen mit ihm. Groß stellt Pills, Betriebsart und Messwerte in eine mittige Spalte von 392 px × Maßstab, Breit dieselbe Spalte samt Kartenkopf und Hinweiszeile neben den Ring. Gezählt wird immer der ganze Inhalt, auch eine Meldung und die Urlaubszeile, damit der Ring nicht springt, wenn sie erscheinen.
 
@@ -215,9 +215,9 @@ Beispiele mit dem Standard-Rahmen und dem Standard-Inhaltsabstand:
 | Widget        | Anordnung | Maßstab | Ring   |
 | ------------- | --------- | ------- | ------ |
 | 320 × 700 px  | Mittel    | 0,85    | 272 px |
-| 380 × 800 px  | Groß      | 0,85    | 332 px |
+| 380 × 800 px  | Mittel    | 1,04    | 332 px |
 | 440 × 700 px  | Groß      | 0,93    | 299 px |
-| 600 × 900 px  | Groß      | 1,26    | 405 px |
+| 600 × 900 px  | Groß      | 1,26    | 404 px |
 | 800 × 520 px  | Breit     | 1,04    | 333 px |
 | 1200 × 600 px | Breit     | 1,59    | 509 px |
 
@@ -231,7 +231,7 @@ Die Kachel folgt derselben Regel: Sobald ± mit 40 px hineinpassen, erscheinen s
 
 ### Rahmen und Größenstufe
 
-Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele: Mit dem Standard-Inhaltsabstand zeigt ein Widget unter etwa 350 px Breite Mittel statt Groß. Die schmalste Raster-Sektion (320 px) zeigt mit dem Standard-Inhaltsabstand Mittel mit einem Ring von 272 px.
+Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele: Mit dem Standard-Inhaltsabstand zeigt ein Widget unter etwa 410 px Breite Mittel statt Groß. Die schmalste Raster-Sektion (320 px) zeigt mit dem Standard-Inhaltsabstand Mittel mit einem Ring von 272 px, ohne Zahlen am Ring.
 
 ## Mini-Dialog
 

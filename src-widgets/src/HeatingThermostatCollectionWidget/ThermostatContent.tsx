@@ -281,6 +281,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                     <SetpointDial
                         size={dial.size}
                         gap={dial.gap}
+                        labels={dial.labels}
                         scale={scale}
                         value={shown}
                         disabled={!ring || ring.locked}

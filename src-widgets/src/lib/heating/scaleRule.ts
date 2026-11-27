@@ -35,31 +35,30 @@ export const headScale = (scale: number): number => scale ** HEAD_EXPONENT;
 /** What bounds a design from below: its ± edges and its text sizes at the design, in px. */
 export interface ScaleNeeds {
     readonly controls: readonly number[];
+    /** The texts that follow the Maßstab in full. */
     readonly texts: readonly number[];
+    /** The texts that follow it damped (`headScale`): the Kartenkopf, the Hinweiszeile. */
+    readonly damped?: readonly number[];
 }
 
 /**
- * The least Maßstab a design may draw at: its smallest ± keeps {@link SCALE_BOUNDS.minControl}, its
- * smallest text {@link SCALE_BOUNDS.minText}.
+ * The least Maßstab a design may draw at: its smallest ± keeps {@link SCALE_BOUNDS.minControl}, each
+ * text — in full or damped — {@link SCALE_BOUNDS.minText}.
  *
- * @param needs - The design's ± edges and the text sizes that follow the Maßstab in full (damped
- *   texts shrink less; a type checks those it draws damped itself).
+ * @param needs - The design's ± edges, the text sizes that follow the Maßstab in full and those that
+ *   follow it damped (they reach 11 px only at a smaller Maßstab).
  * @returns The least Maßstab; above 1 only for a design that breaks the bounds itself.
  */
 export function leastScale(needs: ScaleNeeds): number {
     const least = (sizes: readonly number[], bound: number): number => (sizes.length ? bound / Math.min(...sizes) : 0);
-    return Math.max(least(needs.controls, SCALE_BOUNDS.minControl), least(needs.texts, SCALE_BOUNDS.minText));
+    const damped = least(needs.damped ?? [], SCALE_BOUNDS.minText);
+    return Math.max(
+        least(needs.controls, SCALE_BOUNDS.minControl),
+        least(needs.texts, SCALE_BOUNDS.minText),
+        // The Maßstab whose damped factor reaches the bound: the inverse of `headScale`.
+        damped ** (1 / HEAD_EXPONENT),
+    );
 }
-
-/**
- * A text size held legible: never below {@link SCALE_BOUNDS.minText}. Texts that follow the Maßstab
- * in full stop shrinking there instead of bounding the Maßstab — so the least Maßstab is set by ±
- * alone, and small design texts (labels of 11.5 px) do not lift it to nearly the design.
- *
- * @param px - The text size at the factor, in px.
- * @returns The text size, at least the bound.
- */
-export const legible = (px: number): number => Math.max(SCALE_BOUNDS.minText, px);
 
 /**
  * Design measures at a factor: every measure — px or spacing units — times the factor.

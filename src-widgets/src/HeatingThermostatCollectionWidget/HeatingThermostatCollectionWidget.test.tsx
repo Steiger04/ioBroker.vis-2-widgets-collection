@@ -1144,7 +1144,8 @@ describe('HeatingThermostatCollectionWidget: Voll draws at its Maßstab (ADR-012
         parseFloat(getComputedStyle(element as HTMLElement)[property]);
 
     it.each([
-        ['Groß, tall and narrow (380 × 800 px outer)', { width: 332, height: 752 }],
+        ['Mittel, tall and narrow (380 × 800 px outer)', { width: 332, height: 752 }],
+        ['Groß, its column narrower than the ring', { width: 370, height: 900 }],
         ['Groß at the start box', { width: 396, height: 636 }],
         ['Mittel in the narrowest grid section', { width: 272, height: 608 }],
         ['Groß in a very large box', { width: 2000, height: 2000 }],
@@ -1159,6 +1160,16 @@ describe('HeatingThermostatCollectionWidget: Voll draws at its Maßstab (ADR-012
         expect(px(dial, 'width')).toBeCloseTo(plan.dial.size, 1);
         expect(px(stepButton(container, 'up'), 'width')).toBeCloseTo(plan.dial.step, 1);
         expect(px(dial!.querySelector('[data-heating-setpoint]'), 'fontSize')).toBe(plan.dial.font);
+    });
+
+    it("leaves the ring's scale labels out while they would fall below 11 px", async () => {
+        const labels = async (box: { width: number; height: number }): Promise<number> =>
+            (await mount(statusData(), reporting({ soll: 21 }), box)).querySelectorAll('[data-heating-dial] text')
+                .length;
+
+        // The narrowest grid section: a ring of 272 px, its 12 px labels at 10.2 px.
+        expect(await labels({ width: 272, height: 608 })).toBe(0);
+        expect(await labels({ width: 396, height: 636 })).toBeGreaterThan(0);
     });
 
     it('fills a tall, narrow box with the ring: 332 px instead of 280 px', async () => {
