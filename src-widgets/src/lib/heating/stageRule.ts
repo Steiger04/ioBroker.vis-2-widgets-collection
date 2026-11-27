@@ -6,7 +6,8 @@
  * @remarks
  * A type hands the size-stage module (`lib/heating/SizeStages`) a pure rule `(box, own data) → stage`.
  * Arrangements within a stage and all thresholds belong to the type. The effective stage is the
- * lower of the box's stage and `ansicht` (Nr. 2); the cap never raises a stage.
+ * lower of the box's stage and `ansicht` (Nr. 2); the cap never raises a stage. Inside the Mini-Dialog
+ * the cap does not apply and the floor is Einfach (Nr. 7).
  */
 
 import type { ContentBox } from '../../hooks/useContentBox';
@@ -71,3 +72,12 @@ export const lowerStage = (a: SizeStage, b: SizeStage): SizeStage =>
  * @returns The stage to draw.
  */
 export const cappedStage = (boxStage: SizeStage, ansicht: unknown): SizeStage => lowerStage(boxStage, capOf(ansicht));
+
+/**
+ * The stage inside the Mini-Dialog: the box's stage without the `ansicht` cap and never below
+ * Einfach — no dialog inside the dialog (ADR-0122 Nr. 7).
+ *
+ * @param boxStage - The stage the type's rule gives the dialog's box.
+ * @returns The stage to draw in the dialog.
+ */
+export const dialogStage = (boxStage: SizeStage): DrawnStage => (boxStage === 'mini' ? 'einfach' : boxStage);
