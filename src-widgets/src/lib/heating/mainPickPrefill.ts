@@ -215,10 +215,13 @@ const candidatesOfDevice = (
     for (const { state, meaning, prefillBeside } of recognised) {
         add(meaning, state, prefillBeside);
     }
-    // The pair rule of the role path: beside every recognised candidate, whatever bound it.
+    // The pair rule of the role path: beside every recognised candidate, whatever bound it — a
+    // further state, so one that is itself a candidate for the partner's Bedeutung is no pair: two
+    // of them stay the partner's ambiguity, not each other's pair.
     for (const { state, meaning } of recognised) {
         const pair = recognisePair(meaning, state, others);
-        pair?.states.forEach(paired => add(pair.meaning, paired));
+        const partners = new Set(recognised.filter(one => one.meaning === meaning).map(one => one.state._id));
+        pair?.states.filter(paired => !partners.has(paired._id)).forEach(paired => add(pair.meaning, paired));
     }
     // A candidate that means its Bedeutung only beside another one counts only with it.
     for (const [meaning, list] of found) {

@@ -419,6 +419,40 @@ describe('main pick — the operating-mode pair of the role path (ADR-0119 Nacht
     });
 });
 
+describe('main pick — two operating-mode candidates of one channel (pair rule: a further state)', () => {
+    const MODE = at(NEUTRAL_PAIR_DEVICE.binding.betriebsart);
+    const COMMAND = at(NEUTRAL_PAIR_DEVICE.binding.betriebsartSetzen);
+    const SECOND_MODE = at(`${NEUTRAL_PAIR_DEVICE.id}.thermostat.mode2`);
+
+    /** The test devices with a second writable mode state beside the first, same value list. */
+    const withSecondMode = (command: boolean): Record<string, ioBroker.Object> => {
+        const objects = heatingTestDevices().objects;
+        objects[SECOND_MODE] = { ...objects[MODE], _id: SECOND_MODE } as ioBroker.Object;
+        if (!command) {
+            delete objects[COMMAND];
+        }
+        return objects;
+    };
+
+    it('takes neither for „Betriebsart setzen“ — the ambiguity stays with „Betriebsart“', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withSecondMode(false));
+
+        expect(picked.betriebsart).toBeUndefined();
+        expect(picked.betriebsartSetzen).toBeUndefined();
+        const boxes = infoBoxesOf(picked);
+        expect(boxes).toHaveLength(1);
+        expect(boxes[0]).toContain(MODE);
+        expect(boxes[0]).toContain(SECOND_MODE);
+        expect(boxes[0]).not.toContain('t:heating_betriebsart_setzen');
+    });
+
+    it('still binds the one further state beside them as „Betriebsart setzen“', async () => {
+        const picked = await pickMain(at(NEUTRAL_PAIR_DEVICE.binding.soll), {}, withSecondMode(true));
+
+        expect(picked.betriebsartSetzen).toBe(COMMAND);
+    });
+});
+
 describe('main pick — Bezeichnung and Unterzeile', () => {
     const SOLL = at(NEUTRAL_DEVICE.binding.soll);
     const DEVICE = at(NEUTRAL_DEVICE.id);
