@@ -308,7 +308,22 @@ describe('HeatingThermostatCollectionWidget: window', () => {
 
     it('shows the raw value of a value without a mapping and without a commonStates label', async () => {
         expect(shownWindow(await windowAt(7))).toEqual(['7', null]);
-        expect(shownWindow(await windowAt(2, { fensterZuordnung: undefined }))).toEqual(['OPEN', null]);
+    });
+
+    it('shows the commonStates label of a value whose own object carries no mapping (no read-seam derivation)', async () => {
+        const fensterObject = {
+            _id: neutral('fenster'),
+            type: 'number',
+            commonStates: { 0: 'CLOSED', 1: 'TILTED', 2: 'OPEN' },
+        };
+        expect(shownWindow(await windowAt(2, { fensterZuordnung: undefined, fensterObject }))).toEqual(['OPEN', null]);
+    });
+
+    it('reads a missing mapping through the read seam like a pick of the window would store it', async () => {
+        expect(shownWindow(await windowAt(2, { fensterZuordnung: undefined }))).toEqual([
+            'heating_neutral_offen',
+            'kühl',
+        ]);
     });
 });
 
