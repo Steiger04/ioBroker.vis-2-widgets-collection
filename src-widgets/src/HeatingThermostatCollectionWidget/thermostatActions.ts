@@ -29,6 +29,9 @@
  * - **Steps** down and up move the reported set-point by one step of its scale
  *   (`lib/heating/setpointScale`): locked at the limit they head for and while the set-point has not
  *   reported, and they write only a value other than the reported one.
+ * - **Ring** of the dial: a drag writes the value under the pointer into the set-point on release —
+ *   the pointer gives the value, so the action names none; locked while the set-point has not
+ *   reported.
  */
 import optionalNumber from '../lib/helper/optionalNumber';
 import { setpointScale, stepDown, stepUp, type SetpointScale } from '../lib/heating/setpointScale';
@@ -55,12 +58,18 @@ export type ModeKey = Extract<NeutralKey, 'auto' | 'manuell' | 'boost' | 'urlaub
 /** The keys of the steps. */
 export type StepKey = 'down' | 'up';
 
+/** The key of the dial's ring. */
+export type RingKey = 'ring';
+
+/** The keys of all actions. */
+type ActionKey = PillKey | ModeKey | StepKey | RingKey;
+
 /** One action of the Raumthermostat. */
-export interface ThermostatAction<K extends PillKey | ModeKey | StepKey = PillKey | ModeKey | StepKey> {
+export interface ThermostatAction<K extends ActionKey = ActionKey> {
     readonly key: K;
     /** The Bedeutung a tap writes. */
     readonly field: ActionField;
-    /** The device value a tap writes; none where a tap writes nothing now. */
+    /** The device value a tap writes; none where a tap writes nothing now (or, the ring, the pointer gives it). */
     readonly value?: DeviceValue;
     /** The reported state equals what the action sets. */
     readonly active: boolean;
@@ -78,6 +87,8 @@ export interface ThermostatActions {
     readonly modes: readonly ThermostatAction<ModeKey>[];
     /** One step down and up on the set-point's scale; none while the set-point is not writable. */
     readonly steps?: { readonly [K in StepKey]: ThermostatAction<K> };
+    /** The ring of the dial; none while the set-point is not writable. */
+    readonly ring?: ThermostatAction<RingKey>;
 }
 
 /** The widget values the pills write, as stored — read through `optionalNumber` (ADR-0109 Nr. 7). */
@@ -220,6 +231,11 @@ export function thermostatActions(
     return {
         pills,
         modes: modesOf(zone, status),
-        ...(setpoint.writable ? { steps: stepsOf(reported, setpointScale(setpoint.object)) } : {}),
+        ...(setpoint.writable
+            ? {
+                  steps: stepsOf(reported, setpointScale(setpoint.object)),
+                  ring: { key: 'ring', field: 'soll', active: false, locked: reported === undefined },
+              }
+            : {}),
     };
 }

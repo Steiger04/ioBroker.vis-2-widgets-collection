@@ -28,7 +28,7 @@
  * (with its end, in a row of its own). The content only draws them and hangs the write of each
  * action's target on it (`useThermostatWrites`): exactly one state per action through the write
  * chain (`lib/heating/useMeaningWrite`), never into a target the Heizzonen-Lesung reads as not
- * writable. A drag of the ring shows its value and writes it once on release into the set-point.
+ * writable. A drag of the ring shows its value and writes it once on release into its target.
  * The segment stands in Groß and in Quer from sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
@@ -50,7 +50,7 @@ import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
 import HintLine from './HintLine';
 import { SetpointDial, StepButton } from './SetpointControls';
-import { thermostatActions, type ThermostatAction } from './thermostatActions';
+import { thermostatActions, type StepKey, type ThermostatAction } from './thermostatActions';
 import { thermostatStatus } from './thermostatStatus';
 import { useThermostatWrites } from './useThermostatWrites';
 import { thermostatPlan, thermostatStage, SETPOINT_FIT } from './thermostatStages';
@@ -147,7 +147,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
 
     // What each key writes where, and whether it may (`thermostatActions`); the content only draws.
     const actions = thermostatActions(zone, status, { komfort: widgetData.komfort, absenk: widgetData.absenk });
-    const { steps } = actions;
+    const { steps, ring } = actions;
     /** A discrete tap: one state, past the debounce; nothing for a locked action or one without a value. */
     const tapOf = ({ field, value, locked }: ThermostatAction): (() => void) | undefined =>
         value === undefined || locked ? undefined : () => writes[field](value, { immediate: true });
@@ -169,20 +169,20 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     );
 
     // ± and the ring step the reported set-point (debounced); a step without a value writes nothing.
-    const step = (direction: 'down' | 'up'): void => {
+    const step = (direction: StepKey): void => {
         const action = steps?.[direction];
         if (action?.value !== undefined) {
             writes[action.field](action.value);
         }
     };
-    // The ring's drag writes the value under the pointer on release: no action of its own, it goes
-    // straight into the set-point (dropped by the write while the set-point is not writable).
+    // The ring's drag writes the value under the pointer on release into its action's target —
+    // only a value other than the reported one.
     const commit = (next: number): void => {
-        if (next !== reported) {
-            writes.soll(next, { immediate: true });
+        if (ring && !ring.locked && next !== reported) {
+            writes[ring.field](next, { immediate: true });
         }
     };
-    const stepButton = (direction: 'down' | 'up', size: number): ReactNode =>
+    const stepButton = (direction: StepKey, size: number): ReactNode =>
         steps ? (
             <StepButton
                 direction={direction}
@@ -251,7 +251,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                     size={size}
                     scale={scale}
                     value={shown}
-                    disabled={reported === undefined}
+                    disabled={!ring || ring.locked}
                     cool={status.chip?.tone === 'kühl'}
                     onPreview={setPreview}
                     onCommit={commit}

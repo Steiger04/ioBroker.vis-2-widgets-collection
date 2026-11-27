@@ -153,6 +153,7 @@ describe('a target that is not writable', () => {
 
             expect(actions.pills).toEqual([]);
             expect(actions.steps).toBeUndefined();
+            expect(actions.ring).toBeUndefined();
         }
     });
 });
@@ -194,6 +195,18 @@ describe('steps', () => {
                 expect(step?.value).toBeUndefined();
             }
         }
+    });
+});
+
+describe('the ring of the dial', () => {
+    it('drags into the set-point — the pointer gives the value — and locks while it has not reported', () => {
+        expect(actionsOf(setpoint(), reported(21)).ring).toEqual({
+            key: 'ring',
+            field: 'soll',
+            active: false,
+            locked: false,
+        });
+        expect(actionsOf(setpoint(), {}).ring).toMatchObject({ field: 'soll', locked: true });
     });
 });
 
