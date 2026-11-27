@@ -260,6 +260,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                         size={dial.size}
                         gap={dial.gap}
                         labels={dial.labels}
+                        layout={dial}
                         scale={scale}
                         value={shown}
                         disabled={!ring || ring.locked}

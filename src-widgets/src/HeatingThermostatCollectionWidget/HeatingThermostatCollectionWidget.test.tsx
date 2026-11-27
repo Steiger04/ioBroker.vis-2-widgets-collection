@@ -817,6 +817,17 @@ describe('HeatingThermostatCollectionWidget: not reachable', () => {
     });
 });
 
+describe('HeatingThermostatCollectionWidget: the Mini-Dialog keeps its size (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    it('opens the tile in a dialog of 420 px width with a box of 700 px height, whatever the plan', async () => {
+        const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 156, height: 66 });
+        act(() => tile.querySelector<HTMLButtonElement>('[data-heating-tile] button')!.click());
+        const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+
+        expect(getComputedStyle(dialog).width).toBe('420px');
+        expect(getComputedStyle(dialog.querySelector<HTMLElement>('[data-heating-dialog-box]')!).height).toBe('700px');
+    });
+});
+
 describe('HeatingThermostatCollectionWidget: no dots (ADR-0124 Nachtrag 2 2026-11-27)', () => {
     /** The signs drawn in the Kartenkopf's chip, by kind. */
     const chipSigns = (container: HTMLElement): (string | null)[] =>

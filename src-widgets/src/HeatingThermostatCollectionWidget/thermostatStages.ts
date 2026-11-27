@@ -4,15 +4,13 @@
  *
  * @module HeatingThermostatCollectionWidget/thermostatStages
  * @remarks
- * The design's thresholds (`layout()` of the design canvas) are outer widget sizes. Here they are
- * converted to the Content-Box with the frame of the standard configuration: 24 px of width (card
- * inset 8 px, base padding 2 × 8 px) and 64 px of height (the same plus the header and the footer
- * line flat at 2 × 20 px). The rule reads the box inside the Inhaltsabstand (ADR-0122 Nachtrag
- * 2026-11-27, standard 2 × 12 px), so a widget dropped at the start size 440 × 700 px (≈ 416 × 636 px
- * of Content-Box, 392 × 612 px inside the inset) starts in Voll/Groß as in the design. Voll holds
- * while one of its arrangements holds its whole content at the least Maßstab (ADR-0122 Nachtrag
- * „Maßstab und Anordnungswahl“ Nr. 6, `vollHolds`): Mittel from 247 × 317 px, Groß from
- * 360 × 603 px, Breit from 664 × 299 px — the narrowest grid section (296 px, 272 px inside the
+ * The thresholds follow from the content's need at the least Maßstab (ADR-0122 Nachtrag „Maßstab
+ * und Anordnungswahl“ Nr. 6), not from the design's outer sizes. The rule reads the box inside the
+ * Inhaltsabstand (ADR-0122 Nachtrag 2026-11-27, standard 2 × 12 px), so a widget dropped at the start
+ * size 440 × 700 px (≈ 416 × 636 px of Content-Box in the standard frame, 392 × 612 px inside the
+ * inset) starts in Voll/Groß. Voll holds while one of its arrangements holds the content it shows at
+ * the least Maßstab (`vollHolds`): with the standard content Mittel from 247 × 292 px, Groß from
+ * 360 × 500 px, Breit from 617 × 247 px — the narrowest grid section (296 px, 272 px inside the
  * standard Inhaltsabstand) stays Voll. The box after the frame
  * counts without correction (Nr. 4): a large padding, Rahmenvorgabe or Inhaltsabstand may move the
  * widget one stage down.
@@ -30,13 +28,14 @@
  *
  * Einfach (`thermostatEinfachPlan`): Quer and Kompakt each take the largest Maßstab at which their
  * parts fit the box (`querNeed`, `kompaktNeed`); Einfach holds while one of them fits at its least
- * Maßstab (± 40 px), and of the two the one with the larger Maßstab draws. Quer shows the
- * operating-mode segment as soon as it fits at its least Maßstab (the pills' text 11 px) and then
- * takes its Maßstab with the segment below the head.
+ * Maßstab (± 40 px). Quer with the operating-mode segment draws wherever it fits at its least
+ * Maßstab (the pills' text 11 px); elsewhere of Quer without it and Kompakt the one with the larger
+ * Maßstab.
  *
  * The tile (`thermostatTile`) follows the same rule in the area the hull leaves it: ± as soon as they
- * fit at 40 px, the footer line as soon as it fits at its least Maßstab, then the largest Maßstab
- * the area holds; the set-point fills its row, the hull's head row grows damped (`tileHeadScale`).
+ * fit at 40 px, the footer line as soon as what it shows fits at its least Maßstab, then the largest
+ * Maßstab the area holds; the set-point fills its row, the hull's head row grows damped
+ * (`tileHeadScale`).
  */
 
 import {
@@ -60,9 +59,8 @@ interface LeastBox {
 /**
  * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
  * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
- * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
- * The tile's parts: ± 44 px, the footer line 28 px, the set-point 32 px — the hull's head row and
- * gaps come with its area (`TileArea`). Sizes in px are the design's; the fits (`querNeed`,
+ * other theme fonts), its line 1.2 × the font. The tile's set-point is 32 px — the hull's head row
+ * and gaps come with its area (`TileArea`). Sizes in px are the design's; the fits (`querNeed`,
  * `kompaktNeed`, the tile's) take them times the Maßstab.
  */
 export const SETPOINT_FIT = {
@@ -72,10 +70,6 @@ export const SETPOINT_FIT = {
     maxFont: 48,
     /** Below this the set-point no longer shrinks. */
     minFont: 12,
-    stepFlat: 52,
-    flatGap: 12,
-    stepTile: 44,
-    tileLine: 28,
     /** The tile's set-point at the design: two thirds of the big one. */
     tileFont: 32,
     /** The dial (320-unit box): the ring's inner edge (radius 118 − half the stroke of 14). */
@@ -83,12 +77,15 @@ export const SETPOINT_FIT = {
     /** The dial: the bottom padding of its centred column, and the gap and actual line below the set-point. */
     dialPadding: 26,
     dialBelow: 4 + 28,
+    /** The dial: ± from its bottom edge and the gap between them. */
+    dialStepsBottom: 2,
+    dialStepsGap: 20,
 } as const;
 
 /** The Raumthermostat's own parts' design measures (`…Units` in the theme's spacing units, else px). */
-export const THERMOSTAT_DESIGN = {
+const THERMOSTAT_DESIGN = {
     /** The ± edge: beside the big set-point and below the dial, and in the tile. */
-    step: { stage: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile },
+    step: { stage: 52, tile: 44 },
     /** The ± symbol: the theme's icon size (24 px of the standard theme, in rem). */
     stepIcon: 24,
     /** The hint line: its own and the tile footer's smaller one. */
@@ -112,8 +109,7 @@ export const THERMOSTAT_DESIGN = {
         markPadUnits: 1,
     },
     /**
-     * The gaps: between the regions, ± beside the set-point (`SETPOINT_FIT.flatGap` in the standard
-     * theme), in Quer between the head column and the set-point and below the head, between the
+     * The gaps: between the regions, ± beside the set-point (12 px in the standard theme), in Quer between the head column and the set-point and below the head, between the
      * operating-mode segment and the Urlaub row, between the dial's set-point and actual line, between
      * the word „Ist“ and the actual temperature.
      */
@@ -292,9 +288,6 @@ function lineBelow(sizes: ThermostatSizes, shape: ThermostatShape): number {
  */
 const segmentRows = (shown: ThermostatShown): number => Number(shown.modes) + Number(shown.holiday);
 
-/** The Kartenkopf's name line: its font times its line height (`Kartenkopf`). */
-const NAME_LINE = 1.3;
-
 /**
  * Quer's head column beside the set-point in px at the design: the room the stacked Kartenkopf keeps,
  * damped like the head.
@@ -361,7 +354,7 @@ function querNeed(scale: number, writable: boolean, segment: boolean, shape: The
     const head = headScale(scale);
     const gaps = scaled(sizes.gaps, measures.spacing);
     const k = sizes.head;
-    const stacked = k.name * NAME_LINE + k.stackGapUnits * measures.spacing + k.chipHeight;
+    const stacked = k.nameLine + k.stackGapUnits * measures.spacing + k.chipHeight;
     const column = stacked + gaps.querText + lineBelow(sizes, shape);
     const row = setpointRow(scale, writable, measures);
     const rows = segment ? segmentRows(shape.shown) : 0;
@@ -385,7 +378,7 @@ function querNeed(scale: number, writable: boolean, segment: boolean, shape: The
 function kompaktNeed(scale: number, writable: boolean, shape: ThermostatShape): LeastBox {
     const { measures } = shape;
     const sizes = thermostatSizes(scale, 'stage', measures);
-    const head = Math.max(sizes.head.name * NAME_LINE, sizes.head.chipHeight);
+    const head = Math.max(sizes.head.nameLine, sizes.head.chipHeight);
     const row = setpointRow(scale, writable, measures);
     const region = sizes.gaps.region * measures.spacing;
     return { width: row.width, height: head + region + row.height + region + lineBelow(sizes, shape) };
@@ -403,7 +396,7 @@ const holds =
         need.width <= box.width && need.height <= box.height;
 
 /** Einfach's arrangement in a box and the Maßstab it draws at. */
-export type EinfachChoice =
+type EinfachChoice =
     | { readonly arrangement: 'quer'; readonly modes: boolean; readonly scale: number }
     | { readonly arrangement: 'kompakt'; readonly scale: number };
 
@@ -541,7 +534,7 @@ const dialLeast = (shape: ThermostatShape): number =>
  * of the start size 440 px inside the frame and the standard Inhaltsabstand (440 − 24 − 24), where
  * „Absenk 17,0 °C“ and „Komfort 21,0 °C“ hold their pill without being cut.
  */
-export const VOLL_COLUMN = 392;
+const VOLL_COLUMN = 392;
 
 /**
  * The ring's scale labels: their size in the ring's units at the design (px at the dial's factor 1;
@@ -552,7 +545,7 @@ export const VOLL_COLUMN = 392;
 export const DIAL_LABEL = 12;
 
 /** The dial's factor from which its scale labels keep 11 px. */
-export const DIAL_LABELS_LEAST = leastScale({ controls: [], texts: [DIAL_LABEL] });
+const DIAL_LABELS_LEAST = leastScale({ controls: [], texts: [DIAL_LABEL] });
 
 /**
  * The least Maßstab of an arrangement of Voll (ADR-0122 Nachtrag Nr. 2): ± keep 40 px and none of
@@ -606,7 +599,7 @@ function partHeights(
     const { head, hint, pills, readings, gaps } = sizes;
     const { measures, shown } = shape;
     const { spacing, textLine } = measures;
-    const nameLine = head.name * NAME_LINE;
+    const { nameLine } = head;
     const gap = gaps.region * spacing;
     const rows = segmentRows(shown);
     const controls = [
@@ -776,15 +769,19 @@ function vollDial(need: VollNeed, box: MeasuredBox, measures: ThemeMeasures): Th
     // Not rounded: a dial rounded down would draw ± below 40 px at the least Maßstab.
     const size = Math.min(room.width, room.height, SCALE_BOUNDS.max * DIAL_DESIGN);
     const k = size / DIAL_DESIGN;
-    const design = THERMOSTAT_DESIGN;
+    const sizes = thermostatSizes(k, 'stage', measures);
+    const fit = SETPOINT_FIT;
     return {
         size,
         font: thermostatDialFont(size),
-        step: design.step.stage * k,
-        stepIcon: design.stepIcon * k,
-        actual: measures.text * k,
-        gap: design.gaps.dial * k,
-        actualGap: design.gaps.actual * k,
+        step: sizes.step,
+        stepIcon: sizes.stepIcon,
+        actual: sizes.actual,
+        gap: sizes.gaps.dial,
+        actualGap: sizes.gaps.actual,
+        padding: Math.round(fit.dialPadding * k),
+        stepsBottom: fit.dialStepsBottom * k,
+        stepsGap: Math.round(fit.dialStepsGap * k),
         // Exactly at the least factor: the dial's size is not rounded.
         labels: k >= DIAL_LABELS_LEAST,
     };
@@ -821,7 +818,7 @@ export interface ThermostatTileFit extends ThermostatTileParts {
 }
 
 /** The least Maßstab of the tile's ±: they keep 40 px (44 px at the design). */
-export const TILE_BUTTONS_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.tile], texts: [] });
+const TILE_BUTTONS_LEAST = leastScale({ controls: [THERMOSTAT_DESIGN.step.tile], texts: [] });
 
 /**
  * The least Maßstab of the tile's footer line: the text it shows keeps 11 px — a Meldung's 12 px, else
@@ -845,7 +842,7 @@ function tileFooterLeast(shape: ThermostatShape): number | null {
  * @param scale - The tile's Maßstab.
  * @returns The head row's factor.
  */
-export const tileHeadScale = (scale: number): number => headScale(Math.max(1, scale));
+const tileHeadScale = (scale: number): number => headScale(Math.max(1, scale));
 
 /**
  * The room the tile's parts leave its set-point at a Maßstab: the width beside ± with the hull's gap
@@ -936,7 +933,7 @@ function thermostatSetpointFont(area: TileArea, tile: ThermostatTileFit, shape: 
  * @param size - The dial's edge length in px.
  * @returns The font size in px.
  */
-export function thermostatDialFont(size: number): number {
+function thermostatDialFont(size: number): number {
     const fit = SETPOINT_FIT;
     const k = size / DIAL_DESIGN;
     const inside = (font: number): boolean => {
@@ -968,6 +965,11 @@ export interface ThermostatDial {
     readonly gap: number;
     /** Between the word „Ist“ and the actual temperature, in spacing units. */
     readonly actualGap: number;
+    /** The bottom padding of the centred set-point column in px. */
+    readonly padding: number;
+    /** ± from the dial's bottom edge and the gap between them, in px. */
+    readonly stepsBottom: number;
+    readonly stepsGap: number;
     /** Whether the scale labels show: while they keep 11 px at the dial's factor. */
     readonly labels: boolean;
 }

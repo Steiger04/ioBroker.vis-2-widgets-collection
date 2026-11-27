@@ -305,6 +305,7 @@ const DESIGN_SIZES = {
     actual: 16,
     head: {
         name: 19,
+        nameLine: 24.7,
         second: 12.5,
         textGapUnits: 0.25,
         rowGapUnits: 1.5,

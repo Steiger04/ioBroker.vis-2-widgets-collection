@@ -12,8 +12,9 @@ import { scaled } from './scaleRule';
 
 /** The Kartenkopf's design measures. */
 export const KARTENKOPF_DESIGN = {
-    /** The name line's font. */
+    /** The name line's font and its line (1.3 × the font). */
     name: 19,
+    nameLine: 24.7,
     /** The second line's font. */
     second: 12.5,
     /** Between the name and the second line. */

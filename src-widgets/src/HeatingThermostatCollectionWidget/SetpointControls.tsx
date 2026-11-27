@@ -138,6 +138,8 @@ export interface SetpointDialProps {
     readonly gap: number;
     /** Whether the scale labels show (the plan's: while they keep 11 px). */
     readonly labels: boolean;
+    /** The plan's layout in px: the centre's bottom padding, ± from the bottom edge and their gap. */
+    readonly layout: { readonly padding: number; readonly stepsBottom: number; readonly stepsGap: number };
 }
 
 /**
@@ -155,6 +157,7 @@ export interface SetpointDialProps {
  * @param props.buttons - The ± below the centre.
  * @param props.gap - The gap in the centre.
  * @param props.labels - Whether the scale labels show.
+ * @param props.layout - The plan's layout of centre and ±.
  * @returns The dial.
  */
 export function SetpointDial({
@@ -169,6 +172,7 @@ export function SetpointDial({
     buttons,
     gap,
     labels,
+    layout,
 }: SetpointDialProps): ReactElement {
     const theme = useTheme();
     const quiet = neutralColors(theme);
@@ -245,7 +249,6 @@ export function SetpointDial({
     const shown = value === undefined ? undefined : fractionOf(value, scale);
     const [hx, hy] = value === undefined ? [0, 0] : pointAt(angleOf(value, scale), RADIUS);
     const transition = reducedMotion ? 'none' : 'stroke 0.3s';
-    const k = size / VIEW;
 
     return (
         <Box
@@ -360,7 +363,7 @@ export function SetpointDial({
                 sx={{
                     position: 'absolute',
                     inset: 0,
-                    pb: `${Math.round(26 * k)}px`,
+                    pb: `${layout.padding}px`,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -377,10 +380,10 @@ export function SetpointDial({
                         position: 'absolute',
                         left: 0,
                         right: 0,
-                        bottom: `${2 * k}px`,
+                        bottom: `${layout.stepsBottom}px`,
                         display: 'flex',
                         justifyContent: 'center',
-                        gap: `${Math.round(20 * k)}px`,
+                        gap: `${layout.stepsGap}px`,
                     }}
                 >
                     {buttons}

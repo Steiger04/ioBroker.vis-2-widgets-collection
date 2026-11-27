@@ -85,7 +85,7 @@ const SCALE_STEP = 1000;
  * Maßstab fit the box; it must hold for every smaller Maßstab once it holds for one.
  *
  * @param fits - Whether the arrangement's parts at a Maßstab fit its box.
- * @returns The Maßstab in thousandths, rounded down; 0 when not even the smallest fits. The type
+ * @returns The Maßstab as a factor, rounded down to a thousandth; 0 when not even the smallest fits. The type
  *   compares it with its least Maßstab ({@link leastScale}) to decide whether the arrangement holds.
  */
 export function fittingScale(fits: (scale: number) => boolean): number {

@@ -126,7 +126,13 @@ export default function Kartenkopf({ name, secondLine, chips, form, symbol, size
             data-heating-head-name=""
             component="div"
             noWrap
-            sx={{ maxWidth: '100%', fontSize: sizes.name, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.3 }}
+            sx={{
+                maxWidth: '100%',
+                fontSize: sizes.name,
+                fontWeight: 500,
+                letterSpacing: '-0.01em',
+                lineHeight: `${sizes.nameLine}px`,
+            }}
         >
             {name}
         </Typography>
