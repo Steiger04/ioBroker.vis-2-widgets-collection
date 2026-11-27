@@ -27,6 +27,7 @@ import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroke
 
 import { renderComponent, type RenderComponentHandle } from '../testing/testHarness';
 import { vis2CommonValues, Vis2GroupBody, vis2HostTheme, type Vis2PanelField } from '../testing/vis2GroupBody';
+import { ANLAGE_WTH2, HEATING_TEST_PREFIX, heatingTestDevices, NEUTRAL_DEVICE } from '../testing/heatingTestDevices';
 import { heatingBindingFields } from './bindingFields';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
 
@@ -48,10 +49,10 @@ let stored: Record<string, WidgetData>;
 /** Every patch the panel reported, in order. */
 let patches: WidgetData[];
 
-type HostProps = { widgets: Record<string, WidgetData>; entry?: number };
+type HostProps = { widgets: Record<string, WidgetData>; entry?: number; socket?: unknown };
 
 /** The attribute panel around the binding fields, with vis-2's patch handling. */
-function Host({ widgets: initial, entry }: HostProps): React.JSX.Element {
+function Host({ widgets: initial, entry, socket = {} }: HostProps): React.JSX.Element {
     const [widgets, setWidgets] = useState(initial);
     useEffect(() => {
         stored = widgets;
@@ -79,7 +80,7 @@ function Host({ widgets: initial, entry }: HostProps): React.JSX.Element {
     const props = {
         context: {
             theme: vis2HostTheme,
-            socket: {},
+            socket,
             views: { v: { widgets: Object.fromEntries(ids.map(id => [id, { data: widgets[id] }])) } },
         },
         selectedView: 'v',
@@ -101,9 +102,9 @@ function Host({ widgets: initial, entry }: HostProps): React.JSX.Element {
 
 let handle: RenderComponentHandle<HostProps> | undefined;
 
-const mount = (widgets: Record<string, WidgetData>, entry?: number): HTMLElement => {
+const mount = (widgets: Record<string, WidgetData>, entry?: number, socket?: unknown): HTMLElement => {
     patches = [];
-    const mounted = renderComponent<HostProps>(Host, { widgets, entry });
+    const mounted = renderComponent<HostProps>(Host, { widgets, entry, socket });
     handle = mounted;
     return mounted.container;
 };
@@ -509,5 +510,70 @@ describe('Wertezuordnung in the panel — numbered entry and multi-selection', (
 
         expect(patches).toEqual([{ betriebsartZuordnung: { auto: [0], aus: [] } }]);
         expect(stored.w2.betriebsartZuordnung).toEqual({ auto: [0], aus: [] });
+    });
+});
+
+describe('Wertezuordnung in the panel — the effective value of a mapping the pick derives', () => {
+    const { objects } = heatingTestDevices();
+    const socket = { getObject: (id: string): Promise<unknown> => Promise.resolve(objects[id]) };
+    const NEUTRAL_WINDOW = `${HEATING_TEST_PREFIX}${NEUTRAL_DEVICE.binding.fenster}`;
+    const WTH2_MODE = `${HEATING_TEST_PREFIX}${ANLAGE_WTH2.id}.1.SET_POINT_MODE`;
+
+    /** Mounts the panel over the test devices and lets the object reads land. */
+    const mountRead = async (widgets: Record<string, WidgetData>): Promise<HTMLElement> => {
+        const container = mount(widgets, undefined, socket);
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 0));
+        });
+        return container;
+    };
+
+    it('shows the mapping a widget without its object reads (inserted by the assistant), without the InfoBox', async () => {
+        const container = await mountRead({ w1: { fenster: NEUTRAL_WINDOW } });
+
+        expect(chipsOf(neutralRow(container, 'fenster', 'zu'))).toEqual(['CLOSED']);
+        expect(chipsOf(neutralRow(container, 'fenster', 'offen'))).toEqual(['OPEN', 'TILTED']);
+        expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).toBeNull();
+        expect(patches).toEqual([]);
+        expect(stored.w1).toEqual({ fenster: NEUTRAL_WINDOW });
+    });
+
+    it('stores the whole effective mapping on the first change', async () => {
+        const container = await mountRead({ w1: { betriebsart: WTH2_MODE } });
+        expect(chipsOf(neutralRow(container, 'betriebsart', 'auto'))).toEqual(['AUTO-MODE']);
+
+        choose(neutralRow(container, 'betriebsart', 'aus'), 't:heating_zuordnung_nicht_vorhanden');
+
+        expect(patches).toEqual([{ betriebsartZuordnung: { auto: [0], manuell: [1], urlaub: [2], aus: [] } }]);
+    });
+
+    it('shows what the single pick stored, without the InfoBox', async () => {
+        const field = heatingBindingFields(ROOM_THERMOSTAT).find(one => one.name === 'fenster') as unknown as {
+            onChange: (f: unknown, d: WidgetData, c: (d: WidgetData) => void, s: unknown) => Promise<void>;
+        };
+        let picked: WidgetData = {};
+        vi.useFakeTimers();
+        try {
+            await field.onChange(field, { fenster: NEUTRAL_WINDOW }, d => (picked = d), socket);
+            vi.runAllTimers();
+        } finally {
+            vi.useRealTimers();
+        }
+
+        const container = mount({ w1: picked });
+
+        expect(chipsOf(neutralRow(container, 'fenster', 'offen'))).toEqual(['OPEN', 'TILTED']);
+        expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).toBeNull();
+    });
+
+    it('keeps the InfoBox for a widget with its own object but no mapping: the widget reads none either', async () => {
+        const container = await mountRead({
+            w1: {
+                fenster: NEUTRAL_WINDOW,
+                fensterObject: { _id: NEUTRAL_WINDOW, type: 'number', commonStates: { 0: 'CLOSED', 2: 'OPEN' } },
+            },
+        });
+
+        expect(mappingRow(container, 'fenster')?.querySelector('[data-info-box]')).not.toBeNull();
     });
 });

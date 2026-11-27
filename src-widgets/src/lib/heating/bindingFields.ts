@@ -12,7 +12,9 @@
  * `name` is a host attribute, hence `bezeichnung`).
  *
  * Below each id field of a Bedeutung with fixed values stands its Wertezuordnung
- * (`lib/heating/mappingField`), shown while the Bedeutung is bound.
+ * (`lib/heating/mappingField`), shown while the Bedeutung is bound. The pick of such a Bedeutung
+ * fills its own empty Wertezuordnung from what it recognises (`lib/heating/meaningPick`,
+ * `lib/heating/recognition`); a set one stays.
  *
  * The entry number is the seam for the list editor of the house types (ADR-0121): with entry 3
  * every stored key carries the number before its suffix (`soll3`, `soll3Object`). Single-room
@@ -22,6 +24,7 @@
 import { createIdField } from '../commonObjectFields';
 import { meaningMappingField } from './mappingField';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
+import { meaningPickOptions } from './meaningPick';
 
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -34,7 +37,7 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
  * @returns The id field, labelled with the Bedeutung's catalogue key.
  */
 export const meaningIdField = (field: MeaningField, entry?: number): RxWidgetInfoAttributesField => ({
-    ...createIdField(meaningKeys(field, entry).field, MEANINGS[field].valueTypes, { inventRange: false }),
+    ...createIdField(meaningKeys(field, entry).field, MEANINGS[field].valueTypes, meaningPickOptions(field, entry)),
     label: MEANINGS[field].label,
 });
 
