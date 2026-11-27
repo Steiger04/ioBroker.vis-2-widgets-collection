@@ -68,6 +68,8 @@ const DOM_TS_TESTS = [
     'src/translations.test.ts',
     // The Heizzonen-Lesung translates a neutral value's display text (`translate` reads `window`).
     'src/lib/heating/zoneReading.test.ts',
+    // The Raumthermostat's actions read through the Heizzonen-Lesung (same reason).
+    'src/HeatingThermostatCollectionWidget/thermostatActions.test.ts',
 ];
 
 export default defineConfig({

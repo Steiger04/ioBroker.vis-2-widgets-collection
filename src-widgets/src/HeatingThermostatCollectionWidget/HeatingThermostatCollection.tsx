@@ -19,16 +19,15 @@
  * through the Heizzonen-Lesung (`lib/heating/zoneReading`), bound once to the entry number: „–“
  * while bound without a value or not yet reported.
  *
- * Operating (stage-1 spec „Bedienen“): the ring of the dial (Voll) and ± (dial, big set-point, tile)
- * step the set-point on its scale (`lib/heating/setpointScale`); they are off while the set-point
- * has not reported yet, and absent while it is not writable. A drag shows its value and writes once
- * on release. The pills of Groß (`lib/heating/PillRow`) write absolute values even while the
- * set-point has not reported: Absenk and Komfort the widget's temperatures into the set-point, Aus
- * the way `thermostatOff` names. Every action writes exactly one state through the write chain
- * (`lib/heating/useMeaningWrite`), never into a target the Heizzonen-Lesung reads as not writable; a
- * pill exists only for a writable target. The operating-mode segment (`thermostatModes`: Auto,
- * Manuell, Boost, and the Urlaub pill with its end in a row of its own while Urlaub runs) stands in
- * Groß and in Quer from sufficient height.
+ * Operating (stage-1 spec „Bedienen“): what each key writes where, and whether it may, is the
+ * action module's answer (`thermostatActions`): ± (dial, big set-point, tile) and the ring of the
+ * dial (Voll) step the set-point on its scale, the pills of Groß (`lib/heating/PillRow`) are
+ * Absenk, Komfort and Aus, the operating-mode segment Auto, Manuell, Boost and the running Urlaub
+ * (with its end, in a row of its own). The content only draws them and hangs the write of each
+ * action's target on it (`useThermostatWrites`): exactly one state per action through the write
+ * chain (`lib/heating/useMeaningWrite`), never into a target the Heizzonen-Lesung reads as not
+ * writable. A drag of the ring shows its value and writes it once on release into the set-point.
+ * The segment stands in Groß and in Quer from sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
 import { Box, Typography } from '@mui/material';
@@ -43,10 +42,9 @@ import { headerKeys, NEUTRAL_LABELS } from '../lib/heating/meaningCatalog';
 import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingFormat';
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
-import { setpointScale, stepDown, stepUp } from '../lib/heating/setpointScale';
+import { setpointScale } from '../lib/heating/setpointScale';
 import SizeStages from '../lib/heating/SizeStages';
 import type { MeasuredBox } from '../lib/heating/stageRule';
-import { useMeaningWrite, type MeaningWrite } from '../lib/heating/useMeaningWrite';
 import { setpointNoticeKey } from '../lib/heating/setpointNotice';
 import { readZone } from '../lib/heating/zoneReading';
 import { translate } from '../lib/translate';
@@ -54,9 +52,9 @@ import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './
 import { ActualTemperature, actualTemperatureText, ReadingsBar, thermostatReadings } from './ThermostatReadings';
 import HintLine from './HintLine';
 import { SetpointDial, StepButton } from './SetpointControls';
-import { thermostatModeActions, type ModeWriteField } from './thermostatModes';
-import { thermostatOff } from './thermostatOff';
+import { thermostatActions, type ThermostatAction } from './thermostatActions';
 import { thermostatStatus } from './thermostatStatus';
+import { useThermostatWrites } from './useThermostatWrites';
 import {
     thermostatArrangement,
     thermostatDialFont,
@@ -82,8 +80,12 @@ export interface HeatingThermostatCollectionProps {
     entry?: number;
 }
 
-/** The label keys of the temperature pills (literal keys). */
-const PILL_LABELS = { absenk: 'heating_pill_absenk', komfort: 'heating_pill_komfort' } as const;
+/** The label keys of the pills of Groß (literal keys). */
+const PILL_LABELS = {
+    absenk: 'heating_pill_absenk',
+    komfort: 'heating_pill_komfort',
+    aus: 'heating_neutral_aus',
+} as const;
 
 /** The Voll design size of the content (the Mini-Dialog's size, ADR-0122 Nr. 7). */
 const FULL_SIZE = { width: 420, height: 700 } as const;
@@ -93,10 +95,6 @@ const DIMMED_OPACITY = 0.4;
 
 /** The ± edge length beside the big set-point and in the tile (the design's). */
 const STEP_BUTTON = { flat: SETPOINT_FIT.stepFlat, tile: SETPOINT_FIT.stepTile } as const;
-
-/** A stored number, if it is one. */
-const numberOf = (value: unknown): number | undefined =>
-    typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 
 /**
  * The Raumthermostat in its frame.
@@ -126,15 +124,8 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     // The set-point shows only once reported, never the device's substitute value (ADR-0119).
     const reported = setpointReading.number;
 
-    // One write per Bedeutung that an action of the content writes (ADR-0120: one state per action).
-    const setpointWrite = { writable: setpointReading.writable, write: useMeaningWrite(setpointReading) };
-    const modeWrites: Record<ModeWriteField, MeaningWrite> = {
-        betriebsart: useMeaningWrite(zone.meaning('betriebsart')),
-        betriebsartSetzen: useMeaningWrite(zone.meaning('betriebsartSetzen')),
-        boost: useMeaningWrite(zone.meaning('boost')),
-        boostBeenden: useMeaningWrite(zone.meaning('boostBeenden')),
-        urlaub: useMeaningWrite(zone.meaning('urlaub')),
-    };
+    // The write of every Bedeutung an action targets (ADR-0120: one state per action).
+    const writes = useThermostatWrites(zone);
     const scale = setpointScale(setpointReading.object);
     // The value under the pointer while the ring is dragged: shown, written on release.
     const [preview, setPreview] = useState<number | undefined>(undefined);
@@ -172,6 +163,13 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
     const reducedMotion = useReducedMotion();
     const message = status.hint?.message ? status.hint : undefined;
 
+    // What each key writes where, and whether it may (`thermostatActions`); the content only draws.
+    const actions = thermostatActions(zone, status, { komfort: widgetData.komfort, absenk: widgetData.absenk });
+    const { steps } = actions;
+    /** A discrete tap: one state, past the debounce; nothing for a locked action or one without a value. */
+    const tapOf = ({ field, value, locked }: ThermostatAction): (() => void) | undefined =>
+        value === undefined || locked ? undefined : () => writes[field](value, { immediate: true });
+
     // An unreachable device is drawn dimmed and stays operable (no pointer or focus change).
     const dimmed = (content: ReactNode): ReactNode => (
         <Box
@@ -188,75 +186,58 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         </Box>
     );
 
-    // ± and the ring step the reported set-point; off until it has reported, absent while not writable.
+    // ± and the ring step the reported set-point (debounced); a step without a value writes nothing.
     const step = (direction: 'down' | 'up'): void => {
-        if (reported === undefined) {
-            return;
-        }
-        const next = direction === 'up' ? stepUp(reported, scale) : stepDown(reported, scale);
-        if (next !== reported) {
-            setpointWrite.write(next);
+        const action = steps?.[direction];
+        if (action?.value !== undefined) {
+            writes[action.field](action.value);
         }
     };
+    // The ring's drag writes the value under the pointer on release: no action of its own, it goes
+    // straight into the set-point (dropped by the write while the set-point is not writable).
     const commit = (next: number): void => {
         if (next !== reported) {
-            setpointWrite.write(next, { immediate: true });
+            writes.soll(next, { immediate: true });
         }
     };
     const stepButton = (direction: 'down' | 'up', size: number): ReactNode =>
-        setpointWrite.writable ? (
+        steps ? (
             <StepButton
                 direction={direction}
                 size={size}
-                disabled={
-                    reported === undefined || (direction === 'up' ? reported >= scale.max : reported <= scale.min)
-                }
+                disabled={steps[direction].locked}
                 onClick={() => step(direction)}
             />
         ) : null;
 
-    // The pills of Groß: absolute values, also while the set-point has not reported yet.
-    const pills: Pill[] = [];
-    if (setpointWrite.writable) {
-        for (const key of ['absenk', 'komfort'] as const) {
-            // A widget value, unnumbered like its declaration (`entryKey`): only the binding is per entry.
-            const target = numberOf(widgetData[key]);
-            if (target !== undefined) {
-                pills.push({
-                    key,
-                    label: translate(PILL_LABELS[key]),
-                    detail: formatReading(target, 'temperature', lang, unit),
-                    active: reported === target,
-                    onClick: () => setpointWrite.write(target, { immediate: true }),
-                });
-            }
-        }
-    }
-    const off = thermostatOff(zone);
-    const offTarget = off?.kind === 'mode' ? off.field : 'soll';
-    if (off && zone.meaning(offTarget).writable) {
-        const writeOff = off.kind === 'mode' ? modeWrites[off.field] : setpointWrite.write;
-        pills.push({
-            key: 'aus',
-            label: translate('heating_neutral_aus'),
-            active: status.off,
-            onClick: () => writeOff(off.value, { immediate: true }),
-        });
-    }
-
-    // The operating-mode segment: Auto, Manuell, Boost; the running Urlaub in a row of its own.
-    const modePills: Pill[] = thermostatModeActions(zone, status).map(action => {
-        const { write } = action;
+    // The pills of Groß (Absenk, Komfort, Aus) and the operating-mode segment.
+    const pillOf = (action: ThermostatAction, label: string, detail?: string): Pill => {
+        const onClick = tapOf(action);
         return {
             key: action.key,
-            label: translate(NEUTRAL_LABELS[action.key]),
-            ...(action.end === undefined
-                ? {}
-                : { detail: translate('heating_pill_bis', formatUntil(action.end, lang)) }),
+            label,
+            ...(detail === undefined ? {} : { detail }),
             active: action.active,
-            ...(write ? { onClick: () => modeWrites[write.field](write.value, { immediate: true }) } : {}),
+            ...(onClick ? { onClick } : {}),
         };
-    });
+    };
+    // Absenk and Komfort name the temperature they write; Aus names nothing.
+    const pills: Pill[] = actions.pills.map(action =>
+        pillOf(
+            action,
+            translate(PILL_LABELS[action.key]),
+            action.key === 'aus' || typeof action.value !== 'number'
+                ? undefined
+                : formatReading(action.value, 'temperature', lang, unit),
+        ),
+    );
+    const modePills: Pill[] = actions.modes.map(action =>
+        pillOf(
+            action,
+            translate(NEUTRAL_LABELS[action.key]),
+            action.end === undefined ? undefined : translate('heating_pill_bis', formatUntil(action.end, lang)),
+        ),
+    );
     const holidayPills = modePills.filter(pill => pill.key === 'urlaub');
     const segmentPills = modePills.filter(pill => pill.key !== 'urlaub');
     const modes =
@@ -281,7 +262,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
             onCommit={commit}
             onStep={step}
             buttons={
-                setpointWrite.writable ? (
+                steps ? (
                     <>
                         {stepButton('down', STEP_BUTTON.flat)}
                         {stepButton('up', STEP_BUTTON.flat)}
@@ -333,7 +314,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
                 {stepButton('down', STEP_BUTTON.flat)}
                 {/* Quer keeps the h3; Kompakt sizes the set-point to its row beside ±. */}
                 {arrangement === 'kompakt'
-                    ? setpointAt(thermostatSetpointFont('kompakt', box, setpointWrite.writable))
+                    ? setpointAt(thermostatSetpointFont('kompakt', box, steps !== undefined))
                     : setpoint}
                 {stepButton('up', STEP_BUTTON.flat)}
             </Box>,
@@ -345,7 +326,7 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         tile: {
             // The tile sizes the set-point to the room ± and the footer line leave.
             main: dimmed(
-                setpointAt(thermostatSetpointFont('tile', box, thermostatTile(box, setpointWrite.writable).buttons)),
+                setpointAt(thermostatSetpointFont('tile', box, thermostatTile(box, steps !== undefined).buttons)),
             ),
             decrease: stepButton('down', STEP_BUTTON.tile),
             increase: stepButton('up', STEP_BUTTON.tile),

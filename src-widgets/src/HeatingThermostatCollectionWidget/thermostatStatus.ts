@@ -21,7 +21,7 @@
  * them: they share most steps but not all (no battery in the chip, no valve in the hint line).
  *
  * - **Aus** is active when the operating mode reads `aus`, or — where Aus writes the set-point's
- *   real minimum (`thermostatOff`) — when the reported set-point equals that minimum.
+ *   real minimum (`thermostatActions`' `thermostatOff`) — when the reported set-point equals that minimum.
  * - **Boost läuft** (ADR-0120 and its Nachtrag): Boost reported and mapped → its value; else the
  *   remaining time > 0; else the operating mode reads `boost`. The remaining time counts on locally
  *   from its last report (`ts`), in the mapping's unit, or towards the end time of its time format.
@@ -32,7 +32,7 @@
 import { formatDuration, formatReading, formatSince, formatUntil } from '../lib/heating/readingFormat';
 import { parseTimePoint } from '../lib/heating/timePoint';
 import { translate } from '../lib/translate';
-import { thermostatOff } from './thermostatOff';
+import { thermostatOff } from './thermostatActions';
 import type { TileStatus } from '../lib/heating/SizeStages';
 import type { NeutralKey } from '../lib/heating/meaningCatalog';
 import type { HeatingTone } from '../lib/heating/tones';
