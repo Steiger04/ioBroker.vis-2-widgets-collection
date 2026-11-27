@@ -86,6 +86,10 @@ export const UI_ONLY_CUSTOM_FIELDS: readonly UiOnlyCustomField[] = [
         name: 'zuordnung:',
         reason: 'heating Wertezuordnung: stored as <bedeutung>Zuordnung (an object, ADR-0120), no default, so a missing one stays unmapped',
     },
+    {
+        name: 'vorfuellen:',
+        reason: 'heating prefill notice: names the candidates of an ambiguous Bedeutung from the editor session, stores nothing (ADR-0119)',
+    },
 ];
 
 /** Whether a field name is covered by {@link UI_ONLY_CUSTOM_FIELDS}. */

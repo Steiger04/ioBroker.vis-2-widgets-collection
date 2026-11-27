@@ -16,15 +16,21 @@
  * fills its own empty Wertezuordnung from what it recognises (`lib/heating/meaningPick`,
  * `lib/heating/recognition`); a set one stays.
  *
+ * The pick of the main Bedeutung prefills the device's other Bedeutungen, Bezeichnung and
+ * Unterzeile (`lib/heating/mainPickPrefill`); right below it an InfoBox names the candidates of a
+ * Bedeutung the prefill left empty (`lib/heating/prefillNoticeField`).
+ *
  * The entry number is the seam for the list editor of the house types (ADR-0121): with entry 3
  * every stored key carries the number before its suffix (`soll3`, `soll3Object`). Single-room
  * types use the unnumbered case. The valve list is widget-wide, never per entry
  * (`lib/heating/valveListFields`).
  */
 import { createIdField } from '../commonObjectFields';
+import { mainPickPrefill } from './mainPickPrefill';
 import { meaningMappingField } from './mappingField';
 import { MEANINGS, meaningKeys } from './meaningCatalog';
 import { meaningPickOptions } from './meaningPick';
+import { prefillNoticeField } from './prefillNoticeField';
 
 import type { MeaningField, MeaningSubset } from './meaningCatalog';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -58,13 +64,17 @@ const meaningFields = (field: MeaningField, entry?: number): RxWidgetInfoAttribu
  *
  * @param subset - The type's subset of the catalogue.
  * @param entry - The entry number of a list entry (ADR-0121); none for a single-room type.
- * @returns The main Bedeutung, Bezeichnung, Unterzeile, then the other Bedeutungen in subset order,
- *   each Wertezuordnung right after its id field.
+ * @returns The main Bedeutung with its prefill notice, Bezeichnung, Unterzeile, then the other
+ *   Bedeutungen in subset order, each Wertezuordnung right after its id field.
  */
 export function heatingBindingFields(subset: MeaningSubset, entry?: number): RxWidgetInfoAttributesField[] {
     const number = entry ?? '';
+    const [mainId, ...mainRest] = meaningFields(subset.main, entry);
     return [
-        ...meaningFields(subset.main, entry),
+        // The pick of the main Bedeutung prefills the device's other Bedeutungen (ADR-0119).
+        { ...mainId, onChange: mainPickPrefill(subset, entry) },
+        ...mainRest,
+        prefillNoticeField(subset, entry),
         { name: `bezeichnung${number}`, type: 'text', label: 'heating_bezeichnung' },
         { name: `unterzeile${number}`, type: 'text', label: 'heating_unterzeile' },
         ...subset.meanings.filter(field => field !== subset.main).flatMap(field => meaningFields(field, entry)),

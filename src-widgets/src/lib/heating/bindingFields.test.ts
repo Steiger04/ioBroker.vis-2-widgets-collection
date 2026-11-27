@@ -139,11 +139,12 @@ describe('heating binding block — editor seam: the pick of a Bedeutung field',
 });
 
 describe('heating binding block — the fields it builds', () => {
-    it('builds one id field per Bedeutung, its Wertezuordnung below it, Bezeichnung and Unterzeile after the main one', () => {
+    it('builds one id field per Bedeutung, its Wertezuordnung below it, the prefill notice, Bezeichnung and Unterzeile after the main one', () => {
         const fields = heatingBindingFields(ROOM_THERMOSTAT);
 
         expect(panelFields(fields).map(field => [field.name, field.type])).toEqual([
             ['soll', 'id'],
+            ['vorfuellen:soll', 'custom'],
             ['bezeichnung', 'text'],
             ['unterzeile', 'text'],
             ['ist', 'id'],
@@ -183,8 +184,9 @@ describe('heating binding block — the fields it builds', () => {
         const labels = panelFields(heatingBindingFields(ROOM_THERMOSTAT)).map(field => field.label);
         const numbered = panelFields(heatingBindingFields(ROOM_THERMOSTAT, 3)).map(field => field.label);
 
-        expect(labels.slice(0, 4)).toEqual([
+        expect(labels.slice(0, 5)).toEqual([
             'heating_soll',
+            '',
             'heating_bezeichnung',
             'heating_unterzeile',
             'heating_ist',
@@ -195,7 +197,7 @@ describe('heating binding block — the fields it builds', () => {
     it('numbers Bezeichnung and Unterzeile with the entry', () => {
         const names = heatingBindingFields(ROOM_THERMOSTAT, 3).map(field => field.name);
 
-        expect(names.slice(0, 4)).toEqual(['soll3', 'bezeichnung3', 'unterzeile3', 'ist3']);
+        expect(names.slice(0, 5)).toEqual(['soll3', 'vorfuellen:soll3', 'bezeichnung3', 'unterzeile3', 'ist3']);
     });
 });
 

@@ -35,6 +35,8 @@ export interface Recognition {
     readonly meaning: MeaningField;
     /** Its Wertezuordnung; none when no way recognised one (or the Bedeutung has none). */
     readonly mapping?: ValueMapping;
+    /** The Bedeutung the device-wide prefill needs beside it (`RoleEntry.prefillBeside`). */
+    readonly prefillBeside?: MeaningField;
 }
 
 /** The value list of a state as label per device value, in its listed order; none without one. */
@@ -96,12 +98,13 @@ const byRole = (object: ioBroker.Object): Recognition | undefined => {
         if (typeof common.role !== 'string' || !entry.roles.includes(common.role)) {
             continue;
         }
+        const beside = entry.prefillBeside ? { prefillBeside: entry.prefillBeside } : {};
         if (!entry.encoding) {
-            return { meaning: entry.meaning };
+            return { meaning: entry.meaning, ...beside };
         }
         const mapping = mappingOfEncoding(entry.encoding, entry.meaning, common);
         if (mapping) {
-            return { meaning: entry.meaning, mapping };
+            return { meaning: entry.meaning, mapping, ...beside };
         }
     }
     return undefined;
@@ -124,17 +127,19 @@ const byHint = (object: ioBroker.Object, channel: ioBroker.Object | undefined): 
  * @param object - The state object.
  * @param channel - Its channel object (one level above); none when unknown — then only the role
  *   path can recognise.
- * @returns What the first way recognised for the Bedeutung, with the mapping of the first way that
- *   recognised one for that Bedeutung; `undefined` when neither way recognises the data point.
+ * @returns What the first way recognised for the Bedeutung (with its `prefillBeside`), with the
+ *   mapping of the first way that recognised one for that Bedeutung; `undefined` when neither way
+ *   recognises the data point.
  */
 export function recogniseState(object: ioBroker.Object, channel?: ioBroker.Object): Recognition | undefined {
     const ways = [byRole(object), byHint(object, channel)];
-    const meaning = ways.find(way => way !== undefined)?.meaning;
-    if (!meaning) {
+    const first = ways.find(way => way !== undefined);
+    if (!first) {
         return undefined;
     }
+    const { meaning, prefillBeside } = first;
     const mapping = ways.find(way => way?.meaning === meaning && way.mapping)?.mapping;
-    return mapping ? { meaning, mapping } : { meaning };
+    return { meaning, ...(mapping ? { mapping } : {}), ...(prefillBeside ? { prefillBeside } : {}) };
 }
 
 /**

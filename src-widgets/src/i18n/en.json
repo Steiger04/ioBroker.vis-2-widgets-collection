@@ -1475,6 +1475,7 @@
     "heating_erreichbarkeit": "Reachability",
     "heating_zuordnung": "Value mapping",
     "heating_zuordnung_fehlt": "The pick recognised no value mapping. Set it above, otherwise the widget shows the raw device value.",
+    "heating_vorfuellen_mehrdeutig": "Several data points of the device fit these meanings, so they stay empty. Bind the right one below:",
     "heating_zuordnung_nicht_vorhanden": "Not available",
     "heating_zuordnung_einheit": "Unit",
     "heating_zuordnung_zeitformat": "Time format",

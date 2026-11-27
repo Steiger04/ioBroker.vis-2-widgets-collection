@@ -33,6 +33,12 @@ export interface RoleEntry {
     readonly meaning: MeaningField;
     /** How the values map; none for a Bedeutung without a Wertezuordnung (a measured or set value). */
     readonly encoding?: RoleEncoding;
+    /**
+     * The device-wide prefill takes the state only when the device also holds a candidate for this
+     * Bedeutung — a reading that means the Bedeutung only beside it. The pick of the one field by
+     * hand is unaffected.
+     */
+    readonly prefillBeside?: MeaningField;
 }
 
 /** All entries. */
@@ -81,5 +87,8 @@ export const ROLE_TABLE: readonly RoleEntry[] = [
         meaning: 'batterieSchwach',
         encoding: { kind: 'boolean', inverted: false },
     },
-    { roles: ['value.battery', 'value.voltage'], meaning: 'batteriestand' },
+    { roles: ['value.battery'], meaning: 'batteriestand' },
+    // An operating voltage is a battery level only on a battery device: a mains-powered one (HmIP
+    // FALMOT `OPERATING_VOLTAGE`) carries the same role without a battery flag.
+    { roles: ['value.voltage'], meaning: 'batteriestand', prefillBeside: 'batterieSchwach' },
 ];
