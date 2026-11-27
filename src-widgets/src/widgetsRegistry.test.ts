@@ -4,7 +4,8 @@ import { resolve } from 'node:path';
 
 import type { RxWidgetInfo } from '@iobroker/types-vis-2';
 
-import { buildExposes, collectionWidgets, HEATING_SET, heatingWidgets, helpers, widgets } from './widgetsRegistry';
+import { HEATING_SET } from './lib/heating/heatingSet';
+import { buildExposes, collectionWidgets, heatingWidgets, helpers, widgets } from './widgetsRegistry';
 
 // vitest is launched with cwd = src-widgets (npm scripts and CI all cd here
 // first), so repo root is one level up and widget sources live under ./src.

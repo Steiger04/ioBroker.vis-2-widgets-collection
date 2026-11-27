@@ -9,7 +9,7 @@ import Generic from '../Generic';
 import { createAiGuideField } from '../lib/fieldFactories';
 import { heatingCommonFields } from '../lib/heating/heatingCommonFields';
 import { thermostatBindingFields, thermostatValueFields } from '../lib/heating/thermostatFields';
-import { HEATING_SET } from '../widgetsRegistry';
+import { HEATING_SET } from '../lib/heating/heatingSet';
 
 import HeatingThermostatCollection from './HeatingThermostatCollection';
 
