@@ -708,42 +708,22 @@ describe('Naht 1: the assistant’s view of the widget catalog', () => {
     });
 });
 
-/**
- * Types whose texts exist in en.json only, until the language sync of their delivery stage (the
- * heating family's first stage adds them to en.json ticket by ticket and syncs the other languages
- * once). Each stays checked in English above; the check below keeps the list honest.
- */
-const AWAITING_LANGUAGE_SYNC: readonly WidgetName[] = ['HeatingThermostatCollectionWidget'];
-
-/** The types every language file is checked for. */
-const LANGUAGE_CHECKED_TYPES = PLACEABLE_TYPES.filter(name => !AWAITING_LANGUAGE_SYNC.includes(name));
-
 describe('Every language file: what the assistant and the palette read in each interface language', () => {
-    it.each(AWAITING_LANGUAGE_SYNC)('%s still awaits the language sync: some language file lacks its help', name => {
-        const help = infos.get(name)!.visHelp!;
-
-        expect((en as Record<string, string>)[help]).toBeTruthy();
-        expect(LANGUAGE_FILES.filter(file => !(help in readLanguage(file)))).not.toEqual([]);
-    });
-
     describe.each(LANGUAGE_FILES)('%s', file => {
         const translate = translatorOf(readLanguage(file));
 
-        it.each(LANGUAGE_CHECKED_TYPES)(
-            '%s: lists a translated help of one sentence and at most 120 characters',
-            name => {
-                const type = catalogType(infos.get(name)!, I18N_PREFIX);
-                const help = listEntry(type, translate).help;
+        it.each(PLACEABLE_TYPES)('%s: lists a translated help of one sentence and at most 120 characters', name => {
+            const type = catalogType(infos.get(name)!, I18N_PREFIX);
+            const help = listEntry(type, translate).help;
 
-                // Translated: a text of the file, not the key the host would show for a miss.
-                expect(help).toBeTruthy();
-                expect(help).not.toBe(type.help);
-                expect(sentencesOf(help!)).toHaveLength(1);
-                expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
-            },
-        );
+            // Translated: a text of the file, not the key the host would show for a miss.
+            expect(help).toBeTruthy();
+            expect(help).not.toBe(type.help);
+            expect(sentencesOf(help!)).toHaveLength(1);
+            expect(lengthOf(help!)).toBeLessThanOrEqual(HELP_MAX_LENGTH);
+        });
 
-        it.each(LANGUAGE_CHECKED_TYPES)('%s: describes the KI-Leitfaden with the English text', name => {
+        it.each(PLACEABLE_TYPES)('%s: describes the KI-Leitfaden with the English text', name => {
             const guideIn = (language: Translate): string | undefined =>
                 guideFieldsOf(describedFields(infos.get(name)!, I18N_PREFIX, language))[0]?.label;
 
