@@ -23,7 +23,7 @@ import {
 } from '../testing/collectionScene';
 import CollectionBase from '../../components/CollectionBase';
 import useData from '../../hooks/useData';
-import SizeStages, { type TileArea } from './SizeStages';
+import SizeStages, { themeMeasures, type TileArea } from './SizeStages';
 import type { MeasuredBox } from './stageRule';
 
 installInertResizeObserver();
@@ -161,5 +161,27 @@ describe('SizeStages: the tile area inside half the Inhaltsabstand (ADR-0122 Nac
             rowGap: 8,
             controlGap: 12,
         });
+    });
+});
+
+describe('SizeStages: the theme measures a type plans with', () => {
+    it.each([
+        ['the standard theme', {}, { spacing: 8, text: 16, textLine: 1.5, h3: 48 }],
+        [
+            'a larger spacing unit and h3',
+            { spacing: 10, typography: { h3: { fontSize: '3.5rem' } } },
+            { spacing: 10, text: 16, textLine: 1.5, h3: 56 },
+        ],
+        [
+            'the spacing with CSS variables on',
+            { spacing: 16, cssVariables: { cssVarPrefix: 'vis2c' } },
+            { spacing: 16, text: 16, textLine: 1.5, h3: 48 },
+        ],
+        // A base size of 21 px: body1 16 × 21 / 14 = 24 px, h3 48 × 21 / 14 = 72 px.
+        ['a larger type size', { typography: { fontSize: 21 } }, { spacing: 8, text: 24, textLine: 1.5, h3: 72 }],
+        // A line height that does not read as a factor stands in for the standard one.
+        ['a body1 line in em', { typography: { body1: { lineHeight: '1.6em' } } }, { textLine: 1.5 }],
+    ] as [string, ThemeOptions, object][])('reads %s', (_case, options, measures) => {
+        expect(themeMeasures(createTheme(options))).toMatchObject(measures);
     });
 });

@@ -10,16 +10,19 @@
  * happy-dom lays nothing out. The content inside the widget's frame is pinned by the render tests
  * of the widget body.
  */
+import { createTheme, ThemeProvider } from '@mui/material';
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 
 import type { FC } from 'react';
 
 import { collectionScene, testScopedMount, withContentBox } from '../lib/testing/collectionScene';
 import CollectionBase from '../components/CollectionBase';
+import { ContentBoxContext } from '../hooks/useContentBox';
 import useData from '../hooks/useData';
 import MiniDialog from '../lib/heating/MiniDialog';
 import type { MeasuredBox } from '../lib/heating/stageRule';
 import ThermostatContent from './ThermostatContent';
+import { thermostatPlan } from './thermostatStages';
 
 /** The box the ResizeObserver fake reports for the Mini-Dialog's content area. */
 let dialogBox: MeasuredBox | undefined;
@@ -133,5 +136,49 @@ describe('ThermostatContent: entry 3 in the Mini-Dialog of a house type', () => 
         expect(dialog.querySelector('[data-heating-stage]')?.getAttribute('data-heating-stage')).toBe('einfach');
         expect(dialog.querySelector('[data-heating-tile]')).toBeNull();
         expect(dialog.querySelector('[data-heating-setpoint]')?.textContent).toBe('19.5 °C');
+    });
+});
+
+describe('ThermostatContent: a theme of its own (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“)', () => {
+    /** A theme with a larger spacing unit and a larger h3 than the standard theme. */
+    const theme = createTheme({ spacing: 10, typography: { h3: { fontSize: '3.5rem' } } });
+    /** Its measures as the plan reads them: spacing 10 px, body1 16 px in 1.5 lines, h3 56 px. */
+    const measures = { spacing: 10, text: 16, textLine: 1.5, h3: 56 };
+    const box = { width: 741, height: 160 };
+
+    /** The Raumthermostat alone in that theme, its Content-Box published. */
+    const Themed: FC = function Themed() {
+        return (
+            <ThemeProvider theme={theme}>
+                <ContentBoxContext.Provider value={box}>
+                    <ThermostatContent />
+                </ContentBoxContext.Provider>
+            </ThemeProvider>
+        );
+    };
+
+    it("draws Quer by the plan of the theme's measures: its set-point row fits the box", () => {
+        const data = {
+            inhaltsabstand: 0,
+            soll: 'hz.setpoint',
+            sollObject: { _id: 'hz.setpoint', type: 'number', unit: '°C', write: true, minValue: 5, maxValue: 30 },
+        };
+        const { container } = mountBody(Themed, collectionScene('heating-thermostat-themed', data, 21, 'hz.setpoint'));
+        const plan = thermostatPlan('einfach', box, true, { measures });
+        const setpoint = container.querySelector<HTMLElement>(
+            '[data-heating-slot="setpoint"] [data-heating-setpoint]',
+        )!;
+        const font = parseFloat(getComputedStyle(setpoint).fontSize);
+        const step = parseFloat(
+            getComputedStyle(container.querySelector<HTMLElement>('[data-heating-step="up"]')!).width,
+        );
+
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'quer',
+        );
+        expect(font).toBeCloseTo(56 * plan.sizes.scale, 3);
+        expect(step).toBeCloseTo(52 * plan.sizes.scale, 3);
+        // „21,0 °C“ measured 161 px wide at 48 px of font; ± with their gap of 1.5 units of 10 px.
+        expect(font * (161 / 48) + 2 * step + 2 * 15 * plan.sizes.scale).toBeLessThanOrEqual(box.width);
     });
 });

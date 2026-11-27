@@ -226,6 +226,54 @@ export function tileHullMeasures(theme: Theme): TileHullMeasures {
     return measures;
 }
 
+/**
+ * The theme's measures a type's plan counts with (ADR-0122 Nachtrag „Maßstab und Anordnungswahl“:
+ * theme typography and spacing stay the basis): one spacing unit, the `body1` text's size and line
+ * height, the `h3` size — all in px but the line height, a factor of the font.
+ */
+export interface ThemeMeasures {
+    readonly spacing: number;
+    readonly text: number;
+    readonly textLine: number;
+    readonly h3: number;
+}
+
+/**
+ * The standard theme's measures — also what a theme value stands in for that does not read as px
+ * (e.g. a size in em or a CSS variable without the theme's value).
+ */
+export const STANDARD_THEME_MEASURES: ThemeMeasures = { spacing: 8, text: 16, textLine: 1.5, h3: 48 };
+
+/** The measures per theme: a theme with CSS variables builds its style sheets to answer. */
+const themeMeasuresCache = new WeakMap<Theme, ThemeMeasures>();
+
+/**
+ * The theme's measures a type's plan counts with, read as the theme draws them.
+ *
+ * @param theme - The theme the type draws in.
+ * @returns The measures; the standard one for a value that does not read as px.
+ */
+export function themeMeasures(theme: Theme): ThemeMeasures {
+    const cached = themeMeasuresCache.get(theme);
+    if (cached) {
+        return cached;
+    }
+    const rootPx = theme.typography.htmlFontSize ?? 16;
+    const { fontSize, lineHeight } = theme.typography.body1;
+    const standard = STANDARD_THEME_MEASURES;
+    const measures: ThemeMeasures = {
+        spacing: spacingPxOf(theme, 1, rootPx) ?? standard.spacing,
+        text: pxOf(fontSize, rootPx) ?? standard.text,
+        textLine:
+            typeof lineHeight === 'number' || /^\s*\d*\.?\d+\s*$/.test(String(lineHeight))
+                ? Number(lineHeight)
+                : standard.textLine,
+        h3: pxOf(theme.typography.h3.fontSize, rootPx) ?? standard.h3,
+    };
+    themeMeasuresCache.set(theme, measures);
+    return measures;
+}
+
 /** The area a type fills in its tile, below the hull's head row and the gap under it. */
 export interface TileArea extends MeasuredBox {
     /**

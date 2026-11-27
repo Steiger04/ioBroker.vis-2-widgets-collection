@@ -25,7 +25,7 @@
 import { Box } from '@mui/material';
 import type { ReactElement, ReactNode } from 'react';
 
-import type { SetpointFont, ThermostatDial, ThermostatStagePlan, ThermostatTilePlan } from './thermostatStages';
+import type { ThermostatDial, ThermostatStagePlan, ThermostatTilePlan } from './thermostatStages';
 import type { KartenkopfForm } from '../lib/heating/Kartenkopf';
 import type { TileContent } from '../lib/heating/SizeStages';
 import type { HintLineProps } from './HintLine';
@@ -39,8 +39,8 @@ export interface ThermostatParts {
     head: (form: KartenkopfForm, full?: boolean) => ReactNode;
     /** The dial in the plan's size. */
     dial: (dial: ThermostatDial) => ReactNode;
-    /** The big set-point with its ±, at the plan's font (px or the theme's h3 at a factor). */
-    setpoint: (font: SetpointFont) => ReactNode;
+    /** The big set-point with its ±, at the plan's font in px. */
+    setpoint: (font: number) => ReactNode;
     /** The pills Absenk / Komfort / Aus. */
     pills: ReactNode;
     /** The operating-mode segment. */

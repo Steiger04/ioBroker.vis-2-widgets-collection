@@ -144,8 +144,20 @@ describe('thermostatPlan: Einfach', () => {
         expect(thermostatPlan('einfach', { width, height }, true)).toMatchObject({
             arrangement: 'quer',
             sizes: { scale, step: 52 * scale },
-            setpointFont: { variant: 'h3', factor: scale },
+            setpointFont: 48 * scale,
         });
+    });
+
+    it("counts with the theme's measures: a larger h3 and spacing unit draw Quer at a smaller Maßstab", () => {
+        const box = { width: 741, height: 160 };
+        const standard = thermostatPlan('einfach', box, true);
+        const themed = thermostatPlan('einfach', box, true, {
+            measures: { spacing: 10, text: 16, textLine: 1.5, h3: 56 },
+        });
+
+        expect(themed).toMatchObject({ arrangement: 'quer', setpointFont: 56 * themed.sizes.scale });
+        expect(standard).toMatchObject({ setpointFont: 48 * standard.sizes.scale });
+        expect(themed.sizes.scale).toBeLessThan(standard.sizes.scale);
     });
 
     it('caps the Maßstab at 2.0', () => {

@@ -33,7 +33,7 @@
  * The segment stands in Groß and in Quer from sufficient height.
  */
 import ThermostatOutlined from '@mui/icons-material/ThermostatOutlined';
-import { Box, Typography, useTheme, type Theme } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { useContext, useState, type ReactElement, type ReactNode } from 'react';
 
 import { CollectionContext } from '../components/CollectionProvider';
@@ -44,7 +44,7 @@ import { formatReading, formatUntil, NO_VALUE } from '../lib/heating/readingForm
 import { useReducedMotion } from '../lib/heating/motion';
 import PillRow, { type Pill } from '../lib/heating/PillRow';
 import { setpointScale } from '../lib/heating/setpointScale';
-import SizeStages from '../lib/heating/SizeStages';
+import SizeStages, { themeMeasures } from '../lib/heating/SizeStages';
 import { readZone } from '../lib/heating/zoneReading';
 import { translate } from '../lib/translate';
 import ThermostatStage, { thermostatTileContent, type ThermostatParts } from './ThermostatStage';
@@ -58,8 +58,7 @@ import {
     thermostatPlan,
     thermostatStage,
     SETPOINT_FIT,
-    type SetpointFont,
-    type ThemeFont,
+    type ThermostatShape,
     type ThermostatSizes,
 } from './thermostatStages';
 import type { HeatingThermostatCollectionContextProps } from '../types';
@@ -88,22 +87,6 @@ const FULL_SIZE = { width: 420, height: 700 } as const;
 
 /** The opacity of an unreachable device's set-point and dial (the design's dimming). */
 const DIMMED_OPACITY = 0.4;
-
-/**
- * A font of the theme's typography at a factor: the variant's own font size at 1 (its responsive
- * rules included), else that size times the factor.
- *
- * @param theme - The theme.
- * @param font - The variant and the factor.
- * @returns The `sx` font size, if any.
- */
-function themeFontSize(theme: Theme, font: ThemeFont): { fontSize?: string } {
-    if (font.factor === 1) {
-        return {};
-    }
-    const size = theme.typography[font.variant].fontSize;
-    return { fontSize: typeof size === 'number' ? `${size * font.factor}px` : `calc(${size} * ${font.factor})` };
-}
 
 /**
  * The Raumthermostat-Inhalt of one Heizzone.
@@ -138,18 +121,13 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     const [preview, setPreview] = useState<number | undefined>(undefined);
     const shown = preview ?? reported;
 
-    // The set-point at the plan's font: the theme's h3 at a factor, or a size by its box in px.
-    const setpointAt = (font: SetpointFont): ReactElement => (
+    // The set-point in the theme's h3 at the plan's font size in px.
+    const setpointAt = (font: number): ReactElement => (
         <Typography
             variant="h3"
             component="span"
             data-heating-setpoint=""
-            sx={{
-                whiteSpace: 'nowrap',
-                ...(typeof font === 'number'
-                    ? { fontSize: `${font}px`, lineHeight: SETPOINT_FIT.lineHeight }
-                    : themeFontSize(theme, font)),
-            }}
+            sx={{ whiteSpace: 'nowrap', fontSize: `${font}px`, lineHeight: SETPOINT_FIT.lineHeight }}
         >
             {shown === undefined ? NO_VALUE : formatReading(shown, 'temperature', lang, unit)}
         </Typography>
@@ -359,15 +337,17 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
     };
     // Whether the set-point is writable, as the Heizzonen-Lesung reads it (ADR-0118 Nachtrag K4).
     const { writable } = setpointReading;
+    // What the rule and the plan read beyond the box: the measures of the theme the parts draw in.
+    const shape: ThermostatShape = { measures: themeMeasures(theme) };
 
     return (
         <SizeStages
             rule={thermostatStage}
-            data={widgetData}
+            data={shape}
             ansicht={widgetData.ansicht}
             inset={widgetData.inhaltsabstand}
             renderStage={(stage, box) => {
-                const plan = thermostatPlan(stage, box, writable);
+                const plan = thermostatPlan(stage, box, writable, shape);
                 return (
                     <ThermostatStage
                         plan={plan}
@@ -376,7 +356,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
                 );
             }}
             renderTile={area => {
-                const plan = thermostatPlan('mini', area, writable);
+                const plan = thermostatPlan('mini', area, writable, shape);
                 return thermostatTileContent(partsAt(plan.sizes), plan.tile);
             }}
             name={name}

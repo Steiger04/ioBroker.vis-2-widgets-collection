@@ -48,7 +48,7 @@ import {
     type PillSizes,
 } from '../lib/heating/partSizes';
 import { fittingScale, headScale, leastScale, SCALE_BOUNDS, scaled } from '../lib/heating/scaleRule';
-import type { TileArea } from '../lib/heating/SizeStages';
+import { STANDARD_THEME_MEASURES, type ThemeMeasures, type TileArea } from '../lib/heating/SizeStages';
 import type { DrawnStage, MeasuredBox, SizeStage } from '../lib/heating/stageRule';
 
 /** A least box in px (both sizes reached). */
@@ -179,8 +179,26 @@ export function thermostatSizes(scale: number, place: SizePlace): ThermostatSize
     };
 }
 
-/** One spacing unit of the standard theme in px: the fits count the gaps with it. */
-const SPACING_PX = 8;
+/**
+ * What the plan reads beyond the box: the theme's measures (`themeMeasures` of the theme the content
+ * draws in) — the fits count gaps, text lines and the big set-point with them, as the parts draw.
+ */
+export interface ThermostatShape {
+    readonly measures: ThemeMeasures;
+}
+
+/** The shape as a caller hands it: anything left out reads the standard. */
+export type ThermostatShapeInput = Partial<ThermostatShape>;
+
+/**
+ * The whole shape: the standard theme's measures where none are given.
+ *
+ * @param input - The caller's shape.
+ * @returns The shape.
+ */
+const shapeOf = (input: ThermostatShapeInput = {}): ThermostatShape => ({
+    measures: input.measures ?? STANDARD_THEME_MEASURES,
+});
 
 /** The Kartenkopf's name line: its font times its line height (`Kartenkopf`). */
 const NAME_LINE = 1.3;
@@ -206,20 +224,22 @@ export const QUER_MODES_LEAST = leastScale({
 });
 
 /**
- * The big set-point's row at a Maßstab: the set-point at the design's 48 px, ± with their gap
- * beside it where it is writable.
+ * The big set-point's row at a Maßstab: the set-point at the theme's h3, ± with their gap beside it
+ * where it is writable — all at the Maßstab.
  *
  * @param scale - The Maßstab.
  * @param writable - Whether ± stand beside the set-point.
+ * @param measures - The theme's measures.
  * @returns Its width and height in px.
  */
-function setpointRow(scale: number, writable: boolean): LeastBox {
+function setpointRow(scale: number, writable: boolean, measures: ThemeMeasures): LeastBox {
     const fit = SETPOINT_FIT;
-    const step = writable ? fit.stepFlat * scale : 0;
-    const gap = writable ? fit.flatGap * scale : 0;
+    const font = measures.h3 * scale;
+    const step = writable ? THERMOSTAT_DESIGN.step.stage * scale : 0;
+    const gap = writable ? THERMOSTAT_DESIGN.gaps.step * measures.spacing * scale : 0;
     return {
-        width: 2 * (step + gap) + fit.glyphsPerFontPx * fit.maxFont * scale,
-        height: Math.max(step, fit.lineHeight * fit.maxFont * scale),
+        width: 2 * (step + gap) + fit.glyphsPerFontPx * font,
+        height: Math.max(step, fit.lineHeight * font),
     };
 }
 
@@ -240,15 +260,16 @@ const lineAt = (scale: number): number => EINFACH_FIT.line * Math.max(scale, hea
  * @param scale - The Maßstab.
  * @param writable - Whether ± stand beside the set-point.
  * @param modes - Whether the operating-mode segment stands below.
+ * @param measures - The theme's measures.
  * @returns The box Quer needs in px.
  */
-export function querNeed(scale: number, writable: boolean, modes: boolean): LeastBox {
+export function querNeed(scale: number, writable: boolean, modes: boolean, measures: ThemeMeasures): LeastBox {
     const head = headScale(scale);
-    const gaps = scaled(THERMOSTAT_DESIGN.gaps, scale * SPACING_PX);
+    const gaps = scaled(THERMOSTAT_DESIGN.gaps, scale * measures.spacing);
     const k = KARTENKOPF_DESIGN;
-    const stacked = (k.name * NAME_LINE + k.stackGapUnits * SPACING_PX + k.chipHeight) * head;
+    const stacked = (k.name * NAME_LINE + k.stackGapUnits * measures.spacing + k.chipHeight) * head;
     const column = stacked + gaps.querText + lineAt(scale);
-    const row = setpointRow(scale, writable);
+    const row = setpointRow(scale, writable, measures);
     return {
         width: EINFACH_FIT.querColumn * head + gaps.querHead + row.width,
         height: Math.max(column, row.height) + (modes ? gaps.region + PILL_DESIGN.height * scale : 0),
@@ -261,13 +282,14 @@ export function querNeed(scale: number, writable: boolean, modes: boolean): Leas
  *
  * @param scale - The Maßstab.
  * @param writable - Whether ± stand beside the set-point.
+ * @param measures - The theme's measures.
  * @returns The box Kompakt needs in px.
  */
-export function kompaktNeed(scale: number, writable: boolean): LeastBox {
+export function kompaktNeed(scale: number, writable: boolean, measures: ThemeMeasures): LeastBox {
     const k = KARTENKOPF_DESIGN;
     const head = Math.max(k.name * NAME_LINE, k.chipHeight) * headScale(scale);
-    const row = setpointRow(scale, writable);
-    const region = THERMOSTAT_DESIGN.gaps.region * SPACING_PX * scale;
+    const row = setpointRow(scale, writable, measures);
+    const region = THERMOSTAT_DESIGN.gaps.region * measures.spacing * scale;
     return { width: row.width, height: head + region + row.height + region + lineAt(scale) };
 }
 
@@ -296,16 +318,18 @@ export type EinfachChoice =
  *
  * @param box - The measured Content-Box.
  * @param writable - Whether the set-point is writable: only then ± stand beside it.
+ * @param shape - What the plan reads beyond the box.
  * @returns The arrangement, the segment in Quer and the Maßstab.
  */
-export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean): EinfachChoice {
+export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean, shape: ThermostatShape): EinfachChoice {
     const fits = holds(box);
-    const quer = fittingScale(scale => fits(querNeed(scale, writable, false)));
-    const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable)));
+    const { measures } = shape;
+    const quer = fittingScale(scale => fits(querNeed(scale, writable, false, measures)));
+    const kompakt = fittingScale(scale => fits(kompaktNeed(scale, writable, measures)));
     // Whether a part holds is asked at its exact least Maßstab; the found Maßstab is rounded down.
-    if (fits(querNeed(EINFACH_LEAST, writable, false)) && quer >= kompakt) {
-        const modes = fits(querNeed(QUER_MODES_LEAST, writable, true));
-        const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true))) : quer;
+    if (fits(querNeed(EINFACH_LEAST, writable, false, measures)) && quer >= kompakt) {
+        const modes = fits(querNeed(QUER_MODES_LEAST, writable, true, measures));
+        const scale = modes ? fittingScale(at => fits(querNeed(at, writable, true, measures))) : quer;
         return { arrangement: 'quer', modes, scale: Math.max(modes ? QUER_MODES_LEAST : EINFACH_LEAST, scale) };
     }
     return { arrangement: 'kompakt', scale: Math.max(EINFACH_LEAST, kompakt) };
@@ -316,11 +340,13 @@ export function thermostatEinfachChoice(box: MeasuredBox, writable: boolean): Ei
  * writability.
  *
  * @param box - The measured Content-Box.
+ * @param shape - What the plan reads beyond the box.
  * @returns `true` while one of them fits.
  */
-export function thermostatEinfachHolds(box: MeasuredBox): boolean {
+export function thermostatEinfachHolds(box: MeasuredBox, shape: ThermostatShape): boolean {
     const fits = holds(box);
-    return fits(querNeed(EINFACH_LEAST, true, false)) || fits(kompaktNeed(EINFACH_LEAST, true));
+    const { measures } = shape;
+    return fits(querNeed(EINFACH_LEAST, true, false, measures)) || fits(kompaktNeed(EINFACH_LEAST, true, measures));
 }
 
 /** An arrangement of Voll. */
@@ -331,18 +357,19 @@ export type ThermostatArrangement = VollArrangement | 'quer' | 'kompakt';
 
 /**
  * The Raumthermostat's size-stage rule: Voll while one of its arrangements holds its whole content at
- * the least Maßstab (`vollHolds`), Einfach from Quer or Kompakt on, else Mini. It reads none of its
- * own data.
+ * the least Maßstab (`vollHolds`), Einfach from Quer or Kompakt on, else Mini. Its data is the shape
+ * the plan reads: the theme's measures.
  *
  * @param box - The measured Content-Box.
- * @param _data - The type's own data (unused).
+ * @param data - What the plan reads beyond the box; the standard where left out.
  * @returns The stage the box allows.
  */
-export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
-    if (vollHolds(box)) {
+export function thermostatStage(box: MeasuredBox, data: ThermostatShapeInput = {}): SizeStage {
+    const shape = shapeOf(data);
+    if (vollHolds(box, shape)) {
         return 'voll';
     }
-    if (thermostatEinfachHolds(box)) {
+    if (thermostatEinfachHolds(box, shape)) {
         return 'einfach';
     }
     return 'mini';
@@ -356,16 +383,20 @@ export function thermostatStage(box: MeasuredBox, _data: unknown): SizeStage {
  * @param stage - The effective stage.
  * @param box - The measured Content-Box.
  * @param writable - Whether the set-point is writable (Einfach compares with or without ±).
+ * @param input - What the plan reads beyond the box; the standard where left out.
  * @returns The arrangement to draw.
  */
-export function thermostatArrangement(stage: 'voll', box: MeasuredBox, writable?: boolean): VollArrangement;
-export function thermostatArrangement(stage: 'einfach', box: MeasuredBox, writable?: boolean): 'quer' | 'kompakt';
-export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox, writable?: boolean): ThermostatArrangement;
-export function thermostatArrangement(stage: DrawnStage, box: MeasuredBox, writable = true): ThermostatArrangement {
+export function thermostatArrangement(
+    stage: DrawnStage,
+    box: MeasuredBox,
+    writable = true,
+    input: ThermostatShapeInput = {},
+): ThermostatArrangement {
+    const shape = shapeOf(input);
     if (stage === 'voll') {
-        return vollArrangement(box);
+        return vollArrangement(box, shape).arrangement;
     }
-    return thermostatEinfachChoice(box, writable).arrangement;
+    return thermostatEinfachChoice(box, writable, shape).arrangement;
 }
 
 /*
@@ -388,9 +419,6 @@ const DIAL_DESIGN = 320;
  * „Absenk 17,0 °C“ and „Komfort 21,0 °C“ hold their pill without being cut.
  */
 export const VOLL_COLUMN = 392;
-
-/** The line height of the theme text the parts draw without a line height of their own. */
-const TEXT_LINE = 1.5;
 
 /**
  * The ring's scale labels: their size in the ring's units at the design (px at the dial's factor 1;
@@ -428,11 +456,15 @@ export const VOLL_LEAST: Readonly<Record<VollArrangement, number>> = (() => {
  * The heights of the parts beside the dial at a Maßstab, in px.
  *
  * @param sizes - The sizes at the Maßstab.
+ * @param measures - The theme's measures: its spacing unit and its text's line height.
  * @returns The heights: the Kartenkopf full (symbol and Unterzeile) and in its short row, the hint
  *   line with a Meldung, the pills, the operating modes with the Urlaub row, the readings bar and
  *   one gap between regions.
  */
-function partHeights(sizes: ThermostatSizes): {
+function partHeights(
+    sizes: ThermostatSizes,
+    measures: ThemeMeasures,
+): {
     headFull: number;
     headRow: number;
     hint: number;
@@ -442,25 +474,26 @@ function partHeights(sizes: ThermostatSizes): {
     gap: number;
 } {
     const { head, hint, pills, readings, gaps } = sizes;
+    const { spacing, textLine } = measures;
     const nameLine = head.name * NAME_LINE;
     return {
         headFull: Math.max(
             head.symbol,
-            nameLine + head.textGapUnits * SPACING_PX + head.second * TEXT_LINE,
+            nameLine + head.textGapUnits * spacing + head.second * textLine,
             head.chipHeight,
         ),
         headRow: Math.max(nameLine, head.chipHeight),
-        hint: Math.max(hint.font * TEXT_LINE, hint.sign) + 2 * hint.padYUnits * SPACING_PX,
+        hint: Math.max(hint.font * textLine, hint.sign) + 2 * hint.padYUnits * spacing,
         pills: pills.height,
-        modes: 2 * pills.height + gaps.modes * SPACING_PX,
+        modes: 2 * pills.height + gaps.modes * spacing,
         // The bar's top line of 1 px does not scale.
         readings:
-            readings.topUnits * SPACING_PX +
+            readings.topUnits * spacing +
             1 +
-            Math.max(readings.value * TEXT_LINE, readings.icon) +
-            readings.itemGapUnits * SPACING_PX +
-            readings.label * TEXT_LINE,
-        gap: gaps.region * SPACING_PX,
+            Math.max(readings.value * textLine, readings.icon) +
+            readings.itemGapUnits * spacing +
+            readings.label * textLine,
+        gap: gaps.region * spacing,
     };
 }
 
@@ -476,10 +509,11 @@ interface VollNeed extends LeastBox {
  *
  * @param arrangement - The arrangement.
  * @param scale - The Maßstab.
+ * @param shape - What the plan reads beyond the box.
  * @returns The need.
  */
-function vollNeed(arrangement: VollArrangement, scale: number): VollNeed {
-    const part = partHeights(thermostatSizes(scale, 'stage'));
+function vollNeed(arrangement: VollArrangement, scale: number, shape: ThermostatShape): VollNeed {
+    const part = partHeights(thermostatSizes(scale, 'stage'), shape.measures);
     const dial = DIAL_DESIGN * scale;
     const column = VOLL_COLUMN * scale;
     // The whole content beside the dial: Kartenkopf, hint line, pills, modes, readings.
@@ -520,10 +554,11 @@ function vollNeed(arrangement: VollArrangement, scale: number): VollNeed {
  * @param arrangement - The arrangement.
  * @param box - The box.
  * @param scale - The Maßstab.
+ * @param shape - What the plan reads beyond the box.
  * @returns `true` when the need fits.
  */
-function vollFits(arrangement: VollArrangement, box: MeasuredBox, scale: number): boolean {
-    return holds(box)(vollNeed(arrangement, scale));
+function vollFits(arrangement: VollArrangement, box: MeasuredBox, scale: number, shape: ThermostatShape): boolean {
+    return holds(box)(vollNeed(arrangement, scale, shape));
 }
 
 /**
@@ -532,20 +567,22 @@ function vollFits(arrangement: VollArrangement, box: MeasuredBox, scale: number)
  *
  * @param arrangement - The arrangement.
  * @param box - The box.
+ * @param shape - What the plan reads beyond the box.
  * @returns The Maßstab (below the least when the arrangement does not hold).
  */
-export function vollScale(arrangement: VollArrangement, box: MeasuredBox): number {
-    return fittingScale(scale => vollFits(arrangement, box, scale));
+function vollScale(arrangement: VollArrangement, box: MeasuredBox, shape: ThermostatShape): number {
+    return fittingScale(scale => vollFits(arrangement, box, scale, shape));
 }
 
 /**
  * The least box of an arrangement of Voll: its need at the least Maßstab, to the px above.
  *
  * @param arrangement - The arrangement.
+ * @param input - What the plan reads beyond the box; the standard where left out.
  * @returns The least box.
  */
-export function vollLeastBox(arrangement: VollArrangement): LeastBox {
-    const need = vollNeed(arrangement, VOLL_LEAST[arrangement]);
+export function vollLeastBox(arrangement: VollArrangement, input: ThermostatShapeInput = {}): LeastBox {
+    const need = vollNeed(arrangement, VOLL_LEAST[arrangement], shapeOf(input));
     return { width: Math.ceil(need.width), height: Math.ceil(need.height) };
 }
 
@@ -556,10 +593,13 @@ const VOLL_FULL: readonly VollArrangement[] = ['gross', 'breit'];
  * Whether a box holds Voll: one of its arrangements holds its whole content at the least Maßstab.
  *
  * @param box - The measured box.
+ * @param shape - What the plan reads beyond the box.
  * @returns `true` for Voll.
  */
-function vollHolds(box: MeasuredBox): boolean {
-    return [...VOLL_FULL, 'mittel' as const].some(arrangement => vollFits(arrangement, box, VOLL_LEAST[arrangement]));
+function vollHolds(box: MeasuredBox, shape: ThermostatShape): boolean {
+    return [...VOLL_FULL, 'mittel' as const].some(arrangement =>
+        vollFits(arrangement, box, VOLL_LEAST[arrangement], shape),
+    );
 }
 
 /**
@@ -567,19 +607,18 @@ function vollHolds(box: MeasuredBox): boolean {
  * largest Maßstab, Mittel only when none holds at the least Maßstab (Nr. 5).
  *
  * @param box - The measured box.
- * @returns The arrangement.
+ * @param shape - What the plan reads beyond the box.
+ * @returns The arrangement and its Maßstab.
  */
-function vollArrangement(box: MeasuredBox): VollArrangement {
-    let best: VollArrangement = 'mittel';
-    let bestScale = -1;
+function vollArrangement(box: MeasuredBox, shape: ThermostatShape): { arrangement: VollArrangement; scale: number } {
+    let best: { arrangement: VollArrangement; scale: number } | undefined;
     for (const arrangement of VOLL_FULL) {
-        const scale = vollScale(arrangement, box);
-        if (vollFits(arrangement, box, VOLL_LEAST[arrangement]) && scale > bestScale) {
-            best = arrangement;
-            bestScale = scale;
+        const scale = vollScale(arrangement, box, shape);
+        if (vollFits(arrangement, box, VOLL_LEAST[arrangement], shape) && scale > (best?.scale ?? -1)) {
+            best = { arrangement, scale };
         }
     }
-    return best;
+    return best ?? { arrangement: 'mittel', scale: vollScale('mittel', box, shape) };
 }
 
 /**
@@ -613,13 +652,13 @@ function vollDial(need: VollNeed, box: MeasuredBox): ThermostatDial {
  * The plan of Voll for a box.
  *
  * @param box - The measured box.
+ * @param shape - What the plan reads beyond the box.
  * @returns The plan of its arrangement.
  */
-function vollPlan(box: MeasuredBox): ThermostatVollPlan {
-    const arrangement = vollArrangement(box);
-    const scale = vollScale(arrangement, box);
+function vollPlan(box: MeasuredBox, shape: ThermostatShape): ThermostatVollPlan {
+    const { arrangement, scale } = vollArrangement(box, shape);
     const sizes = thermostatSizes(scale, 'stage');
-    const dial = vollDial(vollNeed(arrangement, scale), box);
+    const dial = vollDial(vollNeed(arrangement, scale, shape), box);
     return arrangement === 'mittel'
         ? { arrangement, sizes, dial }
         : { arrangement, sizes, dial, column: VOLL_COLUMN * scale };
@@ -767,15 +806,6 @@ export interface ThermostatTilePlan extends ThermostatTileParts {
     readonly headScale: number;
 }
 
-/** A font of the theme's typography at a factor. */
-export interface ThemeFont {
-    readonly variant: 'h3';
-    readonly factor: number;
-}
-
-/** The set-point's font: px, or the theme's typography at a factor. */
-export type SetpointFont = number | ThemeFont;
-
 /** What every plan names: the sizes of its parts at its Maßstab. */
 interface SizedPlan {
     readonly sizes: ThermostatSizes;
@@ -797,7 +827,12 @@ export type ThermostatStagePlan = SizedPlan &
               readonly column: number;
           }
         | { readonly arrangement: 'mittel'; readonly dial: ThermostatDial }
-        | { readonly arrangement: 'quer'; readonly modes: boolean; readonly setpointFont: ThemeFont }
+        | {
+              readonly arrangement: 'quer';
+              readonly modes: boolean;
+              /** The big set-point's font in px. */
+              readonly setpointFont: number;
+          }
         | { readonly arrangement: 'kompakt'; readonly setpointFont: number }
     );
 
@@ -825,12 +860,34 @@ export type ThermostatPlan = ThermostatStagePlan | ThermostatMiniPlan;
  * @param stage - The effective stage (Mini for the tile).
  * @param box - The measured Content-Box; for the tile the area the hull leaves it.
  * @param writable - Whether the set-point is writable: only then it has ±.
+ * @param input - What the plan reads beyond the box (the theme's measures); the standard where left out.
  * @returns The plan.
  */
-export function thermostatPlan(stage: 'mini', box: TileArea, writable: boolean): ThermostatMiniPlan;
-export function thermostatPlan(stage: 'voll', box: MeasuredBox, writable: boolean): ThermostatVollPlan;
-export function thermostatPlan(stage: DrawnStage, box: MeasuredBox, writable: boolean): ThermostatStagePlan;
-export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, writable: boolean): ThermostatPlan {
+export function thermostatPlan(
+    stage: 'mini',
+    box: TileArea,
+    writable: boolean,
+    input?: ThermostatShapeInput,
+): ThermostatMiniPlan;
+export function thermostatPlan(
+    stage: 'voll',
+    box: MeasuredBox,
+    writable: boolean,
+    input?: ThermostatShapeInput,
+): ThermostatVollPlan;
+export function thermostatPlan(
+    stage: DrawnStage,
+    box: MeasuredBox,
+    writable: boolean,
+    input?: ThermostatShapeInput,
+): ThermostatStagePlan;
+export function thermostatPlan(
+    stage: SizeStage,
+    box: MeasuredBox | TileArea,
+    writable: boolean,
+    input: ThermostatShapeInput = {},
+): ThermostatPlan {
+    const shape = shapeOf(input);
     if (stage === 'mini') {
         const area = box as TileArea;
         const tile = thermostatTile(area, writable);
@@ -846,23 +903,25 @@ export function thermostatPlan(stage: SizeStage, box: MeasuredBox | TileArea, wr
         };
     }
     if (stage === 'einfach') {
-        return thermostatEinfachPlan(box, writable);
+        return thermostatEinfachPlan(box, writable, shape);
     }
-    return vollPlan(box);
+    return vollPlan(box, shape);
 }
 
 /**
- * The plan of Einfach: Quer or Kompakt at the Maßstab of {@link thermostatEinfachChoice} — Quer's
- * set-point in the theme's h3 at the Maßstab, Kompakt's at the design's 48 px times it.
+ * The plan of Einfach: Quer or Kompakt at the Maßstab of {@link thermostatEinfachChoice}, the big
+ * set-point in the theme's h3 times it.
  *
  * @param box - The measured Content-Box.
  * @param writable - Whether the set-point is writable.
+ * @param shape - What the plan reads beyond the box.
  * @returns The plan.
  */
-function thermostatEinfachPlan(box: MeasuredBox, writable: boolean): ThermostatStagePlan {
-    const choice = thermostatEinfachChoice(box, writable);
+function thermostatEinfachPlan(box: MeasuredBox, writable: boolean, shape: ThermostatShape): ThermostatStagePlan {
+    const choice = thermostatEinfachChoice(box, writable, shape);
     const sizes = thermostatSizes(choice.scale, 'stage');
+    const setpointFont = shape.measures.h3 * choice.scale;
     return choice.arrangement === 'quer'
-        ? { arrangement: 'quer', sizes, modes: choice.modes, setpointFont: { variant: 'h3', factor: choice.scale } }
-        : { arrangement: 'kompakt', sizes, setpointFont: SETPOINT_FIT.maxFont * choice.scale };
+        ? { arrangement: 'quer', sizes, modes: choice.modes, setpointFont }
+        : { arrangement: 'kompakt', sizes, setpointFont };
 }

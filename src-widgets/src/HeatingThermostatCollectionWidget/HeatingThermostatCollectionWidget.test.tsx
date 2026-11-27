@@ -1467,10 +1467,12 @@ describe('HeatingThermostatCollectionWidget: Quer at its Maßstab', () => {
         return container;
     };
     const stepOf = (container: HTMLElement): number => parseFloat(getComputedStyle(stepButton(container, 'up')!).width);
-    const setpointSize = (container: HTMLElement): string =>
-        getComputedStyle(
-            container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!,
-        ).fontSize;
+    const setpointSize = (container: HTMLElement): number =>
+        parseFloat(
+            getComputedStyle(
+                container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!,
+            ).fontSize,
+        );
 
     it('stands the head block at the top and the operating-mode segment flush at the bottom', async () => {
         const container = await querAt({ width: 741, height: 194 });
@@ -1493,8 +1495,9 @@ describe('HeatingThermostatCollectionWidget: Quer at its Maßstab', () => {
         // 741 × 160: Maßstab 1.028 with the segment; 741 × 194: 1.326.
         expect(stepOf(low)).toBeCloseTo(52 * 1.028, 3);
         expect(stepOf(high)).toBeCloseTo(52 * 1.326, 3);
-        expect(setpointSize(low)).toContain('1.028');
-        expect(setpointSize(high)).toContain('1.326');
+        // The theme's h3 (48 px in the standard theme) at the Maßstab.
+        expect(setpointSize(low)).toBeCloseTo(48 * 1.028, 3);
+        expect(setpointSize(high)).toBeCloseTo(48 * 1.326, 3);
     });
 });
 
