@@ -1072,7 +1072,9 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
 
     it('draws the big set-point of Kompakt no wider than its row beside ± (300 × 190 px outer)', async () => {
         const container = await mount(statusData(), reporting({ soll: 21 }), { width: 274, height: 164 });
-        const setpoint = container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!;
+        const setpoint = container.querySelector<HTMLElement>(
+            '[data-heating-slot="setpoint"] [data-heating-setpoint]',
+        )!;
         const font = parseFloat(getComputedStyle(setpoint).fontSize);
 
         // „21,0 °C“ measured 161 px wide at 48 px of font; ± 52 px with 12 px of gap on both sides.
@@ -1083,7 +1085,10 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         // „21,0 °C“ measured 161 px wide at 48 px of font, its line 1.2 × the font; ± 44 px with 6 px
         // of gap; head row 20 px, footer line 28 px, 4 px between the rows.
         const fontOf = (container: HTMLElement): number =>
-            parseFloat(getComputedStyle(container.querySelector<HTMLElement>('[data-heating-tile] [data-heating-setpoint]')!).fontSize);
+            parseFloat(
+                getComputedStyle(container.querySelector<HTMLElement>('[data-heating-tile] [data-heating-setpoint]')!)
+                    .fontSize,
+            );
 
         const withButtons = await mount(statusData(), reporting({ soll: 21 }), { width: 214, height: 84 });
         expect(stepButton(withButtons, 'up')).not.toBeNull();
