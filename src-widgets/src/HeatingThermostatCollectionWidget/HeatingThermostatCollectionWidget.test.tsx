@@ -1070,6 +1070,15 @@ describe('HeatingThermostatCollectionWidget: ± and the scale', () => {
         expect(stepButton(narrowTile, 'up')).toBeNull();
     });
 
+    it('draws the big set-point of Kompakt no wider than its row beside ± (300 × 190 px outer)', async () => {
+        const container = await mount(statusData(), reporting({ soll: 21 }), { width: 274, height: 164 });
+        const setpoint = container.querySelector<HTMLElement>('[data-heating-slot="setpoint"] [data-heating-setpoint]')!;
+        const font = parseFloat(getComputedStyle(setpoint).fontSize);
+
+        // „21,0 °C“ measured 161 px wide at 48 px of font; ± 52 px with 12 px of gap on both sides.
+        expect(font * (161 / 48) + 2 * 52 + 2 * 12).toBeLessThanOrEqual(274);
+    });
+
     it('steps from the tile', async () => {
         const tile = await mount(statusData(), reporting({ soll: 21 }), { width: 196, height: 66 });
 

@@ -38,6 +38,40 @@ export const THERMOSTAT_THRESHOLDS = {
     tileFooter: { width: 0, height: 66 },
 } as const satisfies Record<string, LeastBox>;
 
+/**
+ * The drawn sizes the set-point's fit counts with (measured in the browser at the design's 48 px):
+ * „21,0 °C“ is 161 px wide (≈ 3.35 px per px of font; 3.6 keeps a reserve for wider digits, °F and
+ * other theme fonts), its line 1.2 × the font; ± 52 px beside the big set-point with 12 px of gap.
+ */
+export const SETPOINT_FIT = {
+    glyphsPerFontPx: 3.6,
+    lineHeight: 1.2,
+    /** The design size of the set-point. */
+    maxFont: 48,
+    /** Below this the set-point no longer shrinks. */
+    minFont: 12,
+    stepFlat: 52,
+    flatGap: 12,
+} as const;
+
+/** Where a set-point sized by its box stands. */
+export type SetpointPlace = 'kompakt';
+
+/**
+ * The set-point's font size in a place that sizes it by its box: the design's 48 px while the row
+ * has room, else as large as the row beside ± holds it (ADR-0122: the stage's box holds its parts).
+ *
+ * @param _place - The place.
+ * @param box - The measured Content-Box.
+ * @param buttons - Whether ± stand beside the set-point.
+ * @returns The font size in px.
+ */
+export function thermostatSetpointFont(_place: SetpointPlace, box: MeasuredBox, buttons: boolean): number {
+    const { glyphsPerFontPx, maxFont, minFont, stepFlat, flatGap } = SETPOINT_FIT;
+    const room = box.width - (buttons ? 2 * stepFlat + 2 * flatGap : 0);
+    return Math.max(minFont, Math.min(maxFont, Math.floor(room / glyphsPerFontPx)));
+}
+
 /** An arrangement of the Raumthermostat within its stage. */
 export type ThermostatArrangement = 'gross' | 'mittel' | 'quer' | 'kompakt';
 

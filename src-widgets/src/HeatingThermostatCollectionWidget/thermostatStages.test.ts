@@ -11,7 +11,25 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { thermostatArrangement, thermostatQuerModes, thermostatStage, thermostatTile } from './thermostatStages';
+import {
+    thermostatArrangement,
+    thermostatQuerModes,
+    thermostatSetpointFont,
+    thermostatStage,
+    thermostatTile,
+} from './thermostatStages';
+
+/**
+ * The drawn sizes the fit counts with, measured in the browser (acceptance, vis-2 :3000): the
+ * set-point „21,0 °C“ is 161 px wide at 48 px of font, its line 1.2 × the font; ± 52 px beside the
+ * big set-point with 12 px of gap.
+ */
+const MEASURED = {
+    glyphsPerFontPx: 161 / 48,
+    lineHeight: 1.2,
+    stepFlat: 52,
+    flatGap: 12,
+} as const;
 
 /** The card's inset (`Generic.wrapContent`, `calc(100% - 8px)`). */
 const CARD_INSET = 8;
@@ -117,5 +135,31 @@ describe('Quer: the operating-mode segment', () => {
         ['not one px lower', 235, false],
     ])('%s (%i px)', (_case, height, modes) => {
         expect(thermostatQuerModes({ width: 456, height })).toBe(modes);
+    });
+});
+
+describe('Passform: every arrangement holds its parts in its box', () => {
+    it.each([
+        ['at its least box', 256, 146],
+        ['300 × 190 px outer (acceptance repro)', 274, 164],
+        ['282 × 180 px outer (acceptance repro)', 256, 154],
+        ['320 × 190 px outer', 294, 164],
+    ])('Kompakt with ± %s (%i × %i px)', (_case, width, height) => {
+        const box = { width, height };
+        const font = thermostatSetpointFont('kompakt', box, true);
+        const row = 2 * MEASURED.stepFlat + 2 * MEASURED.flatGap + MEASURED.glyphsPerFontPx * font;
+
+        expect(thermostatArrangement('einfach', box)).toBe('kompakt');
+        expect(row).toBeLessThanOrEqual(width);
+    });
+
+    it('keeps the design size of 48 px in Kompakt while the box has room for it', () => {
+        expect(thermostatSetpointFont('kompakt', { width: 396, height: 636 }, true)).toBe(48);
+    });
+
+    it('gives the set-point the whole row in Kompakt without ±', () => {
+        expect(thermostatSetpointFont('kompakt', { width: 256, height: 146 }, false)).toBeGreaterThan(
+            thermostatSetpointFont('kompakt', { width: 256, height: 146 }, true),
+        );
     });
 });

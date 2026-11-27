@@ -60,7 +60,9 @@ import {
     thermostatArrangement,
     thermostatDialSize,
     thermostatQuerModes,
+    thermostatSetpointFont,
     thermostatStage,
+    SETPOINT_FIT,
     type ThermostatArrangement,
 } from './thermostatStages';
 import type { HeatingThermostatCollectionContextProps } from '../types';
@@ -87,7 +89,7 @@ const FULL_SIZE = { width: 420, height: 700 } as const;
 const DIMMED_OPACITY = 0.4;
 
 /** The ± edge length beside the big set-point and in the tile (the design's). */
-const STEP_BUTTON = { flat: 52, tile: 44 } as const;
+const STEP_BUTTON = { flat: SETPOINT_FIT.stepFlat, tile: 44 } as const;
 
 /** A stored number, if it is one. */
 const numberOf = (value: unknown): number | undefined =>
@@ -135,16 +137,21 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
 
     const noticeKey = setpointNoticeKey(widgetData, entry);
 
-    const setpoint = (
+    // The set-point in the theme's h3; a place that sizes it by its box passes the font size.
+    const setpointAt = (fontSize?: number): ReactElement => (
         <Typography
             variant="h3"
             component="span"
             data-heating-setpoint=""
-            sx={{ whiteSpace: 'nowrap' }}
+            sx={{
+                whiteSpace: 'nowrap',
+                ...(fontSize === undefined ? {} : { fontSize: `${fontSize}px`, lineHeight: SETPOINT_FIT.lineHeight }),
+            }}
         >
             {shown === undefined ? NO_VALUE : formatReading(shown, 'temperature', lang, unit)}
         </Typography>
     );
+    const setpoint = setpointAt();
 
     const actualText = actualTemperatureText(widgetData, values, lang, entry);
     const actual = actualText === undefined ? null : <ActualTemperature text={actualText} />;
@@ -320,7 +327,10 @@ function HeatingThermostatCollection({ entry }: HeatingThermostatCollectionProps
         setpoint: dimmed(
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
                 {stepButton('down', STEP_BUTTON.flat)}
-                {setpoint}
+                {/* Quer keeps the h3; Kompakt sizes the set-point to its row beside ±. */}
+                {arrangement === 'kompakt'
+                    ? setpointAt(thermostatSetpointFont('kompakt', box, setpointWrite.writable))
+                    : setpoint}
                 {stepButton('up', STEP_BUTTON.flat)}
             </Box>,
         ),
