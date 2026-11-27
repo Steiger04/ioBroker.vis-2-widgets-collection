@@ -31,7 +31,7 @@ installInertResizeObserver();
 const mountBody = testScopedMount();
 
 /** A stand-in type that is always Mini and records the area its tile gets, in a theme when given. */
-const standIn = (areas: TileArea[], themeOptions?: ThemeOptions): FC =>
+const standIn = (areas: TileArea[], themeOptions?: ThemeOptions, inset: unknown = 0): FC =>
     function StandInBody() {
         const { data } = useData('');
         const themed = (node: ReactElement): ReactElement =>
@@ -46,6 +46,7 @@ const standIn = (areas: TileArea[], themeOptions?: ThemeOptions): FC =>
                         rule={() => 'mini'}
                         data={{}}
                         ansicht="voll"
+                        inset={inset}
                         renderStage={() => null}
                         renderTile={area => {
                             areas.push(area);
@@ -62,10 +63,10 @@ const standIn = (areas: TileArea[], themeOptions?: ThemeOptions): FC =>
     };
 
 /** The area the tile got for a Content-Box. */
-const areaFor = (box: MeasuredBox, themeOptions?: ThemeOptions): TileArea | undefined => {
+const areaFor = (box: MeasuredBox, themeOptions?: ThemeOptions, inset: unknown = 0): TileArea | undefined => {
     const areas: TileArea[] = [];
     mountBody(
-        standIn(areas, themeOptions),
+        standIn(areas, themeOptions, inset),
         withContentBox(collectionScene('tile-area-test', { noHeader: true, noFooter: true }, undefined), box),
     );
     return areas.at(-1);
@@ -131,5 +132,27 @@ describe('SizeStages: the area of the tile content', () => {
 
     it('never goes below nothing in a box lower than the head', () => {
         expect(areaFor({ width: 100, height: 10 })).toMatchObject({ width: 100, height: 0 });
+    });
+});
+
+describe('SizeStages: the tile area inside half the Inhaltsabstand (ADR-0122 Nachtrag 2026-11-27)', () => {
+    it('takes half the Inhaltsabstand off every side before the head row: 2 units = 8 px a side', () => {
+        // 260 − 2 × 8 = 244; 140 − 2 × 8 − 20 − 4 = 100.
+        expect(areaFor({ width: 260, height: 140 }, undefined, 2)).toEqual({
+            width: 244,
+            height: 100,
+            rowGap: 4,
+            controlGap: 6,
+        });
+    });
+
+    it("follows the theme's spacing: 1 unit of 16 px is 8 px a side", () => {
+        // 260 − 16 = 244; 140 − 16 − 20 − 8 = 96 (the row gap doubles as well).
+        expect(areaFor({ width: 260, height: 140 }, { spacing: 16 }, 1)).toEqual({
+            width: 244,
+            height: 96,
+            rowGap: 8,
+            controlGap: 12,
+        });
     });
 });

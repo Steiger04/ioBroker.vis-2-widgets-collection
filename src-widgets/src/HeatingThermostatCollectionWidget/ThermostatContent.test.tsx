@@ -83,6 +83,7 @@ const HouseType: FC = function HouseType() {
                 title="Raumübersicht"
                 label="Bad"
                 size={{ width: 420, height: 700 }}
+                inset={12}
             >
                 <ThermostatContent entry={3} />
             </MiniDialog>

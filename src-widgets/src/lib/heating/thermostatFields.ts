@@ -9,9 +9,12 @@
  * stored in user projects from the first release on:
  * - `komfort` / `absenk` — the comfort and setback temperatures the pills write into `soll`;
  * - `ansicht` — the upper bound of the size stages (ADR-0122): `voll` allows every stage, `einfach`
- *   stops at Einfach.
+ *   stops at Einfach;
+ * - `inhaltsabstand` — the Inhaltsabstand inside the card in the theme's spacing units (ADR-0122
+ *   Nachtrag 2026-11-27, `lib/heating/contentInset`).
  */
 import { heatingBindingFields } from './bindingFields';
+import { CONTENT_INSET } from './contentInset';
 import { ROOM_THERMOSTAT } from './meaningCatalog';
 import { heatingValveListFields } from './valveListFields';
 
@@ -42,7 +45,7 @@ export function thermostatBindingFields(): RxWidgetInfoAttributesField[] {
 /**
  * The widget values of the Raumthermostat.
  *
- * @returns `komfort` (21), `absenk` (17) and `ansicht` (`voll`).
+ * @returns `komfort` (21), `absenk` (17), `ansicht` (`voll`) and `inhaltsabstand` (1.5).
  */
 export function thermostatValueFields(): (RxWidgetInfoAttributesField | ExtendedField)[] {
     return [
@@ -69,6 +72,16 @@ export function thermostatValueFields(): (RxWidgetInfoAttributesField | Extended
             label: 'heating_ansicht',
             options: THERMOSTAT_VIEWS.map(view => ({ value: view, label: THERMOSTAT_VIEW_LABELS[view] })),
             default: 'voll' satisfies ThermostatView,
+            emptiedReadsUnset: true,
+        },
+        {
+            name: 'inhaltsabstand',
+            type: 'slider',
+            label: 'heating_inhaltsabstand',
+            min: CONTENT_INSET.min,
+            max: CONTENT_INSET.max,
+            step: CONTENT_INSET.step,
+            default: CONTENT_INSET.standard,
             emptiedReadsUnset: true,
         },
     ];

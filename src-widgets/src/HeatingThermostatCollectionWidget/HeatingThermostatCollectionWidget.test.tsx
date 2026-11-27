@@ -120,6 +120,9 @@ async function mountWidget(
     lang = 'en',
     style: Record<string, unknown> = {},
 ): Promise<MountedWidget> {
+    // The boxes of these tests are content boxes: without an Inhaltsabstand of its own a test reads
+    // none; the Inhaltsabstand is pinned by the tests that name it (ADR-0122 Nachtrag 2026-11-27).
+    data = Object.hasOwn(data, 'inhaltsabstand') ? data : { ...data, inhaltsabstand: 0 };
     const instance = new (HeatingThermostatCollectionWidget as unknown as new (props: unknown) => WidgetInstance)({
         context: { socket, themeType: 'light', lang, theme: Theme('light') },
     });
@@ -1787,5 +1790,69 @@ describe('the Werttexte follow the widget text colour (ADR-0124 Nachtrag 2026-11
     it('paints the actual value in the theme text colour without a vis-2 colour', async () => {
         const { container } = await mountWidget(neutralData(), allValues());
         expect(colorOf(actualValue(container))).toBe(rgb(theme.palette.text.primary));
+    });
+});
+
+describe('HeatingThermostatCollectionWidget: the Inhaltsabstand (ADR-0122 Nachtrag 2026-11-27)', () => {
+    /** The padding inside the card around the content, if drawn. */
+    const insetOf = (container: HTMLElement): string | null => {
+        const inset = container.querySelector<HTMLElement>('[data-heating-inset]');
+        return inset ? getComputedStyle(inset).padding : null;
+    };
+
+    it('starts at 440 × 700 px', () => {
+        expect(HeatingThermostatCollectionWidget.getWidgetInfo().visDefaultStyle).toMatchObject({
+            width: '440px',
+            height: '700px',
+        });
+    });
+
+    it('offers „inhaltsabstand“ in the Raumthermostat group: a slider of spacing units 0–4, standard 1.5', () => {
+        const group = HeatingThermostatCollectionWidget.getWidgetInfo().visAttrs.find(
+            attrs => attrs.name === 'thermostat',
+        );
+        const field = group?.fields.find(entry => 'name' in entry && entry.name === 'inhaltsabstand');
+
+        expect(field).toMatchObject({
+            type: 'slider',
+            label: 'heating_inhaltsabstand',
+            min: 0,
+            max: 4,
+            step: 0.5,
+            default: 1.5,
+        });
+    });
+
+    it('keeps 12 px around the content of a widget stored without it (the standard 1.5)', async () => {
+        const data = { ...statusData(), inhaltsabstand: undefined };
+        const container = await mount(data, reporting({}), { width: 420, height: 640 });
+
+        expect(insetOf(container)).toBe('12px');
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'gross',
+        );
+    });
+
+    it('drops a stage when a large Inhaltsabstand leaves the content too little room', async () => {
+        const container = await mount({ ...statusData(), inhaltsabstand: 4 }, reporting({}), START_BOX);
+
+        // 396 − 2 × 32 = 332 < 376: Mittel instead of Groß.
+        expect(insetOf(container)).toBe('32px');
+        expect(container.querySelector('[data-heating-arrangement]')?.getAttribute('data-heating-arrangement')).toBe(
+            'mittel',
+        );
+    });
+
+    it('names „inhaltsabstand“ in the KI-Leitfaden of every language', () => {
+        const languages = import.meta.glob<Record<string, string>>('../i18n/*.json', {
+            eager: true,
+            import: 'default',
+        });
+        const missing = Object.entries(languages)
+            .filter(([, texts]) => !texts.heating_thermostat_collection_widget_ai_guide?.includes('"inhaltsabstand"'))
+            .map(([file]) => file);
+
+        expect(Object.keys(languages).length).toBeGreaterThan(1);
+        expect(missing).toEqual([]);
     });
 });

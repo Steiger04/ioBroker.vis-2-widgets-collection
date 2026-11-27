@@ -12,13 +12,13 @@ The widget knows no device technology. It reads the stored bindings and value ma
 
 - **vis-2 2.20.5 or newer.** The heating widgets form a set of their own that older vis-2 versions do not load.
 - **Palette:** group "Widget collection · Heating", technical name of the set `vis-2-widgets-collection-heating`. The other collection widgets and the Theme Studio stay in the group "Widget collection" (`vis-2-widgets-collection`).
-- **Start size:** 420 × 700 px, whatever the width of the view. So the widget starts in the full arrangement. In the grid layout it takes one section column; the height of 700 px makes 11 grid rows.
+- **Start size:** 440 × 700 px, whatever the width of the view. So the widget starts in the full arrangement. In the grid layout it takes one section column; the height of 700 px makes 11 grid rows.
 
 ## Settings Hierarchy
 
 This widget uses the **vis-2 Settings** and the **Common Settings** with the [widget frame](En-Home.md#widget-frame), see [Home](En-Home.md). It hides some common settings, see [Frame and hidden fields](#frame-and-hidden-fields).
 
-Its own settings sit in two groups: the binding (data points, value mappings, name, valves) and the widget values (`komfort`, `absenk`, `ansicht`).
+Its own settings sit in two groups: the binding (data points, value mappings, name, valves) and the widget values (`komfort`, `absenk`, `ansicht`, `inhaltsabstand`).
 
 ## Binding and Prefill
 
@@ -134,6 +134,7 @@ The AI assistant sets only the data point IDs; the pick does not run then. When 
 
 - **Comfort temperature** `komfort` (default 21) and **setback temperature** `absenk` (default 17): The pills Comfort and Setback write these values to the set point, also outside the data point's limits. An emptied field counts as the default.
 - **Layout** `ansicht`: `voll` (default) allows all size stages, `einfach` caps at the simple stage, see [Layout](#layout).
+- **Content inset** `inhaltsabstand` (default 1.5): the space between the card's edge and the content, all round, in the theme's spacing units (0–4; with the standard theme 1 = 8 px, so 12 px). The full and the simple stage keep all of it, the tile half of it, the Mini dialog all of it again. The frame attribute "Padding", in contrast, lies outside the card. An emptied field counts as the default.
 
 ## Display
 
@@ -188,7 +189,7 @@ Every action writes exactly one data point, through the collection's write chain
 
 ## Size Stages
 
-The widget picks its arrangement by the measured content area, i.e. the area after the frame's header, footer and padding, not by the host's size mode. Until the first measurement the content area stays empty.
+The widget picks its arrangement by the measured content area, i.e. the area after the frame's header, footer and padding and less the content inset, not by the host's size mode. Until the first measurement the content area stays empty.
 
 ### Stages and Arrangements
 
@@ -200,7 +201,7 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 | Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
 | Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px |
 
-With the standard frame the start size 420 × 700 px gives a content area of about 396 × 636 px and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
+With the standard frame the start size 440 × 700 px gives about 416 × 636 px, inside the standard content inset a content area of 392 × 612 px, and so Full, arrangement Large. Card head and hint line stay put; if the middle gets too tight, it scrolls. In the ring, in Compact and in the tile the set point gets smaller when the ring or the area beside ± (and above the footer line) does not hold its full size. Transitions and the click ripple are left out when the system asks for reduced motion.
 
 ### Layout
 
@@ -208,14 +209,14 @@ With the standard frame the start size 420 × 700 px gives a content area of abo
 
 ### Frame and Size Stage
 
-The area after the frame counts, without correction. A large padding, header or footer texts or a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding.
+The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples with the standard content inset: a widget about 420 px wide shows Medium instead of Large, in the narrowest grid section (320 px) it shows Compact.
 
 ## Mini Dialog
 
 In the stage Mini the whole tile is a button: a tap, Enter or Space opens the Mini dialog with the full arrangement.
 
 - **Layout:** a title line with the type name "Room thermostat" and a close button, below it the content. For screen readers the dialog carries the name as its label, without a name the type name.
-- **Size:** content 420 × 700 px, at most the screen size minus a margin. In the dialog the same rule by the measured area applies, but without the `ansicht` cap and never below Simple; there is no dialog inside the dialog.
+- **Size:** 420 × 700 px, the content inset inside it at the sides and below, at most the screen size minus a margin. In the dialog the same rule by the measured area applies, but without the `ansicht` cap and never below Simple; there is no dialog inside the dialog.
 - **Closing:** close button, Escape or a tap on the backdrop. The focus returns to the tile. If the widget grows out of Mini, an open dialog stays open.
 - **Theme:** The dialog has no collection frame but shows the collection's theme.
 - **In the editor:** Mini shows the tile. The vis-2 edit overlay catches clicks; in the editor you open the dialog on a locked widget, otherwise in the runtime view.

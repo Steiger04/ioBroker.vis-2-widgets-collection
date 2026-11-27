@@ -21,7 +21,8 @@ import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
  * @remarks
  * A type of the heating set (`HEATING_SET`, second `common.visWidgets` entry), bound per
  * Thermostat-Bedeutung with `soll` as its main Bedeutung (ADR-0119, ADR-0123 Nr. 5). It starts in its
- * Voll stage at a fixed 420 × 700 px, whatever the view's width (ADR-0122 Nr. 9); in a grid section
+ * Voll stage at a fixed 440 × 700 px, whatever the view's width (ADR-0122 Nr. 9 and its Nachtrag
+ * 2026-11-27: room for the standard Inhaltsabstand); in a grid section
  * it takes one section column and the rows of that height — no `visDefaultGrid.rows`, since the
  * assistant inserts with `visDefaultStyle` only.
  */
@@ -56,7 +57,7 @@ class HeatingThermostatCollectionWidget extends Generic<WidgetRegistry['tplHeati
                 },
             ],
             visDefaultStyle: {
-                width: '420px',
+                width: '440px',
                 height: '700px',
                 position: 'relative',
             },

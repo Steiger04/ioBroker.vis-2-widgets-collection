@@ -98,11 +98,16 @@ interface StandIn {
     status?: TileStatus;
     name?: string;
     ansicht?: unknown;
+    /** The stored Inhaltsabstand; 0 keeps the boxes of the tests that do not look at it. */
+    inset?: unknown;
 }
 
 /** A stand-in type body in its frame. */
-const standIn = ({ status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 'voll' }: StandIn = {}): FC =>
-    function StandInBody() {
+const standIn = (props: StandIn = {}): FC => {
+    const { status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 'voll' } = props;
+    // An explicit `inset: undefined` stays unset; a test that leaves it out gets 0.
+    const inset = Object.hasOwn(props, 'inset') ? props.inset : 0;
+    return function StandInBody() {
         const { data } = useData('');
         return (
             <CollectionBase
@@ -113,6 +118,7 @@ const standIn = ({ status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 
                     rule={standInRule}
                     data={{}}
                     ansicht={ansicht}
+                    inset={inset}
                     renderStage={stage => <StandInStage stage={stage} />}
                     renderTile={() => ({ main: <span data-stand-in="main">21°</span> })}
                     name={name}
@@ -123,6 +129,7 @@ const standIn = ({ status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 
             </CollectionBase>
         );
     };
+};
 
 /** The scene, with a box when given. */
 const scene = (box?: MeasuredBox): ReturnType<typeof collectionScene> => {
@@ -457,5 +464,74 @@ describe('SizeStages: the Mini-Dialog', () => {
         expect(dialog()).toBeNull();
         expect(tileButton(container).getAttribute('aria-expanded')).toBe('false');
         expect(document.activeElement).toBe(tileButton(container));
+    });
+});
+
+describe('SizeStages: the Inhaltsabstand (ADR-0122 Nachtrag 2026-11-27)', () => {
+    afterEach(() => {
+        dialogBox = undefined;
+    });
+
+    /** The padding the module keeps around Voll and Einfach, if it draws the inset. */
+    const insetOf = (container: HTMLElement): string | null => {
+        const inset = container.querySelector<HTMLElement>('[data-heating-inset]');
+        return inset ? getComputedStyle(inset).padding : null;
+    };
+
+    it('keeps the full Inhaltsabstand around Voll and Einfach, in the theme’s spacing units', () => {
+        const voll = mountBody(standIn({ inset: 1.5 }), scene({ width: 400, height: 300 }));
+        expect(stageIn(voll.container)).toBe('voll');
+        expect(insetOf(voll.container)).toBe('12px');
+
+        const einfach = mountBody(standIn({ inset: 2 }), scene({ width: 200, height: 300 }));
+        expect(stageIn(einfach.container)).toBe('einfach');
+        expect(insetOf(einfach.container)).toBe('16px');
+    });
+
+    it('counts the content without it: the rule sees the box minus twice the Inhaltsabstand', () => {
+        // The stand-in is Voll from 300 px of width: 324 − 2 × 12 = 300, 323 − 24 = 299.
+        expect(stageIn(mountBody(standIn({ inset: 1.5 }), scene({ width: 324, height: 300 })).container)).toBe('voll');
+        expect(stageIn(mountBody(standIn({ inset: 1.5 }), scene({ width: 323, height: 300 })).container)).toBe(
+            'einfach',
+        );
+        expect(stageIn(mountBody(standIn({ inset: 0 }), scene({ width: 300, height: 300 })).container)).toBe('voll');
+    });
+
+    it.each([
+        ['unset', undefined],
+        ['emptied', ''],
+        ['non-numeric', 'viel'],
+    ])('reads the standard 1.5 (12 px) for a value that is %s', (_case, inset) => {
+        const { container } = mountBody(standIn({ inset }), scene({ width: 400, height: 300 }));
+
+        expect(insetOf(container)).toBe('12px');
+    });
+
+    it('keeps no negative Inhaltsabstand: below 0 reads 0', () => {
+        const { container } = mountBody(standIn({ inset: -2 }), scene({ width: 400, height: 300 }));
+
+        expect(insetOf(container)).toBe('0px');
+    });
+
+    it('keeps half of it in the tile, and the tile’s button still covers the whole card', () => {
+        const { container } = mountBody(standIn({ inset: 2 }), scene({ width: 100, height: 200 }));
+        const tile = container.querySelector<HTMLElement>('[data-heating-tile]')!;
+
+        expect(stageIn(container)).toBe('mini');
+        expect(getComputedStyle(tile).padding).toBe('8px');
+        expect(getComputedStyle(tileButton(container)).inset).toBe('0');
+    });
+
+    it('keeps the full Inhaltsabstand in the Mini-Dialog instead of a fixed one, and draws it once', () => {
+        dialogBox = { width: 388, height: 684 };
+        const { container } = mountBody(standIn({ inset: 2 }), scene({ width: 100, height: 200 }));
+        act(() => {
+            tileButton(container).click();
+        });
+        const dialog = document.body.querySelector<HTMLElement>('[role="dialog"]')!;
+        const area = getComputedStyle(dialog.querySelector<HTMLElement>('[data-heating-dialog-box]')!);
+
+        expect([area.paddingLeft, area.paddingRight, area.paddingBottom]).toEqual(['16px', '16px', '16px']);
+        expect(dialog.querySelector('[data-heating-inset]')).toBeNull();
     });
 });

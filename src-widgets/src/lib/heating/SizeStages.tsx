@@ -15,6 +15,9 @@
  * - the measuring: the frame's Content-Box (`useContentBox`, ADR-0098); before the first measurement
  *   the content area stays empty (Nr. 3);
  * - the `ansicht` cap: the effective stage is the lower of the box's stage and `ansicht` (Nr. 2);
+ * - the Inhaltsabstand (`inset`, Nachtrag 2026-11-27): the type's inner spacing in the theme's
+ *   spacing units, kept all round Voll and Einfach, half of it in the tile, all of it in the
+ *   Mini-Dialog; the rule reads the box without it, so a large one lowers the stage;
  * - the tile hull and its measures (a `body2` head row, gaps in spacing units — the area's
  *   arithmetic reads them from the theme it draws in): the whole surface is one button (keyboard by
  *   the platform), the name, the open symbol and the status sign — the warning triangle in the
@@ -36,6 +39,7 @@ import { useContext, useEffect, useRef, useState, type ReactElement, type ReactN
 import useContentBox from '../../hooks/useContentBox';
 import MiniDialog, { InMiniDialogContext } from './MiniDialog';
 import { useReducedMotion } from './motion';
+import { contentInsetUnits } from './contentInset';
 import { cappedStage, dialogStage, measuredBoxOf, type DrawnStage, type MeasuredBox, type SizeRule } from './stageRule';
 import { neutralColors, toneColors, type HeatingTone } from './tones';
 
@@ -134,6 +138,37 @@ const spacingPxOf = (theme: Theme, units: number, rootPx: number): number | unde
     return unit === undefined ? undefined : unit * (match[1] === undefined ? 1 : parseFloat(match[1]));
 };
 
+/** The Inhaltsabstand in px per theme and spacing units: a theme with CSS variables builds its style sheets to answer. */
+const insetPxCache = new WeakMap<Theme, Map<number, number>>();
+
+/**
+ * The Inhaltsabstand in px in the theme it draws in.
+ *
+ * @param theme - The theme.
+ * @param stored - The stored Inhaltsabstand ({@link contentInsetUnits} reads it).
+ * @returns The px; for a spacing that does not read as px, 8 px a unit (the standard theme's).
+ */
+export function contentInsetPx(theme: Theme, stored: unknown): number {
+    const units = contentInsetUnits(stored);
+    let perTheme = insetPxCache.get(theme);
+    if (!perTheme) {
+        perTheme = new Map();
+        insetPxCache.set(theme, perTheme);
+    }
+    let px = perTheme.get(units);
+    if (px === undefined) {
+        px = spacingPxOf(theme, units, theme.typography.htmlFontSize ?? 16) ?? units * 8;
+        perTheme.set(units, px);
+    }
+    return px;
+}
+
+/** The box inside an inset on every side (never below 0). */
+const insideInset = (box: MeasuredBox, inset: number): MeasuredBox => ({
+    width: Math.max(0, box.width - 2 * inset),
+    height: Math.max(0, box.height - 2 * inset),
+});
+
 /** The hull's measures per theme: a theme with CSS variables builds its style sheets to answer. */
 const tileHullCache = new WeakMap<Theme, TileHullMeasures>();
 
@@ -213,6 +248,8 @@ export interface SizeStagesProps<Data> {
     data: Data;
     /** The stored `ansicht`: the cap of the stage. */
     ansicht: unknown;
+    /** The stored Inhaltsabstand in spacing units; unset or unusable reads the standard. */
+    inset: unknown;
     /** Draws Voll or Einfach for the measured box. */
     renderStage: (stage: DrawnStage, box: MeasuredBox) => ReactNode;
     /** Fills the tile in the area the hull leaves it. */
@@ -266,6 +303,8 @@ interface TileProps {
     name: string | undefined;
     typeName: string;
     status: TileStatus;
+    /** The tile's inner spacing in px (half the Inhaltsabstand). */
+    inset: number;
     open: boolean;
     onOpen: () => void;
     buttonRef: Ref<HTMLButtonElement>;
@@ -279,12 +318,13 @@ interface TileProps {
  * @param props.name - The Bezeichnung.
  * @param props.typeName - The translated type name.
  * @param props.status - The type's status.
+ * @param props.inset - The tile's inner spacing in px.
  * @param props.open - Whether the dialog is open.
  * @param props.onOpen - Opens the dialog.
  * @param props.buttonRef - The tile's button, where the focus returns when the dialog closes.
  * @returns The tile.
  */
-function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: TileProps): ReactElement {
+function Tile({ content, name, typeName, status, inset, open, onOpen, buttonRef }: TileProps): ReactElement {
     const reducedMotion = useReducedMotion();
     const quiet = neutralColors(useTheme());
     const label = [name || typeName, status.label].filter(Boolean).join(', ');
@@ -299,6 +339,9 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
                 position: 'relative',
                 width: '100%',
                 height: '100%',
+                boxSizing: 'border-box',
+                // The button below covers the padding as well: the whole card stays one button.
+                p: `${inset}px`,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -370,6 +413,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
  * @param props.rule - The type's pure rule.
  * @param props.data - The type's own data the rule reads.
  * @param props.ansicht - The stored `ansicht`.
+ * @param props.inset - The stored Inhaltsabstand.
  * @param props.renderStage - Draws Voll or Einfach.
  * @param props.renderTile - Fills the tile in the area the hull leaves it.
  * @param props.name - The Bezeichnung.
@@ -380,7 +424,7 @@ function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: Tile
  * Mini-Dialog, while open).
  */
 export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactElement | null {
-    const { rule, data, ansicht, renderStage, renderTile, name, typeName, status, fullSize } = props;
+    const { rule, data, ansicht, inset, renderStage, renderTile, name, typeName, status, fullSize } = props;
     const box = measuredBoxOf(useContentBox());
     const theme = useTheme();
     const inDialog = useContext(InMiniDialogContext);
@@ -402,7 +446,11 @@ export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactEle
         return null;
     }
 
-    const stage = inDialog ? dialogStage(rule(box, data)) : cappedStage(rule(box, data), ansicht);
+    // The Mini-Dialog keeps the Inhaltsabstand around its area already; inside it counts none.
+    const insetPx = contentInsetPx(theme, inset);
+    const ownInset = inDialog ? 0 : insetPx;
+    const content = insideInset(box, ownInset);
+    const stage = inDialog ? dialogStage(rule(box, data)) : cappedStage(rule(content, data), ansicht);
 
     return (
         <Box
@@ -413,16 +461,31 @@ export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactEle
         >
             {stage === 'mini' ? (
                 <Tile
-                    content={renderTile(tileArea(box, tileHullMeasures(theme)))}
+                    content={renderTile(tileArea(insideInset(box, ownInset / 2), tileHullMeasures(theme)))}
                     name={name}
                     typeName={typeName}
                     status={status}
+                    inset={ownInset / 2}
                     open={open}
                     onOpen={() => setOpen(true)}
                     buttonRef={tileButton}
                 />
-            ) : (
+            ) : inDialog ? (
                 renderStage(stage, box)
+            ) : (
+                <Box
+                    data-heating-inset=""
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: 0,
+                        minHeight: 0,
+                        boxSizing: 'border-box',
+                        p: `${ownInset}px`,
+                    }}
+                >
+                    {renderStage(stage, content)}
+                </Box>
             )}
             {inDialog ? null : (
                 <MiniDialog
@@ -431,6 +494,7 @@ export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactEle
                     title={typeName}
                     label={name || typeName}
                     size={fullSize}
+                    inset={insetPx}
                 >
                     <SizeStages {...props} />
                 </MiniDialog>

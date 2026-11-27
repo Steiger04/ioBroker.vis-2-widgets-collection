@@ -43,6 +43,8 @@ const scene = (
         'heating-thermostat-test',
         readWidgetData([...thermostatBindingFields(), ...thermostatValueFields()], {
             ...FIXTURES.HeatingThermostatCollectionWidget!.data,
+            // The boxes here are content boxes; the Inhaltsabstand is pinned in its own tests.
+            inhaltsabstand: 0,
             ...data,
         }),
         21.5,

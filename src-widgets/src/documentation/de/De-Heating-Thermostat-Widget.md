@@ -12,13 +12,13 @@ Das Widget kennt keine Gerätetechnik. Es liest die gespeicherten Bindungen und 
 
 - **vis-2 2.20.5 oder neuer.** Die Heizungs-Widgets bilden ein eigenes Set, das ältere vis-2-Versionen nicht laden.
 - **Palette:** Gruppe „Widget-Sammlung · Heizung“, technischer Name des Sets `vis-2-widgets-collection-heating`. Die übrigen Collection-Widgets und das Theme-Studio stehen weiter in der Gruppe „Widget-Sammlung“ (`vis-2-widgets-collection`).
-- **Startgröße:** 420 × 700 px, unabhängig von der Breite der View. Damit startet das Widget in der vollen Anordnung. Im Raster-Layout belegt es eine Sektionsspalte, die Höhe von 700 px ergibt 11 Rasterzeilen.
+- **Startgröße:** 440 × 700 px, unabhängig von der Breite der View. Damit startet das Widget in der vollen Anordnung. Im Raster-Layout belegt es eine Sektionsspalte, die Höhe von 700 px ergibt 11 Rasterzeilen.
 
 ## Einstellungshierarchie
 
 Dieses Widget nutzt die **vis-2 Einstellungen** und die **Common Einstellungen** mit dem [Widget-Rahmen](De-Home.md#widget-rahmen), siehe [Home](De-Home.md). Einige Common-Einstellungen blendet es aus, siehe [Rahmen und ausgeblendete Felder](#rahmen-und-ausgeblendete-felder).
 
-Eigene Einstellungen stehen in zwei Gruppen: der Bindung (Datenpunkte, Wertezuordnungen, Bezeichnung, Ventile) und den Widget-Werten (`komfort`, `absenk`, `ansicht`).
+Eigene Einstellungen stehen in zwei Gruppen: der Bindung (Datenpunkte, Wertezuordnungen, Bezeichnung, Ventile) und den Widget-Werten (`komfort`, `absenk`, `ansicht`, `inhaltsabstand`).
 
 ## Binden und Vorfüllen
 
@@ -134,6 +134,7 @@ Der KI-Assistent setzt nur die Datenpunkt-IDs; der Pick läuft dabei nicht. Fehl
 
 - **Komforttemperatur** `komfort` (Standard 21) und **Absenktemperatur** `absenk` (Standard 17): Die Pills Komfort und Absenk schreiben diese Werte in den Sollwert, auch außerhalb der Grenzen des Datenpunkts. Ein geleertes Feld gilt als Standard.
 - **Ansicht** `ansicht`: `voll` (Standard) erlaubt alle Größenstufen, `einfach` begrenzt auf die einfache Stufe, siehe [Ansicht](#ansicht).
+- **Inhaltsabstand** `inhaltsabstand` (Standard 1,5): Abstand zwischen Kartenrand und Inhalt, rundum, in Abstandseinheiten des Themes (0–4; beim Standard-Theme 1 = 8 px, also 12 px). In der vollen und der einfachen Stufe gilt der ganze Abstand, in der Kachel der halbe, im Mini-Dialog wieder der ganze. Das Rahmen-Attribut „Padding“ liegt dagegen außerhalb der Karte. Ein geleertes Feld gilt als Standard.
 
 ## Anzeige
 
@@ -188,7 +189,7 @@ Jede Aktion schreibt genau einen Datenpunkt, über die Schreibkette der Collecti
 
 ## Größenstufen
 
-Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der Fläche nach Kopfzeile, Fußzeile und Innenabstand des Rahmens, nicht nach dem Größenmodus des Hosts. Bis zur ersten Messung bleibt die Inhaltsfläche leer.
+Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der Fläche nach Kopfzeile, Fußzeile und Padding des Rahmens und abzüglich des Inhaltsabstands, nicht nach dem Größenmodus des Hosts. Bis zur ersten Messung bleibt die Inhaltsfläche leer.
 
 ### Stufen und Anordnungen
 
@@ -200,7 +201,7 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
 | Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
 
-Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
+Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px, nach dem Standard-Inhaltsabstand 392 × 612 px Inhaltsfläche und damit Voll, Anordnung Groß. Kartenkopf und Hinweiszeile stehen fest; wird die Mitte zu knapp, scrollt sie. Im Ring, in Kompakt und in der Kachel wird der Sollwert kleiner, wenn der Ring bzw. die Fläche neben ± (und über der Fußzeile) seine volle Größe nicht fasst. Übergänge und der Klick-Effekt entfallen, wenn das System reduzierte Bewegung verlangt.
 
 ### Ansicht
 
@@ -208,14 +209,14 @@ Die Startgröße 420 × 700 px ergibt mit dem Standard-Rahmen etwa 396 × 636 px
 
 ### Rahmen und Größenstufe
 
-Es zählt die Fläche nach dem Rahmen, ohne Ausgleich. Ein großer Innenabstand, Kopf- oder Fußzeilentexte oder eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Innenabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere den Innenabstand.
+Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele mit dem Standard-Inhaltsabstand: Ein Widget von etwa 420 px Breite zeigt Mittel statt Groß, in der schmalsten Raster-Sektion (320 px) zeigt es Kompakt.
 
 ## Mini-Dialog
 
 In der Stufe Mini ist die ganze Kachel ein Knopf: Tippen, Enter oder Leertaste öffnen den Mini-Dialog mit der vollen Anordnung.
 
 - **Aufbau:** eine Titelzeile mit dem Typnamen „Raumthermostat“ und einem Schließen-Knopf, darunter der Inhalt. Für Screenreader trägt der Dialog die Bezeichnung als Namen, ohne Bezeichnung den Typnamen.
-- **Größe:** Inhalt 420 × 700 px, höchstens die Bildschirmgröße abzüglich eines Rands. Im Dialog gilt dieselbe Regel nach der gemessenen Fläche, aber ohne `ansicht`-Begrenzung und nie unter Einfach; einen Dialog im Dialog gibt es nicht.
+- **Größe:** 420 × 700 px, darin der Inhaltsabstand an den Seiten und unten, höchstens die Bildschirmgröße abzüglich eines Rands. Im Dialog gilt dieselbe Regel nach der gemessenen Fläche, aber ohne `ansicht`-Begrenzung und nie unter Einfach; einen Dialog im Dialog gibt es nicht.
 - **Schließen:** Schließen-Knopf, Escape oder Tippen auf den Hintergrund. Der Fokus kehrt zur Kachel zurück. Wächst das Widget aus Mini heraus, bleibt ein offener Dialog offen.
 - **Theme:** Der Dialog hat keinen Collection-Rahmen, zeigt aber das Theme der Collection.
 - **Im Editor:** Mini zeigt die Kachel. Die Bearbeitungsfläche von vis-2 fängt Klicks ab; den Dialog öffnest du im Editor an einem gesperrten Widget, sonst in der Laufzeit-Ansicht.

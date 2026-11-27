@@ -65,6 +65,12 @@ export interface HeatingThermostatFieldsRxData {
      * @default 'voll'
      */
     ansicht?: 'voll' | 'einfach';
+    /**
+     * Inhaltsabstand inside the card, in the theme's spacing units (0–4).
+     *
+     * @default 1.5
+     */
+    inhaltsabstand?: number;
     /** Valve values and the Wertezuordnungen, by their generated names. */
     [key: `ventil${number}`]: string | undefined;
     [key: `${string}Zuordnung`]: Record<string, unknown> | string | undefined;

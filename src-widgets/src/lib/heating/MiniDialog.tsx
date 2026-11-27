@@ -32,12 +32,8 @@ export const InMiniDialogContext = createContext(false);
 /** Height of the title line in px (the design's). */
 const TITLE_HEIGHT = 56;
 
-/**
- * Inner spacing of the content area in px, at the sides and below — the frame's width arithmetic
- * (card inset and padding, 24 px across), so a 420 px dialog gives the content the same width as a
- * 420 px widget.
- */
-const AREA_INSET = 12;
+/** How far the title text stands in from the content area's edge, in px (the design's). */
+const TITLE_INDENT = 12;
 
 /** Distance of the dialog from the screen edges in px. */
 const SCREEN_MARGIN = 16;
@@ -54,6 +50,11 @@ export interface MiniDialogProps {
     label: string;
     /** The type's Voll design size of the content area: the dialog's size within the screen. */
     size: MeasuredBox;
+    /**
+     * The content area's inner spacing in px, at the sides and below: the type's Inhaltsabstand
+     * (ADR-0122 Nachtrag 2026-11-27), so the dialog keeps the same space as the widget.
+     */
+    inset: number;
     /** The content, drawn once the area is measured. */
     children: ReactNode;
 }
@@ -67,10 +68,19 @@ export interface MiniDialogProps {
  * @param props.title - The translated type name.
  * @param props.label - The accessible name.
  * @param props.size - The Voll design size of the content area.
+ * @param props.inset - The content area's inner spacing in px.
  * @param props.children - The content.
  * @returns The dialog.
  */
-export default function MiniDialog({ open, onClose, title, label, size, children }: MiniDialogProps): ReactElement {
+export default function MiniDialog({
+    open,
+    onClose,
+    title,
+    label,
+    size,
+    inset,
+    children,
+}: MiniDialogProps): ReactElement {
     const reducedMotion = useReducedMotion();
     const quiet = neutralColors(useTheme());
     const [area, setArea] = useState<HTMLElement | null>(null);
@@ -108,7 +118,7 @@ export default function MiniDialog({ open, onClose, title, label, size, children
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: 1,
-                    p: '6px 8px 0 24px',
+                    p: `6px 8px 0 ${inset + TITLE_INDENT}px`,
                 }}
             >
                 <Typography
@@ -136,7 +146,7 @@ export default function MiniDialog({ open, onClose, title, label, size, children
                     height: size.height,
                     minHeight: 0,
                     boxSizing: 'border-box',
-                    p: `0 ${AREA_INSET}px ${AREA_INSET}px`,
+                    p: `0 ${inset}px ${inset}px`,
                     overflow: 'hidden',
                 }}
             >

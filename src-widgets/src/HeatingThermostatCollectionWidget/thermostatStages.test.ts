@@ -7,7 +7,8 @@
  * Content-Box. The start-step test derives the box from the outer 420 × 700 px with the grid test's
  * frame arithmetic (`lib/aiCatalogView.parity.test.ts`, `frameHeightOf`): the card inset of 8 px, the
  * header and the footer line flat at 20 px each and the base padding of 8 px on both sides — about
- * 396 × 636 px. Every threshold is pinned with a value just before and just behind it. The tile
+ * 416 × 636 px from 440 × 700 px —, and the standard Inhaltsabstand of 12 px on every side, which
+ * the size-stage module takes off before the rule (ADR-0122 Nachtrag 2026-11-27). Every threshold is pinned with a value just before and just behind it. The tile
  * computes in the area the size-stage module's hull leaves it (`tileArea`); its cases stay in
  * Content-Box sizes.
  */
@@ -49,6 +50,9 @@ const FRAME_LINE = 20;
 /** The standard base padding (1 unit of 8 px) on both sides. */
 const BASE_PADDING = 2 * 8;
 
+/** The standard Inhaltsabstand (1.5 units of 8 px) on both sides. */
+const INHALTSABSTAND = 2 * 12;
+
 /** The Content-Box of an outer widget size in the standard configuration. */
 const contentBoxOf = (width: number, height: number): { width: number; height: number } => ({
     width: width - CARD_INSET - BASE_PADDING,
@@ -58,22 +62,32 @@ const contentBoxOf = (width: number, height: number): { width: number; height: n
 /** The rule with the Raumthermostat's standard data (it reads none). */
 const stageOf = (width: number, height: number): string => thermostatStage({ width, height }, {});
 
-describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9)', () => {
-    it('derives about 396 × 636 px of Content-Box from the outer 420 × 700 px', () => {
-        expect(contentBoxOf(420, 700)).toEqual({ width: 396, height: 636 });
+describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9, Nachtrag 2026-11-27)', () => {
+    it('derives about 416 × 636 px of Content-Box from the outer 440 × 700 px', () => {
+        expect(contentBoxOf(440, 700)).toEqual({ width: 416, height: 636 });
     });
 
-    it('reaches Voll from the start size, in the arrangement Groß of the design', () => {
+    it('reaches Voll from the start size inside the standard Inhaltsabstand, in the arrangement Groß', () => {
+        const box = contentBoxOf(440, 700);
+        const content = { width: box.width - INHALTSABSTAND, height: box.height - INHALTSABSTAND };
+
+        expect(content).toEqual({ width: 392, height: 612 });
+        expect(stageOf(content.width, content.height)).toBe('voll');
+        expect(thermostatArrangement('voll', content)).toBe('gross');
+    });
+
+    it('would not reach Groß from the former 420 px with the standard Inhaltsabstand', () => {
         const box = contentBoxOf(420, 700);
+        const content = { width: box.width - INHALTSABSTAND, height: box.height - INHALTSABSTAND };
 
-        expect(stageOf(box.width, box.height)).toBe('voll');
-        expect(thermostatArrangement('voll', box)).toBe('gross');
+        expect(thermostatArrangement('voll', content)).toBe('mittel');
     });
 
-    it('holds Voll at 632 px of height (11 grid rows) and at 296 px of width (the narrowest section)', () => {
-        expect(stageOf(396, 632)).toBe('voll');
-        expect(stageOf(296, 636)).toBe('voll');
+    it('holds Voll at 11 grid rows (632 px); the narrowest section (296 px) holds it only without the Inhaltsabstand', () => {
+        expect(stageOf(416 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('voll');
         expect(stageOf(296, 632)).toBe('voll');
+        // A documented consequence (ADR-0122 Nachtrag 2026-11-27): 296 − 24 = 272 < 276.
+        expect(stageOf(296 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('einfach');
     });
 });
 

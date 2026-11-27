@@ -302,6 +302,7 @@ function ThermostatContent({ entry }: ThermostatContentProps): ReactElement {
             rule={thermostatStage}
             data={widgetData}
             ansicht={widgetData.ansicht}
+            inset={widgetData.inhaltsabstand}
             renderStage={(stage, box) => (
                 <ThermostatStage
                     plan={thermostatPlan(stage, box, writable)}
