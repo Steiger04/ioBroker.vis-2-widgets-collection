@@ -1496,5 +1496,6 @@
     "heating_ventile": "Valves",
     "heating_ventil_hinzufuegen": "Add valve",
     "heating_ventil_entfernen": "Remove valve",
-    "heating_ventile_verschieden": "The selected widgets have different valves. Select one widget to add or remove valves."
+    "heating_ventile_verschieden": "The selected widgets have different valves. Select one widget to add or remove valves.",
+    "heating_dialog_close": "Close"
 }

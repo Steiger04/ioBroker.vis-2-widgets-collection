@@ -17,18 +17,22 @@
  *   symbol and the status dot — the warning triangle in the Meldungsfarbe for a Meldung (Störung
  *   full, Hinweis tinted), else a dot in the chip's tone (ADR-0124 Nr. 4) — and the status in the
  *   accessible name;
- * - the dialog the tile opens (its open state lives here, above the stages, so it survives the
- *   widget growing out of Mini).
+ * - the Mini-Dialog the tile opens (`lib/heating/MiniDialog`, Nr. 6, 7): its open state lives here,
+ *   above the stages, so it survives the widget growing out of Mini; it shows this module again,
+ *   which inside the dialog draws the stage of the dialog's own box, without the `ansicht` cap and
+ *   never below Einfach; on closing the focus returns to the tile.
  *
- * In the editor Mini shows the tile; there is no edit path of its own (Nr. 8).
+ * In the editor Mini shows the tile; a locked widget or hidden helpers open the dialog as at
+ * runtime — there is no edit path of its own (Nr. 8).
  */
 import OpenInFull from '@mui/icons-material/OpenInFull';
 import { Box, ButtonBase, Typography, keyframes, useTheme } from '@mui/material';
-import { useState, type ReactElement, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from 'react';
 
 import useContentBox from '../../hooks/useContentBox';
+import MiniDialog, { InMiniDialogContext } from './MiniDialog';
 import { useReducedMotion } from './motion';
-import { cappedStage, measuredBoxOf, type DrawnStage, type MeasuredBox, type SizeRule } from './stageRule';
+import { cappedStage, dialogStage, measuredBoxOf, type DrawnStage, type MeasuredBox, type SizeRule } from './stageRule';
 import { toneColors, type HeatingTone } from './tones';
 
 /** The status a type names for its tile: the chip's tone, a Meldung over it, and its words. */
@@ -146,6 +150,7 @@ interface TileProps {
     status: TileStatus;
     open: boolean;
     onOpen: () => void;
+    buttonRef: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -158,9 +163,10 @@ interface TileProps {
  * @param props.status - The type's status.
  * @param props.open - Whether the dialog is open.
  * @param props.onOpen - Opens the dialog.
+ * @param props.buttonRef - The tile's button, where the focus returns when the dialog closes.
  * @returns The tile.
  */
-function Tile({ content, name, typeName, status, open, onOpen }: TileProps): ReactElement {
+function Tile({ content, name, typeName, status, open, onOpen, buttonRef }: TileProps): ReactElement {
     const reducedMotion = useReducedMotion();
     const label = [name || typeName, status.label].filter(Boolean).join(', ');
     const raised = (node: ReactNode): ReactNode =>
@@ -220,6 +226,7 @@ function Tile({ content, name, typeName, status, open, onOpen }: TileProps): Rea
             </Box>
             {content.line == null ? null : <Box sx={{ minWidth: 0 }}>{content.line}</Box>}
             <ButtonBase
+                ref={buttonRef}
                 aria-label={label}
                 aria-haspopup="dialog"
                 aria-expanded={open}
@@ -242,7 +249,8 @@ function Tile({ content, name, typeName, status, open, onOpen }: TileProps): Rea
 /**
  * The content of a heating type by its size stage.
  *
- * @param props - Component props, see {@link SizeStagesProps}.
+ * @param props - Component props, see {@link SizeStagesProps}; the Mini-Dialog shows the module
+ * again with the same props.
  * @param props.rule - The type's pure rule.
  * @param props.data - The type's own data the rule reads.
  * @param props.ansicht - The stored `ansicht`.
@@ -251,27 +259,33 @@ function Tile({ content, name, typeName, status, open, onOpen }: TileProps): Rea
  * @param props.name - The Bezeichnung.
  * @param props.typeName - The translated type name.
  * @param props.status - The tile's status.
- * @returns Nothing before the first measurement, else the type's stage or the tile.
+ * @param props.fullSize - The Voll design size of the content: the dialog's size.
+ * @returns Nothing before the first measurement, else the type's stage or the tile (and the
+ * Mini-Dialog, while open).
  */
-export default function SizeStages<Data>({
-    rule,
-    data,
-    ansicht,
-    renderStage,
-    renderTile,
-    name,
-    typeName,
-    status,
-}: SizeStagesProps<Data>): ReactElement | null {
+export default function SizeStages<Data>(props: SizeStagesProps<Data>): ReactElement | null {
+    const { rule, data, ansicht, renderStage, renderTile, name, typeName, status, fullSize } = props;
     const box = measuredBoxOf(useContentBox());
+    const inDialog = useContext(InMiniDialogContext);
     // Above the stages: an open dialog stays open when the widget grows out of Mini (Nr. 7).
     const [open, setOpen] = useState(false);
+    const tileButton = useRef<HTMLButtonElement>(null);
+
+    // Closing returns the focus to the tile (Nr. 6) — after the dialog's focus trap has let go, and
+    // also when the tile was tapped without taking the focus; a widget grown out of Mini has none.
+    const wasOpen = useRef(false);
+    useEffect(() => {
+        if (wasOpen.current && !open) {
+            tileButton.current?.focus();
+        }
+        wasOpen.current = open;
+    }, [open]);
 
     if (!box) {
         return null;
     }
 
-    const stage = cappedStage(rule(box, data), ansicht);
+    const stage = inDialog ? dialogStage(rule(box, data)) : cappedStage(rule(box, data), ansicht);
 
     return (
         <Box
@@ -286,9 +300,21 @@ export default function SizeStages<Data>({
                     status={status}
                     open={open}
                     onOpen={() => setOpen(true)}
+                    buttonRef={tileButton}
                 />
             ) : (
                 renderStage(stage, box)
+            )}
+            {inDialog ? null : (
+                <MiniDialog
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    title={typeName}
+                    label={name || typeName}
+                    size={fullSize}
+                >
+                    <SizeStages {...props} />
+                </MiniDialog>
             )}
         </Box>
     );

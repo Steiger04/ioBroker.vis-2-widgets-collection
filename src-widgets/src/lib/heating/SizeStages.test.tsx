@@ -7,10 +7,15 @@
  * interface — no Raumthermostat logic. The scene injects the Content-Box the frame publishes.
  * Pinned: the empty content before the first measurement, the `ansicht` cap, the tile hull (whole
  * surface a button, name, open symbol, status dot with the precedence Störung > Hinweis > the
- * chip's tone, the status in the accessible name) and motion under `prefers-reduced-motion`.
+ * chip's tone, the status in the accessible name), motion under `prefers-reduced-motion` and the
+ * Mini-Dialog (ADR-0122 Nr. 6, 7): its own measured box — fed here by a ResizeObserver fake, since
+ * happy-dom lays nothing out — with the floor Einfach and no `ansicht` cap, open while the widget
+ * grows out of Mini, closing back to the tile, in the collection theme. The focus trap and the real
+ * layout are left to the acceptance in the browser.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 
+import { useTheme, type Theme } from '@mui/material';
 import { act, type FC } from 'react';
 
 import {
@@ -24,7 +29,63 @@ import useData from '../../hooks/useData';
 import SizeStages, { type TileStatus } from './SizeStages';
 import type { MeasuredBox, SizeStage } from './stageRule';
 
+/** The box the ResizeObserver fake reports for the Mini-Dialog's content area; `undefined` reports nothing. */
+let dialogBox: MeasuredBox | undefined;
+
+const nativeResizeObserver = globalThis.ResizeObserver;
+
+/** Reports {@link dialogBox} for the dialog's content area, nothing for anything else. */
+class DialogBoxObserver {
+    readonly #callback: ResizeObserverCallback;
+
+    constructor(callback: ResizeObserverCallback) {
+        this.#callback = callback;
+    }
+
+    observe(element: Element): void {
+        if (dialogBox && element.hasAttribute('data-heating-dialog-box')) {
+            this.#callback([{ contentRect: dialogBox } as unknown as ResizeObserverEntry], this);
+        }
+    }
+
+    // eslint-disable-next-line class-methods-use-this -- nothing to stop
+    unobserve(): void {}
+
+    // eslint-disable-next-line class-methods-use-this -- nothing to stop
+    disconnect(): void {}
+}
+
+globalThis.ResizeObserver = DialogBoxObserver;
 installInertResizeObserver();
+
+afterAll(() => {
+    globalThis.ResizeObserver = nativeResizeObserver;
+});
+
+/** The themes the stand-in's stages render under, where they render. */
+const themesSeen: { where: 'widget' | 'dialog'; theme: Theme }[] = [];
+
+/**
+ * The stand-in's drawn stage: names its stage and records the theme it renders under.
+ *
+ * @param props - Component props.
+ * @param props.stage - The drawn stage.
+ */
+function StandInStage({ stage }: { stage: string }): React.JSX.Element {
+    const theme = useTheme();
+    return (
+        <span
+            data-stand-in={stage}
+            ref={element => {
+                if (element) {
+                    themesSeen.push({ where: element.closest('[role="dialog"]') ? 'dialog' : 'widget', theme });
+                }
+            }}
+        >
+            {stage}
+        </span>
+    );
+}
 
 const mountBody = testScopedMount();
 
@@ -52,7 +113,7 @@ const standIn = ({ status = { tone: 'neutral' }, name = 'Wohnzimmer', ansicht = 
                     rule={standInRule}
                     data={{}}
                     ansicht={ansicht}
-                    renderStage={stage => <span data-stand-in={stage}>{stage}</span>}
+                    renderStage={stage => <StandInStage stage={stage} />}
                     renderTile={() => ({ main: <span data-stand-in="main">21°</span> })}
                     name={name}
                     typeName="Raumthermostat"
@@ -250,5 +311,141 @@ describe('SizeStages: motion', () => {
         });
         expect(container.querySelector('[data-heating-tile] .MuiTouchRipple-root')).toBeNull();
         expect(getComputedStyle(tileButton(container)).transition).not.toContain('background');
+    });
+});
+
+describe('SizeStages: the Mini-Dialog', () => {
+    const MINI = { width: 100, height: 200 };
+    const VOLL = { width: 320, height: 200 };
+
+    afterEach(() => {
+        dialogBox = undefined;
+        themesSeen.length = 0;
+    });
+
+    /** The open dialog (portalled into the document body), if any. */
+    const dialog = (): HTMLElement | null => document.body.querySelector<HTMLElement>('[role="dialog"]');
+
+    /** The stage drawn inside the dialog, if any. */
+    const dialogStage = (): string | null =>
+        dialog()?.querySelector('[data-heating-stage]')?.getAttribute('data-heating-stage') ?? null;
+
+    /** Mounts the stand-in as Mini and taps its tile. */
+    const openFromTile = (props: StandIn = {}): ReturnType<typeof mountBody> => {
+        const handle = mountBody(standIn(props), scene(MINI));
+        act(() => {
+            tileButton(handle.container).click();
+        });
+        return handle;
+    };
+
+    /** Lets the dialog's exit transition run out. */
+    const transitionOut = async (): Promise<void> => {
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 400));
+        });
+    };
+
+    it('opens from the tile, titled with the type name and labelled with the Bezeichnung', () => {
+        dialogBox = { width: 388, height: 684 };
+        const { container } = openFromTile();
+
+        expect(dialog()).not.toBeNull();
+        expect(dialog()!.querySelector('[data-heating-dialog-title]')!.textContent).toBe('Raumthermostat');
+        expect(dialog()!.getAttribute('aria-label')).toBe('Wohnzimmer');
+        expect(dialog()!.hasAttribute('aria-labelledby')).toBe(false);
+        expect(tileButton(container).getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('falls back to the type name as the accessible name without a Bezeichnung', () => {
+        dialogBox = { width: 388, height: 684 };
+        openFromTile({ name: '' });
+
+        expect(dialog()!.getAttribute('aria-label')).toBe('Raumthermostat');
+    });
+
+    it('shows nothing in the dialog before its area is measured', () => {
+        openFromTile();
+
+        expect(dialog()).not.toBeNull();
+        expect(dialogStage()).toBeNull();
+        expect(dialog()!.querySelector('[data-stand-in]')).toBeNull();
+    });
+
+    it('draws the stage the rule gives the dialog box (Voll)', () => {
+        dialogBox = { width: 388, height: 684 };
+        openFromTile();
+
+        expect(dialogStage()).toBe('voll');
+        expect(dialog()!.querySelector('[data-stand-in="voll"]')).not.toBeNull();
+    });
+
+    it('never goes below Einfach in the dialog: a small dialog box gives Einfach, no tile', () => {
+        dialogBox = { width: 100, height: 200 };
+        openFromTile();
+
+        expect(dialogStage()).toBe('einfach');
+        expect(dialog()!.querySelector('[data-heating-tile]')).toBeNull();
+    });
+
+    it('does not cap the dialog at `ansicht: einfach`', () => {
+        dialogBox = { width: 388, height: 684 };
+        openFromTile({ ansicht: 'einfach' });
+
+        expect(dialogStage()).toBe('voll');
+    });
+
+    it('stays open when the widget grows out of Mini', () => {
+        dialogBox = { width: 388, height: 684 };
+        const handle = openFromTile();
+        handle.rerender(scene(VOLL));
+
+        expect(stageIn(handle.container)).toBe('voll');
+        expect(dialog()).not.toBeNull();
+        expect(dialogStage()).toBe('voll');
+    });
+
+    it('draws dialog and content in the collection theme', () => {
+        dialogBox = { width: 388, height: 684 };
+        const handle = openFromTile();
+        handle.rerender(scene(VOLL));
+
+        const widgetTheme = themesSeen.find(seen => seen.where === 'widget')?.theme;
+        const dialogTheme = themesSeen.find(seen => seen.where === 'dialog')?.theme;
+        expect(widgetTheme).toBeDefined();
+        expect(dialogTheme).toBe(widgetTheme);
+    });
+
+    it.each<[string, () => void]>([
+        [
+            'the close button',
+            () => dialog()!.querySelector<HTMLElement>('button[aria-label="heating_dialog_close"]')!.click(),
+        ],
+        [
+            'Escape',
+            () =>
+                dialog()!.dispatchEvent(
+                    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+                ),
+        ],
+        [
+            'a tap beside the dialog',
+            () => {
+                const backdrop = document.body.querySelector<HTMLElement>('.MuiDialog-container')!;
+                backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                backdrop.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            },
+        ],
+    ])('closes on %s and returns the focus to the tile', async (_case, close) => {
+        dialogBox = { width: 388, height: 684 };
+        const { container } = openFromTile();
+        expect(document.activeElement).not.toBe(tileButton(container));
+
+        act(close);
+        await transitionOut();
+
+        expect(dialog()).toBeNull();
+        expect(tileButton(container).getAttribute('aria-expanded')).toBe('false');
+        expect(document.activeElement).toBe(tileButton(container));
     });
 });
