@@ -7,10 +7,13 @@
  * The design's thresholds (`layout()` of the design canvas) are outer widget sizes. Here they are
  * converted to the Content-Box with the frame of the standard configuration: 24 px of width (card
  * inset 8 px, base padding 2 × 8 px) and 64 px of height (the same plus the header and the footer
- * line flat at 2 × 20 px). So a widget dropped at the start size 420 × 700 px (≈ 396 × 636 px of
- * Content-Box) starts in Voll/Groß as in the design. Voll begins at Mittel, 276 × 376 px — within
- * the narrowest grid section (296 px) and 11 grid rows (632 px). The box after the frame counts
- * without correction (Nr. 4): a large padding or Rahmenvorgabe may move the widget one stage down.
+ * line flat at 2 × 20 px). The rule reads the box inside the Inhaltsabstand (ADR-0122 Nachtrag
+ * 2026-11-27, standard 2 × 12 px), so a widget dropped at the start size 440 × 700 px (≈ 416 × 636 px
+ * of Content-Box, 392 × 612 px inside the inset) starts in Voll/Groß as in the design. Voll begins
+ * at Mittel, 272 × 376 px — the narrowest grid section (296 px) inside the standard Inhaltsabstand,
+ * narrower than the design's 300 px outer, and 11 grid rows (632 px). The box after the frame counts
+ * without correction (Nr. 4): a large padding, Rahmenvorgabe or Inhaltsabstand may move the widget
+ * one stage down.
  *
  * The content draws by one plan (`thermostatPlan`): the helpers below are its pieces, each size
  * computed once there.
@@ -56,8 +59,12 @@ export const SETPOINT_FIT = {
 export const THERMOSTAT_THRESHOLDS = {
     /** Voll, arrangement Groß (design 400 × 640). */
     gross: { width: 376, height: 576 },
-    /** Voll, arrangement Mittel (design 300 × 440) — the least box of Voll. */
-    mittel: { width: 276, height: 376 },
+    /**
+     * Voll, arrangement Mittel (design 300 × 440) — the least box of Voll. Its width is the
+     * narrowest grid section (296 px) inside the standard Inhaltsabstand, not the design's
+     * (ADR-0122 Nachtrag 2026-11-27); the dial stays bound by the height there.
+     */
+    mittel: { width: 272, height: 376 },
     /** Einfach, arrangement Quer (design 480 × 180). */
     quer: { width: 456, height: 116 },
     /** Einfach, arrangement Kompakt (design 280 × 210). */

@@ -196,7 +196,7 @@ The widget picks its arrangement by the measured content area, i.e. the area aft
 | Stage  | Arrangement | from content area | Content                                                                                                                                                 |
 | ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Full   | Large       | 376 × 576 px      | Card head with symbol, name, sub-line and chip; ring with set point, actual and ±; hint line; pills; operating-mode segment; readings bar               |
-| Full   | Medium      | 276 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
+| Full   | Medium      | 272 × 376 px      | Name and chip; ring with set point, actual and ±; hint line only for a fault or notice                                                                  |
 | Simple | Wide        | 456 × 116 px      | Head stacked on the left with hint line, ± and big set point on the right; operating-mode segment from 236 px height                                    |
 | Simple | Compact     | 256 × 146 px      | Name and chip, ± and set point, below it actual or message                                                                                              |
 | Mini   | Tile        | below             | Name, warning triangle for a fault or notice, set point; ± from 196 × 68 px; footer line with actual or message from 80 px height, beside ± from 100 px |
@@ -209,7 +209,7 @@ With the standard frame the start size 440 × 700 px gives about 416 × 636 px, 
 
 ### Frame and Size Stage
 
-The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples with the standard content inset: a widget about 420 px wide shows Medium instead of Large, in the narrowest grid section (320 px) it shows Compact.
+The area after the frame and the content inset counts, without correction. A large padding, header or footer texts, a frame default from the [Theme Studio](En-Theme-Studio.md#widget-frame-section) with a large padding or a large content inset can therefore move the widget one size stage down. Then enlarge the widget or reduce the padding or the content inset. Examples: with the standard content inset a widget about 420 px wide shows Medium instead of Large. The narrowest grid section (320 px) just holds Medium with the standard content inset; with a larger one it shows Compact.
 
 ## Mini Dialog
 

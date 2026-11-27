@@ -196,7 +196,7 @@ Das Widget wählt seine Anordnung nach der gemessenen Inhaltsfläche, also der F
 | Stufe   | Anordnung | ab Inhaltsfläche | Inhalt                                                                                                                                          |
 | ------- | --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Voll    | Groß      | 376 × 576 px     | Kartenkopf mit Symbol, Bezeichnung, Unterzeile und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile; Pills; Betriebsart-Segment; Messwertleiste |
-| Voll    | Mittel    | 276 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
+| Voll    | Mittel    | 272 × 376 px     | Name und Chip; Ring mit Sollwert, Ist und ±; Hinweiszeile nur bei Störung oder Hinweis                                                          |
 | Einfach | Quer      | 456 × 116 px     | Kopf gestapelt links mit Hinweiszeile, ± und großer Sollwert rechts; Betriebsart-Segment ab 236 px Höhe                                         |
 | Einfach | Kompakt   | 256 × 146 px     | Name und Chip, ± und Sollwert, darunter Ist oder Meldung                                                                                        |
 | Mini    | Kachel    | darunter         | Name, Warndreieck bei Störung oder Hinweis, Sollwert; ± ab 196 × 68 px; Fußzeile mit Ist oder Meldung ab 80 px Höhe, neben ± ab 100 px          |
@@ -209,7 +209,7 @@ Die Startgröße 440 × 700 px ergibt mit dem Standard-Rahmen etwa 416 × 636 px
 
 ### Rahmen und Größenstufe
 
-Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele mit dem Standard-Inhaltsabstand: Ein Widget von etwa 420 px Breite zeigt Mittel statt Groß, in der schmalsten Raster-Sektion (320 px) zeigt es Kompakt.
+Es zählt die Fläche nach dem Rahmen und dem Inhaltsabstand, ohne Ausgleich. Ein großes Padding, Kopf- oder Fußzeilentexte, eine Rahmenvorgabe aus dem [Theme-Studio](De-Theme-Studio.md#sektion-widget-rahmen) mit großem Padding oder ein großer Inhaltsabstand können das Widget deshalb eine Größenstufe tiefer setzen. Vergrößere dann das Widget oder verringere Padding bzw. Inhaltsabstand. Beispiele: Mit dem Standard-Inhaltsabstand zeigt ein Widget von etwa 420 px Breite Mittel statt Groß. Die schmalste Raster-Sektion (320 px) hält mit dem Standard-Inhaltsabstand gerade noch Mittel, mit einem größeren zeigt sie Kompakt.
 
 ## Mini-Dialog
 

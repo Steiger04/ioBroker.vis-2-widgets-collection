@@ -27,8 +27,8 @@ describe('thermostatPlan: Voll', () => {
         // One px too narrow for Groß: Mittel, min(323, 408) capped at 320.
         ['Mittel one px too narrow for Groß', 375, 576, { arrangement: 'mittel', dial: { size: 320, font: 48 } }],
         ['Mittel one px too low for Groß', 376, 575, { arrangement: 'mittel', dial: { size: 320, font: 48 } }],
-        // min(224, 208) = 208.
-        ['Mittel at its least box', 276, 376, { arrangement: 'mittel', dial: { size: 208, font: 31 } }],
+        // min(220, 208) = 208.
+        ['Mittel at its least box', 272, 376, { arrangement: 'mittel', dial: { size: 208, font: 31 } }],
     ])('%s (%i × %i px)', (_case, width, height, plan) => {
         expect(thermostatPlan('voll', { width, height }, true)).toEqual(plan);
     });

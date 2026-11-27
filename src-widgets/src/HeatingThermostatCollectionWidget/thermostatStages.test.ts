@@ -83,20 +83,24 @@ describe('Startstufe: the Raumthermostat starts in Voll (ADR-0122 Nr. 9, Nachtra
         expect(thermostatArrangement('voll', content)).toBe('mittel');
     });
 
-    it('holds Voll at 11 grid rows (632 px); the narrowest section (296 px) holds it only without the Inhaltsabstand', () => {
+    it('holds Voll at 11 grid rows (632 px) and in the narrowest section (296 px), inside the standard Inhaltsabstand', () => {
         expect(stageOf(416 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('voll');
         expect(stageOf(296, 632)).toBe('voll');
-        // A documented consequence (ADR-0122 Nachtrag 2026-11-27): 296 − 24 = 272 < 276.
-        expect(stageOf(296 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('einfach');
+        // Mittel's width is 296 − 24 = 272 px (ADR-0122 Nachtrag 2026-11-27).
+        expect(stageOf(296 - INHALTSABSTAND, 632 - INHALTSABSTAND)).toBe('voll');
+        expect(thermostatArrangement('voll', { width: 296 - INHALTSABSTAND, height: 632 - INHALTSABSTAND })).toBe(
+            'mittel',
+        );
     });
 });
 
 describe('Größenstufen: the thresholds of the rule', () => {
     it.each([
-        // Voll begins with the arrangement Mittel: 300 × 440 px outer.
-        ['Voll at its least box', 276, 376, 'voll'],
-        ['not Voll one px too narrow', 275, 376, 'einfach'],
-        ['not Voll one px too low', 276, 375, 'einfach'],
+        // Voll begins with the arrangement Mittel: the narrowest grid section (296 px) inside the
+        // standard Inhaltsabstand wide, the design's 440 px outer high.
+        ['Voll at its least box', 272, 376, 'voll'],
+        ['not Voll one px too narrow', 271, 376, 'einfach'],
+        ['not Voll one px too low', 272, 375, 'einfach'],
         // Einfach as Quer: 480 × 180 px outer.
         ['Einfach (Quer) at its least box', 456, 116, 'einfach'],
         ['not Quer one px too low', 456, 115, 'mini'],
@@ -237,7 +241,7 @@ describe('Passform: the set-point stays inside the ring of the dial', () => {
     };
 
     it.each([
-        ['Mittel at its least box', 'mittel', 276, 376],
+        ['Mittel at its least box', 'mittel', 272, 376],
         ['Mittel at 330 × 450 px outer (acceptance)', 'mittel', 304, 424],
         ['Mittel at its largest dial', 'mittel', 375, 900],
         ['Groß at its least box', 'gross', 376, 576],
